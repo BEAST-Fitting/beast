@@ -7,6 +7,8 @@
 """
 import os,sys
 import numpy
+from scipy import interpolate
+import pylab
 
 __version__ = '0.0.2'
 
@@ -20,7 +22,7 @@ class ExtinctionLaw(object):
 		"""
 		pass
 	def inFilter(self, s, *args, **kwargs):
-		""" Exected to return the extinction value for a given filter
+		""" Expected to return the extinction value for a given filter
 		band or filter color"""
 		pass
 
@@ -72,9 +74,6 @@ class Calzetti(ExtinctionLaw):
 			return k
 		else:	
 			return 10**(0.4*k)
-		
-		
-	
 
 class Cardelli(ExtinctionLaw):
 	def __init__(self):
@@ -138,9 +137,9 @@ class Cardelli(ExtinctionLaw):
 		#Return Extinction vector 
 		#Eq 1
 		if (Alambda == True):
-		    return( 2.5*1./numpy.log(10.)*( a + b/Rv ) * Av)
-		else:
 		    return( ( a + b/Rv ) * Av)
+		else:
+		    return( 2.5*1./numpy.log(10.)*( a + b/Rv ) * Av)
 	
 	def inFilter(self, s, cat=None, debug=False, *args, **kwargs):
 		""" 
@@ -176,3 +175,182 @@ class Cardelli(ExtinctionLaw):
 			del catalog
 		    return(val[0])
 
+# Fitzpatrick (1999, PASP, 111, 63)
+# R(V) dependent extinction curve that explicitly deals
+# with optical/NIR extinction being measured from broad/medium band photometry
+# based on fm_unred.pro from the IDL astronomy library
+class Fitzpatrick99(ExtinctionLaw):
+	def __init__(self):
+		self.name = 'Fitzpatrick99'
+
+	def function(self, lamb, Av=1, Rv=3.1, Alambda=True):
+		""" 
+		Fitzparick99 extinction Law
+		Lamb as to be in microns!!!
+
+		input:
+		    lamb    <float>    wavelength of the extinction point !! in microns !!
+		output:
+		    tau        <float> returns tau as in redflux = flux*exp(-tau)
+		keywords:
+		    Alambda        <bool>  returns +2.5*1./log(10.)*tau
+		    Av        <float>    extinction value (def: 1.0)
+		    Rv        <float> extinction param. (def: 3.1)
+		"""
+
+		if type(lamb) == float:
+			_lamb = numpy.asarray([lamb])
+		else:
+			_lamb = lamb[:]
+
+		c2 = -0.824 + 4.717/Rv
+		c1 = 2.030 - 3.007*c2
+		c3 = 3.23
+		c4 = 0.41
+		x0 = 4.596
+		gamma = 0.99
+
+		x = 1./_lamb
+		k = numpy.zeros(numpy.size(x))
+
+		# compute the UV portion of A(lambda)/E(B-V)
+		xcutuv = 10000.0/2700.
+		xspluv = 10000.0/numpy.array([2700.,2600.])
+		ind = numpy.where(x>=xcutuv)
+
+		if numpy.size(ind) > 0:
+			k[ind] = c1 + (c2*x[ind]) + c3*((x[ind])**2)/( ((x[ind])**2 - (x0**2))**2 + (gamma**2)*((x[ind])**2 ))
+			yspluv = c1 + (c2*xspluv) + c3*((xspluv)**2)/( ((xspluv)**2 - (x0**2))**2 + (gamma**2)*((xspluv)**2 ))
+		
+			# FUV portion
+			fuvind = numpy.where(x>=5.9)
+			k[fuvind] += c4*(0.5392*((x[fuvind]-5.9)**2) + 0.05644*((x[fuvind]-5.9)**3))
+
+			k[ind] += Rv
+			yspluv += Rv
+
+		# Optical/NIR portion
+
+		ind = numpy.where(x<xcutuv)
+		if numpy.size(ind) > 0:
+			xsplopir = numpy.zeros(7)
+			xsplopir[0] = 0.0
+			xsplopir[1:7] = 10000.0/numpy.array([26500.0,12200.0,6000.0,5470.0,4670.0,4110.0])
+
+			ysplopir = numpy.zeros(7)
+			ysplopir[0:3] =  numpy.array([0.0,0.26469,0.82925])*Rv/3.1
+
+			
+			ysplopir[3:7] = numpy.array([numpy.poly1d([2.13572e-04 , 1.00270, -4.22809e-01])(Rv),
+						     numpy.poly1d([-7.35778e-05, 1.00216, -5.13540e-02])(Rv),
+						     numpy.poly1d([-3.32598e-05, 1.00184,  7.00127e-01])(Rv),
+						     numpy.poly1d([ 1.19456, 1.01707, -5.46959e-03, 7.97809e-04,
+								    -4.45636e-05][::-1])(Rv)])
+
+			tck = interpolate.splrep(numpy.hstack([xsplopir,xspluv]), numpy.hstack([ysplopir,yspluv]), k=3)
+			k[ind] = interpolate.splev(x[ind], tck)
+
+		# convert from A(lambda)/E(B-V) to A(lambda)/A(V)
+		k /= Rv
+			
+		if (Alambda == True):
+			return(k*Av)
+	        else:
+			return(k*Av*(numpy.log(10.)/2.5))
+
+class Gordon03_SMCBar(ExtinctionLaw):
+	def __init__(self):
+		self.name = 'Gordon03_SMCBar'
+	def function(self, lamb, Av=1, Alambda=True):
+		if type(lamb) == float:
+			_lamb = numpy.asarray([lamb])
+		else:
+			_lamb = lamb[:]
+
+		Rv = 2.74
+		
+#		c1= -3.618/Rv
+#		c2 = 1.994/Rv
+#		c3 = 0.239/Rv
+#		c4 = 0.618/Rv
+		c1= -4.959/Rv
+		c2 = 2.264/Rv
+		c3 = 0.389/Rv
+		c4 = 0.461/Rv
+		x0 = 4.6
+		gamma = 1.0
+		
+		x = 1./_lamb
+		k = numpy.zeros(numpy.size(x))
+		
+		# UV part
+		xcutuv = 10000.0/2700.
+		xspluv = 10000.0/numpy.array([2700.,2600.])
+
+		ind = numpy.where(x>=xcutuv)
+		if numpy.size(ind) > 0:
+			k[ind] = 1.0 + c1 + (c2*x[ind]) + c3*((x[ind])**2)/( ((x[ind])**2 - (x0**2))**2 + (gamma**2)*((x[ind])**2 ))
+			yspluv = 1.0 + c1 + (c2*xspluv) + c3*((xspluv)**2)/( ((xspluv)**2 - (x0**2))**2 + (gamma**2)*((xspluv)**2 ))
+								   
+			ind = numpy.where(x>=5.9)
+			k[ind] += c4*(0.5392*((x[ind]-5.9)**2) + 0.05644*((x[ind]-5.9)**3))
+
+		# Opt/NIR part
+		ind = numpy.where(x<xcutuv)
+		if numpy.size(ind) > 0:
+			xsplopir = numpy.zeros(9)
+			xsplopir[0] = 0.0
+			xsplopir[1:10] = 1.0/numpy.array([2.198,1.65,1.25,0.81,0.65,0.55,0.44,0.37])
+
+			# Values directly from Gordon et al. (2003)
+#			ysplopir =  numpy.array([0.0,0.016,0.169,0.131,0.567,0.801,1.00,1.374,1.672])
+			# K & J values adjusted to provide a smooth, non-negative cubic spline interpolation
+			ysplopir =  numpy.array([0.0,0.11,0.169,0.25,0.567,0.801,1.00,1.374,1.672])
+
+			tck = interpolate.splrep(numpy.hstack([xsplopir,xspluv]), numpy.hstack([ysplopir,yspluv]), k=3)
+			k[ind] = interpolate.splev(x[ind], tck)
+		
+		if (Alambda == True):
+			return( k*Av)
+		else:
+			return( k*Av*(numpy.log(10.)/2.5))
+
+class MixLaws(object):
+	##Initialize with two strings containing two model names.
+	##Takes single model arguments as well as f_mod_1, fraction of model 1.
+	def __init__(self,Model1='Gordon03_SMCBar',Model2='Calzetti'):
+		self.mod1 = eval(str(Model1)+'()')
+		self.mod2 = eval(str(Model2)+'()')
+
+	def function(self, lamb, Av=1, Rv=2.4, Alambda=True, f_mod_1 = 0.5):
+		return (f_mod_1)*self.mod1.function(lamb,Av,Rv,Alambda) + (1-f_mod_1)*self.mod2.function(lamb,Av,Rv,Alambda)
+
+if __name__ == "__main__":
+	# check that things look correct
+	# -> make some plots
+
+	x = (numpy.arange(100)/100.)*10. + 0.1
+	lamb = 1./x
+
+	ccm = Cardelli()
+	f99 = Fitzpatrick99()
+	gsmc = Gordon03_SMCBar()
+
+        fig = pylab.figure()
+        plt = fig.add_subplot(1,1,1)
+	
+	Rv_vals = numpy.array([2.0,3.0,4.0,5.0,6.0])
+	for Rv in Rv_vals:
+		yccm = ccm.function(lamb, Rv=Rv)
+		yf99 = f99.function(lamb, Rv=Rv)
+
+#		pylab.plot(x,yccm)
+		plt.plot(x,yf99)
+
+	ygsmc = gsmc.function(lamb)
+	plt.plot(x,ygsmc)
+
+	plt.set_ylabel('A($\lambda$)/A(V)')
+	plt.set_xlabel('1/x [$\mu$m$^{-1}$]')
+
+	pylab.show()
