@@ -27,7 +27,7 @@ class ExtinctionLaw(object):
 		pass
 
 	def __call__(self, *args, **kwargs):
-		pass
+		return self.function(*args, **kwargs)
 
 class Calzetti(ExtinctionLaw):
 	"""
@@ -315,15 +315,15 @@ class Gordon03_SMCBar(ExtinctionLaw):
 		else:
 			return( k*Av*(numpy.log(10.)/2.5))
 
-class MixLaws(object):
+class RvFbumpLaw(ExtinctionLaw):
 	##Initialize with two strings containing two model names.
 	##Takes single model arguments as well as f_mod_1, fraction of model 1.
-	def __init__(self,Model1='Gordon03_SMCBar',Model2='Calzetti'):
-		self.mod1 = eval(str(Model1)+'()')
-		self.mod2 = eval(str(Model2)+'()')
+	def __init__(self):
+		self.RvLaw = Fitzpatrick99()
+		self.NoBumpLaw = Gordon03_SMCBar()
 
-	def function(self, lamb, Av=1, Rv=2.4, Alambda=True, f_mod_1 = 0.5):
-		return (f_mod_1)*self.mod1.function(lamb,Av,Rv,Alambda) + (1-f_mod_1)*self.mod2.function(lamb,Av,Rv,Alambda)
+	def function(self, lamb, Av=1, Rv=3.1, Alambda=True, f_bump=0.5):
+		return (f_bump)*self.RvLaw.function(lamb,Av,Rv,Alambda) + (1-f_bump)*self.NoBumpLaw.function(lamb,Av,Alambda)
 
 if __name__ == "__main__":
 	# check that things look correct
@@ -349,6 +349,10 @@ if __name__ == "__main__":
 
 	ygsmc = gsmc.function(lamb)
 	plt.plot(x,ygsmc)
+
+	mixlaw = RvFbumpLaw()
+	ymix = mixlaw(lamb,Rv=3.1,f_bump=0.5)
+	plt.plot(x,ymix)
 
 	plt.set_ylabel('A($\lambda$)/A(V)')
 	plt.set_xlabel('1/x [$\mu$m$^{-1}$]')
