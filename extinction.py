@@ -49,7 +49,7 @@ class Calzetti(ExtinctionLaw):
 	def __init__(self):
 		self.name = 'Calzetti'
 	
-	def function(self, lamb, Av=1, Rv=4.05, Alambda=True):
+	def function(self, lamb, Av=1, Rv=4.05, Alambda=True, **kwargs):
 		"""
 		Returns Alambda or tau for a Calzetti law
 		
@@ -76,9 +76,10 @@ class Calzetti(ExtinctionLaw):
 			return 10**(0.4*k)
 
 class Cardelli(ExtinctionLaw):
+	""" Cardelli, Clayton, and Mathis (1989, ApJ, 345, 245)"""
 	def __init__(self):
 		self.name = 'Cardelli'
-	def function(self, lamb, Av=1., Rv=3.1, Alambda = True, debug=False):
+	def function(self, lamb, Av=1., Rv=3.1, Alambda = True, debug=False, **kwargs):
 		""" 
 		Cardelli extinction Law
 		Lamb as to be in microns!!!
@@ -175,15 +176,17 @@ class Cardelli(ExtinctionLaw):
 			del catalog
 		    return(val[0])
 
-# Fitzpatrick (1999, PASP, 111, 63)
-# R(V) dependent extinction curve that explicitly deals
-# with optical/NIR extinction being measured from broad/medium band photometry
-# based on fm_unred.pro from the IDL astronomy library
 class Fitzpatrick99(ExtinctionLaw):
+	"""
+	Fitzpatrick (1999, PASP, 111, 63)
+	R(V) dependent extinction curve that explicitly deals with optical/NIR
+	extinction being measured from broad/medium band photometry.
+	Based on fm_unred.pro from the IDL astronomy library
+	"""
 	def __init__(self):
 		self.name = 'Fitzpatrick99'
 
-	def function(self, lamb, Av=1, Rv=3.1, Alambda=True):
+	def function(self, lamb, Av=1, Rv=3.1, Alambda=True, **kwargs):
 		""" 
 		Fitzparick99 extinction Law
 		Lamb as to be in microns!!!
@@ -259,9 +262,21 @@ class Fitzpatrick99(ExtinctionLaw):
 			return(k*Av*(numpy.log(10.)/2.5))
 
 class Gordon03_SMCBar(ExtinctionLaw):
+	""" Gordon et al. 2003 (ApJ, 594:279-293)"""
 	def __init__(self):
 		self.name = 'Gordon03_SMCBar'
-	def function(self, lamb, Av=1, Alambda=True):
+	def function(self, lamb, Av=1, Alambda=True, **kwargs):
+		"""
+		Lamb as to be in microns!!!
+
+		input:
+		    lamb    <float>    wavelength of the extinction point !! in microns !!
+		output:
+		    tau        <float> returns tau as in redflux = flux*exp(-tau)
+		keywords:
+		    Alambda        <bool>  returns +2.5*1./log(10.)*tau
+		    Av        <float>    extinction value (def: 1.0)
+		"""
 		if type(lamb) == float:
 			_lamb = numpy.asarray([lamb])
 		else:
@@ -316,13 +331,27 @@ class Gordon03_SMCBar(ExtinctionLaw):
 			return( k*Av*(numpy.log(10.)/2.5))
 
 class RvFbumpLaw(ExtinctionLaw):
-	##Initialize with two strings containing two model names.
-	##Takes single model arguments as well as f_mod_1, fraction of model 1.
+	""" Mixture of Fitzpatrick99 and Gordon03_SMCBar allowing to vary the
+	bump amplitude in the extinction law
+	"""
 	def __init__(self):
 		self.RvLaw = Fitzpatrick99()
 		self.NoBumpLaw = Gordon03_SMCBar()
 
 	def function(self, lamb, Av=1, Rv=3.1, Alambda=True, f_bump=0.5):
+		"""
+		Lamb as to be in microns!!!
+
+		input:
+		    lamb      <float>    wavelength of the extinction point !! in microns !!
+		output:
+		    tau       <float>    returns tau as in redflux = flux*exp(-tau)
+		keywords:
+		    Alambda   <bool>     returns +2.5*1./log(10.)*tau
+		    Av        <float>    extinction value (def: 1.0)
+		    Rv        <float>    extinction param. (def: 3.1)
+		    f_bump    <float>    mixture faction defining the bump amplitude
+		"""
 		return (f_bump)*self.RvLaw.function(lamb,Av,Rv,Alambda) + (1-f_bump)*self.NoBumpLaw.function(lamb,Av,Alambda)
 
 if __name__ == "__main__":
