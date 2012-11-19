@@ -338,7 +338,7 @@ class RvFbumpLaw(ExtinctionLaw):
 		self.RvLaw = Fitzpatrick99()
 		self.NoBumpLaw = Gordon03_SMCBar()
 
-	def function(self, lamb, Av=1, Rv=3.1, Alambda=True, f_bump=0.5):
+	def function(self, lamb, Av=1, Rv=3.1, Alambda=True, f_bump=0.5, **kwargs):
 		"""
 		Lamb as to be in microns!!!
 
