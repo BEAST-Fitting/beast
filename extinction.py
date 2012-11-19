@@ -350,7 +350,7 @@ class RvFbumpLaw(ExtinctionLaw):
 		    Alambda   <bool>     returns +2.5*1./log(10.)*tau
 		    Av        <float>    extinction value (def: 1.0)
 		    Rv        <float>    extinction param. (def: 3.1)
-		    f_bump    <float>    mixture faction defining the bump amplitude
+		    f_bump    <float>    mixture fraction defining the bump amplitude
 		"""
 		return (f_bump)*self.RvLaw.function(lamb,Av,Rv,Alambda) + (1-f_bump)*self.NoBumpLaw.function(lamb,Av,Alambda)
 
