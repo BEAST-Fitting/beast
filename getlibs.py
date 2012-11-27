@@ -3,7 +3,7 @@
 # vim:fileencoding=UTF-8:ts=4:sw=4:sta:et:sts=4:ai
 
 import sys, os, inspect, urllib2
-from tools import progressbar as pb
+import progressbar as pb
 from config import libs_server, libs
 
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
