@@ -2,7 +2,7 @@
 #
 cleantemp = rm -rf build; rm -f *.c
 
-.PHONY : clean all build tarc extern
+.PHONY : clean all build tarc extern libs
 
 DIRS = include
 TAR  = sourcecode.tar.gz
@@ -27,5 +27,9 @@ build:
 	python setup.py build_ext --inplace
 	$(cleantemp)
 
-commit: tar
-	bzr commit
+commit: 
+	git commit
+	git push
+
+libs: 
+	python getlibs.py

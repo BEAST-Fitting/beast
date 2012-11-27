@@ -6,6 +6,16 @@ __WITH_C_LIBS__ = True
 # Default number of threads to use
 __NTHREADS__ = 3
 
+# Online libraries
+# will be replaced by a more flexible support (JSON is easy!)
+libs_server = 'http://chex.astro.washington.edu:8899/sedfitter/'
+libs = dict(
+    vega     = 'vega.hd5',
+    filters  = 'filters.hd5',
+    #specgrid = 'basel_padova2010.spectralgrid.fits',
+    #sedgrid  = 'PHATSEDs_basel_padovaiso.fits'
+    kuruczgrid  = 'kurucz2004.grid.fits'
+)
 
 def printConfig():
 	print """ ============ pyPEGASE defaut configuration ===========
