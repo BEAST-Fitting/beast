@@ -117,6 +117,15 @@ try:
 				return memory_profiler.show_results(self.m)
 			else:
 				return None
+
+	@memtrace
+	def test_memtrace(*args):
+		""" Test memtrace decorator """
+		a = 2
+		b = [1]*5
+		c = args
+		print args
+		return args
 except ImportError:
 	pass
 
@@ -269,14 +278,6 @@ def fibonacci(n):
    return fibonacci(n-1) + fibonacci(n-2)
 
 
-@memtrace
-def test_memtrace(*args):
-	""" Test memtrace decorator """
-	a = 2
-	b = [1]*5
-	c = args
-	print args
-	return args
 
 @persistent_locals
 def test_locals(*args, **kwargs):
