@@ -10,15 +10,17 @@ from copy import deepcopy
 from anased import *
 import extinction
 import grid
+import photometry
 import output
 
 
 #TODO: check the Alambda definition and update the calls is necessary
 
-def getFake(g, idx, err=0.1, oAv = None, **kwargs):
+def getFake(g, idx, filters, err=0.1, oAv = None, **kwargs):
 	""" Generate a fake sed from a model grid 
 	INPUTS:
 		idx	int			index number on the grid
+		filters	list[str]		list of filter names
 	OUTPUTS:
 		fakein	int			the index of the model on the grid
 		lamb	ndarray[float, ndim=1]	wavelength taken from the grid
@@ -30,16 +32,22 @@ def getFake(g, idx, err=0.1, oAv = None, **kwargs):
 
 		**kwargs if provided, extra keywords are used to apply an extinction
 	"""
-	oAv      = extinction.Cardelli()
 	lamb     = g.lamb
 	fakein   = idx
 	fakesed  = numpy.copy(g.seds[fakein,:])
 	if (oAv is not None) & (len(kwargs)>0):
-		tau      = oAv.function(g.lamb*1-4, Alambda=True, **kwargs) 
+		print kwargs
+		tau      = oAv(g.lamb*1e-4, Alambda=True,**kwargs) 
+		print tau.max()
 		fakesed *= exp(-tau)
+	## extract photometry
+	filts = photometry.load_filters(filters)
+	fakesed = extractPhotometry(lamb, fakesed, filters)
+
 	#magerr  = 0.05
 	#fakeerr = fakesed * (1. - 10**(-0.4*magerr) ) 
 	fakeerr =  err*fakesed
+
 	return fakein, lamb, fakesed, fakeerr
 
 
@@ -74,7 +82,7 @@ def meshgrid(arrs, ravel=False ):
 	else:
 		return tuple(ans)
 
-def iter_Av_grid(g0, oAv, iterate=True, **kwargs):
+def iter_Av_grid(g0, oAv, **kwargs):
 	""" generate a grid by applying extinction values 
 	INPUTS:
 		g0	grid		initial spectral grid (unreddened)
@@ -144,6 +152,28 @@ def iter_Av_grid(g0, oAv, iterate=True, **kwargs):
 	
 	
 
+def job(lamb, flux, fluxerr, mask, fluxmod):
+	""" Shortcut to compute the log likelihood of the SED with the models
+	    for a given extinction parameter set.
+	INPUTS:
+		lamb	np.ndarray[float, ndim=1]	array of wavelengths in AA
+		flux	np.ndarray[float, ndim=1]	array of fluxes
+		fluxerr	np.ndarray[float, ndim=1]	array of flux errors
+		mask	np.ndarray[bool, ndim=1]	mask array to apply during the calculations
+						        mask.shape = flux.shape
+		fluxmod	np.ndarray[float, ndim=2]	array of modeled fluxes (Nfilters , Nmodels)
+	OUTPUTS:
+		ln(L) 	np.ndarray[float, ndim=1]	array of ln(L) values (Nmodels)
+	"""
+
+	#compute lnp
+	lnp = computeLogLikelihood(flux, fluxerr, fluxmod, normed=False, mask=mask)
+	#expchi2 = exp(lnp)
+	#expchi2[numpy.isinf(expchi2)] = expchi2[ numpy.isfinite(expchi2) ].max()
+	#psum = expchi2.sum()
+	#lnp = lnp - log(psum)
+
+	return lnp 
 
 def test_seds(err=0.1):
 	filters  = 'hst_wfc3_f225w hst_wfc3_f336w hst_acs_hrc_f475w hst_acs_hrc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
@@ -165,6 +195,8 @@ def test_seds(err=0.1):
 	Rv = numpy.array([3.1])
 	fb = numpy.array([0.5])	#only one value still needs to be array/list/tuple
 
+	#get the grid iterator
+	iter_grid = iter_Av_grid(g0, oAv, Av=Av, Rv=Rv, f_bump=fb)
 
 	# Parameters from which we generate fake data
 	## Number of fake SEDs to play with
@@ -178,16 +210,23 @@ def test_seds(err=0.1):
 
 	for tn in range(N):
 		#fake DATA
-		idx, l, fakesed, fakeerr = getFake(g, fakein[tn], Av=Av0[tn], Rv=Rv0[tn], f_bump=fb0[tn], err=err)
+		idx, l, fakesed, fakeerr = getFake(g, fakein[tn], filter_names, err=err, 
+							oAv = oAv, Av=Av0[tn], Rv=Rv0[tn], f_bump=fb0[tn])
 		mask = numpy.zeros(fakesed.shape, dtype=bool)
+		## simulate non detection
 		#mask[3] = True
 		#mask[2] = True
 
 
 		r = numpy.empty( (g.seds.shape[0], len(Av)), dtype=float )
 		with timeit('Likelihood Object %d' % tn):
-			for k in range(len(Av)):
-				r[:, k] = job(lamb[:], numpy.copy(fakesed), numpy.copy(fakeerr), mask, numpy.copy(g.seds), oAv, Av=Av[k], Rv=3.1) 
+			iterk = 0
+			for gk in iter_grid:
+				seds = gk.getSEDs(filter_names)
+				lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
+				t = gk.grid
+				t.addCol(lnp, name='lnp')
+				t.write('Tests/t%d_%d.fits' % ( tn, iterk )
 
-		output.fullTable('Tests/t%d' % tn, g, r, Av, lamb, fakesed, fakeerr, filters, Av0 = Av0[tn], orig = g.grid[idx])
+		#output.fullTable('Tests/t%d' % tn, g, r, Av, lamb, fakesed, fakeerr, filters, Av0 = Av0[tn], orig = g.grid[idx])
 
