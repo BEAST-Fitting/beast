@@ -8,7 +8,6 @@
 import os,sys
 import numpy
 from scipy import interpolate
-import pylab
 
 __version__ = '0.0.2'
 
@@ -357,33 +356,36 @@ class RvFbumpLaw(ExtinctionLaw):
 if __name__ == "__main__":
 	# check that things look correct
 	# -> make some plots
+	import pylab
 
 	x = (numpy.arange(100)/100.)*10. + 0.1
 	lamb = 1./x
 
-	ccm = Cardelli()
-	f99 = Fitzpatrick99()
+	ccm  = Cardelli()
+	f99  = Fitzpatrick99()
 	gsmc = Gordon03_SMCBar()
 
         fig = pylab.figure()
         plt = fig.add_subplot(1,1,1)
 	
-	Rv_vals = numpy.array([2.0,3.0,4.0,5.0,6.0])
+	Rv_vals = numpy.arange(2, 6, dtype=float)
 	for Rv in Rv_vals:
 		yccm = ccm.function(lamb, Rv=Rv)
 		yf99 = f99.function(lamb, Rv=Rv)
 
-#		pylab.plot(x,yccm)
-		plt.plot(x,yf99)
+		#pylab.plot(x,yccm)
+		plt.plot(x, yf99, label='F99, Rv=%0.1f' % (Rv) )
 
 	ygsmc = gsmc.function(lamb)
-	plt.plot(x,ygsmc)
+	plt.plot(x, ygsmc, label='G. SMC')
 
 	mixlaw = RvFbumpLaw()
-	ymix = mixlaw(lamb,Rv=3.1,f_bump=0.5)
-	plt.plot(x,ymix)
+	ymix = mixlaw(lamb, Rv=3.1, f_bump=0.5)
+	plt.plot(x, ymix, label='Mixture')
 
 	plt.set_ylabel('A($\lambda$)/A(V)')
 	plt.set_xlabel('1/x [$\mu$m$^{-1}$]')
+
+	plt.legend(loc=0, frameon=False)
 
 	pylab.show()
