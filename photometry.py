@@ -192,4 +192,4 @@ def extractPhotometry(l, f, filters, silent=True):
     for j in range(0,nFilters):
         phot[j] = filters[j].getFlux( l, f )
 
-    return output
+    return phot
