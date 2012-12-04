@@ -9,7 +9,7 @@ setup(
     author_email="mfouesn@uw.edu",
     #py_modules=["anaclust"],
     description="Bayesian integrated SED Fitting",
-    long_description=open("README").read(),
+    long_description=open("README.rst").read(),
     classifiers=[
         "Development Status :: 0 - Beta",
         "Intended Audience :: Science/Research",
