@@ -5,7 +5,7 @@ import numpy
 from numpy import exp, pi 
 import inspect
 import itertools
-from copy import deepcopy
+import mytables
 
 from anased import *
 import extinction
@@ -42,7 +42,7 @@ def getFake(g, idx, filters, err=0.1, oAv = None, **kwargs):
 		fakesed *= exp(-tau)
 	## extract photometry
 	filts = photometry.load_filters(filters)
-	fakesed = extractPhotometry(lamb, fakesed, filters)
+	fakesed = photometry.extractPhotometry(lamb, fakesed, filts)
 
 	#magerr  = 0.05
 	#fakeerr = fakesed * (1. - 10**(-0.4*magerr) ) 
@@ -129,7 +129,9 @@ def iter_Av_grid(g0, oAv, **kwargs):
 				_args[k] = theta_av
 		tau        = oAv.function(g0.lamb*1-4, Alambda=True, **_args) 
 		outputSEDs = g0.seds * numpy.exp(-tau) [None, :]
-		t = deepcopy(g0.grid)
+		#copy original grid
+		t = mytables.Table(g0.grid.data, header = g0.grid.header,
+				name=g0.grid.header['NAME'])
 		for k, v in _args.iteritems():
 			t.addCol( [ v ] * t.nrows, name=k) 
 		g = grid.SpectralGrid()
@@ -176,11 +178,11 @@ def job(lamb, flux, fluxerr, mask, fluxmod):
 	return lnp 
 
 def test_seds(err=0.1):
-	filters  = 'hst_wfc3_f225w hst_wfc3_f336w hst_acs_hrc_f475w hst_acs_hrc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
+	filter_names  = 'hst_wfc3_f225w hst_wfc3_f336w hst_acs_hrc_f475w hst_acs_hrc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
 
 	#Load the initial model grid
-	g0 = grid.FileSpectralGrid('/home/morgan/Work/anased/libs/kurucz2004.grid.fits')
+	g0 = grid.FileSpectralGrid('libs/kurucz2004.grid.fits')
 	lamb = g0.lamb
 
 
@@ -202,15 +204,15 @@ def test_seds(err=0.1):
 	## Number of fake SEDs to play with
 	N   = 1
 	## Extinction parameters are randomly drawn from the extinction space
-	Av0    = numpy.random.uniform(0, len(Av), N)
-	Rv0    = numpy.random.uniform(0, len(Rv), N)
-	fb0    = numpy.random.uniform(0, len(fb), N)
+	Av0    = Av[numpy.random.randint(0, len(Av), N)]
+	Rv0    = Rv[numpy.random.randint(0, len(Rv), N)]
+	fb0    = fb[numpy.random.randint(0, len(fb), N)]
 	## Initial SEDs are randomly drawn from the model space
 	fakein = numpy.random.randint(0, g0.grid.nrows, N)
 
 	for tn in range(N):
 		#fake DATA
-		idx, l, fakesed, fakeerr = getFake(g, fakein[tn], filter_names, err=err, 
+		idx, l, fakesed, fakeerr = getFake(g0, fakein[tn], filter_names, err=err, 
 							oAv = oAv, Av=Av0[tn], Rv=Rv0[tn], f_bump=fb0[tn])
 		mask = numpy.zeros(fakesed.shape, dtype=bool)
 		## simulate non detection
@@ -218,7 +220,6 @@ def test_seds(err=0.1):
 		#mask[2] = True
 
 
-		r = numpy.empty( (g.seds.shape[0], len(Av)), dtype=float )
 		with timeit('Likelihood Object %d' % tn):
 			iterk = 0
 			for gk in iter_grid:
@@ -226,7 +227,7 @@ def test_seds(err=0.1):
 				lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
 				t = gk.grid
 				t.addCol(lnp, name='lnp')
-				t.write('Tests/t%d_%d.fits' % ( tn, iterk )
+				t.write('Tests/t%d_%d.fits' % ( tn, iterk ) )
 
 		#output.fullTable('Tests/t%d' % tn, g, r, Av, lamb, fakesed, fakeerr, filters, Av0 = Av0[tn], orig = g.grid[idx])
 
