@@ -13,3 +13,6 @@ sdist
 develop-eggs
 .installed.cfg
 
+#big files
+libs/*
+Tests/*
