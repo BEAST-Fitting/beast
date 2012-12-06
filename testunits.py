@@ -182,7 +182,7 @@ def test_seds(err=0.1):
 
 
 	#Load the initial model grid
-	g0 = grid.FileSpectralGrid('libs/kurucz2004.grid.fits')
+	g0 = grid.FileSpectralGrid('libs/stellib_kurucz2004_padovaiso.spectralgrid.fits')
 	lamb = g0.lamb
 
 
@@ -221,13 +221,18 @@ def test_seds(err=0.1):
 
 
 		with timeit('Likelihood Object %d' % tn):
-			iterk = 0
 			for gk in iter_grid:
 				seds = gk.getSEDs(filter_names)
 				lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
 				t = gk.grid
 				t.addCol(lnp, name='lnp')
-				t.write('Tests/t%d_%d.fits' % ( tn, iterk ) )
+				for ek, nk in enumerate(filter_names):
+					t.addCol(gk.seds[:,ek], name=nk)
+				t.header['Av'] = Av0[tn]
+				t.header['Rv'] = Rv0[tn]
+				t.header['f_bump'] = fb0[tn]
+				t.write('Tests/t%d.fits' % ( tn ) )
+
 
 		#output.fullTable('Tests/t%d' % tn, g, r, Av, lamb, fakesed, fakeerr, filters, Av0 = Av0[tn], orig = g.grid[idx])
 
