@@ -7,9 +7,8 @@ cleantemp = rm -rf build; rm -f *.c
 DIRS = include
 TAR  = sourcecode.tar.gz
 
-all: clean extern build
 
-extern: 
+extern: build
 	for d in $(DIRS); do (cd $$d; $(MAKE) build );done
 
 clean: 
@@ -27,9 +26,7 @@ build:
 	python setup.py build_ext --inplace
 	$(cleantemp)
 
-commit: 
-	git commit
-	git push
-
 libs: 
 	python getlibs.py
+
+all: clean extern build libs
