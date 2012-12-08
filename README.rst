@@ -9,6 +9,16 @@ The SED fitter at this point is basically a *fast likelihood estimator*.
 * add the observation class (grab from phat cluster analysis)
 * include the prior class (from the phat cluster analysis)
 
+== GIT ==
+
+* download the repo
+> git clone git@chex.astro.washington.edu:sedfitter.git
+
+* push changes
+
+> git add <name of the file that changed>  # select file(s) that will be associated with the same commit message.
+> git commit
+
 == Quick start ==
 
 _See testunits.py for a complete example_
