@@ -1,8 +1,8 @@
-
+""" Unit test for SEDfitter """
 __version__ = '0.1dev'
 
 import numpy
-from numpy import exp, pi 
+from numpy import exp
 import inspect
 import itertools
 import mytables
@@ -11,13 +11,12 @@ from anased import *
 import extinction
 import grid
 import photometry
-import output
 
 
 #TODO: check the Alambda definition and update the calls is necessary
 
-def getFake(g, idx, filters, err=0.1, oAv = None, **kwargs):
-	""" Generate a fake sed from a model grid 
+def getFake(g, idx, filters, err=0.1, oAv=None, **kwargs):
+	""" Generate a fake sed from a model grid
 	INPUTS:
 		idx	int			index number on the grid
 		filters	list[str]		list of filter names
@@ -25,7 +24,7 @@ def getFake(g, idx, filters, err=0.1, oAv = None, **kwargs):
 		fakein	int			the index of the model on the grid
 		lamb	ndarray[float, ndim=1]	wavelength taken from the grid
 		fakesed	ndarray[float, ndim=1]	resulting SED
-		
+
 	KEYWORDS:
 		err	float			proportional error to consider on the fluxes
 		oAv	ExtinctionLaw		if provided, apply extinction function using **kwargs
@@ -34,24 +33,22 @@ def getFake(g, idx, filters, err=0.1, oAv = None, **kwargs):
 	"""
 	lamb     = g.lamb
 	fakein   = idx
-	fakesed  = numpy.copy(g.seds[fakein,:])
-	if (oAv is not None) & (len(kwargs)>0):
-		print kwargs
-		tau      = oAv(g.lamb*1e-4, Alambda=True,**kwargs) 
-		print tau.max()
+	fakesed  = numpy.copy(g.seds[fakein, :])
+	if (oAv is not None) & (len(kwargs) > 0):
+		tau      = oAv(g.lamb * 1e-4, Alambda=True, **kwargs)
 		fakesed *= exp(-tau)
 	## extract photometry
 	filts = photometry.load_filters(filters)
 	fakesed = photometry.extractPhotometry(lamb, fakesed, filts)
 
 	#magerr  = 0.05
-	#fakeerr = fakesed * (1. - 10**(-0.4*magerr) ) 
-	fakeerr =  err*fakesed
+	#fakeerr = fakesed * (1. - 10**(-0.4*magerr) )
+	fakeerr = err * fakesed
 
 	return fakein, lamb, fakesed, fakeerr
 
 
-def meshgrid(arrs, ravel=False ):
+def meshgrid(arrs, ravel=False):
 	""" Generate a n-dim grid from a list of n arrays containing the points
 	to use. The gridding occurs by varying the last value first.
 
@@ -70,7 +67,7 @@ def meshgrid(arrs, ravel=False ):
 		sz *= s
 	ans = []
 	for i, arr in enumerate(arrs):
-		slc = [1]*dim
+		slc = [1] * dim
 		slc[i] = lens[i]
 		arr2 = numpy.asarray(arr).reshape(slc)
 		for j, sz in enumerate(lens):
@@ -82,22 +79,24 @@ def meshgrid(arrs, ravel=False ):
 	else:
 		return tuple(ans)
 
+
 def iter_Av_grid(g0, oAv, **kwargs):
-	""" generate a grid by applying extinction values 
+	""" generate a grid by applying extinction values
+
 	INPUTS:
 		g0	grid		initial spectral grid (unreddened)
 		oAv	ExtinctionLaw	extinction law to apply
 
 	OUTPUTS:
 		git	iterator	iterator on SpectralGrid chunks
-	
+
 	KEYWORDS:
 		**kwargs	grid point values.
 				each keyword will be used to call oAv.function
 	"""
 
-	assert( isinstance(oAv, extinction.ExtinctionLaw)), 'Extinction must be an ExtinctionLaw instance, got %s'% type(oAv)
-	assert( isinstance(g0,  grid.ModelGrid) ), 'Extinction must be an ExtinctionLaw instance, got %s'% type(oAv)
+	assert( isinstance(oAv, extinction.ExtinctionLaw)), 'Extinction must be an ExtinctionLaw instance, got %s' % type(oAv)
+	assert( isinstance(g0,  grid.ModelGrid) ), 'Extinction must be an ExtinctionLaw instance, got %s' % type(oAv)
 
 	#checking arguments of extinction.function
 	av_args = [k for k in inspect.getargspec(extinction.RvFbumpLaw.function).args if k not in ['self', 'lamb', 'Alambda'] ]
@@ -107,33 +106,31 @@ def iter_Av_grid(g0, oAv, **kwargs):
 
 	#generate the grid points
 	if len(kwargs) > 1:
-		gpts = meshgrid( kwargs.values() , ravel=True )
+		gpts = meshgrid( kwargs.values(), ravel=True )
 	else:
 		gpts = kwargs.values()[0]
 
 	#prepare output
-	n0 = g0.grid.nrows
-	npts = len(gpts)
 
 	def gensubgrid( theta_av ):
-		""" 
+		"""
 		**Partial function**
 		Generate the chunk of grid corresponding to a given theta_av
 		based on the initial grid g0
 		"""
 		_args = {}
-		for e,k in enumerate(kwargs): 
+		for e, k in enumerate(kwargs):
 			if hasattr(theta_av, '__iter__'):
 				_args[k] = theta_av[e]
 			else:
 				_args[k] = theta_av
-		tau        = oAv.function(g0.lamb*1-4, Alambda=True, **_args) 
-		outputSEDs = g0.seds * numpy.exp(-tau) [None, :]
+		tau        = oAv.function(g0.lamb * 1e-4, Alambda=True, **_args)
+		outputSEDs = g0.seds * numpy.exp(-tau)[None, :]
 		#copy original grid
-		t = mytables.Table(g0.grid.data, header = g0.grid.header,
-				name=g0.grid.header['NAME'])
+		t = mytables.Table(g0.grid.data, header=g0.grid.header,
+							name=g0.grid.header['NAME'] )
 		for k, v in _args.iteritems():
-			t.addCol( [ v ] * t.nrows, name=k) 
+			t.addCol( [ v ] * t.nrows, name=k)
 		g = grid.SpectralGrid()
 		g.lamb = g0.lamb[:]
 		g.seds = outputSEDs
@@ -149,10 +146,6 @@ def iter_Av_grid(g0, oAv, **kwargs):
 	# parallel jobs are possible.
 	return itertools.imap( gensubgrid, gpts )
 
-	
-
-	
-	
 
 def job(lamb, flux, fluxerr, mask, fluxmod):
 	""" Shortcut to compute the log likelihood of the SED with the models
@@ -175,27 +168,25 @@ def job(lamb, flux, fluxerr, mask, fluxmod):
 	#psum = expchi2.sum()
 	#lnp = lnp - log(psum)
 
-	return lnp 
+	return lnp
+
 
 def test_seds(err=0.1):
 	filter_names  = 'hst_wfc3_f225w hst_wfc3_f336w hst_acs_hrc_f475w hst_acs_hrc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
-
 	#Load the initial model grid
 	g0 = grid.FileSpectralGrid('libs/stellib_kurucz2004_padovaiso.spectralgrid.fits')
-	lamb = g0.lamb
-
 
 	# define the extinction priors
 	oAv = extinction.Cardelli()
 
 	##define Av with a step size
-	#Av = numpy.arange(0.,3., 0.1)	
+	#Av = numpy.arange(0.,3., 0.1)
 
 	##define Av with a number of points
 	Av = numpy.linspace(0, 1, 3)
 	Rv = numpy.array([3.1])
-	fb = numpy.array([0.5])	#only one value still needs to be array/list/tuple
+	fb = numpy.array([0.5])	 # only one value still needs to be array/list/tuple
 
 	#get the grid iterator
 	iter_grid = iter_Av_grid(g0, oAv, Av=Av, Rv=Rv, f_bump=fb)
@@ -212,13 +203,12 @@ def test_seds(err=0.1):
 
 	for tn in range(N):
 		#fake DATA
-		idx, l, fakesed, fakeerr = getFake(g0, fakein[tn], filter_names, err=err, 
-							oAv = oAv, Av=Av0[tn], Rv=Rv0[tn], f_bump=fb0[tn])
+		idx, l, fakesed, fakeerr = getFake(g0, fakein[tn], filter_names, err=err,
+							oAv=oAv, Av=Av0[tn], Rv=Rv0[tn], f_bump=fb0[tn])
 		mask = numpy.zeros(fakesed.shape, dtype=bool)
 		## simulate non detection
 		#mask[3] = True
 		#mask[2] = True
-
 
 		with timeit('Likelihood Object %d' % tn):
 			for gk in iter_grid:
@@ -227,7 +217,7 @@ def test_seds(err=0.1):
 				t = gk.grid
 				t.addCol(lnp, name='lnp')
 				for ek, nk in enumerate(filter_names):
-					t.addCol(gk.seds[:,ek], name=nk)
+					t.addCol(gk.seds[:, ek], name=nk)
 				t.header['Av'] = Av0[tn]
 				t.header['Rv'] = Rv0[tn]
 				t.header['f_bump'] = fb0[tn]
@@ -235,4 +225,3 @@ def test_seds(err=0.1):
 
 
 		#output.fullTable('Tests/t%d' % tn, g, r, Av, lamb, fakesed, fakeerr, filters, Av0 = Av0[tn], orig = g.grid[idx])
-
