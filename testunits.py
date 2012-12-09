@@ -13,6 +13,7 @@ import extinction
 import grid
 import photometry
 
+import mystats
 
 #TODO: check the Alambda definition and update the calls is necessary
 
