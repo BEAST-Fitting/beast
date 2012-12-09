@@ -7,7 +7,8 @@ import inspect
 import itertools
 import mytables
 
-from anased import *
+from anased import computeLogLikelihood
+from decorators import timeit
 import extinction
 import grid
 import photometry
