@@ -22,7 +22,7 @@ class filter(object):
 	print "   name: %s" % self.name
 	print "   central wavelength: %f" % self.cl
 	print "   norm: %f" % self.norm
-	print "   pivot wavelength: %f" % self.lpivot  
+	print "   pivot wavelength: %f" % self.lpivot
 	print "   definition contains %d points" % self.transmit.size
 
     def __repr__(self):
@@ -31,6 +31,7 @@ class filter(object):
 
     def getFlux(self, slamb, sflux):
         """getFlux
+        import pdb; pdb.set_trace() ### XXX BREAKPOINT
         Integrate the flux within the filter and return the integrated energy
         INPUTS:
            slamb: spectrum wavelength definition domain
@@ -43,17 +44,17 @@ class filter(object):
 		indfin = numpy.where(numpy.isfinite(sflux))
 		sflux[indinf] = numpy.interp(slamb[indinf],
 			slamb[indfin], sflux[indfin])
-        ifT = numpy.interp(slamb, self.wavelength,self.transmit, 
+        ifT = numpy.interp(slamb, self.wavelength,self.transmit,
 		left=0.,right=0.)
 	if True in (ifT > 0.):
 		ind = numpy.where(ifT > 0.)
 		a = numpy.trapz(slamb[ind]*ifT[ind]*sflux[ind], slamb[ind])
 		b = numpy.trapz(slamb[ind]*ifT[ind], slamb[ind])
 		if numpy.isinf(a) | numpy.isinf(b): print self.name, "Warn for inf value"
-		return a/b 
+		return a/b
 	else:
 		return 0.
-    #----------------------------------------------------------------------        
+    #----------------------------------------------------------------------
     def __call__(self, slamb, sflux):
 	return self.applyTo(slamb, sflux)
 
@@ -68,7 +69,7 @@ class filter(object):
         """
         ifT = numpy.interp(slamb, self.wavelength,self.transmit)
         return ifT*sflux
-            
+
     #----------------------------------------------------------------------
     def __init__(self, wavelength, transmit, name=''):
         """Constructor"""
@@ -84,7 +85,7 @@ class filter(object):
 def __load__(fname, ftab):
 	fnode = ftab.getNode('/filters/'+fname)
 	return filter( fnode[:]['WAVELENGTH'], fnode[:]['THROUGHPUT'], name = fnode.name )
-				       
+
 def load_all_filters(filterLib = __default__):
 	with tables.openFile(filterLib, 'r') as ftab:
 		filters = [ __load__(fname, ftab) for fname in ftab.root.content.cols.TABLENAME ]
@@ -100,11 +101,11 @@ class __newFilterTable__(tables.IsDescription):
 	WAVELENGTH = tables.FloatCol(pos=0)
 	THROUGHPUT = tables.FloatCol(pos=1)
 
-def append_filter(lamb, flux, 
+def append_filter(lamb, flux,
 		   tablename, observatory, instrument, name, comment=None,
-		   filterLib=__default__, 
+		   filterLib=__default__,
 		   updateVegaLib = True):
-	""" 
+	"""
 	Edit the filter catalog and append a new one given by its transfer function
 	"""
 	ftab = tables.openFile(filterLib, 'a')
@@ -112,7 +113,7 @@ def append_filter(lamb, flux,
 	if contentTab.readWhere('TABLENAME == tablename').size > 0:
 		print '% '+sys.argv[0]+": Filter Table %s already exists.  Returning." % tablename
 		return
-		
+
 	# Gen Filter object including relevant details
 	filtInst = filter(lamb,flux, name=name)
 	# Add a new line in the content table
@@ -157,7 +158,7 @@ def analyseVegaSpectrum(w, f, filters):
 	    phot[j] = filters[j].getFlux( w, f )
 	    mag[j] = -2.5 * numpy.log10(phot[j])
 	return ({ 'fname':fname, 'cwave':cwave, 'lum':phot, 'mag':mag})
-	
+
 def appendVegaFilter(filtInst, VegaLib=__default_vega__):
 	import tables
 	vtab = tables.openFile(VegaLib, 'a')
@@ -168,7 +169,7 @@ def appendVegaFilter(filtInst, VegaLib=__default_vega__):
 	if sedTab.readWhere('FNAME == fname').size > 0:
 		print '% '+sys.argv[0]+": Filter %s already exists.  Returning." % filtInst.name
 		return
-	
+
 	data = analyseVegaSpectrum(vl, vf, [filtInst])
 	newRow = sedTab.row
 	newRow['FNAME'] = filtInst.name
