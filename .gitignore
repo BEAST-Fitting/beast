@@ -1,6 +1,7 @@
 *.py[co]
 *.so
 *.c
+*.sw[op]
 
 # Packages
 *.egg
