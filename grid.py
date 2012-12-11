@@ -82,7 +82,10 @@ class SpectralGrid(ModelGrid):
         INPUTS:
             filter_names    list    list of filter names according to the filter lib
         """
-        flist = phot.load_filters(filter_names, interp=True, lamb=self.lamb)
+        if type(filter_names[0]) == str:
+            flist = phot.load_filters(filter_names, interp=True, lamb=self.lamb)
+        else:
+            flist = filter_names
         return phot.extractSEDs(self, flist, absFlux=absFlux)
 
 
