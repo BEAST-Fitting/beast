@@ -101,7 +101,7 @@ def __load__(fname, ftab, interp=True, lamb=None):
     flamb    = fnode[:]['WAVELENGTH']
     transmit = fnode[:]['THROUGHPUT']
     if interp & (lamb is not None):
-        ifT = numpy.interp(lamb, flamb, transmit)
+        ifT = numpy.interp(lamb, flamb, transmit, left=0., right=0.)
         return filter( lamb, ifT, name=fnode.name )
     else:
         return filter( flamb, transmit, name=fnode.name )
@@ -141,12 +141,14 @@ def extractPhotometry(lamb, spec, flist, absFlux=True):
     """ Extract seds from a one single spectrum
 
         INPUTS:
-            g0      grid            Initial spectral grid
-            flist   list[filter]    list of filter objects
+            lamb    ndarray[float,ndim=1]   wavelength of spec
+            spec    ndarray[float, ndim=1]  spectrum
+            flist   list[filter]            list of filter objects
         KEYWORDS:
-            absflux bool            return SEDs in absolute fluxes if set
+            absflux bool                    return SEDs in absolute fluxes if set
         OUTPUT:
-            g       grid            SED grid object
+            cls     ndarray[float, ndim=1]  filters central wavelength
+            seds    ndarray[float, ndim=1]  integrated sed
     """
     cls  = numpy.empty( len(flist), dtype=float)
     seds = numpy.empty( len(flist), dtype=float)
