@@ -414,6 +414,7 @@ def obs_single_star_job(tn, obsfile='Tests/cl_0.fits', outdir='Tests/cl_0'):
 
     #Observations
     obs = observations.Observations(obsfile)
+    obs.setFilters(filter_names)
 
     ##define Av with a step size
     #Av = numpy.arange(0.,3., 0.1)
@@ -457,4 +458,4 @@ def obs_single_star_job(tn, obsfile='Tests/cl_0.fits', outdir='Tests/cl_0'):
         g0.grid.write( outname )
 
 if __name__ == '__main__':
-    obs_single_star_job(0, obsfile='Tests/cl_0.fits', outdir='Tests/cl_0')
+    obs_single_star_job(sys.argv[1], obsfile='Tests/cl_0.fits', outdir='Tests/cl_0')
