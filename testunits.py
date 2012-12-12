@@ -106,7 +106,7 @@ def iter_Av_grid(g0, oAv, **kwargs):
         g.lamb = g0.lamb[:]
         g.seds = outputSEDs
         g.grid = t
-        return g
+        return g, theta_av
 
     # If the grid is small enough, you can compute all at once and
     # concatenate the result. However, most of the time the grid is big
@@ -214,7 +214,41 @@ def getFakeCluster(g, age, Z, filts, err=0.1, suffix='0', Nstars=None, oAv=None,
     return obs
 
 
+def gen_a_cluster(err=0.01, age=1e7, Z=0.02, suffix='0'):
+    filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
+
+    #Load the initial model grid
+    g0 = grid.FileSpectralGrid('libs/stellib_kurucz2004_padovaiso.spectralgrid.fits')
+
+    #load the filters
+    filts = phot.load_filters(filter_names, interp=True, lamb=g0.lamb)
+
+    # define the extinction priors
+    oAv = extinction.Cardelli()
+
+    ##define Av with a step size
+    #Av = numpy.arange(0.,3., 0.1)
+
+    ##define Av with a number of points
+    Av = numpy.linspace(0, 1, 3)
+    #Av = numpy.array([0.0], dtype=float)
+    Rv = numpy.array([3.1], dtype=float)
+    fb = numpy.array([0.5], dtype=float)     # only one value still needs to be array/list/tuple
+
+    ## Extinction parameters are randomly drawn from the extinction space
+    Av0    = Av[numpy.random.randint(0, len(Av), 1)]
+    Rv0    = Rv[numpy.random.randint(0, len(Rv), 1)]
+    fb0    = fb[numpy.random.randint(0, len(fb), 1)]
+
+    with timeit( 'Cluster generation: age=%g, Z=%0.4f' % (age, Z) ):
+        obs = getFakeCluster(g0, age, Z, filts, err=0.1,
+                            suffix=suffix, Nstars=None,
+                            oAv=oAv, Av=float(Av0), Rv=float(Rv0), f_bump=float(fb0))
+    return obs
+
+
 def test_observations_seds(err=0.1, age=1e7, Z=0.02, suffix='0'):
+    """ Generate a cluster and run the fitter sequentially """
     filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
     #Load the initial model grid
@@ -253,7 +287,7 @@ def test_observations_seds(err=0.1, age=1e7, Z=0.02, suffix='0'):
         #define output filename
         outname = 'Tests/cl_%s_t%d.fits' % ( suffix, tn )
         with timeit('Likelihood Object %d' % tn):
-            for gk in iter_grid:
+            for gk, thetak in iter_grid:
                 with timeit('\t * Computing SEDS'):
                     seds = gk.getSEDs(filts, absFlux=True)
                 with timeit('\t * Computing Lnp'):
@@ -265,9 +299,9 @@ def test_observations_seds(err=0.1, age=1e7, Z=0.02, suffix='0'):
                     t.addCol(lnp, name='lnp')
                     for ek, nk in enumerate(filter_names):
                         t.addCol(seds.seds[:, ek], name=nk)
-                    t.header['Av'] = Av0[tn]
-                    t.header['Rv'] = Rv0[tn]
-                    t.header['f_bump'] = fb0[tn]
+                    t.header['Av'] = thetak[0]
+                    t.header['Rv'] = thetak[1]
+                    t.header['f_bump'] = thetak[2]
                     t.write( outname )
 
         with timeit('\t * Writing Original data'):
@@ -332,7 +366,7 @@ def test_seds(err=0.1):
         with timeit('Likelihood Object %d' % tn):
             #define output filename
             outname = 'Tests/t%d.fits' % ( tn )
-            for gk in iter_grid:
+            for gk, thetak in iter_grid:
                 with timeit('\t * Computing SEDS'):
                     seds = gk.getSEDs(filts, absFlux=True)
                 with timeit('\t * Computing Lnp'):
@@ -344,9 +378,9 @@ def test_seds(err=0.1):
                     t.addCol(lnp, name='lnp')
                     for ek, nk in enumerate(filter_names):
                         t.addCol(seds.seds[:, ek], name=nk)
-                    t.header['Av'] = Av0[tn]
-                    t.header['Rv'] = Rv0[tn]
-                    t.header['f_bump'] = fb0[tn]
+                    t.header['Av'] = thetak[0]
+                    t.header['Rv'] = thetak[1]
+                    t.header['f_bump'] = thetak[2]
                     t.write( outname )
 
         with timeit('\t * Writing Original data'):
@@ -366,65 +400,20 @@ def test_seds(err=0.1):
     return locals()
 
 
-def task(obs, idx, suffix, gridfile, oAv, Av, Rv, fb):
-    #get the grid iterator
-    g0 = grid.FileSpectralGrid(gridfile)
-    iter_grid = iter_Av_grid(g0, oAv, Av=Av, Rv=Rv, f_bump=fb)
-
-    #load the filters
-    filts = phot.load_filters(obs.filters, interp=True, lamb=g0.lamb)
-    cls   = numpy.array( [ k.cl for k in filts ] )
-
-    for tn in idx:
-        fakesed, fakeerr, mask = obs.getObs(idx)
-        #define output filename
-        outname = 'Tests/cl_%s_t%d.fits' % ( suffix, tn )
-        with timeit('Likelihood Object %d' % tn):
-            for gk in iter_grid:
-                with timeit('\t * Computing SEDS'):
-                    seds = gk.getSEDs(filts, absFlux=True)
-                with timeit('\t * Computing Lnp'):
-                    lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
-                with timeit('\t * Writing outputs'):
-                    t = mytables.Table(name='SEDOUT')
-                    #t = gk.grid
-                    t.addCol(numpy.arange(seds.grid.nrows, dtype=int), name='idx')
-                    t.addCol(lnp, name='lnp')
-                    for ek, nk in enumerate(obs.filters):
-                        t.addCol(seds.seds[:, ek], name=nk)
-                    t.write( outname )
-
-        with timeit('\t * Writing Original data'):
-            d = dict(filters=obs.filters, flux=fakesed, err=fakeerr, cl=cls)
-            t = mytables.Table(d, name='INPUT')
-            t.header['idx']    = tn
-            t.write( outname )
-
-        with timeit('\t * Writing Original grid'):
-            g0.grid.header['NAME'] = 'MODELS'
-            g0.grid.header['EXTNAME'] = 'MODELS'
-            g0.grid.write( outname )
-
-
-def test_parallel_observations_seds(err=0.1, age=1e7, Z=0.02, suffix='0', nthreads=1, pool=None):
-    import multiprocessing as mp
-    if pool is None:
-        __pool__ = mp.Pool(nthreads)
-    else:
-        if isinstance(pool, mp.Pool):
-            nthreads = getattr(pool, '_processes', None)
-
+def obs_single_star_job(tn, obsfile='Tests/cl_0.fits', outdir='Tests/cl_0'):
     filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
     #Load the initial model grid
-    gridfile = 'libs/stellib_kurucz2004_padovaiso.spectralgrid.fits'
-    g0 = grid.FileSpectralGrid(gridfile)
+    g0 = grid.FileSpectralGrid('libs/stellib_kurucz2004_padovaiso.spectralgrid.fits')
 
     #load the filters
     filts = phot.load_filters(filter_names, interp=True, lamb=g0.lamb)
 
     # define the extinction priors
     oAv = extinction.Cardelli()
+
+    #Observations
+    obs = observations.Observations(obsfile)
 
     ##define Av with a step size
     #Av = numpy.arange(0.,3., 0.1)
@@ -435,23 +424,37 @@ def test_parallel_observations_seds(err=0.1, age=1e7, Z=0.02, suffix='0', nthrea
     Rv = numpy.array([3.1], dtype=float)
     fb = numpy.array([0.5], dtype=float)     # only one value still needs to be array/list/tuple
 
-    ## Extinction parameters are randomly drawn from the extinction space
-    Av0    = Av[numpy.random.randint(0, len(Av), 1)]
-    Rv0    = Rv[numpy.random.randint(0, len(Rv), 1)]
-    fb0    = fb[numpy.random.randint(0, len(fb), 1)]
+    #get the grid iterator
+    iter_grid = iter_Av_grid(g0, oAv, Av=Av, Rv=Rv, f_bump=fb)
 
-    with timeit( 'Cluster generation: age=%g, Z=%0.4f' % (age, Z) ):
-        obs = getFakeCluster(g0, age, Z, filts, err=0.1,
-                            suffix=suffix, Nstars=None,
-                            oAv=oAv, Av=float(Av0), Rv=float(Rv0), f_bump=float(fb0))
+    # Parameters from which we generate fake data
+    idx = tn
+    fakesed, fakeerr, mask = obs.getObs(idx)
 
-    def partition(list, n):
-        """Partition list into n nearly equal length sublists"""
-        division = len(list) / float(n)
-        return [list[int(round(division * i)): int(round(division * (i + 1)))] for i in range(n)]
+    with timeit('Likelihood Object %d' % tn):
+        #define output filename
+        outname = outdir + '/star_%d.fits' % ( tn )
+        for gk, thetak in iter_grid:
+            with timeit('\t * Computing SEDS'):
+                seds = gk.getSEDs(filts, absFlux=True)
+            with timeit('\t * Computing Lnp'):
+                lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
+            with timeit('\t * Writing outputs'):
+                t = mytables.Table(name='SEDOUT')
+                #t = gk.grid
+                t.addCol(numpy.arange(seds.grid.nrows, dtype=int), name='idx')
+                t.addCol(lnp, name='lnp')
+                for ek, nk in enumerate(filter_names):
+                    t.addCol(seds.seds[:, ek], name=nk)
+                t.header['Av'] = thetak[0]
+                t.header['Rv'] = thetak[1]
+                t.header['f_bump'] = thetak[2]
+                t.write( outname )
 
+    with timeit('\t * Writing Original grid'):
+        g0.grid.header['NAME'] = 'MODELS'
+        g0.grid.header['EXTNAME'] = 'MODELS'
+        g0.grid.write( outname )
 
-    #Scatter the work
-    __pool__.map( task,  partition(range(len(obs)), nthreads) )
-
-    return locals()
+if __name__ == '__main__':
+    obs_single_star_job(0, obsfile='Tests/cl_0.fits', outdir='Tests/cl_0')
