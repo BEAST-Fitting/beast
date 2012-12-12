@@ -5,8 +5,9 @@ import numpy
 from numpy import exp
 import inspect
 import itertools
-import mytables
+import sys
 
+import mytables
 from anased import computeLogLikelihood
 from decorators import timeit
 import extinction
@@ -458,4 +459,4 @@ def obs_single_star_job(tn, obsfile='Tests/cl_0.fits', outdir='Tests/cl_0'):
         g0.grid.write( outname )
 
 if __name__ == '__main__':
-    obs_single_star_job(sys.argv[1], obsfile='Tests/cl_0.fits', outdir='Tests/cl_0')
+    obs_single_star_job(sys.argv[-1], obsfile='Tests/cl_0.fits', outdir='Tests/cl_0')
