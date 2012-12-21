@@ -7,9 +7,10 @@ import stellib
 import phot
 import isochrone
 import mytables
+import extinction
 
 from decorators import timeit
-
+from time import time
 
 def isNestedInstance(obj, cl):
     """ Test for sub-classes types
@@ -88,6 +89,55 @@ class SpectralGrid(ModelGrid):
             flist = filter_names
         return phot.extractSEDs(self, flist, absFlux=absFlux)
 
+    def getExtinguishedSEDs(self, filter_names, filename, toPhotLamb=1.0e4,toFbumpLawLamb=1.0,absFlux=True, Av_vals=numpy.array((1.0,1.1)), Rv_vals = numpy.arange(1.0,5.0,0.5), f_bump_vals = numpy.arange(0.0,1.1,0.1)):
+        """
+        Extinguish and extract fluxes through filters
+        INPUTS:
+              filter_names   list    list of filter names according to the filter lib
+              filename       string  what to save the resulting grid as
+        KEYWORDS:
+              toPhotLamb     float   conversion factor from grid wavelength units to angstroms
+              toFbumpLawLamb float   conversion factor from grid wavelength units to microns
+              Av_vals   numpy array  Av values to iterate over
+              Rv_vals   numpy array  Rv values to iterate over
+              f_bump_vals numpy array f_bump values to iterate over
+        """
+        extLaw = extinction.RvFbumpLaw()
+        
+        if type(filter_names[0]) == str:
+            flist = phot.load_filters(filter_names, interp=True, lamb=self.lamb*toPhotLamb)
+        else:
+            flist = filter_names
+        Av_vals, Rv_vals, f_bump_vals = numpy.ix_(Av_vals, Rv_vals, f_bump_vals)
+        it = numpy.nditer([Av_vals,Rv_vals,f_bump_vals])
+        ext_lamb = self.lamb*toFbumpLawLamb
+
+        niter = Av_vals.size*Rv_vals.size*f_bump_vals.size
+        cols = {'Av':numpy.zeros(self.grid.nrows*niter),'Rv':numpy.zeros(self.grid.nrows*niter),'f_bump':numpy.zeros(self.grid.nrows*niter)}
+        seds = numpy.zeros((self.grid.nrows*niter,filter_names.__len__()))
+            
+        for key in self.keys():
+            cols[key] = numpy.zeros(self.grid.nrows*niter)
+
+        itime = time()
+        count = 0
+        for Av,Rv,f_bump in it:
+            if (count+1)%100 == 0.:
+                print 100.*count/(Av_vals.size*Rv_vals.size*f_bump_vals.size),time()-itime
+                itime = time()
+            ext = numpy.exp(-1*extLaw.function(ext_lamb,Av=Av,Rv=Rv,f_bump=f_bump))
+            cols['Av'][self.grid.nrows*count:self.grid.nrows*(count+1)] = Av
+            cols['Rv'][self.grid.nrows*count:self.grid.nrows*(count+1)] = Rv
+            cols['f_bump'][self.grid.nrows*count:self.grid.nrows*(count+1)] = f_bump
+            seds[self.grid.nrows*count:self.grid.nrows*(count+1)],lamb = phot.extractExtinguishedSEDs(self,flist,ext,absFlux=absFlux)
+            for key in self.keys():
+                cols[key][self.grid.nrows*count:self.grid.nrows*(count+1)] = self.grid[key]
+            count += 1
+
+        result_grid = mytables.Table(iterable=cols,header=self.grid.header)
+        results = MemoryGrid(lamb,seds=seds,grid=result_grid)
+        results.write(filename)
+        
 
 class FileSEDGrid(SpectralGrid):
     """ Generate a grid from a spectral library """

@@ -5,6 +5,7 @@ import tables
 import inspect
 import os
 import grid
+import time
 from decorators import timeit
 from scipy.integrate import simps
 
@@ -193,6 +194,32 @@ def extractSEDs(g0, flist, absFlux=True):
 
     return grid.MemoryGrid(cls, seds, g0.grid)
 
+def extractExtinguishedSEDs(g0, flist, extCurve, absFlux=True):
+    """ Extract seds from a grid
+
+        INPUTS:
+            g0      grid            Initial spectral grid
+            flist   list[filter]    list of filter objects
+            extCurve np.exp(-tau)   extinction curve
+        KEYWORDS:
+            absflux bool            return SEDs in absolute fluxes if set
+        OUTPUT:
+            g       grid            SED grid object
+    """
+    lamb = g0.lamb
+    seds = numpy.empty(( g0.grid.nrows, len(flist) ), dtype=float)
+    cls  = numpy.empty( len(flist), dtype=float)
+    for e, k in enumerate(flist):
+        xl  = k.transmit > 0.
+        tmp = lamb[xl] * k.transmit[xl]
+        s0  = g0.seds[:, xl] * extCurve[xl]
+        # apply absolute flux conversion if requested
+        if absFlux:
+            s0 /= distc
+        a = simps( tmp[None,:] * s0, lamb[xl], axis=1 )
+        seds[:, e] = a / k.lT
+        cls[e] = k.cl
+    return seds,cls
 
 def test(absFlux=True):
     """ Test units """
