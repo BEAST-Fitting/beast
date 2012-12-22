@@ -81,7 +81,7 @@ class Cardelli(ExtinctionLaw):
 	def function(self, lamb, Av=1., Rv=3.1, Alambda = True, debug=False, **kwargs):
 		""" 
 		Cardelli extinction Law
-		Lamb as to be in microns!!!
+		Lamb has to be in microns!!!
 
 		input:
 		    lamb    <float>    wavelength of the extinction point !! in microns !!
@@ -351,7 +351,7 @@ class RvFbumpLaw(ExtinctionLaw):
 		    Rv        <float>    extinction param. (def: 3.1)
 		    f_bump    <float>    mixture fraction defining the bump amplitude
 		"""
-		return (f_bump)*self.RvLaw.function(lamb,Av,Rv,Alambda) + (1-f_bump)*self.NoBumpLaw.function(lamb,Av,Alambda)
+		return (1-f_bump)*self.RvLaw.function(lamb,Av=Av,Rv=Rv,Alambda=Alambda) + (f_bump)*self.NoBumpLaw.function(lamb,Av=Av,Alambda=Alambda)
 
 if __name__ == "__main__":
 	# check that things look correct
