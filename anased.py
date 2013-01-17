@@ -4,6 +4,7 @@ import numpy
 from numpy import log, log10, exp, pi 
 #import numpy ufunc (c-coded for speed-up)
 from numpy import multiply, subtract, add, divide, power
+import numexpr
 
 import stellib, extinction, photometry
 import figure
@@ -80,9 +81,10 @@ def computeChi2(flux, fluxerr, fluxmod):
 	Note: using ufunc because ufuncs are written in C (for speed) and linked into NumPy.
 	"""
 	fluxerr[fluxerr == 0.] = 1.
-	return power( divide( subtract(flux[None,:], fluxmod), fluxerr[None,:]) , 2.).sum(axis=1)
+	return numexpr.evaluate('sum(((flux-fluxmod)/fluxerr)**2,axis=1)',local_dict={'flux':flux,'fluxmod':fluxmod,'fluxerr':fluxerr}) #faster, fewer memory issues
 
-def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None):
+
+def computeLogLikelihood(flux,fluxerr,fluxmod,normed=True,mask=None):
 	""" Compute the log of the chi2 likelihood between data with uncertainties and
   	    perfectly known models
 	INPUTS:
@@ -100,29 +102,30 @@ def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None):
 		     L propto  exp ( - 0.5 * chi2 )
 	Note: using ufunc because ufuncs are written in C (for speed) and linked into NumPy.
 	"""
-	fluxerr[fluxerr == 0.] = 1.
-	flux[flux == 0.] = 1e-5
+	fluxerr = numexpr.evaluate('where((fluxerr==0.),1.,fluxerr)',local_dict={'fluxerr':fluxerr})
+	flux = numexpr.evaluate('where((flux==0.),1e-5,flux)',local_dict={'flux':flux})
 	if not mask is None:
 		_m   = ~mask
 		dof = _m.sum()
-		chi2 = -0.5/dof * computeChi2( flux[_m], fluxerr[_m], fluxmod[:,_m] )
+		chi2 = numexpr.evaluate('-0.5/b*a',local_dict={'a':computeChi2( flux[_m], fluxerr[_m], fluxmod[:,_m] ),'b':dof})
+
 	else:
 		dof = len(flux)
-		chi2 = -0.5/dof * computeChi2( flux, fluxerr, fluxmod )
+		chi2 = numexpr.evaluate('-0.5/b*a',local_dict={'a':computeChi2( flux, fluxerr, fluxmod ),'b':dof})
 
 	#taking care of possible overflows...
-	chi2[ (chi2 > 50)  ] = 50
-	chi2[ (chi2 < -50) ] = -50
+	chi2 = numexpr.evaluate('where((chi2>50),50,chi2)',local_dict={'chi2':chi2})
+	chi2 = numexpr.evaluate('where((chi2<-50),-50,chi2)',local_dict={'chi2':chi2})
 
 	if normed == True:
-		expchi2 = exp(chi2)
-		expchi2[numpy.isinf(expchi2)] = expchi2[ numpy.isfinite(expchi2) ].max()
+		expchi2 = numexpr.evaluate('exp(chi2)',local_dict={'chi2':chi2})
+		expchi2[numpy.isinf(expchi2)] = expchi2.take(numpy.isfinite(expchi2),mode='clip').max()
 		psum = expchi2.sum()
-		lnp = chi2 - log(psum)
+		lnp = numexpr.evaluate('chi2 - log(psum)',local_dict={'chi2':chi2,'psum':psum})
 	else:
 		lnp = chi2
-	lnp[ lnp < -1000] = -1000
-	return lnp
+
+	return numexpr.evaluate('where((lnp<-1000),-1000,lnp)',local_dict={'lnp':lnp})
 
 def multi_job(lamb, flux, fluxerr, mask, fluxmod, extLaw, **kwargs):
 	""" Shortcut to compute the log likelihood of multiple SEDs with the models
@@ -379,8 +382,8 @@ def plotPDFs(g, r, Av, Av0, Z0, fakein, Q = 'logg logT logL logM logA Av Z' ):
 	_r /= _r.sum()
 
 	def plotPDF(ax, qk, *args, **kargs):
-		if qk.upper() != 'AV':
-			ax.hist(g.grid[qk], weights= _r.sum(1), bins=30)
+		if qk.lower() != 'AV':
+			ax.hist(g.grid[qk], weights= _r, bins=30)
 			ax.set_xlabel(qk)
 			ax.set_ylabel('P(data $\mid$ %s)' % qk )
 			ylim = ax.get_ylim()
@@ -388,7 +391,7 @@ def plotPDFs(g, r, Av, Av0, Z0, fakein, Q = 'logg logT logL logM logA Av Z' ):
 			ax.set_ylim(ylim)
 			ax.set_xlim(min(g.grid[qk]), max(g.grid[qk]))
 		else:
-			ax.hist(Av, weights= _r.sum(0), bins=numpy.linspace(min(Av), max(Av), len(Av)+1))
+			ax.hist(Av, weights= _r, bins=numpy.linspace(min(Av), max(Av), len(Av)+1))
 			ax.set_xlabel(qk)
 			ax.set_ylabel('P(data $\mid$ %s)' % qk )
 			ax.set_xlim(min(Av), max(Av))
@@ -396,11 +399,12 @@ def plotPDFs(g, r, Av, Av0, Z0, fakein, Q = 'logg logT logL logM logA Av Z' ):
 			ax.vlines(Av0, ylim[0], ylim[1], color='#ff0000') 
 			ax.set_ylim(ylim)
 
-
 	ncol = 3
 	nl   = len(_q) / ncol + len(_q) % ncol 
 	k = 0
 	for k in range(len(_q)):
+		print _q[k] + ": " + str(g.grid[_q[k]][fakein])
 		ax = figure.subplot(nl,ncol,k+1)
 		plotPDF(ax, _q[k])
+	figure.show()
 
