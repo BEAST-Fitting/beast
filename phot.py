@@ -1,14 +1,13 @@
 """ Trying to speed up the photometry part """
-
 import numpy
 import tables
 import inspect
 import os
 import grid
 import time
+import numexpr
 from decorators import timeit
 from scipy.integrate import simps
-
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 
 __default__      = localpath + '/libs/filters.hd5'
@@ -208,18 +207,16 @@ def extractExtinguishedSEDs(g0, flist, extCurve, absFlux=True):
     """
     lamb = g0.lamb
     seds = numpy.empty(( g0.grid.nrows, len(flist) ), dtype=float)
-    cls  = numpy.empty( len(flist), dtype=float)
     for e, k in enumerate(flist):
         xl  = k.transmit > 0.
         tmp = lamb[xl] * k.transmit[xl]
-        s0  = g0.seds[:, xl] * extCurve[xl]
-        # apply absolute flux conversion if requested
-        if absFlux:
-            s0 /= distc
-        a = simps( tmp[None,:] * s0, lamb[xl], axis=1 )
+        s0  = numexpr.evaluate('seds*extCurve',local_dict={'seds':g0.seds[:,xl],'extCurve':extCurve[xl]})
+        a = simps( numexpr.evaluate('tmp*s0',local_dict={'tmp':tmp,'s0':s0}), lamb[xl], even='first', axis=1)
         seds[:, e] = a / k.lT
-        cls[e] = k.cl
-    return seds,cls
+    #apply absolute flux conversion if needed
+    if absFlux:
+        seds /= distc
+    return seds
 
 def test(absFlux=True):
     """ Test units """
