@@ -1,11 +1,17 @@
 """ Trying to speed up the photometry part """
+
+from config import __NTHREADS__
+from config import __USE_NUMEXPR__
+if __USE_NUMEXPR__:
+    import numexpr
+    numexpr.set_num_threads(__NTHREADS__)
+
 import numpy
 import tables
 import inspect
 import os
 import grid
-import time
-import numexpr
+
 from decorators import timeit
 from scipy.integrate import simps
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
@@ -193,6 +199,7 @@ def extractSEDs(g0, flist, absFlux=True):
 
     return grid.MemoryGrid(cls, seds, g0.grid)
 
+
 def extractExtinguishedSEDs(g0, flist, extCurve, absFlux=True):
     """ Extract seds from a grid
 
@@ -205,25 +212,47 @@ def extractExtinguishedSEDs(g0, flist, extCurve, absFlux=True):
         OUTPUT:
             g       grid            SED grid object
     """
+    #TODO: This function will go away to be cleaner
+    #
+    # this function is actually doing what extractSEDs does but applies the
+    # extinction law upfront.
+    #
+    # Talking with KG, we decided to clean this up a bit and merge with
+    # grid.SpectralGrid.getSEDs.
+    # Looping through the parameter space will be done in make_grid...
     lamb = g0.lamb
     seds = numpy.empty(( g0.grid.nrows, len(flist) ), dtype=float)
-    for e, k in enumerate(flist):
-        xl  = k.transmit > 0.
-        tmp = lamb[xl] * k.transmit[xl]
-        s0  = numexpr.evaluate('seds*extCurve',local_dict={'seds':g0.seds[:,xl],'extCurve':extCurve[xl]})
-        a = simps( numexpr.evaluate('tmp*s0',local_dict={'tmp':tmp,'s0':s0}), lamb[xl], even='first', axis=1)
-        seds[:, e] = a / k.lT
-    #apply absolute flux conversion if needed
-    if absFlux:
-        seds /= distc
+    if __USE_NUMEXPR__:
+        for e, k in enumerate(flist):
+            xl  = k.transmit > 0.
+            tmp = lamb[xl] * k.transmit[xl]
+            s0  = numexpr.evaluate('seds * extCurve',local_dict={'seds': g0.seds[:, xl], 'extCurve': extCurve[xl]})
+            a = simps( numexpr.evaluate('tmp * s0',local_dict={'tmp': tmp, 's0': s0}), lamb[xl], even='first', axis=1)
+            seds[:, e] = a / k.lT
+        #apply absolute flux conversion if needed
+        if absFlux:
+            seds /= distc
+    else:
+        cls  = numpy.empty( len(flist), dtype=float)
+        for e, k in enumerate(flist):
+            xl  = k.transmit > 0.
+            tmp = lamb[xl] * k.transmit[xl]
+            # apply absolute flux conversion if requested
+            if absFlux:
+                s0 /= distc
+            a = simps( tmp[None,:] * s0, lamb[xl], axis=1)
+            seds[:, e] = a / k.lT
+            cls[e] = k.cl
+
     return seds
+
 
 def test(absFlux=True):
     """ Test units """
     gridfile = 'libs/stellib_kurucz2004_padovaiso.spectralgrid.fits'
     filter_names = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
-	#Load the initial model grid
+    #Load the initial model grid
     with timeit('Loading Grid, %s' % gridfile):
         g0   = grid.FileSpectralGrid(gridfile)
         lamb = g0.lamb
