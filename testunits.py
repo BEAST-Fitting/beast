@@ -139,7 +139,6 @@ def getFakeStar(g, idx, err=0.1):
 
     return fakein, fakesed, fakeerr
 
-
 def getFakeCluster(g, age, Z, filts, err=0.1, suffix='0', Nstars=None, oAv=None, **kwargs):
     """ Generate a fake sed from a model grid
     INPUTS:
