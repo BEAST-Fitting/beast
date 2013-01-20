@@ -1,7 +1,11 @@
-# Set to use some C code instead of pure python to speed up the computations.
+f# Set to use some C code instead of pure python to speed up the computations.
 # If False, only numpy and python code are used.
 __WITH_C_LIBS__ = True
 #__WITH_C_LIBS__ = False
+
+
+#numexpr -- optimized multi-threaded numpy evaluations
+__USE_NUMEXPR__ = True
 
 # Default number of threads to use
 __NTHREADS__ = 3
@@ -17,6 +21,12 @@ libs = dict(
     #kuruczgrid  = 'kurucz2004.grid.fits',
     kuruczisog  = 'stellib_kurucz2004_padovaiso.spectralgrid.fits'
 )
+
+#Make sure the configuration is coherent for the python installation
+try:
+    import numexpr
+except ImportError:
+    __USE_NUMEXPR__ = False
 
 def printConfig():
 	print """ ============ pyPEGASE defaut configuration ===========
