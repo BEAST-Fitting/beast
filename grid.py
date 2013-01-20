@@ -10,7 +10,9 @@ import mytables
 import extinction
 
 from decorators import timeit
-from time import time
+
+from copy import deepcopy
+
 
 def isNestedInstance(obj, cl):
     """ Test for sub-classes types
@@ -48,6 +50,10 @@ class ModelGrid(object):
             pyfits.writeto(fname, r, **kwargs)
             self.grid.write(fname, append=True)
 
+    def copy(self):
+        """ returns a copy of the object """
+        return deepcopy(self)
+
 
 class MemoryGrid(ModelGrid):
     """ Instanciate an grid object that has no physical storage
@@ -77,7 +83,7 @@ class SpectralGrid(ModelGrid):
     """ Generate a grid that contains spectra.
     It provides an access to integrated photometry function getSEDs """
 
-    def getSEDs(self, filter_names, absFlux=True):
+    def getSEDs0(self, filter_names, absFlux=True):
         """
         Extract integrated fluxes through filters
         INPUTS:
@@ -88,6 +94,57 @@ class SpectralGrid(ModelGrid):
         else:
             flist = filter_names
         return phot.extractSEDs(self, flist, absFlux=absFlux)
+
+    def getSEDs(self, filter_names, absFlux=True, extLaw=None, inplace=False, **kwargs):
+        """
+        Extract integrated fluxes through filters
+        INPUTS:
+            filter_names    list    list of filter names according to the filter lib
+        KEYWORDS:
+            absFlux         bool    returns absolute fluxes if set
+            extLaw          extinction.ExtinctionLaw    apply extinction law if provided
+            inplace         bool                        if set, do not copy the grid and apply on it
+
+            **kwargs        extra keywords will be forwrded to extLaw
+        """
+        if type(filter_names[0]) == str:
+            flist = phot.load_filters(filter_names, interp=True, lamb=self.lamb)
+        else:
+            flist = filter_names
+        if extLaw is not None:
+            if not inplace:
+                r = self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
+                return phot.extractSEDs(r, flist, absFlux=absFlux)
+            else:
+                self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
+                r = self
+        return phot.extractSEDs(self, flist, absFlux=absFlux)
+
+    def applyExtinctionLaw(self, extLaw, inplace=False, **kwargs):
+        """
+        Apply an extinction law to the model grid
+        INPUTS:
+            extLaw          extinction.ExtinctionLaw    apply extinction law if provided
+        KEYWORDS:
+            inplace         bool                        if set, do not copy the grid and apply on it
+
+            **kwargs        extra keywords will be forwrded to extLaw
+        """
+        assert( isinstance(extLaw, extinction.ExtinctionLaw)), 'Expecting ExtinctionLaw object got %s' % type(extLaw)
+        extCurve = numpy.exp(-1. * extLaw.function(self.lamb[:], **kwargs))
+        if not inplace:
+            g = self.copy()
+            g.seds *= extCurve[None, :]
+            g.grid.header['ExtLaw'] = extLaw.name
+            for k, v in kwargs.iteritems():
+                g.grid.header[k] = v
+            return g
+        else:
+            self.grid.header['ExtLaw'] = extLaw.name
+            for k, v in kwargs.iteritems():
+                self.grid.header[k] = v
+            self.seds *= extCurve[None, :]
+
 
 class FileSEDGrid(SpectralGrid):
     """ Generate a grid from a spectral library """
