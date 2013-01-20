@@ -19,6 +19,10 @@ The SED fitter at this point is basically a *fast likelihood estimator*.
 > git add <name of the file that changed>  # select file(s) that will be associated with the same commit message.
 > git commit
 
+== Get Stellar Libraries ==
+
+make libs (downloads CK04 & [TBA] TLUSTY model atmospheres on padova isochrones)y
+
 == Quick start ==
 
 _See testunits.py for a complete example_

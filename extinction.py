@@ -351,7 +351,7 @@ class RvFbumpLaw(ExtinctionLaw):
 		    Rv        <float>    extinction param. (def: 3.1)
 		    f_bump    <float>    mixture fraction defining the bump amplitude
 		"""
-		return (1-f_bump)*self.RvLaw.function(lamb,Av=Av,Rv=Rv,Alambda=Alambda) + (f_bump)*self.NoBumpLaw.function(lamb,Av=Av,Alambda=Alambda)
+		return f_bump*self.RvLaw.function(lamb,Av=Av,Rv=Rv,Alambda=Alambda) + (1.-f_bump)*self.NoBumpLaw.function(lamb,Av=Av,Alambda=Alambda)
 
 if __name__ == "__main__":
 	# check that things look correct
@@ -380,8 +380,14 @@ if __name__ == "__main__":
 	plt.plot(x, ygsmc, label='G. SMC')
 
 	mixlaw = RvFbumpLaw()
+	ymix = mixlaw(lamb, Rv=3.1, f_bump=0.75)
+	plt.plot(x, ymix, label='Mixture f(bump)=0.75')
+
 	ymix = mixlaw(lamb, Rv=3.1, f_bump=0.5)
-	plt.plot(x, ymix, label='Mixture')
+	plt.plot(x, ymix, label='Mixture f(bump)=0.5')
+
+	ymix = mixlaw(lamb, Rv=3.1, f_bump=0.25)
+	plt.plot(x, ymix, label='Mixture f(bump=0.25')
 
 	plt.set_ylabel('A($\lambda$)/A(V)')
 	plt.set_xlabel('1/x [$\mu$m$^{-1}$]')
