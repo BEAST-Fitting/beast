@@ -119,36 +119,25 @@ def iter_Av_grid(g0, oAv, **kwargs):
     return itertools.imap( gensubgrid, gpts )
 
 
-def getFakeStar(g, idx, filts, err=0.1, oAv=None, **kwargs):
+def getFakeStar(g, idx, err=0.1):
     """ Generate a fake sed from a model grid
     INPUTS:
         idx int                         index number on the grid
-        filters list[filter]            list of filter names
     OUTPUTS:
         fakein  int                     the index of the model on the grid
-        lamb    ndarray[float, ndim=1]  wavelength taken from the grid
         fakesed ndarray[float, ndim=1]  resulting SED
 
     KEYWORDS:
         err float                       proportional error to consider on the fluxes
-        oAv ExtinctionLaw               if provided, apply extinction function using **kwargs
-
-        **kwargs if provided, extra keywords are used to apply an extinction
     """
-    lamb     = g.lamb
     fakein   = idx
     fakesed  = numpy.copy(g.seds[fakein, :])
-    if (oAv is not None) & (len(kwargs) > 0):
-        tau      = oAv(g.lamb * 1e-4, Alambda=True, **kwargs)
-        fakesed *= exp(-tau)
-    ## extract photometry
-    fakecl, fakesed = phot.extractPhotometry(lamb, fakesed, filts, absFlux=True)
-
-    #magerr  = 0.05
-    #fakeerr = fakesed * (1. - 10**(-0.4*magerr) )
+    # sampled noise (with a mean of 1 and standard deviation of err (input value)
+    unc_sample = numpy.random.normal(1.0,err,len(fakesed))
+    fakesed *= unc_sample
     fakeerr = err * fakesed
 
-    return fakein, fakecl, fakesed, fakeerr
+    return fakein, fakesed, fakeerr
 
 
 def getFakeCluster(g, age, Z, filts, err=0.1, suffix='0', Nstars=None, oAv=None, **kwargs):
@@ -322,43 +311,22 @@ def test_observations_seds(err=0.1, age=1e7, Z=0.02, suffix='0'):
     return locals()
 
 
-def test_seds(err=0.1):
-    filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
+def test_seds(err=0.1,outdir='Tests/fake_many_0'):
 
-    #Load the initial model grid
-    g0 = grid.FileSpectralGrid('libs/stellib_kurucz2004_padovaiso.spectralgrid.fits')
+    #Load the recomputed stellar+dust model grid
 
-    #load the filters
-    filts = phot.load_filters(filter_names, interp=True, lamb=g0.lamb)
-
-    # define the extinction priors
-    oAv = extinction.Cardelli()
-
-    ##define Av with a step size
-    #Av = numpy.arange(0.,3., 0.1)
-
-    ##define Av with a number of points
-    Av = numpy.linspace(0, 1, 3)
-    #Av = numpy.array([0.0], dtype=float)
-    Rv = numpy.array([3.1], dtype=float)
-    fb = numpy.array([0.5], dtype=float)     # only one value still needs to be array/list/tuple
-
-    #get the grid iterator
-    iter_grid = iter_Av_grid(g0, oAv, Av=Av, Rv=Rv, f_bump=fb)
+    ext_stellar_grid_filename = 'libs/stellib_kurucz2004_padovaiso.spectralgrid_extinguished.fits'
+    ext_grid = grid.FileSEDGrid(ext_stellar_grid_filename)
 
     # Parameters from which we generate fake data
     ## Number of fake SEDs to play with
     N   = 1
-    ## Extinction parameters are randomly drawn from the extinction space
-    Av0    = Av[numpy.random.randint(0, len(Av), N)]
-    Rv0    = Rv[numpy.random.randint(0, len(Rv), N)]
-    fb0    = fb[numpy.random.randint(0, len(fb), N)]
     ## Initial SEDs are randomly drawn from the model space
-    fakein = numpy.random.randint(0, g0.grid.nrows, N)
+    fakein = numpy.random.randint(0, ext_grid.grid.nrows, N)
 
     for tn in range(N):
         #fake DATA
-        idx, fakecl, fakesed, fakeerr = getFakeStar(g0, fakein[tn], filts, err=err, oAv=oAv, Av=Av0[tn], Rv=Rv0[tn], f_bump=fb0[tn])
+        idx, fakesed, fakeerr = getFakeStar(ext_grid, fakein[tn], err=err)
         mask = numpy.zeros(fakesed.shape, dtype=bool)
         ## simulate non detection
         #mask[3] = True
@@ -366,37 +334,20 @@ def test_seds(err=0.1):
 
         with timeit('Likelihood Object %d' % tn):
             #define output filename
-            outname = 'Tests/t%d.fits' % ( tn )
-            for gk, thetak in iter_grid:
-                with timeit('\t * Computing SEDS'):
-                    seds = gk.getSEDs(filts, absFlux=True)
-                with timeit('\t * Computing Lnp'):
-                    lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
-                with timeit('\t * Writing outputs'):
-                    t = mytables.Table(name='SEDOUT')
-                    #t = gk.grid
-                    t.addCol(numpy.arange(seds.grid.nrows, dtype=int), name='idx')
-                    t.addCol(lnp, name='lnp')
-                    for ek, nk in enumerate(filter_names):
-                        t.addCol(seds.seds[:, ek], name=nk)
-                    t.header['Av'] = thetak[0]
-                    t.header['Rv'] = thetak[1]
-                    t.header['f_bump'] = thetak[2]
-                    t.write( outname )
+            outname = outdir + '/fake_star_%d.fits' % ( tn )
 
-        with timeit('\t * Writing Original data'):
-            d = dict(filters=filter_names, flux=fakesed, err=fakeerr, cl=fakecl)
-            t = mytables.Table(d, name='INPUT')
-            t.header['Av']     = Av0[tn]
-            t.header['Rv']     = Rv0[tn]
-            t.header['f_bump'] = fb0[tn]
-            t.header['idx']    = idx
-            t.write( outname )
+            with timeit('\t * Computing Lnp'):
+                lnp = computeLogLikelihood(fakesed, fakeerr, ext_grid.seds, normed=False, mask=mask)
 
-        with timeit('\t * Writing Original grid'):
-            g0.grid.header['NAME'] = 'MODELS'
-            g0.grid.header['EXTNAME'] = 'MODELS'
-            g0.grid.write( outname )
+            with timeit('\t * Writing outputs'):
+                t = mytables.Table(name='SEDOUT')
+                t.addCol(numpy.arange(ext_grid.grid.nrows, dtype=int), name='idx')
+                t.addCol(lnp, name='lnp')
+                for ek, nk in enumerate(range(len(fakesed))):
+                    t.addCol(ext_grid.seds[:, ek], name='Filt%d' % nk)
+                t.header['GFNAME'] = ext_stellar_grid_filename
+                t.header['FAKE_IDX'] = idx
+                t.write( outname )
 
     return locals()
 
@@ -438,59 +389,6 @@ def obs_single_star_job(tn, obsfile='Tests/cl_0.fits', outdir='Tests/cl_0'):
         outname = outdir + '/star_%d.fits' % ( tn )
         for gk, thetak in iter_grid:
             with timeit('\t * Computing SEDS'):
-                seds = gk.getSEDs(filts, absFlux=True)
-            with timeit('\t * Computing Lnp'):
-                lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
-            with timeit('\t * Writing outputs'):
-                t = mytables.Table(name='SEDOUT')
-                #t = gk.grid
-                t.addCol(numpy.arange(seds.grid.nrows, dtype=int), name='idx')
-                t.addCol(lnp, name='lnp')
-                for ek, nk in enumerate(filter_names):
-                    t.addCol(seds.seds[:, ek], name=nk)
-                t.header['Av'] = thetak[0]
-                t.header['Rv'] = thetak[1]
-                t.header['f_bump'] = thetak[2]
-                t.write( outname )
-
-    with timeit('\t * Writing Original grid'):
-        g0.grid.header['NAME'] = 'MODELS'
-        g0.grid.header['EXTNAME'] = 'MODELS'
-        g0.grid.write( outname )
-
-def fake_single_star_job(tn, outdir='Tests/fake_single_0'):
-
-    #Load the stellar+dust model grid
-
-    g0 = grid.FileSpectralGrid('libs/stellib_kurucz2004_padovaiso.spectralgrid_extinguished.fits')
-
-    #Observations
-#    obs = observations.Observations(obsfile)
-#    obs.setFilters(filter_names)
-
-    ##define Av with a step size
-    #Av = numpy.arange(0.,3., 0.1)
-
-    ##define Av with a number of points
-    Av = numpy.linspace(0, 1, 3)
-    #Av = numpy.array([0.0], dtype=float)
-    Rv = numpy.array([3.1], dtype=float)
-    fb = numpy.array([0.5], dtype=float)     # only one value still needs to be array/list/tuple
-
-    #get the grid iterator
-    iter_grid = iter_Av_grid(g0, oAv, Av=Av, Rv=Rv, f_bump=fb)
-
-    # Parameters from which we generate fake data
-    idx = tn
-    fakesed, fakeerr, mask = obs.getObs(idx)
-
-    with timeit('Likelihood Object %d' % tn):
-        #define output filename
-        outname = outdir + '/star_%d.fits' % ( tn )
-        for gk, thetak in iter_grid:
-            with timeit('\t * Computing SEDS'):
-
-
                 seds = gk.getSEDs(filts, absFlux=True)
             with timeit('\t * Computing Lnp'):
                 lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
