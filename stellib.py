@@ -664,7 +664,10 @@ class Stellib(object):
 		_g = numpy.asarray(g0)
 		r = __interpMany__(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-06, weights = weights, pool=pool, nthreads=nthreads)
 		idx = numpy.unique(r[:,0])
-		d = { idxk:0. for idxk in idx }
+		#d = { idxk:0. for idxk in idx }
+		d = {}
+		for idxk in idx:
+			d[idxk] = 0.
 		for k in xrange(len(r)):
 			d[ r[k,0] ] += r[k,1]
 		del r, idx
@@ -736,8 +739,11 @@ class Elodie(Stellib):
 		self.wavelength = numpy.asarray((f[2].data[:]).tolist()).ravel()
 	
 	def _getTGZ_(self, f):
-		cols = f[1].columns.names	
-		d = { k: f[1].data.field(k) for k in cols }
+		cols = f[1].columns.names
+		d = {}
+		#d = { k: f[1].data.field(k) for k in cols }
+		for k in cols:
+			d[k] = f[1].data.field(k)
 		self.grid = mytables.Table(d)
 		self.grid.header['NAME'] = 'TGZ'
 		del d, cols
@@ -790,7 +796,10 @@ class BaSeL(Stellib):
 	
 	def _getTGZ_(self, f):
 		cols = f[1].columns.names	
-		d = { k: f[1].data.field(k) for k in cols }
+		d = {}
+		#d = { k: f[1].data.field(k) for k in cols }
+		for k in cols:
+			d[k] = f[1].data.field(k)
 		self.grid = mytables.Table(d)
 		self.grid.header['NAME'] = 'TGZ'
 		del d, cols
