@@ -31,22 +31,22 @@ try:
 		Translated from Pegase.2 fortran version
 		(this may not be pythonic though)
 
-		Note: preference is always given to the temperature over 
+		Note: preference is always given to the temperature over
 			the gravity when needed.
 
 		Inputs:
 			T0	log(Teff) to obtain
 			g0	log(g) to obtain
-			T	log(Teff) of the grid 
-			g	log(g) of the grid 
+			T	log(Teff) of the grid
+			g	log(g) of the grid
 
 		Keywords:
 			dT_max	If, T2 (resp. T1) is too far from T compared to T1
-				(resp. T2), i2 (resp. i1) is not used. 
-				(see below for namings)	
+				(resp. T2), i2 (resp. i1) is not used.
+				(see below for namings)
 			eps	temperature sensitivity under which points are
 				considered to have the same temperature
-		
+
 		Returns 4 star indexes and 4 associated weights
 
 		if index is -1, this means the point is rejected and the
@@ -69,22 +69,22 @@ except Exception as e:
 		Translated from Pegase.2 fortran version
 		(this may not be pythonic though)
 
-		Note: preference is always given to the temperature over 
+		Note: preference is always given to the temperature over
 			the gravity when needed.
 
 		Inputs:
 			T0	log(Teff) to obtain
 			g0	log(g) to obtain
-			T	log(Teff) of the grid 
-			g	log(g) of the grid 
+			T	log(Teff) of the grid
+			g	log(g) of the grid
 
 		Keywords:
 			dT_max	If, T2 (resp. T1) is too far from T compared to T1
-				(resp. T2), i2 (resp. i1) is not used. 
-				(see below for namings)	
+				(resp. T2), i2 (resp. i1) is not used.
+				(see below for namings)
 			eps	temperature sensitivity under which points are
 				considered to have the same temperature
-		
+
 		Returns 4 star indexes and 4 associated weights
 
 		if index is -1, this means the point is rejected and the
@@ -93,7 +93,7 @@ except Exception as e:
 		Naming:
 
 		i1 = index of the star with temperature > T and gravity > g.
-		Among all such stars, one chooses the one minimizing 
+		Among all such stars, one chooses the one minimizing
 		|Delta T|+kappa*|Delta g|.
 		If no star with temperature > T and gravity > g exists, i1 = -1
 
@@ -105,7 +105,7 @@ except Exception as e:
 
 		 g
 
-		/|\ 
+		/|\
 		 | i3  |
 		 |     |  i1
 		 | ----x------
@@ -166,7 +166,7 @@ except Exception as e:
 		g3 = g[i3]
 		g4 = g[i4]
 		# If, T2 (resp. T1) is too far from T compared to T1
-		# (resp. T2), i2 (resp. i1) is not used. 
+		# (resp. T2), i2 (resp. i1) is not used.
 		# The same for i3 and i4.
 		if ( (i1 > 0) & (i2 > 0) ):
 			if (T1 < T2 - dT_max):
@@ -184,7 +184,7 @@ except Exception as e:
 		# (at least 1, at most 4).
 		# Code "0110" means that i1 = i4 = 0, i2 /=0 and i3 /= 0.
 		#
-		# Note: preference is always given to the temperature over 
+		# Note: preference is always given to the temperature over
 		#	the gravity when needed.
 
 		if (i1 < 0):
@@ -210,17 +210,17 @@ except Exception as e:
 					if ( abs(T3-T4) < eps ):
 						if (g3 == g4):
 							alpha3 = 0.5
-						else: 
+						else:
 							alpha3 = (g0-g4)/(g3-g4)
 						#endif
 						alpha4 = 1.-alpha3
 					else:
 						if (T3 > T4):
 							alpha3 = 1.
-							alpha4 = 0. 
+							alpha4 = 0.
 							i4 = -1
 						else:
-							alpha3 = 0. 
+							alpha3 = 0.
 							i3 = -1
 							alpha4 = 1.
 						#endif
@@ -256,21 +256,21 @@ except Exception as e:
 				# Assume that (T, g) is within the triangle i
 				# formed by the three points.
 
-				mat0 = numpy.asarray([ 
-				     [ T2, T3, T4 ], 
-				     [ g2, g3, g4 ], 
+				mat0 = numpy.asarray([
+				     [ T2, T3, T4 ],
+				     [ g2, g3, g4 ],
 				     [    1.,    1.,     1.]  ])
-				mat2 = numpy.asarray([ 
-				     [ T0   , T3, T4 ], 
-				     [ g0   , g3, g4 ], 
+				mat2 = numpy.asarray([
+				     [ T0   , T3, T4 ],
+				     [ g0   , g3, g4 ],
 				     [    1.,    1.,     1.]  ])
-				mat3 = numpy.asarray([ 
-				     [ T2, T0   , T4 ], 
-				     [ g2, g0   , g4 ], 
+				mat3 = numpy.asarray([
+				     [ T2, T0   , T4 ],
+				     [ g2, g0   , g4 ],
 				     [    1.,    1.,     1.]  ])
-				mat4 = numpy.asarray([ 
-				     [ T2, T3, T0    ], 
-				     [ g2, g3, g0    ], 
+				mat4 = numpy.asarray([
+				     [ T2, T3, T0    ],
+				     [ g2, g3, g0    ],
 				     [    1.,    1.,     1.]  ])
 				det0 = __det3x3__(mat0.ravel())
 				det2 = __det3x3__(mat2.ravel())
@@ -281,7 +281,7 @@ except Exception as e:
 				alpha3 = det3/det0
 				alpha4 = det4/det0
 
-				# If (T, g) is outside the triangle formed 
+				# If (T, g) is outside the triangle formed
 				# by the three used points use only two points.
 				if ( (alpha2 < 0.) | (alpha2 > 1. ) | (alpha3 < 0.) | (alpha3 > 1.) | (alpha4 < 0.) | (alpha4 > 1. ) ):
 					alpha1 = 0.
@@ -295,7 +295,7 @@ except Exception as e:
 					i4 = -1
 				#endif
 			#endif
-		elif (i2 < 0): 
+		elif (i2 < 0):
 			if (i3 < 0):
 				if (i4 < 0):
 					#	            #1000
@@ -306,7 +306,7 @@ except Exception as e:
 				else:                      #1001
 					if (T1 == T4):
 						alpha1 = 0.5
-					else: 
+					else:
 						alpha1 = (T0-T4)/(T1-T4)
 					#endif
 					alpha2 = 0.
@@ -326,21 +326,21 @@ except Exception as e:
 
 				# Assume that (T, g) is within the triangle formed by the three points.
 
-				mat0 = numpy.asarray([ 
-				     [ T1, T3, T4 ], 
-				     [ g1, g3, g4 ], 
+				mat0 = numpy.asarray([
+				     [ T1, T3, T4 ],
+				     [ g1, g3, g4 ],
 				     [    1.,    1.,     1.]  ])
-				mat1 = numpy.asarray([ 
-				     [ T0   , T3, T4 ], 
-				     [ g0   , g3, g4 ], 
+				mat1 = numpy.asarray([
+				     [ T0   , T3, T4 ],
+				     [ g0   , g3, g4 ],
 				     [    1.,    1.,     1.]  ])
-				mat3 = numpy.asarray([ 
-				     [ T1, T0   , T4 ], 
-				     [ g1, g0   , g4 ], 
+				mat3 = numpy.asarray([
+				     [ T1, T0   , T4 ],
+				     [ g1, g0   , g4 ],
 				     [    1.,    1.,     1.]  ])
-				mat4 = numpy.asarray([ 
-				     [ T1, T3, T0    ], 
-				     [ g1, g3, g0    ], 
+				mat4 = numpy.asarray([
+				     [ T1, T3, T0    ],
+				     [ g1, g3, g0    ],
 				     [    1.,    1.,     1.]  ])
 				det0 = __det3x3__(mat0.ravel())
 				det1 = __det3x3__(mat1.ravel())
@@ -361,12 +361,12 @@ except Exception as e:
 						alpha1 = (T0-T4)/(T1-T4)
 					#endif
 					alpha2 = 0.
-					alpha3 = 0. 
+					alpha3 = 0.
 					i3 = -1
 					alpha4 = 1.-alpha1
 				#endif
 			#endif
-		elif (i3 < 0): 
+		elif (i3 < 0):
 			if (i4 < 0):
 				#					#1100
 				if (abs(T1-T2) < eps):
@@ -393,21 +393,21 @@ except Exception as e:
 
 				#Assume that (T, g) is within the triangle formed by the three points.
 
-				mat0 = numpy.asarray([ 
-				     [ T1, T2, T4 ], 
-				     [ g1, g2, g4 ], 
+				mat0 = numpy.asarray([
+				     [ T1, T2, T4 ],
+				     [ g1, g2, g4 ],
 				     [    1.,    1.,     1.]  ])
-				mat1 = numpy.asarray([ 
-				     [ T0   , T2, T4 ], 
-				     [ g0   , g2, g4 ], 
+				mat1 = numpy.asarray([
+				     [ T0   , T2, T4 ],
+				     [ g0   , g2, g4 ],
 				     [    1.,    1.,     1.]  ])
-				mat2 = numpy.asarray([ 
-				     [ T1, T0   , T4 ], 
-				     [ g1, g0   , g4 ], 
+				mat2 = numpy.asarray([
+				     [ T1, T0   , T4 ],
+				     [ g1, g0   , g4 ],
 				     [    1.,    1.,     1.]  ])
-				mat4 = numpy.asarray([ 
-				     [ T1, T2, T0    ], 
-				     [ g1, g2, g0    ], 
+				mat4 = numpy.asarray([
+				     [ T1, T2, T0    ],
+				     [ g1, g2, g0    ],
 				     [    1.,    1.,     1.]  ])
 				det0 = __det3x3__(mat0.ravel())
 				det1 = __det3x3__(mat1.ravel())
@@ -437,21 +437,21 @@ except Exception as e:
 		elif (i4 < 0):
 			#							#1110
 			#Assume that (T, g) is within the triangle formed by the three points.
-			mat0 = numpy.asarray([ 
-			     [ T1, T2, T3 ], 
-			     [ g1, g2, g3 ], 
+			mat0 = numpy.asarray([
+			     [ T1, T2, T3 ],
+			     [ g1, g2, g3 ],
 			     [    1.,    1.,     1.]  ])
-			mat1 = numpy.asarray([ 
-			     [ T0   , T2, T3 ], 
-			     [ g0   , g2, g3 ], 
+			mat1 = numpy.asarray([
+			     [ T0   , T2, T3 ],
+			     [ g0   , g2, g3 ],
 			     [    1.,    1.,     1.]  ])
-			mat2 = numpy.asarray([ 
-			     [ T1, T0   , T3 ], 
-			     [ g1, g0   , g3 ], 
+			mat2 = numpy.asarray([
+			     [ T1, T0   , T3 ],
+			     [ g1, g0   , g3 ],
 			     [    1.,    1.,     1.]  ])
-			mat3 = numpy.asarray([ 
-			     [ T1, T2, T0    ], 
-			     [ g1, g2, g0    ], 
+			mat3 = numpy.asarray([
+			     [ T1, T2, T0    ],
+			     [ g1, g2, g0    ],
 			     [    1.,    1.,     1.]  ])
 			det0 = __det3x3__(mat0.ravel())
 			det1 = __det3x3__(mat1.ravel())
@@ -507,7 +507,7 @@ except Exception as e:
 		return numpy.asarray((i1,i2,i3,i4)), numpy.asarray((alpha1, alpha2, alpha3, alpha4))
 
 	def __det3x3__(a):
-		""" compute the 3x3 determinant of an array 
+		""" compute the 3x3 determinant of an array
 			8 times faster than numpy.linalg.det for a matrix 3x3
 
 		Inputs:
@@ -515,7 +515,7 @@ except Exception as e:
 
 		Returns the result as a float
 		"""
-		# val  = +a[0,0] * ( a[1,1] * a[2,2] - a[2,1] * a[1,2] ) 
+		# val  = +a[0,0] * ( a[1,1] * a[2,2] - a[2,1] * a[1,2] )
 		# val += -a[0,1] * ( a[1,0] * a[2,2] - a[2,0] * a[1,2] )
 		# val += +a[0,2] * ( a[1,0] * a[2,1] - a[2,0] * a[1,1] )
 		val  = +a[0]*(a[4]*a[8]-a[7]*a[5])
@@ -524,13 +524,13 @@ except Exception as e:
 		return val
 
 def __interpSingle__(args):
-	return numpy.asarray(interp(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9])).T	
+	return numpy.asarray(interp(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9])).T
 
 def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06, weights=None, pool=None, nthreads=__NTHREADS__):
 	if (pool == None) & (nthreads > 0):
 		import multiprocessing as mp
 		pool = mp.Pool(nthreads)
-	if weights == None:
+	if weights is None:
 		seq = [ (logT[k], logg[k], Z, logL[k], oSL.Teff, oSL.logg, oSL.Z, dT_max, eps, 1.) for k in range(len(logT)) ]
 	else:
 		seq = [ (logT[k], logg[k], Z, logL[k], oSL.Teff, oSL.logg, oSL.Z, dT_max, eps, weights[k]) for k in range(len(logT)) ]
@@ -544,10 +544,10 @@ def interp(T0, g0, Z0, L0, T, g, Z, dT_max = 0.1, eps=1e-6, weight=1.):
 	""" Interpolation of the T,g grid
 
 	Interpolate on the grid and returns star indices and
-	associated weights, and Z. 
-	3 to 12 stars are returned. 
+	associated weights, and Z.
+	3 to 12 stars are returned.
 	It calls _interp_, but reduce the output to the relevant stars.
-	
+
 	Inputs:
 		T0	log(Teff) to obtain
 		g0	log(g) to obtain
@@ -559,7 +559,7 @@ def interp(T0, g0, Z0, L0, T, g, Z, dT_max = 0.1, eps=1e-6, weight=1.):
 			this value
 		eps	temperature sensitivity under which points are
 			considered to have the same temperature
-	
+
 	Returns 3 to 12 star indexes and associated weights
 
 	see _interp_
@@ -596,7 +596,7 @@ def interp(T0, g0, Z0, L0, T, g, Z, dT_max = 0.1, eps=1e-6, weight=1.):
 			index[:4]   = ind[0][i]
 			weights[:4] = w
 			Z[:4]       = [Z_inf]*4
-			
+
 		if (Z_sup > 0.):
 			ind          = numpy.where(_Z == Z_sup)
 			i, w         = __interp__(T0, g0, _T[ind], _g[ind], dT_max, eps)
@@ -613,9 +613,8 @@ def interp(T0, g0, Z0, L0, T, g, Z, dT_max = 0.1, eps=1e-6, weight=1.):
 			else:
 				weights[:8]  *= 0.5
 
-	ind = numpy.where(index > 0)
-
-	return index[ind].astype(int), 10**L0 * weight * weights[ind] / (weights[ind].sum()) #, Z[ind]
+	ind = numpy.where(weights > 0)
+	return index[ind].astype(int), 10**L0 * weight * weights[ind] #/ (weights[ind].sum()) #, Z[ind]
 
 class Stellib(object):
 	def __init__(self, *args, **kargs):
@@ -628,10 +627,10 @@ class Stellib(object):
 		""" Interpolation of the T,g grid
 
 		Interpolate on the grid and returns star indices and
-		associated weights, and Z. 
-		3 to 12 stars are returned. 
+		associated weights, and Z.
+		3 to 12 stars are returned.
 		It calls _interp_, but reduce the output to the relevant stars.
-		
+
 		Inputs:
 			T0	log(Teff) to obtain
 			g0	log(g) to obtain
@@ -643,7 +642,7 @@ class Stellib(object):
 				this value
 			eps	temperature sensitivity under which points are
 				considered to have the same temperature
-		
+
 		Returns 3 to 12 star indexes and associated weights
 
 		see _interp_
@@ -659,12 +658,12 @@ class Stellib(object):
 	def interpMany(self, T0, g0, Z0, L0, dT_max = 0.1, eps=1e-6, weights=None, pool=None, nthreads=__NTHREADS__):
 		""" run interp on a list of inputs and returns reduced
 		results """
-		
+
 		_t = numpy.asarray(T0)
 		_g = numpy.asarray(g0)
 		r = __interpMany__(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-06, weights = weights, pool=pool, nthreads=nthreads)
 		idx = numpy.unique(r[:,0])
-		#d = { idxk:0. for idxk in idx }
+		# d = { idxk:0. for idxk in idx }
 		d = {}
 		for idxk in idx:
 			d[idxk] = 0.
@@ -677,30 +676,30 @@ class Stellib(object):
 		""" Generate a composite value from a previously calculated
 			interpolation
 			Works on 1 desired star or a population of stars
-			
+
 		Inputs:
 			qname	quantity name from self.grid
 			r	the result from a previous interpolation
-		
+
 		Outputs:
 			an array containing the value
 		"""
-		return ( self.grid[qname][r[:,0].astype(int)] * r[:,1] ).sum()	
+		return ( self.grid[qname][r[:,0].astype(int)] * r[:,1] ).sum()
 
 	def genSpectrum(self, T0, g0=None, Z0=None, weights=None, **kwargs):
-		""" Generate a composite sprectrum 
+		""" Generate a composite sprectrum
 			Does the interpolation or uses a previously calculated
 			interpolation
 			Works on 1 desired star or a population of stars
-			
+
 		Inputs:
 			T0	log(Teff) of each star or a 2d-array containing
 				the result from a previous interpolation
 			g0	log(g) of each stars
 			Z0	metallicity
-			
+
 			if T0 and g0 are iterable, it calls interpMany
-		
+
 		Keywords:
 			weights individual weights of each star
 			**kwargs forwarded to interp(Many)
@@ -718,9 +717,9 @@ class Stellib(object):
 			_r = T0
 		return ( ( (self.spectra[_r[:,0].astype(int)].T) * _r[:,1]) ).sum(1)
 
-			
 
-			
+
+
 class Elodie(Stellib):
 	""" Elodie 3.1 stellar library derived class """
 	def __init__(self, *args, **kwargs):
@@ -734,10 +733,10 @@ class Elodie(Stellib):
 			self._getWaveLength_(f)
 			self._getTGZ_(f)
 			self._getSpectra_(f)
-	
+
 	def _getWaveLength_(self, f):
 		self.wavelength = numpy.asarray((f[2].data[:]).tolist()).ravel()
-	
+
 	def _getTGZ_(self, f):
 		cols = f[1].columns.names
 		d = {}
@@ -774,9 +773,9 @@ class Elodie(Stellib):
 	@property
 	def NHeII(self):
 		return self.grid['NHeII']
-		
+
 class BaSeL(Stellib):
-	""" BaSeL 2.2 + Rauch stellar library derived class 
+	""" BaSeL 2.2 + Rauch stellar library derived class
 		This library is used in Pegase.2
 	"""
 	def __init__(self, *args, **kwargs):
@@ -790,12 +789,12 @@ class BaSeL(Stellib):
 			self._getWaveLength_(f)
 			self._getTGZ_(f)
 			self._getSpectra_(f)
-	
+
 	def _getWaveLength_(self, f):
 		self.wavelength = numpy.asarray((f[2].data[:]).tolist()).ravel()
-	
+
 	def _getTGZ_(self, f):
-		cols = f[1].columns.names	
+		cols = f[1].columns.names
 		d = {}
 		#d = { k: f[1].data.field(k) for k in cols }
 		for k in cols:
@@ -836,7 +835,7 @@ class BaSeL(Stellib):
 #import numpy, pyfits
 #
 #def _readLine(f, nlines = 1, cols = None, convert=None, debug=None):
-#	""" 
+#	"""
 #	Read a given lines from a file stream
 #	and optionaly convert field values into given format sequence
 #	"""
@@ -846,10 +845,10 @@ class BaSeL(Stellib):
 #
 #	data = {}
 #	for k in cols: data[str(k)] = []
-#	for il in range(nlines): 
+#	for il in range(nlines):
 #		l = f.readline()
 #		l = l.split()
-#		for k in range(numpy.size(cols)): 
+#		for k in range(numpy.size(cols)):
 #			data[str(cols[k])].append(convert[k](l[k]))
 #	if nlines == 1:
 #		return tuple([ data[str(k)][0] for k in cols ])
@@ -902,7 +901,7 @@ class BaSeL(Stellib):
 #			s.append( _readBlock(f_fk, nw).astype(float) )
 #		f_fk.close()
 #
-#		return tgz, numpy.asarray(s)	
+#		return tgz, numpy.asarray(s)
 #
 #	r = map(extract, l)
 #	tgz   = numpy.vstack([ k[0] for k in r ])
@@ -912,18 +911,18 @@ class BaSeL(Stellib):
 #	d    = { pars[k]:tgz[:,k] for k in range(len(pars)) }
 #
 #	t1    = mytables.Table(d)
-#	
+#
 #	t1.header['EXTNAME'] = 'TGZ'
 #	t1.setUnit('Teff', 'log(K)')
 #	t1.setUnit('logG', 'log(g/s**2)')
-#	t1.header['COMMENT'] = 'Stellib. from Pegase.2x: BaSeL 2.2 + Rauch'	
+#	t1.header['COMMENT'] = 'Stellib. from Pegase.2x: BaSeL 2.2 + Rauch'
 #
 #	t2    = mytables.Table( {'BFIT': wave} )
 #	t2.header['EXTNAME'] = 'WCA'
 #	t2.setUnit('BFIT', 'AA')
-#	
-#	pyfits.writeto(name, specs)	
+#
+#	pyfits.writeto(name, specs)
 #	t1.write(name, append=True)
 #	t2.write(name, append=True)
-#	
+#
 #
