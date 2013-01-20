@@ -47,7 +47,5 @@ if __name__ == '__main__':
     # make the grid 
     extgrid = make_extinguished_grid(stellar_filename,filter_names, avs, rvs, fbumps)
 
-    print extgrid.seds.shape
-
     # save grid to file
     extgrid.write(stellar_filename.replace('.fits','_extinguished.fits'),clobber=True,append=False)
