@@ -89,12 +89,11 @@ class SpectralGrid(ModelGrid):
             flist = filter_names
         return phot.extractSEDs(self, flist, absFlux=absFlux)
 
-    def getExtinguishedSEDs(self, filter_names, filename, toPhotLamb=1.0e4,toFbumpLawLamb=1.0,absFlux=True, Av_vals=numpy.array([3.0]), Rv_vals = numpy.array([2.7]), f_bump_vals = numpy.array([0.0])):
+    def getExtinguishedSEDs(self, filter_names, toPhotLamb=1.0e4,toFbumpLawLamb=1.0,absFlux=True, Av_vals=numpy.array([3.0]), Rv_vals = numpy.array([2.7]), f_bump_vals = numpy.array([0.0])):
         """
         Extinguish and extract fluxes through filters
         INPUTS:
               filter_names   list    list of filter names according to the filter lib
-              filename       string  what to save the resulting grid as
         KEYWORDS:
               toPhotLamb     float   conversion factor from grid wavelength units to angstroms
               toFbumpLawLamb float   conversion factor from grid wavelength units to microns
@@ -141,8 +140,7 @@ class SpectralGrid(ModelGrid):
                 results.grid[key][self.grid.nrows*count:self.grid.nrows*(count+1)] = self.grid[key]
             count += 1
 
-        results.write(filename)
-        
+        return results
 
 class FileSEDGrid(SpectralGrid):
     """ Generate a grid from a spectral library """
