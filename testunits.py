@@ -458,5 +458,58 @@ def obs_single_star_job(tn, obsfile='Tests/cl_0.fits', outdir='Tests/cl_0'):
         g0.grid.header['EXTNAME'] = 'MODELS'
         g0.grid.write( outname )
 
+def fake_single_star_job(tn, outdir='Tests/fake_single_0'):
+
+    #Load the stellar+dust model grid
+
+    g0 = grid.FileSpectralGrid('libs/stellib_kurucz2004_padovaiso.spectralgrid_extinguished.fits')
+
+    #Observations
+#    obs = observations.Observations(obsfile)
+#    obs.setFilters(filter_names)
+
+    ##define Av with a step size
+    #Av = numpy.arange(0.,3., 0.1)
+
+    ##define Av with a number of points
+    Av = numpy.linspace(0, 1, 3)
+    #Av = numpy.array([0.0], dtype=float)
+    Rv = numpy.array([3.1], dtype=float)
+    fb = numpy.array([0.5], dtype=float)     # only one value still needs to be array/list/tuple
+
+    #get the grid iterator
+    iter_grid = iter_Av_grid(g0, oAv, Av=Av, Rv=Rv, f_bump=fb)
+
+    # Parameters from which we generate fake data
+    idx = tn
+    fakesed, fakeerr, mask = obs.getObs(idx)
+
+    with timeit('Likelihood Object %d' % tn):
+        #define output filename
+        outname = outdir + '/star_%d.fits' % ( tn )
+        for gk, thetak in iter_grid:
+            with timeit('\t * Computing SEDS'):
+
+
+                seds = gk.getSEDs(filts, absFlux=True)
+            with timeit('\t * Computing Lnp'):
+                lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
+            with timeit('\t * Writing outputs'):
+                t = mytables.Table(name='SEDOUT')
+                #t = gk.grid
+                t.addCol(numpy.arange(seds.grid.nrows, dtype=int), name='idx')
+                t.addCol(lnp, name='lnp')
+                for ek, nk in enumerate(filter_names):
+                    t.addCol(seds.seds[:, ek], name=nk)
+                t.header['Av'] = thetak[0]
+                t.header['Rv'] = thetak[1]
+                t.header['f_bump'] = thetak[2]
+                t.write( outname )
+
+    with timeit('\t * Writing Original grid'):
+        g0.grid.header['NAME'] = 'MODELS'
+        g0.grid.header['EXTNAME'] = 'MODELS'
+        g0.grid.write( outname )
+
 if __name__ == '__main__':
     obs_single_star_job(sys.argv[-1], obsfile='Tests/cl_0.fits', outdir='Tests/cl_0')
