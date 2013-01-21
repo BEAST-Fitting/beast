@@ -15,6 +15,7 @@ import inspect, os
 import tables
 import mytables
 import pyfits
+import grid
 
 
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
@@ -717,9 +718,6 @@ class Stellib(object):
 			_r = T0
 		return ( ( (self.spectra[_r[:,0].astype(int)].T) * _r[:,1]) ).sum(1)
 
-
-
-
 class Elodie(Stellib):
 	""" Elodie 3.1 stellar library derived class """
 	def __init__(self, *args, **kwargs):
@@ -830,6 +828,39 @@ class BaSeL(Stellib):
 	def NHeII(self):
 		return self.grid['NHeII']
 
+
+class Kurucz(Stellib):
+	"""
+	The stellar atmosphere models by Castelli and Kurucz 2004
+	"""
+	def __init__(self, *args, **kwargs):
+		self.name = 'Kurucz 2004'
+		self.source = localpath+'/libs/kurucz2004.grid.fits'
+		self._load_()
+
+	def _load_(self):
+		g = grid.FileSpectralGrid(self.source)
+		self.wavelength = g.lamb
+		self.grid = g.grid
+		self.grid.header['NAME'] = 'TGZ'
+		self.spectra = g.seds
+
+
+	@property
+	def logT(self):
+		return numpy.log10(self.grid['T0'])
+
+	@property
+	def logg(self):
+		return self.grid['logG']
+
+	@property
+	def Teff(self):
+		return self.grid['Teff']
+
+	@property
+	def Z(self):
+		return self.grid['Z']
 
 ## utils for pegase files =======================================
 #import numpy, pyfits
