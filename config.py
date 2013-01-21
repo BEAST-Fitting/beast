@@ -5,10 +5,10 @@ __WITH_C_LIBS__ = True
 
 
 #numexpr -- optimized multi-threaded numpy evaluations
-__USE_NUMEXPR__ = False
+__USE_NUMEXPR__ = True
 
 # Default number of threads to use
-__NTHREADS__ = 3
+__NTHREADS__ = 1
 
 # Online libraries
 # will be replaced by a more flexible support (JSON is easy!)
