@@ -123,18 +123,19 @@ if __name__ == '__main__':
     # define filters for the grid
     filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
+    # variable to ensure that range is fully covered in using numpy.arange
     tiny_delta = 0.001
 
     # grid spacing for stars
     #  TBD
 
     # grid spacing for dust
-    avs = numpy.arange(0.0,2.0+tiny_delta,0.5)
-    rvs = numpy.arange(1.0,6.0+tiny_delta,1.0)
+    avs = numpy.arange(0.0,5.0+tiny_delta,0.1)
+    rvs = numpy.arange(1.0,6.0+tiny_delta,0.5)
     fbumps = numpy.arange(0.0,1.+tiny_delta,0.1)
 
     # make the grid 
     extgrid = make_extinguished_grid(stellar_filename,filter_names, avs, rvs, fbumps)
 
     # save grid to file
-    extgrid.write(stellar_filename.replace('.fits','_extinguished.fits'),clobber=True,append=False)
+    extgrid.write(stellar_filename.replace('.fits','_sed_extinguished.grid.fits'),clobber=True,append=False)
