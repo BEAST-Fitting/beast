@@ -51,8 +51,7 @@ class Calzetti(ExtinctionLaw):
 	def function(self, lamb, Av=1, Rv=4.05, Alambda=True, **kwargs):
 		"""
 		Returns Alambda or tau for a Calzetti law
-		
-		!!Expecting lamb in microns!!
+		Lamb is input in Anstroms
 
 		"""
 		if type(lamb) == float:
@@ -60,7 +59,7 @@ class Calzetti(ExtinctionLaw):
 		else:
 			_lamb = lamb[:]
 	
-		x = 1./_lamb
+		x = 1.e4/_lamb #wavenumber in um^-1
 		k = numpy.zeros(numpy.size(x))
 
 		ind = numpy.where( (_lamb >= 0.630 ) & (_lamb <= 2.2) )
@@ -81,10 +80,10 @@ class Cardelli(ExtinctionLaw):
 	def function(self, lamb, Av=1., Rv=3.1, Alambda = True, debug=False, **kwargs):
 		""" 
 		Cardelli extinction Law
-		Lamb has to be in microns!!!
+		Lamb is input in Anstroms
 
 		input:
-		    lamb    <float>    wavelength of the extinction point !! in microns !!
+		    lamb    <float>    wavelength of the extinction point
 		output:
 		    tau        <float> returns tau as in redflux = flux*exp(-tau)
 		keywords:
@@ -98,7 +97,7 @@ class Cardelli(ExtinctionLaw):
 			_lamb = lamb[:]
 
 		#init variables
-		x = 1./(_lamb) #wavenumber in um^-1
+		x = 1.e4/_lamb #wavenumber in um^-1
 		a = numpy.zeros(numpy.size(x))
 		b = numpy.zeros(numpy.size(x))
 		#Infrared (Eq 2a,2b)
@@ -188,10 +187,10 @@ class Fitzpatrick99(ExtinctionLaw):
 	def function(self, lamb, Av=1, Rv=3.1, Alambda=True, **kwargs):
 		""" 
 		Fitzparick99 extinction Law
-		Lamb as to be in microns!!!
+		Lamb is input in Anstroms
 
 		input:
-		    lamb    <float>    wavelength of the extinction point !! in microns !!
+		    lamb    <float>    wavelength of the extinction point
 		output:
 		    tau        <float> returns tau as in redflux = flux*exp(-tau)
 		keywords:
@@ -212,7 +211,7 @@ class Fitzpatrick99(ExtinctionLaw):
 		x0 = 4.596
 		gamma = 0.99
 
-		x = 1./_lamb
+		x = 1.e4/_lamb
 		k = numpy.zeros(numpy.size(x))
 
 		# compute the UV portion of A(lambda)/E(B-V)
@@ -266,10 +265,10 @@ class Gordon03_SMCBar(ExtinctionLaw):
 		self.name = 'Gordon03_SMCBar'
 	def function(self, lamb, Av=1, Alambda=True, **kwargs):
 		"""
-		Lamb as to be in microns!!!
+		Lamb is input in Anstroms
 
 		input:
-		    lamb    <float>    wavelength of the extinction point !! in microns !!
+		    lamb    <float>    wavelength of the extinction point
 		output:
 		    tau        <float> returns tau as in redflux = flux*exp(-tau)
 		keywords:
@@ -294,7 +293,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
 		x0 = 4.6
 		gamma = 1.0
 		
-		x = 1./_lamb
+		x = 1.e4/_lamb
 		k = numpy.zeros(numpy.size(x))
 		
 		# UV part
@@ -336,6 +335,7 @@ class RvFbumpLaw(ExtinctionLaw):
 	def __init__(self):
 		self.RvLaw = Fitzpatrick99()
 		self.NoBumpLaw = Gordon03_SMCBar()
+		self.name = 'RvFbumpLaw'
 
 	def function(self, lamb, Av=1, Rv=3.1, Alambda=True, f_bump=0.5, **kwargs):
 		"""
