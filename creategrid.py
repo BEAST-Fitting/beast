@@ -3,10 +3,11 @@ Create extinguished grid
 
 Dec 2012: Originally written by Kirill T.
 Jan 2013: Modified by Karl G. to separate the extinguished grid creation into a separate program.
+          Added restriction of parameter space in R(V) and f_bump.
 
 """
 
-__version__ = '0.2dev'
+__version__ = '0.3dev'
 
 import numpy
 from numpy import exp
@@ -18,9 +19,6 @@ import mytables
 from decorators import timeit
 import extinction
 import grid
-import phot
-#import observations
-from time import time
 import progressbar
 
 def make_extinguished_grid(stellar_filename, filter_names, avs, rvs, fbumps):
@@ -49,37 +47,55 @@ def make_extinguished_grid(stellar_filename, filter_names, avs, rvs, fbumps):
     # define the extinction law be be used (fixed for now)
     extLaw = extinction.RvFbumpLaw()
 
-    # ensure that dust parameter verctors are numpy arrays
+    # get the min/max R(V) values
+    min_Rv = min(rvs)
+    max_Rv = max(rvs)
+
+    # create mesh from input 1d vectors
     Av_vals, Rv_vals, f_bump_vals = numpy.ix_(avs, rvs, fbumps)
 
     # setup interation over the full dust parameter grid
     it = numpy.nditer([Av_vals,Rv_vals,f_bump_vals])
     niter = Av_vals.size*Rv_vals.size*f_bump_vals.size
 
+    # compute the allowed points based on the R(V) versus f_bump plane
+    #  duplicates effort for all A(V) values, but it is quick compared to other steps
+    pts = [ (float(ak), float(rk), float(fk)) for ak, rk, fk in it \
+            if  fk * min_Rv + (1. - fk) * 2.74 <= rk <= fk * max_Rv + (1. - fk) * 2.74]
+    npts = len(pts)
+
+    print 'n possible = ', niter
+    print 'n actual   = ', npts, ' (based on restrictions in R(V) versus f_bump plane'
+
     # setup of output
-    cols = {'Av':numpy.empty(g0.grid.nrows*niter),'Rv':numpy.empty(g0.grid.nrows*niter),'f_bump':numpy.empty(g0.grid.nrows*niter)}
+    cols = {'Av':numpy.empty(g0.grid.nrows*npts),'Rv':numpy.empty(g0.grid.nrows*npts),'f_bump':numpy.empty(g0.grid.nrows*npts)}
 
     for key in g0.keys():
-        cols[key] = numpy.empty(g0.grid.nrows*niter)
+        cols[key] = numpy.empty(g0.grid.nrows*npts)
 
-    itime = time()
     count = 0
-    with progressbar.PBar(niter, txt='creategrid') as Pbar:
-        for Av,Rv,f_bump in it:
-            Pbar.update(count)
+    
+    with progressbar.PBar(npts, txt='creategrid') as Pbar:
+        for Av,Rv,f_bump in pts:
             # info showing program is running
-            #if ((count+1) % 100) == 0:
-            #    print 100.*count/(Av_vals.size*Rv_vals.size*f_bump_vals.size),time()-itime
-            #    itime = time()
+            Pbar.update(count)
+
+            # compute R(V)^MW to return the Rv requested
+            if f_bump > 0.:
+                Rv_MW = (Rv - (1.-f_bump)*2.74)/f_bump
+            else:
+                Rv_MW = 2.74 # doesn't matter
+
+            #print Rv_MW
 
             # apply extinction and integrate over band response functions
-            temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv, f_bump=f_bump)
+            temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv_MW, f_bump=f_bump)
 
             # setup the output object
             #  must be done after the 1st extraction to get the wavelength vector
             if count is 0:
                 #print "Memory allocated"
-                results = grid.MemoryGrid(temp_results.lamb,seds= numpy.empty((g0.grid.nrows*niter,filter_names.__len__())),grid=mytables.Table(iterable=cols,header=g0.grid.header))
+                results = grid.MemoryGrid(temp_results.lamb,seds= numpy.empty((g0.grid.nrows*npts,filter_names.__len__())),grid=mytables.Table(iterable=cols,header=g0.grid.header))
 
             # assign the extinguished SEDs to the output object
             results.seds[g0.grid.nrows*count:g0.grid.nrows*(count+1)] = temp_results.seds
@@ -107,13 +123,15 @@ if __name__ == '__main__':
     # define filters for the grid
     filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
+    tiny_delta = 0.001
+
     # grid spacing for stars
     #  TBD
 
     # grid spacing for dust
-    avs = numpy.arange(0.0,2.0,0.5)
-    rvs = numpy.arange(1.0,6.0,1.0)
-    fbumps = numpy.arange(0.0,1.0,0.1)
+    avs = numpy.arange(0.0,2.0+tiny_delta,0.5)
+    rvs = numpy.arange(1.0,6.0+tiny_delta,1.0)
+    fbumps = numpy.arange(0.0,1.+tiny_delta,0.1)
 
     # make the grid 
     extgrid = make_extinguished_grid(stellar_filename,filter_names, avs, rvs, fbumps)
