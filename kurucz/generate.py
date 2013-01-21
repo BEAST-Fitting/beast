@@ -40,7 +40,7 @@ def __treatSingleFile__(fname = 'ckp00_10000.fits'):
 
 def Kurucz_to_Stellib(lst):
 	""" Extract SED parameters and spectra from a single file and collapse
-	them into a MemoryGrid object 
+	them into a MemoryGrid object
 
 	INPUTS:
 		lst	list	list of files to process
@@ -74,14 +74,14 @@ def gen_spectral_grid_from_kurucz(outfile, osl, oiso, Z=0.02):
 		osl		stellib.stellib		a stellar library
 		oiso		isochrone.Isochrone	an isochrone library
 		Z		float			metallicity to use
-	
+
 	OUTPUTS:
 		None
 
 		only write into outfile
 	"""
-	
-	
+
+
 	assert(grid.isNestedInstance(osl, stellib.Stellib) )
 	assert(grid.isNestedInstance(oiso, isochrone.Isochrone) )
 	specs = np.empty( (oiso.data.nrows+1, len(osl.wavelength)), dtype=float )
@@ -91,7 +91,7 @@ def gen_spectral_grid_from_kurucz(outfile, osl, oiso, Z=0.02):
 		#get the radius of a star given its luminosity and temperature
 		#(assuming a black body)
 		lsun = 3.839e26 # W
-		sig  = 5.67037321*10e-8 # W m**-2 k**-4
+		sig  = 5.67037321*1e-8 # W m**-2 K**-4
 		return np.sqrt( (10**logl)*lsun/(4.0*np.pi*sig*((10**logt)**4)) )
 
 	bounds = get_stellib_boundaries(osl, dlogT = 0.1, dlogg = 0.3, closed = True)
@@ -150,11 +150,11 @@ def get_stellib_boundaries(s, dlogT = 0.1, dlogg = 0.3, closed=True):
 		>>> aa = points_inside_poly(data, leftb)
 	"""
 	leftb   = [(k, np.max(s.logT[s.logg == k]) + dlogT ) for k in np.unique(s.logg)]
-	leftb  += [ (leftb[-1][0] + dlogg, leftb[-1][1]) ] 
-	leftb   = [ (leftb[0][0] - dlogg, leftb[0][1]) ] + leftb 
+	leftb  += [ (leftb[-1][0] + dlogg, leftb[-1][1]) ]
+	leftb   = [ (leftb[0][0] - dlogg, leftb[0][1]) ] + leftb
 	rightb  = [(k, np.min(s.logT[s.logg == k]) - dlogT ) for k in np.unique(s.logg)[::-1]]
-	rightb += [ (rightb[-1][0] - dlogg, rightb[-1][1]) ] 
-	rightb  = [ (rightb[0][0] + dlogg, rightb[0][1]) ] + rightb 
+	rightb += [ (rightb[-1][0] - dlogg, rightb[-1][1]) ]
+	rightb  = [ (rightb[0][0] + dlogg, rightb[0][1]) ] + rightb
 	b = leftb + rightb
 	if closed:
 		b += [b[0]]
