@@ -18,8 +18,9 @@ libs = dict(
     filters  = 'filters.hd5',
     #specgrid = 'basel_padova2010.spectralgrid.fits',
     #sedgrid  = 'PHATSEDs_basel_padovaiso.fits'
-    #kuruczgrid  = 'kurucz2004.grid.fits',
-    kuruczisog  = 'stellib_kurucz2004_padovaiso.spectralgrid.fits'
+    kuruczgrid = 'kurucz2004.grid.fits',
+    padovaiso  = 'padova2010.iso.fits',
+    #kuruczisog  = 'stellib_kurucz2004_padovaiso.spectralgrid.fits'
 )
 
 #Make sure the configuration is coherent for the python installation
