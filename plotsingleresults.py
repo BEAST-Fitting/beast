@@ -81,10 +81,10 @@ def plot_single_1d_fake (sed_results_filename, stellar_filename):
         onedplot.set_xlabel(xlabeltext)
         
     # get the nD likelihood function
-    lnp = mytables.load('Tests/fake_many_0/fake_star_0_0.fits', extension='LNP')
+    lnp = mytables.load(sed_results_filename, extension='LNP')
 
     # get the fake SED
-    fakesed = mytables.load('Tests/fake_many_0/fake_star_0_0.fits', extension='FAKESED')
+    fakesed = mytables.load(sed_results_filename, extension='FAKESED')
 
     # get the nD stellar/dust SED grid
     ext_grid = grid.FileSEDGrid(stellar_filename)
@@ -100,18 +100,19 @@ def plot_single_1d_fake (sed_results_filename, stellar_filename):
 
     # plot 1D histograms
     exp_lnp = exp(lnp['lnp'])
-    indx = np.where(np.isfinite(exp_lnp))
+    #indx = np.where(np.isfinite(exp_lnp))
+    indx = lnp['idx'].astype(int)
 
-    OneDPlot(ext_grid.logA[indx], exp_lnp[indx], ext_grid.logA[fake_indx], fig, 331, 'log(age)')
-    OneDPlot(ext_grid.logM[indx], exp_lnp[indx], ext_grid.logM[fake_indx], fig, 332, 'log(mass)')
-    OneDPlot(ext_grid.Z[indx], exp_lnp[indx], ext_grid.Z[fake_indx], fig, 333, 'Z')
+    OneDPlot(ext_grid.logA[indx], exp_lnp, ext_grid.logA[fake_indx], fig, 331, 'log(age)')
+    OneDPlot(ext_grid.logM[indx], exp_lnp, ext_grid.logM[fake_indx], fig, 332, 'log(mass)')
+    OneDPlot(ext_grid.Z[indx], exp_lnp, ext_grid.Z[fake_indx], fig, 333, 'Z')
 
-    OneDPlot(ext_grid.Av[indx], exp_lnp[indx], ext_grid.Av[fake_indx], fig, 334, 'A(V)')
-    OneDPlot(ext_grid.Rv[indx], exp_lnp[indx], ext_grid.Rv[fake_indx], fig, 335, 'R(V)',nbins=10)
-    OneDPlot(ext_grid.f_bump[indx], exp_lnp[indx], ext_grid.f_bump[fake_indx], fig, 336, 'f(bump)',nbins=10)
+    OneDPlot(ext_grid.Av[indx], exp_lnp, ext_grid.Av[fake_indx], fig, 334, 'A(V)')
+    OneDPlot(ext_grid.Rv[indx], exp_lnp, ext_grid.Rv[fake_indx], fig, 335, 'R(V)',nbins=10)
+    OneDPlot(ext_grid.f_bump[indx], exp_lnp, ext_grid.f_bump[fake_indx], fig, 336, 'f(bump)',nbins=10)
 
-    OneDPlot(ext_grid.logT[indx], exp_lnp[indx], ext_grid.logT[fake_indx], fig, 338, 'log(Teff)')
-    OneDPlot(ext_grid.logg[indx], exp_lnp[indx], ext_grid.logg[fake_indx], fig, 339, 'log(g)')
+    OneDPlot(ext_grid.logT[indx], exp_lnp, ext_grid.logT[fake_indx], fig, 338, 'log(Teff)')
+    OneDPlot(ext_grid.logg[indx], exp_lnp, ext_grid.logg[fake_indx], fig, 339, 'log(g)')
 
     # plot the fake SED w/ and w/o noise
     sedplot = fig.add_subplot(337)
@@ -120,12 +121,12 @@ def plot_single_1d_fake (sed_results_filename, stellar_filename):
     sedplot.set_yscale('log')
 
     # plot the top 100 models w/ poorer fitting models becoming more transparent
-    sindx = np.argsort(exp_lnp[indx])
-    topsindx = indx[0][sindx[-10000:]]
+    sindx = np.argsort(exp_lnp)
+    topsindx = sindx[-10000:]
 
     max_lnp = max(exp_lnp[topsindx])
     for z in topsindx[::100]:
-        sedplot.plot(plot_waves,ext_grid.seds[z],color='b',alpha=exp_lnp[z]/max_lnp)
+        sedplot.plot(plot_waves,ext_grid.seds[indx[z]],color='b',alpha=exp_lnp[z]/max_lnp)
 
     sedplot.errorbar(plot_waves,fakesed['fluxessed'],yerr=fakesed['fluxesunc'], fmt='o', color='r')
     sedplot.plot(plot_waves,fakesed['corfluxes'], color='r')
@@ -137,7 +138,7 @@ if __name__ == '__main__':
 
     stellar_filename='libs/stellib_kurucz2004_padovaiso.spectralgrid_sed_extinguished.grid.fits'
 
-    #plot_priors(stellar_filename)
+    plot_priors(stellar_filename)
     
-    plot_single_1d_fake(sys.argv[-1], stellar_filename)
+    #plot_single_1d_fake(sys.argv[-1], stellar_filename)
 
