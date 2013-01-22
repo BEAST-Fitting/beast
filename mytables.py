@@ -1112,9 +1112,9 @@ class TableHeader(object):
 		""" set attribute """
 		if (attribute.lower() in ['description', 'comment', 'history']) & \
 			(attribute in self) :
-				self.__dict__[attribute] = self[attribute]+'\n'+value
+				self.__dict__[attribute] = str(self[attribute])+'\n'+str(value)
 		else:
-			self.__dict__[attribute] = value
+			self.__dict__[attribute] = str(value)
 	
 	def __setitem__(self, item, val):
 		"""get item"""
