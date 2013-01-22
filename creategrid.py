@@ -150,7 +150,7 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
     pars.header['isoch'] = oiso.source
     pars.setUnit('radius', 'Rsun')
 
-    pyfits.writeto(outfile, specs)
+    pyfits.writeto(outfile, specs, clobber=True)
     pars.write(outfile, append=True)
 
 
@@ -277,8 +277,8 @@ if __name__ == '__main__':
     filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
     # grid spacing for stars
-    ages           = (1e7, 1e8)
-    masses         = (3., 4.)
+    ages           = (1e7, 1e8, 1e9)
+    masses         = (1., 2., 3., 4., 50.)
     Z              = (0.02, 0.004)
     # grid spacing for dust
     # variable to ensure that range is fully covered in using numpy.arange
