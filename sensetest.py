@@ -32,6 +32,7 @@ def getFakeStar(g, idx, err=0.1):
     KEYWORDS:
         err float                       proportional error to consider on the fluxes
     """
+
     fakein   = idx
     fakesed  = numpy.copy(g.seds[fakein, :])
     # sampled noise (with a mean of 1 and standard deviation of err (input value)
@@ -47,7 +48,7 @@ def fit_model_seds(N, n_test, stellar_filename, err=0.1, outdir='Tests/fake_many
     """
     Fit model seds with noise for sensitivity tests
     INPUTS:
-        n                 int       number of models to test (randomly picked)
+        N                 int       number of models to test (randomly picked)
         n_test            int       number of noise realizations per model
         stellar_filename  string    FITS file with stellar SEDs (luminosities)
         err               float     fractional noise to assume
@@ -57,8 +58,8 @@ def fit_model_seds(N, n_test, stellar_filename, err=0.1, outdir='Tests/fake_many
     #Load the recomputed stellar+dust model grid
     ext_grid = grid.FileSEDGrid(stellar_filename)
 
-    ## Initial SEDs are randomly drawn from the model space
-    fakein = numpy.random.randint(0, ext_grid.grid.nrows, N)
+    # Initial SEDs to be uniformaly spaced throughout the grid
+    fakein = numpy.round(numpy.linspace(0, ext_grid.grid.nrows - 1, num = N)).astype(int)
 
     # mask for non-detectors (currently none)
     mask = numpy.zeros(len(ext_grid.lamb), dtype=bool)
@@ -77,9 +78,12 @@ def fit_model_seds(N, n_test, stellar_filename, err=0.1, outdir='Tests/fake_many
                      with timeit('\t * Direct Lnp computation'):
                          lnp = anased.computeLogLikelihood(fakesed, fakeerr, ext_grid.seds, normed=False, mask=mask)
                      with timeit('\t * Writing outputs'):
+
+                         indx = numpy.where((lnp - max(lnp)) > -40.)
+
                          t = mytables.Table(name='LNP')
-                         t.addCol(numpy.arange(ext_grid.grid.nrows, dtype=int), name='idx')
-                         t.addCol(lnp, name='lnp')
+                         t.addCol(indx[0].astype(int), name='idx')
+                         t.addCol(lnp[indx].astype(numpy.float32), name='lnp')
                          t.header['GFNAME'] = stellar_filename
                          t.header['FAKE_IDX'] = idx
                          t.write( outname, clobber=True, append=False )
@@ -101,8 +105,5 @@ if __name__ == '__main__':
     # define the filename with the stellar grid
     stellar_filename = 'libs/stellib_kurucz2004_padovaiso.spectralgrid_sed_extinguished.grid.fits'
 
-    import gc
-    gc.enable()
     # generate the likelihoods for the fake stars (models w/ noise)
-    fit_model_seds(1,5,stellar_filename,0.1)
-    gc.disable()
+    fit_model_seds(10,1,stellar_filename,0.05)
