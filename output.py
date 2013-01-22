@@ -1,6 +1,6 @@
-import mypickleshare
 import mytables
 import numpy
+import grid
 
 def weighted_percentile(data, wt, percentiles): 
 	"""Compute weighted percentiles. 
@@ -56,41 +56,65 @@ def weighted_percentile(data, wt, percentiles):
 	return o 
 
 
-def summuaryTable(fname, g, r, Av, lamb, fakesed, fakeerr, filters, Q = 'logg logT logL logM logA Av Z', **kwargs):
+def summaryStats(g, indxs, r, filters, Q = 'logA logM Z Av Rv f_bump logT logg logL'):
 
 	_q = Q.split()
 	_r = numpy.exp(r)
 	_r /= _r.sum()
 
 	d = {}
-	r1 = _r.sum(1)
-	rAv = _r.sum(0)
 
 	for k in _q:
-		if k.lower() != 'av': 
-			m0, m1, m2 = weighted_percentile( g.grid[k], r1, [0.25,0.5,0.75] )
-		else:
-			m0, m1, m2 = weighted_percentile( Av, rAv, [0.25,0.5,0.75] )
-
-		d['%s_p25' %k ] = m0
+		m0, m1, m2 = weighted_percentile( g.grid[k][indxs], _r, [0.17,0.5,0.83] )
+		d['%s_p17' %k ] = m0
 		d['%s_p50' %k ] = m1
-		d['%s_p75' %k ] = m2
+		d['%s_p83' %k ] = m2
 
 	for k in range(len(filters)):
-		m0, m1, m2 = weighted_percentile( g.seds[:,k], r1, [0.25,0.5,0.75] )
-		d['%s_p25' % (filters[k]) ] = m0
+		m0, m1, m2 = weighted_percentile( g.seds[:,k][indxs], _r, [0.17,0.5,0.83] )
+		d['%s_p17' % (filters[k]) ] = m0
 		d['%s_p50' % (filters[k]) ] = m1
-		d['%s_p75' % (filters[k]) ] = m2
+		d['%s_p83' % (filters[k]) ] = m2
+
+	return d
+
+def summaryTable(files, grid_filename, filters, outfilename, Q = 'logA logM Z Av Rv f_bump logT logg logL', **kwargs):
+
+	# get the nD stellar/dust SED grid
+	ext_grid = grid.FileSEDGrid(grid_filename)
+
+	d = {}
+	for sfile in files:
+
+		print 'working on ', sfile
+		
+		# get the nD likelihood function for each star
+		lnp = mytables.load(sfile, extension='LNP')
+
+		# get the summary for each parameter
+		indxs = lnp['idx'].astype(int)
+		print len(indxs)
+
+		_d = summaryStats(ext_grid, indxs, lnp['lnp'], filters, Q = Q)
+		if len(d) == 0:
+			for k, v in _d.items():
+				d[k] = numpy.array([v]) 
+		else:
+			for k, v in _d.items():
+				d[k] = numpy.hstack([d[k], numpy.array([v])])
 
 	t = mytables.Table(d, name='SED analysis summury table')
+
+	# add header information if passed
 	for k in kwargs:
 		t.header[k] = kwargs[k]
-	
-	t.write(fname)
 
+	t.write(outfilename)
 
 	
+# probably not needed or needing modifcation
 def fullTable(fname, g, r, Av, lamb, fakesed, fakeerr, filters, **kwargs):
+	import mypickleshare
 	d = mypickleshare.PickleShareDB(fname)
 	d['lnp'] = r
 	d['Av'] = Av
