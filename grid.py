@@ -83,18 +83,6 @@ class SpectralGrid(ModelGrid):
     """ Generate a grid that contains spectra.
     It provides an access to integrated photometry function getSEDs """
 
-    def getSEDs0(self, filter_names, absFlux=True):
-        """
-        Extract integrated fluxes through filters
-        INPUTS:
-            filter_names    list    list of filter names according to the filter lib
-        """
-        if type(filter_names[0]) == str:
-            flist = phot.load_filters(filter_names, interp=True, lamb=self.lamb)
-        else:
-            flist = filter_names
-        return phot.extractSEDs(self, flist, absFlux=absFlux)
-
     def getSEDs(self, filter_names, absFlux=True, extLaw=None, inplace=False, **kwargs):
         """
         Extract integrated fluxes through filters
