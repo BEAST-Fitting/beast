@@ -42,7 +42,7 @@ def make_extinguished_grid(stellar_filename, filter_names, avs, rvs, fbumps):
     indx = numpy.arange(0,g0.grid.nrows, 100)
     g0.grid = g0.grid.extract(indx)
     g0.seds = g0.seds[indx]
-    g0.write('small_grid.fits',clobber=True,append=False)
+    g0.write('small_grid.fits',clobber=True)
 
     # define the extinction law be be used (fixed for now)
     extLaw = extinction.RvFbumpLaw()
@@ -86,15 +86,12 @@ def make_extinguished_grid(stellar_filename, filter_names, avs, rvs, fbumps):
             else:
                 Rv_MW = 2.74 # doesn't matter
 
-            #print Rv_MW
-
             # apply extinction and integrate over band response functions
             temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv_MW, f_bump=f_bump)
 
             # setup the output object
             #  must be done after the 1st extraction to get the wavelength vector
             if count is 0:
-                #print "Memory allocated"
                 results = grid.MemoryGrid(temp_results.lamb,seds= numpy.empty((g0.grid.nrows*npts,filter_names.__len__())),grid=mytables.Table(iterable=cols,header=g0.grid.header))
 
             # assign the extinguished SEDs to the output object
@@ -133,9 +130,12 @@ if __name__ == '__main__':
     avs = numpy.arange(0.0,5.0+tiny_delta,0.1)
     rvs = numpy.arange(1.0,6.0+tiny_delta,0.5)
     fbumps = numpy.arange(0.0,1.+tiny_delta,0.1)
+    #avs = numpy.arange(0.0,5.0+tiny_delta,2.5)
+    #rvs = numpy.arange(1.0,6.0+tiny_delta,3.)
+    #fbumps = numpy.arange(0.0,1.+tiny_delta,0.5)
 
     # make the grid 
     extgrid = make_extinguished_grid(stellar_filename,filter_names, avs, rvs, fbumps)
 
     # save grid to file
-    extgrid.write(stellar_filename.replace('.fits','_sed_extinguished.grid.fits'),clobber=True,append=False)
+    extgrid.write(stellar_filename.replace('.fits','_sed_extinguished.grid.fits'),clobber=True)
