@@ -1,51 +1,78 @@
-= SED FITTER v0.1 =
+SED FITTER v0.1 
+===============
 
-The SED fitter at this point is basically a *fast likelihood estimator*.
+The SED fitter at this point is basically a **fast likelihood estimator**.
 
+.. content::
 
-== TODO LIST ==
+TODO LIST
+----------
 
 * find a way to compress the outputs (something like indexing sparse matrix)
 * add the observation class (grab from phat cluster analysis)
 * include the prior class (from the phat cluster analysis)
 
-== GIT ==
+GIT
+-----
 
-* download the repo
-> git clone git@chex.astro.washington.edu:sedfitter.git
+* **download the repo**
+  >>> git clone git@chex.astro.washington.edu:sedfitter.git
 
-* push changes
+* **push changes**
+  >>> git add <name of the file that changed>  # select file(s) that will be associated with the same commit message.
+  >>> git commit
 
-> git add <name of the file that changed>  # select file(s) that will be associated with the same commit message.
-> git commit
 
-== Get Stellar Libraries ==
+* **Working with submodules**
+  This is very useful is you want to use other projects such as python code on
+  github
+  Thanks to this website that helped me to really understand how to use it
+  chrisjean_
 
-make libs (downloads CK04 & [TBA] TLUSTY model atmospheres on padova isochrones)y
+        * add a submodule
+          >>> git submodule add git://github.com/mfouesneau/eztables eztables
+          >>> git commit
 
-== Quick start ==
+        * update a submodule
+          >>> git submodule init
+          >>> git submodule update
 
-_See testunits.py for a complete example_
+        * pull the latest version
+          >>> git submodule eztables pull
 
-> from anased import *
-> from extinction import Cardelli
+.. _chrisjean: http://chrisjean.com/2009/04/20/git-submodules-adding-using-removing-and-updating/
+
+
+Get Stellar Libraries
+---------------------
+downloads CK04 & [TBA] TLUSTY model atmospheres on padova isochrones
+(everything is specified by `config.py`)
+>>> make libs 
+
+Quick start 
+--------------
+
+**See testunits.py for a complete example**
+
+>>> from anased import *
+>>> from extinction import Cardelli
 
 #define some filters
 # normalized names correspond to libs/filters.hd5-->root.content.fnames
 # basically <FACILITY>_<INSTRUMENT>_<FILTERNAME> (in caps)
 #  e.g.: 'HST_WFC3_F336W', 'GROUND_JOHNSON_U'...
 
-> filters = 'hst_wfc3_f225w hst_wfc3_f336w hst_acs_hrc_f475w hst_acs_hrc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
+>>> filters = 'hst_wfc3_f225w hst_wfc3_f336w hst_acs_hrc_f475w hst_acs_hrc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
 # define the model grid
 #  a collection of seds/spectra following the internal grid definition
 
-> g = grid.FileSpectralGrid('libs/SEDs_basel_padovaiso.fits')
-> lamb = g.lamb    #wavelenghts associated to the models
+>>> g = grid.FileSpectralGrid('libs/SEDs_basel_padovaiso.fits')
+>>> lamb = g.lamb    #wavelenghts associated to the models
 
 # define Av variations
-> Av = numpy.arange(0., 3., 0.1)
-> Av_law = Cardelli()
+>>> Av = numpy.arange(0., 3., 0.1)
+>>> Av_law = Cardelli()
 
 # get Data
 # soon will be a observation class
@@ -60,12 +87,12 @@ _See testunits.py for a complete example_
 # fluxes are assumed to correspond to the grid.seds or a sub sample of it, which
 # will be given to the likelihood functions
 
-> f, e, m = getData(<...>)
+>>> f, e, m = getData(<...>)
 
 # Do the computations
 
-> r = numpy.empty( ( g.seds.shape[0], len(Av) ), dtype=float)
-> for k in range(len(Av)):
+>>> r = numpy.empty( ( g.seds.shape[0], len(Av) ), dtype=float)
+>>> for k in range(len(Av)):
   ...  r[:, k] = job(lamb[:], numpy.copy(f), numpy.copy(e), m, numpy.copy(g.seds), oAv, Av=Av[k], Rv=3.1)
  
 # r contains the log-likelihood values for each model in the grid, g, per value in Av
