@@ -16,11 +16,11 @@ GIT
 -----
 
 * **download the repo**
-  >>> git clone git@chex.astro.washington.edu:sedfitter.git
+>>> git clone git@chex.astro.washington.edu:sedfitter.git
 
 * **push changes**
-  >>> git add <name of the file that changed>  # select file(s) that will be associated with the same commit message.
-  >>> git commit
+>>> git add <name of the file that changed>  # select file(s) that will be associated with the same commit message.
+>>> git commit
 
 
 * **Working with submodules**
@@ -30,15 +30,15 @@ GIT
   chrisjean_
 
         * add a submodule
-          >>> git submodule add git://github.com/mfouesneau/eztables eztables
-          >>> git commit
+>>> git submodule add git://github.com/mfouesneau/eztables eztables
+>>> git commit
 
         * update a submodule
-          >>> git submodule init
-          >>> git submodule update
+>>> git submodule init
+>>> git submodule update
 
         * pull the latest version
-          >>> git submodule eztables pull
+>>> git submodule eztables pull
 
 .. _chrisjean: http://chrisjean.com/2009/04/20/git-submodules-adding-using-removing-and-updating/
 
