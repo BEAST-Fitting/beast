@@ -164,7 +164,7 @@ class padova2010(Isochrone):
 			#interpolate between isochrones
 			d      = (self.ages - float(_age)) ** 2
 			a1, a2 = self.ages[numpy.argsort(d)[:2]]
-			print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
+			#print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
 			r = numpy.log10(_age / a1) / numpy.log10(a2 / a1)
 
 			t1 = t.selectWhere( 'logA == _age', condvars={'_age': log10(a1)} )
@@ -248,7 +248,7 @@ class pegase(Isochrone):
 			#interpolate between isochrones
 			d      = (self.ages - float(age)) ** 2
 			a1, a2 = numpy.sort(self.ages[numpy.argsort(d)[:2]] * 1e-6)
-			print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
+			#print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
 			r = numpy.log10(_age / a1) / numpy.log10(a2 / a1)
 
 			t1 = self.data.getNode('/Z' + str(metal)[2:] + '/a' + str(int(a1)))
