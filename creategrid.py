@@ -208,6 +208,7 @@ def make_extinguished_grid(stellar_filename, filter_names, avs, rvs, fbumps):
         cols[key] = numpy.empty(g0.grid.nrows * npts)
 
     count = 0
+    print 'Generating a final grid of %d points' % (g0.grid.nrows * npts)
 
     with progressbar.PBar(npts, txt='SED grid') as Pbar:
         for Av, Rv, f_bump in pts:
@@ -277,18 +278,21 @@ if __name__ == '__main__':
     filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
     # grid spacing for stars
-    ages           = (1e7, 1e8, 1e9)
-    masses         = (1., 2., 3., 4., 50.)
+    __tiny_delta__ = 0.001
+    # ages           = (1e7, 1e8, 1e9)
+    # masses         = (1., 2., 3., 4., 50.)
+    # Z              = (0.02, 0.004)
+    ages           = 10 ** numpy.arange(6., 9. + __tiny_delta__, 0.1)
+    masses         = 10 ** numpy.arange(0.5, 20 + __tiny_delta__, 0.1)
     Z              = (0.02, 0.004)
     # grid spacing for dust
     # variable to ensure that range is fully covered in using numpy.arange
-    __tiny_delta__ = 0.001
-    #avs            = numpy.arange(0.0, 5.0 + __tiny_delta__, 0.1)
-    #rvs            = numpy.arange(1.0, 6.0 + __tiny_delta__, 0.5)
-    #fbumps         = numpy.arange(0.0, 1. + __tiny_delta__, 0.1)
-    avs            = numpy.arange(0.0, 5.0 + __tiny_delta__, 1.)
-    rvs            = numpy.arange(1.0, 6.0 + __tiny_delta__, 1.)
-    fbumps         = numpy.arange(0.0, 1. + __tiny_delta__, 0.5)
+    avs            = numpy.arange(0.0, 5.0 + __tiny_delta__, 0.1)
+    rvs            = numpy.arange(1.0, 6.0 + __tiny_delta__, 0.5)
+    fbumps         = numpy.arange(0.0, 1. + __tiny_delta__, 0.1)
+    #avs            = numpy.arange(0.0, 5.0 + __tiny_delta__, 1.)
+    #rvs            = numpy.arange(1.0, 6.0 + __tiny_delta__, 1.)
+    #fbumps         = numpy.arange(0.0, 1. + __tiny_delta__, 0.5)
 
     #filter extrapolations of the grid with given sensitivities in logg and logT
     bounds = dict(dlogT=0.1, dlogg=0.3)
