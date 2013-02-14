@@ -8,6 +8,8 @@ import numexpr
 import tables
 import re
 import glob
+from matplotlib.ticker import NullFormatter
+
 
 def weighted_percentile(data, wt, percentiles): 
 	"""Compute weighted percentiles. 
@@ -183,7 +185,7 @@ def expectation_values_eztables(grid,keys=['Av','Rv','f_bump'],dir='Tests/fake_m
         summary_tab.add_column(key, grid.data[key][fakeinds])
     return summary_tab
 
-def expectation_values_pytables(grid, keys=['Av','Rv','f_bump'],filepath='Tests/fake_many_0/fakestars_0.hf5'):
+def expectation_values_pytables(grid, keys=['Av','Rv','f_bump'],filepath='Tests/fake_many_0/fakestars_0.hf5',method='expectation'):
     """
     args:
          grid        Model parameters. (model_grid.grid)
@@ -210,12 +212,19 @@ def expectation_values_pytables(grid, keys=['Av','Rv','f_bump'],filepath='Tests/
     with progressbar.PBar(n_stars,txt="E(key)") as pbar:
         for i in range(n_stars):
             for j in range(m_tests):
-                prob = numexpr.evaluate('exp(lnp)',local_dict={'lnp':outfile.getNode('/fakeStar_%d/fake_%d/lnp'%(i,j)).read()})
-                indx = outfile.getNode('/fakeStar_%d/fake_%d/idx'%(i,j)).read() 
-                for e,key in enumerate(keys):
-                    temp_vals[j,e] = numexpr.evaluate('sum(prob*vals)',local_dict={'vals':grid.getCol(key)[indx],'prob':prob})
-                temp_vals[j,:] /= prob.sum()
-
+		if (method == 'expectation'):
+			prob = numexpr.evaluate('exp(lnp)',local_dict={'lnp':outfile.getNode('/fakeStar_%d/fake_%d/lnp'%(i,j)).read()})
+			indx = outfile.getNode('/fakeStar_%d/fake_%d/idx'%(i,j)).read() 
+			for e,key in enumerate(keys):
+				temp_vals[j,e] = numexpr.evaluate('sum(prob*vals)',local_dict={'vals':grid.getCol(key)[indx],'prob':prob})
+			temp_vals[j,:] /= prob.sum()
+		elif (method == 'maxprob'):
+			lnp = outfile.getNode('/fakeStar_%d/fake_%d/lnp'%(i,j)).read()
+			indx = outfile.getNode('/fakeStar_%d/fake_%d/idx'%(i,j)).read()
+			sel = grid.getRow(indx[lnp.argmax()])
+			for e,key in enumerate(keys):
+				temp_vals[j,e] = sel[key]
+			
             fakeinds[i] = outfile.getNode('/fakeStar_%d'%i)._v_attrs.fakein
             means[i] = temp_vals.mean(axis=0)
             stds[i] = temp_vals.std(axis=0)
@@ -256,14 +265,6 @@ def off_plot(summary_table, keys=['Av','Rv','f_bump']):
         if (e%sub_per_fig == 2):
             plt.tight_layout()
     plt.show()
-
-def joint_distribution_plot(summary_table,key1,key2):
-    #Not done yet
-    syst1 = summary_table.data[key1+'_recovered'] - summary_table.data[key1]
-    syst2 = summary_table.data[key2+'_recovered'] - summary_table.data[key2]
-    plt.hist2d(syst1,syst2,bins=[np.unique(summary_table.data[key1]).size,np.unique(summary_table.data[key2]).size])
-    plt.xlabel(key1+'_off')
-    plt.ylabel(key2+'_off')
         
 def get_nstars_mtests(test_dir):
     #Figure out how many fake stars and realizations there are in a directory
@@ -281,16 +282,26 @@ def get_nstars_mtests(test_dir):
         else:
             max_m = int(m)
     return max_n+1, max_m+1
-    
+
+
 if __name__ == '__main__':
-    gext = grid.FileSEDGrid('kurucz2004.seds.grid.fits')
+    gext = grid.FileSEDGrid('no_smc.fits')
     gext_grid = gext.grid
     del gext 
-    keys=['Av','Rv','f_bump','logT','logA','logM']
-    summary_table = expectation_values_eztables(gext_grid,keys=keys,dir = 'Tests/fake_many_0/')
-    off_plot(summary_table,keys=['Av','Rv','f_bump','logT','logA','logM'])
-    plt.show()
+    keys=['Av','Rv','logT','logA','logM','logL']
 
+    #summary_table = eztables.Table()
+    #summary_table.read('Tests/log_T_I_sel_summary_table.fits')
+
+    summary_table = expectation_values_pytables(gext_grid,keys=keys,filepath = 'Tests/coarse_grid_all_band.hf5')
+
+    #figure.plotCorr(summary_table.data,['f_bump_recovered','logT_recovered'],plotfunc=figure.plotDensity, lbls = ['fbump','logM'])
+    #figure.show()
+    summary_table.write('Tests/all_band_summary_table.fits',clobber=True, append=False)
+    #plt.figure(figsize=[10,10])
+    off_plot(summary_table,keys=keys)
+    #arrow_plot(gext_grid,summary_table,keys)
+    plt.show()
 
 #tests
 #filters  = 'hst_wfc3_f225w hst_wfc3_f336w hst_acs_hrc_f475w hst_acs_hrc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()

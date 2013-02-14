@@ -42,8 +42,14 @@ def getFakeStar(g, idx, err=0.1):
     unc_sample = numpy.random.normal(1.0,err,len(fakesed))
     fakesed *= unc_sample
     fakeerr = err * fakesed
-
     return fakein, fakesed, fakeerr
+
+
+def getFakeInds(ext_grid, logM, logT, delt_logM, delt_logT):
+    F814_i = 3
+    flux_sel = numpy.where(ext_grid.seds[:,F814_i] > 3.e-18)[0]
+    sel = numpy.where((numpy.abs(ext_grid.logM[flux_sel] - logM) < delt_logM)*(numpy.abs(ext_grid.logT[flux_sel] - logT) < delt_logT))[0]
+    return flux_sel[sel]
 
 
 def fit_model_seds(N, n_test, stellar_filename, err=0.1, outdir='Tests/fake_many_0'):
@@ -59,14 +65,15 @@ def fit_model_seds(N, n_test, stellar_filename, err=0.1, outdir='Tests/fake_many
     """
 
 
-        
-
     #Load the recomputed stellar+dust model grid
     ext_grid = grid.FileSEDGrid(stellar_filename)
 
     # Initial SEDs to be uniformaly spaced throughout the grid
-    fakein = numpy.round(numpy.linspace(0, ext_grid.grid.nrows - 1, num = N)).astype(int)
-
+    #fakein = numpy.round(numpy.linspace(0, ext_grid.grid.nrows - 1, num = N)).astype(int)
+    #Randomly chosen from main sequence
+    MS = where((ext_grid.logT>4.0) * (ext_grid.logL*4.5 - 15 < ext_grid.logT))[0]
+    fakein = MS[numpy.random.randint(low=0,high=MS.size,size=N)]
+    
     # mask for non-detectors (currently none)
     mask = numpy.zeros(len(ext_grid.lamb), dtype=bool)
     with progressbar.PBar(N,txt="Calculating lnp") as pbar:
@@ -100,7 +107,7 @@ def fit_model_seds(N, n_test, stellar_filename, err=0.1, outdir='Tests/fake_many
                 del t                            
             pbar.update(tn)
             
-def fit_model_seds_pytables(N, n_test, stellar_filename, err=0.1, outname='Tests/fake_many_0/test1.hf5'):
+def fit_model_seds_pytables(fakein, N, n_test, stellar_filename, filters = numpy.arange(6), err=0.1, outname='Tests/fake_many_0/test1.hf5'):
 
     """
     Fit model seds with noise for sensitivity tests
@@ -117,8 +124,11 @@ def fit_model_seds_pytables(N, n_test, stellar_filename, err=0.1, outname='Tests
     # Initial SEDs to be uniformaly spaced throughout the grid
     #fakein = numpy.round(numpy.linspace(0, ext_grid.grid.nrows - 1, num = N)).astype(int)
     # Pick randomly spaced SEDs
-    fakein = numpy.random.randint(ext_grid.grid.nrows,size=N)
+    #fakein = numpy.random.randint(ext_grid.grid.nrows,size=N)
 
+    ext_grid.seds = ext_grid.seds[:,filters]
+    ext_grid.lamb = ext_grid.lamb[:,filters]
+    
     # mask for non-detectors (currently none)
     mask = numpy.zeros(len(ext_grid.lamb), dtype=bool)
     outfile = tables.openFile(outname, 'w')
@@ -151,7 +161,9 @@ def fit_model_seds_pytables(N, n_test, stellar_filename, err=0.1, outname='Tests
 if __name__ == '__main__':
 
     # define the filename with the stellar grid
-    stellar_filename = 'kurucz2004.seds.grid.fits'
+    stellar_filename = 'no_smc.fits'
 
     # generate the likelihoods for the fake stars (models w/ noise)
-    fit_model_seds(10,2,stellar_filename,0.05,outdir='Tests/fake_many_0')
+    fit_model_seds_pytables(10,2,stellar_filename,0.1,outname='Tests/all_phat.hf5')
+    cut = 3.e-18
+    
