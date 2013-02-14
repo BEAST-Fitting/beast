@@ -272,8 +272,9 @@ if __name__ == '__main__':
     spectral_grid_fname = 'kurucz2004.spectral.grid.fits'
 
     # a photometric grid precomputing attenuation values as well
-    sed_grid_fname = spectral_grid_fname.replace('spectral', 'seds')
-
+    #    sed_grid_fname = spectral_grid_fname.replace('spectral', 'seds')
+    sed_grid_fname = 'no_smc.fits'
+    
     # define filters for the grid
     filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
@@ -284,12 +285,13 @@ if __name__ == '__main__':
     # Z              = (0.02, 0.004)
     ages           = 10 ** numpy.arange(6., 9. + __tiny_delta__, 0.1)
     masses         = 10 ** numpy.arange(0.5, 20 + __tiny_delta__, 0.1)
-    Z              = (0.02, 0.004)
+    Z              = (0.02)
     # grid spacing for dust
     # variable to ensure that range is fully covered in using numpy.arange
     avs            = numpy.arange(0.0, 5.0 + __tiny_delta__, 0.1)
     rvs            = numpy.arange(1.0, 6.0 + __tiny_delta__, 0.5)
-    fbumps         = numpy.arange(0.0, 1. + __tiny_delta__, 0.1)
+    fbumps         = numpy.asarray([1.0])
+    #fbumps         = numpy.arange(0.0, 1. + __tiny_delta__, 0.1)
     #avs            = numpy.arange(0.0, 5.0 + __tiny_delta__, 1.)
     #rvs            = numpy.arange(1.0, 6.0 + __tiny_delta__, 1.)
     #fbumps         = numpy.arange(0.0, 1. + __tiny_delta__, 0.5)
@@ -298,7 +300,7 @@ if __name__ == '__main__':
     bounds = dict(dlogT=0.1, dlogg=0.3)
 
     #make the spectral grid
-    gen_spectral_grid_from_stellib(spectral_grid_fname, osl, oiso, ages=ages, masses=masses, Z=Z, bounds=bounds)
+    #gen_spectral_grid_from_stellib(spectral_grid_fname, osl, oiso, ages=ages, masses=masses, Z=Z, bounds=bounds)
 
     # make the grid
     extgrid = make_extinguished_grid(spectral_grid_fname, filter_names, avs, rvs, fbumps)
