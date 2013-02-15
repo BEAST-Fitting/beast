@@ -8,18 +8,14 @@ Jan 2013: written by Karl G.
 __version__ = '0.1dev'
 
 import numpy
-from numpy import exp
-import inspect
-import itertools
-import sys
 import progressbar
 import eztables
 import tables
 
-from decorators import timeit
-import extinction
+#from decorators import timeit
+#import extinction
 import grid
-import phot
+#import phot
 #import observations
 import anased
 
@@ -35,11 +31,10 @@ def getFakeStar(g, idx, err=0.1):
     KEYWORDS:
         err float                       proportional error to consider on the fluxes
     """
-
     fakein   = idx
     fakesed  = numpy.copy(g.seds[fakein, :])
     # sampled noise (with a mean of 1 and standard deviation of err (input value)
-    unc_sample = numpy.random.normal(1.0,err,len(fakesed))
+    unc_sample = numpy.random.normal(1.0, err, len(fakesed))
     fakesed *= unc_sample
     fakeerr = err * fakesed
     return fakein, fakesed, fakeerr
@@ -73,7 +68,7 @@ def fit_model_seds(N, n_test, stellar_filename, err=0.1, outdir='Tests/fake_many
     #Randomly chosen from main sequence
     MS = where((ext_grid.logT>4.0) * (ext_grid.logL*4.5 - 15 < ext_grid.logT))[0]
     fakein = MS[numpy.random.randint(low=0,high=MS.size,size=N)]
-    
+
     # mask for non-detectors (currently none)
     mask = numpy.zeros(len(ext_grid.lamb), dtype=bool)
     with progressbar.PBar(N,txt="Calculating lnp") as pbar:
@@ -84,11 +79,11 @@ def fit_model_seds(N, n_test, stellar_filename, err=0.1, outdir='Tests/fake_many
 
                 #define output filename
                 outname = outdir + '/fake_star_%d_%d.fits' % ( tn, tt )
-            
+
                 lnp = anased.computeLogLikelihood(fakesed, fakeerr, ext_grid.seds, normed=False, mask=mask)
-            
+
                 indx = numpy.where((lnp - max(lnp)) > -40.)
-                        
+
                 t = eztables.Table(name='LNP')
                 t.addCol('idx',numpy.array(indx[0],dtype=numpy.int32))
                 t.addCol('lnp',numpy.array(lnp[indx],dtype=numpy.float))
@@ -104,9 +99,9 @@ def fit_model_seds(N, n_test, stellar_filename, err=0.1, outdir='Tests/fake_many
                 t.addCol('fluxesunc',fakeerr)
                 t.addCol('corfluxes',ext_grid.seds[fakein[tn]])
                 t.write( outname, clobber=False, append=True,silent=True)
-                del t                            
+                del t
             pbar.update(tn)
-            
+
 def fit_model_seds_pytables(fakein, N, n_test, stellar_filename, filters = numpy.arange(6), err=0.1, outname='Tests/fake_many_0/test1.hf5'):
 
     """
@@ -128,7 +123,7 @@ def fit_model_seds_pytables(fakein, N, n_test, stellar_filename, filters = numpy
 
     ext_grid.seds = ext_grid.seds[:,filters]
     ext_grid.lamb = ext_grid.lamb[:,filters]
-    
+
     # mask for non-detectors (currently none)
     mask = numpy.zeros(len(ext_grid.lamb), dtype=bool)
     outfile = tables.openFile(outname, 'w')
@@ -141,7 +136,7 @@ def fit_model_seds_pytables(fakein, N, n_test, stellar_filename, filters = numpy
             for tt in range(n_test):
                 #fake DATA
                 idx, fakesed, fakeerr = getFakeStar(ext_grid, fakein[tn], err=err)
-            
+
                 lnp = anased.computeLogLikelihood(fakesed, fakeerr, ext_grid.seds, normed=False, mask=mask)
 
                 fake_group = outfile.createGroup(star_group,'fake_%d' %tt)
@@ -154,10 +149,10 @@ def fit_model_seds_pytables(fakein, N, n_test, stellar_filename, filters = numpy
                 outfile.createArray(fake_group,'idx',numpy.array(indx[0],dtype=numpy.int32))
                 outfile.createArray(fake_group,'lnp',numpy.array(lnp[indx[0]],dtype=numpy.float32))
 
-            outfile.flush()             
+            outfile.flush()
             pbar.update(tn)
     outfile.close()
-            
+
 if __name__ == '__main__':
 
     # define the filename with the stellar grid
@@ -166,4 +161,4 @@ if __name__ == '__main__':
     # generate the likelihoods for the fake stars (models w/ noise)
     fit_model_seds_pytables(10,2,stellar_filename,0.1,outname='Tests/all_phat.hf5')
     cut = 3.e-18
-    
+
