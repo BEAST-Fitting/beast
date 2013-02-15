@@ -197,7 +197,8 @@ def extractSEDs(g0, flist, absFlux=True):
         seds[:, e] = a / k.lT
         cls[e] = k.cl
 
-    return grid.MemoryGrid(cls, seds, g0.grid)
+    memgrid = grid.MemoryGrid(cls, seds, g0.grid)
+    return memgrid
 
 
 def test(absFlux=True):

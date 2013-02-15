@@ -1,4 +1,5 @@
 """ Manage Various SED/spectral grids is a generic way """
+#TODO replace mytables by eztables
 
 import numpy
 import pyfits
@@ -48,6 +49,9 @@ class ModelGrid(object):
             assert (isinstance(self.grid, mytables.Table)), 'Only mytables.Table are supported so far'
             r = numpy.vstack( [ numpy.copy(self.seds), self.lamb ])
             pyfits.writeto(fname, r, **kwargs)
+            if getattr(self, 'filters', None) is not None:
+                if ('FILTERS' not in self.grid.header.keys()):
+                    self.grid.header['FILTERS'] = self.filters
             self.grid.write(fname, append=True)
 
     def copy(self):
@@ -97,8 +101,10 @@ class SpectralGrid(ModelGrid):
         """
         if type(filter_names[0]) == str:
             flist = phot.load_filters(filter_names, interp=True, lamb=self.lamb)
+            _fnames = filter_names
         else:
             flist = filter_names
+            _fnames = [ fk.name for fk in filter_names ]
         if extLaw is not None:
             if not inplace:
                 r = self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
@@ -106,7 +112,9 @@ class SpectralGrid(ModelGrid):
             else:
                 self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
                 r = self
-        return phot.extractSEDs(self, flist, absFlux=absFlux)
+        memgrid = phot.extractSEDs(self, flist, absFlux=absFlux)
+        setattr(memgrid, 'filters', _fnames)
+        return memgrid
 
     def applyExtinctionLaw(self, extLaw, inplace=False, **kwargs):
         """
@@ -142,9 +150,15 @@ class FileSEDGrid(SpectralGrid):
             self.seds = f[0].data[:-1]
             self.lamb = f[0].data[-1]
         self.grid = mytables.load(fname)
+        self.filters = self.grid.header.get('filters', None)
         #lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
         for k in self.grid.keys():
             self.__dict__[k] = self.grid[k]
+
+        if self.filters is None:
+            print 'Warning: Filter names where not found!'
+            print '(This may happen if you loaded an older version of grid file)'
+            print 'Please correct by setting the filters: self.filters = [...]'
 
     def keys(self):
         """ returns the grid dimension names """
