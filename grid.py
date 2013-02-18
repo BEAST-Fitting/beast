@@ -150,7 +150,9 @@ class FileSEDGrid(SpectralGrid):
             self.seds = f[0].data[:-1]
             self.lamb = f[0].data[-1]
         self.grid = mytables.load(fname)
-        self.filters = self.grid.header.get('filters', None)
+        self.filters = self.grid.header.get('FILTERS', None)
+        if self.filters is not None:
+            self.filters = self.filters.split()
         #lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
         for k in self.grid.keys():
             self.__dict__[k] = self.grid[k]
