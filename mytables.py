@@ -1,4 +1,4 @@
-""" This file implements a Table class 
+""" This file implements a Table class
 	that is designed to be the basis of any format
 	It has been inspired by the atpy package
 
@@ -20,7 +20,7 @@ EXAMPLE USAGE:
 	> t['col'] = range(10)
 	## this will add a new column named 'col' with the corresponding values
 	> t.addCol(range(10), name='x', unit='myUnit', description='unit is arbitrary')
-	## this also add a new column with more details	
+	## this also add a new column with more details
 	> t['col', unit='myUnit', description='a comment'] = range(10)
 	## corresponds to the addCol expression
 	> t.nrows
@@ -30,11 +30,11 @@ EXAMPLE USAGE:
 	> t.setunit('x', 'myunit')
 
 DESCRIPTION:
-    >t = Table()	 
+    >t = Table()
     	t()		  perfom simple column operations and return results
 	t.addCol()        add a new Column to the current table
 	t.delCol()	  delete a given column from the table
-	t.disp()       	  pretty print (part of) the table 
+	t.disp()       	  pretty print (part of) the table
 	t.getCol()	  returns a given column (tuple of columns)
 	t.getRow()	  returns a given row (tuple of rows as record arrays)
 	t.data		  contains a dictionary of columns
@@ -52,7 +52,7 @@ DESCRIPTION:
 	t.read()	  fill the table from a given file
 			  (from either a regitered format or a given tableManager object)
 	t.selectWhere()   is equivalent to Table[where()] and return a table
-		    	  with only matching conditions (can also restrict 
+		    	  with only matching conditions (can also restrict
 		    	  selected	fields)
 	t.setComment()	  add a comment to a given column
 	t.setUnit()	  set the unit of a given column
@@ -66,7 +66,7 @@ DESCRIPTION:
 
      *Common functions for a transparent dictionary proxy of the columns*
 	t.items(), t.iteritems, t.iterkeys(), t.itervalues, t.keys()
-	
+
 REQUIREMENTS:
 	numpy		mandatory
 	pyfits 		for using fits extensions
@@ -77,14 +77,14 @@ REQUIREMENTS:
 
 HISTORY:
 	0.1 -- 04/03/2011, MF
-	Definition of the classes related to a Table object: 
-			Table, 
+	Definition of the classes related to a Table object:
+			Table,
 			TableHeader,
 			TableColumn,
-			TableColumnHeader, 
+			TableColumnHeader,
 			TableManager,
 		Default registered formats:
-			asciiManager (dat, txt, ascii) 
+			asciiManager (dat, txt, ascii)
 			csvManager   (csv)
 			fitsManager  (fits) -- requires pyfits
 		Import/Export manages also column description/comments & units
@@ -102,7 +102,7 @@ HISTORY:
 		but this is not tested to follow operation priorities, besides
 		it could not perform complex operations sur as >table('x/(a+b)')
 	0.3.1 -- 09/03/2011, MF
-	Debug: Fits export, 
+	Debug: Fits export,
 			order in the units, comments fixed
 			string export fixed
 			multiple comment & history keywords export fixed
@@ -127,7 +127,7 @@ HISTORY:
 			instead of overwriting the column
 	0.4 -- 09/09/2011, mf
 	added features:
-		disp        -- pretty print (part of) the table 
+		disp        -- pretty print (part of) the table
 	  	__str__	    -- returns disp with default arguments
 		evalexpr    -- let you do some simple operations on the table using
 			       column names as variables (incl. math symbols) and
@@ -136,7 +136,7 @@ HISTORY:
 			       arrays
 		where       -- traditional where function based on evalexpr
 		selectWhere -- is equivalent to Table[where()] and return a table
-			       with only matching conditions (can also restrict 
+			       with only matching conditions (can also restrict
 			       selected	fields)
 		extract     -- Returns a sub-table based on a given selection of
 			       lines or fields
@@ -163,7 +163,7 @@ HISTORY:
 	0.6.0 -- 30/03/2012, mf
 	added features;
 		sqltables are now managed through sqlManager nd sqlite3
-		you can use it to load or generate sqlite tables. 
+		you can use it to load or generate sqlite tables.
 """
 import warnings
 import numpy
@@ -182,11 +182,11 @@ global _extensions
 # COMMON functions
 #==============================================================================
 
-def register_extension(manager=None,extName=None,  
-			readerFunction=None, writerFunction=None, 
+def register_extension(manager=None,extName=None,
+			readerFunction=None, writerFunction=None,
 			override=False):
-	""" Register a table type manager 
-	    inputs: 
+	""" Register a table type manager
+	    inputs:
 		can be either a TableManager object or individual functions
 		manager --  TableManager Object
 		extName --  register a particular extension if provided
@@ -204,23 +204,23 @@ def register_extension(manager=None,extName=None,
 				  arguments (that can be accessed as dict
 				  objects) and should also add **kwargs to
 				  avoid unattended keyword arguments
-	    
+
 	    outputs:
 		None
 		It registers the manager in the module libs.
-		
+
 	    keywords:
-		override -- redefine the file manager if already registered. 
+		override -- redefine the file manager if already registered.
 	"""
 	extName = extName or manager.tableType
 	if not extName in _extensions or override:
-		if manager != None:	
+		if manager != None:
 			assert(isinstance(manager, TableManager))
 			_extensions[extName] = manager
 		else:
 			assert((readerFunction != None) & (writerFunction != None))
-			_extensions[extName] = TableManager(extName, 
-								readerFunction, 
+			_extensions[extName] = TableManager(extName,
+								readerFunction,
 								writerFunction  )
 	else:
 		raise Exception("Type %s is already defined" % ttype)
@@ -239,7 +239,7 @@ def _isiterable(val):
 	"""
 
 def _determine_type(_extensions, string, verbose=True):
-	""" 
+	"""
 	Determine the type of a table from its extension and try to give the
 	point to the appropriate registered extension
 	"""
@@ -254,7 +254,7 @@ def _determine_type(_extensions, string, verbose=True):
 			raise Exception('Compressed files are not managed yet.')
 		elif extension in ['sav', 'idl', 'idlsav']:
 			raise Exception('Warning: IDL save files must be explicitely requested with "idlload" independent function.')
-			
+
 	if extension in _extensions:
 		tableType = _extensions[extension]
 		if verbose:
@@ -265,12 +265,12 @@ def _determine_type(_extensions, string, verbose=True):
 
 
 #==============================================================================
-class Table(object): 
+class Table(object):
 	""" This class implements a Table object which aims at being able to
 	manage dataset table independently of its storage format.
-	
+
 	Tables allows row and column access using the __getitem__ intrinsic
-	method. Columns can be added to or deleted from the table. 
+	method. Columns can be added to or deleted from the table.
 	Any columns can be described by its own header which includes units.
 
 	Besides Table object can be considered as dict objects and so are
@@ -278,7 +278,7 @@ class Table(object):
 
 	reading and writing methods are not directly defined in this class but
 	apart using TableManager objects that are then registered with the
-	"register_extension" function. 
+	"register_extension" function.
 	"""
 #==============================================================================
 	def __init__(self, iterable=None, colNames=None, header=None,
@@ -292,7 +292,7 @@ class Table(object):
 		inputs:
 			iterable -- iterable object that stores the data
 			            iteration over data dimensions (not rows)
-			colNames -- [iterable] 
+			colNames -- [iterable]
 		                    if specified, defines the name that are used
 			            for the columns
 			header   -- [dict]
@@ -319,7 +319,7 @@ class Table(object):
 				names = iterable.dtype.names
 				for kName in names:
 					self.addCol(TableColumn(iterable[kName], name=kName))
-			else:	
+			else:
 				i = 0
 				for kCol in iterable:
 					i += 1
@@ -352,36 +352,36 @@ class Table(object):
 
 		if idx == None:
 			if self.nrows < 10:
-				rows = [ [ str(self[k][rk]) for k in fields ] for rk in range(self.nrows)] 
+				rows = [ [ str(self[k][rk]) for k in fields ] for rk in range(self.nrows)]
 			else:
-				_idx = range(5)	
-				rows = [ [ str(self[k][rk]) for k in fields ] for rk in _idx] 
+				_idx = range(5)
+				rows = [ [ str(self[k][rk]) for k in fields ] for rk in _idx]
 				rows += [ ['...' for k in range(len(fields)) ] ]
-				rows += [ [ str(self[k][-rk]) for k in fields ] for rk in _idx] 
+				rows += [ [ str(self[k][-rk]) for k in fields ] for rk in _idx]
 		elif isinstance(idx, slice):
 			_idx = range(idx.start, idx.stop, idx.step or 1)
-			rows = [ [ str(self[k][rk]) for k in fields ] for rk in _idx] 
+			rows = [ [ str(self[k][rk]) for k in fields ] for rk in _idx]
 		else:
-			rows = [ [ str(self[k][rk]) for k in fields ] for rk in idx] 
+			rows = [ [ str(self[k][rk]) for k in fields ] for rk in idx]
 		units = [ '('+str(self[k].header['unit'] or '')+')' for k in fields ]
 		out = indent([fields]+[units]+rows, hasHeader=True, hasUnits=True)
 		if ret == True :
 			return out
 		else:
 			print out
-	
+
 	def addCol(self, array, name=None, **kwargs):
 		""" Add individual column to the table
 		    __setitem__ method is a shortcut to this function
-			inputs:	
+			inputs:
 				array -- [ array | list | TableColumn ]
 					 data to add, this can be multi-dimensional.
-					 multi-dimentional columns storage is only 
+					 multi-dimentional columns storage is only
 					 managed by HDF5 format
 			keywords:
 				name -- [ string ]
 					name of the column
-				
+
 				**kwargs refers to TableColumn arguments
 		"""
 		name = name or 'None'
@@ -392,28 +392,28 @@ class Table(object):
 				raise Exception("Column size mismatch, expecting %i rows, found %i" \
 						% (sshape[0], shape[0]) )
 		else:
-			if numpy.size(numpy.shape(array)) > 0: 
+			if numpy.size(numpy.shape(array)) > 0:
 				self.nrows = numpy.shape(array)[0]
 		if isinstance(array, TableColumn):
 			if name == 'None':
 				name = array.header.name
-			
+
 				array.header['name'] = name
 			self.data[name] = array
 		else:
 			self.data[name] = TableColumn(array, name=name, **kwargs)
 
 	def delCol(self, name):
-		""" Delete Table column 
+		""" Delete Table column
 			inputs:
 				name -- [ string ]
 					Column to delete
 		"""
 		cCol = self.data.pop(name)
 		del cCol
-	
+
 	def pop(self, name):
-		""" Pop Table column 
+		""" Pop Table column
 			inputs:
 				name -- [ string ]
 					Column to delete
@@ -450,7 +450,7 @@ class Table(object):
 		hdrs =[ TableColumn(self.getCol(k)).header         \
 			for k in numpy.asarray(fields) if
 			getattr(TableColumn(self.getCol(k)), 'header', False) ]
- 
+
 		data = [ TableColumn(self.getCol(k)[ind],          \
 				name=self.getCol(k).header['name'],\
 				unit=self.getCol(k).header['unit'],\
@@ -474,7 +474,7 @@ class Table(object):
 		"""
 		ind = numpy.where(self.evalexpr(condition, condvars, start=start, stop=stop, step=step ))
 		return ind
-			
+
 
 
 	def getCol(self, name):
@@ -486,7 +486,7 @@ class Table(object):
 		if _isiterable(name):
 			return [ self.data[k] for k in name ]
 		else:
-			return self.data[name]	
+			return self.data[name]
 
 	def getRow(self, idx, fields=None):
 		""" Returns one/multiple row(s)
@@ -501,7 +501,7 @@ class Table(object):
 		except:
 			formats = [self.data[k].dtype for k in self]
 		if _isiterable(idx):
-			row = [ tuple([ self.data[k][kidx] for k in fields ]) for kidx in idx ] 
+			row = [ tuple([ self.data[k][kidx] for k in fields ]) for kidx in idx ]
 		else:
 			row = tuple([ self.data[k][idx] for k in fields ])
 		try:
@@ -514,7 +514,7 @@ class Table(object):
 
 	def __iter__(self):
 		return self.data.__iter__()
-	
+
 	def iterkeys(self):
 		return self.data.iterkeys()
 
@@ -529,7 +529,7 @@ class Table(object):
 
 	def __getitem__(self, item, **kwargs):
 		if _isiterable(item):
-			ctype = item[0] 
+			ctype = item[0]
 			if isinstance(ctype, str):
 				return self.extract(None, fields=item, **kwargs)
 			elif isinstance(ctype, int):
@@ -546,7 +546,7 @@ class Table(object):
 	def __setitem__(self, key, val, name=None, **kwargs ):
 		""" shortcut to addCol function """
 		self.addCol(val, name=key, **kwargs)
-	
+
 	def __repr__(self):
 		s = 'Table: %s,  nrows=%i, ncols=%i, ' % (self.header['NAME'], self.nrows, len(self.data))
 		s += object.__repr__(self)
@@ -571,25 +571,25 @@ class Table(object):
 				txt = op.split('+')
 				if len(txt[1].split('+'))>1:
 					return TableColumn(self(txt[0])+self('+'.join(txt[1])), name=op)
-				else: 
+				else:
 					return TableColumn(self(txt[0])+self(txt[1]), name=op)
 			elif len(op.split('-'))>1:
 				txt = op.split('-')
 				if len(txt[1].split('-'))>1:
 					return TableColumn(self(txt[0])-self('-'.join(txt[1])), name=op)
-				else: 
+				else:
 					return TableColumn(self(txt[0])-self(txt[1]), name=op)
 			elif len(op.split('*'))>1:
 				txt = op.split('*')
 				if len(txt[1].split('*'))>1:
 					return TableColumn(self(txt[0])*self('*'.join(txt[1])), name=op)
-				else: 
+				else:
 					return TableColumn(self(txt[0])*self(txt[1]), name=op)
 			elif len(op.split('/'))>1:
 				txt = op.split('/')
 				if len(txt[1].split('/'))>1:
 					return TableColumn(self(txt[0])/self('/'.join(txt[1])), name=op)
-				else: 
+				else:
 					return TableColumn(self(txt[0])/self(txt[1]), name=op)
 			else:
 				try:
@@ -606,7 +606,7 @@ class Table(object):
 		keys = numpy.sort(self.keys())
 		for k in keys:
 			print self[k].__repr__().split('Table')[0][:-1].replace(',', '')
-	
+
 	def setUnit(self, colName, unit):
 		""" Set the unit of a column referenced by its name """
 		self.data[colName].header['unit'] = unit
@@ -649,7 +649,7 @@ class Table(object):
 			else:
 				manager = _determine_type(_extensions, type, verbose=False)
 		data, description = manager.read( filename, **kwargs)
-		if isinstance(data, dict): 
+		if isinstance(data, dict):
 			for k in data: self.addCol(data[k], name=k )
 		else:
 			assert(_isiterable(data))
@@ -688,21 +688,21 @@ class Table(object):
 		comments = [self[k].header['description'] for k in self]
 		units    = [self[k].header['unit'] for k in self]
 		return manager.write(self.data, header=self.header,
-					output=filename, comments=comments, 
-					units=units, silent=silent, **kwargs) 
+					output=filename, comments=comments,
+					units=units, silent=silent, **kwargs)
 	try:
-		def stats(self, fields=None, val=['mean', 'min', 'max', 'std', 'q', 'n', 'hpd']):	
+		def stats(self, fields=None, val=['mean', 'min', 'max', 'std', 'q', 'n', 'hpd']):
 			"""returns a table with statistics over the selected columns (mean, std, hpd, quantiles...)
-				inputs: 
+				inputs:
 					fields  -- selected columns to use
 					val     -- list of statistics to return
 							(see list below)
-			
+
 				output:
 					table object containing the corresponding statistics (one line per field)
 
 				Available statistics:
-				
+
 					hpd   -- highest probable density at 95%
 					mean  -- mean value
 					min   -- minimal value
@@ -786,14 +786,14 @@ class Table(object):
 				s.addCol(h[1], name='hpdmax',  comment='min range of 95% highest probable density')
 
 			return s
-	
+
 	except ImportError:
 		pass
 
 try:
-	import mypickleshare as mps		
+	import mypickleshare as mps
 	#==============================================================================
-	class distributedTable(Table): 
+	class distributedTable(Table):
 		""" This class implements a Table object that tends to have the minimum
 		memory impact. Useful for huge tables"""
 
@@ -809,7 +809,7 @@ try:
 			inputs:
 				iterable -- iterable object that stores the data
 					    iteration over data dimensions (not rows)
-				colNames -- [iterable] 
+				colNames -- [iterable]
 					    if specified, defines the name that are used
 					    for the columns
 				header   -- [dict]
@@ -844,7 +844,7 @@ try:
 							self.addCol( TableColumn(iterable[kCol], name=kCol) )
 					elif isinstance(iterable, numpy.core.records.recarray):
 						print "Converting from recarray not implemented yet"
-					else:	
+					else:
 						i = 0
 						for kCol in iterable:
 							i += 1
@@ -880,7 +880,7 @@ try:
 except ImportError:
 	print 'Distributed Table are not avalable'
 #==============================================================================
-class TableColumnHeader(object): 
+class TableColumnHeader(object):
 	""" Manage how columns are described """
 #==============================================================================
 	def __init__(self, name, dtype, unit=None, description=None, null=None, format=None):
@@ -945,7 +945,7 @@ class TableColumnHeader(object):
 						self.format)
 	def __iter__(self):
 		return self.__dict__.__iter__()
-	
+
 	def keys(self):
 		return self.__dict__.keys()
 
@@ -963,7 +963,7 @@ class TableColumnHeader(object):
 
 	def items(self):
 		return self.__dict__.items()
-	
+
 	def __getstate__(self):
 		return self.__dict__.copy()
 
@@ -972,7 +972,7 @@ class TableColumnHeader(object):
 			setattr(self, name, value)
 
 #==============================================================================
-class TableColumn(numpy.ndarray): 
+class TableColumn(numpy.ndarray):
 	""" Manage one column in a table """
 #==============================================================================
 	def __new__(self, input_array, *args, **kwargs):
@@ -999,9 +999,9 @@ class TableColumn(numpy.ndarray):
 		if isinstance(data, TableColumn):
 			if data.header != None:
 				self.header = data.header.copy()
-	
+
 	def __repr__(self):
-		s = ""	
+		s = ""
 		try:
 			s = "Column: %s, " % self.header.name
 			if self.header.unit != None:
@@ -1012,13 +1012,13 @@ class TableColumn(numpy.ndarray):
 			pass
 		s+= numpy.ndarray.__repr__(self)
 		return s
-	
+
 	def copy(self):
 		col = TableColumn(numpy.ndarray.copy(self))
 		col.header = self.header.copy()
 		return col
 
-	
+
 	def __getslice__(self, i,j):
 		r = numpy.ndarray.__getslice__(self,i,j)
 		if numpy.size(r) > 1:
@@ -1033,7 +1033,7 @@ class TableColumn(numpy.ndarray):
 			col.header['description'] += ' [slice]'
 		else:
 			col.header['description'] = '[slice]'
-	
+
 		return col
 		"""
 	def __getitem__(self, i):
@@ -1050,10 +1050,10 @@ class TableColumn(numpy.ndarray):
 			col.header['description'] += ' [slice]'
 		else:
 			col.header['description'] = '[slice]'
-	
+
 		return col
 		"""
-	
+
 	def __le__(self, y):
 		return numpy.asarray(self).__le__(numpy.asarray(y))
 
@@ -1095,7 +1095,7 @@ class TableColumn(numpy.ndarray):
 			setattr(self, name, value)
 	"""
 #==============================================================================
-class TableHeader(object): 
+class TableHeader(object):
 	""" this class defines the context of a Table """
 #==============================================================================
 	def __init__(self, dic=None, *args, **kwargs):
@@ -1115,7 +1115,7 @@ class TableHeader(object):
 				self.__dict__[attribute] = str(self[attribute])+'\n'+str(value)
 		else:
 			self.__dict__[attribute] = str(value)
-	
+
 	def __setitem__(self, item, val):
 		"""get item"""
 		self.__setattr__(item,val)
@@ -1126,7 +1126,7 @@ class TableHeader(object):
 
 	def __contains__(self, item):
 		return self.__dict__.__contains__(item)
-		
+
 	def __repr__(self):
 		""" representation """
 		s = 'Table Header\n'
@@ -1145,7 +1145,7 @@ class TableHeader(object):
 							s += '%20s\t%s\n' % ('', kval)
 				else:
 					s += '%20s\t%s\n' % (k.upper(), None)
-					
+
 		return s
 
 	def keys(self):
@@ -1155,10 +1155,10 @@ class TableHeader(object):
 	def copy(self):
 		"""return a copy of the header"""
 		return TableHeader(self.__dict__)
-		
+
 	def __iter__(self):
 		return self.__dict__.__iter__()
-	
+
 	def iterkeys(self):
 		return self.__dict__.iterkeys()
 
@@ -1170,18 +1170,23 @@ class TableHeader(object):
 
 	def items(self):
 		return self.__dict__.items()
+
 	def pop(self, name):
 		return self.__dict__.pop(name)
 
+	def get(self, k, default=None):
+		return self[k] if k in self.keys() else default
+
+
 #==============================================================================
-class TableManager(object): 
+class TableManager(object):
 	""" Template class for managing access to table files
 		The aim of this class is to propose various format managers by
 		simply providing reading and writing methods
 
 		Define any format manager by deriving this class and defining
 		the two followin method:
-		
+
 		read  -- reading from the considered format
 		write -- export to the considered format
 
@@ -1198,7 +1203,7 @@ class TableManager(object):
 		if writerFunction:
 			del self.write
 			self.write = writerFunction
-	
+
 	def read(self,*args, **kwargs):
 		""" to be overwritten """
 		pass
@@ -1244,7 +1249,7 @@ class csvManager(TableManager):
 					k = line[2:].split('\t')
 					colName = k[0].split()[0]
 					colUnit = k[1].split()[0]
-					colComm = k[2] 
+					colComm = k[2]
 					if colUnit == 'None': colUnit = None
 					if colComm == 'None': colComm = None
 					colInfo[colName] = (colUnit,colComm)
@@ -1258,7 +1263,7 @@ class csvManager(TableManager):
 		stream.close()
 		#get data
 		skip = skiprows+(nHeadLines-int(noheader))
-		d = numpy.recfromcsv(filename, skiprows=skip-1, *args, **kwargs) 
+		d = numpy.recfromcsv(filename, skiprows=skip-1, *args, **kwargs)
 		dkeys = d.dtype.names
 
 		for k in range(len(header)):
@@ -1284,13 +1289,13 @@ class csvManager(TableManager):
 			val = header[key]
 			for kval in str(val).split('\n'):
 				unit.write('%s %s\t%s\n' % (comment, key.upper(), kval) )
-	
+
 	def writeColHeader(self, data, unit, comment='#'):
 		keys = numpy.sort(data.keys())
 
 		unit.write('%s%s %20s\t%10s\t%s\n' % (comment, comment, 'Column', 'Unit', 'Comment') )
 		for key in keys:
-				txt = "%20s\t%10s\t%s" % (key, data[key].header.unit, 
+				txt = "%20s\t%10s\t%s" % (key, data[key].header.unit,
 							data[key].header.description)
 				unit.write('%s%s %s\n' % (comment, comment, txt) )
 
@@ -1300,7 +1305,7 @@ class csvManager(TableManager):
 		txt = comment+keys[0]
 		for k in keys[1:]: txt+=delimiter+k
 		unit.write(txt+"\n")
-	
+
 	def writeData(self, data, unit, delimiter=','):
 		""" Write data part into the opened unit """
 		keys = numpy.sort(data.keys())
@@ -1310,7 +1315,7 @@ class csvManager(TableManager):
 			for k in keys[1:]: txt+=delimiter+str(data[k][ik])
 			unit.write(txt+"\n")
 
-	def write(self, data, header=None, output='exportedData.csv', 
+	def write(self, data, header=None, output='exportedData.csv',
 		delimiter=',', comment='#', keep=False, unit = None,
 		verbose=False, **kwargs):
 		"""
@@ -1318,7 +1323,7 @@ class csvManager(TableManager):
 
 		inputs:
 			data -- data dictionnary to export
-		
+
 		outputs:
 			output -- output file (def: exportedData.dat)
 
@@ -1327,27 +1332,27 @@ class csvManager(TableManager):
 			delimiter -- delimiter to use (def: ',')
 			comment   -- comment character for header (def: '#')
 			keep      -- keeps unit opened
-			unit	  -- uses opened stream, if provided 
+			unit	  -- uses opened stream, if provided
 		"""
 
 		if unit != None:
 			outputFile = unit
 		else:
 			outputFile = open(output, 'w')
-			if header != None: 
+			if header != None:
 				self.writeHeader(outputFile, header, comment='#')
 			self.writeColHeader(data, outputFile, comment=comment)
-			self.writeColDef(data, outputFile, delimiter=delimiter, 
+			self.writeColDef(data, outputFile, delimiter=delimiter,
 				  		comment='')
 
-		self.writeData(data, outputFile, delimiter=delimiter)	
+		self.writeData(data, outputFile, delimiter=delimiter)
 
 		if keep == False:
 			outputFile.close()
 			if verbose: print "Data exported into %s" % output
 		else:
 			return outputFile
-			
+
 class asciiManager(TableManager):
 	def __init__(self):
 		""" constructor """
@@ -1380,7 +1385,7 @@ class asciiManager(TableManager):
 					k = line[2:].split(delimiter)
 					colName = k[0].split()[0]
 					colUnit = k[1].split()[0]
-					colComm = k[2] 
+					colComm = k[2]
 					if colUnit == 'None': colUnit = None
 					if colComm == 'None': colComm = None
 					colInfo[colName] = (colUnit,colComm)
@@ -1398,7 +1403,7 @@ class asciiManager(TableManager):
 		#get data
 		nHeadLines -= 1
 		skip = skiprows+(nHeadLines-int(noheader))
-		d = numpy.recfromtxt(filename, skiprows=skip-1, delimiter=delimiter, *args, **kwargs) 
+		d = numpy.recfromtxt(filename, skiprows=skip-1, delimiter=delimiter, *args, **kwargs)
 		dkeys = d.dtype.names
 		for k in range(len(header)):
 			colName = header[k]
@@ -1429,7 +1434,7 @@ class asciiManager(TableManager):
 
 		unit.write('%s%s %20s\t%10s\t%s\n' % (comment, comment, 'Column', 'Unit', 'Comment') )
 		for key in keys:
-				txt = "%20s\t%10s\t%s" % (key, data[key].header.unit, 
+				txt = "%20s\t%10s\t%s" % (key, data[key].header.unit,
 							data[key].header.description)
 				unit.write('%s%s %s\n' % (comment, comment, txt) )
 
@@ -1440,7 +1445,7 @@ class asciiManager(TableManager):
 		txt = comment+keys[0]
 		for k in keys[1:]: txt+=delimiter+k
 		unit.write(txt+"\n")
-	
+
 	def writeData(self, data, unit, delimiter=None):
 		""" Write data part into the opened unit """
 		keys = numpy.sort(data.keys())
@@ -1450,7 +1455,7 @@ class asciiManager(TableManager):
 			for k in keys[1:]: txt+=delimiter+str(data[k][ik])
 			unit.write(txt+"\n")
 
-	def write(self, data, header=None, output='exportedData.dat', 
+	def write(self, data, header=None, output='exportedData.dat',
 		delimiter=None, comment='#', keep=False, unit = None,
 		verbose=False, **kwargs):
 		"""
@@ -1458,7 +1463,7 @@ class asciiManager(TableManager):
 
 		inputs:
 			data -- data dictionnary to export
-		
+
 		outputs:
 			output -- output file (def: exportedData.dat)
 
@@ -1467,22 +1472,22 @@ class asciiManager(TableManager):
 			delimiter -- delimiter to use (def: ',')
 			comment   -- comment character for header (def: '#')
 			keep      -- keeps unit opened
-			unit	  -- uses opened stream, if provided 
+			unit	  -- uses opened stream, if provided
 		"""
 
 		if unit != None:
 			outputFile = unit
 		else:
 			outputFile = open(output, 'w')
-			if header != None: 
+			if header != None:
 				self.writeHeader(outputFile, header, comment=comment)
 			self.writeColHeader(data, outputFile, comment=comment)
-			self.writeColDef(data, outputFile, delimiter=' ', 
+			self.writeColDef(data, outputFile, delimiter=' ',
 				  		comment=comment)
 
-		self.writeData(data, outputFile, delimiter=' ')	
+		self.writeData(data, outputFile, delimiter=' ')
 
-		if keep == False: 
+		if keep == False:
 			outputFile.close()
 			if verbose: print "Data exported into %s" % output
 		else:
@@ -1520,7 +1525,7 @@ class latexManager(TableManager):
 
 		inputs:
 			data -- data dictionnary to export
-		
+
 		outputs:
 			output -- output file (def: exportedData.dat)
 
@@ -1529,9 +1534,9 @@ class latexManager(TableManager):
 			delimiter -- delimiter to use (def: ',')
 			comment   -- comment character for header (def: '#')
 			keep      -- keeps unit opened
-			unit	  -- uses opened stream, if provided 
+			unit	  -- uses opened stream, if provided
 		"""
-		
+
 		unit = open(output, 'w')
 		unit.write('\\begin{table}\n \\begin{center}\n')
 		if 'NAME' in header:
@@ -1542,7 +1547,7 @@ class latexManager(TableManager):
 			aligntxt = ''.join(['c']*len(data))
 		unit.write('\\begin{tabular}{%s}\n' % aligntxt)
 		names = numpy.sort(data.keys())
-		colDefTxt = ''	
+		colDefTxt = ''
 		_Notes = []
 		for k in range(len(names)):
 			colDefTxt += ' & %s' % names[k]
@@ -1562,7 +1567,7 @@ class latexManager(TableManager):
 			unit.write('%s \\\\\n' % units)
 		unit.write('\\hline\n')
 
-		self.writeData(data, unit, delimiter=' & ')	
+		self.writeData(data, unit, delimiter=' & ')
 
 		unit.write('\\hline\n')
 		if len(_Notes) > 0:
@@ -1588,7 +1593,7 @@ try:
 
 		def _getFitsFmt(self, val):
 			"""
-			-- Internal use -- 
+			-- Internal use --
 			return the format string to use while defining
 			the fits table column.
 			input:
@@ -1629,7 +1634,7 @@ try:
 				return ' '.join(ttype[-1].split())
 			else:
 				return None
-			
+
 		def readData(self, hdu):
 			colDef = hdu.columns
 			names = [ k.name for k in colDef ]
@@ -1641,11 +1646,11 @@ try:
 						unit=units[k], \
 						description=comms[k] )\
 						for k in range(len(names)) ]
-			return data	
+			return data
 
 		def read(self, filename, extension = 1, **kwargs):
 			hdu = pyfits.open(filename)
-			header = self.readHeader(hdu[extension])	
+			header = self.readHeader(hdu[extension])
 			data   = self.readData(hdu[extension])
 			hdu.close()
 			return data, header
@@ -1654,7 +1659,7 @@ try:
 			cards = header.ascard['TTYPE*']
 			refs = {}
 			for k in cards: refs[k.value] = k.key
-			header.update(refs[colName], colName, comment=comment) 
+			header.update(refs[colName], colName, comment=comment)
 
 		def write(self, data, header=None, output='exportedData.fits', fmt=None,
 			name=None, comments=None, units=None, clobber=False, append=True, global_attrs=None,
@@ -1664,15 +1669,15 @@ try:
 
 			inputs:
 				data -- data dictionnary to export
-			
+
 			outputs:
 				output -- output file (def: exportedData.dat)
 
 			keywords:
-				fmt     -- force a given column format 
+				fmt     -- force a given column format
 				             (alphabetic data name order)
 				name    -- extention name of the fits file (def: DATA)
-				header  -- dictonnary of keywords and corresponding 
+				header  -- dictonnary of keywords and corresponding
 					   values
 				comments-- list of column comments
 				units   -- list of column units
@@ -1682,11 +1687,11 @@ try:
 				clobber -- overwrite if set (def: False)
 				append  -- add data to existing file (def: True)
 			"""
-			if (not os.path.isfile(output)) & append: 
-				if not silent: 
+			if (not os.path.isfile(output)) & append:
+				if not silent:
 					print "Warning: %s does not seem to exist" % output
 					print "         Creating a new file."
-				append=False	
+				append=False
 
 			if data != None:
 				keys = data.keys()
@@ -1694,9 +1699,9 @@ try:
 				if fmt == None:
 					fmt = [ self._getFitsFmt(data[k]) for k in keys ]
 				if (comments == None) | len(comments) != len(data) :
-					comments = [None]*len(data)	
+					comments = [None]*len(data)
 				if (units == None) | len(units) != len(data) :
-					units = [None]*len(data)	
+					units = [None]*len(data)
 				cols = [ pyfits.Column( name=keys[ik],        \
 							array=data[keys[ik]], \
 							format=fmt[ik],       \
@@ -1708,14 +1713,14 @@ try:
 				if header != None:
 					for k in header:
 						if (k != 'COMMENT') & (k != 'HISTORY'):
-							hdr.header.update(k, header[k])	
+							hdr.header.update(k, header[k])
 						else:
 							txt = header[k].split('\n')
 							for j in txt:
 								if k == 'COMMENT':
-									hdr.header.add_comment(j)	
+									hdr.header.add_comment(j)
 								elif k == 'HISTORY':
-									hdr.header.add_history(j)	
+									hdr.header.add_history(j)
 				for ik in range(len(keys)):
 					if comments[ik] != None:
 						self.writeColComment(hdr.header, keys[ik], comments[ik])
@@ -1724,7 +1729,7 @@ try:
 
 				if not append:
 					hdr.writeto(output,clobber=clobber)
-					if not silent: 
+					if not silent:
 						print "Data exported into %s" % output
 				else:
 					if hdr0 == None:
@@ -1739,17 +1744,17 @@ try:
 						hdr0.close()
 					else:
 						if retHdr: return hdr0
-					if not silent: 
+					if not silent:
 						print "Data added into %s" % output
 
-			if global_attrs != None: 
+			if global_attrs != None:
 				if hdr0 == None:
 					hdr0 = pyfits.open(output, mode='update')
 				for k in global_attrs:
-					hdr0[0].header.update(k, global_attrs[k])	
+					hdr0[0].header.update(k, global_attrs[k])
 				hdr0.flush()
 				hdr0.close()
-				if not silent: 
+				if not silent:
 					print "Keywords added to main table into %s" % output
 
 	register_extension(fitsManager(), 'fits')
@@ -1825,7 +1830,7 @@ try:
 
 			def _getHD5Fmt(self, val, pos=0):
 				"""
-				-- Internal use -- 
+				-- Internal use --
 				return the format string to use while defining
 				the pyTable description class.
 				input:
@@ -1865,26 +1870,26 @@ try:
 						return('Int64Col(pos='+str(pos)+')')
 					else:
 						print "Warning: type unknown!", t
-			
+
 			def readColDesc(self, tab, name):
 				key = [ k for k in tab.attrs._v_attrnames \
 						if tab.attrs[k] == name ]
 
 				key = key[0].replace('NAME', '')
-				if key+'UNIT' in tab.attrs: 
+				if key+'UNIT' in tab.attrs:
 					unit = tab.attrs[key+'UNIT']
-				else: 
+				else:
 					unit = None
-				if key+'DESC' in tab.attrs: 
+				if key+'DESC' in tab.attrs:
 					desc = tab.attrs[key+'DESC']
 				else:
 					desc = None
 				return (unit, desc)
 
 			def readCol(self, tab, colName):
-					cunit, cdesc = self.readColDesc(tab, colName)	
-					return TableColumn(tab.col(colName), 
-								name = colName, 
+					cunit, cdesc = self.readColDesc(tab, colName)
+					return TableColumn(tab.col(colName),
+								name = colName,
 								unit=cunit,
 								description=cdesc)
 			def readTabHeader(self, tab):
@@ -1910,12 +1915,12 @@ try:
 				data = [self.readCol(node, k) for k in node.colnames]
 				head = self.readTabHeader(node)
 				head['_sourceFile'] = source
-				if 'NAME' not in head or head['NAME']=='Noname' or head['NAME'] == None: 
+				if 'NAME' not in head or head['NAME']=='Noname' or head['NAME'] == None:
 					head['NAME'] = tableName
-				if 'TITLE' not in head or head['TITLE']=='': 
+				if 'TITLE' not in head or head['TITLE']=='':
 					head['TITLE'] = node.title
 				return data, head
-			
+
 			def writeColDesc(self, tab, name, unit=None, desc=None):
 				key = [ k for k in tab.attrs._v_attrnames \
 						if tab.attrs[k] == name ]
@@ -1923,10 +1928,10 @@ try:
 				key = key[0].replace('NAME', '')
 				tab.attrs[key+'UNIT'] = unit
 				tab.attrs[key+'DESC'] = desc
-				
-				
+
+
 			def write(self, data, header=None,
-					output='exportedData.hd5', tablename='data', 
+					output='exportedData.hd5', tablename='data',
 					mode='w', group='/', silent=False,
 					units=None, comments=None,
 					appendTable=False, **kwargs):
@@ -1935,7 +1940,7 @@ try:
 
 				inputs:
 					data -- data dictionnary to export
-				
+
 				outputs:
 					output -- output file (def: exportedData.dat)
 
@@ -1944,7 +1949,7 @@ try:
 					mode      -- 'w' will create a brand new file (default)
 						     'a' will append an existing file (useful to add
 						     tables in an existing file)
-					group     -- path to the table (def: '/') 
+					group     -- path to the table (def: '/')
 					header    -- Dictionnary of attributes to add to the table
 					silent    -- Do not print any message when set
 				"""
@@ -1952,9 +1957,9 @@ try:
 					if 'NAME' in header:
 						tablename = header['NAME'].replace('.','_')
 				if (comments == None) | len(comments) != len(data) :
-					comments = [None]*len(data)	
+					comments = [None]*len(data)
 				if (units == None) | len(units) != len(data) :
-					units = [None]*len(data)	
+					units = [None]*len(data)
 
 				keys = data.keys()
 				keys.sort()
@@ -1971,10 +1976,10 @@ try:
 					pos = 0
 					for k in keys:
 						ktype = self._getExtendedFmt(data[k], pos)
-						code +="\n\t"+ k + "= tables." + ktype 
+						code +="\n\t"+ k + "= tables." + ktype
 						pos += 1
 					# generate a table data class associated to data
-					exec(code)	
+					exec(code)
 					try:
 						if group[-1] == '/':
 							group = group[:-1]
@@ -1992,15 +1997,15 @@ try:
 						pos = 0
 						for k in keys:
 							ktype = self._getExtendedFmt(data[k], pos)
-							code +="\n\t"+ k + "= tables." + ktype 
+							code +="\n\t"+ k + "= tables." + ktype
 							pos += 1
 						# generate a table data class associated to data
-						exec(code)	
+						exec(code)
 						if group[-1] == '/':
 							group = group[:-1]
 						table = hd5.createTable(group, tablename, newTable, expectedrows = numpy.size(data[keys[0]]), createparents=True)
 						hd5.flush()
-					
+
 				row = table.row
 				for i in range(numpy.size(data[keys[0]])):
 					for k in keys:
@@ -2012,17 +2017,17 @@ try:
 						table.attrs[k] = header[k]
 					if not 'TITLE' in header:
 						table.attrs['TITLE'] = tablename
-				
+
 				for ik in range(len(keys)):
 					self.writeColDesc(table, keys[ik], units[ik], comments[ik])
-		
+
 				hd5.close()
 				if not silent: print "Data exported into %s" % output
 
 	register_extension(hd5Manager(), 'hd5')
 	register_extension(hd5Manager(), 'hdf5')
 
-	
+
 except:
 	print "Warning: HD5 files could not be managed."
 
@@ -2031,7 +2036,7 @@ def load(filename, type=None, manager=None, distributed=False, storage=None, sil
 	""" Generates a Table object from a given file
 		Basically it creates an empty Table object and call the
 		Table.read() method to fill the table
-		
+
 	inputs:
 		filename  -- [ string ]
 			     file to read from
@@ -2057,14 +2062,14 @@ def load(filename, type=None, manager=None, distributed=False, storage=None, sil
 try:
 	from scipy import io
 	def idlload(filename, distributed=False, storage=None, **kwargs):
-		""" A shortcut to open an IDL save file into a list of recarrays 
-			
+		""" A shortcut to open an IDL save file into a list of recarrays
+
 		inputs:
 			filename  -- [ string ]
 				     file to read from
 
 		keywords:
-		
+
 			**kwargs are sent to the scipy.io.idl.readsav function
 		"""
 		return io.idl.readsav(filename, **kwargs)
@@ -2075,7 +2080,7 @@ except:
 
 try:
 	import sqlite3
-	
+
 	class sqlManager(TableManager):
 
 		def __init__(self):
@@ -2085,14 +2090,14 @@ try:
 		def getTableNames(self, *args, **kwargs):
 			node = self.c.execute("SELECT name FROM sqlite_master WHERE type='table';")
 			return [ t[0] for t in node if t[0][0] != '_' ]
-		
+
 		def execute(self, txt, *args, **kwargs):
 			return self.c.execute(txt)
 
 		def readCol(self, k):
 			r = self.execute('select %s from %s;' % (k, self.tableName)).fetchall()
 			return TableColumn(numpy.asarray([ rk[0] for rk in r]), name=k)
-		
+
 		def readTabHeader(self):
 			""" assumes dr is a table with keyname, value in
 			'_tableName_' """
@@ -2107,7 +2112,7 @@ try:
 			except:
 				pass
 			return hdr
-			
+
 		def read(self, filename, tableName=None, silent=False, *args, **kwargs):
 			self.source = sqlite3.connect(filename, *args, **kwargs)
 			self.c = self.source.cursor()
@@ -2133,7 +2138,7 @@ try:
 
 		def _getSQLFmt(self, val):
 			"""
-			-- Internal use -- 
+			-- Internal use --
 			return the format string to use while defining
 			the Table description.
 			input:
@@ -2171,18 +2176,18 @@ try:
 				else:
 					print "Warning: type unknown!", t
 
-		def write(self, data, header=None, output='exportedData.sqlite', 
-					tablename=None, silent=False, units=None, 
+		def write(self, data, header=None, output='exportedData.sqlite',
+					tablename=None, silent=False, units=None,
 					comments=None, append=False, **kwargs):
-			
+
 			if header != None:
 				if 'NAME' in header:
 					if tablename == None:
 						tablename = header['NAME'].replace('.','_')
 			if (comments == None) | len(comments) != len(data) :
-				comments = [None]*len(data)	
+				comments = [None]*len(data)
 			if (units == None) | len(units) != len(data) :
-				units = [None]*len(data)	
+				units = [None]*len(data)
 
 			keys = data.keys()
 			keys.sort()
@@ -2207,7 +2212,7 @@ try:
 				c.execute("INSERT INTO %s (%s) VALUES (%s);" % (tablename, ','.join(keys), ','.join(row)))
 				rki += 1
 			conn.commit()
-			
+
 			if header != None:
 				keys = header.keys()
 				keys.sort()
@@ -2225,7 +2230,7 @@ try:
 
 
 
-			
+
 	register_extension(sqlManager(),   'sql')
 	register_extension(sqlManager(),   'sqlite')
 	register_extension(sqlManager(),   'db')
@@ -2237,7 +2242,7 @@ except:
 #==============================================================================
 
 def match(c1,c2):
-	""" Returns the indices at which the tables match 
+	""" Returns the indices at which the tables match
 	matching uses 2 columns (arrays) that are compared in values
 	INPUTS:
 		c1 -- array 1
@@ -2249,19 +2254,19 @@ def match(c1,c2):
 	return numpy.where(numpy.equal.outer(c1,c2))
 
 def join(t1,t2, n1, n2):
-	""" returns a table containing matching lines 
+	""" returns a table containing matching lines
 	This will create a table containing both tables columns with matching
 	lines only. (units and descriptions are preserved throught the join but
 	not the headers)
-	
+
 	INPUTS:
 		t1 -- Table 1 (Table Object)
 		t2 -- Table 2 (Table Object)
 		n1 -- Name of Column 1 (string)
 		n2 -- Name of Column 2 (string)
-	
+
 	OUTPUTS:
-		Joined Table 
+		Joined Table
 	"""
 	ind1, ind2 = match(t1[n1], t2[n2])
 	tab = Table(name='Joined Table')
@@ -2278,9 +2283,9 @@ def join(t1,t2, n1, n2):
 			name = k1[k]+'_1'
 		else:
 			name = k1[k]
-		tab.addCol(r1[k1[k]], name=name, 
+		tab.addCol(r1[k1[k]], name=name,
 				unit=t1[k1[k]].header['unit'],
-				description=t1[k1[k]].header['description'] )	
+				description=t1[k1[k]].header['description'] )
 	for k in range(len(k2)):
 		if t1.has_key(k2[k]):
 			name = k2[k]+'_2'
@@ -2288,7 +2293,7 @@ def join(t1,t2, n1, n2):
 			name = k2[k]
 		tab.addCol(r2[k2[k]], name=name,
 				unit=t2[k2[k]].header['unit'],
-				description=t2[k2[k]].header['description'])	
+				description=t2[k2[k]].header['description'])
 	#include header trace
 	if n1 in k2:
 		txt1 = n1+'_1'
@@ -2311,7 +2316,7 @@ def indent(rows, hasHeader=False, hasUnits=False, headerChar='-', delim=' | ', j
        - headerChar: Character to be used for the row separator line
          (if hasHeader==True or separateRows==True).
        - delim: The column delimiter.
-       - justify: Determines how are data justified in their column. 
+       - justify: Determines how are data justified in their column.
          Valid values are 'left','right' and 'center'.
        - separateRows: True if rows are to be separated by a line
          of 'headerChar's.
@@ -2348,7 +2353,7 @@ def indent(rows, hasHeader=False, hasUnits=False, headerChar='-', delim=' | ', j
 	elif (not hasHeader) & hasUnits:
 		print >> output, rowSeparator
 		hasUnits=False
-	hasHeader=False 
+	hasHeader=False
 
     return output.getvalue()
 
