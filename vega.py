@@ -2,12 +2,17 @@
 from functools import wraps
 import numpy
 import tables
+import os
+import inspect
+
+
+localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 
 
 class Vega(object):
     """ Handle vega spec manipulations """
 
-    def __init__(self, source='libs/vega.hd5'):
+    def __init__(self, source='{}/libs/vega.hd5'.format(localpath)):
         self.source = source
         self.hdf = None
 
