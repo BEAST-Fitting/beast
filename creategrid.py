@@ -11,7 +11,7 @@ __version__ = '0.3dev'
 
 import numpy
 import mytables
-import extinction
+#import extinction
 import grid
 import progressbar
 import numpy as np
@@ -125,8 +125,8 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
             end_idx   = start_idx + r.nrows
             _grid['keep'][start_idx: end_idx] = bound_cond[:]
             _grid['radius'][start_idx: end_idx] = radii[:]
-            for key, value in r.iteritems():
-                _grid[key][start_idx: end_idx] = value
+            for key in r.keys():
+                _grid[key][start_idx: end_idx] = r[key]
             for mk in range(r.nrows):
                 if bound_cond[mk]:
                     s = np.array( osl.interp(r['logT'][mk], r['logg'][mk], _Zk, 0.) ).T
@@ -154,7 +154,7 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
     pars.write(outfile, append=True)
 
 
-def make_extinguished_grid(stellar_filename, filter_names, avs, rvs, fbumps):
+def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbumps):
 
     """
     Extinguish and extract fluxes through filters
@@ -178,7 +178,7 @@ def make_extinguished_grid(stellar_filename, filter_names, avs, rvs, fbumps):
     #g0.write('small_grid.fits', clobber=True)
 
     # define the extinction law be be used (fixed for now)
-    extLaw = extinction.RvFbumpLaw()
+    #extLaw = extinction.RvFbumpLaw()
 
     # get the min/max R(V) values
     min_Rv = min(rvs)
@@ -247,6 +247,7 @@ def make_extinguished_grid(stellar_filename, filter_names, avs, rvs, fbumps):
                 results.grid[key][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = g0.grid[key]
             count += 1
 
+    results.grid.header['filters'] = ' '.join(filter_names)
     return results
 
 
@@ -273,8 +274,8 @@ if __name__ == '__main__':
 
     # a photometric grid precomputing attenuation values as well
     #    sed_grid_fname = spectral_grid_fname.replace('spectral', 'seds')
-    sed_grid_fname = 'no_smc.fits'
-    
+    sed_grid_fname = 'fbump_only.fits'
+
     # define filters for the grid
     filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
