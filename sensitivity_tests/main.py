@@ -2,12 +2,7 @@ import numpy as np
 import tables
 import os
 
-from sedfitter.config import __NTHREADS__
 from sedfitter.config import __USE_NUMEXPR__
-if __USE_NUMEXPR__:
-    import numexpr
-    numexpr.set_num_threads(__NTHREADS__)
-
 from sedfitter import grid
 from sedfitter import eztables
 from sedfitter import vega
@@ -19,6 +14,7 @@ from sedfitter import stellib
 from ezisoch import ezIsoch
 from ezpipeline import RequiredFile
 from figs import plot_keys
+import numexpr
 
 
 def create_sed_grid(sed_grid_fname, filter_names, iso_fname='iso.proposal.fits', spectral_grid_fname='spectral.iso.proposal.fits'):
@@ -188,7 +184,7 @@ def fit_model_seds_pytables(fakein, n_test, ext_grid, filters=None, err=0.1, thr
                 outfile.createArray(fake_group, 'idx', np.array(indx[0], dtype=np.int32))
                 outfile.createArray(fake_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
             outfile.flush()
-            pbar.update(tn)
+            pbar.update(tn, force=True)  # Forcing because it can be long to show the first ETA
     outfile.close()
 
 
@@ -250,14 +246,8 @@ def expectation_values_pytables(grid, keys=['Av', 'Rv', 'f_bump'], filepath='Tes
     return summary_tab
 
 
-#def gen_summary_tables(gext_grid, keys, outdir, outnames):
-#    for i in range(len(outnames)):
-#        summary_table = expectation_values_pytables(gext_grid, keys=keys, filepath=outdir + outnames[i] + '.hf5')
-#        summary_table.write(outdir + 'summary_' + outnames[i] + '.fits', clobber=True, append=False)
-#        del summary_table
-
-
 def gen_summary_tables(gext_grid, keys, outdir, outname):
+    """ Generate a summary table for indidivual tests """
     _outdir = outdir
     if _outdir[-1] != '/':
         _outdir += '/'
@@ -280,7 +270,7 @@ def main():
     #TODO: No need for distance, or distance modulus, we work in abs mags!
 
     #Pick Nstars fake stars within delta_logParam of logParam
-    Nstars = 300
+    Nstars = 500
     m31_distance_modulus = 24.48  # in magnitudes
     err = 0.05  # Photometric noise to apply
 
@@ -288,9 +278,9 @@ def main():
 
     #Star selection in Mass, Temperature and luminosity
     logM = 1.0
-    logT = 3.6
-    delt_logM = 0.1
-    delt_logT = 0.1
+    logT = 4.5
+    delt_logM = 2.
+    delt_logT = 5.
     Fcut0 = ('HST_ACS_WFC_F814W', -3)  # Filter and absolute magnitude converted later
 
     iso_fname = 'iso.proposal.fits'
@@ -326,14 +316,14 @@ def main():
                                         dlogT=delt_logT, Fcut=Fcut, idx_Fcut=idx_Fcut)
 
     ######### Generate the likelihoods of each fake star and set of filters
-    ntests = 2  # number of MC per star (Noise sampling)
+    ntests = 5  # number of MC per star (Noise sampling)
     keys = ['Av', 'Rv', 'logT', 'logM', 'logA', 'logL']
-    outdir = 'Tests'
+    outdir = 'Tests_mf01'
     # set filters for each tests
     #filters = [np.arange(6), [0, 1], [2, 3]]  # All six PHAT filters,  F275W and F336W,  F475W and F814W
     filters = [ 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split(),
                 'hst_wfc3_f275w hst_wfc3_f336w'.upper().split(),
-                'hst_wfc3_f475w hst_wfc3_f814w'.upper().split() ]
+                'hst_acs_wfc_f475w hst_acs_wfc_f814w'.upper().split() ]
 
     outnames = ['all_phat', 'F275_336', 'F475_814']
 
@@ -343,16 +333,20 @@ def main():
     else:
         os.mkdir(outdir)
 
-    for i in range(len(filters))[-1:]:
-        _outname = outdir + '/' + outnames[i] + '.hf5'
-        fit_model_seds_pytables(fakein, ntests, gext, err=err, filters=filters[i], outname=_outname)
-
+    # run the fits if not already existing
+    # and generate the summary tables as well
     with progressbar.PBar(len(outnames), txt="Generating sumary tables") as pbar:
         for e, ok in enumerate(outnames):
+            _outname = outdir + '/' + ok + '.hf5'
+            with RequiredFile(_outname,
+                            fit_model_seds_pytables,
+                            fakein, ntests, gext,
+                            err=err, filters=filters[e], outname=_outname):
+                gen_summary_tables(gext.grid, keys, outdir, ok)  # generate and save summary tables
             pbar.update(e)
-            gen_summary_tables(gext.grid, keys, outdir, ok)  # generate and save summary tables
 
     del gext
 
+    #make the plots
     print "producing plots"
     plot_keys(keys, outdir, outnames)
