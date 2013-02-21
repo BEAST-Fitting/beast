@@ -12,8 +12,11 @@ def plot_keys(keys, outdir, outnames, show=True):
 
     TODO: replace inputs by a list of files and list of keys
     """
+    _outdir = outdir
+    if _outdir[-1] != '/':
+        _outdir += '/'
     for i in range(len(outnames)):
-        summary_table = eztables.Table(outdir + 'summary_' + outnames[i] + '.fits')
+        summary_table = eztables.Table(_outdir + 'summary_' + outnames[i] + '.fits')
         for j, key in enumerate(keys):
             #rec_vals = summary_table.data[key+'_recovered']  # recovered values
             true_vals = summary_table.data[key]              # true values
