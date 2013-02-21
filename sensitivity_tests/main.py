@@ -183,7 +183,7 @@ def fit_model_seds_pytables(fakein, n_test, ext_grid, filters=None, err=0.1, thr
                 #Need ragged arrays rather than uniform table
                 outfile.createArray(fake_group, 'fakesed', fakesed)
                 outfile.createArray(fake_group, 'fakerr', fakeerr)
-                indx = np.where((lnp - max(lnp)) > -40.)
+                indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > -40.)
                 #print indx, max(lnp)
                 outfile.createArray(fake_group, 'idx', np.array(indx[0], dtype=np.int32))
                 outfile.createArray(fake_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
@@ -332,11 +332,10 @@ def main():
     # set filters for each tests
     #filters = [np.arange(6), [0, 1], [2, 3]]  # All six PHAT filters,  F275W and F336W,  F475W and F814W
     filters = [ 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split(),
-                'hst_wfc3_f275w hst_wfc3_f336w'.upper().split()#,
-                #'hst_wfc3_f475w hst_wfc3_f814w'.upper().split()
-               ]
+                'hst_wfc3_f275w hst_wfc3_f336w'.upper().split(),
+                'hst_wfc3_f475w hst_wfc3_f814w'.upper().split() ]
 
-    outnames = ['all_phat', 'F275_336' ]#, 'F475_814']
+    outnames = ['all_phat', 'F275_336', 'F475_814']
 
     if os.path.exists(outdir):
         if not os.path.isdir(outdir):
@@ -344,9 +343,9 @@ def main():
     else:
         os.mkdir(outdir)
 
-    #for i in range(len(filters)):
-    #    _outname = outdir + '/' + outnames[i] + '.hf5'
-    #    fit_model_seds_pytables(fakein, ntests, gext, err=err, filters=filters[i], outname=_outname)
+    for i in range(len(filters))[-1:]:
+        _outname = outdir + '/' + outnames[i] + '.hf5'
+        fit_model_seds_pytables(fakein, ntests, gext, err=err, filters=filters[i], outname=_outname)
 
     with progressbar.PBar(len(outnames), txt="Generating sumary tables") as pbar:
         for e, ok in enumerate(outnames):
