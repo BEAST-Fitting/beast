@@ -35,38 +35,6 @@ def get_radius(logl, logt):
     return np.sqrt( (10 ** logl) * lsun / (4.0 * np.pi * sig * ((10 ** logt) ** 4)) )
 
 
-def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
-    """ Returns the closed boundary polygon around the stellar library with
-    given margins
-
-    INPUTS:
-        s   Stellib     Stellar library object
-
-    KEYWORDS:
-        dlogT   float       margin in logT
-        dlogg   float       margin in logg
-        closed  bool        if set, close the polygon
-
-    OUTPUTS:
-        b   ndarray[float, ndim=2]  (closed) boundary points: [logg, Teff]
-
-    Note:
-        use "points_inside_poly" to test wether a point is inside the limits
-        >>> data = np.array([iso.data['logg'], iso.data['logT']]).T
-        >>> aa = points_inside_poly(data, leftb)
-    """
-    leftb   = [(k, np.max(s.logT[s.logg == k]) + dlogT ) for k in np.unique(s.logg)]
-    leftb  += [ (leftb[-1][0] + dlogg, leftb[-1][1]) ]
-    leftb   = [ (leftb[0][0] - dlogg, leftb[0][1]) ] + leftb
-    rightb  = [(k, np.min(s.logT[s.logg == k]) - dlogT ) for k in np.unique(s.logg)[::-1]]
-    rightb += [ (rightb[-1][0] - dlogg, rightb[-1][1]) ]
-    rightb  = [ (rightb[0][0] + dlogg, rightb[0][1]) ] + rightb
-    b = leftb + rightb
-    if closed:
-        b += [b[0]]
-    return np.array(b)
-
-
 def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,), bounds=dict(dlogT=0.1, dlogg=0.3)):
     """ Reinterpolate a given stellar spectral library on to an Isochrone grid
     INPUTS:
@@ -103,7 +71,7 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
     specs = np.empty( (ndata + 1, len(osl.wavelength)), dtype=float )
     specs[-1] = osl.wavelength[:]
 
-    bounds = get_stellib_boundaries(osl, dlogT=bounds['dlogT'], dlogg=bounds['dlogg'], closed=True)
+    _bounds = osl.get_boundaries(dlogT=bounds['dlogT'], dlogg=bounds['dlogg'], closed=True)
 
     # compute logg, Teff of the required points,
     # this means interp iso
@@ -111,15 +79,15 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
     # store all
     # then check the boundary conditions to filter them out
     kdata = 0
-    with progressbar.PBar(oiso.data.nrows, txt='spectral grid') as Pbar:
+    with progressbar.PBar(niter, txt='spectral grid') as Pbar:
         for k, (_ak, _Zk) in enumerate(it):
             Pbar.update(k)
-            r = oiso._get_isochrone(_ak, metal=_Zk, masses=_masses)
+            r = oiso._get_isochrone(_ak, metal=_Zk, masses=np.log10(_masses))
             radii = get_radius(r['logL'], r['logT'])
             weights = 4. * np.pi * (radii * 1e2) ** 2  # denorm models are in cm**-2 (4*pi*rad)
             #check boundaries, keep the data but do not compute the sed if not needed
             data = np.array([r['logg'], r['logT']]).T
-            bound_cond = points_inside_poly(data, bounds)
+            bound_cond = points_inside_poly(data, _bounds)
             del data
             start_idx = k * len(masses)
             end_idx   = start_idx + r.nrows
@@ -138,6 +106,7 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
     #filter unbound values
     idx = np.array(_grid.pop('keep'))
 
+    #specs = np.vstack( [specs, osl.wavelength] )
     specs = np.vstack( [specs.compress(idx, axis=0), osl.wavelength] )
     for k in _grid.keys():
             _grid[k] = _grid[k][idx]
