@@ -1,7 +1,13 @@
 import numpy as np
-import numexpr
 import tables
 import os
+
+from sedfitter.config import __NTHREADS__
+from sedfitter.config import __USE_NUMEXPR__
+if __USE_NUMEXPR__:
+    import numexpr
+    numexpr.set_num_threads(__NTHREADS__)
+
 from sedfitter import grid
 from sedfitter import eztables
 from sedfitter import vega
@@ -211,16 +217,21 @@ def expectation_values_pytables(grid, keys=['Av', 'Rv', 'f_bump'], filepath='Tes
     with progressbar.PBar(n_stars, txt="E(key)") as pbar:
         for i in range(n_stars):
             for j in range(m_tests):
+                lnp = outfile.getNode('/fakeStar_%d/fake_%d/lnp' % (i, j)).read()
+                indx = outfile.getNode('/fakeStar_%d/fake_%d/idx' % (i, j)).read()
                 if (method == 'expectation'):
                     #the usage of numexpr here is not necessary. (Not to mention tables already has a better version built in
-                    prob = numexpr.evaluate('exp(lnp)', local_dict={'lnp': outfile.getNode('/fakeStar_%d/fake_%d/lnp' % (i, j)).read()})
-                    indx = outfile.getNode('/fakeStar_%d/fake_%d/idx' % (i, j)).read()
+                    if __USE_NUMEXPR__:
+                        prob = numexpr.evaluate('exp(lnp)', local_dict={'lnp': lnp})
+                    else:
+                        prob = np.exp(lnp)
                     for e, key in enumerate(keys):
-                        temp_vals[j, e] = numexpr.evaluate('sum(prob*vals)', local_dict={'vals': grid.getCol(key)[indx], 'prob': prob})
+                        if __USE_NUMEXPR__:
+                            temp_vals[j, e] = numexpr.evaluate('sum(prob*vals)', local_dict={'vals': grid.getCol(key)[indx], 'prob': prob})
+                        else:
+                            temp_vals[j, e] = sum(prob * grid.getCol(key)[indx])
                     temp_vals[j, :] /= prob.sum()
                 elif (method == 'maxprob'):
-                    lnp = outfile.getNode('/fakeStar_%d/fake_%d/lnp' % (i, j)).read()
-                    indx = outfile.getNode('/fakeStar_%d/fake_%d/idx' % (i, j)).read()
                     sel = grid.getRow(indx[lnp.argmax()])
                     for e, key in enumerate(keys):
                         temp_vals[j, e] = sel[key]
