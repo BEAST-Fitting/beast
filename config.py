@@ -1,8 +1,7 @@
 # Set to use some C code instead of pure python to speed up the computations.
 # If False, only numpy and python code are used.
-__WITH_C_LIBS__ = True
-#__WITH_C_LIBS__ = False
-
+#__WITH_C_LIBS__ = True
+__WITH_C_LIBS__ = False
 
 #numexpr -- optimized multi-threaded numpy evaluations
 __USE_NUMEXPR__ = True
