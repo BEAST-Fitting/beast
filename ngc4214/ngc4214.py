@@ -20,7 +20,7 @@ CONTENT:
         Main ingredients.................[sec:models:main]
             define extinction, stellib, isochrones to use
 
-        Grid sampling definition.....[sec:models:sampling]
+        Grid sampling definition.........[sec:models:grid]
             define model grid sampling
 
         Grid generation................[sec:models:create]
@@ -65,8 +65,8 @@ filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
 
 distanceModulus = 27.41
 
-lnp_outname = 'ngc4214_lnp.hd5'
-stat_outname = 'ngc4214_stat.hd5'
+lnp_outname = 'ngc4214_lnp.4bands.zsmc.hd5'
+stat_outname = 'ngc4214_stat.4bands.zsmc.hd5'
 
 #---------------------------------------------------------
 # Data interface                                [sec:data]
@@ -124,14 +124,14 @@ for k in filters:
 # Main ingredients                       [sec:models:main]
 #---------------------------------------------------------
 isofile = 'libs/iso.proposal.fits'
-spectral_grid_fname = 'libs/ngc4214.spectral.iso.fits'
-sed_grid_fname = 'libs/ngc4214.sed.grid.fits'
+spectral_grid_fname = 'libs/ngc4214.zsmc.spectral.iso.fits'
+sed_grid_fname = 'libs/ngc4214.zsmc.sed.grid.fits'
 
 extLaw = extinction.RvFbumpLaw()
 osl = stellib.Kurucz()
 oiso = ezIsoch(isofile)
 
-# Grid sampling definition           [sec:models:sampling]
+# Grid sampling definition               [sec:models:grid]
 #---------------------------------------------------------
 
 # variable to ensure that range is fully covered in using np.arange
@@ -139,7 +139,7 @@ __tiny_delta__ = 0.001
 
 ages   = 10 ** np.arange(6., 9. + __tiny_delta__, 0.1)
 masses = 10 ** np.arange(0.5, 20 + __tiny_delta__, 0.1)
-Z      = [(0.02)]
+Z      = [(0.004)]
 avs    = np.arange(0.0, 5.0 + __tiny_delta__, 0.1)
 rvs    = np.arange(1.0, 6.0 + __tiny_delta__, 0.5)
 fbumps = np.asarray([1.0])
@@ -261,7 +261,7 @@ def get_expectation(resfname=None, sedgrid=None, filters=None, Q='logA logM Z Av
         _Q = Q
 
     with tables.openFile(resfname) as hdf:
-        n_stars = hdf.root._v_nchildren -2
+        n_stars = hdf.root._v_nchildren - 2
         res = np.empty((n_stars, len(_Q)), dtype=float)
         with progressbar.PBar(n_stars, txt='expectations') as pbar:
             for tn in range(n_stars):
@@ -275,7 +275,12 @@ def get_expectation(resfname=None, sedgrid=None, filters=None, Q='logA logM Z Av
                     res[tn, e] = numexpr.evaluate('sum(prob/norm*vals)', local_dict={'vals': vals, 'prob': prob, 'norm': norm})
                 pbar.update(tn, force=True)
 
-        return res, _Q
+    d = {}
+    for e, k in enumerate(_Q):
+        d[k] = res[:, e]
+    t = Table(d)
+
+    return t
 
 
 def __get_Partial_Stats__(lst, resfname=None, sedgrid=None, filters=None, Q='logA logM Z Av Rv f_bump logT logg logL'):
