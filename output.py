@@ -77,13 +77,20 @@ def summaryStats(g, indxs, lnp, filters, Q='logA logM Z Av Rv f_bump logT logg l
     d = {}
 
     for k in _q:
-        m0, m1, m2 = weighted_percentile( g.grid[k][indxs], _r, [0.16, 0.5, 0.84] )
+        try:
+            m0, m1, m2 = weighted_percentile( g.grid[k][indxs], _r, [0.16, 0.5, 0.84] )
+        except:
+            m0, m1, m2 = np.nan, np.nan, np.nan
+
         d['%s_p16' % k ] = m0
         d['%s_p50' % k ] = m1
         d['%s_p84' % k ] = m2
 
     for k in range(len(filters)):
-        m0, m1, m2 = weighted_percentile( g.seds[:, k][indxs], _r, [0.16, 0.5, 0.84] )
+        try:
+            m0, m1, m2 = weighted_percentile( g.seds[:, k][indxs], _r, [0.16, 0.5, 0.84] )
+        except:
+            m0, m1, m2 = np.nan, np.nan, np.nan
         d['%s_p16' % (filters[k]) ] = m0
         d['%s_p50' % (filters[k]) ] = m1
         d['%s_p84' % (filters[k]) ] = m2

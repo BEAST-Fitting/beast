@@ -7,7 +7,7 @@ __WITH_C_LIBS__ = False
 __USE_NUMEXPR__ = True
 
 # Default number of threads to use
-__NTHREADS__ = 1
+__NTHREADS__ = 10
 
 # Online libraries
 # will be replaced by a more flexible support (JSON is easy!)
@@ -25,6 +25,7 @@ libs = dict(
 #Make sure the configuration is coherent for the python installation
 try:
     import numexpr
+    numexpr.set_num_threads(__NTHREADS__)
 except ImportError:
     __USE_NUMEXPR__ = False
 

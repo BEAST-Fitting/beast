@@ -1,6 +1,7 @@
 import numpy as np
 import pylab as plt
 from sedfitter import eztables
+from itertools import cycle
 
 
 def ezrc(fontSize=22., lineWidth=2., labelsize=None):
@@ -86,7 +87,7 @@ def plot_keys(keys, outdir, outnames, show=True):
     shapes = { 2: (1, 2), 3: (1, 3), 4: (2, 2), 5: (2, 3), 6: (2, 3), 7: (3, 3), 8: (3, 3), 9: (3, 3) }
     _shape = shapes[len(_keys)]
     plt.figure(figsize=(_shape[1] * 5, _shape[0] * 4))
-    _axes = [ plt.subplot(_shape[0], _shape[1], j + 1) for j in range(len(_keys)) ]
+    _axes = [ plt.subplot(_shape[0], _shape[1], j) for j in range(len(_keys)) ]
 
     for i in range(len(outnames)):
         summary_table = eztables.Table(_outdir + 'summary_' + outnames[i] + '.fits')
@@ -106,6 +107,61 @@ def plot_keys(keys, outdir, outnames, show=True):
     for j, key in enumerate(_keys):
         _axes[j].set_xlabel(key.replace('_', ''))
         _axes[j].set_ylabel(key.replace('_', '') + ' (out - in)')
+        if j == 0:
+            l = _axes[j].legend(loc='best')
+            l.draw_frame(False)
+        _axes[j].plot(_axes[j].get_xlim(), [0, 0], linestyle='dotted', color='black')
+    plt.subplots_adjust(wspace=0.3)
+    if show:
+        plt.show()
+
+
+def plot_keys_std(keys, outdir, outnames, show=True):
+    """ Plot average offset per unique values in keys
+    INPUTS:
+        keys        list    columns to process
+        outdir      str     directory where to find the summary fits tables
+        outnames    list    list of names for tables
+
+    TODO: replace inputs by a list of files and list of keys
+    """
+    _outdir = outdir
+    if _outdir[-1] != '/':
+        _outdir += '/'
+
+    if type(keys) == str:
+        _keys = keys.split()
+    else:
+        _keys = keys
+
+    #prepare figure output, one panel per key
+    ezrc(16, 2, 18)
+    shapes = { 2: (1, 2), 3: (1, 3), 4: (2, 2), 5: (2, 3), 6: (2, 3), 7: (3, 3), 8: (3, 3), 9: (3, 3) }
+    _shape = shapes[len(_keys)]
+    plt.figure(figsize=(_shape[1] * 5, _shape[0] * 4))
+    _axes = [ plt.subplot(_shape[0], _shape[1], j + 1) for j in range(len(_keys)) ]
+
+    for i in range(len(outnames)):
+        summary_table = eztables.Table(_outdir + 'summary_' + outnames[i] + '.fits')
+        for j, key in enumerate(_keys):
+            #rec_vals = summary_table.data[key+'_recovered']  # recovered values
+            true_vals = summary_table.data[key]              # true values
+            #rec_vals = rec_vals - true_vals                  # offset
+            rec_vals = summary_table.evalexpr('{}_recovered - {}'.format(key, key))  # offset
+            uniq_vals = np.unique(true_vals)  # unique true values
+            avg_offs = np.zeros(uniq_vals.size)  # Mean of recovered params for given input param
+            avg_sigm = np.zeros((uniq_vals.size, 2))  # Sigma of recovered params for given input param
+            for k in range(avg_offs.size):
+                sel = np.where(true_vals == uniq_vals[k])
+                avg_offs[k] = rec_vals[sel].mean()
+                avg_sigm[k] = np.percentile(rec_vals[sel], [16, 84])
+            #figure
+            r = _axes[j].plot(uniq_vals, avg_offs, label=(outnames[i]).replace('_', ' '), markersize=10)
+            _axes[j].fill_between(uniq_vals, avg_sigm[:, 0], avg_sigm[:, 1], lw=1., color=r[0].get_color(), alpha=0.2)
+
+    for j, key in enumerate(_keys):
+        _axes[j].set_xlabel(key.replace('_', ''))
+        _axes[j].set_ylabel(key.replace('_', '') + ' std(out - in)')
         if j == 0:
             l = _axes[j].legend(loc='best')
             l.draw_frame(False)
