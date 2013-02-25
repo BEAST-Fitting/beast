@@ -143,11 +143,11 @@ def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None, lnp_thr
             chi2 = - 0.5 / dof * computeChi2( flux, fluxerr, fluxmod )
 
     #taking care of possible overflows...
-    if __USE_NUMEXPR__:
-        chi2 = numexpr.evaluate('where( (chi2 > lim), lim,chi2)', local_dict={'chi2': chi2, 'lim': lnp_threshold})
-        chi2 = numexpr.evaluate('where( (chi2 < -lim), -lim,chi2)', local_dict={'chi2': chi2, 'lim': lnp_threshold})
-    else:
-        chi2 = numpy.clip( chi2, -lnp_threshold, lnp_threshold )
+    #if __USE_NUMEXPR__:
+    #    chi2 = numexpr.evaluate('where( (chi2 > lim), lim,chi2)', local_dict={'chi2': chi2, 'lim': lnp_threshold})
+    #    chi2 = numexpr.evaluate('where( (chi2 < -lim), -lim,chi2)', local_dict={'chi2': chi2, 'lim': lnp_threshold})
+    #else:
+    #    chi2 = numpy.clip( chi2, -lnp_threshold, lnp_threshold )
 
     if normed is True:
         if __USE_NUMEXPR__:

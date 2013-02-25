@@ -118,8 +118,8 @@ class Observations(object):
 
     def readData(self):
         """ read the dataset from the original source file """
-        import mytables
-        self.data = mytables.load(self.inputFile)
+        from eztables import Table
+        self.data = Table(self.inputFile)
 
     def iterobs(self):
         for k in range(self.nObs):
