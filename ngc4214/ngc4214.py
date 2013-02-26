@@ -32,11 +32,24 @@ CONTENT:
 
     outputs..................................[sec:outputs]
         extract minimal informations per star
+
+    figures..................................[sec:figures]
+        currently diagnostic plots
+
+    pipeline................................[sec:pipeline]
+        fast aliases checking the previous steps
+        all in one call (assuming all params are ok)
+        >>> run()
 """
 
 #---------------------------------------------------------
 # Imports                                    [sec:imports]
 #---------------------------------------------------------
+try:
+    import androfig
+    __FIG__ = True
+except ImportError:
+    __FIG__ = False
 
 import numpy as np
 import tables
@@ -45,8 +58,7 @@ from sedfitter.ezisoch import ezIsoch
 from sedfitter.vega import Vega, from_Vegamag_to_Flux
 from sedfitter.ezpipeline import RequiredFile
 from sedfitter.anased import computeLogLikelihood
-from sedfitter.eztables import Table
-from sedfitter.output import summaryStats
+from sedfitter.eztables import AstroTable
 from sedfitter import grid
 from sedfitter import creategrid
 from sedfitter import stellib
@@ -60,13 +72,23 @@ from sedfitter import progressbar
 
 obsfile = 'data/N4214_4band_detects.fits'
 
-filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
-           'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+project = 'mf04_438_814_110_160_rv31'
+
+#filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
+#           'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+
+#filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W']
+
+filters = ['HST_WFC3_F438W', 'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
 distanceModulus = 27.41
 
-lnp_outname = 'ngc4214_lnp.4bands.zsmc.hd5'
-stat_outname = 'ngc4214_stat.4bands.zsmc.hd5'
+isofile             = 'libs/iso.proposal.fits'
+lnp_outname         = 'ngc4214_lnp.4bands.zsmc.{}.hd5'.format(project)
+stat_outname        = 'ngc4214_stat.4bands.zsmc.{}.hd5'.format(project)
+res_outname         = 'ngc4214_res.4bands.zsmc.{}.fits'.format(project)
+spectral_grid_fname = 'ngc4214.zsmc.{}.spectral.iso.fits'.format(project)
+sed_grid_fname      = 'ngc4214.zsmc.{}.sed.grid.fits'.format(project)
 
 #---------------------------------------------------------
 # Data interface                                [sec:data]
@@ -87,7 +109,7 @@ class Data(Observations):
         self.setFilters( filters )
         self.setBadValue(50.0)  # some bad values smaller than expected
         self.minError = 0.001
-        self.floorError = 0.01  # constant error term
+        self.floorError = 0.05  # constant error term
 
     @from_Vegamag_to_Flux(lamb, vega_mag)
     def getObs(self, num):
@@ -123,9 +145,6 @@ for k in filters:
 
 # Main ingredients                       [sec:models:main]
 #---------------------------------------------------------
-isofile = 'libs/iso.proposal.fits'
-spectral_grid_fname = 'libs/ngc4214.zsmc.spectral.iso.fits'
-sed_grid_fname = 'libs/ngc4214.zsmc.sed.grid.fits'
 
 extLaw = extinction.RvFbumpLaw()
 osl = stellib.Kurucz()
@@ -138,10 +157,11 @@ oiso = ezIsoch(isofile)
 __tiny_delta__ = 0.001
 
 ages   = 10 ** np.arange(6., 9. + __tiny_delta__, 0.1)
-masses = 10 ** np.arange(0.5, 20 + __tiny_delta__, 0.1)
-Z      = [(0.004)]
+masses = 10 ** np.arange(-0.5, 2. + __tiny_delta__, 0.01)
+Z      = np.asarray([0.004])
 avs    = np.arange(0.0, 5.0 + __tiny_delta__, 0.1)
-rvs    = np.arange(1.0, 6.0 + __tiny_delta__, 0.5)
+#rvs    = np.arange(2.0, 3.5 + __tiny_delta__, 0.5)
+rvs    = np.asarray([3.1])
 fbumps = np.asarray([1.0])
 
 griddef = (ages, masses, Z, avs, rvs, fbumps)
@@ -197,7 +217,7 @@ def get_sedgrid():
 # Fitting                                 [sec:fit]
 #---------------------------------------------------------
 
-def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname=lnp_outname):
+def fit_model_seds_pytables(obs, sedgrid, threshold=-60, outname=lnp_outname):
 
     """
     Fit model seds with noise for sensitivity tests
@@ -238,20 +258,23 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname=lnp_outname):
                 pbar.update(tn, force=True)  # Forcing because it can be long to show the first ETA
 
 
-def do_fit():
-
-    sedgrid = get_sedgrid()
-    fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname=lnp_outname)
-
-
 #---------------------------------------------------------
 # Outputs                                   [sec:outputs]
 #---------------------------------------------------------
-def get_expectation(resfname=None, sedgrid=None, filters=None, Q='logA logM Z Av Rv f_bump logT logg logL'):
+def get_expectation(resfname=lnp_outname,
+                    sedgrid=None,
+                    obs=obs,
+                    valuetype='expect',
+                    Q='logA logM Z Av Rv f_bump logT logg logL'):
     import numexpr
+    if valuetype not in ['expect', 'best']:
+        raise ValueError("Valuetype must be in [expect, best], got %s" % valuetype)
+
     # get the nD stellar/dust SED grid
     if type(sedgrid) == str:
         _sedgrid = grid.FileSEDGrid(sedgrid)
+    elif sedgrid is None:
+        _sedgrid = get_sedgrid()
     else:
         _sedgrid = sedgrid
 
@@ -262,7 +285,8 @@ def get_expectation(resfname=None, sedgrid=None, filters=None, Q='logA logM Z Av
 
     with tables.openFile(resfname) as hdf:
         n_stars = hdf.root._v_nchildren - 2
-        res = np.empty((n_stars, len(_Q)), dtype=float)
+        # +1 for the peak value
+        res = np.empty((n_stars, len(_Q) + 1), dtype=float)
         with progressbar.PBar(n_stars, txt='expectations') as pbar:
             for tn in range(n_stars):
                 star_node = hdf.getNode('/star_%d'  % tn)
@@ -270,73 +294,230 @@ def get_expectation(resfname=None, sedgrid=None, filters=None, Q='logA logM Z Av
                 idx = star_node.idx[:]
                 prob = numexpr.evaluate('exp(lnp)', local_dict={'lnp': lnp})
                 norm = numexpr.evaluate('sum(prob)', local_dict={'prob': prob})
-                for e, qk in enumerate(_Q):
-                    vals = _sedgrid.grid[qk][idx]
-                    res[tn, e] = numexpr.evaluate('sum(prob/norm*vals)', local_dict={'vals': vals, 'prob': prob, 'norm': norm})
+                if valuetype == 'expect':
+                    for e, qk in enumerate(_Q):
+                        vals = _sedgrid.grid[qk][idx]
+                        res[tn, e] = numexpr.evaluate('sum(prob/norm*vals)', local_dict={'vals': vals, 'prob': prob, 'norm': norm})
+                else:  # best
+                    vals = _sedgrid.grid.getRow(idx[lnp.argmax()])
+                    for e, qk in enumerate(_Q):
+                        res[tn, e] = vals[qk]
+                    res[tn, -1] = prob.max() / norm
+
                 pbar.update(tn, force=True)
 
     d = {}
     for e, k in enumerate(_Q):
         d[k] = res[:, e]
-    t = Table(d)
+    d['Pmax'] = res[:, -1]
+    t = AstroTable(d)  # add RA, DEC tools
+
+    #adding original values
+    for k in obs.data.keys()[::-1]:
+        t.addCol(k, obs.data[k], position=0)
 
     return t
 
 
-def __get_Partial_Stats__(lst, resfname=None, sedgrid=None, filters=None, Q='logA logM Z Av Rv f_bump logT logg logL'):
-    if lst is None:
-        return
-    # get the nD stellar/dust SED grid
-    if type(sedgrid) == str:
-        _sedgrid = grid.FileSEDGrid(sedgrid)
+#---------------------------------------------------------
+# figures                                   [sec:figures]
+#---------------------------------------------------------
+def diag_figs(t, Q='logA logM Av Rv logT logL log10(Pmax)', figs=[]):
+
+    import pylab as plt
+
+    def ezrc(fontSize=22., lineWidth=2., labelsize=None):
+        """
+        ezrc - Define params to make pretty fig
+        """
+        if labelsize is None:
+            labelsize = fontSize + 5
+        from pylab import rc, rcParams
+        rc('figure', figsize=(8, 6))
+        rc('lines', linewidth=lineWidth)
+        rc('font', size=fontSize, family='serif', weight='small')
+        rc('axes', linewidth=lineWidth, labelsize=labelsize)
+        rc('legend', borderpad=0.1, markerscale=1., fancybox=False)
+        rc('text', usetex=True)
+        rc('image', aspect='auto')
+        rc('ps', useafm=True, fonttype=3)
+        rcParams['xtick.major.size'] = 10
+        rcParams['xtick.minor.size'] = 5
+        rcParams['ytick.major.size'] = 10
+        rcParams['ytick.minor.size'] = 5
+        rcParams['font.sans-serif'] = 'Helvetica'
+        rcParams['font.serif'] = 'Helvetica'
+        rcParams['text.latex.preamble'] = '\usepackage{pslatex}'
+
+    def colorify(data, vmin=None, vmax=None, cmap=plt.cm.Spectral):
+        """ Associate a color map to a quantity vector """
+        import matplotlib.colors as colors
+
+        _vmin = vmin or min(data)
+        _vmax = vmax or max(data)
+        cNorm = colors.normalize(vmin=_vmin, vmax=_vmax)
+
+        scalarMap = plt.cm.ScalarMappable(norm=cNorm, cmap=cmap)
+        colors = map(scalarMap.to_rgba, data)
+        return colors, scalarMap, cNorm
+
+    def cmdfig(x, y, c, ax=None, **kwargs):
+        if ax is None:
+            ax = plt.gca()
+        _x = t.evalexpr(x)
+        _y = t.evalexpr(y)
+        _c = t.evalexpr(c)
+        sc = ax.scatter(_x, _y, c=_c, **kwargs)
+        cb = plt.colorbar(sc, ax=ax)
+        cb.set_label(c.replace('_', ' '))
+        ax.set_xlabel(x.replace('_VEGA', ' '))
+        ax.set_ylabel(y.replace('_VEGA', ' '))
+        ax.set_ylim(ax.get_ylim()[::-1])
+
+    def radecfig(ra, dec, c, ax=None, **kwargs):
+        if ax is None:
+            ax = plt.gca()
+        _c = t.evalexpr(c)
+        sc = ax.scatter(ra, dec, c=_c, **kwargs)
+        cb = plt.colorbar(sc, ax=ax)
+        cb.set_label(c.replace('_', ' '))
+        ax.set_xlabel('RA')
+        ax.set_ylabel('DEC')
+
+    def sedsfig(c, ax=None, step=10, **kwargs):
+        filts = [ k.split('_')[-1] for k in obs.filters]
+        lambs = np.array([ float(k[1: -1]) if (float(k[1: -1]) > 200.) else float(k[1: -1]) * 10 for k in filts])
+
+        select = [ k + '_VEGA' for k in filts ]
+        st = np.array(t[select].tolist())[::step]
+
+        _c = t.evalexpr(c)
+        _colors, cmap, cnorm = colorify(_c)
+        _colors = _colors[::step]
+
+        if ax is None:
+            ax = plt.gca()
+        for k in range(len(st)):
+            ax.plot( np.log10(lambs) + 1., -0.4 * st[k], '-', color=_colors[k], alpha=0.5)
+        ylim = ax.get_ylim()
+        ax.set_xlabel('log(Wavelength/AA)')
+        ax.set_ylabel('log(Flux/Vega)')
+        ax.set_xlim(2.3, 3.3)
+        ax.set_ylim(ylim)
+        scalarcmap = ax.pcolorfast(np.asarray(_colors), norm=cnorm)
+        cb = plt.colorbar(scalarcmap, ax=ax)
+        cb.set_label(c.replace('_VEGA', '').replace('_', ' '))
+
+    if type(Q) == str:
+        _Q = Q.split()
     else:
-        _sedgrid = sedgrid
+        _Q = Q
 
-    r = []
-    with tables.openFile(resfname) as hdf:
-        for tn in lst:
-            if tn is not None:
-                star_node = hdf.getNode('/star_%d'  % tn)
-                x = summaryStats(_sedgrid, star_node.idx[:], star_node.lnp[:], filters, Q)
-                r.append(x.values())
-    d = {}
-    r = np.array(r)
-    for e, k in enumerate(x.keys()):
-        d[k] = r[:, e]
-    return d
+    ezrc(14, 1, 15)
+    shapes = { 2: (1, 2), 3: (1, 3), 4: (2, 2), 5: (2, 3), 6: (2, 3), 7: (3, 3), 8: (3, 3), 9: (3, 3) }
+    _shape = shapes[len(_Q)]
+
+    s = 8
+
+    _figs = []
+    if 0 in figs:
+        _figs.append(plt.figure(figsize=(_shape[1] * 5, _shape[0] * 4)))
+        _axes = [ plt.subplot(_shape[0], _shape[1], j + 1) for j in range(len(_Q)) ]
+        cmd_x = 'F438W_VEGA-F814W_VEGA'
+        cmd_y = 'F814W_VEGA'
+        #cmd_x = 'F336W_VEGA-F438W_VEGA'
+        #cmd_y = 'F438W_VEGA'
+
+        for e, k in enumerate(_Q):
+            cmdfig( cmd_x, cmd_y, k, ax=_axes[e], edgecolor='None', s=s )
+
+    if 1 in figs:
+        _figs.append(plt.figure(figsize=(_shape[1] * 5, _shape[0] * 4)))
+        _axes = [ plt.subplot(_shape[0], _shape[1], j + 1) for j in range(len(_Q)) ]
+        for e, k in enumerate(_Q):
+            radecfig( t.getRA(), t.getDEC(), k, ax=_axes[e], s=s, edgecolor='None' )
+
+    if 2 in figs:
+            skip = ['log10(Pmax)']
+            _figs.append(plt.figure(figsize=(_shape[1] * 5, _shape[0] * 4)))
+            _axes = [ plt.subplot(_shape[0], _shape[1], j + 1) for j in range(len(_Q)) if _Q[j] not in skip ]
+            for e, k in enumerate(_Q):
+                if k not in skip:
+                    sedsfig(k, ax=_axes[e])
+
+    return _figs
 
 
-def grouper(n, iterable, fillvalue=None):
-    from itertools import izip_longest
-    args = [iter(iterable)] * n
-    return izip_longest(fillvalue=fillvalue, *args)
+#---------------------------------------------------------
+# pipeline                                  [sec:pipeline]
+#---------------------------------------------------------
+def gen_log_description():
+    from time import ctime
+    with open(project + '.log', 'w') as log:
+        log.write('SED fitter log\n')
+        log.write('==============\n')
+
+        log.write('\n')
+        log.write('Project\t {}\n'.format(project))
+        log.write('Started at {}\n'.format(ctime()))
+
+        log.write('\n')
+        log.write('Data file\t {}\n'.format(obsfile))
+        log.write('\tnObs \t {}\n'.format(len(obs)))
+        log.write('\tDistance Modulus\t {}\n'.format(distanceModulus))
+        log.write('\tbad values \t >{}\n'.format(obs.badvalue))
+        log.write('\tmin Error\t {}\n'.format(obs.minError))
+        log.write('\tfloor Error\t {}\n'.format(obs.floorError))
+        log.write('\tFilters\t {}\n'.format(filters))
+        log.write('\tMapping:\n')
+        for k, v in obs.data._aliases.iteritems():
+            log.write('\t\t{:<18} --> {:<18}\n'.format(k, v))
+
+        log.write('\n')
+        log.write('Spectral Grid\t {}\n'.format(spectral_grid_fname))
+        log.write('\t Stellar Library\t {}\n'.format(osl.name))
+        log.write('\t Isochrone source\t {}\n'.format(isofile))
+        log.write('\t Ages\t from {} to {} by {}\n'.format(np.log10(ages.min()), np.log10(ages.max()), np.log10(ages[1]) - np.log10(ages[0])))
+        log.write('\t Masses\t from {} to {} by {}\n'.format(np.log10(masses.min()), np.log10(masses.max()), np.log10(masses[1]) - np.log10(masses[0])))
+        log.write('\t Z\t from {} to {} by{}\n'.format(Z.min(), Z.max(), Z[1] - Z[0] if (len(Z) > 1) else 0))
+
+        log.write('\n')
+        log.write('SED grid\t {}\n'.format(sed_grid_fname))
+        log.write('\t Extinction Law\t {}\n'.format(extLaw.name))
+        log.write('\t Av\t from {} to {} by {}\n'.format(avs.min(), avs.max(), avs[1] - avs[0] if (len(avs) > 1) else 0))
+        log.write('\t Rv\t from {} to {} by {}\n'.format(rvs.min(), rvs.max(), rvs[1] - rvs[0] if (len(rvs) > 1) else 0))
+        log.write('\t Fbump\t from {} to {} by {}\n'.format(fbumps.min(), fbumps.max(), fbumps[1] - fbumps[0] if (len(fbumps) > 1) else 0 ))
+
+        log.write('\n')
+        log.write('Likelihood output\t {}\n'.format(lnp_outname))
+        log.write('\n')
+        log.write('Expectations table\t {}\n'.format(res_outname))
 
 
-def summaryTable(outname, resfname, sedgrid, obs, Q='logA logM Z Av Rv f_bump logT logg logL', nthreads=0, pool=None):
+def do_fit():
 
-    if nthreads <= 0:
-        r = __get_Partial_Stats__(range(len(obs)), resfname, sedgrid, obs, Q)
+    sedgrid = get_sedgrid()
+    fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname=lnp_outname)
+
+
+def do_expectations():
+    with RequiredFile(lnp_outname,
+                    do_fit) as __lnp_outname__:
+        t = get_expectation(resfname=__lnp_outname__, valuetype='best')
+        t.write(res_outname)
+
+
+def run():
+    gen_log_description()
+    if not __FIG__:
+        do_expectations()
     else:
-        from functools import partial
-        if pool is None:
-            from multiprocessing import Pool
-            pool = Pool(nthreads)
-        print 'pool'
-        #cut into nearly equal pieces among the threads
-        idx = range(len(obs))
-        lst = grouper(nthreads, idx)
-        print 'grouper'
-        p_task = partial(__get_Partial_Stats__, resfname=resfname, sedgrid=sedgrid, filters=obs.filters, Q=Q )
-        r = pool.map(p_task, lst)
-
-    #res.set_name('SED analysis table')
-
-    #for k in obs.data.keys()[::-1]:
-    #    res.addCol(k, obs.data[k], position=0)
-
-    #res.write(outname)
-    return r
-
-
-def do_summaryTable(outname=stat_outname, Q='logA logM Z Av Rv f_bump logT logg logL', **kwargs):
-    return summaryTable(outname, lnp_outname, get_sedgrid(), obs, Q=Q, **kwargs)
+        with RequiredFile(res_outname, do_expectations) as __res_outname__:
+            print 'doing figures'
+            Q = 'logA logM Av logT logL log10(Pmax)'
+            t = AstroTable(__res_outname__)
+            androfig.__figlist__ = list(diag_figs(t, figs=[0, 1, 2], Q=Q))
+            androfig.show()
+            print 'saving figures'
+            for e, k in enumerate(androfig.__figlist__):
+                k.savefig('{}_{}.png'.format(project, e))
