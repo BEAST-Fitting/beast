@@ -97,8 +97,13 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
                 _grid[key][start_idx: end_idx] = r[key]
             for mk in range(r.nrows):
                 if bound_cond[mk]:
-                    s = np.array( osl.interp(r['logT'][mk], r['logg'][mk], _Zk, 0.) ).T
-                    specs[kdata, :] = osl.genSpectrum(s) * weights[mk]
+                    try:
+                        s = np.array( osl.interp(r['logT'][mk], r['logg'][mk], _Zk, 0.) ).T
+                        specs[kdata, :] = osl.genSpectrum(s) * weights[mk]
+                    except:
+                        print "error"
+                        specs[kdata, :] = np.zeros(len(osl.wavelength), dtype=float )
+                        #assert(False)
                 else:
                     specs[kdata, :] = np.zeros(len(osl.wavelength), dtype=float )
                 kdata += 1

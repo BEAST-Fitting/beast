@@ -118,8 +118,8 @@ class Observations(object):
 
     def readData(self):
         """ read the dataset from the original source file """
-        from eztables import Table
-        self.data = Table(self.inputFile)
+        from eztables import AstroTable
+        self.data = AstroTable(self.inputFile)
 
     def iterobs(self):
         for k in range(self.nObs):
