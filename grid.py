@@ -2,13 +2,13 @@
 import numpy
 import pyfits
 
-from . import stellib
+#from . import stellib
 from . import phot
-from . import isochrone
+#from . import isochrone
 from . import extinction
 from .external.eztables import Table
 
-from tools.decorators import timeit
+#from tools.decorators import timeit
 
 from copy import deepcopy
 
@@ -185,8 +185,8 @@ class FileSpectralGrid(SpectralGrid):
 class StellibGrid(SpectralGrid):
     """ Generate a grid from a spectral library """
 
-    def __init__(self, filters, *args, **kwargs):
-        self.osl = stellib.BaSeL()
+    def __init__(self, osl, filters, *args, **kwargs):
+        self.osl = osl  # stellib.BaSeL()
         lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
         self.lamb = lamb
         self.seds = seds
@@ -200,41 +200,42 @@ class StellibGrid(SpectralGrid):
         return self.grid.keys()
 
 
-def generate_spectral_grid_from_isochrones(outfile, osl, oiso, Z=0.02):
-    """ Reinterpolate a given stellar spectral library on to an Isochrone grid
-    INPUTS:
-        outfile     str         fits file to export to
-        osl     stellib.stellib     a stellar library
-        oiso        isochrone.Isochrone an isochrone library
-        Z       float           metallicity to use
-
-    OUTPUTS:
-        None
-
-        only write into outfile
-    """
-
-    assert(isNestedInstance(osl, stellib.Stellib) )
-    assert(isNestedInstance(oiso, isochrone.Isochrone) )
-    specs = numpy.empty( (oiso.data.nrows + 1, len(osl.wavelength)), dtype=float )
-    specs[-1] = osl.wavelength[:]
-
-    progress = 0
-    with timeit('interpolation'):
-        for k in range(oiso.data.nrows):
-            if progress < int(100 * (k + 1) / oiso.data.nrows):
-                progress = int(100 * (k + 1) / oiso.data.nrows)
-                print "progress... %d / 100" % progress
-            r = numpy.array( osl.interp(oiso.data['logT'][k], oiso.data['logg'][k], Z, oiso.data['logL'][k]) ).T
-            specs[k, :] = osl.genSpectrum(r)
-    pyfits.writeto(outfile, specs)
-
-    #copy pars
-    data = {}
-    for k in oiso.data.keys():
-        data[k] = oiso.data[k]
-    pars  = Table(data, name='Reinterpolated stellib grid')
-    pars.header['stellib'] = osl.source
-    pars.header['isoch'] = oiso.source
-
-    pars.write(outfile, append=True)
+## Not used anywhere
+#def generate_spectral_grid_from_isochrones(outfile, osl, oiso, Z=0.02):
+#    """ Reinterpolate a given stellar spectral library on to an Isochrone grid
+#    INPUTS:
+#        outfile     str         fits file to export to
+#        osl     stellib.stellib     a stellar library
+#        oiso        isochrone.Isochrone an isochrone library
+#        Z       float           metallicity to use
+#
+#    OUTPUTS:
+#        None
+#
+#        only write into outfile
+#    """
+#
+#    assert(isNestedInstance(osl, stellib.Stellib) )
+#    assert(isNestedInstance(oiso, isochrone.Isochrone) )
+#    specs = numpy.empty( (oiso.data.nrows + 1, len(osl.wavelength)), dtype=float )
+#    specs[-1] = osl.wavelength[:]
+#
+#    progress = 0
+#    with timeit('interpolation'):
+#        for k in range(oiso.data.nrows):
+#            if progress < int(100 * (k + 1) / oiso.data.nrows):
+#                progress = int(100 * (k + 1) / oiso.data.nrows)
+#                print "progress... %d / 100" % progress
+#            r = numpy.array( osl.interp(oiso.data['logT'][k], oiso.data['logg'][k], Z, oiso.data['logL'][k]) ).T
+#            specs[k, :] = osl.genSpectrum(r)
+#    pyfits.writeto(outfile, specs)
+#
+#    #copy pars
+#    data = {}
+#    for k in oiso.data.keys():
+#        data[k] = oiso.data[k]
+#    pars  = Table(data, name='Reinterpolated stellib grid')
+#    pars.header['stellib'] = osl.source
+#    pars.header['isoch'] = oiso.source
+#
+#    pars.write(outfile, append=True)
