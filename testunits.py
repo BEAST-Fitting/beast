@@ -7,7 +7,7 @@ import inspect
 import itertools
 import sys
 
-import mytables
+from .external.eztables import Table
 from anased import computeLogLikelihood
 from tools.decorators import timeit
 import extinction
@@ -100,7 +100,7 @@ def iter_Av_grid(g0, oAv, **kwargs):
         tau        = oAv.function(g0.lamb * 1e-4, Alambda=True, **_args)
         outputSEDs = g0.seds * numpy.exp(-tau)[None, :]
         #copy original grid
-        t = mytables.Table(g0.grid.data, header=g0.grid.header, name=g0.grid.header['NAME'] )
+        t = Table(g0.grid.data, header=g0.grid.header, name=g0.grid.header['NAME'] )
         for k, v in _args.iteritems():
             t.addCol( [ v ] * t.nrows, name=k)
         g = grid.SpectralGrid()
@@ -133,11 +133,12 @@ def getFakeStar(g, idx, err=0.1):
     fakein   = idx
     fakesed  = numpy.copy(g.seds[fakein, :])
     # sampled noise (with a mean of 1 and standard deviation of err (input value)
-    unc_sample = numpy.random.normal(1.0,err,len(fakesed))
+    unc_sample = numpy.random.normal(1.0, err, len(fakesed))
     fakesed *= unc_sample
     fakeerr = err * fakesed
 
     return fakein, fakesed, fakeerr
+
 
 def getFakeCluster(g, age, Z, filts, err=0.1, suffix='0', Nstars=None, oAv=None, **kwargs):
     """ Generate a fake sed from a model grid
@@ -282,7 +283,7 @@ def test_observations_seds(err=0.1, age=1e7, Z=0.02, suffix='0'):
                 with timeit('\t * Computing Lnp'):
                     lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
                 with timeit('\t * Writing outputs'):
-                    t = mytables.Table(name='SEDOUT')
+                    t = Table(name='SEDOUT')
                     #t = gk.grid
                     t.addCol(numpy.arange(seds.grid.nrows, dtype=int), name='idx')
                     t.addCol(lnp, name='lnp')
@@ -295,7 +296,7 @@ def test_observations_seds(err=0.1, age=1e7, Z=0.02, suffix='0'):
 
         with timeit('\t * Writing Original data'):
             d = dict(filters=filter_names, flux=fakesed, err=fakeerr, cl=cls)
-            t = mytables.Table(d, name='INPUT')
+            t = Table(d, name='INPUT')
             t.header['Av']     = Av0[tn]
             t.header['Rv']     = Rv0[tn]
             t.header['f_bump'] = fb0[tn]
@@ -310,7 +311,7 @@ def test_observations_seds(err=0.1, age=1e7, Z=0.02, suffix='0'):
     return locals()
 
 
-def test_seds(err=0.1,outdir='Tests/fake_many_0'):
+def test_seds(err=0.1, outdir='Tests/fake_many_0'):
 
     #Load the recomputed stellar+dust model grid
 
@@ -339,7 +340,7 @@ def test_seds(err=0.1,outdir='Tests/fake_many_0'):
                 lnp = computeLogLikelihood(fakesed, fakeerr, ext_grid.seds, normed=False, mask=mask)
 
             with timeit('\t * Writing outputs'):
-                t = mytables.Table(name='SEDOUT')
+                t = Table(name='SEDOUT')
                 t.addCol(numpy.arange(ext_grid.grid.nrows, dtype=int), name='idx')
                 t.addCol(lnp, name='lnp')
                 for ek, nk in enumerate(range(len(fakesed))):
@@ -392,7 +393,7 @@ def obs_single_star_job(tn, obsfile='Tests/cl_0.fits', outdir='Tests/cl_0'):
             with timeit('\t * Computing Lnp'):
                 lnp = computeLogLikelihood(fakesed, fakeerr, seds.seds, normed=False, mask=mask)
             with timeit('\t * Writing outputs'):
-                t = mytables.Table(name='SEDOUT')
+                t = Table(name='SEDOUT')
                 #t = gk.grid
                 t.addCol(numpy.arange(seds.grid.nrows, dtype=int), name='idx')
                 t.addCol(lnp, name='lnp')
