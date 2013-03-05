@@ -9,8 +9,8 @@ import numpy as np
 from scipy import interpolate
 from numpy import log10
 
-import isochrone
-import eztables
+from . import isochrone
+from external.eztables import Table
 
 
 #===============================================================================
@@ -133,7 +133,7 @@ def isointerp(pk, iso, dloga=0.1, dlogm=0.3, fZ=10., predict='logA logT logg log
     """
     ak, mk, zk = pk
 
-    t = eztables.Table(iso.data)
+    t = Table(iso.data)
 
     # Check isochrones cover pk
     a_lim = [log10(min(iso.ages)), log10(max(iso.ages))]
@@ -209,7 +209,7 @@ def isointerp1(pk, iso, dloga=0.1, dlogm=0.3, fZ=10., predict='logA logT logg lo
     """
     ak, mk, zk = pk
 
-    t = eztables.Table(iso.data)
+    t = Table(iso.data)
 
     # Check isochrones cover pk
     a_lim = [log10(min(iso.ages)), log10(max(iso.ages))]
@@ -328,7 +328,7 @@ predict = 'logA logT logg logM logL Z'.split()
 _ages, _masses, _Z = np.ix_(log10(ages), log10(masses), Z)
 itpts = np.nditer([_ages, _masses, _Z])
 # needs to keep orders => using eztables
-t = eztables.Table(iso.data)
+t = Table(iso.data)
 dt = t[predict][0].dtype
 
 ndata = len(ages) * len(Z) * len(masses)
