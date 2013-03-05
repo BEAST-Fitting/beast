@@ -86,23 +86,33 @@ def plot_keys(keys, outdir, outnames, show=True):
     ezrc(16, 2, 18)
     shapes = { 2: (1, 2), 3: (1, 3), 4: (2, 2), 5: (2, 3), 6: (2, 3), 7: (3, 3), 8: (3, 3), 9: (3, 3) }
     _shape = shapes[len(_keys)]
-    plt.figure(figsize=(_shape[1] * 5, _shape[0] * 4))
+    _fig = plt.figure(figsize=(_shape[1] * 5, _shape[0] * 4))
     _axes = [ plt.subplot(_shape[0], _shape[1], j) for j in range(len(_keys)) ]
 
     for i in range(len(outnames)):
         summary_table = eztables.Table(_outdir + 'summary_' + outnames[i] + '.fits')
-        for j, key in enumerate(_keys):
-            #rec_vals = summary_table.data[key+'_recovered']  # recovered values
-            true_vals = summary_table.data[key]              # true values
-            #rec_vals = rec_vals - true_vals                  # offset
-            rec_vals = summary_table.evalexpr('{}_recovered - {}'.format(key, key))  # offset
-            uniq_vals = np.unique(true_vals)  # unique true values
-            avg_offs = np.zeros(uniq_vals.size)  # Mean of recovered params for given input param
-            for k in range(avg_offs.size):
-                sel = np.where(true_vals == uniq_vals[k])
-                avg_offs[k] = rec_vals[sel].mean()
-            #figure
-            _axes[j].plot(uniq_vals, avg_offs, label=(outnames[i]).replace('_', ' '), marker='+', markersize=10)
+        try:
+            for j, key in enumerate(_keys):
+                #rec_vals = summary_table.data[key+'_recovered']  # recovered values
+                true_vals = summary_table.data[key]              # true values
+                #rec_vals = rec_vals - true_vals                  # offset
+                rec_vals = summary_table.evalexpr('{}_recovered - {}'.format(key, key))  # offset
+                #uniq_vals = np.unique(true_vals)  # unique true values
+                #avg_offs = np.zeros(uniq_vals.size)  # Mean of recovered params for given input param
+                #for k in range(avg_offs.size):
+                #    sel = np.where(true_vals == uniq_vals[k])
+                #    avg_offs[k] = rec_vals[sel].mean()
+                #figure
+                #_axes[j].plot(uniq_vals, avg_offs, label=(outnames[i]).replace('_', ' '), marker='+', markersize=10)
+                npts = 9
+                dyn  = true_vals.max() - true_vals.min()
+                xp   = np.linspace(true_vals.min() - 0.05 * dyn / npts, true_vals.max() + 0.05 * dyn / npts, npts)
+                bx   = np.digitize(true_vals, xp)
+                yp   = [ np.mean( (rec_vals)[bx == k] ) for k in set(bx) ]
+                mp   = 0.5 * (xp[:-1] + xp[1:])
+                _axes[j].plot(mp, yp, label=(outnames[i]).replace('_', ' '), marker='+', markersize=10)
+        except:
+            pass
 
     for j, key in enumerate(_keys):
         _axes[j].set_xlabel(key.replace('_', ''))
@@ -114,6 +124,8 @@ def plot_keys(keys, outdir, outnames, show=True):
     plt.subplots_adjust(wspace=0.3)
     if show:
         plt.show()
+    else:
+        return _fig
 
 
 def plot_keys_std(keys, outdir, outnames, show=True):

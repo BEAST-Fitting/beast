@@ -7,7 +7,7 @@ __WITH_C_LIBS__ = False
 __USE_NUMEXPR__ = True
 
 # Default number of threads to use
-__NTHREADS__ = 20
+__NTHREADS__ = 25
 
 # Online libraries
 # will be replaced by a more flexible support (JSON is easy!)
