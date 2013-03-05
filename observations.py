@@ -145,5 +145,5 @@ class FakeObs(Observations):
 
     def readData(self):
         """ read the dataset from the original source file """
-        import mytables
-        self.data = mytables.load(self.inputFile)
+        from .external.eztables import Table
+        self.data = Table(self.inputFile)
