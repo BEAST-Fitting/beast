@@ -343,7 +343,7 @@ parafunc = parallelTask(func, nthreads=25)
 def working_3dinterp():
     # partial function that will be parallelized
 
-    from decorators import timeit
+    from tools.decorators import timeit
 
     with timeit('Interpolation of {} points using {} threads'.format(ndata, parafunc.nthreads)):
         r = np.rec.fromrecords(parafunc(pts), dtype=dt)

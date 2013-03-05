@@ -9,7 +9,7 @@ import sys
 
 import mytables
 from anased import computeLogLikelihood
-from decorators import timeit
+from tools.decorators import timeit
 import extinction
 import grid
 import phot
