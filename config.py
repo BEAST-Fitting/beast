@@ -29,6 +29,13 @@ try:
 except ImportError:
     __USE_NUMEXPR__ = False
 
+import os
+import inspect
+
+
+__ROOT__ = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
+
+
 def printConfig():
 	print """ ============ pyPEGASE defaut configuration ===========
 	* Including C-code during computations: %s
