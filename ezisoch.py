@@ -1,9 +1,9 @@
 import numpy as np
 from scipy import interpolate
 from numpy import interp
-from sedfitter import isochrone
-from sedfitter.ezunits import unit, hasUnit
-from sedfitter.eztables import Table
+from . import isochrone
+from .external.ezunits import unit, hasUnit
+from .external.eztables import Table
 
 
 class ezIsoch(isochrone.Isochrone):

@@ -1,7 +1,7 @@
 __version__ = '0.1dev'
 
-from config import __NTHREADS__
-from config import __USE_NUMEXPR__
+from .config import __NTHREADS__
+from .config import __USE_NUMEXPR__
 if __USE_NUMEXPR__:
     import numexpr
     numexpr.set_num_threads(__NTHREADS__)
@@ -12,9 +12,9 @@ else:
 import numpy
 from numpy import log, log10, exp
 
-import stellib
-import extinction
-import photometry
+from . import stellib
+from . import extinction
+from . import photometry
 from tools.decorators import timeit
 
 
@@ -420,6 +420,8 @@ def test_seds(err=0.1, Av0=1., Z0=0.02):
 
 
 def plotPDFs(g, r, Av, Av0, Z0, fakein, Q='logg logT logL logM logA Av Z' ):
+
+    from tools import figure
 
     _q = Q.split()
 

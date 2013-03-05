@@ -1,4 +1,4 @@
-import eztables.table as eztables
+from .external.eztables import Table
 import numpy as np
 import grid
 
@@ -109,7 +109,7 @@ def summaryTable(files, grid_filename, filters, outfilename, Q='logA logM Z Av R
         print 'working on ', sfile
 
         # get the nD likelihood function for each star
-        lnp = eztables.load(sfile, extension='LNP')
+        lnp = Table(sfile, extension='LNP')
 
         # get the summary for each parameter
         indxs = lnp['idx'].astype(int)
@@ -123,7 +123,7 @@ def summaryTable(files, grid_filename, filters, outfilename, Q='logA logM Z Av R
             for k, v in _d.items():
                 d[k] = np.hstack([d[k], np.array([v])])
 
-    t = eztables.Table(d, name='SED analysis summury table')
+    t = Table(d, name='SED analysis summury table')
 
     # add header information if passed
     for k in kwargs:
@@ -203,7 +203,7 @@ def fullTable(fname, g, r, Av, lamb, fakesed, fakeerr, filters, **kwargs):
 #        for i in range(n_stars):
 #            for j in range(m_tests):
 #                _fname = dir + 'fake_star_' + str(i) + '_' + str(j) + '.fits'
-#                f = eztables.Table(_fname, silent=True)
+#                f = Table(_fname, silent=True)
 #                prob = f.evalexpr('exp(lnp)')
 #                indx = f['idx'].astype(int)
 #                for e, key in enumerate(keys):
@@ -216,7 +216,7 @@ def fullTable(fname, g, r, Av, lamb, fakesed, fakeerr, filters, **kwargs):
 #            stds[i] = temp_vals.std(axis=0)
 #            pbar.update(i)
 #
-#    summary_tab = eztables.Table(name="Summary Table")
+#    summary_tab = Table(name="Summary Table")
 #    for e, key in enumerate(keys):
 #        summary_tab.add_column(key + '_recovered', means[:, e])
 #        summary_tab.add_column(key + '_std', stds[:, e])
@@ -269,7 +269,7 @@ def fullTable(fname, g, r, Av, lamb, fakesed, fakeerr, filters, **kwargs):
 #            stds[i] = temp_vals.std(axis=0)
 #            pbar.update(i)
 #    outfile.close()
-#    summary_tab = eztables.Table(name="Summary Table")
+#    summary_tab = Table(name="Summary Table")
 #    for e, key in enumerate(keys):
 #        summary_tab.add_column(key + '_recovered', means[:, e])
 #        summary_tab.add_column(key + '_std', stds[:, e])

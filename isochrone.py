@@ -8,11 +8,11 @@ sources.
 import numpy
 from numpy import interp
 from numpy import log10
-from ezunits import unit, hasUnit
 import inspect
 import os
 import tables
-import mytables
+from .external.eztables import Table
+from .external.ezunits import unit, hasUnit
 
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 
@@ -92,7 +92,7 @@ class Isochrone(object):
 		newl[-1]  = logL[-1]
 		newdm[-1] = logM[-1] - logM[-2]
 
-		table = mytables.Table( dict(logM=newm, logT=newt, logg=newg, logL=newl, dlogm=newdm) )
+		table = Table( dict(logM=newm, logT=newt, logg=newg, logL=newl, dlogm=newdm) )
 
 		for k in iso.header.keys():
 			table.header[k] = iso.header[k]
@@ -115,7 +115,7 @@ class padova2010(Isochrone):
 		self.Z    = numpy.unique(self.data['Z'])
 
 	def _load_table_(self, source):
-		t = mytables.load(self.source)
+		t = Table(self.source)
 		data = {}
 		for k in t.keys():
 			data[k] = t[k]
@@ -132,7 +132,7 @@ class padova2010(Isochrone):
 		data.pop('logTe')
 		data.pop('logL/Lo')
 
-		self.data = mytables.Table(data, name='Isochrone from %s' % self.name)
+		self.data = Table(data, name='Isochrone from %s' % self.name)
 
 	def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None, *args, **kwargs):
 		""" Retrieve isochrone from the original source
@@ -190,7 +190,7 @@ class padova2010(Isochrone):
 				data[kn] = interp(_m, data_logM, data[kn])
 
 		del t
-		table = mytables.Table(data, name='Isochrone from %s' % self.name)
+		table = Table(data, name='Isochrone from %s' % self.name)
 		table.header['metal'] = metal
 		table.header['time'] = _age
 		return table
@@ -273,7 +273,7 @@ class pegase(Isochrone):
 			for kn in data:
 				data[kn] = interp(_m, data_logM, data[kn])
 
-		table = mytables.Table(data, name='Isochrone from %s' % self.name)
+		table = Table(data, name='Isochrone from %s' % self.name)
 		table.header['metal'] = metal
 		table.header['time'] = _age * 1e6
 		return table

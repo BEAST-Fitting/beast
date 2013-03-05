@@ -8,16 +8,14 @@ if __USE_NUMEXPR__:
 
 import numpy
 import tables
-import inspect
-import os
 import grid
 
 from tools.decorators import timeit
+from config import __ROOT__
 from scipy.integrate import simps
-localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 
-__default__      = localpath + '/libs/filters.hd5'
-__default_vega__ = localpath + '/libs/vega.hd5'
+__default__      = __ROOT__ + '/libs/filters.hd5'
+__default_vega__ = __ROOT__ + '/libs/vega.hd5'
 
 # this is used to convert from bolometric luminosities to abs fluxes
 # object to 10parsecs -- abs mag.

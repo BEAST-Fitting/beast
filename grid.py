@@ -1,14 +1,12 @@
 """ Manage Various SED/spectral grids is a generic way """
-#TODO replace mytables by eztables
-
 import numpy
 import pyfits
 
-import stellib
-import phot
-import isochrone
-import mytables
-import extinction
+from . import stellib
+from . import phot
+from . import isochrone
+from . import extinction
+from .external.eztables import Table
 
 from tools.decorators import timeit
 
@@ -46,7 +44,7 @@ class ModelGrid(object):
 
     def write(self, fname, *args, **kwargs):
         if ( (self.lamb is not None) & (self.seds is not None) & (self.grid is not None) ):
-            assert (isinstance(self.grid, mytables.Table)), 'Only mytables.Table are supported so far'
+            assert (isinstance(self.grid, Table)), 'Only eztables.Table are supported so far'
             r = numpy.vstack( [ numpy.copy(self.seds), self.lamb ])
             pyfits.writeto(fname, r, **kwargs)
             if getattr(self, 'filters', None) is not None:
@@ -149,7 +147,7 @@ class FileSEDGrid(SpectralGrid):
         with pyfits.open(fname) as f:
             self.seds = f[0].data[:-1]
             self.lamb = f[0].data[-1]
-        self.grid = mytables.load(fname)
+        self.grid = Table(fname)
         self.filters = self.grid.header.get('FILTERS', None)
         if self.filters is not None:
             self.filters = self.filters.split()
@@ -174,7 +172,7 @@ class FileSpectralGrid(SpectralGrid):
         with pyfits.open(fname) as f:
             self.seds = f[0].data[:-1]
             self.lamb = f[0].data[-1]
-        self.grid = mytables.load(fname)
+        self.grid = Table(fname)
         #lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
         for k in self.grid.keys():
             self.__dict__[k] = self.grid[k]
@@ -235,7 +233,7 @@ def generate_spectral_grid_from_isochrones(outfile, osl, oiso, Z=0.02):
     data = {}
     for k in oiso.data.keys():
         data[k] = oiso.data[k]
-    pars  = mytables.Table(data, name='Reinterpolated stellib grid')
+    pars  = Table(data, name='Reinterpolated stellib grid')
     pars.header['stellib'] = osl.source
     pars.header['isoch'] = oiso.source
 

@@ -10,15 +10,14 @@ Jan 2013: Modified by Karl G. to separate the extinguished grid creation into a 
 __version__ = '0.3dev'
 
 import numpy
-import mytables
-#import extinction
-import grid
+import pyfits
 import progressbar
 import numpy as np
-import stellib
-import isochrone
-import pyfits
-import ezunits
+from . import grid
+from . import stellib
+from . import isochrone
+from .external import mytables
+from .external import ezunits
 from matplotlib.nxutils import points_inside_poly
 
 
