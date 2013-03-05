@@ -301,7 +301,7 @@ def test_specs():
         if idx is None:
             idx = numpy.arange(len(r))
         n0, bT, bg = numpy.histogram2d(osl.Teff[idx], osl.logg[idx], bins=[25, 11])
-        n , bT, bg = numpy.histogram2d(osl.Teff[idx], osl.logg[idx], bins=[bT, bg], weights=exp(r) )
+        n,  bT, bg = numpy.histogram2d(osl.Teff[idx], osl.logg[idx], bins=[bT, bg], weights=exp(r) )
 
         n0 = n0.astype(float) / n0.sum()
         n  = n.astype(float) / n.sum()
