@@ -10,15 +10,12 @@ The interpolation is impletmented from the pegase.2 fortran converted algorithm.
 
 """
 import numpy
-from numpy import interp
-import inspect
-import os
-import mytables
+#from numpy import interp
 import pyfits
-import grid
+from .external.eztables import Table
+from . import grid
+from .config import __ROOT__
 
-
-localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 
 from config import __WITH_C_LIBS__, __NTHREADS__
 
@@ -63,7 +60,7 @@ try:
         return idx, w
 
 except Exception as e:
-    print "Using python code instead of c, because %s"  % e
+    #print "Using python code instead of c, because %s"  % e
 
     def __interp__(T0, g0, T, g, dT_max=0.1, eps=1e-6):
         """
@@ -196,21 +193,21 @@ except Exception as e:
                     if (i4 < 0):
                         #               #0000
                         assert (False), "Error"
-                    else:                   #0001
+                    else:                   # 0001
                         alpha1 = 0.
                         alpha2 = 0.
                         alpha3 = 0.
                         alpha4 = 1.
                     #endif
-                elif (i4 < 0):                  #0010
+                elif (i4 < 0):                  # 0010
                     alpha1 = 0.
                     alpha2 = 0.
                     alpha3 = 1.
                     alpha4 = 0.
-                else:                           #0011
+                else:                           # 0011
                     alpha1 = 0.
                     alpha2 = 0.
-                    if ( abs(T3-T4) < eps ):
+                    if ( abs(T3 - T4) < eps ):
                         if (g3 == g4):
                             alpha3 = 0.5
                         else:
@@ -236,7 +233,7 @@ except Exception as e:
                     alpha2 = 1.
                     alpha3 = 0.
                     alpha4 = 0.
-                else:                         #0101
+                else:                         # 0101
                     alpha1 = 0.
                     if (T2 == T4):
                         alpha2 = 0.5
@@ -246,7 +243,7 @@ except Exception as e:
                     alpha3 = 0.
                     alpha4 = 1. - alpha2
                 #endif
-            elif (i4 < 0):                        #0110
+            elif (i4 < 0):                        # 0110
                 alpha1 = 0.
                 if (T2 == T3):
                     alpha2 = 0.5
@@ -255,26 +252,22 @@ except Exception as e:
                 #endif
                 alpha3 = 1. - alpha2
                 alpha4 = 0.
-            else:                                #0111
+            else:                                # 0111
                 # Assume that (T, g) is within the triangle i
                 # formed by the three points.
 
-                mat0 = numpy.asarray([
-                     [ T2, T3, T4 ],
-                     [ g2, g3, g4 ],
-                     [    1.,    1.,     1.]  ])
-                mat2 = numpy.asarray([
-                     [ T0   , T3, T4 ],
-                     [ g0   , g3, g4 ],
-                     [    1.,    1.,     1.]  ])
-                mat3 = numpy.asarray([
-                     [ T2, T0   , T4 ],
-                     [ g2, g0   , g4 ],
-                     [    1.,    1.,     1.]  ])
-                mat4 = numpy.asarray([
-                     [ T2, T3, T0    ],
-                     [ g2, g3, g0    ],
-                     [    1.,    1.,     1.]  ])
+                mat0 = numpy.asarray([ [ T2, T3, T4 ],
+                                       [ g2, g3, g4 ],
+                                       [ 1., 1.,  1.]  ])
+                mat2 = numpy.asarray([ [ T0, T3, T4 ],
+                                       [ g0, g3, g4 ],
+                                       [ 1., 1.,  1.]  ])
+                mat3 = numpy.asarray([ [ T2, T0, T4 ],
+                                       [ g2, g0, g4 ],
+                                       [ 1., 1.,  1.]  ])
+                mat4 = numpy.asarray([ [ T2, T3, T0 ],
+                                       [ g2, g3, g0 ],
+                                       [ 1., 1.,  1.]  ])
                 det0 = __det3x3__(mat0.ravel())
                 det2 = __det3x3__(mat2.ravel())
                 det3 = __det3x3__(mat3.ravel())
@@ -306,17 +299,17 @@ except Exception as e:
                     alpha2 = 0.
                     alpha3 = 0.
                     alpha4 = 0.
-                else:                      #1001
+                else:                      # 1001
                     if (T1 == T4):
                         alpha1 = 0.5
                     else:
                         alpha1 = (T0 - T4) / (T1 - T4)
-                    #endif
+                    # endif
                     alpha2 = 0.
                     alpha3 = 0.
                     alpha4 = 1. - alpha1
                 #endif
-            elif (i4 < 0):             #1010
+            elif (i4 < 0):             # 1010
                 if (T1 == T3):
                     alpha1 = 0.5
                 else:
@@ -325,26 +318,22 @@ except Exception as e:
                 alpha2 = 0.
                 alpha3 = 1. - alpha1
                 alpha4 = 0.
-            else:                     #1011
+            else:                     # 1011
 
                 # Assume that (T, g) is within the triangle formed by the three points.
 
-                mat0 = numpy.asarray([
-                     [ T1, T3, T4 ],
-                     [ g1, g3, g4 ],
-                     [    1.,    1.,     1.]  ])
-                mat1 = numpy.asarray([
-                     [ T0   , T3, T4 ],
-                     [ g0   , g3, g4 ],
-                     [    1.,    1.,     1.]  ])
-                mat3 = numpy.asarray([
-                     [ T1, T0   , T4 ],
-                     [ g1, g0   , g4 ],
-                     [    1.,    1.,     1.]  ])
-                mat4 = numpy.asarray([
-                     [ T1, T3, T0    ],
-                     [ g1, g3, g0    ],
-                     [    1.,    1.,     1.]  ])
+                mat0 = numpy.asarray([ [ T1, T3, T4 ],
+                                       [ g1, g3, g4 ],
+                                       [ 1., 1.,  1.]  ])
+                mat1 = numpy.asarray([ [ T0, T3, T4 ],
+                                       [ g0, g3, g4 ],
+                                       [ 1., 1.,  1.]  ])
+                mat3 = numpy.asarray([ [ T1, T0, T4 ],
+                                       [ g1, g0, g4 ],
+                                       [ 1., 1.,  1.]  ])
+                mat4 = numpy.asarray([ [ T1, T3, T0 ],
+                                       [ g1, g3, g0 ],
+                                       [ 1., 1.,  1.]  ])
                 det0 = __det3x3__(mat0.ravel())
                 det1 = __det3x3__(mat1.ravel())
                 det3 = __det3x3__(mat3.ravel())
@@ -392,26 +381,22 @@ except Exception as e:
                 #endif
                 alpha3 = 0.
                 alpha4 = 0.
-            else:                       #1101
+            else:                       # 1101
 
                 #Assume that (T, g) is within the triangle formed by the three points.
 
-                mat0 = numpy.asarray([
-                     [ T1, T2, T4 ],
-                     [ g1, g2, g4 ],
-                     [    1.,    1.,     1.]  ])
-                mat1 = numpy.asarray([
-                     [ T0   , T2, T4 ],
-                     [ g0   , g2, g4 ],
-                     [    1.,    1.,     1.]  ])
-                mat2 = numpy.asarray([
-                     [ T1, T0   , T4 ],
-                     [ g1, g0   , g4 ],
-                     [    1.,    1.,     1.]  ])
-                mat4 = numpy.asarray([
-                     [ T1, T2, T0    ],
-                     [ g1, g2, g0    ],
-                     [    1.,    1.,     1.]  ])
+                mat0 = numpy.asarray([ [ T1, T2, T4 ],
+                                       [ g1, g2, g4 ],
+                                       [ 1., 1., 1. ]  ])
+                mat1 = numpy.asarray([ [ T0, T2, T4 ],
+                                       [ g0, g2, g4 ],
+                                       [ 1., 1., 1. ]  ])
+                mat2 = numpy.asarray([ [ T1, T0, T4 ],
+                                       [ g1, g0, g4 ],
+                                       [ 1., 1., 1. ]  ])
+                mat4 = numpy.asarray([ [ T1, T2, T0 ],
+                                       [ g1, g2, g0 ],
+                                       [ 1., 1., 1. ]  ])
                 det0 = __det3x3__(mat0.ravel())
                 det1 = __det3x3__(mat1.ravel())
                 det2 = __det3x3__(mat2.ravel())
@@ -421,10 +406,8 @@ except Exception as e:
                 alpha3 = 0.
                 alpha4 = det4 / det0
 
-
                 # If (T, g) is outside the triangle formed by the three used points,
                 # use only two points.
-
                 if ( (alpha1 < 0.) | (alpha1 > 1.) | (alpha2 < 0.) | (alpha2 > 1.) | (alpha4 < 0.) | (alpha4 > 1.) ):
                     if (T1 == T4):
                         alpha1 = 0.5
@@ -438,24 +421,20 @@ except Exception as e:
                 #endif
             #endif
         elif (i4 < 0):
-            #                           #1110
+            #                           # 1110
             #Assume that (T, g) is within the triangle formed by the three points.
-            mat0 = numpy.asarray([
-                 [ T1, T2, T3 ],
-                 [ g1, g2, g3 ],
-                 [    1.,    1.,     1.]  ])
-            mat1 = numpy.asarray([
-                 [ T0   , T2, T3 ],
-                 [ g0   , g2, g3 ],
-                 [    1.,    1.,     1.]  ])
-            mat2 = numpy.asarray([
-                 [ T1, T0   , T3 ],
-                 [ g1, g0   , g3 ],
-                 [    1.,    1.,     1.]  ])
-            mat3 = numpy.asarray([
-                 [ T1, T2, T0    ],
-                 [ g1, g2, g0    ],
-                 [    1.,    1.,     1.]  ])
+            mat0 = numpy.asarray([ [ T1, T2, T3 ],
+                                   [ g1, g2, g3 ],
+                                   [ 1., 1., 1. ]  ])
+            mat1 = numpy.asarray([ [ T0, T2, T3 ],
+                                   [ g0, g2, g3 ],
+                                   [ 1., 1., 1. ]  ])
+            mat2 = numpy.asarray([ [ T1, T0, T3 ],
+                                   [ g1, g0, g3 ],
+                                   [ 1., 1., 1. ]  ])
+            mat3 = numpy.asarray([ [ T1, T2, T0 ],
+                                   [ g1, g2, g0 ],
+                                   [ 1., 1., 1. ]  ])
             det0 = __det3x3__(mat0.ravel())
             det1 = __det3x3__(mat1.ravel())
             det2 = __det3x3__(mat2.ravel())
@@ -464,7 +443,6 @@ except Exception as e:
             alpha2 = det2 / det0
             alpha3 = det3 / det0
             alpha4 = 0.
-
 
             # If (T, g) is outside the triangle formed by the three used points,
             # use only two points.
@@ -501,10 +479,10 @@ except Exception as e:
             else:
                 gamma = 0.5
             #endif
-            alpha1 =       alpha * gamma
-            alpha2 =        beta * ( 1 - gamma )
+            alpha1 = alpha * gamma
+            alpha2 = beta * ( 1 - gamma )
             alpha3 = ( 1 - alpha ) * gamma
-            alpha4 = (  1 - beta ) * ( 1 - gamma )
+            alpha4 = ( 1 - beta ) * ( 1 - gamma )
         #endif
         return numpy.asarray((i1, i2, i3, i4)), numpy.asarray((alpha1, alpha2, alpha3, alpha4))
 
@@ -759,7 +737,7 @@ class Elodie(Stellib):
     """ Elodie 3.1 stellar library derived class """
     def __init__(self, *args, **kwargs):
         self.name = 'ELODIE v3.1 (Prugniel et al 2007, astro-ph/703658)'
-        self.source = localpath + '/libs/stellib_ELODIE_3.1.fits'
+        self.source = __ROOT__ + '/libs/stellib_ELODIE_3.1.fits'
         self._load_()
 
     def _load_(self):
@@ -778,7 +756,7 @@ class Elodie(Stellib):
         #d = { k: f[1].data.field(k) for k in cols }
         for k in cols:
             d[k] = f[1].data.field(k)
-        self.grid = mytables.Table(d)
+        self.grid = Table(d)
         self.grid.header['NAME'] = 'TGZ'
         del d, cols
 
@@ -816,7 +794,7 @@ class BaSeL(Stellib):
     """
     def __init__(self, *args, **kwargs):
         self.name = 'BaSeL 2.2 + Rauch (Pegase.2 version)'
-        self.source = localpath + '/libs/stellib_BaSeL_2.2_Rauch.fits'
+        self.source = __ROOT__ + '/libs/stellib_BaSeL_2.2_Rauch.fits'
         self._load_()
 
     def _load_(self):
@@ -835,7 +813,7 @@ class BaSeL(Stellib):
         #d = { k: f[1].data.field(k) for k in cols }
         for k in cols:
             d[k] = f[1].data.field(k)
-        self.grid = mytables.Table(d)
+        self.grid = Table(d)
         self.grid.header['NAME'] = 'TGZ'
         del d, cols
 
@@ -873,7 +851,7 @@ class Kurucz(Stellib):
     """
     def __init__(self, *args, **kwargs):
         self.name = 'Kurucz 2004'
-        self.source = localpath + '/libs/kurucz2004.grid.fits'
+        self.source = __ROOT__ + '/libs/kurucz2004.grid.fits'
         self._load_()
 
     def _load_(self):
@@ -978,14 +956,14 @@ class Kurucz(Stellib):
 #   pars = ['Teff', 'logG', 'NHI', 'NHeI', 'NHeII', 'Z']
 #   d    = { pars[k]:tgz[:,k] for k in range(len(pars)) }
 #
-#   t1    = mytables.Table(d)
+#   t1    = Table(d)
 #
 #   t1.header['EXTNAME'] = 'TGZ'
 #   t1.setUnit('Teff', 'log(K)')
 #   t1.setUnit('logG', 'log(g/s**2)')
 #   t1.header['COMMENT'] = 'Stellib. from Pegase.2x: BaSeL 2.2 + Rauch'
 #
-#   t2    = mytables.Table( {'BFIT': wave} )
+#   t2    = Table( {'BFIT': wave} )
 #   t2.header['EXTNAME'] = 'WCA'
 #   t2.setUnit('BFIT', 'AA')
 #
