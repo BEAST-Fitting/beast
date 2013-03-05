@@ -15,8 +15,7 @@ from numpy import log, log10, exp
 import stellib
 import extinction
 import photometry
-import figure
-from decorators import timeit
+from tools.decorators import timeit
 
 
 def fluxToMag(flux):
@@ -264,6 +263,8 @@ def getSEDs(filter_names, lamb, specs):
 
 
 def test_specs():
+    from tools import figure
+
     osl = stellib.BaSeL()
     oAv = extinction.Cardelli()
     #fake DATA

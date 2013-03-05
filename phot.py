@@ -12,7 +12,7 @@ import inspect
 import os
 import grid
 
-from decorators import timeit
+from tools.decorators import timeit
 from scipy.integrate import simps
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 

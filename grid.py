@@ -10,7 +10,7 @@ import isochrone
 import mytables
 import extinction
 
-from decorators import timeit
+from tools.decorators import timeit
 
 from copy import deepcopy
 
