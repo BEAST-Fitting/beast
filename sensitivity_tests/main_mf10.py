@@ -36,12 +36,14 @@ def create_sed_grid(sed_grid_fname, filter_names, iso_fname='iso.proposal.fits',
 
     # grid spacing for stars
     __tiny_delta__ = 0.001
-    # ages           = (1e7, 1e8, 1e9)
-    # masses         = (1., 2., 3., 4., 50.)
-    # Z              = (0.02, 0.004)
-    ages           = 10 ** np.arange(6., 9. + __tiny_delta__, 0.1)
-    masses         = 10 ** np.arange(0., 1.3 + __tiny_delta__, 0.005)
-    Z              = [(0.02)]
+    # ages, masses, and Z from isochrones
+    r = [oiso.selectWhere('*', 'abs(logA - %f) < 0.05' % k).data for k in oiso.logages]
+    samp = np.unique(np.logspace(0.1, np.log10(len(r[0]) - 1)).astype(int))
+
+    pts = eztables.Table(r[0][samp])
+    for rk in r[1:]:
+        samp = np.unique(np.logspace(0.1, np.log10(len(rk) - 1)).astype(int))
+        pts.stack(rk[samp])
     # grid spacing for dust
     # variable to ensure that range is fully covered in using np.arange
     avs            = np.arange(0.0, 5.0 + __tiny_delta__, 0.1)
@@ -56,7 +58,7 @@ def create_sed_grid(sed_grid_fname, filter_names, iso_fname='iso.proposal.fits',
     bounds = dict(dlogT=0.1, dlogg=0.3)
 
     #make the spectral grid
-    creategrid.gen_spectral_grid_from_stellib(spectral_grid_fname, osl, oiso, ages=ages, masses=masses, Z=Z, bounds=bounds)
+    creategrid.gen_spectral_grid_from_stellib_given_points(spectral_grid_fname, osl, oiso, pts, bounds=bounds)
 
     # make the grid
     extgrid = creategrid.make_extinguished_grid(spectral_grid_fname, filter_names, extLaw, avs, rvs, fbumps)
@@ -113,8 +115,7 @@ def generate_fake_observations( Nstars, sedgrid,
     flux_sel = (sedgrid.seds[:, idx_Fcut] > Fcut[1])
     M_sel    = (np.abs(sedgrid.logM - logM) < dlogM)
     T_sel    = (np.abs(sedgrid.logT - logT) < dlogT)
-    g_sel    = (sedgrid < 4.)
-    subsel   = np.where( flux_sel & M_sel & T_sel & g_sel )[0]
+    subsel   = np.where( flux_sel & M_sel & T_sel )[0]
     assert(len(subsel) > 0), 'nothing to select'
     # Keep only Nstars random draws from them
     fakein = subsel[np.random.randint(low=0, high=subsel.size, size=Nstars)]
@@ -273,9 +274,9 @@ def main():
     #Pick Nstars fake stars within delta_logParam of logParam
     Nstars = 1000
     m31_distance_modulus = 24.48  # in magnitudes
-    err = 0.05  # Photometric noise to apply
+    err = 0.02  # Photometric noise to apply
 
-    filter_names = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
+    filter_names = 'hst_wfc3_f225w hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
     #Star selection in Mass, Temperature and luminosity
     logM = 1.0
@@ -284,9 +285,9 @@ def main():
     delt_logT = 5.
     Fcut0 = ('HST_ACS_WFC_F814W', -3)  # Filter and absolute magnitude converted later
 
-    iso_fname = 'iso.proposal.fits'
-    spectral_grid_fname = 'spectral.iso.proposal.fits'
-    stellar_filename = 'fbump_only.fits'
+    iso_fname = 'mf10.iso.fits'
+    spectral_grid_fname = 'mf10.spectral.iso.grid.fits'
+    stellar_filename = 'mf11.sed.grid.fits'
 
     #Convert cut into apparent flux and not in Vega mag
     with vega.Vega() as v:
@@ -319,15 +320,26 @@ def main():
     ######### Generate the likelihoods of each fake star and set of filters
     ntests = 1  # number of MC per star (Noise sampling)
     keys = ['Av', 'Rv', 'logT', 'logM', 'logA', 'logL', 'f_bump' ]
-    outdir = 'Tests_mf04'
+    outdir = 'Tests_mf06'
     # set filters for each tests
     #filters = [np.arange(6), [0, 1], [2, 3]]  # All six PHAT filters,  F275W and F336W,  F475W and F814W
     filters = [ 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split(),
-                'hst_wfc3_f275w hst_wfc3_f336w'.upper().split(),
-                'hst_acs_wfc_f475w hst_acs_wfc_f814w'.upper().split(),
-                'hst_wfc3_f110w hst_wfc3_f160w'.upper().split() ]
+                #'hst_wfc3_f275w hst_wfc3_f336w'.upper().split(),
+                #'hst_acs_wfc_f475w hst_acs_wfc_f814w'.upper().split(),
+                #'hst_wfc3_f110w hst_wfc3_f160w'.upper().split(),
+                'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w'.upper().split(),
+                'hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split(),
+                'hst_wfc3_f225w hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split(),
+               ]
 
-    outnames = ['all_phat', 'F275_336', 'F475_814', 'F110_160']
+    outnames = ['all_phat',
+               # 'F275_336',
+               # 'F475_814',
+               # 'F110_160',
+                'Opt_UV',
+                'Opt_IR',
+                '225_phat'
+                ]
 
     if os.path.exists(outdir):
         if not os.path.isdir(outdir):

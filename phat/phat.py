@@ -70,26 +70,34 @@ from sedfitter import progressbar
 #---------------------------------------------------------
 
 
-obsfile = 'data/N4214_3band_detects_sub.fits'
+obsfile = 'b21_snr_cut_finite_mag.fits'
 
-#project = 'mf08_225_336_438_rv31'
-#project = 'mf09_814_110_160_rv31'
-project = 'mf10_allfilters_rv31'
+project = 'mf_phat_test1_b21'
 
-filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
-           'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
-#filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W']
-#filters = ['HST_WFC3_F438W', 'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
-#filters = ['HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
+           'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
-distanceModulus = 27.41
+distanceModulus = 24.3
 
-isofile             = 'libs/iso.proposal.fits'
-lnp_outname         = 'ngc4214_lnp.4bands.zsmc.{}.hd5'.format(project)
-stat_outname        = 'ngc4214_stat.4bands.zsmc.{}.hd5'.format(project)
-res_outname         = 'ngc4214_res.4bands.zsmc.{}.fits'.format(project)
-spectral_grid_fname = 'ngc4214.zsmc.{}.spectral.iso.fits'.format(project)
-sed_grid_fname      = 'ngc4214.zsmc.{}.sed.grid.fits'.format(project)
+isofile             = 'libs/mf10.iso.fits'
+lnp_outname         = 'products/{}_lnp.hd5'.format(project)
+stat_outname        = 'products/{}_stat.hd5'.format(project)
+res_outname         = 'products/{}_res.hd5'.format(project)
+spectral_grid_fname = 'products/{}_spectral.grid.fits'.format(project)
+sed_grid_fname      = 'products/{}_sed.grid.fits'.format(project)
+
+data_mapping = {'uv_mag1'     : 'HST_WFC3_F275W',
+                'uv_mag1err'  : 'HST_WFC3_F275Werr',
+                'uv_mag2'     : 'HST_WFC3_F336W',
+                'uv_mag2err'  : 'HST_WFC3_F336Werr',
+                'acs_mag1'    : 'HST_ACS_WFC_F475W',
+                'acs_mag1err' : 'HST_ACS_WFC_F475Werr',
+                'acs_mag2'    : 'HST_ACS_WFC_F814W',
+                'acs_mag2err' : 'HST_ACS_WFC_F814Werr',
+                'ir_mag1'     : 'HST_WFC3_F110W',
+                'ir_mag1err'  : 'HST_WFC3_F110Werr',
+                'ir_mag2'     : 'HST_WFC3_F160W',
+                'ir_mag2err'  : 'HST_WFC3_F160Werr' }
 
 #---------------------------------------------------------
 # Data interface                                [sec:data]
@@ -105,7 +113,7 @@ with Vega() as v:
 class Data(Observations):
     """ PHAT catalog for clusters in M31 """
     def __init__(self, inputFile, distanceModulus=distanceModulus):
-        desc = 'NGC4214 cluster: %s' % inputFile
+        desc = 'PHAT star: %s' % inputFile
         Observations.__init__(self, inputFile, distanceModulus, desc=desc)
         self.setFilters( filters )
         self.setBadValue(50.0)  # some bad values smaller than expected
@@ -135,10 +143,8 @@ class Data(Observations):
 
 obs = Data(obsfile, distanceModulus)
 obs.setFilters(filters)
-for k in filters:
-    obs.data.set_alias(k, k.split('_')[-1] + '_VEGA')
-    obs.data.set_alias(k + 'err', k.split('_')[-1] + '_ERR')
-
+for k, v in data_mapping.items():
+    obs.data.set_alias(v, k)
 
 #---------------------------------------------------------
 # Model definitions                            [sec:model]
@@ -157,13 +163,14 @@ oiso = ezIsoch(isofile)
 # variable to ensure that range is fully covered in using np.arange
 __tiny_delta__ = 0.001
 
-ages   = 10 ** np.arange(6., 9. + __tiny_delta__, 0.1)
+ages   = 10 ** np.arange(6., 10. + __tiny_delta__, 0.1)
 masses = 10 ** np.arange(-0.1, 2. + __tiny_delta__, 0.01)
-Z      = np.asarray([0.004])
+Z      = np.asarray([0.02])
 avs    = np.arange(0.0, 5.0 + __tiny_delta__, 0.1)
-#rvs    = np.arange(2.0, 3.5 + __tiny_delta__, 0.5)
-rvs    = np.asarray([3.1])
-fbumps = np.asarray([1.0])
+rvs    = np.arange(1.0, 6.0 + __tiny_delta__, 0.5)
+fbumps = np.arange(0.0, 1. + __tiny_delta__, 0.1)
+#rvs    = np.asarray([3.1])
+#fbumps = np.asarray([1.0])
 
 griddef = (ages, masses, Z, avs, rvs, fbumps)
 
@@ -533,7 +540,8 @@ def diag_figs(t, Q='logA logM Av Rv logT logL log10(Pmax)', figs=[]):
 #---------------------------------------------------------
 def gen_log_description():
     from time import ctime
-    with open(project + '.log', 'w') as log:
+    log_fname = project + '.log'
+    with open(log_fname, 'w') as log:
         log.write('SED fitter log\n')
         log.write('==============\n')
 
@@ -572,6 +580,7 @@ def gen_log_description():
         log.write('Likelihood output\t {}\n'.format(lnp_outname))
         log.write('\n')
         log.write('Expectations table\t {}\n'.format(res_outname))
+        return log_fname
 
 
 def read_log_description(logfile):
@@ -678,7 +687,9 @@ def do_figs_previous_project(logfile, figs=range(10) + [20], Q='logA logM Av log
 
 
 def run():
-    gen_log_description()
+    with open(gen_log_description(), 'r') as log:
+        print log.read()
+
     if not __FIG__:
         do_expectations()
     else:

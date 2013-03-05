@@ -11,7 +11,7 @@ __version__ = '0.3dev'
 
 import numpy
 import mytables
-#import extinction
+import extinction
 import grid
 import progressbar
 import numpy as np
@@ -20,6 +20,7 @@ import isochrone
 import pyfits
 import ezunits
 from matplotlib.nxutils import points_inside_poly
+from scipy import interpolate
 
 
 def get_radius(logl, logt):
@@ -35,85 +36,36 @@ def get_radius(logl, logt):
     return np.sqrt( (10 ** logl) * lsun / (4.0 * np.pi * sig * ((10 ** logt) ** 4)) )
 
 
-def gen_spectral_grid_from_stellib_given_points(outfile, osl, oiso, pts, bounds=dict(dlogT=0.1, dlogg=0.3)):
-    """ Reinterpolate a given stellar spectral library on to an Isochrone grid
+def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
+    """ Returns the closed boundary polygon around the stellar library with
+    given margins
+
     INPUTS:
-        outfile str                 fits file to export to
-        osl     stellib.stellib     a stellar library
-        oiso    isochrone.Isochrone an isochrone library
+        s   Stellib     Stellar library object
+
     KEYWORDS:
-        ages    iterable            list of age points to include in the grid   (in Yr)
-        masses  iterable            list of mass points to include in the grid  (M/Msun)
-        ages    iterable            list of metallicity points to include in the grid (Z/Zsun)
-        bounds  dict                sensitivity to extrapolation (see get_stellib_boundaries)
+        dlogT   float       margin in logT
+        dlogg   float       margin in logg
+        closed  bool        if set, close the polygon
 
     OUTPUTS:
-        None
+        b   ndarray[float, ndim=2]  (closed) boundary points: [logg, Teff]
 
-        only write into outfile
+    Note:
+        use "points_inside_poly" to test wether a point is inside the limits
+        >>> data = np.array([iso.data['logg'], iso.data['logT']]).T
+        >>> aa = points_inside_poly(data, leftb)
     """
-    assert(grid.isNestedInstance(osl, stellib.Stellib) )
-    assert(grid.isNestedInstance(oiso, isochrone.Isochrone) )
-
-    ndata = len(pts)
-    _grid  = {}
-    for k in oiso.data.keys():
-        _grid[k] = np.empty(ndata, dtype=float )
-    _grid['radius'] = np.empty(ndata, dtype=float )
-    _grid['keep'] = np.empty(ndata, dtype=bool )
-
-    specs = np.empty( (ndata + 1, len(osl.wavelength)), dtype=float )
-    specs[-1] = osl.wavelength[:]
-
-    _bounds = osl.get_boundaries(dlogT=bounds['dlogT'], dlogg=bounds['dlogg'], closed=True)
-
-    # compute logg, Teff of the required points,
-    # this means interp iso
-    # compute the spectrum of the point as well
-    # store all
-    # then check the boundary conditions to filter them out
-    radii = get_radius(pts['logL'], pts['logT'])
-    weights = 4. * np.pi * (radii * 1e2) ** 2  # denorm models are in cm**-2 (4*pi*rad)
-    #check boundaries, keep the data but do not compute the sed if not needed
-    data = np.array([pts['logg'], pts['logT']]).T
-    bound_cond = points_inside_poly(data, _bounds)
-    del data
-    _grid['keep'] = bound_cond[:]
-    _grid['radius'] = radii[:]
-    for key in pts.keys():
-        _grid[key] = pts[key]
-    with progressbar.PBar(ndata, txt='spectral grid') as Pbar:
-        for mk, r in enumerate(pts):
-            Pbar.update(mk)
-            if bound_cond[mk]:
-                try:
-                    s = np.array( osl.interp(r['logT'], r['logg'], r['Z'], 0.) ).T
-                    specs[mk, :] = osl.genSpectrum(s) * weights[mk]
-                except:
-                    print "error"
-                    specs[mk, :] = np.zeros(len(osl.wavelength), dtype=float )
-                    #assert(False)
-            else:
-                specs[mk, :] = np.zeros(len(osl.wavelength), dtype=float )
-
-    #filter unbound values
-    idx = np.array(_grid.pop('keep'))
-
-    #specs = np.vstack( [specs, osl.wavelength] )
-    specs = np.vstack( [specs.compress(idx, axis=0), osl.wavelength] )
-    for k in _grid.keys():
-            _grid[k] = _grid[k][idx]
-
-    rsun = ezunits.unit['Rsun'].to('m').magnitude  # 6.955e8 m
-    _grid['radius'] /= rsun
-
-    pars  = mytables.Table(_grid, name='Reinterpolated stellib grid')
-    pars.header['stellib'] = osl.source
-    pars.header['isoch'] = oiso.source
-    pars.setUnit('radius', 'Rsun')
-
-    pyfits.writeto(outfile, specs, clobber=True)
-    pars.write(outfile, append=True)
+    leftb   = [(k, np.max(s.logT[s.logg == k]) + dlogT ) for k in np.unique(s.logg)]
+    leftb  += [ (leftb[-1][0] + dlogg, leftb[-1][1]) ]
+    leftb   = [ (leftb[0][0] - dlogg, leftb[0][1]) ] + leftb
+    rightb  = [(k, np.min(s.logT[s.logg == k]) - dlogT ) for k in np.unique(s.logg)[::-1]]
+    rightb += [ (rightb[-1][0] - dlogg, rightb[-1][1]) ]
+    rightb  = [ (rightb[0][0] + dlogg, rightb[0][1]) ] + rightb
+    b = leftb + rightb
+    if closed:
+        b += [b[0]]
+    return np.array(b)
 
 
 def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,), bounds=dict(dlogT=0.1, dlogg=0.3)):
@@ -152,7 +104,7 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
     specs = np.empty( (ndata + 1, len(osl.wavelength)), dtype=float )
     specs[-1] = osl.wavelength[:]
 
-    _bounds = osl.get_boundaries(dlogT=bounds['dlogT'], dlogg=bounds['dlogg'], closed=True)
+    bounds = get_stellib_boundaries(osl, dlogT=bounds['dlogT'], dlogg=bounds['dlogg'], closed=True)
 
     # compute logg, Teff of the required points,
     # this means interp iso
@@ -160,31 +112,26 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
     # store all
     # then check the boundary conditions to filter them out
     kdata = 0
-    with progressbar.PBar(niter, txt='spectral grid') as Pbar:
+    with progressbar.PBar(oiso.data.nrows, txt='spectral grid') as Pbar:
         for k, (_ak, _Zk) in enumerate(it):
             Pbar.update(k)
-            r = oiso._get_isochrone(_ak, metal=_Zk, masses=np.log10(_masses))
+            r = oiso._get_isochrone(_ak, metal=_Zk, masses=_masses)
             radii = get_radius(r['logL'], r['logT'])
             weights = 4. * np.pi * (radii * 1e2) ** 2  # denorm models are in cm**-2 (4*pi*rad)
             #check boundaries, keep the data but do not compute the sed if not needed
             data = np.array([r['logg'], r['logT']]).T
-            bound_cond = points_inside_poly(data, _bounds)
+            bound_cond = points_inside_poly(data, bounds)
             del data
             start_idx = k * len(masses)
             end_idx   = start_idx + r.nrows
             _grid['keep'][start_idx: end_idx] = bound_cond[:]
             _grid['radius'][start_idx: end_idx] = radii[:]
-            for key in r.keys():
-                _grid[key][start_idx: end_idx] = r[key]
+            for key, value in r.iteritems():
+                _grid[key][start_idx: end_idx] = value
             for mk in range(r.nrows):
                 if bound_cond[mk]:
-                    try:
-                        s = np.array( osl.interp(r['logT'][mk], r['logg'][mk], _Zk, 0.) ).T
-                        specs[kdata, :] = osl.genSpectrum(s) * weights[mk]
-                    except:
-                        print "error"
-                        specs[kdata, :] = np.zeros(len(osl.wavelength), dtype=float )
-                        #assert(False)
+                    s = np.array( osl.interp(r['logT'][mk], r['logg'][mk], _Zk, 0.) ).T
+                    specs[kdata, :] = osl.genSpectrum(s) * weights[mk]
                 else:
                     specs[kdata, :] = np.zeros(len(osl.wavelength), dtype=float )
                 kdata += 1
@@ -192,7 +139,6 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
     #filter unbound values
     idx = np.array(_grid.pop('keep'))
 
-    #specs = np.vstack( [specs, osl.wavelength] )
     specs = np.vstack( [specs.compress(idx, axis=0), osl.wavelength] )
     for k in _grid.keys():
             _grid[k] = _grid[k][idx]
@@ -209,7 +155,7 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
     pars.write(outfile, append=True)
 
 
-def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbumps):
+def make_extinguished_grid(stellar_filename, filter_names, avs, rvs, fbumps):
 
     """
     Extinguish and extract fluxes through filters
@@ -233,7 +179,7 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
     #g0.write('small_grid.fits', clobber=True)
 
     # define the extinction law be be used (fixed for now)
-    #extLaw = extinction.RvFbumpLaw()
+    extLaw = extinction.RvFbumpLaw()
 
     # get the min/max R(V) values
     min_Rv = min(rvs)
@@ -302,7 +248,6 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
                 results.grid[key][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = g0.grid[key]
             count += 1
 
-    results.grid.header['filters'] = ' '.join(filter_names)
     return results
 
 
@@ -317,6 +262,109 @@ def test_gen_spectral_grid_from_stellib():
                                    Z=(0.02, 0.004),
                                    bounds=dict(dlogT=0.1, dlogg=0.3))
 
+import eztables
+from ezunits import unit, hasUnit
+
+
+class ezIsoch(isochrone.Isochrone):
+    """ Trying to make something that is easy to manipulate
+    This class is basically a proxy to a table (whatever format works best)
+    and tries to keep things coherent.
+    """
+    def __init__(self, source, interp=False):
+        self.name = '<auto>'
+        self.source = source
+        self._load_table_(self.source)
+        self.ages = np.round(10 ** numpy.unique(self.data['logA']))
+        self.Z    = numpy.round( numpy.unique(self.data['Z']), 6)
+        self.interpolation(interp)
+
+    def selectWhere(self, *args, **kwargs):
+        return self.data.selectWhere(*args, **kwargs)
+
+    def interpolation(self, b=None):
+        if b is not None:
+            self.interp = bool(b)
+        else:
+            return self.interp
+
+    def _load_table_(self, source):
+        self.data = eztables.Table(self.source).selectWhere('*', 'isfinite(logA)')
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None, *args, **kwargs):
+        """ Retrieve isochrone from the original source
+            internal use to adapt any library
+        """
+        if hasUnit(age):
+            _age = int(age.to('yr').magnitude)
+        else:
+            _age = int(age * inputUnit.to('yr').magnitude)
+
+        _logA = np.log10(_age)
+
+        assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
+
+        if (metal is not None) & (FeH is not None):
+            print "Warning: both Z & [Fe/H] provided, ignoring [Fe/H]."
+
+        if metal is None:
+            metal = self.FeHtometal(FeH)
+
+        if self.interpolation():
+            #Do the actual nd interpolation
+
+            #Maybe already exists?
+            if (metal in self.Z) & (_age in self.ages):
+                t = self.selectWhere('*', '(Z == _z) & (logA == _logA)',
+                                          condvars=dict(_z=metal, _logA=_logA))
+                if t.nrows > 0:
+                    return t
+            #apparently not
+            #find 2 closest metal values
+            ca1 = (self.ages <= _age)
+            ca2 = (self.ages > _age)
+            cz1 = (self.Z <= metal)
+            cz2 = (self.Z > metal)
+            if (metal in self.Z):
+                #perfect match in metal, need to find ages
+                if (_age in self.ages):
+                    return self.selectWhere('*',
+                                        '(Z == _z) & (logA == _logA)',
+                                        condvars=dict(_z=metal, _logA=_logA))
+                elif ( True in ca1) & ( True in ca2 ):
+                    # bracket on _age: closest values
+                    a1, a2 = np.log10(max(ages[ca1])), np.log10(min(ages[ca2]))
+                    iso = self.selectWhere('*', '(Z == 0.02) & ( (abs(logA - {}) < 1e-4) | (abs(logA - {}) < 1e-4 )  )'.format(a1, a2) )
+                    if masses is None:
+                        _logM = np.unique(iso['logM'])
+                    else:
+                        _logM = np.log10(masses)
+
+                    #define interpolator
+                    points = np.array([self[k] for k in 'logA logM Z'.split()]).T
+                    values = np.array([ self[k] for k in self.data.keys() ]).T
+                    _ifunc = interpolate.LinearNDInterpolator(points, values)
+
+                    pts = np.array([ (_logA, logMk, metal) for logMk in _logM ])
+                    r = _ifunc(pts)
+                    return eztables.Table(r)
+                else:
+                    raise Exception('Age not covered by the isochrones')
+            elif ( True in cz1 ) & ( True in cz2 ):
+                #need to find closest Z
+                pass
+            return
+        else:
+            # find the closest match
+            _Z = self.Z[((metal - self.Z) ** 2).argmin()]
+            _logA = np.log10(self.ages[((_age - self.ages) ** 2).argmin()])
+            return self.data.selectWhere('*',
+                                  '(Z == _z) & (logA == _logA)',
+                                  condvars=dict(_z=_Z, _logA=_logA))
+
 
 if __name__ == '__main__':
 
@@ -328,8 +376,7 @@ if __name__ == '__main__':
     spectral_grid_fname = 'kurucz2004.spectral.grid.fits'
 
     # a photometric grid precomputing attenuation values as well
-    #    sed_grid_fname = spectral_grid_fname.replace('spectral', 'seds')
-    sed_grid_fname = 'fbump_only.fits'
+    sed_grid_fname = spectral_grid_fname.replace('spectral', 'seds')
 
     # define filters for the grid
     filter_names  = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
@@ -341,13 +388,12 @@ if __name__ == '__main__':
     # Z              = (0.02, 0.004)
     ages           = 10 ** numpy.arange(6., 9. + __tiny_delta__, 0.1)
     masses         = 10 ** numpy.arange(0.5, 20 + __tiny_delta__, 0.1)
-    Z              = (0.02)
+    Z              = (0.02, 0.004)
     # grid spacing for dust
     # variable to ensure that range is fully covered in using numpy.arange
     avs            = numpy.arange(0.0, 5.0 + __tiny_delta__, 0.1)
     rvs            = numpy.arange(1.0, 6.0 + __tiny_delta__, 0.5)
-    fbumps         = numpy.asarray([1.0])
-    #fbumps         = numpy.arange(0.0, 1. + __tiny_delta__, 0.1)
+    fbumps         = numpy.arange(0.0, 1. + __tiny_delta__, 0.1)
     #avs            = numpy.arange(0.0, 5.0 + __tiny_delta__, 1.)
     #rvs            = numpy.arange(1.0, 6.0 + __tiny_delta__, 1.)
     #fbumps         = numpy.arange(0.0, 1. + __tiny_delta__, 0.5)
@@ -356,7 +402,7 @@ if __name__ == '__main__':
     bounds = dict(dlogT=0.1, dlogg=0.3)
 
     #make the spectral grid
-    #gen_spectral_grid_from_stellib(spectral_grid_fname, osl, oiso, ages=ages, masses=masses, Z=Z, bounds=bounds)
+    gen_spectral_grid_from_stellib(spectral_grid_fname, osl, oiso, ages=ages, masses=masses, Z=Z, bounds=bounds)
 
     # make the grid
     extgrid = make_extinguished_grid(spectral_grid_fname, filter_names, avs, rvs, fbumps)
