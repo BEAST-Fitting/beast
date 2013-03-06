@@ -1,18 +1,18 @@
 """ Trying to speed up the photometry part """
 
-from config import __NTHREADS__
-from config import __USE_NUMEXPR__
+from ..config import __NTHREADS__
+from ..config import __USE_NUMEXPR__
 if __USE_NUMEXPR__:
     import numexpr
     numexpr.set_num_threads(__NTHREADS__)
 
 import numpy
 import tables
-import grid
-
-from tools.decorators import timeit
-from config import __ROOT__
 from scipy.integrate import simps
+
+
+from ..tools.decorators import timeit
+from ..config import __ROOT__
 
 __default__      = __ROOT__ + '/libs/filters.hd5'
 __default_vega__ = __ROOT__ + '/libs/vega.hd5'
@@ -195,14 +195,17 @@ def extractSEDs(g0, flist, absFlux=True):
         seds[:, e] = a / k.lT
         cls[e] = k.cl
 
-    memgrid = grid.MemoryGrid(cls, seds, g0.grid)
-    return memgrid
+    #memgrid = grid.MemoryGrid(cls, seds, g0.grid)
+    #return memgrid
+    return cls, seds, g0.grid
 
 
 def test(absFlux=True):
     """ Test units """
     gridfile = 'libs/stellib_kurucz2004_padovaiso.spectralgrid.fits'
     filter_names = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
+
+    from . import grid
 
     #Load the initial model grid
     with timeit('Loading Grid, %s' % gridfile):

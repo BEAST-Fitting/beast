@@ -1,7 +1,7 @@
 __version__ = '0.1dev'
 
-from .config import __NTHREADS__
-from .config import __USE_NUMEXPR__
+from ..config import __NTHREADS__
+from ..config import __USE_NUMEXPR__
 if __USE_NUMEXPR__:
     import numexpr
     numexpr.set_num_threads(__NTHREADS__)
@@ -15,7 +15,7 @@ from numpy import log, log10, exp
 from . import stellib
 from . import extinction
 from . import photometry
-from tools.decorators import timeit
+from ..tools.decorators import timeit
 
 
 def fluxToMag(flux):

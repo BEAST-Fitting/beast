@@ -11,14 +11,14 @@ __version__ = '0.3dev'
 
 import numpy
 import pyfits
-import progressbar
 import numpy as np
+from matplotlib.nxutils import points_inside_poly
+from ..tools import progressbar
 from . import grid
 from . import stellib
 from . import isochrone
-from .external import mytables
-from .external import ezunits
-from matplotlib.nxutils import points_inside_poly
+from ..external import mytables
+from ..external import ezunits
 
 
 def get_radius(logl, logt):

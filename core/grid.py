@@ -6,7 +6,7 @@ import pyfits
 from . import phot
 #from . import isochrone
 from . import extinction
-from .external.eztables import Table
+from ..external.eztables import Table
 
 #from tools.decorators import timeit
 
@@ -110,7 +110,7 @@ class SpectralGrid(ModelGrid):
             else:
                 self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
                 r = self
-        memgrid = phot.extractSEDs(self, flist, absFlux=absFlux)
+        memgrid = MemoryGrid(phot.extractSEDs(self, flist, absFlux=absFlux))
         setattr(memgrid, 'filters', _fnames)
         return memgrid
 
