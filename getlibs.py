@@ -4,7 +4,7 @@
 
 import os
 import urllib2
-from .tools import progressbar as pb
+from tools import progressbar as pb
 from config import libs_server, libs, __ROOT__
 
 libsdir = __ROOT__ + '/libs/'

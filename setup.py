@@ -1,11 +1,11 @@
-import anased
+import core
 from distutils.core import setup
 
 
 setup(
-    name="anased",
-    version=anased.__version__,
-    author="Morgan Fouesneau",
+    name="SED STELLAR NUTS CRACKER",
+    version=core.__version__,
+    author="Morgan Fouesneau, TBU",
     author_email="mfouesn@uw.edu",
     #py_modules=["anaclust"],
     description="Bayesian integrated SED Fitting",
