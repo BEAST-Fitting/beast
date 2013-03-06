@@ -11,9 +11,9 @@ from numpy import interp
 from numpy import log10
 from scipy import interpolate
 import tables
-from .external.eztables import Table
-from .external.ezunits import unit, hasUnit
-from .config import __ROOT__
+from ..external.eztables import Table
+from ..external.ezunits import unit, hasUnit
+from ..config import __ROOT__
 
 
 class Isochrone(object):

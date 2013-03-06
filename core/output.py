@@ -1,6 +1,6 @@
-from .external.eztables import Table
+from ..external.eztables import Table
 import numpy as np
-import grid
+from . import grid
 
 
 def weighted_percentile(data, wt, percentiles):

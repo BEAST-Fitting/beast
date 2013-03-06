@@ -2,7 +2,7 @@
 from functools import wraps
 import numpy
 import tables
-from config import __ROOT__
+from ..config import __ROOT__
 
 
 class Vega(object):

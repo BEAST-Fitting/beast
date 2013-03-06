@@ -7,21 +7,18 @@ sources.
 The interpolation is impletmented from the pegase.2 fortran converted algorithm.
 (this may not be pythonic though)
 
-
+TODO: ugly redef of __interp__ to be cleaned up
 """
 import numpy
 #from numpy import interp
 import pyfits
-from .external.eztables import Table
+from ..external.eztables import Table
 from . import grid
-from .config import __ROOT__
-
-
-from config import __WITH_C_LIBS__, __NTHREADS__
+from ..config import __ROOT__, __WITH_C_LIBS__, __NTHREADS__
 
 try:
     assert(__WITH_C_LIBS__), "Python code requested in config.py"
-    from include.interp import __interp__ as __cinterp__
+    from ..include.interp import __interp__ as __cinterp__
 
     def __interp__(T0, g0, T, g, dT_max=0.1, eps=1e-6):
         """
