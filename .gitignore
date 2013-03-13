@@ -20,3 +20,4 @@ develop-eggs
 libs/*
 Tests/*
 .rope*
+junks/*
