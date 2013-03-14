@@ -7,7 +7,7 @@ if __USE_NUMEXPR__:
     numexpr.set_num_threads(__NTHREADS__)
 else:
     #import numpy ufunc (c-coded for speed-up)
-    from numpy import subtract, divide, power
+    from numpy import subtract, divide, power, add
 
 import numpy
 from numpy import log, log10, exp
@@ -80,16 +80,16 @@ def getFluxAttenuation(law, lamb, **kwargs):
 
 
 def computeChi2(flux, fluxerr, fluxmod):
-    """ Compute the non-reduced chi2 between data with uncertainties and
+    """ compute the non-reduced chi2 between data with uncertainties and
         perfectly known models
-    INPUTS:
+    inputs:
         flux    np.ndarray[float, ndim=1]   array of fluxes
         fluxerr np.ndarray[float, ndim=1]   array of flux errors
-        fluxmod np.ndarray[float, ndim=2]   array of modeled fluxes (Nfilters , Nmodels)
-    OUTPUTS:
-        chi2    np.ndarray[float, ndim=1]   array of chi2 values (Nmodels)
+        fluxmod np.ndarray[float, ndim=2]   array of modeled fluxes (nfilters , nmodels)
+    outputs:
+        chi2    np.ndarray[float, ndim=1]   array of chi2 values (nmodels)
 
-    Note: using ufunc because ufuncs are written in C (for speed) and linked into NumPy.
+    note: using ufunc because ufuncs are written in c (for speed) and linked into numpy.
     """
     # make sure errors are not null
     fluxerr[fluxerr == 0.] = 1.
@@ -100,7 +100,7 @@ def computeChi2(flux, fluxerr, fluxmod):
         return power( divide( subtract(flux[None, :], fluxmod), fluxerr[None, :]), 2.).sum(axis=1)
 
 
-def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None, lnp_threshold=50.):
+def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None, lnp_threshold=1000.):
     """ Compute the log of the chi2 likelihood between data with uncertainties and
         perfectly known models
     INPUTS:
@@ -167,9 +167,138 @@ def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None, lnp_thr
         lnp = chi2
 
     if __USE_NUMEXPR__:
-        return numexpr.evaluate('where( (lnp < -1000), -1000, lnp)', local_dict={'lnp': lnp})
+        return numexpr.evaluate('where( (lnp < -thresh), -thresh, lnp)', local_dict={'lnp': lnp, 'thresh': lnp_threshold})
     else:
-        lnp[ lnp < -1000] = -1000
+        lnp[ lnp < -lnp_threshold] = -lnp_threshold
+        return lnp
+
+
+def computeChi2WithASTs(flux, fluxerr, fluxmod, ASTs_bias, ASTs_err):
+    """ compute the non-reduced chi2 between data with uncertainties and
+        perfectly known models
+    inputs:
+        flux    np.ndarray[float, ndim=1]   array of fluxes
+        fluxerr np.ndarray[float, ndim=1]   array of flux errors
+        fluxmod np.ndarray[float, ndim=2]   array of modeled fluxes (nfilters , nmodels)
+        ASTs_bias   np.ndarray[float, ndim=2]   array of modeled photometry biases (Nfilters , Nmodels)
+        ASTs_err    np.ndarray[float, ndim=2]   array of modeled photometry errors (Nfilters , Nmodels)
+    outputs:
+        chi2    np.ndarray[float, ndim=1]   array of chi2 values (nmodels)
+
+    Using ASTs models:
+
+        chi2 = (flux - (fluxmod + ASTs_bias) ) **2 / (fluxerr ** 2 + ASTs_err ** 2)
+
+    note: using ufunc because ufuncs are written in c (for speed) and linked into numpy.
+    """
+    # make sure errors are not null
+    fluxerr[fluxerr == 0.] = 1.
+    if __USE_NUMEXPR__:
+        return numexpr.evaluate('sum(( (flux - fluxmod - ASTs_bias) ** 2 / (fluxerr ** 2 + ASTs_err ** 2), axis=1)',
+                                local_dict={'flux': flux, 'fluxmod': fluxmod, 'fluxerr': fluxerr,
+                                            'ASTs_bias': ASTs_bias, 'ASTs_err': ASTs_err})
+    else:
+        # Trying to avoid multiple copies of arrays by using a defined one and
+        # working inplace as much as possible
+        # Worth trying and maybe porting to the chi2 without ASTs
+
+        #numerator: df ** 2
+        tmpu = numpy.empty(len(fluxmod), dtype=float)
+        add(fluxmod, ASTs_bias, tmpu)
+        subtract(flux[None, :], tmpu, tmpu)
+        power(tmpu, 2, tmpu)
+
+        #denom: err ** 2
+        tmpb = numpy.empty(len(fluxmod), dtype=float)
+        power(ASTs_err, 2, tmpb)
+        add( power(fluxerr, 2)[None, :], tmpb, tmpb)
+
+        #ratio
+        divide( tmpu, tmpb, tmpu )
+        return tmpu.sum(axis=1)
+
+
+def computeLogLikelihoodWithASTs(flux, fluxerr, fluxmod, ASTs_bias, ASTs_err, normed=False, mask=None, lnp_threshold=1000.):
+    """ Compute the log of the chi2 likelihood between data with uncertainties and
+        perfectly known models
+    INPUTS:
+        flux        np.ndarray[float, ndim=1]   array of fluxes
+        fluxerr     np.ndarray[float, ndim=1]   array of flux errors
+        fluxmod     np.ndarray[float, ndim=2]   array of modeled fluxes (Nfilters , Nmodels)
+        ASTs_bias   np.ndarray[float, ndim=2]   array of modeled photometry biases (Nfilters , Nmodels)
+        ASTs_err    np.ndarray[float, ndim=2]   array of modeled photometry errors (Nfilters , Nmodels)
+    KEYWORDS:
+        normed      bool                        if set normalize the result
+        mask        np.ndarray[bool, ndim=1]    mask array to apply during the calculations
+                                                mask.shape = flux.shape
+        lnp_threshold   float                   cut the values outside -x, x in lnp
+    OUTPUTS:
+        ln(L)   np.ndarray[float, ndim=1]   array of ln(L) values (Nmodels)
+
+        with L = 1/[sqrt(2pi) * sig**2 ] * exp ( - 0.5 * chi2 )
+             L propto  exp ( - 0.5 * chi2 )
+
+    Using ASTs models the uncertainties differently:
+
+        chi2 = (flux - (fluxmod + ASTs_bias) ) **2 / (fluxerr ** 2 + ASTs_err ** 2)
+
+
+    Note: using ufunc because ufuncs are written in C (for speed) and linked into NumPy.
+
+    TODO: function(s) that creates ASTs bias and error from raw ASTs.
+    """
+    if __USE_NUMEXPR__:
+        fluxerr = numexpr.evaluate('where((fluxerr==0.), 1., fluxerr)', local_dict={'fluxerr': fluxerr})
+        flux = numexpr.evaluate('where((flux==0.), 1e-5, flux)', local_dict={'flux': flux})
+    else:
+        fluxerr[fluxerr == 0.] = 1.
+        flux[flux == 0.] = 1e-5
+    # ASTs values could be 0 without numerical problems.
+
+    if not mask is None:
+        _m   = ~mask
+        dof = _m.sum()
+        if __USE_NUMEXPR__:
+            chi2 = numexpr.evaluate('- 0.5 / b * a', local_dict={'a': computeChi2WithASTs( flux[_m], fluxerr[_m], fluxmod[:, _m], ASTs_bias[:, _m], ASTs_err[:, _m] ), 'b': dof})
+        else:
+            chi2 = - 0.5 / dof * computeChi2WithASTs( flux[_m], fluxerr[_m], fluxmod[:, _m], ASTs_bias[:, _m], ASTs_err[:, _m] )
+
+    else:
+        dof = len(flux)
+        if __USE_NUMEXPR__:
+            chi2 = numexpr.evaluate('- 0.5 / b * a', local_dict={'a': computeChi2WithASTs( flux, fluxerr, fluxmod, ASTs_bias, ASTs_err ), 'b': dof})
+        else:
+            chi2 = - 0.5 / dof * computeChi2WithASTs( flux, fluxerr, fluxmod, ASTs_bias, ASTs_err )
+
+    #taking care of possible overflows...
+    #if __USE_NUMEXPR__:
+    #    chi2 = numexpr.evaluate('where( (chi2 > lim), lim,chi2)', local_dict={'chi2': chi2, 'lim': lnp_threshold})
+    #    chi2 = numexpr.evaluate('where( (chi2 < -lim), -lim,chi2)', local_dict={'chi2': chi2, 'lim': lnp_threshold})
+    #else:
+    #    chi2 = numpy.clip( chi2, -lnp_threshold, lnp_threshold )
+
+    if normed is True:
+        if __USE_NUMEXPR__:
+            expchi2 = numexpr.evaluate('exp(chi2)', local_dict={'chi2': chi2})
+            # not really sure take works as expected with the inf values...
+            # if it does, then if I follow the documentation we only need:
+            # expchi2 = expchi2.take(numpy.isfinite(expchi2), mode='clip')
+            expchi2[numpy.isinf(expchi2)] = expchi2.take(numpy.isfinite(expchi2), mode='clip').max()
+        else:
+            expchi2 = exp(chi2)
+            expchi2[numpy.isinf(expchi2)] = expchi2[ numpy.isfinite(expchi2) ].max()
+        psum = expchi2.sum()
+        if __USE_NUMEXPR__:
+            lnp = numexpr.evaluate('chi2 - log(psum)', local_dict={'chi2': chi2, 'psum': psum})
+        else:
+            lnp = chi2 - log(psum)
+    else:
+        lnp = chi2
+
+    if __USE_NUMEXPR__:
+        return numexpr.evaluate('where( (lnp < -thresh), -thresh, lnp)', local_dict={'lnp': lnp, 'thresh': lnp_threshold})
+    else:
+        lnp[ lnp < -lnp_threshold] = -lnp_threshold
         return lnp
 
 
