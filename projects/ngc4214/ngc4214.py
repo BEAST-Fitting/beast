@@ -53,24 +53,24 @@ except ImportError:
 
 import numpy as np
 import tables
-from sedfitter.observations import Observations
-from sedfitter.ezisoch import ezIsoch
-from sedfitter.vega import Vega, from_Vegamag_to_Flux
-from sedfitter.ezpipeline import RequiredFile
-from sedfitter.anased import computeLogLikelihood
-from sedfitter.eztables import AstroTable
-from sedfitter import grid
-from sedfitter import creategrid
-from sedfitter import stellib
-from sedfitter import extinction
-from sedfitter import progressbar
+from sedfitter.core.observations import Observations
+from sedfitter.core.isochrone import ezIsoch
+from sedfitter.core.vega import Vega, from_Vegamag_to_Flux
+from sedfitter.tools.ezpipeline import RequiredFile
+from sedfitter.core.anased import computeLogLikelihood
+from sedfitter.external.eztables import AstroTable
+from sedfitter.core import grid
+from sedfitter.core import creategrid
+from sedfitter.core import stellib
+from sedfitter.core import extinction
+from sedfitter.tools import progressbar
 
 #---------------------------------------------------------
 # Globals                                    [sec:globals]
 #---------------------------------------------------------
 
 
-obsfile = 'data/N4214_3band_detects_sub.fits'
+obsfile = 'data/N4214_3band_detects.fits'
 
 #project = 'mf08_225_336_438_rv31'
 #project = 'mf09_814_110_160_rv31'
@@ -84,7 +84,7 @@ filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
 
 distanceModulus = 27.41
 
-isofile             = 'libs/iso.proposal.fits'
+isofile             = 'sedfitter/libs/iso.proposal.fits'
 lnp_outname         = 'ngc4214_lnp.4bands.zsmc.{}.hd5'.format(project)
 stat_outname        = 'ngc4214_stat.4bands.zsmc.{}.hd5'.format(project)
 res_outname         = 'ngc4214_res.4bands.zsmc.{}.fits'.format(project)
@@ -244,7 +244,7 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-60, outname=lnp_outname):
         with progressbar.PBar(len(obs), txt="Calculating lnp") as pbar:
 
             for tn, (sed, err, mask) in obs.enumobs():
-
+                
                 lnp = computeLogLikelihood(sed, err, sedgrid.seds, normed=False, mask=mask)
 
                 #Need ragged arrays rather than uniform table
@@ -257,6 +257,7 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-60, outname=lnp_outname):
                 outfile.flush()
 
                 pbar.update(tn, force=True)  # Forcing because it can be long to show the first ETA
+
 
 
 #---------------------------------------------------------
@@ -300,7 +301,7 @@ def get_expectation(resfname=lnp_outname,
                         vals = _sedgrid.grid[qk][idx]
                         res[tn, e] = numexpr.evaluate('sum(prob/norm*vals)', local_dict={'vals': vals, 'prob': prob, 'norm': norm})
                 else:  # best
-                    vals = _sedgrid.grid.getRow(idx[lnp.argmax()])
+                    vals = _sedgrid.grid[idx[lnp.argmax()]]
                     for e, qk in enumerate(_Q):
                         res[tn, e] = vals[qk]
                     res[tn, -1] = prob.max() / norm
@@ -686,3 +687,4 @@ def run():
             Q = 'logA logM Av logT logL log10(Pmax)'
             androfig.__figlist__ = list( do_figs(res_outname=__res_outname__, figs=range(10) + [20], Q=Q, project=project))
             androfig.show()
+
