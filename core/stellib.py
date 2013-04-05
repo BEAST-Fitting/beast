@@ -874,6 +874,39 @@ class Kurucz(Stellib):
     def Z(self):
         return self.grid['Z']
 
+class Tlusty(Stellib):
+    """
+    Tlusty O and B stellar atmospheres
+    """
+    def __init__(self, *args, **kwargs):
+        self.name = 'Tlusty'
+        self.source = __ROOT__ + '/libs/tlusty.grid.fits'
+        self._load_()
+
+    def _load_(self):
+        g = grid.FileSpectralGrid(self.source)
+        self.wavelength = g.lamb
+        self.grid = g.grid
+        self.grid.header['NAME'] = 'tlusty'
+        self.spectra = g.seds
+
+    @property
+    def logT(self):
+        return numpy.log10(self.grid['Teff'])
+
+    @property
+    def logg(self):
+        return self.grid['logG']
+
+    @property
+    def Teff(self):
+        return self.grid['Teff']
+
+    @property
+    def Z(self):
+        return self.grid['Z']
+
+
 ## utils for pegase files =======================================
 #import numpy, pyfits
 #

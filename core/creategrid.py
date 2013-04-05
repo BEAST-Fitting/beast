@@ -18,6 +18,7 @@ from . import grid
 from . import stellib
 from . import isochrone
 from ..external import mytables
+from ..external import eztables
 from ..external import ezunits
 
 
@@ -40,10 +41,8 @@ def gen_spectral_grid_from_stellib_given_points(outfile, osl, oiso, pts, bounds=
         outfile str                 fits file to export to
         osl     stellib.stellib     a stellar library
         oiso    isochrone.Isochrone an isochrone library
+        pts     
     KEYWORDS:
-        ages    iterable            list of age points to include in the grid   (in Yr)
-        masses  iterable            list of mass points to include in the grid  (M/Msun)
-        ages    iterable            list of metallicity points to include in the grid (Z/Zsun)
         bounds  dict                sensitivity to extrapolation (see get_stellib_boundaries)
 
     OUTPUTS:
@@ -89,12 +88,10 @@ def gen_spectral_grid_from_stellib_given_points(outfile, osl, oiso, pts, bounds=
                     s = np.array( osl.interp(r['logT'], r['logg'], r['Z'], 0.) ).T
                     specs[mk, :] = osl.genSpectrum(s) * weights[mk]
                 except:
-                    print "error"
-                    specs[mk, :] = np.zeros(len(osl.wavelength), dtype=float )
+                    #print "error"
+                    specs[mk, :] = np.zeros(len(osl.wavelength), dtype=float )                
                     #assert(False)
-            else:
-                specs[mk, :] = np.zeros(len(osl.wavelength), dtype=float )
-
+                    
     #filter unbound values
     idx = np.array(_grid.pop('keep'))
 
@@ -277,13 +274,12 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
 
             # apply extinction and integrate over band response functions
             temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv_MW, f_bump=f_bump)
-
             # setup the output object
             #  must be done after the 1st extraction to get the wavelength vector
             if count is 0:
                 results = grid.MemoryGrid(temp_results.lamb,
                                           seds=numpy.empty( (g0.grid.nrows * npts, len(filter_names)) ),
-                                          grid=mytables.Table(iterable=cols, header=g0.grid.header) )
+                                          grid=eztables.Table(cols) )
 
             # assign the extinguished SEDs to the output object
             results.seds[g0.grid.nrows * count: g0.grid.nrows * (count + 1)] = temp_results.seds
@@ -292,13 +288,13 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
             del temp_results
 
             # adding the dust parameters to the models
-            results.grid['Av'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = Av
-            results.grid['Rv'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = Rv
-            results.grid['f_bump'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = f_bump
+            results.grid.data['Av'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = Av
+            results.grid.data['Rv'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = Rv
+            results.grid.data['f_bump'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = f_bump
 
             # the rest of the parameters
             for key in g0.keys():
-                results.grid[key][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = g0.grid[key]
+                results.grid.data[key][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = g0.grid[key]
             count += 1
 
     results.grid.header['filters'] = ' '.join(filter_names)
@@ -317,7 +313,7 @@ def test_gen_spectral_grid_from_stellib():
                                    bounds=dict(dlogT=0.1, dlogg=0.3))
 
 
-if __name__ == '__main__':
+def main():
 
     #select the stellar library and the isochrones to use
     osl = stellib.Kurucz()

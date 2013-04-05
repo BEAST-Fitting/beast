@@ -118,7 +118,7 @@ class Observations(object):
 
     def readData(self):
         """ read the dataset from the original source file """
-        from eztables import AstroTable
+        from ..external.eztables import AstroTable
         self.data = AstroTable(self.inputFile)
 
     def iterobs(self):

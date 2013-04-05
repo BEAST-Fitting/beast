@@ -106,7 +106,7 @@ class SpectralGrid(ModelGrid):
         if extLaw is not None:
             if not inplace:
                 r = self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
-                return phot.extractSEDs(r, flist, absFlux=absFlux)
+                #return phot.extractSEDs(r, flist, absFlux=absFlux)
             else:
                 self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
                 r = self
