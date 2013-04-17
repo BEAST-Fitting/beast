@@ -131,11 +131,12 @@ class Observations(object):
 
 
 class FakeObs(Observations):
-
+    
     def getObs(self, num=0, err=0.05):
         assert ( self.filters is not None), "No filter set."
         mags = self.getMags(num, self.filters)
-        errs = numpy.ones(len(mags), dtype=float) * err
+        #errs = numpy.ones(len(mags), dtype=float) * err
+        errs = self.getErrors(num, self.filters)
         if self.badvalue is not None:
             mask = (mags >= self.badvalue)
         else:
@@ -147,3 +148,29 @@ class FakeObs(Observations):
         """ read the dataset from the original source file """
         from ..external.eztables import Table
         self.data = Table(self.inputFile)
+
+    
+def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, distanceModulus=0., filters=None, save=None):
+    from ..external.eztables import Table
+    import grid
+    if type(sedgrid)==str:
+        sedgrid = grid.FileSEDGrid(sedgrid)
+
+    
+    inds = numpy.random.randint(0, high=sedgrid.grid.nrows, size=nrows)
+    obsTab = Table()
+    if filters==None:
+        filters = sedgrid.grid.header.FILTERS.split()
+    for e, filt in enumerate(filters):
+        errs = numpy.random.normal(loc=0., scale=err, size=nrows)
+        obsTab.addCol(filt, (1.+errs) * sedgrid.seds[inds,e])
+        obsTab.addCol(filt+'err', err * sedgrid.seds[inds,e])
+    for key in sedgrid.grid.keys():
+        obsTab.addCol(key, sedgrid.grid[key][inds])
+    
+
+    if save==None:
+        return obsTab
+    else:
+        obsTab.write(save, clobber=True, append=False)
+        

@@ -106,11 +106,11 @@ class SpectralGrid(ModelGrid):
         if extLaw is not None:
             if not inplace:
                 r = self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
-                #return phot.extractSEDs(r, flist, absFlux=absFlux)
+                lamb, seds, grid = phot.extractSEDs(r, flist, absFlux=absFlux)
             else:
                 self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
                 r = self
-        lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
+                lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
         memgrid = MemoryGrid(lamb, seds, grid)
         setattr(memgrid, 'filters', _fnames)
         return memgrid

@@ -287,7 +287,7 @@ class ezIsoch(Isochrone):
         self.name = '<auto>'
         self.source = source
         self._load_table_(self.source)
-        self.logages = np.unique(np.round(self.data['logA'], 6))  # round because of precision noise
+	self.logages = np.unique(np.round(self.data['logA'], 6))  # round because of precision noise
         self.ages = np.round(10 ** self.logages)
         self.Z    = np.unique(np.round(self.data['Z'], 6))
         self.interpolation(interp)

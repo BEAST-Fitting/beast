@@ -54,7 +54,7 @@ except ImportError:
 import numpy as np
 import tables
 from sedfitter.core.observations import Observations
-from sedfitter.core.isochrone import ezIsoch
+from sedfitter.core.isochrone import ezIsoch, padova2010
 from sedfitter.core.vega import Vega, from_Vegamag_to_Flux
 from sedfitter.tools.ezpipeline import RequiredFile
 from sedfitter.core.anased import computeLogLikelihood
@@ -64,32 +64,40 @@ from sedfitter.core import creategrid
 from sedfitter.core import stellib
 from sedfitter.core import extinction
 from sedfitter.tools import progressbar
+from sedfitter.tools import binningAxis
 
 #---------------------------------------------------------
 # Globals                                    [sec:globals]
 #---------------------------------------------------------
 
 
-obsfile = 'data/N4214_3band_detects.fits'
+#obsfile = 'data/N4214_3band_detects_arbitrary_sub.fits'
+obsfile = 'data/fakeobs_1.fits'
 
 #project = 'mf08_225_336_438_rv31'
 #project = 'mf09_814_110_160_rv31'
-project = 'mf10_allfilters_rv31'
+project = 'fakeobs_1'
 
-filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
-           'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+#filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
+#           'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 #filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W']
 #filters = ['HST_WFC3_F438W', 'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 #filters = ['HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+filters = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
 distanceModulus = 27.41
 
+subproject = 'flatten'
+
 isofile             = 'sedfitter/libs/iso.proposal.fits'
-lnp_outname         = 'ngc4214_lnp.4bands.zsmc.{}.hd5'.format(project)
-stat_outname        = 'ngc4214_stat.4bands.zsmc.{}.hd5'.format(project)
-res_outname         = 'ngc4214_res.4bands.zsmc.{}.fits'.format(project)
-spectral_grid_fname = 'ngc4214.zsmc.{}.spectral.iso.fits'.format(project)
-sed_grid_fname      = 'ngc4214.zsmc.{}.sed.grid.fits'.format(project)
+#isofile             = 'sedfitter/libs/padova2010.iso.fits'
+lnp_outname         = project+ '/lnp.{}.hd5'.format(project)
+stat_outname        = project+'/stat.{}.hd5'.format(project)
+res_outname         = project+'/res.{}.fits'.format(subproject)
+spectral_grid_fname = 'ngc4214.zsmc.spectral.grid.fits'
+sed_grid_fname      = 'ngc4214.zsmc.sed.grid.fits'
+#spectral_grid_fname = 'sedfitter/libs/kurucz.proposal.spectral.grid.fits'
+#sed_grid_fname = 'sedfitter/libs/kurucz.proposal.sed.grid.fits'
 
 #---------------------------------------------------------
 # Data interface                                [sec:data]
@@ -133,11 +141,12 @@ class Data(Observations):
             err[ err < self.minError ] = self.minError
         return err
 
-obs = Data(obsfile, distanceModulus)
+#obs = Data(obsfile, distanceModulus)
+obs = Observations(obsfile)
 obs.setFilters(filters)
-for k in filters:
-    obs.data.set_alias(k, k.split('_')[-1] + '_VEGA')
-    obs.data.set_alias(k + 'err', k.split('_')[-1] + '_ERR')
+#for k in filters:
+#    obs.data.set_alias(k, k.split('_')[-1] + '_VEGA')
+#    obs.data.set_alias(k + 'err', k.split('_')[-1] + '_ERR')
 
 
 #---------------------------------------------------------
@@ -150,6 +159,7 @@ for k in filters:
 extLaw = extinction.RvFbumpLaw()
 osl = stellib.Kurucz()
 oiso = ezIsoch(isofile)
+#oiso = padova2010()
 
 # Grid sampling definition               [sec:models:grid]
 #---------------------------------------------------------
@@ -161,8 +171,8 @@ ages   = 10 ** np.arange(6., 9. + __tiny_delta__, 0.1)
 masses = 10 ** np.arange(-0.1, 2. + __tiny_delta__, 0.01)
 Z      = np.asarray([0.004])
 avs    = np.arange(0.0, 5.0 + __tiny_delta__, 0.1)
-#rvs    = np.arange(2.0, 3.5 + __tiny_delta__, 0.5)
-rvs    = np.asarray([3.1])
+rvs    = np.arange(2.8, 3.4 + __tiny_delta__, 0.1)
+#rvs    = np.asarray([3.1])
 fbumps = np.asarray([1.0])
 
 griddef = (ages, masses, Z, avs, rvs, fbumps)
@@ -267,7 +277,7 @@ def get_expectation(resfname=lnp_outname,
                     sedgrid=None,
                     obs=obs,
                     valuetype='expect',
-                    Q='logA logM Z Av Rv f_bump logT logg logL'):
+                    Q='logA logM Z Av Rv f_bump logT logg logL', flatten=False):
     import numexpr
     if valuetype not in ['expect', 'best']:
         raise ValueError("Valuetype must be in [expect, best], got %s" % valuetype)
@@ -285,10 +295,19 @@ def get_expectation(resfname=lnp_outname,
     else:
         _Q = Q
 
+    binAx_dict = {}
+    for q in _Q:
+        span = _sedgrid.grid[q].max() - _sedgrid.grid[q].min()
+        bin_edges = np.linspace(_sedgrid.grid[q].min()-(0.05*span), _sedgrid.grid[q].max()+(0.05*span), 20)
+        if q=='logM' or q=='logT' or q=='logL':
+            binAx_dict[q] = binningAxis.binningAxis(_sedgrid, q, bin_edges, var_spacing='rect', fixed_key='logA')
+        else:
+            binAx_dict[q] = binningAxis.binningAxis(_sedgrid, q, bin_edges, var_spacing='fixed')
+    
     with tables.openFile(resfname) as hdf:
         n_stars = hdf.root._v_nchildren - 2
-        # +1 for the peak value
-        res = np.empty((n_stars, len(_Q) + 1), dtype=float)
+        # +2 for the peak value and integrated probability
+        res = np.empty((n_stars, len(_Q) + 2), dtype=float)
         with progressbar.PBar(n_stars, txt='expectations') as pbar:
             for tn in range(n_stars):
                 star_node = hdf.getNode('/star_%d'  % tn)
@@ -298,26 +317,30 @@ def get_expectation(resfname=lnp_outname,
                 norm = numexpr.evaluate('sum(prob)', local_dict={'prob': prob})
                 if valuetype == 'expect':
                     for e, qk in enumerate(_Q):
-                        vals = _sedgrid.grid[qk][idx]
-                        res[tn, e] = numexpr.evaluate('sum(prob/norm*vals)', local_dict={'vals': vals, 'prob': prob, 'norm': norm})
+                        #vals = _sedgrid.grid[qk][idx]
+                        #res[tn, e] = numexpr.evaluate('sum(prob/norm*vals)', local_dict={'vals': vals, 'prob': prob, 'norm': norm})
+                        res[tn, e] = binAx_dict[qk].project(prob, inds=idx, to_return='expectation', flatten=flatten)
                 else:  # best
-                    vals = _sedgrid.grid[idx[lnp.argmax()]]
+                    #vals = _sedgrid.grid[idx[lnp.argmax()]]
                     for e, qk in enumerate(_Q):
-                        res[tn, e] = vals[qk]
-                    res[tn, -1] = prob.max() / norm
-
+                        res[tn, e] = binAx_dict[qk].project(prob, inds=idx, to_return='max')
+                res[tn, -1] = prob.max() / norm
+                res[tn, -2] = binAx_dict[_Q[0]].project(prob, inds=idx, to_return='total', flatten=False)
                 pbar.update(tn, force=True)
 
     d = {}
     for e, k in enumerate(_Q):
         d[k] = res[:, e]
-    d['Pmax'] = res[:, -1]
-    t = AstroTable(d)  # add RA, DEC tools
 
+    d['Pmax'] = res[:, -1]
+    d['Ptot'] = res[:, -2]
+    t = AstroTable(d)  # add RA, DEC tools
     #adding original values
     for k in obs.data.keys()[::-1]:
-        t.addCol(k, obs.data[k], position=0)
-
+        try:
+            t.addCol(k, obs.data[k], position=0)
+        except:
+            pass
     return t
 
 
@@ -639,11 +662,11 @@ def do_fit():
     fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname=lnp_outname)
 
 
-def do_expectations():
+def do_expectations(Q='Av Rv logT logL', flatten=False):
     with RequiredFile(lnp_outname,
                     do_fit) as __lnp_outname__:
-        t = get_expectation(resfname=__lnp_outname__, valuetype='best')
-        t.write(res_outname)
+        t = get_expectation(resfname=__lnp_outname__, valuetype='expect', Q=Q, flatten=flatten)
+        t.write(res_outname, clobber=True, append=False)
 
 
 def do_figs(project=project, res_outname=res_outname, figs=range(10), Q='logA logM Av logT logL log10(Pmax)', fmt='png', **kwargs):
@@ -659,7 +682,7 @@ def do_figs(project=project, res_outname=res_outname, figs=range(10), Q='logA lo
     print 'saving figures'
     for e, k in enumerate(_figs):
         for fk in _fmt:
-            k.savefig('{}_{}.{}'.format(project, e, fk))
+            k.savefig('{}/{}_{}.{}'.format(project, project, e, fk))
     return _figs
 
 
@@ -677,6 +700,11 @@ def do_figs_previous_project(logfile, figs=range(10) + [20], Q='logA logM Av log
             androfig.__figlist__ = list(_figs)
             androfig.show()
 
+def do_fake_figs(inpath=obsfile,outpaths=[res_outname],labels=[project],Q='Av Rv logM logA',show=True, save=None):
+    import fake_figs
+    fake_figs.plot_keys(Q, inpath, outpaths, labels, show=show)
+    if save is not None:
+        fake_figs.plt.savefig(save)
 
 def run():
     gen_log_description()
@@ -684,7 +712,12 @@ def run():
         do_expectations()
     else:
         with RequiredFile(res_outname, do_expectations) as __res_outname__:
-            Q = 'logA logM Av logT logL log10(Pmax)'
+            Q = 'logA logM Rv Av logT logL log10(Pmax)'
             androfig.__figlist__ = list( do_figs(res_outname=__res_outname__, figs=range(10) + [20], Q=Q, project=project))
             androfig.show()
 
+if __name__ == '__main__':
+    #do_fit()
+    do_expectations(Q = 'logL', flatten=True)
+    #do_fake_figs( Q= 'Av Rv f_bump logL logT', outpaths=[project+'/res.no_flatten.fits',project+'/res.flatten.fits'], labels=['no_flatten', 'flatten'])
+    #do_figs(Q='logT logL Av Rv 1/(1+1/Ptot)')

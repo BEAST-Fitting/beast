@@ -218,7 +218,6 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
         Rv_vals     numpy array    Rv values to iterate over
         f_bump_vals numpy array    f_bump values to iterate over
     """
-
     # get the stellar grid (no dust)
     g0 = grid.FileSpectralGrid(stellar_filename)
 
@@ -235,6 +234,8 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
     min_Rv = min(rvs)
     max_Rv = max(rvs)
 
+
+    
     # create mesh from input 1d vectors
     Av_vals, Rv_vals, f_bump_vals = numpy.ix_(avs, rvs, fbumps)
 
@@ -264,7 +265,7 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
     with progressbar.PBar(npts, txt='SED grid') as Pbar:
         for Av, Rv, f_bump in pts:
             # info showing program is running
-            Pbar.update(count)
+            Pbar.update(count, force=True)
 
             # compute R(V)^MW to return the Rv requested
             if f_bump > 0.:

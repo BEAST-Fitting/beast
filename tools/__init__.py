@@ -3,4 +3,4 @@ import figure
 import progressbar
 import contextManagers
 import ezpipeline
-__all__ = 'decorators figure progressbar contextManagers ezpipeline'.split()
+__all__ = 'decorators figure progressbar contextManagers ezpipeline binningAxis'.split()
