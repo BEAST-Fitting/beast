@@ -247,7 +247,7 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
     #  duplicates effort for all A(V) values, but it is quick compared to other steps
     # Note on 2.74: Bumpless extinction implies f_bump = 0. and Rv = 2.74
     pts = [ (float(ak), float(rk), float(fk)) for ak, rk, fk in it \
-           if fk * min_Rv + (1. - fk) * 2.74 <= rk <= fk * max_Rv + (1. - fk) * 2.74 ]
+            if fk / max_Rv + (1. - fk) / 2.74 <= 1./rk <= fk * 1./min_Rv + (1. - fk)/2.74]
     npts = len(pts)
 
     print 'n possible = ', niter
@@ -269,7 +269,7 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
 
             # compute R(V)^MW to return the Rv requested
             if f_bump > 0.:
-                Rv_MW = (Rv - (1. - f_bump) * 2.74) / f_bump
+                Rv_MW = 1./(1./(Rv*f_bump) - (1. - f_bump)/(f_bump*2.74))
             else:
                 Rv_MW = 2.74  # doesn't matter
 
