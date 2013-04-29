@@ -1,3 +1,6 @@
 [submodule "external/eztables"]
 	path = external/eztables
 	url = git@github.com:mfouesneau/eztables.git
+[submodule "external/gz"]
+	path = external/gz
+	url = git@chex.astro.washington.edu:gz.git
