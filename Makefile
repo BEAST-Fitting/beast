@@ -8,6 +8,16 @@ DIRS = include
 TAR  = sourcecode.tar.gz
 
 
+gitdeps:
+	git submodule init
+	git submodule update --recursive
+
+gitmain:
+	git pull
+
+gitbuild: gitdeps gitmain
+
+
 extern: build
 	for d in $(DIRS); do (cd $$d; $(MAKE) build );done
 
