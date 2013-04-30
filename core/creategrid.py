@@ -107,7 +107,7 @@ def gen_spectral_grid_from_stellib_given_points(outfile, osl, oiso, pts, bounds=
     pars.header['stellib'] = osl.source
     pars.header['isoch'] = oiso.source
     pars.setUnit('radius', 'Rsun')
-
+    #assert(False)
     pyfits.writeto(outfile, specs, clobber=True)
     pars.write(outfile, append=True)
 
@@ -203,6 +203,28 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
 
     pyfits.writeto(outfile, specs, clobber=True)
     pars.write(outfile, append=True)
+
+def merge_spectral_grids(preferred_fname, alt_fname, outname):
+    """
+    Combine two spectral grids using points from pref_grid wherever available and
+    points from alt_grid elsewhere.
+    INPUTS:
+        preferred_fname   string    Name of preferred spectral grid
+        alt_fname         string    Name of spectral grid to use where preferred grid has no coverage
+        outname           string    What to save the output as
+    
+    """
+    alt_grid = grid.FileSpectralGrid(alt_fname)
+    pref_grid = grid.FileSpectralGrid(preferred_fname)
+
+    alt_inds = np.where((np.in1d(alt_grid.logL, pref_grid.logL)==False)*(np.in1d(alt_grid.logg, pref_grid.logg)==False))[0]
+
+    tab = eztables.Table()
+    for key in pref_grid.grid.keys():
+        tab.addCol(key, np.hstack([alt_grid.grid[key][alt_inds], pref_grid.grid[key]]))
+
+    merged = grid.MemoryGrid(pref_grid.lamb, seds=np.vstack([alt_grid.seds[alt_inds],pref_grid.seds]), grid=tab)
+    merged.write(outname, clobber=True)
 
 
 def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbumps):
@@ -359,3 +381,47 @@ def main():
 
     # save grid to file
     extgrid.write(sed_grid_fname, clobber=True)
+
+
+def generate_dense_SED_grid(Av_min=0.0, Av_max=5.0, Av_step=1.0,
+                            Rv_min=2.0, Rv_max=6.0, Rv_step=2.0,
+                            fb_min=0.0, fb_max=1.0, fb_step=0.7,
+                            sed_grid_outname='sedfitter/libs/tlusty_kurucz.padova.sed.grid.fits',
+                            filters='hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()):
+    """
+    Keywords:
+       *_min, *_max, *_step   floats    Minimum, maximum, and step values for dust parameters
+       filters                list      Filter names (need to match those in filter definition file)
+       sed_grid_outname       string    Path and name from sedfitter main directory to save
+                                        dense SED grid in
+
+    """
+    from . import extinction
+    from .. import config
+
+    extLaw = extinction.RvFbumpLaw()
+
+    to_sedfitter_dir = config.os.path.realpath(config.__file__).replace('config.pyc','')
+
+    spec_grid_kurucz_fname= to_sedfitter_dir + 'libs/kurucz.padova.spectral.grid.fits'
+    spec_grid_tlusty_fname= to_sedfitter_dir + 'libs/tlusty.padova.spectral.grid.fits'
+    spec_grid_combined_fname= to_sedfitter_dir + 'libs/tlusty_kurucz.padova.spectral.grid.fits'
+
+    oiso = isochrone.padova2010()
+    iso_select = oiso.data.selectWhere('*', '(Z==0.02)')
+    osl = stellib.Kurucz()
+    #gen_spectral_grid_from_stellib_given_points(spec_grid_kurucz_fname, osl, oiso, iso_select)
+    osl = stellib.Tlusty()
+    gen_spectral_grid_from_stellib_given_points(spec_grid_tlusty_fname, osl, oiso, iso_select)
+    del osl, oiso
+
+    merge_spectral_grids(spec_grid_tlusty_fname, spec_grid_kurucz_fname, spec_grid_combined_fname)
+    
+    tiny_delta = np.min([Av_step, Rv_step, fb_step])/2
+    Avs = np.arange(Av_min, Av_max+tiny_delta, Av_step)
+    Rvs = np.arange(Rv_min, Rv_max+tiny_delta, Rv_step)
+    fbs = np.arange(fb_min, fb_max+tiny_delta, fb_step)
+
+    extgrid = make_extinguished_grid(spec_grid_combined_fname, filters, extLaw, Avs, Rvs, fbs)
+
+    extgrid.write(sed_grid_outname, clobber=True)
