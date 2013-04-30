@@ -41,7 +41,7 @@ def gen_spectral_grid_from_stellib_given_points(outfile, osl, oiso, pts, bounds=
         outfile str                 fits file to export to
         osl     stellib.stellib     a stellar library
         oiso    isochrone.Isochrone an isochrone library
-        pts     
+        pts
     KEYWORDS:
         bounds  dict                sensitivity to extrapolation (see get_stellib_boundaries)
 
@@ -89,9 +89,9 @@ def gen_spectral_grid_from_stellib_given_points(outfile, osl, oiso, pts, bounds=
                     specs[mk, :] = osl.genSpectrum(s) * weights[mk]
                 except:
                     #print "error"
-                    specs[mk, :] = np.zeros(len(osl.wavelength), dtype=float )                
+                    specs[mk, :] = np.zeros(len(osl.wavelength), dtype=float )
                     #assert(False)
-                    
+
     #filter unbound values
     idx = np.array(_grid.pop('keep'))
 
@@ -107,7 +107,6 @@ def gen_spectral_grid_from_stellib_given_points(outfile, osl, oiso, pts, bounds=
     pars.header['stellib'] = osl.source
     pars.header['isoch'] = oiso.source
     pars.setUnit('radius', 'Rsun')
-    #assert(False)
     pyfits.writeto(outfile, specs, clobber=True)
     pars.write(outfile, append=True)
 
@@ -212,7 +211,7 @@ def merge_spectral_grids(preferred_fname, alt_fname, outname):
         preferred_fname   string    Name of preferred spectral grid
         alt_fname         string    Name of spectral grid to use where preferred grid has no coverage
         outname           string    What to save the output as
-    
+
     """
     alt_grid = grid.FileSpectralGrid(alt_fname)
     pref_grid = grid.FileSpectralGrid(preferred_fname)
@@ -257,7 +256,7 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
     max_Rv = max(rvs)
 
 
-    
+
     # create mesh from input 1d vectors
     Av_vals, Rv_vals, f_bump_vals = numpy.ix_(avs, rvs, fbumps)
 
@@ -383,9 +382,9 @@ def main():
     extgrid.write(sed_grid_fname, clobber=True)
 
 
-def generate_dense_SED_grid(Av_min=0.0, Av_max=5.0, Av_step=1.0,
-                            Rv_min=2.0, Rv_max=6.0, Rv_step=2.0,
-                            fb_min=0.0, fb_max=1.0, fb_step=0.7,
+def generate_dense_SED_grid(Av_min=0.0, Av_max=0.5, Av_step=0.1,
+                            Rv_min=2.0, Rv_max=6.0, Rv_step=1.5,
+                            fb_min=0.0, fb_max=1.0, fb_step=0.2,
                             sed_grid_outname='sedfitter/libs/tlusty_kurucz.padova.sed.grid.fits',
                             filters='hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()):
     """
@@ -416,7 +415,7 @@ def generate_dense_SED_grid(Av_min=0.0, Av_max=5.0, Av_step=1.0,
     del osl, oiso
 
     merge_spectral_grids(spec_grid_tlusty_fname, spec_grid_kurucz_fname, spec_grid_combined_fname)
-    
+
     tiny_delta = np.min([Av_step, Rv_step, fb_step])/2
     Avs = np.arange(Av_min, Av_max+tiny_delta, Av_step)
     Rvs = np.arange(Rv_min, Rv_max+tiny_delta, Rv_step)
