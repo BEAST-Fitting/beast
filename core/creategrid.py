@@ -410,7 +410,7 @@ def generate_dense_SED_grid(Av_min=0.0, Av_max=5.0, Av_step=1.0,
     oiso = isochrone.padova2010()
     iso_select = oiso.data.selectWhere('*', '(Z==0.02)')
     osl = stellib.Kurucz()
-    #gen_spectral_grid_from_stellib_given_points(spec_grid_kurucz_fname, osl, oiso, iso_select)
+    gen_spectral_grid_from_stellib_given_points(spec_grid_kurucz_fname, osl, oiso, iso_select)
     osl = stellib.Tlusty()
     gen_spectral_grid_from_stellib_given_points(spec_grid_tlusty_fname, osl, oiso, iso_select)
     del osl, oiso
