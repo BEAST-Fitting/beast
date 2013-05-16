@@ -11,6 +11,9 @@ TODO:
 
 """
 import numpy
+import numpy as np
+from scipy.interpolate import interp1d
+from .vega import Vega
 
 
 """
@@ -131,7 +134,7 @@ class Observations(object):
 
 
 class FakeObs(Observations):
-    
+
     def getObs(self, num=0, err=0.05):
         assert ( self.filters is not None), "No filter set."
         mags = self.getMags(num, self.filters)
@@ -149,28 +152,135 @@ class FakeObs(Observations):
         from ..external.eztables import Table
         self.data = Table(self.inputFile)
 
-    
-def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, distanceModulus=0., filters=None, save=None):
+
+def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, distanceModulus=0., filters=None, save=False):
     from ..external.eztables import Table
-    import grid
-    if type(sedgrid)==str:
+    from . import grid
+    if type(sedgrid) == str:
         sedgrid = grid.FileSEDGrid(sedgrid)
 
-    
     inds = numpy.random.randint(0, high=sedgrid.grid.nrows, size=nrows)
     obsTab = Table()
-    if filters==None:
+    if filters is None:
         filters = sedgrid.grid.header.FILTERS.split()
     for e, filt in enumerate(filters):
         errs = numpy.random.normal(loc=0., scale=err, size=nrows)
-        obsTab.addCol(filt, (1.+errs) * sedgrid.seds[inds,e])
-        obsTab.addCol(filt+'err', err * sedgrid.seds[inds,e])
+        obsTab.addCol(filt, (1. + errs) * sedgrid.seds[inds, e])
+        obsTab.addCol(filt + 'err', err * sedgrid.seds[inds, e])
     for key in sedgrid.grid.keys():
         obsTab.addCol(key, sedgrid.grid[key][inds])
-    
 
-    if save==None:
+    if save is True:
         return obsTab
     else:
         obsTab.write(save, clobber=True, append=False)
-        
+
+
+class PhotCharact(object):
+    def __init__(self, fname, filters):
+        self.inputFile = fname
+        self.filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W', 'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+
+        self.pars = { 'magin': 'magin',
+                      'comp': 'comp',
+                      'bias': 'bias',
+                      'berr': 'bias_err',
+                      'join': '_'}
+
+        self.interp_bias = { 'kind': 'linear',
+                             'axis': -1,
+                             'copy': False,
+                             'bounds_error': False,
+                             'fill_value': 0.0 }
+
+        self.interp_bias_error = { 'kind': 'linear',
+                             'axis': -1,
+                             'copy': False,
+                             'bounds_error': False,
+                             'fill_value': 0.0 }
+
+        self.interp_comp = { 'kind': 'linear',
+                             'axis': -1,
+                             'copy': False,
+                             'bounds_error': False,
+                             'fill_value': 0.0 }
+
+        self.readData()
+        self._funcs = [ self.getCharactFilterFunctions(k, output='flux') for k in self.filters ]
+
+    def readData(self):
+        """ read the dataset from the original source file """
+        from ..external.eztables import AstroTable
+        self.data = AstroTable(self.inputFile)
+
+        #data_filters = [ k.split(self.pars['join'])[0] for k in self.data.keys() if k[-5:] == self.pars['magin'] ]
+
+        #Data are in Vega magnitudes
+        #  Need to use Vega
+        with Vega() as v:
+            #self.vega = vega_f, vega_mag, lamb = v.getMag(self.filters)
+            self.vega = v.getMag(self.filters)
+
+    def get_filter_index(self, fname):
+        for e, k in enumerate(self.filters):
+            if k == fname:
+                return e
+
+    def getCharactFilterFunctions(self, fname, output='flux'):
+        if type(fname) == int:
+            _fname = self.filters[fname]
+        else:
+            _fname = fname
+
+        if output not in ['mag', 'flux']:
+            raise ValueError("interfrom must be either mag or flux")
+
+        join = self.pars['join']
+        bkey = self.pars['bias']
+        ekey = self.pars['berr']
+        mkey = self.pars['magin']
+
+        m_val = self.data[join.join([_fname, mkey])]
+        b_val = self.data[join.join([_fname, bkey])]
+        e_val = self.data[join.join([_fname, ekey])]
+
+        if output == 'mag':
+            #interp from mags
+            bias_mag_fn = interp1d(m_val, b_val, **self.interp_bias)
+            bias_err_mag_fn  = interp1d(m_val, e_val, **self.interp_bias_error)
+
+            return (bias_mag_fn, bias_err_mag_fn)
+        else:
+            #vegamag to fluxes
+            #b_val is a delta_mag, does not need to check the vega ref.
+            vega_mag = self.vega[1][self.get_filter_index(_fname)]
+            flux_in = numpy.power(10., -0.4 * (m_val + vega_mag))
+            flux_bias = numpy.power(10., -0.4 * (b_val))
+            flux_err = b_val * ( 1. - numpy.power(10., -0.4 * e_val) )
+            bias_flux_fn = interp1d(flux_in, flux_bias, **self.interp_bias)
+            bias_err_flux_fn  = interp1d(flux_in, flux_err, **self.interp_bias_error)
+            self.flux_in = flux_in
+            self.flux_bias = flux_bias
+            self.flux_err = flux_err
+
+            return (bias_flux_fn, bias_err_flux_fn)
+
+    def get_bias_of_sed(self, sed, **kwargs):
+        if np.ndim(sed) > 1:
+            nlamb = np.shape(sed)[1]
+            if nlamb != len(self.filters):
+                raise ValueError('expecting {} values per sed, got {}'.format(len(self.filters), nlamb))
+            biases = np.empty(sed.shape, dtype=float)
+            errors = np.empty(sed.shape, dtype=float)
+
+            for e, fk in enumerate(self._funcs):
+                biases[e, :] = fk[0](sed[e, :])
+                errors[e, :] = fk[1](sed[e, :])
+        else:
+            biases = np.empty(sed.shape, dtype=float)
+            errors = np.empty(sed.shape, dtype=float)
+            for e, fk in enumerate(self._funcs):
+                biases[e] = fk[0](sed[e])
+                errors[e] = fk[1](sed[e])
+
+        return biases, errors
