@@ -1,0 +1,43 @@
+####################################################################
+####################################################################
+#			BEAST INPUT FILE			   #
+####################################################################
+####################################################################
+#-------------------------
+#Define your project
+#-------------------------
+phat_b15						#Project name
+coarse_1000						#Subproject name
+#-------------------------
+#Define your observation
+#-------------------------
+/home/arab/beast_data/b15f08_sixband.data.v1.fits	#Data path (in Vega mag)
+All PHAT						#Filters
+24.4							#Distance modulus of your observation
+#-------------------------
+#Define your SED grid
+#-------------------------
+#---Dust parameters
+#-Av
+0.0							#Av min
+2.0							#Av max
+0.5							#Av step
+#-Rv
+2.0							#Rv min
+6.0							#Rv max
+0.5							#Rv step
+#-fb
+0.0							#f_bump min
+1.0							#f_bump max
+0.1							#f_bump step
+#---Stellar parameters
+#-Ages
+6							#log Age min
+10							#log Age max
+0.1							#log Age step
+#-Masses
+-0.8							#log Mass min
+2							#log Mass max
+0.01							#log Mass step
+#-Metallicity
+0.004							#Constant Z (Metallicity) 

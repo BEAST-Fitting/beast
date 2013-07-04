@@ -8,7 +8,7 @@ from ..config import __ROOT__
 class Vega(object):
     """ Handle vega spec manipulations """
 
-    def __init__(self, source='{}/libs/vega.hd5'.format(__ROOT__)):
+    def __init__(self, source='{0}/libs/vega.hd5'.format(__ROOT__)):
         self.source = source
         self.hdf = None
 

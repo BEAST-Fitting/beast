@@ -125,7 +125,7 @@ def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None, lnp_thr
     else:
         fluxerr[fluxerr == 0.] = 1.
         flux[flux == 0.] = 1e-5
-
+        
     if not mask is None:
         _m   = ~mask
         dof = _m.sum()
