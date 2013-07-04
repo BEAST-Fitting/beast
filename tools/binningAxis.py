@@ -1,9 +1,10 @@
-from sedfitter.core import grid
+from beast.core import grid
 import numpy as np
-from sedfitter.tools import figure
-from sedfitter.external import eztables
-from sedfitter.config import __NTHREADS__
-from sedfitter.config import __USE_NUMEXPR__
+from matplotlib.ticker import MaxNLocator
+from beast.tools import figure
+from beast.external import eztables
+from beast.config import __NTHREADS__
+from beast.config import __USE_NUMEXPR__
 if __USE_NUMEXPR__:
     import numexpr
     numexpr.set_num_threads(__NTHREADS__)
@@ -56,8 +57,8 @@ class binningAxis():
             self.flattening_weights = 0
             print "Warning! No overlap between parameter grid and binningAxis!"
 
+
     def rect_edges(self, g, fixed_param):
-        import time
         fixed_uniques = np.unique(g.grid.data[fixed_param])
         all_edges = np.zeros([g.grid.nrows, 2], dtype=np.float_)
         for i in range(len(fixed_uniques)):
@@ -68,8 +69,11 @@ class binningAxis():
             sub_edges[1:-1] = numexpr.evaluate('(pars_left+pars_right)/2.', local_dict={'pars_left':params_unique[:-1], 'pars_right':params_unique[1:]})
             sub_edges[0] = params_unique[0] - (sub_edges[1]-params_unique[0])
             sub_edges[-1] = params_unique[-1] + (params_unique[-1] - sub_edges[-2])
+            
             for e, val in enumerate(params_unique):
-                all_edges[inds[np.where(param_vals==val)]] = np.take(sub_edges, [e,e+1])
+                all_edges[inds[np.where(param_vals==val)]] = sub_edges[e:e+2]
+
+        
         for i in range(len(self.bins)):
             if __USE_NUMEXPR__:
                 inds = np.where(numexpr.evaluate('where(ledges >= pledges, 1, 0)*where(ledges <= predges, 1, 0) + where(redges >= pledges, 1, 0)*where(redges <= predges, 1, 0) + where(ledges <= pledges, 1, 0)*where(redges >= predges, 1, 0) + where(ledges >= pledges, 1, 0)*where(redges <= predges, 1, 0)', local_dict={'ledges':self.edges[i],'redges':self.edges[i+1],'pledges':all_edges[:, 0],'predges':all_edges[:,1]}))[0]
@@ -146,14 +150,25 @@ class binningAxis():
             return None
 
 
-    def plot_projection(self, likelihood, inds=None, weights=1., flatten=False):
+    def plot_projection(self, likelihood, inds=None, weights=1., flatten=False, align='b'):
         pdf = self.project(likelihood, inds=inds, weights=weights, to_return='pdf', flatten=flatten)
-        figure.bar(self.bins, pdf, width=self.edges[1:]-self.edges[:-1], align='center', linewidth=2.0, color='grey', bottom=0)
-        width = self.edges[-1]-self.edges[0]
-        height = figure.ylim()[1]
-        figure.xlim(self.edges[0]-0.03*width, self.edges[-1]+0.03*width)
-        figure.ylim(-height*0.03, height)
-        figure.xlabel(self.name)
+        if align=='b':
+            figure.bar(self.bins, pdf, width=self.edges[1:]-self.edges[:-1], align='center', color='grey', bottom=0)           
+            width = self.edges[-1]-self.edges[0]
+            height = figure.ylim()[1]
+            figure.xlim(self.edges[0]-0.03*width, self.edges[-1]+0.03*width)
+            figure.ylim(-height*0.03, height)
+            figure.xlabel(self.name)
+        elif align=='r':
+            figure.barh(self.bins, pdf, height=self.edges[1:]-self.edges[:-1], align='center', color='grey', left=0)
+            height = self.edges[-1]-self.edges[0]
+            width = figure.xlim()[1]
+            figure.ylim(self.edges[0]-0.03*width, self.edges[-1]+0.03*width)
+            figure.xlim(width, -width*0.03)
+            figure.ylabel(self.name)
+
+    def get_flattening_weights(self):
+        return self.flattening_weights
 
 def rectangular_param_weights(g, param, fixed_param):
     """

@@ -24,21 +24,21 @@ class RequiredFile(object):
             return None
         else:
             #return '{}({}, {})'.format(self._producer.__name__, self.args, self.kwargs)
-            return '{}({}, {})'.format(self._producer.__name__, '...', '...')
+            return '{0}({1}, {2})'.format(self._producer.__name__, '...', '...')
 
     def __repr__(self):
-        txt = 'Required File {}'.format(self.fname)
+        txt = 'Required File {0}'.format(self.fname)
         if self._producer is not None:
-            txt += '\n    Produced by {}'.format(self.producer)
+            txt += '\n    Produced by {0}'.format(self.producer)
         return txt
 
     def __call__(self, *args, **kwargs):
         if not (os.path.isfile(self.fname) | os.path.islink(self.fname)):
             if self.producer is not None:
-                print "File {} is missing.\n Running {})".format(self.fname, self.producer)
+                print "File {0} is missing.\n Running {1})".format(self.fname, self.producer)
                 return self._producer(*(self.args), **(self.kwargs))
             else:
-                raise Exception('File {} is required but no producer is referenced'.format(self.fname))
+                raise Exception('File {0} is required but no producer is referenced'.format(self.fname))
         else:
             return self.fname
 

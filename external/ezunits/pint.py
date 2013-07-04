@@ -12,7 +12,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from __future__ import division, unicode_literals, print_function, absolute_import
+from __future__ import division, print_function, absolute_import
 
 __version__ = '0.1'
 
@@ -33,7 +33,59 @@ import tokenize
 from tokenize import untokenize, NUMBER, STRING, NAME, OP
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+if hasattr(logging, 'NullHandler'):
+    logger.addHandler(logging.NullHandler())
+else:
+    class NullHandler(logging.Handler):
+        """
+        This handler does nothing. It's intended to be used to avoid the
+        "No handlers could be found for logger XXX" one-off warning. This is
+        important for library code, which may contain code to log events. If a user
+        of the library does not configure logging, the one-off warning might be
+        produced; to avoid this, the library developer simply needs to instantiate
+        a NullHandler and add it to the top-level logger of the library module or
+        package.
+        """
+        def handle(self, record):
+            pass
+
+        def emit(self, record):
+            pass
+
+        def createLock(self):
+            self.lock = None
+    logger.addHandler(NullHandler())
+
+if hasattr(functools, 'total_ordering'):
+    total_ordering = functools.total_ordering
+else:
+    def total_ordering(cls):
+        """Class decorator that fills in missing ordering methods"""
+        convert = {
+            '__lt__': [('__gt__', lambda self, other: not (self < other or self == other)),
+                       ('__le__', lambda self, other: self < other or self == other),
+                       ('__ge__', lambda self, other: not self < other)],
+            '__le__': [('__ge__', lambda self, other: not self <= other or self == other),
+                       ('__lt__', lambda self, other: self <= other and not self == other),
+                       ('__gt__', lambda self, other: not self <= other)],
+            '__gt__': [('__lt__', lambda self, other: not (self > other or self == other)),
+                       ('__ge__', lambda self, other: self > other or self == other),
+                       ('__le__', lambda self, other: not self > other)],
+            '__ge__': [('__le__', lambda self, other: (not self >= other) or self == other),
+                       ('__gt__', lambda self, other: self >= other and not self == other),
+                       ('__lt__', lambda self, other: not self >= other)]
+        }
+        roots = set(dir(cls)) & set(convert)
+        if not roots:
+            raise ValueError('must define at least one ordering operation: < > <= >=')
+        root = max(roots)       # prefer __lt__ to __le__ to __gt__ to __ge__
+        for opname, opfunc in convert[root]:
+            if opname not in roots:
+                #print (opname, opfunc)
+                opfunc.__name__ = opname
+                opfunc.__doc__ = getattr(int, opname).__doc__
+                setattr(cls, opname, opfunc)
+        return cls
 
 if sys.version < '3':
     from io import open
@@ -264,9 +316,9 @@ class UnitsContainer(dict):
             if as_ratio:
                 ret += ' / '
                 if single_denominator:
-                   ret += ' / '.join(tmp_minus)
+                    ret += ' / '.join(tmp_minus)
                 else:
-                   ret += product_sign.join(tmp_minus)
+                    ret += product_sign.join(tmp_minus)
             else:
                 ret += product_sign.join(tmp_minus)
 
@@ -373,6 +425,7 @@ def converter_to_reference(scale, offset, log_base):
             return value * scale + offset
     return _inner
 
+
 def converter_from_reference(scale, offset, log_base):
     def _inner(value):
         if log_base:
@@ -461,7 +514,8 @@ class UnitRegistry(object):
                         value = self.Quantity(None, None)
 
                 conv[name] = name
-                conv.update({alias: name for alias in aliases})
+                for alias in aliases:
+                    conv[alias] = name
                 self.add_unit(name, value, aliases, **modifiers)
                 if modifiers:
                     self.add_unit('delta_' + name, value, tuple('delta_' + item for item in aliases))
@@ -493,8 +547,7 @@ class UnitRegistry(object):
                            'Options are: {}'.format(name, candidates))
             prefix, unit_name, _ = candidates[0]
 
-        return self._PREFIXES.preferred_alias.get(prefix, prefix) + \
-               self._UNITS.preferred_alias.get(unit_name, unit_name)
+        return self._PREFIXES.preferred_alias.get(prefix, prefix) + self._UNITS.preferred_alias.get(unit_name, unit_name)
 
     def _to_canonical(self, candidate):
         """Return the canonical name of a unit.
@@ -544,7 +597,6 @@ class UnitRegistry(object):
                            self._UNITS.get_aliased(unit_name),
                            self._SUFFIXES.get_aliased(suffix))
 
-
     def _parse_candidate2(self, candidate):
         """Parse a unit to identify prefix, suffix and unit name
         by walking the list of units.
@@ -555,13 +607,12 @@ class UnitRegistry(object):
                     [prefix, suffix] = candidate.split(unit_name)
                     if len(unit_name) == 1 and len(suffix) == 1:
                         continue
-                except ValueError: # too many values to unpack
+                except ValueError:  # too many values to unpack
                     continue
                 if prefix in self._PREFIXES and suffix in self._SUFFIXES:
                     yield (self._PREFIXES.get_aliased(prefix),
                            self._UNITS.get_aliased(unit_name),
                            self._SUFFIXES.get_aliased(suffix))
-
 
     def _parse_expression(self, input):
         """Parse expression mathematical units and return a quantity object.
@@ -573,7 +624,7 @@ class UnitRegistry(object):
         gen = _tokenize(input)
         result = []
         unknown = set()
-        for toknum, tokval, _, _, _  in gen:
+        for toknum, tokval, _, _, _ in gen:
             if toknum in (STRING, NAME):  # replace NUMBER tokens
                 # TODO: Integrate math better, Replace eval
                 if tokval == 'pi':
@@ -624,7 +675,7 @@ def _build_quantity_class(registry, force_ndarray):
     """Create a Quantity Class.
     """
 
-    @functools.total_ordering
+    @total_ordering
     class _Quantity(object):
         """Quantity object constituted by magnitude and units.
 
@@ -683,8 +734,10 @@ def _build_quantity_class(registry, force_ndarray):
                 fmt, conv = spec, ''
 
             if conv.endswith('~'):
-                units = UnitsContainer({self._REGISTRY.get_alias(key): value
-                                       for key, value in self.units.items()})
+                _d = {}
+                for key, value in self.units.items():
+                    _d[self._REGISTRY.get_alias(key)] = value
+                units = UnitsContainer(_d)
                 conv = conv[:-1]
             else:
                 units = self.units
@@ -915,7 +968,6 @@ def _build_quantity_class(registry, force_ndarray):
             ret /= other
             return ret
 
-
         #__div__ = __floordiv__
         __idiv__ = __ifloordiv__
 
@@ -983,7 +1035,6 @@ def _build_quantity_class(registry, force_ndarray):
             return bool(self._magnitude)
 
         __nonzero__ = __bool__
-
 
         # Experimental NumPy Support
 
@@ -1139,5 +1190,7 @@ def _build_quantity_class(registry, force_ndarray):
 
 
 _DEFAULT_REGISTRY = UnitRegistry()
+
+
 def _build_quantity(value, units):
     return _DEFAULT_REGISTRY.Quantity(value, units)
