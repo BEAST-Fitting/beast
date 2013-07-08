@@ -33,6 +33,7 @@ import tokenize
 from tokenize import untokenize, NUMBER, STRING, NAME, OP
 
 logger = logging.getLogger(__name__)
+
 if hasattr(logging, 'NullHandler'):
     logger.addHandler(logging.NullHandler())
 else:
@@ -54,6 +55,7 @@ else:
 
         def createLock(self):
             self.lock = None
+
     logger.addHandler(NullHandler())
 
 if hasattr(functools, 'total_ordering'):
@@ -86,6 +88,7 @@ else:
                 opfunc.__doc__ = getattr(int, opname).__doc__
                 setattr(cls, opname, opfunc)
         return cls
+
 
 if sys.version < '3':
     from io import open
