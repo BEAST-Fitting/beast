@@ -11,6 +11,7 @@ TAR  = sourcecode.tar.gz
 gitdeps:
 	git submodule init
 	git submodule update --recursive
+	git submodule foreach git pull origin master
 
 gitmain:
 	git pull
