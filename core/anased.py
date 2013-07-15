@@ -10,7 +10,7 @@ else:
     from numpy import subtract, divide, power, add
 
 import numpy
-from numpy import log, log10, exp
+from numpy import log, exp
 
 from . import stellib
 from . import extinction
@@ -34,7 +34,7 @@ def getFluxAttenuation(law, lamb, **kwargs):
     return r
 
 
-def computeLogLikelihood(flux, fluxerr, fluxmod, mask=None, normed=False, lnp_threshold=1000., **kwargs):
+def computeLogLikelihood(flux, fluxerr, fluxmod, mask=None, normed=False, **kwargs):
     """ Compute the log of the chi2 likelihood between data with uncertainties and
         perfectly known models
     INPUTS:
@@ -71,10 +71,10 @@ def computeLogLikelihood(flux, fluxerr, fluxmod, mask=None, normed=False, lnp_th
     if (len(s) == 2) and (s[0] == 2):
         # assuming non-symmetric errors
         errm, errp = fluxerr
-        lnp = proba.SN_logLikelihood(flux, errm, errp, fluxmod, mask=mask, lnp_threshold=lnp_threshold)
+        lnp = proba.SN_logLikelihood(flux, errm, errp, fluxmod, mask=mask)
     else:
         # assuming symmetric errors
-        lnp = proba.N_logLikelihood(flux, fluxerr, fluxmod, mask=mask, lnp_threshold=lnp_threshold)
+        lnp = proba.N_logLikelihood(flux, fluxerr, fluxmod, mask=mask)
 
     if normed is True:
         psum = proba.getNorm_lnP(lnp)
