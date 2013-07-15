@@ -16,6 +16,7 @@ from . import stellib
 from . import extinction
 from . import photometry
 from ..tools.decorators import timeit
+from ..import proba
 
 
 def fluxToMag(flux):
@@ -79,98 +80,52 @@ def getFluxAttenuation(law, lamb, **kwargs):
     return r
 
 
-def computeChi2(flux, fluxerr, fluxmod):
-    """ compute the non-reduced chi2 between data with uncertainties and
-        perfectly known models
-    inputs:
-        flux    np.ndarray[float, ndim=1]   array of fluxes
-        fluxerr np.ndarray[float, ndim=1]   array of flux errors
-        fluxmod np.ndarray[float, ndim=2]   array of modeled fluxes (nfilters , nmodels)
-    outputs:
-        chi2    np.ndarray[float, ndim=1]   array of chi2 values (nmodels)
-
-    note: using ufunc because ufuncs are written in c (for speed) and linked into numpy.
-    """
-    # make sure errors are not null
-    fluxerr[fluxerr == 0.] = 1.
-    if __USE_NUMEXPR__:
-        return numexpr.evaluate('sum(((flux-fluxmod)/fluxerr)**2,axis=1)',
-                                local_dict={'flux': flux, 'fluxmod': fluxmod, 'fluxerr': fluxerr})
-    else:
-        return power( divide( subtract(flux[None, :], fluxmod), fluxerr[None, :]), 2.).sum(axis=1)
-
-
-def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None, lnp_threshold=1000.):
+def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None, lnp_threshold=1000., **kwargs):
     """ Compute the log of the chi2 likelihood between data with uncertainties and
         perfectly known models
     INPUTS:
-        flux    np.ndarray[float, ndim=1]   array of fluxes
-        fluxerr np.ndarray[float, ndim=1]   array of flux errors
-        fluxmod np.ndarray[float, ndim=2]   array of modeled fluxes (Nfilters , Nmodels)
+        flux:    np.ndarray[float, ndim=1]
+            array of fluxes
+
+        fluxerr: np.ndarray[float, ndim=1] or (np.ndarray[float, ndim=1], np.ndarray[float, ndim=1])
+            array of flux errors. If fluxerr is a 1d array, the likelihood will
+            be a Normarl distribution (symmetric errors).
+            if the array is 2-d or a list of 2 iterables, the likelihood is a Split Normal distribution
+            (non-symmetric errors, err-, err+)
+
+        fluxmod: np.ndarray[float, ndim=2]
+            array of modeled fluxes (Nfilters , Nmodels)
     KEYWORDS:
-        normed  bool                if set normalize the result
-        mask    np.ndarray[bool, ndim=1]    mask array to apply during the calculations
-                                mask.shape = flux.shape
-        lnp_threshold               cut the values outside -x, x in lnp
+        normed:  bool
+            if set normalize the result
+
+        mask:    np.ndarray[bool, ndim=1]
+            mask array to apply during the calculations
+            assuming mask.shape == flux.shape
+
+        lnp_threshold: float
+            cut the values outside -x, x in lnp
+
     OUTPUTS:
         ln(L)   np.ndarray[float, ndim=1]   array of ln(L) values (Nmodels)
 
         with L = 1/[sqrt(2pi) * sig**2 ] * exp ( - 0.5 * chi2 )
              L propto  exp ( - 0.5 * chi2 )
-    Note: using ufunc because ufuncs are written in C (for speed) and linked into NumPy.
     """
-    if __USE_NUMEXPR__:
-        fluxerr = numexpr.evaluate('where((fluxerr==0.), 1., fluxerr)', local_dict={'fluxerr': fluxerr})
-        flux = numexpr.evaluate('where((flux==0.), 1e-5, flux)', local_dict={'flux': flux})
+    s = numpy.shape(fluxerr)
+    if (len(s) == 2) and (s[0] == 2):
+        # assuming non-symmetric errors
+        errm, errp = fluxerr
+        lnp = proba.SN_logLikelihood(flux, errm, errp, fluxmod, mask=mask, lnp_threshold=lnp_threshold)
     else:
-        fluxerr[fluxerr == 0.] = 1.
-        flux[flux == 0.] = 1e-5
-        
-    if not mask is None:
-        _m   = ~mask
-        dof = _m.sum()
-        if __USE_NUMEXPR__:
-            chi2 = numexpr.evaluate('- 0.5 / b * a', local_dict={'a': computeChi2( flux[_m], fluxerr[_m], fluxmod[:, _m] ), 'b': dof})
-        else:
-            chi2 = - 0.5 / dof * computeChi2( flux[_m], fluxerr[_m], fluxmod[:, _m] )
-
-    else:
-        dof = len(flux)
-        if __USE_NUMEXPR__:
-            chi2 = numexpr.evaluate('- 0.5 / b * a', local_dict={'a': computeChi2( flux, fluxerr, fluxmod ), 'b': dof})
-        else:
-            chi2 = - 0.5 / dof * computeChi2( flux, fluxerr, fluxmod )
-
-    #taking care of possible overflows...
-    #if __USE_NUMEXPR__:
-    #    chi2 = numexpr.evaluate('where( (chi2 > lim), lim,chi2)', local_dict={'chi2': chi2, 'lim': lnp_threshold})
-    #    chi2 = numexpr.evaluate('where( (chi2 < -lim), -lim,chi2)', local_dict={'chi2': chi2, 'lim': lnp_threshold})
-    #else:
-    #    chi2 = numpy.clip( chi2, -lnp_threshold, lnp_threshold )
+        # assuming symmetric errors
+        lnp = proba.N_logLikelihood(flux, fluxerr, fluxmod, mask=mask, lnp_threshold=lnp_threshold)
 
     if normed is True:
-        if __USE_NUMEXPR__:
-            expchi2 = numexpr.evaluate('exp(chi2)', local_dict={'chi2': chi2})
-            # not really sure take works as expected with the inf values...
-            # if it does, then if I follow the documentation we only need:
-            # expchi2 = expchi2.take(numpy.isfinite(expchi2), mode='clip')
-            expchi2[numpy.isinf(expchi2)] = expchi2.take(numpy.isfinite(expchi2), mode='clip').max()
-        else:
-            expchi2 = exp(chi2)
-            expchi2[numpy.isinf(expchi2)] = expchi2[ numpy.isfinite(expchi2) ].max()
-        psum = expchi2.sum()
-        if __USE_NUMEXPR__:
-            lnp = numexpr.evaluate('chi2 - log(psum)', local_dict={'chi2': chi2, 'psum': psum})
-        else:
-            lnp = chi2 - log(psum)
-    else:
-        lnp = chi2
+        psum = proba.getNorm_lnP(lnp)
+        lnp -= log(psum)
 
-    if __USE_NUMEXPR__:
-        return numexpr.evaluate('where( (lnp < -thresh), -thresh, lnp)', local_dict={'lnp': lnp, 'thresh': lnp_threshold})
-    else:
-        lnp[ lnp < -lnp_threshold] = -lnp_threshold
-        return lnp
+    return lnp
 
 
 def computeChi2WithASTs(flux, fluxerr, fluxmod, ASTs_bias, ASTs_err):
@@ -256,7 +211,7 @@ def computeLogLikelihoodWithASTs(flux, fluxerr, fluxmod, ASTs_bias, ASTs_err, no
     # ASTs values could be 0 without numerical problems.
 
     if not mask is None:
-        _m   = ~mask
+        _m = ~mask
         dof = _m.sum()
         if __USE_NUMEXPR__:
             chi2 = numexpr.evaluate('- 0.5 / b * a', local_dict={'a': computeChi2WithASTs( flux[_m], fluxerr[_m], fluxmod[:, _m], ASTs_bias[:, _m], ASTs_err[:, _m] ), 'b': dof})
@@ -269,13 +224,6 @@ def computeLogLikelihoodWithASTs(flux, fluxerr, fluxmod, ASTs_bias, ASTs_err, no
             chi2 = numexpr.evaluate('- 0.5 / b * a', local_dict={'a': computeChi2WithASTs( flux, fluxerr, fluxmod, ASTs_bias, ASTs_err ), 'b': dof})
         else:
             chi2 = - 0.5 / dof * computeChi2WithASTs( flux, fluxerr, fluxmod, ASTs_bias, ASTs_err )
-
-    #taking care of possible overflows...
-    #if __USE_NUMEXPR__:
-    #    chi2 = numexpr.evaluate('where( (chi2 > lim), lim,chi2)', local_dict={'chi2': chi2, 'lim': lnp_threshold})
-    #    chi2 = numexpr.evaluate('where( (chi2 < -lim), -lim,chi2)', local_dict={'chi2': chi2, 'lim': lnp_threshold})
-    #else:
-    #    chi2 = numpy.clip( chi2, -lnp_threshold, lnp_threshold )
 
     if normed is True:
         if __USE_NUMEXPR__:
