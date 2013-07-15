@@ -34,6 +34,53 @@ def STmag_from_flux( v ):
     return -2.5 * numpy.log10( v ) - v0
 
 
+""" Some helpers """
+def fluxToMag(flux):
+    """ Return the magnitudes from flux values
+    INPUTS:
+        flux    np.ndarray[float, ndim=N]   array of fluxes
+    OUTPUTS:
+        mag np.ndarray[float, ndim=N]   array of magnitudes
+    """
+    return -2.5 * np.log10(flux)
+
+
+def fluxErrTomag(flux, fluxerr):
+    """ Return the magnitudes and associated errors from fluxes and flux error values
+    INPUTS:
+        flux    np.ndarray[float, ndim=1]   array of fluxes
+        fluxerr np.ndarray[float, ndim=1]   array of flux errors
+    OUTPUTS:
+        mag np.ndarray[float, ndim=1]   array of magnitudes
+        err np.ndarray[float, ndim=1]   array of magnitude errors
+    """
+    mag = fluxToMag(flux)
+    return mag, -2.5 * np.log10( 1. - fluxerr / flux )
+
+
+def magToFlux(mag):
+    """ Return the flux from magnitude values
+    INPUTS:
+        mag np.ndarray[float, ndim=N]   array of magnitudes
+    OUTPUTS:
+        flux    np.ndarray[float, ndim=N]   array of fluxes
+    """
+    return 10 ** (-0.4 * mag)
+
+
+def magErrToFlux(mag, err):
+    """ Return the flux and associated errors from magnitude and mag error values
+    INPUTS:
+        mag np.ndarray[float, ndim=1]   array of magnitudes
+        err np.ndarray[float, ndim=1]   array of magnitude errors
+    OUTPUTS:
+        flux    np.ndarray[float, ndim=1]   array of fluxes
+        fluxerr np.ndarray[float, ndim=1]   array of flux errors
+    """
+    flux = magToFlux(mag)
+    return flux, flux * ( 1. - magToFlux(err) )
+
+
 class Observations(object):
 
     def __init__(self, inputFile, distanceModulus=0., desc=None):
