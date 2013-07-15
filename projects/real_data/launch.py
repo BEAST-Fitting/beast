@@ -38,78 +38,91 @@ CONTENT:
 #---------------------------------------------------------
 # Imports                                    [sec:imports]
 #---------------------------------------------------------
-try:
-    import androfig
-    __FIG__ = True
-except ImportError:
-    __FIG__ = False
-
 import numpy as np
 import tables
-import pickle
 from beast.core.observations import Observations
-from beast.core.isochrone import ezIsoch, padova2010
+from beast.core.isochrone import ezIsoch
 from beast.core.vega import Vega, from_Vegamag_to_Flux
 from beast.tools.ezpipeline import RequiredFile
 from beast.core.anased import computeLogLikelihood
-from beast.external.eztables import AstroTable
 from beast.core import grid
 from beast.core import creategrid
 from beast.core import stellib
 from beast.core import extinction
 from beast.tools import progressbar
-from beast.tools import binningAxis
-
 
 #---------------------------------------------------------
 # Globals                                    [sec:globals]
 #---------------------------------------------------------
 
-#Read user's inputs                      
-file=open("input.txt","r")
-n=0
-for line in file:
-    n+=1
-file.close()
-file=open("input.txt","r")
-count=0
-InputList=[]
-# Put all user's inputs in InputList in the following order:
-# project, subproject, observation file, filter list, distance modulus, grid parameters [Av, Rv, fb, age, mass, Z] 
-while 1:
-    count += 1
-    if count == n+1:
-        break
-    tt=file.readline()
-    if tt[0] != '#':
-        rr= tt.split("\t")
-        InputList.append(rr[0])
-file.close()
+# MF Comments on user input
 
-project = InputList[0]
-subproject = InputList[1]
-obsfile = InputList[2]
-filters = InputList[3]
+# I don't think you need a ascii file. Especially when you impose an order of
+# inputs. It was not obvious to me that \t was the separator!
+#
+# However, you should define a class that reads the whatever format you want to
+# adopt. This way if anyone wants a different format, ascii, xml, python, yaml
+# etc, you can change a few lines somewhere instead and it still work like a
+# charm. This is Object oriented coding's magic!
+
+# What I think is that python is the easiest input format, especially because
+# the observation class needs to be rederived everytime you bring a new data
+# input. You have to make distance, filters, mapping with the columns etc.
+
+# also there are missing parameters such as the extinction law
+
+#Read user's inputs
+#cleaned up, reading the file only once
+with open("input.txt","r") as infile:
+    ## Put all user's inputs in InputList in the following order:
+    ## project, subproject, observation file, filter list, distance modulus,
+    ## grid parameters [Av, Rv, fb, age, mass, Z]
+    # InputList = []
+    # for e, tt in enumerate(infile):
+    #   if tt[0] != '#':
+    #        InputList.append(tt.split("\t")[0])
+
+    # even more python
+    InputList = [ tt.split("\t")[0] for tt in infile if tt[0] != '#' ]
+
+project, subproject, obsfile, filters, distanceModulus = InputList[:4]
+
 # Use a shortcut when using the 6 PHAT filters
 if filters == 'All PHAT':
-    filters='hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
+    filters = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
 
 distanceModulus = float(InputList[4])
-Av_min = float(InputList[5]) ; Av_max = float(InputList[6]) ; Av_step = float(InputList[7])
-Rv_min = float(InputList[8]) ; Rv_max = float(InputList[9]) ; Rv_step = float(InputList[10])
-fb_min = float(InputList[11]) ; fb_max = float(InputList[12]) ; fb_step = float(InputList[13])
+Av_min = float(InputList[5])
+Av_max = float(InputList[6])
+Av_step = float(InputList[7])
+Rv_min = float(InputList[8])
+Rv_max = float(InputList[9])
+Rv_step = float(InputList[10])
+fb_min = float(InputList[11])
+fb_max = float(InputList[12])
+fb_step = float(InputList[13])
 
-logA_min = float(InputList[14]) ; logA_max = float(InputList[15]) ; logA_step = float(InputList[16])
-logM_min = float(InputList[17]) ; logM_max = float(InputList[18]) ; logM_step = float(InputList[19])
+logA_min = float(InputList[14])
+logA_max = float(InputList[15])
+logA_step = float(InputList[16])
+logM_min = float(InputList[17])
+logM_max = float(InputList[18])
+logM_step = float(InputList[19])
 Z = float(InputList[20])
 
 #Isochrones, grid and result files
-isofile             = 'beast/libs/iso.proposal.fits'
-lnp_outname         = 'lnp.{0}.{1}.hd5'.format(project,subproject)
-stat_outname        = 'stat.{0}.{1}.hd5'.format(project,subproject)
-res_outname         = 'res.{0}.{1}.fits'.format(project,subproject)
+isofile = 'beast/libs/iso.proposal.fits'
+lnp_outname = 'lnp.{0}.{1}.hd5'.format(project,subproject)
+stat_outname = 'stat.{0}.{1}.hd5'.format(project,subproject)
+res_outname = 'res.{0}.{1}.fits'.format(project,subproject)
 spectral_grid_fname = 'coarse.spectral.grid.fits'
-sed_grid_fname      = 'medium.coarse.sed.grid.fits'
+sed_grid_fname = 'medium.coarse.sed.grid.fits'
+
+# MF: so I would only do a "from user_input import ..." to have the same effect
+# while still providing easy and explicit inputs that the user cannot mess up
+
+# However, at this point there is not check on the inputs or missing/wrong
+# value which could be problematic
 
 #---------------------------------------------------------
 # Data interface                                [sec:data]
@@ -118,7 +131,7 @@ sed_grid_fname      = 'medium.coarse.sed.grid.fits'
 #Data are in Vega magnitudes
 #  Need to use Vega
 with Vega() as v:
-	vega_f, vega_mag, lamb = v.getMag(filters)
+    vega_f, vega_mag, lamb = v.getMag(filters)
 
 
 # derive the global class and update what's needed
@@ -177,11 +190,11 @@ oiso = ezIsoch(isofile)
 # variable to ensure that range is fully covered in using np.arange
 __tiny_delta__ = 0.001
 
-ages   = 10 ** np.arange(logA_min, logA_max + __tiny_delta__, logA_step)
+ages = 10 ** np.arange(logA_min, logA_max + __tiny_delta__, logA_step)
 masses = 10 ** np.arange(logM_min, logM_max + __tiny_delta__, logM_step)
-Z      = np.asarray([Z])
-avs    = np.arange(Av_min, Av_max + __tiny_delta__, Av_step)
-rvs    = np.arange(Rv_min, Rv_max + __tiny_delta__, Rv_step)
+Z = np.asarray([Z])
+avs = np.arange(Av_min, Av_max + __tiny_delta__, Av_step)
+rvs = np.arange(Rv_min, Rv_max + __tiny_delta__, Rv_step)
 fbumps = np.arange(fb_min, fb_max + __tiny_delta__, fb_step)
 
 griddef = (ages, masses, Z, avs, rvs, fbumps)
@@ -221,14 +234,9 @@ def create_sed_grid(sed_grid_fname=sed_grid_fname,
 
 def get_sedgrid():
 
-    with RequiredFile(sed_grid_fname,
-                    create_sed_grid,
-                    filter_names=filters,
-                    oiso=oiso,
-                    osl=osl,
-                    extLaw=extLaw,
-                    spectral_grid_fname=spectral_grid_fname,
-                    griddef=griddef) as __sed_grid_fname__:
+    with RequiredFile(sed_grid_fname, create_sed_grid, filter_names=filters,
+                      oiso=oiso, osl=osl, extLaw=extLaw,
+                      spectral_grid_fname=spectral_grid_fname, griddef=griddef) as __sed_grid_fname__:
 
             return grid.FileSEDGrid(__sed_grid_fname__)
 
@@ -259,35 +267,32 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-60, outname=lnp_outname):
         outfile.createArray(outfile.root, 'obs_filters', filters)
 
         #loop over the obs and do the work
-	# Restriction to 1000 obs
         #with progressbar.PBar(len(obs), txt="Calculating lnp") as pbar:
         #    for tn, (sed, err, mask) in obs.enumobs():
+        # Restriction to 1000 obs
         with progressbar.PBar(1000, txt="Calculating lnp") as pbar:
             for tn, (sed, err, mask) in obs.enumobs():
-                if mask.sum()==0:
-                    if tn > 1000:
-			break
-                    lnp = computeLogLikelihood(sed, err, sedgrid.seds, normed=False)#, mask=mask)
-                    #print lnp
-                    #Need ragged arrays rather than uniform table
-                    star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
-                    indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > -40.)
-                    outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
-                    outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int32))
-                    outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
-                    #commit changes
-                    outfile.flush()
+                lnp = computeLogLikelihood(sed, err, sedgrid.seds, normed=False, mask=mask)
 
-                    pbar.update(tn, force=True)  # Forcing because it can be long to show the first ETA
+                #Need ragged arrays rather than uniform table
+                star_group = outfile.createGroup('/', 'star_%d' % tn, title="star %d" % tn)
+                indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
+                outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
+                outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int32))
+                outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
+                #commit changes
+                outfile.flush()
 
-                    
+                pbar.update(tn, force=True)  # Forcing because it can be long to show the first ETA
+
+
 #---------------------------------------------------------
 # pipeline                                  [sec:pipeline]
 #---------------------------------------------------------
 
 def do_fit():
     sedgrid = get_sedgrid()
-    fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname=lnp_outname)
+    fit_model_seds_pytables(obs, sedgrid, threshold=-20, outname=lnp_outname)
 
 
 if __name__ == '__main__':
