@@ -34,7 +34,7 @@ def getFluxAttenuation(law, lamb, **kwargs):
     return r
 
 
-def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None, lnp_threshold=1000., **kwargs):
+def computeLogLikelihood(flux, fluxerr, fluxmod, mask=None, normed=False, lnp_threshold=1000., **kwargs):
     """ Compute the log of the chi2 likelihood between data with uncertainties and
         perfectly known models
     INPUTS:
@@ -49,6 +49,7 @@ def computeLogLikelihood(flux, fluxerr, fluxmod, normed=True, mask=None, lnp_thr
 
         fluxmod: np.ndarray[float, ndim=2]
             array of modeled fluxes (Nfilters , Nmodels)
+
     KEYWORDS:
         normed:  bool
             if set normalize the result
