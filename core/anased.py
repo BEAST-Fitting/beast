@@ -19,52 +19,6 @@ from ..tools.decorators import timeit
 from ..import proba
 
 
-def fluxToMag(flux):
-    """ Return the magnitudes from flux values
-    INPUTS:
-        flux    np.ndarray[float, ndim=N]   array of fluxes
-    OUTPUTS:
-        mag np.ndarray[float, ndim=N]   array of magnitudes
-    """
-    return -2.5 * log10(flux)
-
-
-def fluxErrTomag(flux, fluxerr):
-    """ Return the magnitudes and associated errors from fluxes and flux error values
-    INPUTS:
-        flux    np.ndarray[float, ndim=1]   array of fluxes
-        fluxerr np.ndarray[float, ndim=1]   array of flux errors
-    OUTPUTS:
-        mag np.ndarray[float, ndim=1]   array of magnitudes
-        err np.ndarray[float, ndim=1]   array of magnitude errors
-    """
-    mag = fluxToMag(flux)
-    return mag, -2.5 * log10( 1. - fluxerr / flux )
-
-
-def magToFlux(mag):
-    """ Return the flux from magnitude values
-    INPUTS:
-        mag np.ndarray[float, ndim=N]   array of magnitudes
-    OUTPUTS:
-        flux    np.ndarray[float, ndim=N]   array of fluxes
-    """
-    return power(10, -0.4 * mag)
-
-
-def magErrToFlux(mag, err):
-    """ Return the flux and associated errors from magnitude and mag error values
-    INPUTS:
-        mag np.ndarray[float, ndim=1]   array of magnitudes
-        err np.ndarray[float, ndim=1]   array of magnitude errors
-    OUTPUTS:
-        flux    np.ndarray[float, ndim=1]   array of fluxes
-        fluxerr np.ndarray[float, ndim=1]   array of flux errors
-    """
-    flux = magToFlux(mag)
-    return flux, flux * ( 1. - magToFlux(err) )
-
-
 def getFluxAttenuation(law, lamb, **kwargs):
     """ Get flux attenuations from a given extinciton law
     INPUTS:
