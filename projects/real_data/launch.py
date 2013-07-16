@@ -272,6 +272,8 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-60, outname=lnp_outname):
         # Restriction to 1000 obs
         with progressbar.PBar(1000, txt="Calculating lnp") as pbar:
             for tn, (sed, err, mask) in obs.enumobs():
+                if tn > 1000:
+                    break
                 lnp = computeLogLikelihood(sed, err, sedgrid.seds, normed=False, mask=mask)
 
                 #Need ragged arrays rather than uniform table
