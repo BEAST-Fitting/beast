@@ -48,8 +48,10 @@ def N_chi2(flux, fluxerr, fluxmod, mask=None):
 
     for j in range(len(_e)):
         if _e[j] > 0:
-            ind0 = np.where(temp[:, j] > 0.)
-            temp[ind0, j] /= _e[j]
+            #HA: Removing this since ind0 is empty so no chisq weighting by errors
+            #ind0 = np.where(temp[:, j] > 0.)
+            #temp[ind0, j] /= _e[j]
+            temp[:,j] /= _e[j] 
 
     return (temp ** 2).sum(axis=1)
 
@@ -186,7 +188,9 @@ def N_logLikelihood(  flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
     _chi2 = N_chi2(flux, fluxerr, fluxmod, mask=mask)
 
     lnP = -lnQ - 0.5 * _chi2
-
+    #Removing Q factor for comparison with IDL SEDfitter
+    #lnP = -0.5 * _chi2
+    
     return lnP
 
 
