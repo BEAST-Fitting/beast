@@ -82,7 +82,7 @@ class Cardelli(ExtinctionLaw):
     def __init__(self):
         self.name = 'Cardelli'
 
-    def function(self, lamb, Av=1., Rv=3.1, Alambda=True, debug=False, **kwargs):
+    def function(self, lamb, Av=1., Rv=3.1, Alambda=False, debug=False, **kwargs):
         """
         Cardelli extinction Law
         Lamb is input in Anstroms
@@ -143,7 +143,7 @@ class Cardelli(ExtinctionLaw):
         if (Alambda):
             return( ( a + b / Rv ) * Av)
         else:
-            return( 2.5 * 1. / numpy.log(10.) * ( a + b / Rv ) * Av)
+            return( 1./(2.5 * 1. / numpy.log(10.)) * ( a + b / Rv ) * Av)
 
 # Not used internally
 # TODO: Cleanup and reinsert
@@ -227,7 +227,7 @@ class Fitzpatrick99(ExtinctionLaw):
         xspluv = 10000.0 / numpy.array([2700., 2600.])
         ind = numpy.where(x >= xcutuv)
 
-        if numpy.size(ind) > 0:
+        if numpy.size(ind) > 0: 
             k[ind] = c1 + (c2 * x[ind]) + c3 * ((x[ind]) ** 2) / ( ((x[ind]) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) * ((x[ind]) ** 2 ))
             yspluv = c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) / ( ((xspluv) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) * ((xspluv) ** 2 ))
 
