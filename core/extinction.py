@@ -143,7 +143,8 @@ class Cardelli(ExtinctionLaw):
         if (Alambda):
             return( ( a + b / Rv ) * Av)
         else:
-            return( 1./(2.5 * 1. / numpy.log(10.)) * ( a + b / Rv ) * Av)
+            #return( 1./(2.5 * 1. / numpy.log(10.)) * ( a + b / Rv ) * Av)
+            return( 0.4 * numpy.log(10.) * ( a + b / Rv ) * Av)
 
 # Not used internally
 # TODO: Cleanup and reinsert
@@ -227,7 +228,7 @@ class Fitzpatrick99(ExtinctionLaw):
         xspluv = 10000.0 / numpy.array([2700., 2600.])
         ind = numpy.where(x >= xcutuv)
 
-        if numpy.size(ind) > 0: 
+        if numpy.size(ind) > 0:
             k[ind] = c1 + (c2 * x[ind]) + c3 * ((x[ind]) ** 2) / ( ((x[ind]) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) * ((x[ind]) ** 2 ))
             yspluv = c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) / ( ((xspluv) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) * ((xspluv) ** 2 ))
 
@@ -250,10 +251,10 @@ class Fitzpatrick99(ExtinctionLaw):
             ysplopir[0: 3] = numpy.array([0.0, 0.26469, 0.82925]) * Rv / 3.1
 
             ysplopir[3: 7] = numpy.array([numpy.poly1d([2.13572e-04, 1.00270, -4.22809e-01])(Rv),
-                             numpy.poly1d([-7.35778e-05, 1.00216, -5.13540e-02])(Rv),
-                             numpy.poly1d([-3.32598e-05, 1.00184,  7.00127e-01])(Rv),
-                             numpy.poly1d([ 1.19456, 1.01707, -5.46959e-03, 7.97809e-04,
-                                    -4.45636e-05][::-1])(Rv)])
+                                          numpy.poly1d([-7.35778e-05, 1.00216, -5.13540e-02])(Rv),
+                                          numpy.poly1d([-3.32598e-05, 1.00184,  7.00127e-01])(Rv),
+                                          numpy.poly1d([ 1.19456, 1.01707, -5.46959e-03, 7.97809e-04,
+                                          -4.45636e-05][::-1])(Rv)])
 
             tck = interpolate.splrep(numpy.hstack([xsplopir, xspluv]), numpy.hstack([ysplopir, yspluv]), k=3)
             k[ind] = interpolate.splev(x[ind], tck)
@@ -264,7 +265,7 @@ class Fitzpatrick99(ExtinctionLaw):
         if (Alambda):
             return(k * Av)
         else:
-            return(k * Av * (numpy.log(10.) / 2.5))
+            return(k * Av * (numpy.log(10.) * 0.4))
 
 
 class Gordon03_SMCBar(ExtinctionLaw):
@@ -331,7 +332,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
         if (Alambda):
             return(k * Av)
         else:
-            return(k * Av * (numpy.log(10.) / 2.5))
+            return(k * Av * (numpy.log(10.) * 0.4 ))
 
 
 class RvFbumpLaw(ExtinctionLaw):
