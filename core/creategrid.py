@@ -74,6 +74,7 @@ def gen_spectral_grid_from_stellib_given_points(outfile, osl, oiso, pts, bounds=
     weights = 4. * np.pi * (radii * 1e2) ** 2  # denorm models are in cm**-2 (4*pi*rad)
     #check boundaries, keep the data but do not compute the sed if not needed
     data = np.array([pts['logg'], pts['logT']]).T
+    #TODO: points_inside_poly is deprecated, update for the correct one
     bound_cond = points_inside_poly(data, _bounds)
     del data
     _grid['keep'] = bound_cond[:]
@@ -84,13 +85,13 @@ def gen_spectral_grid_from_stellib_given_points(outfile, osl, oiso, pts, bounds=
         for mk, r in enumerate(pts):
             Pbar.update(mk)
             if bound_cond[mk]:
-                try:
-                    s = np.array( osl.interp(r['logT'], r['logg'], r['Z'], 0.) ).T
-                    specs[mk, :] = osl.genSpectrum(s) * weights[mk]
-                except:
-                    #print "error"
-                    specs[mk, :] = np.zeros(len(osl.wavelength), dtype=float )
-                    #assert(False)
+                #try:
+                s = np.array( osl.interp(r['logT'], r['logg'], r['Z'], 0.) ).T
+                specs[mk, :] = osl.genSpectrum(s) * weights[mk]
+                #except:
+                #    print "error"
+                #    specs[mk, :] = np.zeros(len(osl.wavelength), dtype=float )
+                #    #assert(False)
 
     #filter unbound values
     idx = np.array(_grid.pop('keep'))
@@ -109,6 +110,7 @@ def gen_spectral_grid_from_stellib_given_points(outfile, osl, oiso, pts, bounds=
     pars.setUnit('radius', 'Rsun')
     pyfits.writeto(outfile, specs, clobber=True)
     pars.write(outfile, append=True)
+    return outfile
 
 
 def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,), bounds=dict(dlogT=0.1, dlogg=0.3)):
@@ -202,6 +204,7 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
 
     pyfits.writeto(outfile, specs, clobber=True)
     pars.write(outfile, append=True)
+    return outfile
 
 
 def merge_spectral_grids(preferred_fname, alt_fname, outname):
