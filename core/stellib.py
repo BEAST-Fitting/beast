@@ -458,7 +458,7 @@ except Exception as e:
 
         # All four points used.
 
-        if ( (i3 > 0) & (i4 > 0) & (i1 > 0) & (i2 > 0) ):
+        if ( (i3 >= 0) & (i4 >= 0) & (i1 >= 0) & (i2 >= 0) ):
             if (T1 != T3):
                 alpha = (T0 - T3) / (T1 - T3)
             else:
