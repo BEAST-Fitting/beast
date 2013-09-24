@@ -293,11 +293,11 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
                 'f_bump': numpy.empty(g0.grid.nrows * npts)
                 }
     else:
-        Av_vals, Rv_vals, f_bump_vals = numpy.ix_(avs, rvs)
+        Av_vals, Rv_vals = numpy.ix_(avs, rvs)
         it = numpy.nditer([Av_vals, Rv_vals])
         niter = Av_vals.size * Rv_vals.size
 
-        pts = [ (float(ak), float(rk), -1.) for ak, rk, fk in it]
+        pts = [ (float(ak), float(rk)) for ak, rk in it]
         npts = len(pts)
 
         # setup of output
