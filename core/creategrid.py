@@ -175,13 +175,13 @@ def gen_spectral_grid_from_stellib(outfile, osl, oiso, ages=(1e7,), masses=(3,),
                 _grid[key][start_idx: end_idx] = r[key]
             for mk in range(r.nrows):
                 if bound_cond[mk]:
-                    try:
-                        s = np.array( osl.interp(r['logT'][mk], r['logg'][mk], _Zk, 0.) ).T
-                        specs[kdata, :] = osl.genSpectrum(s) * weights[mk]
-                    except:
-                        print "error"
-                        specs[kdata, :] = np.zeros(len(osl.wavelength), dtype=float )
-                        #assert(False)
+                    #try:
+                    s = np.array( osl.interp(r['logT'][mk], r['logg'][mk], _Zk, 0.) ).T
+                    specs[kdata, :] = osl.genSpectrum(s) * weights[mk]
+                    #except:
+                    #    print "error"
+                    #    specs[kdata, :] = np.zeros(len(osl.wavelength), dtype=float )
+                    #    #assert(False)
                 else:
                     specs[kdata, :] = np.zeros(len(osl.wavelength), dtype=float )
                 kdata += 1
@@ -230,78 +230,109 @@ def merge_spectral_grids(preferred_fname, alt_fname, outname):
     merged.write(outname, clobber=True)
 
 
-def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbumps):
-
+def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=None):
     """
     Extinguish and extract fluxes through filters
        (all wavelengths in stellar SEDs and filter response functions assumed to be in Angstroms)
-    INPUTS:
-        stellar_filename string    FITS file with stellar SEDs (luminosities)
-        filter_names   list        list of filter names according to the filter lib
-    KEYWORDS:
-        Av_vals     numpy array    Av values to iterate over
-        Rv_vals     numpy array    Rv values to iterate over
-        f_bump_vals numpy array    f_bump values to iterate over
+    INPUTS
+    ------
+    spec_grid: string or grid.SpectralGrid
+        if string, expecting the filename to the FITS file with stellar spectra
+        else, expecting the corresponding SpectralGrid instance
+
+    filter_names:   list
+        list of filter names according to the filter lib
+
+    Avs:     numpy array
+        Av values to iterate over
+
+    Rvs:     numpy array
+        Rv values to iterate over
+
+    KEYWORDS
+    --------
+    fbumps: numpy array
+        f_bump values to iterate over
+        f_bump can be omitted if the extinction Law does not use it
     """
     # get the stellar grid (no dust)
-    g0 = grid.FileSpectralGrid(stellar_filename)
+    if type(spec_grid) == str:
+        g0 = grid.FileSpectralGrid(spec_grid)
+    else:
+        g0 = spec_grid
 
-    # reduce size of grid for debugging (TBR)
-    #indx = numpy.arange(0, g0.grid.nrows, 100)
-    #g0.grid = g0.grid.extract(indx)
-    #g0.seds = g0.seds[indx]
-    #g0.write('small_grid.fits', clobber=True)
-
-    # define the extinction law be be used (fixed for now)
-    #extLaw = extinction.RvFbumpLaw()
+    if fbumps is None:
+        with_fb = False
+    else:
+        with_fb = True
 
     # get the min/max R(V) values
     min_Rv = min(rvs)
     max_Rv = max(rvs)
 
     # create mesh from input 1d vectors
-    Av_vals, Rv_vals, f_bump_vals = numpy.ix_(avs, rvs, fbumps)
-
     # setup interation over the full dust parameter grid
-    it = numpy.nditer([Av_vals, Rv_vals, f_bump_vals])
-    niter = Av_vals.size * Rv_vals.size * f_bump_vals.size
+    if with_fb:
+        Av_vals, Rv_vals, f_bump_vals = numpy.ix_(avs, rvs, fbumps)
+        it = numpy.nditer([Av_vals, Rv_vals, f_bump_vals])
+        niter = Av_vals.size * Rv_vals.size * f_bump_vals.size
+        # compute the allowed points based on the R(V) versus f_bump plane
+        # duplicates effort for all A(V) values, but it is quick compared to
+        # other steps Note on 2.74: Bumpless extinction implies f_bump = 0. and
+        # Rv = 2.74
+        pts = [ (float(ak), float(rk), float(fk)) for ak, rk, fk in it if fk / max_Rv + (1. - fk) / 2.74 <= 1. / rk <= fk * 1. / min_Rv + (1. - fk) / 2.74]
+        npts = len(pts)
 
-    # compute the allowed points based on the R(V) versus f_bump plane
-    #  duplicates effort for all A(V) values, but it is quick compared to other steps
-    # Note on 2.74: Bumpless extinction implies f_bump = 0. and Rv = 2.74
-    pts = [ (float(ak), float(rk), float(fk)) for ak, rk, fk in it if fk / max_Rv + (1. - fk) / 2.74 <= 1. / rk <= fk * 1. / min_Rv + (1. - fk) / 2.74]
-    npts = len(pts)
+        print 'n possible = ', niter
+        print 'n actual   = ', npts, ' (based on restrictions in R(V) versus f_bump plane'
 
-    print 'n possible = ', niter
-    print 'n actual   = ', npts, ' (based on restrictions in R(V) versus f_bump plane'
+        # setup of output
+        cols = {'Av': numpy.empty(g0.grid.nrows * npts),
+                'Rv': numpy.empty(g0.grid.nrows * npts),
+                'Rv_MW': numpy.empty(g0.grid.nrows * npts),
+                'f_bump': numpy.empty(g0.grid.nrows * npts)
+                }
+    else:
+        Av_vals, Rv_vals, f_bump_vals = numpy.ix_(avs, rvs)
+        it = numpy.nditer([Av_vals, Rv_vals])
+        niter = Av_vals.size * Rv_vals.size
 
-    # setup of output
-    cols = {'Av': numpy.empty(g0.grid.nrows * npts), 'Rv': numpy.empty(g0.grid.nrows * npts), 'f_bump': numpy.empty(g0.grid.nrows * npts)}
+        pts = [ (float(ak), float(rk), -1.) for ak, rk, fk in it]
+        npts = len(pts)
+
+        # setup of output
+        cols = {'Av': numpy.empty(g0.grid.nrows * npts),
+                'Rv': numpy.empty(g0.grid.nrows * npts)}
 
     for key in g0.keys():
         cols[key] = numpy.empty(g0.grid.nrows * npts)
 
-    count = 0
     print 'Generating a final grid of %d points' % (g0.grid.nrows * npts)
-
     with progressbar.PBar(npts, txt='SED grid') as Pbar:
-        for Av, Rv, f_bump in pts:
+        for count, pt in enumerate(pts):
             # info showing program is running
             Pbar.update(count, force=True)
 
-            # compute R(V)^MW to return the Rv requested
-            if f_bump > 0.:
-                Rv_MW = 1. / (1. / (Rv * f_bump) - (1. - f_bump) / (f_bump * 2.74))
+            if with_fb:
+                Av, Rv, f_bump = pt
+                # compute R(V)^MW to return the Rv requested
+                if f_bump > 0.:
+                    Rv_MW = 1. / (1. / (Rv * f_bump) - (1. - f_bump) / (f_bump * 2.74))
+                else:
+                    Rv_MW = 2.74  # doesn't matter
+                # apply extinction and integrate over band response functions
+                temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv_MW, f_bump=f_bump)
             else:
-                Rv_MW = 2.74  # doesn't matter
+                Av, Rv = pt
+                # apply extinction and integrate over band response functions
+                temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv)
 
-            # apply extinction and integrate over band response functions
-            temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv_MW, f_bump=f_bump)
             # setup the output object
             #  must be done after the 1st extraction to get the wavelength vector
             if count is 0:
+                empty_seds = numpy.empty( (g0.grid.nrows * npts, len(filter_names)) )
                 results = grid.MemoryGrid(temp_results.lamb,
-                                          seds=numpy.empty( (g0.grid.nrows * npts, len(filter_names)) ),
+                                          seds=empty_seds,
                                           grid=eztables.Table(cols) )
 
             # assign the extinguished SEDs to the output object
@@ -313,12 +344,14 @@ def make_extinguished_grid(stellar_filename, filter_names, extLaw, avs, rvs, fbu
             # adding the dust parameters to the models
             results.grid.data['Av'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = Av
             results.grid.data['Rv'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = Rv
-            results.grid.data['f_bump'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = f_bump
+
+            if with_fb:
+                results.grid.data['f_bump'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = f_bump
+                results.grid.data['Rv_MW'][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = Rv_MW
 
             # the rest of the parameters
             for key in g0.keys():
                 results.grid.data[key][g0.grid.nrows * count:g0.grid.nrows * (count + 1)] = g0.grid[key]
-            count += 1
 
     results.grid.header['filters'] = ' '.join(filter_names)
     return results
