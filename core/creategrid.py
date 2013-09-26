@@ -316,12 +316,14 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
             if with_fb:
                 Av, Rv, f_bump = pt
                 # compute R(V)^MW to return the Rv requested
-                if f_bump > 0.:
-                    Rv_MW = 1. / (1. / (Rv * f_bump) - (1. - f_bump) / (f_bump * 2.74))
-                else:
-                    Rv_MW = 2.74  # doesn't matter
+                #if f_bump > 0.:
+                #    Rv_MW = 1. / (1. / (Rv * f_bump) - (1. - f_bump) / (f_bump * 2.74))
+                Rv_MW = extLaw.get_Rv_A(Rv, f_bump)
+                #else:
+                #    Rv_MW = 2.74  # doesn't matter
                 # apply extinction and integrate over band response functions
-                temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv_MW, f_bump=f_bump)
+                #temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv_MW, f_bump=f_bump)
+                temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv, f_bump=f_bump)
             else:
                 Av, Rv = pt
                 # apply extinction and integrate over band response functions
