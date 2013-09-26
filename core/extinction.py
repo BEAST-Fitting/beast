@@ -381,13 +381,51 @@ class RvFbumpLaw(ExtinctionLaw):
         return f_bump * self.RvLaw.function(lamb, Av=Av, Rv=Rv_A, Alambda=Alambda) + (1. - f_bump) * self.NoBumpLaw.function(lamb, Av=Av, Alambda=Alambda, Rv=Rv_B)
 
     def isvalid(self, Av=None, Rv=None, f_bump=0.5, Rv_A=None, Rv_B=None):
-        #TODO: must update, but don't have info!
-        if sum([Rv_A is None, Rv_B is None, Rv is None]) < 2 and not hasattr(self.NoBumpLaw, 'Rv'):
+        """ Test the validity of an extinction vector (Av, Rv, Rv_A, Rv_B, fbump)
+
+        Law = fbump * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - fbump) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
+
+        The validity impose Rv ranges and fbump to be a fraction (i.e., between 0 and 1)
+
+        At least 2 out of the 3 Rv values must be provided, the 3rd will be computed if missing.
+
+        INPUTS
+        ------
+        Av: float
+            Av value (any value is allowed, even <0)
+
+        Rv, Rv_A, Rv_B: float, float, float
+            effective Rv, RvLaw component and bumpless component Rv values, respectively.
+            At least 2 must be provided.
+
+        f_bump: float
+            Mixture ratio between the two components
+
+        OUTPUTS
+        -------
+        r: bool
+            True, if the values a coherent with the definition.
+        """
+
+        if Rv_B is None and hasattr(self.NoBumpLaw, 'Rv'):
+            Rv_B = self.NoBumpLaw.Rv
+
+        if Rv_A is None and hasattr(self.RvLaw, 'Rv'):
+            Rv_A = self.RvLaw.Rv
+
+        # if we do not have at least 2 of the 3 Rvs defined then it's invalid
+        if sum([Rv_A is None, Rv_B is None, Rv is None]) < 2:
             return False
 
-        r = 0. <= f_bump <= 1.
+        if Rv_A is None:
+            Rv_A = self.get_Rv_A(Rv, f_bump, Rv_B=Rv_B)
+        elif Rv is None:
+            Rv = self.get_Rv(Rv_A, f_bump, Rv_B=Rv_B)
+        elif Rv_B is None:
+            Rv_B = self.get_Rv_B(Rv, Rv_A, f_bump)
 
-        return r
+        # fbump is a fraction and any Rv is limited to [2.0, 6.0]
+        return (0. <= f_bump <= 1.) & (2.0 <= Rv_B <= 6.0) & (2.0 <= Rv_A <= 6.0) & (2.0 <= Rv <= 6.0)
 
     def get_Rv_A(self, Rv, fbump, Rv_B=None):
         """ Returns the equivalent Rv to use in the bump component
