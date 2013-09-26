@@ -30,6 +30,12 @@ class ExtinctionLaw(object):
     def __call__(self, *args, **kwargs):
         return self.function(*args, **kwargs)
 
+    def isvalid(self, *args, **kwargs):
+        """ Check if the current arguments are in the validity domain of the law
+        Must be redefined if any restriction applies to the law
+        """
+        return True
+
 
 class Calzetti(ExtinctionLaw):
     """
@@ -41,7 +47,7 @@ class Calzetti(ExtinctionLaw):
     Note that the supplied color excess should be that derived for the
     stellar  continuum, EBV(stars), which is related to the reddening
     derived from the gas, EBV(gas), via the Balmer decrement by
-    EBV(stars) = 0.44*EBV(gas)
+    EBV(stars) = 0.44 * EBV(gas)
 
     R_V - Ratio of total to selective extinction, default = 4.05.  Calzetti
     et al. (2000) estimate R_V = 4.05 +/- 0.80 from optical-IR observations
@@ -269,9 +275,13 @@ class Fitzpatrick99(ExtinctionLaw):
 
 
 class Gordon03_SMCBar(ExtinctionLaw):
-    """ Gordon et al. 2003 (ApJ, 594:279-293)"""
+    """ Gordon et al. 2003 (ApJ, 594:279-293)
+    Note that Rv has no impact on this law: according to Gordon et al (2003),
+    the average value of Rv is fixed to 2.74 +/- 0.13
+    """
     def __init__(self):
         self.name = 'Gordon03_SMCBar'
+        self.Rv = 2.74
 
     def function(self, lamb, Av=1, Alambda=True, **kwargs):
         """
@@ -344,7 +354,7 @@ class RvFbumpLaw(ExtinctionLaw):
         self.NoBumpLaw = Gordon03_SMCBar()
         self.name = 'RvFbumpLaw'
 
-    def function(self, lamb, Av=1, Rv=3.1, Alambda=True, f_bump=0.5, **kwargs):
+    def function(self, lamb, Av=1, Rv_A=None, Alambda=True, f_bump=0.5, Rv_B=None, Rv=None, **kwargs):
         """
         Lamb as to be in microns!!!
 
@@ -355,10 +365,78 @@ class RvFbumpLaw(ExtinctionLaw):
         keywords:
             Alambda   <bool>     returns +2.5*1./log(10.)*tau
             Av        <float>    extinction value (def: 1.0)
-            Rv        <float>    extinction param. (def: 3.1)
+            Rv        <float>    effective extinction param.  (def: 3.1)
+            Rv_A      <float>    extinction param. on the RvLaw (Bump) (def: 3.1)
             f_bump    <float>    mixture fraction defining the bump amplitude
         """
-        return f_bump * self.RvLaw.function(lamb, Av=Av, Rv=Rv, Alambda=Alambda) + (1. - f_bump) * self.NoBumpLaw.function(lamb, Av=Av, Alambda=Alambda)
+        if sum([Rv_A is None, Rv_B is None, Rv is None]) < 2 and not hasattr(self.NoBumpLaw, 'Rv'):
+            raise ValueError('Must provide at least 2 Rv values')
+
+        if Rv_A is None:
+            Rv_A = self.get_Rv_A(Rv, f_bump, Rv_B)
+
+        if Rv_B is None and not hasattr(self.NoBumpLaw, 'Rv'):
+            Rv_B = self.get_Rv_B(Rv, Rv_A, f_bump)
+
+        return f_bump * self.RvLaw.function(lamb, Av=Av, Rv=Rv_A, Alambda=Alambda) + (1. - f_bump) * self.NoBumpLaw.function(lamb, Av=Av, Alambda=Alambda, Rv=Rv_B)
+
+    def isvalid(self, Av=None, Rv=None, f_bump=0.5, Rv_A=None, Rv_B=None):
+        #TODO: must update, but don't have info!
+        if sum([Rv_A is None, Rv_B is None, Rv is None]) < 2 and not hasattr(self.NoBumpLaw, 'Rv'):
+            return False
+
+        r = 0. <= f_bump <= 1.
+
+        return r
+
+    def get_Rv_A(self, Rv, fbump, Rv_B=None):
+        """ Returns the equivalent Rv to use in the bump component
+            Law = f_A * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - f_A) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
+
+            and Rv is such that
+
+            1 / Rv = f_A / Rv_A + (1 - f_A) / Rv_B
+
+            Rv_A = 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
+
+            not that Gordon03_SMCBar has a fixed Rv=2.74
+        """
+
+        if hasattr(self.NoBumpLaw, 'Rv'):
+            Rv_B = self.NoBumpLaw.Rv
+
+        return 1. / (1. / (Rv * fbump) - (1. - fbump) / (fbump * Rv_B))
+
+    def get_Rv(self, Rv_A, fbump, Rv_B=None):
+        """ Returns the equivalent Rv to use in the bump component
+            Law = f_A * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - f_A) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
+
+            and Rv is such that
+
+            1 / Rv = f_A / Rv_A + (1 - f_A) / Rv_B
+
+            Rv_A = 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
+
+            not that Gordon03_SMCBar has a fixed Rv=2.74
+        """
+        if hasattr(self.NoBumpLaw, 'Rv'):
+            Rv_B = self.NoBumpLaw.Rv
+
+        return 1. / (fbump / Rv_A + (1 - fbump) / Rv_B)
+
+    def get_Rv_B(self, Rv, Rv_A, fbump):
+        """ Returns the equivalent Rv to use in the bump component
+            Law = f_A * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - f_A) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
+
+            and Rv is such that
+
+            1 / Rv = f_A / Rv_A + (1 - f_A) / Rv_B
+
+            Rv_A = 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
+
+            not that Gordon03_SMCBar has a fixed Rv=2.74
+        """
+        return (1. - fbump) / (1. / Rv - fbump / Rv_A)
 
 
 if __name__ == "__main__":
