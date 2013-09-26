@@ -369,13 +369,18 @@ class RvFbumpLaw(ExtinctionLaw):
             Rv_A      <float>    extinction param. on the RvLaw (Bump) (def: 3.1)
             f_bump    <float>    mixture fraction defining the bump amplitude
         """
-        if sum([Rv_A is None, Rv_B is None, Rv is None]) < 2 and not hasattr(self.NoBumpLaw, 'Rv'):
+        if Rv_A is None:
+            Rv_A = getattr(self.RvLaw, 'Rv', None)
+
+        if Rv_B is None:
+            Rv_B = getattr(self.NoBumpLaw, 'Rv', None)
+
+        if sum([Rv_A is None, Rv_B is None, Rv is None]) < 2:
             raise ValueError('Must provide at least 2 Rv values')
 
         if Rv_A is None:
             Rv_A = self.get_Rv_A(Rv, f_bump, Rv_B)
-
-        if Rv_B is None and not hasattr(self.NoBumpLaw, 'Rv'):
+        if Rv_B is None:
             Rv_B = self.get_Rv_B(Rv, Rv_A, f_bump)
 
         return f_bump * self.RvLaw.function(lamb, Av=Av, Rv=Rv_A, Alambda=Alambda) + (1. - f_bump) * self.NoBumpLaw.function(lamb, Av=Av, Alambda=Alambda, Rv=Rv_B)
@@ -419,15 +424,15 @@ class RvFbumpLaw(ExtinctionLaw):
 
         if Rv_A is None:
             Rv_A = self.get_Rv_A(Rv, f_bump, Rv_B=Rv_B)
-        elif Rv is None:
+        if Rv is None:
             Rv = self.get_Rv(Rv_A, f_bump, Rv_B=Rv_B)
-        elif Rv_B is None:
+        if Rv_B is None:
             Rv_B = self.get_Rv_B(Rv, Rv_A, f_bump)
 
         # fbump is a fraction and any Rv is limited to [2.0, 6.0]
         return (0. <= f_bump <= 1.) & (2.0 <= Rv_B <= 6.0) & (2.0 <= Rv_A <= 6.0) & (2.0 <= Rv <= 6.0)
 
-    def get_Rv_A(self, Rv, fbump, Rv_B=None):
+    def get_Rv_A(self, Rv, fbump=0.5, Rv_B=None):
         """ Returns the equivalent Rv to use in the bump component
             Law = f_A * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - f_A) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
 
@@ -440,12 +445,12 @@ class RvFbumpLaw(ExtinctionLaw):
             not that Gordon03_SMCBar has a fixed Rv=2.74
         """
 
-        if hasattr(self.NoBumpLaw, 'Rv'):
+        if Rv_B is None and hasattr(self.NoBumpLaw, 'Rv'):
             Rv_B = self.NoBumpLaw.Rv
 
         return 1. / (1. / (Rv * fbump) - (1. - fbump) / (fbump * Rv_B))
 
-    def get_Rv(self, Rv_A, fbump, Rv_B=None):
+    def get_Rv(self, Rv_A=None, fbump=0.5, Rv_B=None):
         """ Returns the equivalent Rv to use in the bump component
             Law = f_A * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - f_A) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
 
@@ -457,12 +462,15 @@ class RvFbumpLaw(ExtinctionLaw):
 
             not that Gordon03_SMCBar has a fixed Rv=2.74
         """
-        if hasattr(self.NoBumpLaw, 'Rv'):
+        if Rv_B is None and hasattr(self.NoBumpLaw, 'Rv'):
             Rv_B = self.NoBumpLaw.Rv
+
+        if Rv_A is None and hasattr(self.RvLaw, 'Rv'):
+            Rv_A = self.RvLaw.Rv
 
         return 1. / (fbump / Rv_A + (1 - fbump) / Rv_B)
 
-    def get_Rv_B(self, Rv, Rv_A, fbump):
+    def get_Rv_B(self, Rv, Rv_A=None, fbump=0.5):
         """ Returns the equivalent Rv to use in the bump component
             Law = f_A * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - f_A) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
 
@@ -474,6 +482,9 @@ class RvFbumpLaw(ExtinctionLaw):
 
             not that Gordon03_SMCBar has a fixed Rv=2.74
         """
+        if Rv_A is None and hasattr(self.RvLaw, 'Rv'):
+            Rv_A = self.RvLaw.Rv
+
         return (1. - fbump) / (1. / Rv - fbump / Rv_A)
 
 
