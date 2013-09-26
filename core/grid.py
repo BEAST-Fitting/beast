@@ -2,9 +2,7 @@
 import numpy
 import pyfits
 
-#from . import stellib
 from . import phot
-#from . import isochrone
 from . import extinction
 from ..external.eztables import Table
 
@@ -21,7 +19,45 @@ def isNestedInstance(obj, cl):
     for k in cl.__subclasses__():
         tree += k.__subclasses__()
     tree += cl.__subclasses__() + [ cl ]
-    return  issubclass(obj.__class__, tuple(tree))
+    return issubclass(obj.__class__, tuple(tree))
+
+
+def pretty_size_print(num_bytes):
+    """
+    Output number of bytes in a human readable format
+    """
+    if num_bytes is None:
+        return
+
+    KiB = 1024
+    MiB = KiB * KiB
+    GiB = KiB * MiB
+    TiB = KiB * GiB
+    PiB = KiB * TiB
+    EiB = KiB * PiB
+    ZiB = KiB * EiB
+    YiB = KiB * ZiB
+
+    if num_bytes > YiB:
+        output = '%.3g YB' % (num_bytes / YiB)
+    elif num_bytes > ZiB:
+        output = '%.3g ZB' % (num_bytes / ZiB)
+    elif num_bytes > EiB:
+        output = '%.3g EB' % (num_bytes / EiB)
+    elif num_bytes > PiB:
+        output = '%.3g PB' % (num_bytes / PiB)
+    elif num_bytes > TiB:
+        output = '%.3g TB' % (num_bytes / TiB)
+    elif num_bytes > GiB:
+        output = '%.3g GB' % (num_bytes / GiB)
+    elif num_bytes > MiB:
+        output = '%.3g MB' % (num_bytes / MiB)
+    elif num_bytes > KiB:
+        output = '%.3g KB' % (num_bytes / KiB)
+    else:
+        output = '%.3g Bytes' % (num_bytes)
+
+    return output
 
 
 class ModelGrid(object):
@@ -31,25 +67,48 @@ class ModelGrid(object):
         self.seds = None
         self.grid = None
 
+    def __repr__(self):
+        txt = '{}\n {} grid points ({})'
+        return txt.format(object.__repr__(self), self.grid.nrows, pretty_size_print(self.nbytes))
+
+    @property
+    def nbytes(self):
+        """ return the number of bytes of the object """
+        n = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in self.__dict__.values())
+        n += sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in self.grid.__dict__.values())
+        return n
+
     def keys(self):
         """ returns the grid dimension names """
-        return []
+        if hasattr(self.grid, 'keys'):
+            return self.grid.keys()
+        else:
+            return []
 
     def getGridPoints(self, *args, **kwargs):
         """ Returns age, mass, logg, logT, logL... """
         pass
+
+    def __getattr__(self, name):
+        if name in self.__dict__:
+            return self.__dict__[name]
+        elif name in self.grid.keys() + self.grid._aliases.keys():
+            return self.grid[name]
+        else:
+            msg = "'{0}' object has no attribute '{1}'"
+            raise AttributeError(msg.format(type(self).__name__, name))
 
     def getPDF(self, Qname, lnp, *args, **kwargs):
         assert (Qname in self.keys() ), "Cannot find %s in the grid description" % Qname
 
     def write(self, fname, *args, **kwargs):
         if ( (self.lamb is not None) & (self.seds is not None) & (self.grid is not None) ):
-            assert (isinstance(self.grid, Table)), 'Only eztables.Table are supported so far'
+            assert(isinstance(self.grid, Table)), 'Only eztables.Table are supported so far'
             r = numpy.vstack( [ numpy.copy(self.seds), self.lamb ])
             pyfits.writeto(fname, r, **kwargs)
             if getattr(self, 'filters', None) is not None:
                 if ('FILTERS' not in self.grid.header.keys()):
-                    self.grid.header['FILTERS'] = self.filters
+                    self.grid.header['FILTERS'] = ' '.join(self.filters)
             self.grid.write(fname, append=True)
 
     def copy(self):
