@@ -356,10 +356,10 @@ class RvFbumpLaw(ExtinctionLaw):
 
     def function(self, lamb, Av=1, Rv_A=None, Alambda=True, f_bump=0.5, Rv_B=None, Rv=None, **kwargs):
         """
-        Lamb as to be in microns!!!
+        Lamb as to be in Angstroms!!!
 
         input:
-            lamb      <float>    wavelength of the extinction point !! in microns !!
+            lamb      <float>    wavelength of the extinction point !! in Angstroms !!
         output:
             tau       <float>    returns tau as in redflux = flux*exp(-tau)
         keywords:
@@ -370,7 +370,6 @@ class RvFbumpLaw(ExtinctionLaw):
             f_bump    <float>    mixture fraction defining the bump amplitude
         """
 
-        _lamb = lamb * 1e4
         
         if Rv_A is None:
             Rv_A = getattr(self.RvLaw, 'Rv', None)
@@ -386,7 +385,7 @@ class RvFbumpLaw(ExtinctionLaw):
         if Rv_B is None:
             Rv_B = self.get_Rv_B(Rv, Rv_A, f_bump)
 
-        return f_bump * self.RvLaw.function(_lamb, Av=Av, Rv=Rv_A, Alambda=Alambda) + (1. - f_bump) * self.NoBumpLaw.function(_lamb, Av=Av, Alambda=Alambda, Rv=Rv_B)
+        return f_bump * self.RvLaw.function(lamb, Av=Av, Rv=Rv_A, Alambda=Alambda) + (1. - f_bump) * self.NoBumpLaw.function(lamb, Av=Av, Alambda=Alambda, Rv=Rv_B)
 
     def isvalid(self, Av=None, Rv=None, f_bump=0.5, Rv_A=None, Rv_B=None):
         """ Test the validity of an extinction vector (Av, Rv, Rv_A, Rv_B, fbump)
@@ -497,7 +496,7 @@ if __name__ == "__main__":
     import pylab
 
     x = (numpy.arange(100) / 100.) * 10. + 0.1
-    lamb = 1. / x
+    lamb = 1.e4 / x
 
     ccm  = Cardelli()
     f99  = Fitzpatrick99()
@@ -508,13 +507,13 @@ if __name__ == "__main__":
 
     Rv_vals = numpy.arange(2, 6, dtype=float)
     for Rv in Rv_vals:
-        yccm = ccm.function(lamb*1e4, Rv=Rv)
-        yf99 = f99.function(lamb*1e4, Rv=Rv)
+        yccm = ccm.function(lamb, Rv=Rv)
+        yf99 = f99.function(lamb, Rv=Rv)
 
         #pylab.plot(x,yccm,label='CCM, Rv=%0.1f' % (Rv) )
         plt.plot(x, yf99, label='F99, Rv=%0.1f' % (Rv) )
 
-    ygsmc = gsmc.function(lamb*1e4)
+    ygsmc = gsmc.function(lamb)
     plt.plot(x, ygsmc, label='G. SMC')
 
     mixlaw = RvFbumpLaw()
@@ -531,60 +530,7 @@ if __name__ == "__main__":
     plt.set_xlabel('1/x [$\mu$m$^{-1}$]')
 
     plt.legend(loc=0, frameon=False)
-    
-    #BEAST paper extinction mixture law figure 
-    fig = pylab.figure()
-    plt = fig.add_subplot(111)
-
-    ymix = mixlaw(lamb, Rv_A=2.5, f_bump=0.)
-    plt.plot(x, ymix,'-k', label='$f_b=0.0$')
-
-    ymix = mixlaw(lamb, Rv_A=2.5, f_bump=1./3.)
-    plt.plot(x, ymix,'--k', label='$f_b=0.333$')
-    
-    ymix = mixlaw(lamb, Rv_A=2.5, f_bump=2./3.)
-    plt.plot(x, ymix, ':k', label='$f_b=0.667$')
-
-    ymix = mixlaw(lamb, Rv_A=2.5, f_bump=1.0)
-    plt.plot(x, ymix,'-.k', label='$f_b=1.0$')
-
-    pylab.figtext( 0.16,0.63, '$R_A(V)\  =\  2.5$', color='k',size=15)
-
-    pylab.xlim(0.,8.)
-    pylab.ylim(0.,7.)
-    pylab.rc('font', size=13, family='serif')
-    plt.set_ylabel('$A(\lambda)/A(V)$',size=15)
-    plt.set_xlabel('$1/\lambda$ [$\mu m^{-1}$]',size=15)
-
-    plt.legend(loc=0, frameon=False, fontsize = 15)
-    
-    #pylab.savefig('../projects/real_data/RvFbumpLaw_25.pdf')
-    
-
-    #BEAST paper f_bump-Rv grid figure
-
-    Rv_vals=numpy.arange(2.0,6.01,0.08)
-    fb_vals=numpy.arange(0.0,1.02,0.02)
-    N_fb = len(fb_vals)
-    N_rv = len(Rv_vals)
-    Rv_res = numpy.ndarray(shape=(N_rv,N_fb), dtype=float)
-    ind = numpy.ndarray(shape=(N_rv,N_fb), dtype=float)
-    fig = pylab.figure()
-    plt = fig.add_subplot(1, 1, 1)
-    for i in range(N_fb):
-        Rv_res[0:N_rv,i]=mixlaw.get_Rv_A(Rv_vals,fbump=fb_vals[i]) 
-        ind = numpy.where((Rv_res[:,i] >= 2.) &  (Rv_res[:,i] <= 6.001))[0]
-        ll=len(ind)
-        plt.plot(numpy.ones(ll)*fb_vals[i],Rv_vals[ind],'ko',markersize=2)
         
-    pylab.xlim(-0.05,1.05)
-    pylab.ylim(1.9,6.1)
-    pylab.rc('font', size=13, family='serif')
-    plt.set_xlabel('$f_b$',size=15)
-    plt.set_ylabel('R($V$)',size=15)
-    
-    #pylab.savefig('../projects/real_data/RvFbump_grid.pdf')
-    
     pylab.show()
 
     
