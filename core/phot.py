@@ -15,14 +15,14 @@ from ..tools.decorators import timeit
 from ..config import __ROOT__
 
 __default__      = __ROOT__ + '/libs/filters.hd5'
-__default_vega__ = __ROOT__ + '/libs/vega.hd5'
+#__default_vega__ = __ROOT__ + '/libs/vega.hd5'
 
 # this is used to convert from bolometric luminosities to abs fluxes
 # object to 10parsecs -- abs mag.
 distc = 4. * numpy.pi * (3.1e19) ** 2
 
 
-class filter(object):
+class Filter(object):
     """Class filter
     Define a filter by its name, wavelength and transmission
     """
@@ -106,12 +106,12 @@ def __load__(fname, ftab, interp=True, lamb=None):
     transmit = fnode[:]['THROUGHPUT']
     if interp & (lamb is not None):
         ifT = numpy.interp(lamb, flamb, transmit, left=0., right=0.)
-        return filter( lamb, ifT, name=fnode.name )
+        return Filter( lamb, ifT, name=fnode.name )
     else:
-        return filter( flamb, transmit, name=fnode.name )
+        return Filter( flamb, transmit, name=fnode.name )
 
 
-def load_all_filters(interp=True, lamb=None, filterLib=__default__):
+def load_all_filters(interp=True, lamb=None, filterLib=None):
     """ load all filters from the library
         KEYWORDS:
             interp      bool                    reinterpolate the filters over given lambda points
@@ -120,12 +120,14 @@ def load_all_filters(interp=True, lamb=None, filterLib=__default__):
         OUTPUTS:
             filters     list[filter]            list of filter objects
     """
+    if filterLib is None:
+        filterLib = __default__
     with tables.openFile(filterLib, 'r') as ftab:
         filters = [ __load__(fname, ftab, interp=interp, lamb=lamb) for fname in ftab.root.content.cols.TABLENAME ]
     return(filters)
 
 
-def load_filters(names, interp=True, lamb=None, filterLib=__default__):
+def load_filters(names, interp=True, lamb=None, filterLib=None):
     """ load a limited set of filters
         INPUTS:
             names       list[str]               normalized names according to filtersLib
@@ -136,6 +138,8 @@ def load_filters(names, interp=True, lamb=None, filterLib=__default__):
         OUTPUTS:
             filters     list[filter]            list of filter objects
     """
+    if filterLib is None:
+        filterLib = __default__
     with tables.openFile(filterLib, 'r') as ftab:
         filters = [ __load__(fname, ftab, interp=interp, lamb=lamb) for fname in names ]
     return(filters)
