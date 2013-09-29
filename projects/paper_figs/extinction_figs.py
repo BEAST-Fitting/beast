@@ -64,12 +64,11 @@ def make_mixture_decomp_fig(f_A=0.5, ax=None, figname=None, save_fmt=['eps', 'pd
     savefig(figname, fmt=save_fmt)
 
 
-def make_Rv_fbump_grid_fig(ax=None, figname=None, save_fmt=['eps', 'pdf']):
+def make_Rv_fbump_grid_fig(mixlaw, ax=None, figname=None, save_fmt=['eps', 'pdf']):
     if ax is None:
         fig = pylab.figure()
         ax = fig.add_subplot(111)
 
-    mixlaw = extinction.RvFbumpLaw()
     Rv_vals = numpy.arange(2.0,6.01,0.08)
     fb_vals = numpy.arange(0.0,1.02,0.02)
     N_fb = len(fb_vals)
@@ -110,7 +109,7 @@ make_mixture_var_fig(lamb, mixlaw, Rv_A=5.5, figname=dir + 'RvFbumpLaw_55', save
 make_mixture_var_fig(f_A=0.5, figname=dir + 'MixtLawComp', save_fmt=save_fmt)
 
 #BEAST paper f_bump-Rv grid figure
-make_Rv_fbump_grid_fig(figname=dir + 'RvFbump_grid', save_fmt=['eps', 'pdf'])
+make_Rv_fbump_grid_fig(mixlaw, figname=dir + 'RvFbump_grid', save_fmt=['eps', 'pdf'])
 
 pylab.show()
 
