@@ -8,38 +8,41 @@ import numpy
 pylab.rc('font', size=13, family='serif')
 
 
-def make_fig(lamb, law, Rv_A=2.5, ax=None, savefig=None, save_fmt=['eps', 'pdf']):
+def savefig(name=None, fmt=['eps', 'pdf']):
+    if name is not None:
+        for fk in fmt:
+            pylab.savefig('{}.{}'.format(savefig, fk), bbox_inches='tight')
+
+
+def make_fig(lamb, law, Rv_A=2.5, ax=None, figname=None, save_fmt=['eps', 'pdf']):
     #BEAST paper extinction mixture law figure Rv_A=2.5
     if ax is None:
         fig = pylab.figure()
         ax = fig.add_subplot(111)
 
     ymix = mixlaw(lamb, Rv_A=2.5, f_bump=0.)
-    ax.plot(x, ymix,'-k', label='$f_A=0$')
+    ax.plot(x, ymix, '-k', label='$f_A=0$')
 
     ymix = mixlaw(lamb, Rv_A=2.5, f_bump=1. / 3.)
-    ax.plot(x, ymix,'--k', label='$f_A=1/3$')
+    ax.plot(x, ymix, '--k', label='$f_A=1/3$')
 
     ymix = mixlaw(lamb, Rv_A=2.5, f_bump=2. / 3.)
     ax.plot(x, ymix, ':k', label='$f_A=2/3$')
 
     ymix = mixlaw(lamb, Rv_A=2.5, f_bump=1.0)
-    ax.plot(x, ymix,'-.k', label='$f_A=1$')
+    ax.plot(x, ymix, '-.k', label='$f_A=1$')
 
     ax.text(0.16, 0.63, '$R_A(V)$ = {:0.1f}'.format(Rv_A), color='k', size=15)
     ax.set_xlim(0., 8.)
     ax.set_ylim(0., 7.)
     ax.set_ylabel('$A(\lambda)/A(V)$', size=15)
     ax.set_xlabel('$1/\lambda$ [$\mu m^{-1}$]', size=15)
-
     ax.legend(loc=0, frameon=False, fontsize=15)
 
-    if savefig is not None:
-        for fk in save_fmt:
-            pylab.savefig('{}.{}'.format(savefig, fk), bbox_inches='tight')
+    savefig(figname, fmt=save_fmt)
 
 
-def make_mixture_fig(f_A=0.5, ax=None, savefig=None, save_fmt=['eps', 'pdf']):
+def make_mixture_fig(f_A=0.5, ax=None, figname=None, save_fmt=['eps', 'pdf']):
     #extinction mixture law figure 2 components
     if ax is None:
         fig = pylab.figure()
@@ -56,15 +59,12 @@ def make_mixture_fig(f_A=0.5, ax=None, savefig=None, save_fmt=['eps', 'pdf']):
     ax.set_xlabel(r'1/$\lambda$ [$\mu m^{-1}$]', size=15)
 
     ax.text(0.16, 0.695, '$f_A$ = {:0.1f}'.format(f_A), color='k', size=15, fontweight='bold')
-
     ax.legend(loc=0, frameon=False, fontsize=15)
 
-    if savefig is not None:
-        for fk in save_fmt:
-            pylab.savefig('{}.{}'.format(savefig, fk), bbox_inches='tight')
+    savefig(figname, fmt=save_fmt)
 
 
-def Rv_fbump_grid(ax=None, savefig=None, save_fmt=['eps', 'pdf']):
+def Rv_fbump_grid(ax=None, figname=None, save_fmt=['eps', 'pdf']):
     if ax is None:
         fig = pylab.figure()
         ax = fig.add_subplot(111)
@@ -89,12 +89,11 @@ def Rv_fbump_grid(ax=None, savefig=None, save_fmt=['eps', 'pdf']):
     ax.set_xlabel('$f_A$', size=15)
     ax.set_ylabel('R($V$)', size=15)
 
-    if savefig is not None:
-        for fk in save_fmt:
-            pylab.savefig('{}.{}'.format(savefig, fk), bbox_inches='tight')
+    savefig(figname, fmt=save_fmt)
 
 
 dir = './figs/'
+save_fmt = ['eps', 'pdf']
 
 x = numpy.arange(0.1, 10, 0.1)
 lamb = 1.e4 / x    # wavelength in angstroms
@@ -102,16 +101,16 @@ lamb = 1.e4 / x    # wavelength in angstroms
 mixlaw = extinction.RvFbumpLaw()
 
 # #BEAST paper extinction mixture law figure Rv_A=2.5
-make_fig(lamb, mixlaw, Rv_A=2.5, savefig=dir + 'RvFbumpLaw_25', save_fmt=['eps', 'pdf'])
+make_fig(lamb, mixlaw, Rv_A=2.5, figname=dir + 'RvFbumpLaw_25', save_fmt=save_fmt)
 
 # #BEAST paper extinction mixture law figure Rv_A=5.5
-make_fig(lamb, mixlaw, Rv_A=5.5, savefig=dir + 'RvFbumpLaw_55', save_fmt=['eps', 'pdf'])
+make_fig(lamb, mixlaw, Rv_A=5.5, figname=dir + 'RvFbumpLaw_55', save_fmt=save_fmt)
 
 #extinction mixture law figure 2 components
-make_mixture_fig(f_A=0.5, savefig=dir + 'MixtLawComp', save_fmt=['eps', 'pdf'])
+make_mixture_fig(f_A=0.5, figname=dir + 'MixtLawComp', save_fmt=save_fmt)
 
 #BEAST paper f_bump-Rv grid figure
-Rv_fbump_grid(savefig=dir + 'RvFbump_grid', save_fmt=['eps', 'pdf'])
+Rv_fbump_grid(figname=dir + 'RvFbump_grid', save_fmt=['eps', 'pdf'])
 
 pylab.show()
 
