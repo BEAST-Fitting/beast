@@ -14,7 +14,7 @@ def savefig(name=None, fmt=['eps', 'pdf']):
             pylab.savefig('{}.{}'.format(savefig, fk), bbox_inches='tight')
 
 
-def make_fig(lamb, law, Rv_A=2.5, ax=None, figname=None, save_fmt=['eps', 'pdf']):
+def make_mixture_var_fig(lamb, mixlaw, Rv_A=2.5, ax=None, figname=None, save_fmt=['eps', 'pdf']):
     #BEAST paper extinction mixture law figure Rv_A=2.5
     if ax is None:
         fig = pylab.figure()
@@ -42,7 +42,7 @@ def make_fig(lamb, law, Rv_A=2.5, ax=None, figname=None, save_fmt=['eps', 'pdf']
     savefig(figname, fmt=save_fmt)
 
 
-def make_mixture_fig(f_A=0.5, ax=None, figname=None, save_fmt=['eps', 'pdf']):
+def make_mixture_decomp_fig(f_A=0.5, ax=None, figname=None, save_fmt=['eps', 'pdf']):
     #extinction mixture law figure 2 components
     if ax is None:
         fig = pylab.figure()
@@ -52,9 +52,9 @@ def make_mixture_fig(f_A=0.5, ax=None, figname=None, save_fmt=['eps', 'pdf']):
     compA = f_A * ymix.RvLaw(lamb, Rv=3.1)
     compB = f_A * ymix.NoBumpLaw(lamb)
 
-    ax.plot(x,ymix, '-k', label='Mixture')
-    ax.plot(x,compA, '--k', label='Bump Law')
-    ax.plot(x,compB, ':k', label='No Bump')
+    ax.plot(x, ymix, '-k', label='Mixture')
+    ax.plot(x, compA, '--k', label='Bump Law')
+    ax.plot(x, compB, ':k', label='No Bump')
     ax.set_ylabel(r'A($\lambda$)/A(V)', size=15)
     ax.set_xlabel(r'1/$\lambda$ [$\mu m^{-1}$]', size=15)
 
@@ -64,7 +64,7 @@ def make_mixture_fig(f_A=0.5, ax=None, figname=None, save_fmt=['eps', 'pdf']):
     savefig(figname, fmt=save_fmt)
 
 
-def Rv_fbump_grid(ax=None, figname=None, save_fmt=['eps', 'pdf']):
+def make_Rv_fbump_grid_fig(ax=None, figname=None, save_fmt=['eps', 'pdf']):
     if ax is None:
         fig = pylab.figure()
         ax = fig.add_subplot(111)
@@ -101,16 +101,16 @@ lamb = 1.e4 / x    # wavelength in angstroms
 mixlaw = extinction.RvFbumpLaw()
 
 # #BEAST paper extinction mixture law figure Rv_A=2.5
-make_fig(lamb, mixlaw, Rv_A=2.5, figname=dir + 'RvFbumpLaw_25', save_fmt=save_fmt)
+make_mixture_var_fig(lamb, mixlaw, Rv_A=2.5, figname=dir + 'RvFbumpLaw_25', save_fmt=save_fmt)
 
 # #BEAST paper extinction mixture law figure Rv_A=5.5
-make_fig(lamb, mixlaw, Rv_A=5.5, figname=dir + 'RvFbumpLaw_55', save_fmt=save_fmt)
+make_mixture_var_fig(lamb, mixlaw, Rv_A=5.5, figname=dir + 'RvFbumpLaw_55', save_fmt=save_fmt)
 
 #extinction mixture law figure 2 components
-make_mixture_fig(f_A=0.5, figname=dir + 'MixtLawComp', save_fmt=save_fmt)
+make_mixture_var_fig(f_A=0.5, figname=dir + 'MixtLawComp', save_fmt=save_fmt)
 
 #BEAST paper f_bump-Rv grid figure
-Rv_fbump_grid(figname=dir + 'RvFbump_grid', save_fmt=['eps', 'pdf'])
+make_Rv_fbump_grid_fig(figname=dir + 'RvFbump_grid', save_fmt=['eps', 'pdf'])
 
 pylab.show()
 
