@@ -154,6 +154,12 @@ class HDFStore(object):
             g = list(s.source.walkGroups(where=where))
         return g
 
+    def __getitem__(self, key):
+        with self as s:
+            if key not in s.keys():
+                raise KeyError('No object named {} in this store'.format(key))
+            return s.source.getNode(key)
+
     def __getattr__(self, name):
         if name in self.__dict__:
             return self.__dict__[name]
