@@ -49,17 +49,15 @@ class HDF_Sparse_Storage(HDFStore):
             input table: flux, errp, errm, mask
         """
         if inputs is True:
-            with self as storage:
-                f = storage.source
-                indx = f.getNode('/star_{:d}/idx'.format(obj)).read().astype(int)
-                lnps = f.getNode('/star_{:d}/lnp'.format(obj)).read().astype(float)
-                inpt = f.getNode('/star_{:d}/input'.format(obj)).read()
+            with self as s:
+                indx = s.getNode('/star_{:d}/idx'.format(obj)).read().astype(int)
+                lnps = s.getNode('/star_{:d}/lnp'.format(obj)).read().astype(float)
+                inpt = s.getNode('/star_{:d}/input'.format(obj)).read()
                 return indx, lnps, inpt
         else:
-            with self as storage:
-                f = storage.source
-                indx = f.getNode('/star_{:d}/idx'.format(obj)).read().astype(int)
-                lnps = f.getNode('/star_{:d}/lnp'.format(obj)).read().astype(float)
+            with self as s:
+                indx = s.getNode('/star_{:d}/idx'.format(obj)).read().astype(int)
+                lnps = s.getNode('/star_{:d}/lnp'.format(obj)).read().astype(float)
             return indx, lnps
 
     def set_star(self, obj, inputs, lnp, lnp_threshold=-40, flush=True):
@@ -89,7 +87,8 @@ class HDF_Sparse_Storage(HDFStore):
             raise AttributeError('Storage opened in read-only mode')
 
         with self as storage:
-            star_group = storage.source.createGroup('/', 'star_%d'  % obj, title="star %d" % obj)
+            # manual attack avoids multiple flush calls, ie., faster this way!
+            star_group = storage.createGroup('/', 'star_%d'  % obj, title="star %d" % obj)
             indx = np.squeeze(np.where((lnp - max(lnp[np.isfinite(lnp)])) > lnp_threshold))
             storage.createArray(star_group, 'input', np.asarray(inputs) )
             storage.createArray(star_group, 'idx', np.array(indx, dtype=np.int32))
