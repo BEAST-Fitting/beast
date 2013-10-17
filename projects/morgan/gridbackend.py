@@ -147,6 +147,9 @@ class GridBackend(object):
         """filters"""
         return self._filters
 
+    def __len__(self):
+        return len(self.grid)
+
     def _get_type(self, fname):
         """_get_type -- guess the type of the file fname
         """
@@ -159,7 +162,7 @@ class GridBackend(object):
 
     def __repr__(self):
         """__repr__"""
-        txt = '{}\n source: {}, \n current memory footprint: {})'
+        txt = '{}\n source: {}, \n current memory footprint: {}'
         return txt.format(object.__repr__(self), self.fname, pretty_size_print(self.nbytes))
 
     def _from_HDFBackend(self, b):
