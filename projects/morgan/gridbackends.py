@@ -42,81 +42,10 @@ import pyfits
 
 from beast.external.eztables import Table
 from hdfstore import HDFStore
+from gridhelpers import isNestedInstance, pretty_size_print
 
 
 __all__ = ['GridBackend', 'MemoryBackend', 'CacheBackend', 'HDFBackend']
-
-
-def isNestedInstance(obj, cl):
-    """ Test for sub-classes types
-        I could not find a universal test
-
-        keywords
-        --------
-        obj: object instance
-            object to test
-
-        cl: Class
-            top level class to test
-
-        returns
-        -------
-        r: bool
-            True if obj is indeed an instance or subclass instance of cl
-    """
-    tree = []
-    for k in cl.__subclasses__():
-        tree += k.__subclasses__()
-    tree += cl.__subclasses__() + [ cl ]
-    return issubclass(obj.__class__, tuple(tree))
-
-
-def pretty_size_print(num_bytes):
-    """
-    Output number of bytes in a human readable format
-
-    keywords
-    --------
-    num_bytes: int
-        number of bytes to convert
-
-    returns
-    -------
-    output: str
-        string representation of the size with appropriate unit scale
-    """
-    if num_bytes is None:
-        return
-
-    KiB = 1024
-    MiB = KiB * KiB
-    GiB = KiB * MiB
-    TiB = KiB * GiB
-    PiB = KiB * TiB
-    EiB = KiB * PiB
-    ZiB = KiB * EiB
-    YiB = KiB * ZiB
-
-    if num_bytes > YiB:
-        output = '%.3g YB' % (num_bytes / YiB)
-    elif num_bytes > ZiB:
-        output = '%.3g ZB' % (num_bytes / ZiB)
-    elif num_bytes > EiB:
-        output = '%.3g EB' % (num_bytes / EiB)
-    elif num_bytes > PiB:
-        output = '%.3g PB' % (num_bytes / PiB)
-    elif num_bytes > TiB:
-        output = '%.3g TB' % (num_bytes / TiB)
-    elif num_bytes > GiB:
-        output = '%.3g GB' % (num_bytes / GiB)
-    elif num_bytes > MiB:
-        output = '%.3g MB' % (num_bytes / MiB)
-    elif num_bytes > KiB:
-        output = '%.3g KB' % (num_bytes / KiB)
-    else:
-        output = '%.3g Bytes' % (num_bytes)
-
-    return output
 
 
 class GridBackend(object):
@@ -129,6 +58,7 @@ class GridBackend(object):
     def __init__(self, *args, **kwargs):
         self._filters = None
         self._header = None
+        self.fname = None
         self._aliases = {}
 
     @property
@@ -253,6 +183,18 @@ class MemoryBackend(GridBackend):
         self._aliases.update(aliases)
         self.fname = ':memory:'
 
+    @property
+    def filters(self):
+        """filters"""
+        r = self._header.get('filters', None) or self._header.get('FILTERS', None)
+        if r is not None:
+            r = r.split()
+        return r
+
+    @property
+    def header(self):
+        return self._header
+
     def _from_File(self, fname):
         """_from_File -- load the content of a FITS or HDF file
 
@@ -325,6 +267,14 @@ class CacheBackend(GridBackend):
     """
 
     def __init__(self, fname, *args, **kwargs):
+        """__init__
+
+        keywords
+        --------
+
+        fname: str
+            FITS or HD5 file containing the grid
+        """
         super(CacheBackend, self).__init__()
 
         self.fname = fname
