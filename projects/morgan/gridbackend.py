@@ -28,6 +28,13 @@ HDFBackend:
     for very low-memory tasks such as doing single star figures.
 
 All backends are able to write on disk into FITS and HDF format.
+
+TODO: add evalexpr into the HDFBackend grid
+        needs a evalexpr into the backends directly to offer transparent access
+
+TODO: add readCoordinates into all backends
+
+TODO: check read(field=) exists into all backends.grid, give direct access
 """
 import sys
 import numpy
