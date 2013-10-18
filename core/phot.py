@@ -186,7 +186,7 @@ def extractSEDs(g0, flist, absFlux=True):
             g       grid            SED grid object
     """
     lamb = g0.lamb
-    seds = numpy.empty(( g0.grid.nrows, len(flist) ), dtype=float)
+    seds = numpy.empty(( len(g0.grid), len(flist) ), dtype=float)
     cls  = numpy.empty( len(flist), dtype=float)
     for e, k in enumerate(flist):
         xl  = k.transmit > 0.
