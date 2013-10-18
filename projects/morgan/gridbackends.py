@@ -80,6 +80,13 @@ class GridBackend(object):
     def __len__(self):
         return len(self.grid)
 
+    def keys(self):
+        """ returns the grid dimension names """
+        if hasattr(self.grid, 'keys'):
+            return self.grid.keys()
+        else:
+            return []
+
     def _get_type(self, fname):
         """_get_type -- guess the type of the file fname
         """
@@ -375,6 +382,17 @@ class CacheBackend(GridBackend):
         self._load_filters(self.fname)
         return self._filters
 
+    def keys(self):
+        """ return column names when possible, avoid loading when possible """
+        if hasattr(self._grid, 'coldescrs'):
+            return self._grid.coldescrs.keys()
+        elif hasattr(self._grid, 'keys'):
+            return self._grid.keys()
+        elif hasattr(self.grid, 'keys'):
+            return self.grid.keys()
+        else:
+            return []
+
     def writeFITS(self, fname, *args, **kwargs):
         """write -- export to fits file
 
@@ -460,6 +478,13 @@ class HDFBackend(GridBackend):
                 if self._filters is not None:
                     self._filters = self._filters.split()
         return self._filters
+
+    def keys(self):
+        """ return column names when possible """
+        if hasattr(self._grid, 'coldescrs'):
+            return self._grid.coldescrs.keys()
+        else:
+            return []
 
     def writeHDF(self, fname, *args, **kwargs):
         """write -- export to HDF file
