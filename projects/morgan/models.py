@@ -7,8 +7,8 @@ TODO: maybe take all subfunctions into individual package
 """
 
 # system imports
-import numpy as np
 import sys
+import numpy as np
 #import tables
 
 # BEAST imports
@@ -173,7 +173,7 @@ def unittest():
     project = 'unittest'
 
     filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
-            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+               'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
     logt = [6.0, 10.13, 0.05]
 
