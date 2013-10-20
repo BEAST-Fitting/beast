@@ -17,9 +17,9 @@ TODO: Check where any beast code uses eztable.Table's specific methods and
          * selectWhere
          * readCoordinates (although should work already)
 """
-import numpy
 import sys
 from copy import deepcopy
+import numpy as np
 
 from beast.core import phot
 from beast.core import extinction
@@ -182,7 +182,7 @@ class SpectralGrid(ModelGrid):
             **kwargs        extra keywords will be forwrded to extLaw
         """
         assert( isinstance(extLaw, extinction.ExtinctionLaw)), 'Expecting ExtinctionLaw object got %s' % type(extLaw)
-        extCurve = numpy.exp(-1. * extLaw.function(self.lamb[:], **kwargs))
+        extCurve = np.exp(-1. * extLaw.function(self.lamb[:], **kwargs))
         if not inplace:
             g = self.copy()
             g.seds *= extCurve[None, :]
