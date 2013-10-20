@@ -5,7 +5,7 @@ try:
     from .interp import *
 
     def __interp__(T0, g0, T, g, dT_max=0.1, eps=1e-6):
-        """
+        """ interp.pyx
         Interpolation of the (T,g) grid at fixed Z
 
         Translated from Pegase.2 fortran version
@@ -44,6 +44,31 @@ try:
 
         if index is -1, this means the point is rejected and the
         associated weight is 0.
+
+        Naming
+        ------
+
+        i1 = index of the star with temperature > T and gravity > g.
+        Among all such stars, one chooses the one minimizing
+        |Delta T|+kappa*|Delta g|.
+        If no star with temperature > T and gravity > g exists, i1 = -1
+
+        i2 = index of the star with temperature > T and gravity < g.
+
+        i3 = index of the star with temperature < T and gravity > g.
+
+        i4 = index of the star with temperature < T and gravity < g.
+
+         g
+
+        /|\
+         | i3  |
+         |     |  i1
+         | ----x------
+         |     |    i2
+         |  i4 |
+         |__________\ T
+                    /
         """
         idx = numpy.zeros(4, dtype=numpy.int64)
         w   = numpy.zeros(4, dtype=numpy.float64)
@@ -83,7 +108,8 @@ except ImportError:
         if index is -1, this means the point is rejected and the
         associated weight is 0.
 
-        Naming:
+        Naming
+        ------
 
         i1 = index of the star with temperature > T and gravity > g.
         Among all such stars, one chooses the one minimizing
@@ -105,7 +131,7 @@ except ImportError:
          |     |    i2
          |  i4 |
          |__________\ T
-                /
+                    /
         """
         kappa  = 0.1
 
