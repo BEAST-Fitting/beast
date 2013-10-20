@@ -1,81 +1,117 @@
-""" Manage Various SED/spectral grids is a generic way """
-import numpy
-import pyfits
+""" Manage Various SED/spectral grids is a generic way
+
+Major changes from the previous version of core.grid:
+    Removed general write method
+    added backend functions and direct access to properties
+    MemoryGrid migrates to a function that creates a ModelGrid with a MemoryBackend
+    FileSEDGrid, FileSpectralGrid migrated to functions as well
+
+Currently no majors variation is expected as long as memory or cache backend types are used
+
+More optimization can be done, especially in SpectralGrid.getSEDs
+
+TODO: Check where any beast code uses eztable.Table's specific methods and
+      implement equivalent in the backends for transparency in the case of HDFBackend
+         * aliases
+         * eval expression
+         * selectWhere
+         * readCoordinates (although should work already)
+"""
+import sys
+from copy import deepcopy
+import numpy as np
 
 from . import phot
 from . import extinction
-from ..external.eztables import Table
-
-#from tools.decorators import timeit
-
-from copy import deepcopy
+from .gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
+from .gridhelpers import pretty_size_print
 
 
-def isNestedInstance(obj, cl):
-    """ Test for sub-classes types
-        I could not find a universal test
+def find_backend(txt):
+    """find_backend
+
+    keywords
+    --------
+
+    txt: str
+        name to find in the list
+
+    returns
+    -------
+
+    b: GridBackend class or subclass
+        corresponding backend class
     """
-    tree = []
-    for k in cl.__subclasses__():
-        tree += k.__subclasses__()
-    tree += cl.__subclasses__() + [ cl ]
-    return issubclass(obj.__class__, tuple(tree))
 
-
-def pretty_size_print(num_bytes):
-    """
-    Output number of bytes in a human readable format
-    """
-    if num_bytes is None:
-        return
-
-    KiB = 1024
-    MiB = KiB * KiB
-    GiB = KiB * MiB
-    TiB = KiB * GiB
-    PiB = KiB * TiB
-    EiB = KiB * PiB
-    ZiB = KiB * EiB
-    YiB = KiB * ZiB
-
-    if num_bytes > YiB:
-        output = '%.3g YB' % (num_bytes / YiB)
-    elif num_bytes > ZiB:
-        output = '%.3g ZB' % (num_bytes / ZiB)
-    elif num_bytes > EiB:
-        output = '%.3g EB' % (num_bytes / EiB)
-    elif num_bytes > PiB:
-        output = '%.3g PB' % (num_bytes / PiB)
-    elif num_bytes > TiB:
-        output = '%.3g TB' % (num_bytes / TiB)
-    elif num_bytes > GiB:
-        output = '%.3g GB' % (num_bytes / GiB)
-    elif num_bytes > MiB:
-        output = '%.3g MB' % (num_bytes / MiB)
-    elif num_bytes > KiB:
-        output = '%.3g KB' % (num_bytes / KiB)
-    else:
-        output = '%.3g Bytes' % (num_bytes)
-
-    return output
+    maps = {'memory': MemoryBackend,
+            'cache': CacheBackend,
+            'hdf': HDFBackend,
+            'generic': GridBackend
+            }
+    return maps.get(txt.lower(), None)
 
 
 class ModelGrid(object):
     """ Generic class for a minimum update of future codes """
     def __init__(self, *args, **kwargs):
-        self.lamb = None
-        self.seds = None
-        self.grid = None
+        """
+        keywords
+        --------
+        *args and **kwargs are directly forwarded to the backend constructor
+
+        lamb: ndarray or str or GridBackend
+            if ndarray: wavelength of the SEDs (requires seds and grid arguments)
+            if str: filename to the grid
+            if backend: ref to the given grid
+
+        seds: ndarray[dtype=float, ndim=2]
+            array of seds
+
+        grid: eztable.Table
+            table of properties associated to each sed
+
+        header: dict
+            if provided, update the grid table header
+
+        aliases: dict
+            if provided, update the grid table aliases
+
+        backend: str or GridBackend class or subclass
+            corresponding backend class
+
+            'memory': MemoryBackend,
+            'cache': CacheBackend,
+            'hdf': HDFBackend,
+            'generic': GridBackend
+        """
+        backend = kwargs.pop('backend', None)
+        if backend is None:
+            self._backend = GridBackend(*args, **kwargs)
+        elif type(backend) == str:
+            self._backend = find_backend(backend)(*args, **kwargs)
+        else:
+            self._backend = backend(*args, **kwargs)
+
+    @property
+    def lamb(self):
+        return self._backend.lamb
+
+    @property
+    def seds(self):
+        return self._backend.seds
+
+    @property
+    def grid(self):
+        return self._backend.grid
 
     def __repr__(self):
-        txt = '{}\n {} grid points ({})'
-        return txt.format(object.__repr__(self), self.grid.nrows, pretty_size_print(self.nbytes))
+        txt = '{} ({})'
+        return txt.format(object.__repr__(self), pretty_size_print(self.nbytes))
 
     @property
     def nbytes(self):
         """ return the number of bytes of the object """
         n = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in self.__dict__.values())
-        n += sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in self.grid.__dict__.values())
         return n
 
     def keys(self):
@@ -85,59 +121,20 @@ class ModelGrid(object):
         else:
             return []
 
-    def getGridPoints(self, *args, **kwargs):
-        """ Returns age, mass, logg, logT, logL... """
-        pass
-
     def __getattr__(self, name):
         if name in self.__dict__:
             return self.__dict__[name]
-        elif name in self.grid.keys() + self.grid._aliases.keys():
+        elif hasattr(self._backend, name):
+            return getattr(self._backend, name)
+        elif name in self.keys():
             return self.grid[name]
         else:
             msg = "'{0}' object has no attribute '{1}'"
             raise AttributeError(msg.format(type(self).__name__, name))
 
-    def getPDF(self, Qname, lnp, *args, **kwargs):
-        assert (Qname in self.keys() ), "Cannot find %s in the grid description" % Qname
-
-    def write(self, fname, *args, **kwargs):
-        if ( (self.lamb is not None) & (self.seds is not None) & (self.grid is not None) ):
-            assert(isinstance(self.grid, Table)), 'Only eztables.Table are supported so far'
-            r = numpy.vstack( [ numpy.copy(self.seds), self.lamb ])
-            pyfits.writeto(fname, r, **kwargs)
-            if getattr(self, 'filters', None) is not None:
-                if ('FILTERS' not in self.grid.header.keys()):
-                    self.grid.header['FILTERS'] = ' '.join(self.filters)
-            self.grid.write(fname, append=True)
-
     def copy(self):
         """ returns a copy of the object """
         return deepcopy(self)
-
-
-class MemoryGrid(ModelGrid):
-    """ Instanciate an grid object that has no physical storage
-        Helps to create new grids on the fly. Because it deriveds from
-        ModelGrid, this can be exported on disk too.
-    """
-    def __init__(self, lamb, seds=None, grid=None):
-        """ MemoryGrid constructor
-        INPUTS:
-            lamb    ModelGrid or subclass   New ref to the given grid (debug purpose)
-                lamb            wavelengths
-                sed         seds
-                grid            grid associated to seds
-        """
-        if isNestedInstance(lamb, ModelGrid):
-            self.lamb = lamb.lamb
-            self.seds = lamb.seds
-            self.grid = lamb.grid
-        else:
-            assert ((seds is not None) & (grid is not None)), 'Wrong number of arguments'
-            self.lamb = lamb
-            self.seds = seds
-            self.grid = grid
 
 
 class SpectralGrid(ModelGrid):
@@ -185,7 +182,7 @@ class SpectralGrid(ModelGrid):
             **kwargs        extra keywords will be forwrded to extLaw
         """
         assert( isinstance(extLaw, extinction.ExtinctionLaw)), 'Expecting ExtinctionLaw object got %s' % type(extLaw)
-        extCurve = numpy.exp(-1. * extLaw.function(self.lamb[:], **kwargs))
+        extCurve = np.exp(-1. * extLaw.function(self.lamb[:], **kwargs))
         if not inplace:
             g = self.copy()
             g.seds *= extCurve[None, :]
@@ -200,102 +197,89 @@ class SpectralGrid(ModelGrid):
             self.seds *= extCurve[None, :]
 
 
-class FileSEDGrid(SpectralGrid):
-    """ Generate a grid from a spectral library """
-
-    def __init__(self, fname, *args, **kwargs):
-        with pyfits.open(fname) as f:
-            self.seds = f[0].data[:-1]
-            self.lamb = f[0].data[-1]
-        self.grid = Table(fname)
-        self.filters = self.grid.header.get('FILTERS', None)
-        if self.filters is not None:
-            self.filters = self.filters.split()
-        #lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
-        for k in self.grid.keys():
-            self.__dict__[k] = self.grid[k]
-
-        if self.filters is None:
-            print 'Warning: Filter names where not found!'
-            print '(This may happen if you loaded an older version of grid file)'
-            print 'Please correct by setting the filters: self.filters = [...]'
-
-    def keys(self):
-        """ returns the grid dimension names """
-        return self.grid.keys()
-
-
-class FileSpectralGrid(SpectralGrid):
-    """ Generate a grid from a spectral library """
-
-    def __init__(self, fname, *args, **kwargs):
-        with pyfits.open(fname) as f:
-            self.seds = f[0].data[:-1]
-            self.lamb = f[0].data[-1]
-        self.grid = Table(fname)
-        #lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
-        for k in self.grid.keys():
-            self.__dict__[k] = self.grid[k]
-
-    def keys(self):
-        """ returns the grid dimension names """
-        return self.grid.keys()
-
-
 class StellibGrid(SpectralGrid):
     """ Generate a grid from a spectral library """
 
-    def __init__(self, osl, filters, *args, **kwargs):
-        self.osl = osl  # stellib.BaSeL()
+    def __init__(self, osl, filters, header={}, aliases={}, *args, **kwargs):
+        self.osl = osl
         lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
-        self.lamb = lamb
-        self.seds = seds
+        super(StellibGrid, self).__init__(lamb, seds=seds, grid=self.osl.grid, header=header, aliases=aliases)
         self.filters = filters
-        self.grid = self.osl.grid
-        for k in self.grid.keys():
-            self.__dict__[k] = self.grid[k]
-
-    def keys(self):
-        """ returns the grid dimension names """
-        return self.grid.keys()
 
 
-## Not used anywhere
-#def generate_spectral_grid_from_isochrones(outfile, osl, oiso, Z=0.02):
-#    """ Reinterpolate a given stellar spectral library on to an Isochrone grid
-#    INPUTS:
-#        outfile     str         fits file to export to
-#        osl     stellib.stellib     a stellar library
-#        oiso        isochrone.Isochrone an isochrone library
-#        Z       float           metallicity to use
-#
-#    OUTPUTS:
-#        None
-#
-#        only write into outfile
-#    """
-#
-#    assert(isNestedInstance(osl, stellib.Stellib) )
-#    assert(isNestedInstance(oiso, isochrone.Isochrone) )
-#    specs = numpy.empty( (oiso.data.nrows + 1, len(osl.wavelength)), dtype=float )
-#    specs[-1] = osl.wavelength[:]
-#
-#    progress = 0
-#    with timeit('interpolation'):
-#        for k in range(oiso.data.nrows):
-#            if progress < int(100 * (k + 1) / oiso.data.nrows):
-#                progress = int(100 * (k + 1) / oiso.data.nrows)
-#                print "progress... %d / 100" % progress
-#            r = numpy.array( osl.interp(oiso.data['logT'][k], oiso.data['logg'][k], Z, oiso.data['logL'][k]) ).T
-#            specs[k, :] = osl.genSpectrum(r)
-#    pyfits.writeto(outfile, specs)
-#
-#    #copy pars
-#    data = {}
-#    for k in oiso.data.keys():
-#        data[k] = oiso.data[k]
-#    pars  = Table(data, name='Reinterpolated stellib grid')
-#    pars.header['stellib'] = osl.source
-#    pars.header['isoch'] = oiso.source
-#
-#    pars.write(outfile, append=True)
+def MemoryGrid(lamb, seds=None, grid=None, header={}, aliases={}):
+    """ Replace the MemoryGrid class for backwards compatibility
+
+        Instanciate an grid object that has no physical storage
+        Helps to create new grids on the fly. Because it deriveds from
+        ModelGrid, this can be exported on disk too.
+
+    keywords
+    --------
+
+    lamb: ndarray or GridBackend subclass
+        if ndarray: wavelength of the SEDs (requires seds and grid arguments)
+        if backend: ref to the given grid
+
+    seds: ndarray[dtype=float, ndim=2]
+        array of seds
+
+    grid: eztable.Table
+        table of properties associated to each sed
+
+    header: dict
+        if provided, update the grid table header
+
+    aliases:
+        if provided, update the grid table aliases
+
+    returns
+    -------
+    g: ModelGrid
+        grid of models with no physical storage (MemoryBackend)
+    """
+    return ModelGrid(lamb, seds=seds, grid=grid, header=header,
+                     aliases=aliases, backend=MemoryBackend)
+
+
+def FileSEDGrid(fname, header={}, aliases={}, backend='memory'):
+    """ Replace the FileSEDGrid class for backwards compatibility
+        Generates a grid from a spectral library on disk
+
+    keywords
+    --------
+
+    lamb: ndarray or GridBackend subclass
+        if ndarray: wavelength of the SEDs (requires seds and grid arguments)
+        if backend: ref to the given grid
+
+    seds: ndarray[dtype=float, ndim=2]
+        array of seds
+
+    grid: eztable.Table
+        table of properties associated to each sed
+
+    header: dict
+        if provided, update the grid table header
+
+    aliases: dict
+        if provided, update the grid table aliases
+
+    backend: str or GridBackend class or subclass
+        corresponding backend class
+
+        'memory': MemoryBackend,
+        'cache': CacheBackend,
+        'hdf': HDFBackend,
+        'generic': GridBackend
+
+    returns
+    -------
+    g: ModelGrid
+        grid of models with no physical storage (MemoryBackend)
+    """
+    return SpectralGrid(fname, header=header, aliases=aliases, backend=backend)
+
+
+# Backward compatibility
+FileSpectralGrid = FileSEDGrid
