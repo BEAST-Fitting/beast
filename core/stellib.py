@@ -585,7 +585,7 @@ class Stellib(object):
         """
         import matplotlib.patches as patches
         p = self.get_boundaries(dlogT=0.1, dlogg=0.3, closed=True)
-        ax.add_patch(patches.PathPatch(**kwargs))
+        ax.add_patch(patches.PathPatch(p, **kwargs))
         return p
 
     def __add__(self, other):
