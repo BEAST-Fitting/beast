@@ -13,7 +13,7 @@ from .grid import SpectralGrid
 from ..external.eztables import Table
 from ..external import ezunits
 from ..config import __ROOT__, __NTHREADS__
-from ..include.interp import __interp__
+from ..include import __interp__
 from ..tools import progressbar
 from matplotlib.path import Path
 from scipy.interpolate import interp1d
