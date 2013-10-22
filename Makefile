@@ -48,7 +48,7 @@ $(TAR):
 proba:  
 	+$(MAKE) -C proba build
 
-build:  
+build: proba 
 	python setup.py build_ext --inplace
 	$(cleantemp)
 
