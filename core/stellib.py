@@ -375,7 +375,7 @@ class Stellib(object):
         sig  = 5.67037321 * 1e-8 * ezunits.unit[' W * m**-2 * K**-4'].magnitude
         return np.sqrt( (10 ** logl) * lsun / (4.0 * np.pi * sig * ((10 ** logt) ** 4)) )
 
-    def get_boundaries(self, dlogT=0.1, dlogg=0.3, closed=True):
+    def get_boundaries(self, dlogT=0.1, dlogg=0.3, closed=True, swap=False):
         """ Returns the closed boundary polygon around the stellar library with
         given margins
 
@@ -393,10 +393,13 @@ class Stellib(object):
         closed: bool
             if set, close the polygon
 
+        swap: bool
+            if set, returns boundary as a [Teff, logg] path instead of a [logg, Teff] one
+
         returns
         -------
         b: ndarray[float, ndim=2]
-            (closed) boundary points: [logg, Teff]
+            (closed) boundary points: [logg, Teff] (or [Teff, logg] is swap is True)
 
         Note
         ----
@@ -405,7 +408,10 @@ class Stellib(object):
         """
         if getattr(self, '_bound', None) is not None:
             if ((self._bound[1] - dlogT) < 1e-3) and (abs(self._bound[2] - dlogg) < 1e-3):
-                return self._bound[0]
+                if swap is not True:
+                    return self._bound[0]
+                else:
+                    return Path.make_compound_path(*[Path(pk[:, ::-1]) for pk in self._bound[0].to_polygons()])
 
         leftb   = [(k, np.max(self.logT[self.logg == k]) + dlogT ) for k in np.unique(self.logg)]
         leftb  += [ (leftb[-1][0] + dlogg, leftb[-1][1]) ]
@@ -417,7 +423,10 @@ class Stellib(object):
         if closed:
             b += [b[0]]
         self._bound = (Path(np.array(b)), dlogT, dlogg)
-        return self._bound[0]
+        if swap is not True:
+            return self._bound[0]
+        else:
+            return Path.make_compound_path(*[Path(pk[:, ::-1]) for pk in self._bound[0].to_polygons()])
 
     def genQ(self, qname, r, **kwargs):
         """ Generate a composite value from a previously calculated
@@ -546,7 +555,7 @@ class Stellib(object):
         g = SpectralGrid(lamb, seds=specs, grid=Table(_grid), header=header, backend='memory')
         return g
 
-    def plot_boundary(self, ax, **kwargs):
+    def plot_boundary(self, ax=None, swap=False, **kwargs):
         """
         Valid kwargs are:
             agg_filter: unknown
@@ -584,7 +593,10 @@ class Stellib(object):
                 For additional kwargs
         """
         import matplotlib.patches as patches
-        p = self.get_boundaries(dlogT=0.1, dlogg=0.3, closed=True)
+        from pylab import gca
+        if ax is None:
+            ax = gca()
+        p = self.get_boundaries(dlogT=0.1, dlogg=0.3, closed=True, swap=swap)
         ax.add_patch(patches.PathPatch(p, **kwargs))
         return p
 
@@ -660,7 +672,7 @@ class CompositeStellib(Stellib):
     def __repr__(self):
         return "CompositeStellib, {}\n{}".format(object.__repr__(self), [k.name for k in self._olist])
 
-    def get_boundaries(self, dlogT=0.1, dlogg=0.3, closed=True):
+    def get_boundaries(self, dlogT=0.1, dlogg=0.3, closed=True, swap=False):
         """ Returns the closed boundary polygon around the stellar library with
         given margins
 
@@ -678,10 +690,13 @@ class CompositeStellib(Stellib):
         closed: bool
             if set, close the polygon
 
+        swap: bool
+            if set, returns boundary as a [Teff, logg] path instead of a [logg, Teff] one
+
         returns
         -------
         b: ndarray[float, ndim=2]
-            (closed) boundary points: [logg, Teff]
+            (closed) boundary points: [logg, Teff] (or [Teff, logg] is swap is True)
 
         Note
         ----
@@ -692,7 +707,7 @@ class CompositeStellib(Stellib):
             if ((self._bound[1] - dlogT) < 1e-3) and (abs(self._bound[2] - dlogg) < 1e-3):
                 return self._bound[0]
 
-        b = [osl.get_boundaries(dlogT=dlogT, dlogg=dlogg, closed=closed) for osl in self._olist]
+        b = [osl.get_boundaries(dlogT=dlogT, dlogg=dlogg, closed=closed, swap=swap) for osl in self._olist]
         self._bound = (Path.make_compound_path(*b), dlogT, dlogg)
         return self._bound[0]
 

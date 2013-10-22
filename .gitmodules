@@ -4,3 +4,6 @@
 [submodule "external/gz"]
 	path = external/gz
 	url = git@chex.astro.washington.edu:gz.git
+[submodule "external/ezpipe"]
+	path = external/ezpipe
+	url = git@chex.astro.washington.edu:ezpipe.git
