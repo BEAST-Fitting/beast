@@ -25,7 +25,6 @@ cdef extern from "numpy/npy_math.h":
 
 
 cimport cython
-from cython.parallel import prange
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -70,73 +69,78 @@ def c_N_chi2(np.ndarray[DTYPE_t, ndim=1] flux,
                 out[i] += temp
     return out
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def c_N_chi2_omp(np.ndarray[DTYPE_t, ndim=1] flux,
-                 np.ndarray[DTYPE_t, ndim=1] fluxerr,
-                 np.ndarray[DTYPE_t, ndim=2] fluxmod,
-                 np.ndarray[int, ndim=1] mask,
-                 int num_threads=0):
-    """ compute the non-reduced chi2 between data with uncertainties and
-        perfectly known models
-
-    INPUTS:
-        flux:    np.ndarray[float, ndim=1]
-            array of fluxes
-        fluxerr: np.ndarray[float, ndim=1]
-            array of flux errors
-        fluxmod: np.ndarray[float, ndim=2]
-            array of modeled fluxes (nfilters , nmodels)
-        mask:    np.ndarray[bool, ndim=1]
-            mask array to apply during the calculations mask.shape = flux.shape
-
-    OUTPUTS:
-        chi2:    np.ndarray[float, ndim=1]
-            array of chi2 values (nmodels)
-    """
-    cdef int ni
-    cdef int nj
-    cdef int i
-    cdef int j
-    ni, nj = np.shape(fluxmod)
-    cdef np.ndarray[DTYPE_t, ndim=1] out = np.empty(ni, dtype=DTYPE)
-
-    cdef DTYPE_t temp = 0.0
-    cdef DTYPE_t err = 0.0
-
-    #normal behavior
-    if num_threads == 0:
-        for i in range(ni):
-            for j in range(nj):
-                if mask[j] == 0:
-                    temp = ( flux[j] - fluxmod[i, j] )
-                    if fluxerr[j] > 0:
-                        # if err>0 then divide else considere err=1.
-                        temp /= fluxerr[j]
-                    temp *= temp
-                    out[i] += temp
-    elif num_threads < 0:
-        for i in prange(ni, schedule='guided', nogil=True):
-            for j in range(nj):
-                if mask[j] == 0:
-                    temp = ( flux[j] - fluxmod[i, j] )
-                    if fluxerr[j] > 0:
-                        # if err>0 then divide else considere err=1.
-                        temp /= fluxerr[j]
-                    temp = temp * temp
-                    out[i] += temp
-    else:
-        for i in prange(ni, schedule='guided', nogil=True, num_threads=num_threads):
-            for j in range(nj):
-                if mask[j] == 0:
-                    temp = ( flux[j] - fluxmod[i, j] )
-                    if fluxerr[j] > 0:
-                        # if err>0 then divide else considere err=1.
-                        temp /= fluxerr[j]
-                    temp = temp * temp
-                    out[i] += temp
-    return out
-
+# try:
+#     from cython.parallel import prange
+#
+#     @cython.boundscheck(False)
+#     @cython.wraparound(False)
+#     def c_N_chi2_omp(np.ndarray[DTYPE_t, ndim=1] flux,
+#                     np.ndarray[DTYPE_t, ndim=1] fluxerr,
+#                     np.ndarray[DTYPE_t, ndim=2] fluxmod,
+#                     np.ndarray[int, ndim=1] mask,
+#                     int num_threads=0):
+#         """ compute the non-reduced chi2 between data with uncertainties and
+#             perfectly known models
+#
+#         INPUTS:
+#             flux:    np.ndarray[float, ndim=1]
+#                 array of fluxes
+#             fluxerr: np.ndarray[float, ndim=1]
+#                 array of flux errors
+#             fluxmod: np.ndarray[float, ndim=2]
+#                 array of modeled fluxes (nfilters , nmodels)
+#             mask:    np.ndarray[bool, ndim=1]
+#                 mask array to apply during the calculations mask.shape = flux.shape
+#
+#         OUTPUTS:
+#             chi2:    np.ndarray[float, ndim=1]
+#                 array of chi2 values (nmodels)
+#         """
+#         cdef int ni
+#         cdef int nj
+#         cdef int i
+#         cdef int j
+#         ni, nj = np.shape(fluxmod)
+#         cdef np.ndarray[DTYPE_t, ndim=1] out = np.empty(ni, dtype=DTYPE)
+#
+#         cdef DTYPE_t temp = 0.0
+#         cdef DTYPE_t err = 0.0
+#
+#         #normal behavior
+#         if num_threads == 0:
+#             for i in range(ni):
+#                 for j in range(nj):
+#                     if mask[j] == 0:
+#                         temp = ( flux[j] - fluxmod[i, j] )
+#                         if fluxerr[j] > 0:
+#                             # if err>0 then divide else considere err=1.
+#                             temp /= fluxerr[j]
+#                         temp *= temp
+#                         out[i] += temp
+#         elif num_threads < 0:
+#             for i in prange(ni, schedule='guided', nogil=True):
+#                 for j in range(nj):
+#                     if mask[j] == 0:
+#                         temp = ( flux[j] - fluxmod[i, j] )
+#                         if fluxerr[j] > 0:
+#                             # if err>0 then divide else considere err=1.
+#                             temp /= fluxerr[j]
+#                         temp = temp * temp
+#                         out[i] += temp
+#         else:
+#             for i in prange(ni, schedule='guided', nogil=True, num_threads=num_threads):
+#                 for j in range(nj):
+#                     if mask[j] == 0:
+#                         temp = ( flux[j] - fluxmod[i, j] )
+#                         if fluxerr[j] > 0:
+#                             # if err>0 then divide else considere err=1.
+#                             temp /= fluxerr[j]
+#                         temp = temp * temp
+#                         out[i] += temp
+#         return out
+# except ImportError:
+#     pass
+#
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
