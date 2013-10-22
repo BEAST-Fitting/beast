@@ -11,6 +11,20 @@ External libs
  
  * [ ] rm -- mytables need to be removed completely (use eztables instead)
 
+ * [x] add -- matplotlib nxutils removed in version > 1.2
+              Path.contains_points do not exists version < 1.2
+	      added core.future which uses normal Path if v > 1.2 and a derived
+	      version otherwise.
+
+ModelGrid
+---------
+
+ * [ ] bug -- copy method works only for MemoryBackend
+              move copy to backends: 
+	          * memory --> deepcopy
+		  * cache --> deepcopy (whatever is loaded only)
+		  * hdf --> copy node/file?
+
 Stellib
 -------
  * [x] bug/feature correction -- swap boundary path axis from (g vs T) to (T vs g)
