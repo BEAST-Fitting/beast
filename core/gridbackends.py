@@ -39,6 +39,7 @@ TODO: check read(field=) exists into all backends.grid, give direct access
 import sys
 import numpy
 import pyfits
+import copy
 
 from ..external.eztables import Table
 from .hdfstore import HDFStore
@@ -133,6 +134,17 @@ class GridBackend(object):
         self._filters = b._filters
         self._header = b.header
         self._aliases = b._aliases
+
+    def copy(self):
+        """ implement a copy method """
+        g = GridBackend()
+        g.lamb = copy.deepcopy(self.lamb)
+        g.seds = copy.deepcopy(self.seds)
+        g.grid = copy.deepcopy(self.grid)
+        g._filters = copy.deepcopy(self._filters)
+        g._header = copy.deepcopy(self._header)
+        g._aliases = copy.deepcopy(self._aliases)
+        return g
 
 
 class MemoryBackend(GridBackend):
@@ -263,6 +275,16 @@ class MemoryBackend(GridBackend):
                 if ('FILTERS' not in self.grid.header.keys()):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
             self.grid.write(fname, tablename='grid', append=True)
+
+    def copy(self):
+        """ implement a copy method """
+        g = MemoryBackend(copy.deepcopy(self.lamb),
+                          copy.deepcopy(self.seds),
+                          copy.deepcopy(self.grid))
+        g._filters = copy.deepcopy(self._filters)
+        g._header = copy.deepcopy(self._header)
+        g._aliases = copy.deepcopy(self._aliases)
+        return g
 
 
 class CacheBackend(GridBackend):
@@ -431,6 +453,12 @@ class CacheBackend(GridBackend):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
             self.grid.write(fname, tablename='grid', append=True)
 
+    def copy(self):
+        """ implement a copy method """
+        g = CacheBackend(self.fname)
+        g._aliases = copy.deepcopy(self._aliases)
+        return g
+
 
 class HDFBackend(GridBackend):
     """HDFBackend -- Laziest grid
@@ -501,3 +529,8 @@ class HDFBackend(GridBackend):
                 hd['/seds'] = self.seds[:]
                 hd['/lamb'] = self.lamb[:]
                 hd.write(self.grid[:], group='/', tablename='grid', header=self.header)
+
+    def copy(self):
+        g = HDFBackend(self.fname)
+        g._aliases = copy.deepcopy(self._aliases)
+        return g
