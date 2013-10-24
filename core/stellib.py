@@ -15,9 +15,9 @@ from ..external import ezunits
 from ..config import __ROOT__, __NTHREADS__
 from ..include import __interp__
 from ..tools import progressbar
-from matplotlib.path import Path
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
+from .future import Path
 
 
 def isNestedInstance(obj, cl):
@@ -531,7 +531,7 @@ class Stellib(object):
         # =====================
         # Do the actual interpolation, avoiding exptrapolations
         with progressbar.PBar(ndata, txt='spectral grid') as Pbar:
-            for mk, rT, rg, rZ in enumerate(zip(pts['logT'], pts['logg'], pts['Z'])):
+            for mk, (rT, rg, rZ) in enumerate(zip(pts['logT'], pts['logg'], pts['Z'])):
                 Pbar.update(mk)
                 if bound_cond[mk]:
                     s = np.array( self.interp(rT, rg, rZ, 0.) ).T
