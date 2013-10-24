@@ -35,11 +35,6 @@ Stellib
  * [x] bug/feature correction -- swap boundary path axis from (g vs T) to (T vs g)
   		added keyword to get_boundaries, plot_boundary
 
-HDFStore
---------
- * [ ] add -- create a HDF Table like class which offers proxy to common eztables.Table functions: 
-           e.g., `aliases`, `selectWhere`, `evalexpr`
-
 PosteriorProxy
 --------------
  * [ ] add -- Make an easy way to prior definition from the models (set `self.pvalues`)
@@ -66,6 +61,10 @@ Project/morgan
  * [x] update -- documentation
 
  fake.py:
- * [ ] update -- FakeData class should return SN errors (currently N only)
+ * [x] update -- FakeData class should return SN errors (currently N only)
  * [ ] update -- getObsinMags using flux to vega mag decorator
  
+HDFStore
+--------
+ * [ ] add -- create a HDF Table like class which offers proxy to common eztables.Table functions: 
+           e.g., `aliases`, `selectWhere`, `evalexpr`
