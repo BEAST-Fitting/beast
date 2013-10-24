@@ -18,8 +18,8 @@ TODO: Check where any beast code uses eztable.Table's specific methods and
          * readCoordinates (although should work already)
 """
 import sys
-from copy import deepcopy
 import numpy as np
+from copy import deepcopy
 
 from . import phot
 from . import extinction
@@ -134,7 +134,7 @@ class ModelGrid(object):
 
     def copy(self):
         """ returns a copy of the object """
-        return deepcopy(self)
+        return self.__class__(backend=self._backend.copy())
 
 
 class SpectralGrid(ModelGrid):
@@ -203,8 +203,12 @@ class StellibGrid(SpectralGrid):
     def __init__(self, osl, filters, header={}, aliases={}, *args, **kwargs):
         self.osl = osl
         lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
-        super(StellibGrid, self).__init__(lamb, seds=seds, grid=self.osl.grid, header=header, aliases=aliases)
+        super(StellibGrid, self).__init__(lamb, seds=seds, grid=self.osl.grid, header=header, aliases=aliases, backend=MemoryBackend)
         self.filters = filters
+
+    def copy(self):
+        g = super(StellibGrid, self).copy()
+        g.osl = deepcopy(self.osl)
 
 
 def MemoryGrid(lamb, seds=None, grid=None, header={}, aliases={}):
