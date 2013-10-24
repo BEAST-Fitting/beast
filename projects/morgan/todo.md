@@ -19,11 +19,16 @@ External libs
 ModelGrid
 ---------
 
- * [ ] bug -- copy method works only for MemoryBackend
+ * [x] bug -- copy method works only for MemoryBackend
               move copy to backends: 
 	          * memory --> deepcopy
 		  * cache --> deepcopy (whatever is loaded only)
 		  * hdf --> copy node/file?
+	      added copy method to all backends. Minimum work is made: what is
+	      in memory is copied, files are not (duplicated access only)
+
+ * [x] bug -- Seems that CacheBackend does not work great with copies and do disk access instead.
+ 		Complexification of CacheBackend.copy()
 
 Stellib
 -------
@@ -62,4 +67,5 @@ Project/morgan
 
  fake.py:
  * [ ] update -- FakeData class should return SN errors (currently N only)
+ * [ ] update -- getObsinMags using flux to vega mag decorator
  
