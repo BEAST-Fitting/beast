@@ -26,12 +26,12 @@ TODO: make all static code go into a different module
 # BEAST imports
 from beast.core import stellib
 from beast.core import extinction
-from ezpipe import Pipeline
+from beast.external.ezpipe import Pipeline
+from beast.external.ezpipe.helpers import task_decorator
+
 from models import t_isochrones, t_spectra, t_seds
 
 import os
-
-from ezpipe.helpers import task_decorator
 
 
 """
@@ -43,7 +43,7 @@ Parameters that are required to make models
 TODO: filters will come from observation object but currently sensitivity tests makes fake data
 TODO: make a dictionary that can be easily updated
 """
-project = 'mf100'
+project = 'mfdebug'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']

@@ -6,13 +6,13 @@ TODO: make grid object more memory friendly,
 """
 import numpy as np
 
-from hdfstore import HDFStore
 
 from beast.proba import getNorm_lnP as _getNorm_lnP
-from beast.core.grid import FileSEDGrid, FileSpectralGrid
+from beast.core.grid import SpectralGrid, ModelGrid
 from beast.external.eztables.core.odict import odict
 from beast.external.eztables import Table
 from beast.proba import expectation, percentile
+from beast.core.hdfstore import HDFStore
 
 
 class HDF_Sparse_Storage(HDFStore):
@@ -525,7 +525,7 @@ class PosteriorProxy(object):
         else:
             raise TypeError('lnps is expected to be str or HDF_Sparse_Storage, got {}'.format(type(lnps)))
 
-        if isinstance(models, FileSEDGrid) or isinstance(models, FileSpectralGrid):
+        if isinstance(models, ModelGrid) or isinstance(models, SpectralGrid):
             self.models = models
         elif type(models) == str:
             self.models = HDF_Sparse_Storage(models)

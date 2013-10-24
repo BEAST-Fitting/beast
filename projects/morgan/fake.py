@@ -1,31 +1,60 @@
 """
 Faking data
+
+Generate a fake catalog of stars
 """
+import numpy as np
+import sys
 from beast.core import grid
 from beast.core.observations import Observations
-from eztables import Table
+from beast.external.eztables import Table
 from eztables.core.odict import odict
-import numpy as np
-from ezpipe.helpers import RequiredFile, task_decorator
-import sys
+from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
 
 __all__ = ['make_fake_catalog', 'FakeData', 't_fakedata' ]
 
 
-def make_fake_catalog(sed_grid, nstars=10, ferr=0.05, nsamp=1, outname=False):
-    """ generate stars from a sed grid """
+def make_fake_catalog(sed_grid, nstars=10, ferr=0.05, nsamp=1, outname=False, gridbackend='cache'):
+    """make_fake_catalog -- generate a list of stars from a sed grid
 
+    keywords
+    --------
+
+    sed_grid:
+
+    nstars: int
+        number of stars to generate
+
+    ferr: float
+        fractional error in flux (0.05=5%)
+
+    nsamp:
+        number of random sampling per star. Each draw will include white noise
+        on the flux measurements according to ferr
+
+    outname: False or str
+        if define, the catalog table will be saved into a file (see eztables.Table formats)
+
+    gridbackend: str or grid.GridBackend
+        backend to use to load the grid if necessary (memory, cache, hdf)
+        (see beast.core.grid)
+
+    returns
+    -------
+    t: eztables.Table
+        Table of the fake catalog
+    """
     if type(sed_grid) == str:
-        g0 = grid.FileSEDGrid(sed_grid)
+        g0 = grid.FileSEDGrid(sed_grid, backend=gridbackend)
     else:
         g0 = sed_grid
 
-    ind = np.random.randint(0, g0.grid.nrows, nstars)
+    ind = np.random.randint(0, len(g0.grid), nstars)
 
     d = odict()
 
-    for key in g0.grid.keys():
+    for key in g0.keys():
         d[key] = np.zeros(nstars * nsamp, dtype=float)
 
     for key in g0.filters:
@@ -39,7 +68,7 @@ def make_fake_catalog(sed_grid, nstars=10, ferr=0.05, nsamp=1, outname=False):
 
         for sampk in range(nsamp):
             rowk = ek * nsamp + sampk
-            for key in g0.grid.keys():
+            for key in g0.keys():
                 d[key][rowk] = datak[key]
 
             for ef, f in enumerate(g0.filters):
@@ -59,6 +88,19 @@ def make_fake_catalog(sed_grid, nstars=10, ferr=0.05, nsamp=1, outname=False):
 
 @task_decorator(logger=sys.stdout)
 def t_fakedata(project, sed_grid, nstars=10, ferr=0.05, nsamp=1):
+    """t_fakedata  -- task makeing  fake data
+
+    keywords
+    --------
+
+    project:
+    sed_grid:
+    nstars:
+    ferr:
+    nsamp:
+
+    """
+
     outname = '{}_fakedata.fits'.format(project)
     fake_source = RequiredFile(outname, make_fake_catalog, sed_grid, nstars=nstars, ferr=ferr, nsamp=nsamp, outname=outname)
     return project, FakeData(fake_source(), sed_grid.filters)
@@ -70,7 +112,7 @@ def t_fakedata(project, sed_grid, nstars=10, ferr=0.05, nsamp=1):
 
 # derive the global class and update what's needed
 class FakeData(Observations):
-    """ PHAT catalog for clusters in M31 """
+    """ class to make a catalog of fake stars from the common class """
     def __init__(self, inputFile, filters, distanceModulus=0.):
         desc = 'PHAT star: %s' % inputFile
         Observations.__init__(self, inputFile, distanceModulus, desc=desc)
@@ -79,15 +121,24 @@ class FakeData(Observations):
         self.minError = 0.000
         self.floorError = 0.00  # constant error term
 
-    def getObs(self, num):
+    def getObs(self, num=0):
+        """ returns the dictionnary used during the analysis """
+        assert ( not self.filters is None), "No filter set."
+        mags = self.getMags(num, self.filters)
+        errs = self.getErrors(num, self.filters)
+        if self.badvalue is not None:
+            mask = (mags >= self.badvalue)
+        else:
+            mask = np.zeros(len(mags), dtype=bool)
+
+        #faking non symmetric errors
+        return mags, errs, errs, mask
+
+    def getObsinMag(self, num):
         """ Using the decorator @from_Vegamag_to_Flux
             Hence, results are in flux (not in flux/flux_vega)
             Returns the fluxes, errors and mask of an observation.
         """
-        return Observations.getObs(self, num)
-
-    def getObsinMag(self, num):
-        """ Returns the original catalog magnitudes """
         pass
 
     def getErrors(self, num, filters):
