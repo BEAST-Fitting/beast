@@ -1,56 +1,100 @@
+"""
+Fitting Pipeline
+=============
+
+I use `ezpipe`, a pipeline package I wrote in order to clean the syntax and
+allow more flexibilities. In particular it will simplifies the management of
+intermediate results or broken jobs.
+
+do the fit
+----------
+the pipeline is sequence of tasks
+    tasks = ( t_fit(g, **fit_kwargs), t_summary_table(g, **stat_kwargs) )
+    fit = Pipeline('fit_fake', tasks_fit)
+
+    fit(project, obs)
+
+The pipeline is equivalent to:
+table = (project, obs) | t_fit(g, **fit_kwargs) | t_summary_table(g, **stat_kwargs)
+"""
+
+import sys
 import numpy as np
 import tables
 from beast.core import grid
 from beast.tools import progressbar
-from beast.proba import N_logLikelihood
+from beast.proba import N_logLikelihood, SN_logLikelihood
 from beast.proba import expectation, percentile, getNorm_lnP
 from beast.external.eztables import Table
 from beast.external.eztables.core.odict import odict
-from ezpipe.helpers import RequiredFile, task_decorator
-import sys
+from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
 
 __all__ = ['fit_model_seds_pytables', 't_fit', 'summary_table', 't_summary_table']
 
 
-def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5'):
+def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', gridbackend='cache'):
 
     """
     Fit model seds with noise for sensitivity tests
-    INPUTS:
-        obs         Observtions     Observation object to analyze
-        sedgrid     SEDgrid         stellar model SEDs (luminosities)
 
-    KEYWORDS:
-        threshold   float          toss out grid points where lnp - lnp_max < threshold
-        outname     string         output file directory for results
+    keywords
+    --------
+    obs: Observations
+        Observation object to analyze
 
-    TODO: Clean up the disk output structures
-    HDF is not a bad choice since it compress and keep all in one file!
+    sedgrid: SpectralGrid
+        stellar model SEDs (luminosities)
+
+    threshold: float
+        toss out grid points where lnp - lnp_max < threshold
+        This value defined how sparse the final storage will be
+
+    outname: string
+        output file directory for results
+
+    gridbackend: str or grid.GridBackend
+        backend to use to load the grid if necessary (memory, cache, hdf)
+        (see beast.core.grid)
+
+    returns
+    -------
+        None
     """
     filters = obs.getFilters()
 
     if type(sedgrid) == str:
-        g0 = grid.FileSEDGrid(sedgrid)
+        g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
 
     with tables.openFile(outname, 'w') as outfile:
         #Save wavelengths in root, remember #n_stars = root._v_nchildren -1
-        outfile.createArray(outfile.root, 'grid_waves', g0.lamb)
-        outfile.createArray(outfile.root, 'obs_filters', filters)
+        outfile.createArray(outfile.root, 'grid_waves', g0.lamb[:])
+        outfile.createArray(outfile.root, 'obs_filters', filters[:])
 
         #loop over the obs and do the work
+        if hasattr(g0.seds, 'read'):
+            _seds = g0.seds.read()
+        else:
+            _seds = g0.seds
         with progressbar.PBar(len(obs), txt="Calculating lnp") as pbar:
 
-            for tn, (sed, err, mask) in obs.enumobs():
+            for tn, obk in obs.enumobs():
 
-                lnp = N_logLikelihood(  sed, err, g0.seds, mask=mask, lnp_threshold=abs(threshold) )
+                if len(obk) == 3:
+                    (sed, err, mask) = obk
+                    lnp = N_logLikelihood(  sed, err, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
+                elif len(obk) == 4:
+                    (sed, errp, errm, mask) = obk
+                    lnp = SN_logLikelihood(  sed, errp, errm, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
+                else:
+                    raise AttributeError('getObs is expcted to return 3 or 4 values, got {}'.format(len(obk)))
 
                 #Need ragged arrays rather than uniform table
                 star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
                 indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > -40.)
-                outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
+                outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
                 outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int32))
                 outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
                 #commit changes
@@ -73,8 +117,8 @@ def get_Q_from_node(node, expr, condvars={}):
         Based on this list we build the context of evaluation by add missing
         values from the node.
 
-        INPUTS
-        ------
+        keywords
+        --------
         node: tables.table.Table
             the Table node to get data from (need named columns)
 
@@ -82,13 +126,11 @@ def get_Q_from_node(node, expr, condvars={}):
             the mathematical expression which could include numpy functions or
             simply be a column name
 
-        KEYWORDS
-        --------
         condvars: dict
             The condvars mapping may be used to define the variable names
             appearing in the condition.
 
-        OUTPUTS
+        returns
         -------
         q: ndarray like
             the column values requested with type and shape defined in the table.
@@ -106,7 +148,7 @@ def get_Q_from_node(node, expr, condvars={}):
     return q
 
 
-def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None):
+def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache'):
     """ Expectation values of any given grid property (incl. expression) but seds,
     i.e.:
             integral(p(q) * q dq) / integral(p(q) dq),
@@ -115,8 +157,8 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None):
 
     see sed_expect for sed expectation values
 
-    INPUTS
-    ------
+    keywords
+    --------
 
     lnpfile: str or tables.file.File
         lnp file to use given by its path or the open file
@@ -128,9 +170,6 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None):
         if str:  name of the quantity or expression to evaluate from the grid table
         if list: list of qquantities or expresions
 
-    KEYWORDS
-    --------
-
     objlist: list or array like
         index numbers of objects to extract
 
@@ -138,7 +177,11 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None):
         prior probability of each model on the grid to apply (default 1/Nmodel)
         see: compute_uniform_prior
 
-    OUTPUT
+    gridbackend: str or grid.GridBackend
+        backend to use to load the grid if necessary (memory, cache, hdf)
+        (see beast.core.grid)
+
+    returns
     ------
     e_dict: dict or ndarray[float, ndim=1]
         if qname is iterable, returns a dict with a (qname, ndarray) pair
@@ -150,7 +193,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None):
         f = lnpfile
 
     if type(sedgrid) == str:
-        g0 = grid.FileSEDGrid(sedgrid)
+        g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
 
@@ -175,7 +218,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None):
         #would be nicer in memory to work on disk here
         #node = f.getNode('/mods_grid')
         #q = get_Q_from_node(node, qname)
-        q = g0.grid[qname]
+        q = g0[qname]
         r = np.empty(len(objlist), dtype=float)
         with progressbar.PBar(nobs, txt='Expectations') as pb:
             for e, obj in enumerate(objlist):
@@ -196,7 +239,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None):
     return r
 
 
-def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None):
+def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache'):
     """ Best Property values:
 
     Note: external loop on Q whereas cllist to extract data only once!
@@ -207,8 +250,8 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None):
         #    return (qk, Q_best(lnpfile, qk, cllist, prior))
         # r.update( map(job, qname, ncpu=len(qname)) )
 
-    INPUTS
-    ------
+    keywords
+    --------
 
     lnpfile: str or tables.file.File
         lnp file to use given by its path or the open file
@@ -220,9 +263,6 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None):
         if str:  name of the quantity or expression to evaluate from the grid table
         if list: list of qquantities or expresions
 
-    KEYWORDS
-    --------
-
     objlist: list or array like
         index numbers of objects to extract
 
@@ -230,8 +270,12 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None):
         prior probability of each model on the grid to apply (default 1/Nmodel)
         see: compute_uniform_prior
 
-    OUTPUT
-    ------
+    gridbackend: str or grid.GridBackend
+        backend to use to load the grid if necessary (memory, cache, hdf)
+        (see beast.core.grid)
+
+    returns
+    -------
     e_dict: dict or ndarray[float, ndim=1]
         if qname is iterable, returns a dict with a (qname, ndarray) pairs
         else returns only the ndarray of best values (one per obj in cllist)
@@ -242,7 +286,7 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None):
         f = lnpfile
 
     if type(sedgrid) == str:
-        g0 = grid.FileSEDGrid(sedgrid)
+        g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
 
@@ -264,7 +308,7 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None):
         #would be nicer in memory to work on disk here
         #node = f.getNode('/mods_grid')
         #q = get_Q_from_node(node, qname)
-        q = g0.grid[qname]
+        q = g0[qname]
         r = np.empty(len(objlist), dtype=float)
         with progressbar.PBar(nobs, txt='Best') as pb:
             for e, obj in enumerate(objlist):
@@ -285,13 +329,13 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None):
     return r
 
 
-def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior=None):
+def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior=None, gridbackend='cache'):
     """ Percentile values of any given grid property (incl. expression) but seds,
 
     see also:    sed_percentile, percentile
 
-    INPUTS
-    ------
+    keywords
+    --------
 
     lnpfile: str or tables.file.File
         lnp file to use given by its path or the open file
@@ -303,8 +347,6 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         if str:  name of the quantity or expression to evaluate from the grid table
         if list: list of qquantities or expresions
 
-    KEYWORDS
-    --------
     p: array-like
         list of percentile values
 
@@ -315,8 +357,12 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         prior probability of each model on the grid to apply (default 1/Nmodel)
         see: compute_uniform_prior
 
-    OUTPUT
-    ------
+    gridbackend: str or grid.GridBackend
+        backend to use to load the grid if necessary (memory, cache, hdf)
+        (see beast.core.grid)
+
+    returns
+    -------
     e_dict: dict or ndarray[float, ndim=2]
         if qname is iterable, returns a dict with a (qname, ndarray) pair
         else returns only the ndarray of percentile values (one per obj in cllist)
@@ -326,7 +372,7 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
     elif isinstance(lnpfile, tables.file.File):
         f = lnpfile
     if type(sedgrid) == str:
-        g0 = grid.FileSEDGrid(sedgrid)
+        g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
 
@@ -350,7 +396,7 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         #would be nicer in memory to work on disk here
         #node = f.getNode('/mods_grid')
         #q = get_Q_from_node(node, qname)
-        q = g0.grid[qname]
+        q = g0[qname]
         nval = len(p)
         _p = np.asarray(p, dtype=float)
         r = np.empty((len(objlist), nval), dtype=float)
@@ -373,10 +419,11 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
     return r
 
 
-def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None):
+def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, gridbackend='cache'):
     """
-    INPUTS
-    ------
+    keywords
+    --------
+
     lnpfile: str or tables.file.File
         lnp file to use given by its path or the open file
 
@@ -387,17 +434,20 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None):
         if str:  name of the quantity or expression to evaluate from the grid table
         if list: list of qquantities or expresions
 
-    KEYWORDS
-    --------
-    keys: str or list of str
-        if str:  name of the quantity or expression to evaluate from the grid table
-        if list: list of qquantities or expresions
-
     method: str or list of str
         method must be in ['expectation', 'best', 'percentile']
 
     outname: str
         if set, save the table into this file
+
+    gridbackend: str or grid.GridBackend
+        backend to use to load the grid if necessary (memory, cache, hdf)
+        (see beast.core.grid)
+
+    returns
+    -------
+    tab: eztable.Table
+        table object containing all the statistics
     """
     if type(lnpfname) == str:
         lnpfile = tables.openFile(lnpfname, 'r')
@@ -405,12 +455,12 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None):
         lnpfile = lnpfname
 
     if type(sedgrid) == str:
-        g0 = grid.FileSEDGrid(sedgrid)
+        g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
 
     if keys is None:
-        keys = g0.grid.keys()
+        keys = g0.keys()
 
     if method is None:
         method = 'best expectation percentile'.split()
@@ -446,14 +496,89 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None):
 #---------------------------------------------------------
 
 @task_decorator(logger=sys.stdout)
-def t_fit(project, obs, g, threshold=-40):
+def t_fit(project, obs, g, threshold=-40, gridbackend='cache'):
+    """t_fit -- run the fitting part
+
+    keywords
+    --------
+
+    project: str
+        token of the project this task belongs to
+
+    obs: Observation object instance
+        observation catalog
+
+    g: grid.SpectralGrid instance
+        SED model grid instance
+
+    threshold: float
+        toss out grid points where lnp - lnp_max < threshold
+        This value defined how sparse the final storage will be
+
+    gridbackend: str or grid.GridBackend
+        backend to use to load the grid if necessary (memory, cache, hdf)
+        (see beast.core.grid)
+
+    returns
+    -------
+    project: str
+        token of the project this task belongs to
+
+    lnp_source: str
+        file in which sparse lnp values are stored
+
+    obs: Observation object instance
+        observation catalog
+    """
     outname = '{}_lnp.hd5'.format(project)
-    lnp_source = RequiredFile(outname, fit_model_seds_pytables, obs, g, threshold=threshold, outname=outname)
+    lnp_source = RequiredFile(outname, fit_model_seds_pytables, obs, g, threshold=threshold, outname=outname, gridbackend=gridbackend)
     return project, lnp_source(), obs
 
 
 @task_decorator(logger=sys.stdout)
-def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None):
+def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None, gridbackend='cache'):
+    """t_summary_table -- task to generate the summary table
+
+    keywords
+    --------
+    project: str
+        token of the project this task belongs to
+
+    lnpfname: str
+        file in which sparse lnp values are stored
+
+    obs: Observation object instance
+        observation catalog
+
+    sedgrid: grid.SpectralGrid instance
+        SED model grid instance
+
+    keys: str or list of str
+        if str:  name of the quantity or expression to evaluate from the grid table
+        if list: list of qquantities or expresions
+
+    method: str or list of str
+        method must be in ['expectation', 'best', 'percentile']
+
+    gridbackend: str or grid.GridBackend
+        backend to use to load the grid if necessary (memory, cache, hdf)
+        (see beast.core.grid)
+
+    returns
+    -------
+    project: str
+        token of the project this task belongs to
+
+    stats: eztable.Table
+        statistics table
+
+    obs: Observation object instance
+        observation catalog
+
+    sedgrid: grid.SpectralGrid instance
+        SED model grid instance
+    """
+
     outname = '{}_stats.fits'.format(project)
-    stat_source = RequiredFile(outname, summary_table, lnpfname, obs, sedgrid, keys=keys, method=method, outname=outname)
+    stat_source = RequiredFile(outname, summary_table, lnpfname, obs, sedgrid, keys=keys, method=method, outname=outname, gridbackend=gridbackend)
     return project, stat_source(), obs, sedgrid
