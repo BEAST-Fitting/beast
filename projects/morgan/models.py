@@ -30,11 +30,11 @@ from beast.core import creategrid
 from beast.core import stellib
 from beast.core import extinction
 from beast.core import ezpadova
+from beast.core.odict import odict
 from beast.core.isochrone import ezIsoch
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 from beast.external.ezpipe import Pipeline
 from beast.external.eztables import Table
-from beast.external.eztables.core.odict import odict
 
 __all__ = [ 't_isochrones',  't_spectra', 't_seds' ]
 

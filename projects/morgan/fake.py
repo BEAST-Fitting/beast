@@ -7,8 +7,8 @@ import numpy as np
 import sys
 from beast.core import grid
 from beast.core.observations import Observations
+from beast.core.odict import odict
 from beast.external.eztables import Table
-from eztables.core.odict import odict
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
 
@@ -21,7 +21,8 @@ def make_fake_catalog(sed_grid, nstars=10, ferr=0.05, nsamp=1, outname=False, gr
     keywords
     --------
 
-    sed_grid:
+    sed_grid: grid.SpectralGrid
+        spectral grid from which draw models
 
     nstars: int
         number of stars to generate
@@ -93,12 +94,21 @@ def t_fakedata(project, sed_grid, nstars=10, ferr=0.05, nsamp=1):
     keywords
     --------
 
-    project:
-    sed_grid:
-    nstars:
-    ferr:
-    nsamp:
+    project: str
+        project token
 
+    sed_grid: grid.SpectralGrid
+        spectral grid from which draw models
+
+    nstars: int
+        number of stars to generate
+
+    ferr: float
+        fractional error in flux (0.05=5%)
+
+    nsamp:
+        number of random sampling per star. Each draw will include white noise
+        on the flux measurements according to ferr
     """
 
     outname = '{}_fakedata.fits'.format(project)

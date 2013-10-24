@@ -43,7 +43,7 @@ Parameters that are required to make models
 TODO: filters will come from observation object but currently sensitivity tests makes fake data
 TODO: make a dictionary that can be easily updated
 """
-project = 'mfdebug'
+project = 'mf200'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
@@ -56,8 +56,8 @@ logt = [6.0, 10.13, 0.05]
 #TODO: isochrone only download 1 z, need to make a loop and merge outputs
 z = 0.019
 
+#osl = stellib.Tlusty() + stellib.Kurucz()
 osl = stellib.Kurucz()
-#TODO: make a merging easier by oSL1 + oSL2 with perfered order
 
 extLaw = extinction.Cardelli()
 avs = [0., 5., 0.2]
@@ -121,7 +121,7 @@ TODO: Fit task uses the N_likelihood, should replace for SN and update Observati
 from fake import t_fakedata
 from fit import t_fit, t_summary_table
 
-fake_kwargs = dict( nstars=10, ferr=0.05, nsamp=1 )
+fake_kwargs = dict( nstars=1000, ferr=0.05, nsamp=5)
 fit_kwargs = dict( threshold=-10 )
 stat_kwargs = dict( keys=None, method=None )
 

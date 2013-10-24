@@ -9,7 +9,7 @@ import numpy as np
 
 from beast.proba import getNorm_lnP as _getNorm_lnP
 from beast.core.grid import SpectralGrid, ModelGrid
-from beast.external.eztables.core.odict import odict
+from beast.core.odict import odict
 from beast.external.eztables import Table
 from beast.proba import expectation, percentile
 from beast.core.hdfstore import HDFStore
