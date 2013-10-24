@@ -325,7 +325,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
 
             # assign the extinguished SEDs to the output object
-            _seds[N0 * count: N0 * (count + 1)] = temp_results.seds
+            _seds[N0 * count: N0 * (count + 1)] = temp_results.seds[:]
 
             # copy the rest of the parameters
             for key in keys:
