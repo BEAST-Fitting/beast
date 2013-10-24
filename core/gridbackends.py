@@ -380,11 +380,21 @@ class CacheBackend(GridBackend):
         self._load_seds(self.fname)
         return self._seds
 
+    @seds.setter
+    def seds(self, value):
+        """ replace seds value """
+        self._seds = value
+
     @property
     def lamb(self):
         """lamb - load in cache if needed """
         self._load_lamb(self.fname)
         return self._lamb
+
+    @lamb.setter
+    def lamb(self, value):
+        """ replace seds value """
+        self._lamb = value
 
     @property
     def grid(self):
@@ -392,17 +402,32 @@ class CacheBackend(GridBackend):
         self._load_grid(self.fname)
         return self._grid
 
+    @grid.setter
+    def grid(self, value):
+        """ replace seds value """
+        self._grid = value
+
     @property
     def header(self):
         """header - load in cache if needed """
         self._load_grid(self.fname)
         return self._grid.header
 
+    @header.setter
+    def header(self, value):
+        """ replace seds value """
+        self._header = value
+
     @property
     def filters(self):
         """filters - load in cache if needed """
         self._load_filters(self.fname)
         return self._filters
+
+    @filters.setter
+    def filters(self, value):
+        """ replace seds value """
+        self._filters = value
 
     def keys(self):
         """ return column names when possible, avoid loading when possible """
@@ -457,6 +482,17 @@ class CacheBackend(GridBackend):
         """ implement a copy method """
         g = CacheBackend(self.fname)
         g._aliases = copy.deepcopy(self._aliases)
+        if (self._grid is not None):
+            g._grid = copy.deepcopy(self._grid)
+        if (self._seds is not None):
+            g._seds = copy.deepcopy(self._seds)
+        if (self._lamb is not None):
+            g._lamb = copy.deepcopy(self._lamb)
+        if (self._header is not None):
+            g._header = copy.deepcopy(self._header)
+        if (self._filters is not None):
+            g._filters = copy.deepcopy(self._filters)
+
         return g
 
 
@@ -524,7 +560,6 @@ class HDFBackend(GridBackend):
             filename (incl. path) to export to
         """
         if ( (self.lamb is not None) & (self.seds is not None) & (self.grid is not None) ):
-            assert(isinstance(self.grid, Table)), 'Only eztables.Table are supported so far'
             with HDFStore(fname, mode='a') as hd:
                 hd['/seds'] = self.seds[:]
                 hd['/lamb'] = self.lamb[:]
