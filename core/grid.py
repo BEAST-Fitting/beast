@@ -24,7 +24,7 @@ from copy import deepcopy
 from . import phot
 from . import extinction
 from .gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
-from .gridhelpers import pretty_size_print
+from .gridhelpers import pretty_size_print, isNestedInstance
 
 
 def find_backend(txt):
@@ -89,6 +89,8 @@ class ModelGrid(object):
             self._backend = GridBackend(*args, **kwargs)
         elif type(backend) == str:
             self._backend = find_backend(backend)(*args, **kwargs)
+        elif isNestedInstance(backend, GridBackend):
+            self._backend = backend
         else:
             self._backend = backend(*args, **kwargs)
 
@@ -96,13 +98,36 @@ class ModelGrid(object):
     def lamb(self):
         return self._backend.lamb
 
+    @lamb.setter
+    def lamb(self, value):
+        """ Allow temporary overriding properties """
+        self._backend.lamb = value
+
+    @property
+    def header(self):
+        return self._backend.header
+
+    @header.setter
+    def header(self, value):
+        self._backend.header = value
+
     @property
     def seds(self):
         return self._backend.seds
 
+    @seds.setter
+    def seds(self, value):
+        """ Allow temporary overriding properties """
+        self._backend.seds = value
+
     @property
     def grid(self):
         return self._backend.grid
+
+    @grid.setter
+    def grid(self, value):
+        """ Allow temporary overriding properties """
+        self._backend.grid = value
 
     def __repr__(self):
         txt = '{} ({})'
@@ -118,6 +143,8 @@ class ModelGrid(object):
         """ returns the grid dimension names """
         if hasattr(self.grid, 'keys'):
             return self.grid.keys()
+        elif hasattr(self.grid, 'colnames'):
+            return self.grid.colnames
         else:
             return []
 
@@ -128,9 +155,17 @@ class ModelGrid(object):
             return getattr(self._backend, name)
         elif name in self.keys():
             return self.grid[name]
+        elif hasattr(self.grid, 'keys'):
+            return self.grid[name]
         else:
             msg = "'{0}' object has no attribute '{1}'"
             raise AttributeError(msg.format(type(self).__name__, name))
+
+    def __getitem__(self, name):
+        if hasattr(self.grid, 'read'):
+            return self.grid.read(field=name)
+        else:
+            return self.grid[name]
 
     def copy(self):
         """ returns a copy of the object """
@@ -149,6 +184,7 @@ class SpectralGrid(ModelGrid):
         KEYWORDS:
             absFlux         bool    returns absolute fluxes if set
             extLaw          extinction.ExtinctionLaw    apply extinction law if provided
+            import pdb; pdb.set_trace() ### XXX BREAKPOINT
             inplace         bool                        if set, do not copy the grid and apply on it
 
             **kwargs        extra keywords will be forwrded to extLaw
@@ -185,16 +221,16 @@ class SpectralGrid(ModelGrid):
         extCurve = np.exp(-1. * extLaw.function(self.lamb[:], **kwargs))
         if not inplace:
             g = self.copy()
-            g.seds *= extCurve[None, :]
-            g.grid.header['ExtLaw'] = extLaw.name
+            g.seds = g.seds[:] * extCurve[None, :]
+            g.header['ExtLaw'] = extLaw.name
             for k, v in kwargs.iteritems():
-                g.grid.header[k] = v
+                g.header[k] = v
             return g
         else:
-            self.grid.header['ExtLaw'] = extLaw.name
+            self.header['ExtLaw'] = extLaw.name
             for k, v in kwargs.iteritems():
-                self.grid.header[k] = v
-            self.seds *= extCurve[None, :]
+                self.header[k] = v
+            self.seds = self.seds[:] * extCurve[None, :]
 
 
 class StellibGrid(SpectralGrid):
