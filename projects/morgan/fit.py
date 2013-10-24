@@ -22,11 +22,11 @@ import sys
 import numpy as np
 import tables
 from beast.core import grid
+from beast.core.odict import odict
 from beast.tools import progressbar
 from beast.proba import N_logLikelihood, SN_logLikelihood
 from beast.proba import expectation, percentile, getNorm_lnP
 from beast.external.eztables import Table
-from beast.external.eztables.core.odict import odict
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
 
