@@ -53,7 +53,7 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts, bounds=dict(dlogT=0.1,
         Spectral grid (in memory) containing the requested list of stars and associated spectra
     """
     assert(isNestedInstance(osl, stellib.Stellib) )
-    return osl.gen_spectral_grid_from_given_points(pts, bound=bounds)
+    return osl.gen_spectral_grid_from_given_points(pts, bounds=bounds)
 
 
 def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,), bounds=dict(dlogT=0.1, dlogg=0.3)):
