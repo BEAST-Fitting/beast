@@ -630,7 +630,7 @@ class CompositeStellib(Stellib):
         """ return a common wavelength sampling to all libraries. This can be
         used to reinterpolate any spectrum onto a common definition """
 
-        lambs = np.unique([ osl.wavelength for osl in self._olist ])
+        lambs = np.unique(np.asarray([ osl.wavelength[:] for osl in self._olist ]))
         return lambs
 
     @property
@@ -660,12 +660,12 @@ class CompositeStellib(Stellib):
         """
         xy = np.asarray(xypoints)
         res = np.zeros(len(xy), dtype=int)
-        res[self._olist[0].point_inside(xy, dlotT=dlogT, dlogg=dlogg)] = 1
+        res[self._olist[0].points_inside(xy, dlogT=dlogT, dlogg=dlogg)] = 1
 
         for ek, ok in enumerate(self._olist[1:]):
             if 0 in res:
                 ind = np.squeeze(np.where(res == 0))
-                r = ok.point_inside(xy[ind], dlotT=dlogT, dlogg=dlogg)
+                r = ok.points_inside(xy[ind], dlogT=dlogT, dlogg=dlogg)
                 res[ind[r]] = ek
         return r
 
@@ -916,7 +916,15 @@ class CompositeStellib(Stellib):
         l0 = self.wavelength
         for oslk, osl in enumerate(self._olist):
             # make a generator to avoid keeping all in memory
-            _pts = ( (logg, logT) for (logg, logT, ok) in zip(pts['logg'], pts['logT'], osl_index) if (ok - 1 == oslk) )
+            _pts = {}
+            ind = (osl_index == oslk)
+            print sum(ind)
+            _pts['logg'] = pts['logg'][ind]
+            _pts['logT'] = pts['logT'][ind]
+            _pts['logL'] = pts['logL'][ind]
+            _pts['Z'] = pts['Z'][ind]
+            _pts = Table(_pts)
+            #_pts = [ (logg, logT, logL, Z) for (logg, logT, logL, Z, ok) in zip(pts['logg'], pts['logT'], pts['logL'], pts['Z'], osl_index) if (ok - 1 == oslk) ]
             gk = osl.gen_spectral_grid_from_given_points(_pts, bounds=dict(dlogT=0.1, dlogg=0.3))
             gk.seds = interp1d(gk.lamb, gk.seds, axis=1)(l0)
             seds.append(gk.seds)
