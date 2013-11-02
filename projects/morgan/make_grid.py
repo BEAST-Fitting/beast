@@ -93,7 +93,7 @@ def t_project_dir(project, *args, **kwargs):
     outdir = project
     if os.path.exists(outdir):
         if not os.path.isdir(outdir):
-            raise Exception('Output directory "{}" already exists but is not a directory'.format(outdir))
+            raise Exception('Output directory "{0}" already exists but is not a directory'.format(outdir))
     else:
         os.mkdir(outdir)
     return '{0:s}/{0:s}'.format(outdir)

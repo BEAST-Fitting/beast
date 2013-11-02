@@ -89,7 +89,7 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
                     (sed, errp, errm, mask) = obk
                     lnp = SN_logLikelihood(  sed, errp, errm, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
                 else:
-                    raise AttributeError('getObs is expcted to return 3 or 4 values, got {}'.format(len(obk)))
+                    raise AttributeError('getObs is expcted to return 3 or 4 values, got {0}'.format(len(obk)))
 
                 #Need ragged arrays rather than uniform table
                 star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
@@ -208,12 +208,12 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
     if hasattr(qname, '__iter__'):
         r = odict()
         for qk in qname:
-            lbl = '{:s}_E'.format(qk)
+            lbl = '{0:s}_E'.format(qk)
             r[lbl] = Q_expect(f, g0, qk, objlist, prior)
     else:
         #make sure keys are real keys
         if not (qname in g0.keys()):
-            raise KeyError('Key "{}" not recognized'.format(qname))
+            raise KeyError('Key "{0}" not recognized'.format(qname))
         #get grid node
         #would be nicer in memory to work on disk here
         #node = f.getNode('/mods_grid')
@@ -222,9 +222,9 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
         r = np.empty(len(objlist), dtype=float)
         with progressbar.PBar(nobs, txt='Expectations') as pb:
             for e, obj in enumerate(objlist):
-                pb.update(e, txt='E({})'.format(qname))
-                lnps = f.getNode('/star_{:d}/lnp'.format(obj)).read().astype(float)
-                indx = f.getNode('/star_{:d}/idx'.format(obj)).read().astype(int)
+                pb.update(e, txt='E({0})'.format(qname))
+                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
+                indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
                 if not np.isfinite(log_norm):
                     log_norm = lnps.max()
@@ -530,7 +530,7 @@ def t_fit(project, obs, g, threshold=-40, gridbackend='cache'):
     obs: Observation object instance
         observation catalog
     """
-    outname = '{}_lnp.hd5'.format(project)
+    outname = '{0}_lnp.hd5'.format(project)
     lnp_source = RequiredFile(outname, fit_model_seds_pytables, obs, g, threshold=threshold, outname=outname, gridbackend=gridbackend)
     return project, lnp_source(), obs
 
