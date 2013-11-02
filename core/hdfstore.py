@@ -428,7 +428,7 @@ class HDFStore(object):
             else:
                 p = key
             if p not in s.keys():
-                raise KeyError('No object named {} in this store'.format(p))
+                raise KeyError('No object named {0} in this store'.format(p))
             return s.source.getNode(p)
 
     def __setitem__(self, key, value):
@@ -437,7 +437,7 @@ class HDFStore(object):
         """
         with self as s:
             if key in s.keys():
-                raise KeyError('Object named {} already exists in this store'.format(key))
+                raise KeyError('Object named {0} already exists in this store'.format(key))
             p = key.split('/')
             name = p[-1]
             p = '/'.join(p[:-1])

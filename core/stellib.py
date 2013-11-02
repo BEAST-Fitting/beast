@@ -602,7 +602,7 @@ class Stellib(object):
 
     def __add__(self, other):
         if not isNestedInstance(other, Stellib):
-            raise ValueError('expecting a Stellib object, got {}'.format(type(other)))
+            raise ValueError('expecting a Stellib object, got {0}'.format(type(other)))
 
         return CompositeStellib([self, other])
 
@@ -613,14 +613,14 @@ class CompositeStellib(Stellib):
 
     def __add__(self, other):
         if not isNestedInstance(other, Stellib):
-            raise ValueError('expecting a Stellib object, got {}'.format(type(other)))
+            raise ValueError('expecting a Stellib object, got {0}'.format(type(other)))
 
         lst = [k for k in self._olist] + [other]
         return CompositeStellib(lst)
 
     def __radd__(self, other):
         if not isNestedInstance(other, Stellib):
-            raise ValueError('expecting a Stellib object, got {}'.format(type(other)))
+            raise ValueError('expecting a Stellib object, got {0}'.format(type(other)))
 
         lst = [other] + [k for k in self._olist]
         return CompositeStellib(lst)
@@ -670,7 +670,7 @@ class CompositeStellib(Stellib):
         return r
 
     def __repr__(self):
-        return "CompositeStellib, {}\n{}".format(object.__repr__(self), [k.name for k in self._olist])
+        return "CompositeStellib, {0}\n{1}".format(object.__repr__(self), [k.name for k in self._olist])
 
     def get_boundaries(self, dlogT=0.1, dlogg=0.3, closed=True, swap=False):
         """ Returns the closed boundary polygon around the stellar library with
