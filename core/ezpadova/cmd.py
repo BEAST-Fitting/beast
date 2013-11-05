@@ -36,7 +36,7 @@ import urllib
 import urllib2
 import zlib
 import re
-from eztables import Table
+from ...external.eztables import Table
 from StringIO import StringIO
 
 # internal parameters
@@ -208,16 +208,12 @@ __def_args__ = {'binary_frac': 0.3,
                 'submit_form': 'Submit'}
 
 
-
 def file_type(filename, stream=False):
     """ Detect potential compressed file
     Returns the gz, bz2 or zip if a compression is detected, else None.
     """
-    magic_dict = {
-        "\x1f\x8b\x08": "gz",
-        "\x42\x5a\x68": "bz2",
-        "\x50\x4b\x03\x04": "zip"
-        }
+    magic_dict = { "\x1f\x8b\x08": "gz", "\x42\x5a\x68": "bz2", "\x50\x4b\x03\x04": "zip" }
+
     max_len = max(len(x) for x in magic_dict)
     if not stream:
         with open(filename) as f:
