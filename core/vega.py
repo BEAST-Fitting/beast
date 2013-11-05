@@ -83,3 +83,21 @@ def from_Vegamag_to_Flux(lamb, vega_mag):
 
         return wrapper
     return deco
+
+
+def from_Vegamag_to_Flux_SN_errors(lamb, vega_mag):
+    """ function decorator that transforms vega magnitudes to fluxes (without vega reference) """
+    def deco(f):
+        def vegamagtoFlux(mag, errp, errm, mask):
+            f = 10 ** (-0.4 * (mag + vega_mag))
+            fp = 10 ** (-0.4 * (mag - errp + vega_mag))
+            fm = 10 ** (-0.4 * (mag + errm + vega_mag))
+            return f, fp - f, f - fm, mask
+
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            mag, errp, errm, mask = f(args[0], args[1], **kwargs)
+            return vegamagtoFlux( mag, errp, errm, mask )
+
+        return wrapper
+    return deco
