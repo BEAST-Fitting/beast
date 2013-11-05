@@ -101,6 +101,7 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
                 outfile.flush()
 
                 pbar.update(tn, force=True)  # Forcing because it can be long to show the first ETA
+    return outname
 
 
 def get_Q_from_node(node, expr, condvars={}):
@@ -189,7 +190,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
     """
     if type(lnpfile) == str:
         f = tables.openFile(lnpfile)
-    elif isinstance(lnpfile, tables.file.File):
+    else:
         f = lnpfile
 
     if type(sedgrid) == str:
