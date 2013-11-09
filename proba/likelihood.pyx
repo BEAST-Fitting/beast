@@ -17,6 +17,8 @@ from __future__ import division
 import numpy as np
 cimport numpy as np  # NOQA
 
+from libc.math cimport log, exp
+
 DTYPE = np.float64
 ctypedef np.float_t DTYPE_t
 
@@ -238,13 +240,13 @@ def c_SN_logLikelihood(np.ndarray[DTYPE_t, ndim=1] flux,
 
     #compute the quality factor
     # lnQ = -0.5 * nj *  log( pi/2 ) - sum_j {log( err[j] ) }
-    temp = 0.5 * np.log( 0.5 * np.pi )
+    temp = 0.5 * log( 0.5 * np.pi )
     for j in range(nj):
         if mask[j] == 0:
             lnQ += temp
             temp1 = fluxerr_m[j] + fluxerr_p[j]
             if temp1 > 0.:
-                lnQ += np.log(temp1)
+                lnQ += log(temp1)
     #lnQ is to be used * -1
 
     #compute the lnp = -lnQ - 0.5 * chi2
@@ -308,12 +310,12 @@ def c_N_logLikelihood(np.ndarray[DTYPE_t, ndim=1] flux,
 
     #compute the quality factor
     # lnQ = -0.5 * nj *  ln( 2 * pi) - sum_j {ln( err[j] ) }
-    temp = 0.5 * np.log( 2. * np.pi )
+    temp = 0.5 * log( 2. * np.pi )
     for j in range(nj):
         if mask[j] == 0:
             lnQ += temp
             if fluxerr[j] > 0.:
-                lnQ += np.log(fluxerr[j])
+                lnQ += log(fluxerr[j])
     #lnQ is to be used * -1
 
     #compute the lnp = -lnQ - 0.5 * chi2
@@ -333,6 +335,43 @@ def c_N_logLikelihood(np.ndarray[DTYPE_t, ndim=1] flux,
 
     return lnP
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def c_N_covar_logLikelihood(np.ndarray[DTYPE_t, ndim=1] flux, 
+                            np.ndarray[DTYPE_t, ndim=3] inv_cholesky_covar, 
+                            np.ndarray[DTYPE_t, ndim=1] lnQ, 
+                            np.ndarray[DTYPE_t, ndim=2] bias, 
+                            np.ndarray[DTYPE_t, ndim=2] fluxmod):
+    """
+    Compute the log-likelihood given data, a covariance matrix, 
+    and a bias term.
+    INPUTS:
+        flux:    np.ndarray([float, ndim=1])
+             Measured fluxes
+        inv_cholesky_covar:   np.ndarray([float, ndim=3])
+             The inverses of the (lower triangular) Cholesky matrices of the covariance matrices
+        lnQ:     np.ndarray([float, ndim=1])
+             Logarithm of the determinants of the covariance matrices
+        
+    """
+    cdef np.intp_t n_seds, len_seds, sed_i, len_i, len_j
+    n_seds, len_seds = fluxmod.shape[0], fluxmod.shape[1]
+    cdef np.ndarray[DTYPE_t, ndim=1] lnP = np.zeros([n_seds], dtype=np.double)
+    cdef np.ndarray[DTYPE_t, ndim=1] off = np.zeros([len_seds], dtype=np.double)
+    cdef DTYPE_t temp = 0
+
+    
+    for sed_i in range(n_seds):
+        for len_i in range(len_seds):
+            off[len_i] = flux[len_i] - (fluxmod[sed_i, len_i] + bias[sed_i, len_i]) 
+        for len_i in range(len_seds):
+            temp = 0
+            for len_j in range(len_i+1):
+                temp += inv_cholesky_covar[sed_i, len_i, len_j]*off[len_j]
+            lnP[sed_i] += temp*temp
+        lnP[sed_i] *= -0.5
+        lnP[sed_i] -= lnQ[sed_i]
+    return lnP
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -355,9 +394,9 @@ def c_getNorm_lnP(np.ndarray[DTYPE_t, ndim=1] lnP):
     # To make sure we don't have overflows, we normalize the sum by its max
     K = max(lnP)
     for i in range(ni):
-        norm += np.exp(lnP[i] - K)
+        norm += exp(lnP[i] - K)
 
-    norm *= np.exp(K)
+    norm *= exp(K)
 
     return norm
 
