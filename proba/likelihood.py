@@ -11,11 +11,11 @@ N_logLikelihood   Computes a normal likelihood (default, symmetric errors)
 SN_logLikelihood  Computes a Split Normal likelihood (asymmetric errors)
 getNorm_lnP       Compute the norm of a log-likelihood (overflow robust)
 
+
 :author:        MF
 :last update:   Mon May 20 11:43:27 PDT 2013
 """
 import numpy as np
-
 
 def N_chi2(flux, fluxerr, fluxmod, mask=None):
     """ compute the non-reduced chi2 between data with uncertainties and
@@ -188,6 +188,28 @@ def N_logLikelihood(  flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
     #Removing Q factor for comparison with IDL SEDfitter
     #lnP = -0.5 * _chi2
 
+    return lnP
+
+def N_covar_logLikelihood(flux, inv_cholesky_covar, lnQ, bias, fluxmod):
+    """
+    Compute the log-likelihood given data, a covariance matrix, 
+    and a bias term. Very slow. 
+    INPUTS:
+        flux:    np.ndarray([float, ndim=1])
+             Measured fluxes
+        inv_cholesky_covar:   np.ndarray([float, ndim=3])
+             The inverses of the Cholesky decompositions of the covariance matrices
+        lnQ:     np.ndarray([float, ndim=1])
+             Logarithm of the determinants of the covariance matrices
+        
+    """
+    lnP = np.zeros(fluxmod.shape)
+    off = flux - (fluxmod + bias)
+    for i in range(fluxmod.shape[0]):
+        lnP[i] = np.dot(inv_cholesky_covar[i], off[i])
+    lnP *= lnP
+    lnP = -0.5*np.sum(lnP, axis=1)
+    lnP -= lnQ
     return lnP
 
 
