@@ -327,7 +327,7 @@ class CacheBackend(GridBackend):
             self._grid = None
             self._header = None
         else:
-            setattr(self, '_{}'.format(attrname), None)
+            setattr(self, '_{0}'.format(attrname), None)
 
     def _load_seds(self, fname):
         """load_seds - load seds"""
@@ -504,7 +504,7 @@ class HDFBackend(GridBackend):
         super(HDFBackend, self).__init__()
         ftype = self._get_type(fname)
         if ftype != 'hdf':
-            raise ValueError('Expecting HDF file got {}'.format(ftype))
+            raise ValueError('Expecting HDF file got {0}'.format(ftype))
 
         self.fname = fname
         self.store = HDFStore(self.fname, mode='r')
