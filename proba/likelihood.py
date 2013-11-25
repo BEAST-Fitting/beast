@@ -144,7 +144,7 @@ def SN_logLikelihood(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None, lnp_thresho
     return lnP
 
 
-def N_logLikelihood(  flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
+def N_logLikelihood(flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
     """ Compute the log of the chi2 likelihood between data with uncertainties and perfectly known models
 
     INPUTS:
@@ -170,8 +170,8 @@ def N_logLikelihood(  flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
     ni, nj = np.shape(fluxmod)
 
     #compute the quality factor
-    # lnQ = -0.5 * nj *  ln( pi/2 ) - sum_j {ln( err[j] ) }
-    temp = 0.5 * np.log( 0.5 * np.pi )
+    # lnQ = -0.5 * nj *  ln( 2 * pi) - sum_j {ln( err[j] ) }
+    temp = 0.5 * np.log( 2. * np.pi )
     if mask is None:
         temp1 = fluxerr
     else:
@@ -192,8 +192,8 @@ def N_logLikelihood(  flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
 
 def N_covar_logLikelihood(flux, inv_cholesky_covar, lnQ, bias, fluxmod):
     """
-    Compute the log-likelihood given data, a covariance matrix, 
-    and a bias term. Very slow. 
+    Compute the log-likelihood given data, a covariance matrix,
+    and a bias term. Very slow.
     INPUTS:
         flux:    np.ndarray([float, ndim=1])
              Measured fluxes
@@ -201,7 +201,7 @@ def N_covar_logLikelihood(flux, inv_cholesky_covar, lnQ, bias, fluxmod):
              The inverses of the Cholesky decompositions of the covariance matrices
         lnQ:     np.ndarray([float, ndim=1])
              Logarithm of the determinants of the covariance matrices
-        
+
     """
     lnP = np.zeros(fluxmod.shape)
     off = flux - (fluxmod + bias)
