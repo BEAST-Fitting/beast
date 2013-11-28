@@ -697,27 +697,15 @@ def calc_covar_mat(flux_in,flux_rec):
 
     OUTPUTS
     -------
-    cov_mat, inv_cholesky_decomposition, lnQ: Tuple (ndarray[float, ndim=1], ndarray[float, ndim=1], float)
+    cov_mat, inv_cholesky_decomposition, lnQ: Tuple (ndarray[float, ndim=2], ndarray[float, ndim=2], float)
     inv_cholesky_covar = C^-1 where cov_mat=CC^T (lower triangular matrix)
     ln(Q) = ln(sqrt(|covariance_matrix|))
     """
-
-    N_bands = flux_rec.shape[0]
-    N_realiz  = flux_rec.shape[1]
     
     diffs = flux_in - flux_rec
-    
-    ave_diff = np.zeros((N_bands))
-    cov_mat = np.zeros((N_bands,N_bands))
-    for k in np.arange(N_bands):
-        ave_diff[k] = np.mean(diffs[k,:])
+    diffs -= diffs.mean(axis=0)
 
-    for m in np.arange(N_realiz):
-        for k in np.arange(N_bands):
-            for l in np.arange(N_bands):
-                cov_mat[k,l] += (diffs[k,m]-ave_diff[k])*(diffs[l,m]-ave_diff[l])
-
-    cov_mat /= N_realiz
+    cov_mat = np.cov(diffs.T) 
     lnQ = -0.5*np.log(np.linalg.det(cov_mat))
     cholesky_decomposition = np.linalg.cholesky(cov_mat)
     inv_cholesky_decomposition = np.linalg.inv(cholesky_decomposition)

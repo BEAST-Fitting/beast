@@ -43,7 +43,7 @@ uindxs = np.unique(imags[5,:],return_index=True)[1]       # Indices of first rea
 cov_mat = np.zeros((N_stars,N_bands, N_bands))
 inv_cholesky = np.zeros((N_stars,N_bands, N_bands))
 lnQ =  np.zeros((N_stars))
-outname="AST_results.hd5" # Output file name
+outname="AST_results2.hd5" # Output file name
 
 with tables.openFile(outname, 'w') as outfile:
     for i in np.arange(N_stars):
@@ -68,7 +68,7 @@ with tables.openFile(outname, 'w') as outfile:
             indxs = indxs[nindxs]
         if (N_indxs > 20):
             # Compute the covariance matrices, the inverse cholesky decomp. and lnQ
-            (cov_mat[i,:,:], inv_cholesky[i,:,:], lnQ[i]) = calc_covar_mat(iflux[:,indxs],rflux[:,indxs])
+            (cov_mat[i,:,:], inv_cholesky[i,:,:], lnQ[i]) = calc_covar_mat(iflux[:,indxs].T,rflux[:,indxs].T)
             # Compute the mean of the recovered fluxes + uncertainties
             for k in np.arange(N_bands):
                 ave_rflux[k] = np.mean(rflux[k,indxs])
