@@ -50,14 +50,14 @@ class HDF_Sparse_Storage(HDFStore):
         """
         if inputs is True:
             with self as s:
-                indx = s.getNode('/star_{:d}/idx'.format(obj)).read().astype(int)
-                lnps = s.getNode('/star_{:d}/lnp'.format(obj)).read().astype(float)
-                inpt = s.getNode('/star_{:d}/input'.format(obj)).read()
+                indx = s.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
+                lnps = s.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
+                inpt = s.getNode('/star_{0:d}/input'.format(obj)).read()
                 return indx, lnps, inpt
         else:
             with self as s:
-                indx = s.getNode('/star_{:d}/idx'.format(obj)).read().astype(int)
-                lnps = s.getNode('/star_{:d}/lnp'.format(obj)).read().astype(float)
+                indx = s.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
+                lnps = s.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
             return indx, lnps
 
     def set_star(self, obj, inputs, lnp, lnp_threshold=-40, flush=True):
@@ -219,7 +219,7 @@ class PosteriorResult(object):
         if hasattr(qname, '__iter__'):
             r = odict()
             for qk in qname:
-                lbl = '{:s}_Best'.format(qk)
+                lbl = '{0:s}_Best'.format(qk)
                 r[lbl] = data[qk]
         else:
             r = data[qname]
@@ -262,7 +262,7 @@ class PosteriorResult(object):
             for qk in qname:
                 tmp = percentile(data[qk], _p, weights=weights)
                 for ek, pk in enumerate(p):
-                    lbl = '{:s}_p{:d}'.format(qk, int(pk))
+                    lbl = '{0:s}_p{1:d}'.format(qk, int(pk))
                     r[lbl] = tmp[ek]
         else:
             r = percentile(data[qname], _p, weights=weights)
@@ -305,7 +305,7 @@ class PosteriorResult(object):
         if hasattr(qname, '__iter__'):
             r = odict()
             for qk in qname:
-                lbl = '{:s}_E'.format(qk)
+                lbl = '{0:s}_E'.format(qk)
                 r[lbl] = expectation(data[qname], weights=weights)
         else:
             r = expectation(data[qname], weights=weights)
@@ -523,14 +523,14 @@ class PosteriorProxy(object):
         elif type(lnps) == str:
             self.lnps = HDF_Sparse_Storage(lnps)
         else:
-            raise TypeError('lnps is expected to be str or HDF_Sparse_Storage, got {}'.format(type(lnps)))
+            raise TypeError('lnps is expected to be str or HDF_Sparse_Storage, got {0}'.format(type(lnps)))
 
         if isinstance(models, ModelGrid) or isinstance(models, SpectralGrid):
             self.models = models
         elif type(models) == str:
             self.models = HDF_Sparse_Storage(models)
         else:
-            raise TypeError('models is expected to be str or FileSEDGrid, got {}'.format(type(models)))
+            raise TypeError('models is expected to be str or FileSEDGrid, got {0}'.format(type(models)))
 
         self.priors = None
         self.pvalues = None

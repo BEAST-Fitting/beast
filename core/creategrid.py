@@ -272,8 +272,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
         npts = len(pts)
 
         # Pet the user
-        print('number of initially requested points = {:d}'.format(niter))
-        print('number of valid points = {:d} (based on restrictions in R(V) versus f_bump plane)'.format(npts) )
+        print('number of initially requested points = {0:d}'.format(niter))
+        print('number of valid points = {0:d} (based on restrictions in R(V) versus f_bump plane)'.format(npts) )
 
         # setup of output
         N = N0 * npts
@@ -297,7 +297,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
 
     # Generate the Grid
     # =================
-    print('Generating a final grid of {:d} points'.format(N))
+    print('Generating a final grid of {0:d} points'.format(N))
 
     keys = g0.keys()
     for key in keys:

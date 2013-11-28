@@ -319,7 +319,7 @@ class PhotCharact(object):
         if np.ndim(sed) > 1:
             nlamb = np.shape(sed)[1]
             if nlamb != len(self.filters):
-                raise ValueError('expecting {} values per sed, got {}'.format(len(self.filters), nlamb))
+                raise ValueError('expecting {0} values per sed, got {1}'.format(len(self.filters), nlamb))
             biases = np.empty(sed.shape, dtype=float)
             errors = np.empty(sed.shape, dtype=float)
 

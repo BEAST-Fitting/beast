@@ -67,7 +67,7 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=0.019):
     """
     # grab a set of solar isochrones
     iso_table = ezpadova.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
-    iso_table.header['NAME'] = '{} Isochrones'.format('_'.join(outname.split('_')[:-1]))
+    iso_table.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
     #clean painful naming
     d = odict()
@@ -228,11 +228,11 @@ def t_isochrones(project, **iso_kwargs):
     oiso: isochrone.Isochrone object
         Isochrone object instance
     """
-    iso_fname = '{}_iso.csv'.format(project)
+    iso_fname = '{0}_iso.csv'.format(project)
     iso_source = RequiredFile(iso_fname, make_iso_table, iso_fname, **iso_kwargs)
     oiso = ezIsoch(iso_source())
     #clean header
-    oiso.data.header = {'NAME': '{} isochrones'.format(project)}
+    oiso.data.header = {'NAME': '{0} isochrones'.format(project)}
     return (project, oiso)
 
 
@@ -260,7 +260,7 @@ def t_spectra(project, oiso, **spec_kwargs):
     g: grid.SpectralGrid instance
         spectral grid instance
     """
-    spec_fname = '{}_spec.grid.hd5'.format(project)
+    spec_fname = '{0}_spec.grid.hd5'.format(project)
     spec_source = RequiredFile(spec_fname, make_spectra, spec_fname, oiso, **spec_kwargs)
     g = grid.FileSpectralGrid(spec_source(), backend='memory')
     return project, g
@@ -294,7 +294,7 @@ def t_seds(project, specgrid, filters, **seds_kwargs):
         SED grid instance
     """
 
-    seds_fname = '{}_seds.grid.hd5'.format(project)
+    seds_fname = '{0}_seds.grid.hd5'.format(project)
     seds_source = RequiredFile(seds_fname, make_seds, seds_fname, specgrid, filters, **seds_kwargs)
     g = grid.FileSEDGrid(seds_source(), backend='hdf')
     return project, g
