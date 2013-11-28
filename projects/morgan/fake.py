@@ -111,7 +111,7 @@ def t_fakedata(project, sed_grid, nstars=10, ferr=0.05, nsamp=1):
         on the flux measurements according to ferr
     """
 
-    outname = '{}_fakedata.fits'.format(project)
+    outname = '{0}_fakedata.fits'.format(project)
     fake_source = RequiredFile(outname, make_fake_catalog, sed_grid, nstars=nstars, ferr=ferr, nsamp=nsamp, outname=outname)
     return project, FakeData(fake_source(), sed_grid.filters)
 

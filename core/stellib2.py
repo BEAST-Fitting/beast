@@ -22,5 +22,5 @@ class CompositeStellib(object):
         pass
 
     def __repr__(self):
-        return "CompositeStellib, {}\n{}".format(object.__repr__(self), [k.name for k in self._olist])
+        return "CompositeStellib, {0}\n{1}".format(object.__repr__(self), [k.name for k in self._olist])
 

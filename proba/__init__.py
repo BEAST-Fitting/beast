@@ -65,6 +65,7 @@ try:
     from .c_likelihood import c_SN_chi2 as SN_chi2
     from .c_likelihood import c_SN_logLikelihood as SN_logLikelihood
     from .c_likelihood import c_N_logLikelihood as N_logLikelihood
+    from .c_likelihood import c_N_covar_logLikelihood as N_covar_logLikelihood
     from .c_likelihood import c_getNorm_lnP as getNorm_lnP
 except ImportError:
     import warnings
@@ -73,6 +74,7 @@ except ImportError:
     from .likelihood import N_logLikelihood
     from .likelihood import SN_chi2
     from .likelihood import SN_logLikelihood
+    from .likelihood import N_covar_logLikelihood
     from .likelihood import getNorm_lnP
 
 from .common import percentile, expectation
