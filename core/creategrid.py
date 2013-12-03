@@ -257,7 +257,6 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
     # basically the dot product from all input 1d vectors
     # setup interation over the full dust parameter grid
     if with_fb:
-        print fbumps
         it = np.nditer(np.ix_(avs, rvs, fbumps))
         niter = np.size(avs) * np.size(rvs) * np.size(fbumps)
         
