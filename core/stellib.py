@@ -655,7 +655,7 @@ class CompositeStellib(Stellib):
 
         returns
         -------
-        r: ndarray(dtype=int)
+        res: ndarray(dtype=int)
             a ndarray, 0 meaning no library covers the point, and 1, ... n, for the n-th library
         """
         xy = np.asarray(xypoints)
@@ -664,10 +664,10 @@ class CompositeStellib(Stellib):
 
         for ek, ok in enumerate(self._olist[1:]):
             if 0 in res:
-                ind = np.squeeze(np.where(res == 0))
+                ind = np.atleast_1d(np.squeeze(np.where(res == 0)))
                 r = ok.points_inside(xy[ind], dlogT=dlogT, dlogg=dlogg)
-                res[ind[r]] = ek
-        return r
+                res[ind[r]] = ek + 2
+        return res
 
     def __repr__(self):
         return "CompositeStellib, {0}\n{1}".format(object.__repr__(self), [k.name for k in self._olist])
