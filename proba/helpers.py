@@ -684,3 +684,29 @@ def Q_best(lnpfile, qname, cllist=None, prior=None):
         f.close()
 
     return r
+
+def calc_covar_mat(flux_in,flux_rec):
+    """Computes the covariance matrix, the inverse of the Cholesky decomposition and lnQ for a given star.
+
+    INPUTS
+    -----
+    flux_in: ndarray[float, ndim=1]
+       input SED corresponding to a modeled SED
+    flux_rec: ndarray[float, ndim=1]
+       recovered SED from the Artificial Star Tests
+
+    OUTPUTS
+    -------
+    cov_mat, inv_cholesky_decomposition, lnQ: Tuple (ndarray[float, ndim=2], ndarray[float, ndim=2], float)
+    inv_cholesky_covar = C^-1 where cov_mat=CC^T (lower triangular matrix)
+    ln(Q) = ln(sqrt(|covariance_matrix|))
+    """
+    
+    diffs = flux_in - flux_rec
+    diffs -= diffs.mean(axis=0)
+
+    cov_mat = np.cov(diffs.T) 
+    lnQ = -0.5*np.log(np.linalg.det(cov_mat))
+    cholesky_decomposition = np.linalg.cholesky(cov_mat)
+    inv_cholesky_decomposition = np.linalg.inv(cholesky_decomposition)
+    return (cov_mat, inv_cholesky_decomposition, lnQ)
