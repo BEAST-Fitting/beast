@@ -17,8 +17,8 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 # TLUSTY atmospheres.
 #
 path_to_tlusty_models = '/Users/K/Documents/PHAT_SED/Stellar_Atmospheres/TLUSTY' 
-out_path = 'sedfitter/libs/tlusty.grid.fits'
-filepaths = glob.glob(path_to_tlusty_models+'/*STAR*/*models/*.flux')
+out_path = 'sedfitter/libs/tlusty.subgrid.fits'
+filepaths = glob.glob(path_to_tlusty_models+'/*STAR*/Gmodels/*.flux')
 
 def edges_from_centers(centers):
   length = centers.size
@@ -75,7 +75,7 @@ with progressbar.PBar(len(filepaths), txt='Reading %d files' %(len(filepaths))) 
     spl = InterpolatedUnivariateSpline(tl_frequencies, tl_fluxes, k=1)
     vect_int = np.vectorize(spl.integral)
     reversed_integrated_flux = vect_int(ck_frequency_bounds[:-1], ck_frequency_bounds[1:])
-    flux_per_wavelength = reversed_integrated_flux[::-1]/ck_wave_spans
+    flux_per_wavelength = reversed_integrated_flux[::-1]/(ck_wave_spans[::-1])
     spectrum[e] = flux_per_wavelength
     m = p.findall(filepath)[0]
     Z_vals[e] = Z_dict[m[0]]
@@ -91,4 +91,4 @@ g.addCol('logG', log_g_vals, dtype='float')
 
 
 tlusty = grid.MemoryGrid(ck_waves, seds=spectrum, grid=g)
-tlusty.write(out_path, clobber=True)
+tlusty._backend.writeFITS(out_path, clobber=True)

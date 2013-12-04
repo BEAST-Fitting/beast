@@ -100,9 +100,9 @@ def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06, weights=None
         pool = mp.Pool(nthreads)
 
     if weights is None:
-        seq = [ (logT[k], logg[k], Z, logL[k], oSL.Teff, oSL.logg, oSL.Z, dT_max, eps, 1.) for k in range(len(logT)) ]
+        seq = [ (logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg, oSL.Z, dT_max, eps, 1.) for k in range(len(logT)) ]
     else:
-        seq = [ (logT[k], logg[k], Z, logL[k], oSL.Teff, oSL.logg, oSL.Z, dT_max, eps, weights[k]) for k in range(len(logT)) ]
+        seq = [ (logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg, oSL.Z, dT_max, eps, weights[k]) for k in range(len(logT)) ]
 
     if (pool is not None):
         r = pool.map( __interpSingle__, seq )
@@ -156,6 +156,7 @@ def interp(T0, g0, Z0, L0, T, g, Z, dT_max=0.1, eps=1e-6, weight=1.):
     _Zv   = np.unique(_Z)
     _T    = np.asarray(T)
     _g    = np.asarray(g)
+    
     bZ_m  = True in (_Zv == Z0)  # Z_match bool
     r     = np.where((_Zv < Z0))[0]
     Z_inf = _Zv[r.max()] if len(r) > 0 else -1.
@@ -285,7 +286,7 @@ class Stellib(object):
             i2 (resp. i1) is not used.
             (see below for namings)
 
-        eps: foat
+        eps: float
             temperature sensitivity under which points are considered to
             have the same temperature
 
@@ -660,8 +661,13 @@ class CompositeStellib(Stellib):
         """
         xy = np.asarray(xypoints)
         res = np.zeros(len(xy), dtype=int)
+        ##Check if any of the pairs in xy are in library 1,
+        ## whose index in self._olist is 0.
         res[self._olist[0].points_inside(xy, dlogT=dlogT, dlogg=dlogg)] = 1
 
+        ##Check if any of the pairs in xy that are not in library 1
+        ## are in library 2, 3, ..., n, whose index "ek" in self._olist[1:]
+        ## is 0, 1, ..., n-2
         for ek, ok in enumerate(self._olist[1:]):
             if 0 in res:
                 ind = np.atleast_1d(np.squeeze(np.where(res == 0)))
@@ -813,8 +819,9 @@ class CompositeStellib(Stellib):
         for oslk, osl in enumerate(self._olist):
             # make a generator to avoid keeping all in memory
             ind = np.where(osl_index - 1 == oslk)
-            g.append( oslk + 1, osl.interpMany(T0[ind], g0[ind], Z0[ind], L0[ind], dT_max=dT_max, eps=eps, weights=weights, pool=pool, nthreads=nthreads) )
-
+            if np.squeeze(ind).size is not 0: 
+                g.append( [oslk+1, osl.interpMany(T0[ind], g0[ind], Z0[ind], L0[ind], dT_max=dT_max, eps=eps, weights=weights, pool=pool, nthreads=nthreads)] )
+            
         return g
 
     def genQ(self, qname, r, **kwargs):
@@ -917,18 +924,20 @@ class CompositeStellib(Stellib):
         for oslk, osl in enumerate(self._olist):
             # make a generator to avoid keeping all in memory
             _pts = {}
-            ind = (osl_index == oslk)
-            print sum(ind)
-            _pts['logg'] = pts['logg'][ind]
-            _pts['logT'] = pts['logT'][ind]
-            _pts['logL'] = pts['logL'][ind]
-            _pts['Z'] = pts['Z'][ind]
-            _pts = Table(_pts)
+            #oslk + 1 since 0 corresponds to "not covered by any osl"
+            ind = (osl_index == (oslk + 1)) 
+            #print sum(ind)
+            if np.sum(ind) > 0:
+                _pts['logg'] = pts['logg'][ind]
+                _pts['logT'] = pts['logT'][ind]
+                _pts['logL'] = pts['logL'][ind]
+                _pts['Z'] = pts['Z'][ind]
+                _pts = Table(_pts)
             #_pts = [ (logg, logT, logL, Z) for (logg, logT, logL, Z, ok) in zip(pts['logg'], pts['logT'], pts['logL'], pts['Z'], osl_index) if (ok - 1 == oslk) ]
-            gk = osl.gen_spectral_grid_from_given_points(_pts, bounds=dict(dlogT=0.1, dlogg=0.3))
-            gk.seds = interp1d(gk.lamb, gk.seds, axis=1)(l0)
-            seds.append(gk.seds)
-            grid.append(gk.grid)
+                gk = osl.gen_spectral_grid_from_given_points(_pts, bounds=dict(dlogT=0.1, dlogg=0.3))
+                gk.seds = interp1d(gk.lamb, gk.seds, axis=1)(l0)
+                seds.append(gk.seds)
+                grid.append(gk.grid)
 
         header = {'stellib': self.source,
                   'comment': 'radius in Rsun',
