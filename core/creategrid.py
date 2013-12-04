@@ -259,7 +259,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
     if with_fb:
         it = np.nditer(np.ix_(avs, rvs, fbumps))
         niter = np.size(avs) * np.size(rvs) * np.size(fbumps)
-
+        
         # compute the allowed points based on the R(V) versus f_bump plane
         # duplicates effort for all A(V) values, but it is quick compared to
         # other steps
@@ -315,6 +315,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
                 Rv_MW = extLaw.get_Rv_A(Rv, f_bump)
                 temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv, f_bump=f_bump)
                 # adding the dust parameters to the models
+                cols['Av'][N0 * count: N0 * (count + 1)] = Av
+                cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
                 cols['f_bump'][N0 * count:N0 * (count + 1)] = f_bump
                 cols['Rv_MW'][N0 * count: N0 * (count + 1)] = Rv_MW
             else:
