@@ -94,7 +94,8 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
                 #Need ragged arrays rather than uniform table
                 star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
                 indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > -40.)
-                outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
+                #outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
+                outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
                 outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int32))
                 outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
                 #commit changes
@@ -302,7 +303,7 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache
     if hasattr(qname, '__iter__'):
         r = odict()
         for qk in qname:
-            lbl = '{:s}_Best'.format(qk)
+            lbl = '{0:s}_Best'.format(qk)
             r[lbl] = Q_best(f, g0, qk, objlist, prior)
     else:
         #get grid node
@@ -313,9 +314,9 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache
         r = np.empty(len(objlist), dtype=float)
         with progressbar.PBar(nobs, txt='Best') as pb:
             for e, obj in enumerate(objlist):
-                pb.update(e, txt='Best({})'.format(qname))
-                lnps = f.getNode('/star_{:d}/lnp'.format(obj)).read().astype(float)
-                indx = f.getNode('/star_{:d}/idx'.format(obj)).read().astype(int)
+                pb.update(e, txt='Best({0})'.format(qname))
+                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
+                indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
                 if not np.isfinite(log_norm):
                     log_norm = lnps.max()
@@ -390,7 +391,7 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         for qk in qname:
             tmp = Q_percentile(f, g0, qk, p, objlist, prior)
             for ek, pk in enumerate(p):
-                lbl = '{:s}_p{:d}'.format(qk, int(pk))
+                lbl = '{0:s}_p{1:d}'.format(qk, int(pk))
                 r[lbl] = tmp[:, ek]
     else:
         #get grid node
@@ -403,9 +404,9 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         r = np.empty((len(objlist), nval), dtype=float)
         with progressbar.PBar(nobs, txt='Percentiles') as pb:
             for e, obj in enumerate(objlist):
-                pb.update(e, txt='Percentiles({})'.format(qname))
-                lnps = f.getNode('/star_{:d}/lnp'.format(obj)).read().astype(float)
-                indx = f.getNode('/star_{:d}/idx'.format(obj)).read().astype(int)
+                pb.update(e, txt='Percentiles({0})'.format(qname))
+                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
+                indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
                 if not np.isfinite(log_norm):
                     log_norm = lnps.max()
@@ -469,7 +470,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
     #make sure keys are real keys
     for key in keys:
         if not (key in g0.keys()):
-            raise KeyError('Key "{}" not recognized'.format(key))
+            raise KeyError('Key "{0}" not recognized'.format(key))
 
     r = odict()
     if ('expectation' in method):
@@ -531,7 +532,9 @@ def t_fit(project, obs, g, threshold=-40, gridbackend='cache'):
     obs: Observation object instance
         observation catalog
     """
-    outname = '{0}_lnp.hd5'.format(project)
+    #TEMPORARY PATH 
+    dir = '/astro/dust_kg/harab/beast_last/projects/morgan/'
+    outname = dir + '{0}_lnp.hd5'.format(project)
     lnp_source = RequiredFile(outname, fit_model_seds_pytables, obs, g, threshold=threshold, outname=outname, gridbackend=gridbackend)
     return project, lnp_source(), obs
 
@@ -579,7 +582,8 @@ def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None, gri
     sedgrid: grid.SpectralGrid instance
         SED model grid instance
     """
-
-    outname = '{}_stats.fits'.format(project)
+    #TEMPORARY PATH 
+    dir = '/astro/dust_kg/harab/beast_last/projects/morgan/'
+    outname = dir + '{0}_stats.fits'.format(project)
     stat_source = RequiredFile(outname, summary_table, lnpfname, obs, sedgrid, keys=keys, method=method, outname=outname, gridbackend=gridbackend)
     return project, stat_source(), obs, sedgrid
