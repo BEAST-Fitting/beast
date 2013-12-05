@@ -932,6 +932,11 @@ class CompositeStellib(Stellib):
                 _pts['logT'] = pts['logT'][ind]
                 _pts['logL'] = pts['logL'][ind]
                 _pts['Z'] = pts['Z'][ind]
+                _pts['logA'] = pts['logA'][ind]
+                _pts['M_ini'] = pts['M_ini'][ind]
+                _pts['M_act'] = pts['M_act'][ind]
+                _pts['logMdot'] = pts['logMdot'][ind]
+                _pts['mbol'] = pts['mbol'][ind]
                 _pts = Table(_pts)
             #_pts = [ (logg, logT, logL, Z) for (logg, logT, logL, Z, ok) in zip(pts['logg'], pts['logT'], pts['logL'], pts['Z'], osl_index) if (ok - 1 == oslk) ]
                 gk = osl.gen_spectral_grid_from_given_points(_pts, bounds=dict(dlogT=0.1, dlogg=0.3))
