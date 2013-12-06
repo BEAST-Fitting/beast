@@ -533,8 +533,8 @@ def t_fit(project, obs, g, threshold=-40, gridbackend='cache'):
         observation catalog
     """
     #TEMPORARY PATH 
-    dir = '/astro/dust_kg/harab/beast_last/projects/morgan/'
-    outname = dir + '{0}_lnp.hd5'.format(project)
+    #dir = '/astro/dust_kg/harab/beast_last/projects/morgan/'
+    outname = '{0}_lnp.hd5'.format(project)
     lnp_source = RequiredFile(outname, fit_model_seds_pytables, obs, g, threshold=threshold, outname=outname, gridbackend=gridbackend)
     return project, lnp_source(), obs
 
@@ -583,7 +583,7 @@ def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None, gri
         SED model grid instance
     """
     #TEMPORARY PATH 
-    dir = '/astro/dust_kg/harab/beast_last/projects/morgan/'
-    outname = dir + '{0}_stats.fits'.format(project)
+    #dir = '/astro/dust_kg/harab/beast_last/projects/morgan/'
+    outname = '{0}_stats.fits'.format(project)
     stat_source = RequiredFile(outname, summary_table, lnpfname, obs, sedgrid, keys=keys, method=method, outname=outname, gridbackend=gridbackend)
     return project, stat_source(), obs, sedgrid
