@@ -224,7 +224,7 @@ def ezrc(fontSize=22., lineWidth=2., labelSize=None, tickmajorsize=10, tickminor
     rc('figure', figsize=(8, 6))
     rc('lines', linewidth=lineWidth)
     rcParams['grid.linewidth'] = lineWidth
-    rc('font', size=fontSize, family='serif', weight='small')
+    rc('font', size=fontSize, family='serif', weight='normal')
     rc('axes', linewidth=lineWidth, labelsize=labelSize)
     #rc('xtick', width=2.)
     #rc('ytick', width=2.)
