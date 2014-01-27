@@ -40,7 +40,7 @@ class KDTreeDensityEstimator(object):
     Uses ``scipy.spatial.cKDTree``
     """
 
-    def __init__(self, x, normalize=False):
+    def __init__(self, x, normalize=True):
         self.points = np.asarray(x)
         npoints, ndim = x.shape
         self.npoints = npoints
