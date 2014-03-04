@@ -24,7 +24,7 @@ import tables
 from beast.core import grid
 from beast.core.odict import odict
 from beast.tools import progressbar
-from beast.proba import N_logLikelihood, SN_logLikelihood
+from beast.proba import N_logLikelihood, SN_logLikelihood, N_chi2
 from beast.proba import expectation, percentile, getNorm_lnP
 from beast.external.eztables import Table
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
@@ -67,7 +67,7 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
         g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
-
+   
     with tables.openFile(outname, 'w') as outfile:
         #Save wavelengths in root, remember #n_stars = root._v_nchildren -1
         outfile.createArray(outfile.root, 'grid_waves', g0.lamb[:])
@@ -85,15 +85,17 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
                 if len(obk) == 3:
                     (sed, err, mask) = obk
                     lnp = N_logLikelihood(  sed, err, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
+                    lnp = lnp - np.log(g0['Density']/g0['Density'].sum())
                 elif len(obk) == 4:
                     (sed, errp, errm, mask) = obk
                     lnp = SN_logLikelihood(  sed, errp, errm, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
+                    lnp = lnp - np.log(g0['Density']/g0['Density'].sum())
                 else:
                     raise AttributeError('getObs is expcted to return 3 or 4 values, got {0}'.format(len(obk)))
-
+                print len(lnp)
                 #Need ragged arrays rather than uniform table
                 star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
-                indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > -40.)
+                indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
                 #outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
                 outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
                 outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int32))
@@ -532,8 +534,7 @@ def t_fit(project, obs, g, threshold=-40, gridbackend='cache'):
     obs: Observation object instance
         observation catalog
     """
-    #TEMPORARY PATH 
-    #dir = '/astro/dust_kg/harab/beast_last/projects/morgan/'
+
     outname = '{0}_lnp.hd5'.format(project)
     lnp_source = RequiredFile(outname, fit_model_seds_pytables, obs, g, threshold=threshold, outname=outname, gridbackend=gridbackend)
     return project, lnp_source(), obs
@@ -582,8 +583,7 @@ def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None, gri
     sedgrid: grid.SpectralGrid instance
         SED model grid instance
     """
-    #TEMPORARY PATH 
-    #dir = '/astro/dust_kg/harab/beast_last/projects/morgan/'
+
     outname = '{0}_stats.fits'.format(project)
     stat_source = RequiredFile(outname, summary_table, lnpfname, obs, sedgrid, keys=keys, method=method, outname=outname, gridbackend=gridbackend)
     return project, stat_source(), obs, sedgrid

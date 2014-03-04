@@ -1118,7 +1118,7 @@ class Tlusty(Stellib):
 
     @property
     def logT(self):
-        return np.log10(self.grid['Teff'])
+        return self.grid['Teff']
 
     @property
     def logg(self):

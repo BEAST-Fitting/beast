@@ -5,9 +5,11 @@ from beast.tools import figure
 from beast.external import eztables
 from beast.config import __NTHREADS__
 from beast.config import __USE_NUMEXPR__
-if __USE_NUMEXPR__:
-    import numexpr
-    numexpr.set_num_threads(__NTHREADS__)
+import numexpr
+__USE_NUMEXPR__ = False
+#if __USE_NUMEXPR__:
+#    import numexpr
+#    numexpr.set_num_threads(__NTHREADS__)
 
 
 class binningAxis():
