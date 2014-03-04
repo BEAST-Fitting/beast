@@ -25,7 +25,7 @@ from .gridhelpers import isNestedInstance
 from ..external import ezunits
 from ..external.eztables import Table
 from ..tools import progressbar
-
+from .priors import KDTreeDensityEstimator
 
 def gen_spectral_grid_from_stellib_given_points(osl, pts, bounds=dict(dlogT=0.1, dlogg=0.3)):
     """ Reinterpolate a given stellar spectral library on to an Isochrone grid
@@ -298,7 +298,6 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
     # Generate the Grid
     # =================
     print('Generating a final grid of {0:d} points'.format(N))
-
     keys = g0.keys()
     for key in keys:
         cols[key] = np.empty(N, dtype=float)
@@ -333,7 +332,13 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
             for key in keys:
                 cols[key][N0 * count: N0 * (count + 1)] = g0.grid[key]
 
+    #Adding Density
+    tempgrid = np.asarray([g0['logA'],g0['M_ini'],g0['M_act'],g0['Av'],g0['Rv'],g0['f_bump'],g0['Z']]).T
+    tr = KDTreeDensityEstimator(tempgrid)
+    cols['Density'] = tr(tempgrid)
     _lamb = temp_results.lamb[:]
+    
+    
     # free the memory of temp_results
     del temp_results
 
