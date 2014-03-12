@@ -11,7 +11,7 @@ __NTHREADS__ = 25
 
 # Online libraries
 # will be replaced by a more flexible support (JSON is easy!)
-libs_server = 'http://chex.astro.washington.edu:8899/sedfitter/'
+libs_server = 'http://chex.astro.washington.edu:7777/beastlibs/'
 libs = dict(
     vega     = 'vega.hd5',
     filters  = 'filters.hd5',
