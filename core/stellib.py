@@ -27,7 +27,7 @@ config = {
     'basel_2.2_pegase': __ROOT__ + '/libs/BaSeL_v2.2.pegase.grid.fits',
     'elodie_3.1': __ROOT__ + '/libs/Elodie_v3.1.grid.fits',
     'kurucz': __ROOT__ + '/libs/kurucz2004.grid.fits',
-    'tlusty': __ROOT__ + '/libs/tlusty.grid.fits'
+    'tlusty': __ROOT__ + '/libs/tlusty.lowres.grid.fits'
 }
 
 __all__ = ['Stellib', 'CompositeStellib', 'Kurucz', 'Tlusty', 'Elodie', 'BaSeL']
