@@ -24,7 +24,7 @@ import tables
 from beast.core import grid
 from beast.core.odict import odict
 from beast.tools import progressbar
-from beast.proba import N_logLikelihood, SN_logLikelihood, N_chi2
+from beast.proba import N_logLikelihood, SN_logLikelihood
 from beast.proba import expectation, percentile, getNorm_lnP
 from beast.external.eztables import Table
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
@@ -67,7 +67,7 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
         g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
-   
+
     with tables.openFile(outname, 'w') as outfile:
         #Save wavelengths in root, remember #n_stars = root._v_nchildren -1
         outfile.createArray(outfile.root, 'grid_waves', g0.lamb[:])
@@ -81,24 +81,23 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
         with progressbar.PBar(len(obs), txt="Calculating lnp") as pbar:
 
             for tn, obk in obs.enumobs():
-
                 if len(obk) == 3:
                     (sed, err, mask) = obk
                     lnp = N_logLikelihood(  sed, err, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
-                    lnp = lnp - np.log(g0['Density']/g0['Density'].sum())
                 elif len(obk) == 4:
                     (sed, errp, errm, mask) = obk
                     lnp = SN_logLikelihood(  sed, errp, errm, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
-                    lnp = lnp - np.log(g0['Density']/g0['Density'].sum())
                 else:
-                    raise AttributeError('getObs is expcted to return 3 or 4 values, got {0}'.format(len(obk)))
+                    raise AttributeError('getObs is expected to return 3 or 4 values, got {0}'.format(len(obk)))
+                # include grid sampling prior
+                lnp = lnp - np.log(g0['Density'] / g0['Density'].sum())
                 print len(lnp)
                 #Need ragged arrays rather than uniform table
                 star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
                 indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
                 #outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
                 outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
-                outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int32))
+                outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int64))
                 outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
                 #commit changes
                 outfile.flush()
