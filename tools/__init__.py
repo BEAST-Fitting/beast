@@ -1,6 +1,6 @@
 import decorators
-import figure
+#import figure
 import progressbar
 import contextManagers
 import ezpipeline
-__all__ = 'decorators figure progressbar contextManagers ezpipeline binningAxis'.split()
+__all__ = 'decorators progressbar contextManagers ezpipeline binningAxis'.split()
