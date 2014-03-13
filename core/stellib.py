@@ -13,7 +13,7 @@ from ..external.eztables import Table
 from ..config import __ROOT__, __NTHREADS__
 from ..include import __interp__
 from ..tools.pbar import Pbar
-from ..tools import nbytes
+from ..tools.helpers import nbytes
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
 from .future import Path
