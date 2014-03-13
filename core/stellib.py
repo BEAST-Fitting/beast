@@ -12,7 +12,7 @@ from .grid import SpectralGrid
 from ..external.eztables import Table
 from ..config import __ROOT__, __NTHREADS__
 from ..include import __interp__
-from ..tools.progressbar import PBar
+from ..tools.pbar import Pbar
 from ..tools import nbytes
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
@@ -553,12 +553,11 @@ class Stellib(object):
         # Step 3: Interpolation
         # =====================
         # Do the actual interpolation, avoiding exptrapolations
-        with PBar(ndata, txt='spectral grid') as Pbar:
-            for mk, (rT, rg, rZ) in enumerate(zip(pts['logT'], pts['logg'], pts['Z'])):
-                Pbar.update(mk)
-                if bound_cond[mk]:
-                    s = np.array( self.interp(rT, rg, rZ, 0.) ).T
-                    specs[mk, :] = self.genSpectrum(s) * weights[mk]
+        for mk, (rT, rg, rZ) in Pbar(ndata, desc='spectral grid').iterover(enumerate(zip(pts['logT'], pts['logg'], pts['Z']))):
+            Pbar.update(mk)
+            if bound_cond[mk]:
+                s = np.array( self.interp(rT, rg, rZ, 0.) ).T
+                specs[mk, :] = self.genSpectrum(s) * weights[mk]
 
         # Step 4: filter points without spectrum
         # ======================================
