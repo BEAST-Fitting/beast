@@ -24,8 +24,9 @@ from .grid import SpectralGrid
 from .gridhelpers import isNestedInstance
 from ..external import ezunits
 from ..external.eztables import Table
-from ..tools import progressbar
+from ..tools.pbar import Pbar
 from .priors import KDTreeDensityEstimator
+
 
 def gen_spectral_grid_from_stellib_given_points(osl, pts, bounds=dict(dlogT=0.1, dlogg=0.3)):
     """ Reinterpolate a given stellar spectral library on to an Isochrone grid
@@ -126,49 +127,47 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
     kdata = 0
     rsun = ezunits.unit['Rsun'].to('m').magnitude  # 6.955e8 m
 
-    with progressbar.PBar(niter, txt='spectral grid') as Pbar:
-        for k, (_ak, _Zk) in enumerate(it):
-            Pbar.update(k)
+    for k, (_ak, _Zk) in Pbar(niter, desc='spectral grid').iterover(enumerate(it)):
 
-            # Step 1: get isochrone points
-            # ============================
-            # get the isochrone of (age, Z) sampled at given masses
-            r = oiso._get_isochrone(_ak, metal=_Zk, masses=np.log10(_masses))
+        # Step 1: get isochrone points
+        # ============================
+        # get the isochrone of (age, Z) sampled at given masses
+        r = oiso._get_isochrone(_ak, metal=_Zk, masses=np.log10(_masses))
 
-            # keep array pointer mark
-            start_idx = k * len(_masses)
-            end_idx   = start_idx + len(r)
+        # keep array pointer mark
+        start_idx = k * len(_masses)
+        end_idx   = start_idx + len(r)
 
-            # Step 2: Avoid Extrapolation
-            # ===========================
-            # check boundary conditions, keep the data but do not compute the sed if not needed
-            bound_cond = osl.points_inside(zip(r['logg'], r['logT']))
-            _grid['keep'][start_idx: end_idx] = bound_cond[:]
+        # Step 2: Avoid Extrapolation
+        # ===========================
+        # check boundary conditions, keep the data but do not compute the sed if not needed
+        bound_cond = osl.points_inside(zip(r['logg'], r['logT']))
+        _grid['keep'][start_idx: end_idx] = bound_cond[:]
 
-            # Step 3: radii
-            # =============
-            # Stellar library models are given in cm^-2  ( 4 pi R)
-            # Compute radii of each point using log(T) and log(L)
-            # get the isochrone of (age, Z) sampled at given masses
-            radii = osl.get_radius(r['logL'], r['logT'])
-            weights = 4. * np.pi * (radii * 1e2) ** 2  # denorm models are in cm**-2 (4*pi*rad)
-            _grid['radius'][start_idx: end_idx] = radii / rsun
+        # Step 3: radii
+        # =============
+        # Stellar library models are given in cm^-2  ( 4 pi R)
+        # Compute radii of each point using log(T) and log(L)
+        # get the isochrone of (age, Z) sampled at given masses
+        radii = osl.get_radius(r['logL'], r['logT'])
+        weights = 4. * np.pi * (radii * 1e2) ** 2  # denorm models are in cm**-2 (4*pi*rad)
+        _grid['radius'][start_idx: end_idx] = radii / rsun
 
-            # Step 4: Interpolation
-            # =====================
-            # Do the actual interpolation, avoiding exptrapolations
-            for mk in range(r.nrows):
-                if bound_cond[mk]:
-                    s = np.array( osl.interp(r['logT'][mk], r['logg'][mk], _Zk, 0.) ).T
-                    specs[kdata, :] = osl.genSpectrum(s) * weights[mk]
-                else:
-                    specs[kdata, :] = np.zeros(len(lamb), dtype=float )
-                kdata += 1
+        # Step 4: Interpolation
+        # =====================
+        # Do the actual interpolation, avoiding exptrapolations
+        for mk in range(r.nrows):
+            if bound_cond[mk]:
+                s = np.array( osl.interp(r['logT'][mk], r['logg'][mk], _Zk, 0.) ).T
+                specs[kdata, :] = osl.genSpectrum(s) * weights[mk]
+            else:
+                specs[kdata, :] = np.zeros(len(lamb), dtype=float )
+            kdata += 1
 
-            # Step 4: Store properties
-            # ========================
-            for key in r.keys():
-                _grid[key][start_idx: end_idx] = r[key]
+        # Step 4: Store properties
+        # ========================
+        for key in r.keys():
+            _grid[key][start_idx: end_idx] = r[key]
 
     # Step 5: filter points without spectrum
     # ======================================
@@ -259,7 +258,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
     if with_fb:
         it = np.nditer(np.ix_(avs, rvs, fbumps))
         niter = np.size(avs) * np.size(rvs) * np.size(fbumps)
-        
+
         # compute the allowed points based on the R(V) versus f_bump plane
         # duplicates effort for all A(V) values, but it is quick compared to
         # other steps
@@ -304,41 +303,37 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
 
     _seds = np.empty( (N, len(filter_names)), dtype=float)
 
-    with progressbar.PBar(npts, txt='SED grid') as Pbar:
-        for count, pt in enumerate(pts):
-            # info showing program is running
-            Pbar.update(count, force=True)
+    for count, pt in Pbar(npts, desc='SED grid').iterover(enumerate(pts)):
 
-            if with_fb:
-                Av, Rv, f_bump = pt
-                Rv_MW = extLaw.get_Rv_A(Rv, f_bump)
-                temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv, f_bump=f_bump)
-                # adding the dust parameters to the models
-                cols['Av'][N0 * count: N0 * (count + 1)] = Av
-                cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
-                cols['f_bump'][N0 * count:N0 * (count + 1)] = f_bump
-                cols['Rv_MW'][N0 * count: N0 * (count + 1)] = Rv_MW
-            else:
-                Av, Rv = pt
-                temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv)
-                # adding the dust parameters to the models
-                cols['Av'][N0 * count: N0 * (count + 1)] = Av
-                cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
+        if with_fb:
+            Av, Rv, f_bump = pt
+            Rv_MW = extLaw.get_Rv_A(Rv, f_bump)
+            temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv, f_bump=f_bump)
+            # adding the dust parameters to the models
+            cols['Av'][N0 * count: N0 * (count + 1)] = Av
+            cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
+            cols['f_bump'][N0 * count:N0 * (count + 1)] = f_bump
+            cols['Rv_MW'][N0 * count: N0 * (count + 1)] = Rv_MW
+        else:
+            Av, Rv = pt
+            temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv)
+            # adding the dust parameters to the models
+            cols['Av'][N0 * count: N0 * (count + 1)] = Av
+            cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
 
-            # assign the extinguished SEDs to the output object
-            _seds[N0 * count: N0 * (count + 1)] = temp_results.seds[:]
+        # assign the extinguished SEDs to the output object
+        _seds[N0 * count: N0 * (count + 1)] = temp_results.seds[:]
 
-            # copy the rest of the parameters
-            for key in keys:
-                cols[key][N0 * count: N0 * (count + 1)] = g0.grid[key]
+        # copy the rest of the parameters
+        for key in keys:
+            cols[key][N0 * count: N0 * (count + 1)] = g0.grid[key]
 
     #Adding Density
-    tempgrid = np.asarray([g0['logA'],g0['M_ini'],g0['M_act'],g0['Av'],g0['Rv'],g0['f_bump'],g0['Z']]).T
+    tempgrid = np.asarray([g0['logA'], g0['M_ini'], g0['M_act'], g0['Av'], g0['Rv'], g0['f_bump'], g0['Z']]).T
     tr = KDTreeDensityEstimator(tempgrid)
     cols['Density'] = tr(tempgrid)
     _lamb = temp_results.lamb[:]
-    
-    
+
     # free the memory of temp_results
     del temp_results
 
