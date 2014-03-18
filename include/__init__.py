@@ -2,7 +2,7 @@
 import numpy
 
 try:
-    from .interp import *
+    from .interp import __interp__ as __cinterp__
 
     def __interp__(T0, g0, T, g, dT_max=0.1, eps=1e-6):
         """ interp.pyx
