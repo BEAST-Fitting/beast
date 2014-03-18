@@ -7,6 +7,7 @@ Testing how Stellib classes react to merging through CompositeStellib.
 
 # BEAST imports
 from beast.core import stellib
+from beast.core import extinction
 from beast.external.ezpipe import Pipeline
 from beast.external.ezpipe.helpers import task_decorator
 
@@ -31,6 +32,11 @@ distanceModulus = 24.3
 
 logt = [6.0, 10.13, 0.1]
 z = 0.019
+# set the extinction law and parameters sampling (min, max, step)
+extLaw = extinction.Cardelli()
+avs = [0., 1., 1.]
+rvs = [3.1, 3.1, 0.1]
+fbumps = None  # cardelli = fixed bump (no variations)
 
 # Make a composite library
 osl = stellib.Tlusty() + stellib.Kurucz()
@@ -56,7 +62,7 @@ TODO: make a function that takes user pars and return the pipeline instance
 # calling sequences
 iso_kwargs = dict(logtmin=logt[0], logtmax=logt[1], dlogt=logt[2], z=z)
 spec_kwargs = dict(osl=osl)
-seds_kwargs = dict()
+seds_kwargs = dict(extLaw=extLaw, av=avs, rv=rvs, fbump=fbumps)
 
 
 @task_decorator()
@@ -72,7 +78,7 @@ def t_project_dir(project, *args, **kwargs):
 
 # actual pipeline making models
 tasks_models = (t_project_dir, t_isochrones(**iso_kwargs),
-                t_spectra(**spec_kwargs), t_seds(filters, **seds_kwargs) )
+                t_spectra(**spec_kwargs), t_seds(filters) )
 
 models = Pipeline('make_models', tasks_models)
 
