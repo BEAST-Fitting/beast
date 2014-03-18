@@ -554,7 +554,6 @@ class Stellib(object):
         # =====================
         # Do the actual interpolation, avoiding exptrapolations
         for mk, (rT, rg, rZ) in Pbar(ndata, desc='spectral grid').iterover(enumerate(zip(pts['logT'], pts['logg'], pts['Z']))):
-            Pbar.update(mk)
             if bound_cond[mk]:
                 s = np.array( self.interp(rT, rg, rZ, 0.) ).T
                 specs[mk, :] = self.genSpectrum(s) * weights[mk]
