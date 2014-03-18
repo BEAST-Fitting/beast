@@ -155,7 +155,7 @@ def make_spectra(outname, oiso, osl=None):
     return outname
 
 
-def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2], fbump=None, extLaw=None):
+def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2], fbump=None, extLaw=None, **kwargs):
     """make_seds -- Create SED model grid integrated into filters and
     extinguished using the rest of the parameters
 
