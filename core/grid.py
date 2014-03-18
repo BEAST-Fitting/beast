@@ -163,7 +163,10 @@ class ModelGrid(object):
 
     def __getitem__(self, name):
         if hasattr(self.grid, 'read'):
-            return self.grid.read(field=name)
+            try:
+                return self.grid.read(field=name)
+            except TypeError:
+                return self.grid[name]
         else:
             return self.grid[name]
 
