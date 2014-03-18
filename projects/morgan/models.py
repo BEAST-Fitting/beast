@@ -39,7 +39,7 @@ from beast.external.eztables import Table
 __all__ = [ 't_isochrones',  't_spectra', 't_seds' ]
 
 
-def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=0.019):
+def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=0.019, **kwargs):
     """ Generate a proper table directly from the PADOVA website
 
     keywords
@@ -117,7 +117,7 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=0.019):
     return outname
 
 
-def make_spectra(outname, oiso, osl=None):
+def make_spectra(outname, oiso, osl=None, **kwargs):
     """
      a spectral grid will be generated using the stellar parameters by
      interpolation of the isochrones and the generation of spectra into the
