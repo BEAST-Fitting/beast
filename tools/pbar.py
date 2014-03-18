@@ -97,7 +97,7 @@ class Pbar(object):
     def _buffer_width(self):
         """ returns the width of the buffer when available """
         try:
-            self.handle_resize(None,None)
+            self.handle_resize(None, None)
             signal.signal(signal.SIGWINCH, self.handle_resize)
             self._auto_width = True
         except:
@@ -241,7 +241,7 @@ class Pbar(object):
             try:
                 total = len(iterable)
             except TypeError:
-                total = None
+                total = self._maxval
 
         prefix = '{0:s}:'.format(self.desc) if self.desc else ''
 
