@@ -329,7 +329,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
             cols[key][N0 * count: N0 * (count + 1)] = g0.grid[key]
 
     #Adding Density
-    tempgrid = np.asarray([g0['logA'], g0['M_ini'], g0['M_act'], g0['Av'], g0['Rv'], g0['f_bump'], g0['Z']]).T
+    tempgrid = np.array([ cols[k] for k in 'logA M_ini M_act Av Rv f_bump Z'.split() if k in cols ]).T
     tr = KDTreeDensityEstimator(tempgrid)
     cols['Density'] = tr(tempgrid)
     _lamb = temp_results.lamb[:]
