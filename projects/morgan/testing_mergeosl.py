@@ -77,8 +77,10 @@ def t_project_dir(project, *args, **kwargs):
 
 
 # actual pipeline making models
-tasks_models = (t_project_dir, t_isochrones(**iso_kwargs),
-                t_spectra(**spec_kwargs), t_seds(filters) )
+tasks_models = (t_project_dir,
+                t_isochrones(**iso_kwargs),
+                t_spectra(**spec_kwargs),
+                t_seds(filters, **seds_kwargs) )
 
 models = Pipeline('make_models', tasks_models)
 

@@ -196,6 +196,7 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2], fbum
 
     avs = np.arange(av[0], av[1] + 0.5 * av[2], av[2])
     rvs = np.arange(rv[0], rv[1] + 0.5 * rv[2], rv[2])
+
     if fbump is not None:
         fbumps = np.arange(fbump[0], fbump[1] + 0.5 * fbump[2], fbump[2])
         g = creategrid.make_extinguished_grid(specgrid, filters, extLaw, avs, rvs, fbumps)
