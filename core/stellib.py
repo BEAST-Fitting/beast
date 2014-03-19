@@ -966,7 +966,7 @@ class CompositeStellib(Stellib):
         g: SpectralGrid
             Spectral grid (in memory) containing the requested list of stars and associated spectra
         """
-        osl_index = self.which_osl(zip(pts['logg'], pts['logT']))
+        osl_index = self.which_osl(zip(pts['logT'], pts['logg']))
 
         seds = []
         grid = []
@@ -978,15 +978,16 @@ class CompositeStellib(Stellib):
             ind = (osl_index == (oslk + 1))
             #print sum(ind)
             if np.sum(ind) > 0:
-                _pts['logg'] = pts['logg'][ind]
-                _pts['logT'] = pts['logT'][ind]
-                _pts['logL'] = pts['logL'][ind]
-                _pts['Z'] = pts['Z'][ind]
-                _pts['logA'] = pts['logA'][ind]
-                _pts['M_ini'] = pts['M_ini'][ind]
-                _pts['M_act'] = pts['M_act'][ind]
-                _pts['logMdot'] = pts['logMdot'][ind]
-                _pts['mbol'] = pts['mbol'][ind]
+                if hasattr(pts, 'keys'):
+                    keys = pts.keys()
+                elif hasattr(pts, 'dtype'):
+                    keys = pts.dtypes.names
+                else:
+                    raise AttributeError('Input pts is expected to have named fields')
+                for k in keys:
+                    _pts[k] = pts[k][ind]
+                #keep track of the spectra library that is selected
+                _pts['osl'] = osl_index[ind]
                 _pts = Table(_pts)
             #_pts = [ (logg, logT, logL, Z) for (logg, logT, logL, Z, ok) in zip(pts['logg'], pts['logT'], pts['logL'], pts['Z'], osl_index) if (ok - 1 == oslk) ]
                 gk = osl.gen_spectral_grid_from_given_points(_pts, bounds=dict(dlogT=0.1, dlogg=0.3))
