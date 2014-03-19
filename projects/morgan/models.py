@@ -117,7 +117,7 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=0.019, **k
     return outname
 
 
-def make_spectra(outname, oiso, osl=None, **kwargs):
+def make_spectra(outname, oiso, osl=None, bounds={}, **kwargs):
     """
      a spectral grid will be generated using the stellar parameters by
      interpolation of the isochrones and the generation of spectra into the
@@ -144,7 +144,10 @@ def make_spectra(outname, oiso, osl=None, **kwargs):
     osl = osl or stellib.Kurucz()
 
     #filter extrapolations of the grid with given sensitivities in logg and logT
-    bounds = dict(dlogT=0.1, dlogg=0.3)
+    if 'dlogT' not in bounds:
+        bounds['dlogT'] = 0.1
+    if 'dlogg' not in bounds:
+        bounds['dlogg'] = 0.3
 
     #make the spectral grid
     g = creategrid.gen_spectral_grid_from_stellib_given_points(osl, oiso.data, bounds=bounds)
