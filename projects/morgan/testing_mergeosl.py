@@ -40,6 +40,8 @@ fbumps = None  # cardelli = fixed bump (no variations)
 
 # Make a composite library
 osl = stellib.Tlusty() + stellib.Kurucz()
+#extrapolation flexibility
+bounds = dict(dlogT=0.1, dlogg=0.3)
 
 
 """
@@ -61,7 +63,7 @@ TODO: make a function that takes user pars and return the pipeline instance
 
 # calling sequences
 iso_kwargs = dict(logtmin=logt[0], logtmax=logt[1], dlogt=logt[2], z=z)
-spec_kwargs = dict(osl=osl)
+spec_kwargs = dict(osl=osl, bounds=bounds)
 seds_kwargs = dict(extLaw=extLaw, av=avs, rv=rvs, fbump=fbumps)
 
 
