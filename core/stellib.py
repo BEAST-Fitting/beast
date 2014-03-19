@@ -510,7 +510,7 @@ class Stellib(object):
             logL  log of luminosity in Lsun units
             Z     metallicity
 
-        bounds:  dict
+        bounds: dict
             sensitivity to extrapolation (see grid.get_stellib_boundaries)
             default: {dlogT:0.1, dlogg:0.3}
 
@@ -768,7 +768,7 @@ class CompositeStellib(Stellib):
         self._bound = (Path.make_compound_path(*b), dlogT, dlogg)
         return self._bound[0]
 
-    def interp(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6):
+    def interp(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6, bounds={}):
         """ Interpolation of the T,g grid
 
         Interpolate on the grid and returns star indices and
@@ -799,20 +799,28 @@ class CompositeStellib(Stellib):
             temperature sensitivity under which points are considered to
             have the same temperature
 
+        bounds: dict
+        sensitivity to extrapolation (see `:func: Stellib.get_boundaries`)
+            default: {dlogT:0.1, dlogg:0.3}
+
         returns
         -------
         (osl, r): tuple
             osl: is the library index starting from 1. 0 means no coverage.
             r: is the result from interp call on the corresponding library. a 3 to 12 star indexes and associated weights
         """
-        osl_index = self.which_osl(np.atleast_2d([g0, T0]))[0]
+        dlogT = bounds.get('dlogT', 0.1)
+        dlogg = bounds.get('dlogg', 0.3)
+
+        osl_index = self.which_osl(np.atleast_2d([g0, T0]), dlogT=dlogT, dlogg=dlogg)[0]
 
         if osl_index > 0:
             return (osl_index, self._olist[osl_index - 1].interp(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6))
         else:
             return [(0, None)]
 
-    def interpMany(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6, weights=None, pool=None, nthreads=__NTHREADS__):
+    def interpMany(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6, weights=None,
+                   bounds={}, pool=None, nthreads=__NTHREADS__):
         """ run interp on a list of inputs and returns reduced results
 
         Interpolation of the T,g grid at Z0 metallicity
@@ -848,6 +856,10 @@ class CompositeStellib(Stellib):
         weights: ndarray(float)
             luminosity weigths to apply after interpolation
 
+        bounds: dict
+        sensitivity to extrapolation (see `:func: Stellib.get_boundaries`)
+            default: {dlogT:0.1, dlogg:0.3}
+
         pool: Pool-like object
             specify a multiprocessing pool for parallel processing
 
@@ -860,7 +872,10 @@ class CompositeStellib(Stellib):
             osl: is the library index starting from 1. 0 means no coverage.
             r: is the result from interp call on the corresponding library. A 3 to 12 star indexes and associated weights
         """
-        osl_index = self.which_osl(zip(g0, T0))
+        dlogT = bounds.get('dlogT', 0.1)
+        dlogg = bounds.get('dlogg', 0.3)
+
+        osl_index = self.which_osl(zip(g0, T0), dlogT=dlogT, dlogg=dlogg)
 
         g = []
         for oslk, osl in enumerate(self._olist):
@@ -957,8 +972,8 @@ class CompositeStellib(Stellib):
             logL  log of luminosity in Lsun units
             Z     metallicity
 
-        bounds:  dict
-        sensitivity to extrapolation (see `:func: Stellib.get_boundaries`)
+        bounds: dict
+            sensitivity to extrapolation (see `:func: Stellib.get_boundaries`)
             default: {dlogT:0.1, dlogg:0.3}
 
         Returns
@@ -966,7 +981,10 @@ class CompositeStellib(Stellib):
         g: SpectralGrid
             Spectral grid (in memory) containing the requested list of stars and associated spectra
         """
-        osl_index = self.which_osl(zip(pts['logT'], pts['logg']))
+        dlogT = bounds.get('dlogT', 0.1)
+        dlogg = bounds.get('dlogg', 0.3)
+
+        osl_index = self.which_osl(zip(pts['logT'], pts['logg']), dlogT=dlogT, dlogg=dlogg)
 
         seds = []
         grid = []
