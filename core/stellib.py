@@ -699,15 +699,22 @@ class CompositeStellib(Stellib):
         xy = np.asarray(xypoints)
 
         # check that all points are in the full boundary area
-        res_temp = np.zeros((len(xy),len(self._olist)))
-        for ek,ok in enumerate(self._olist):
-            res_temp[:,ek] = ok.points_inside(xy,dlogT=dlogT, dlogg=dlogg).astype(int)
+        # MF: testing why points_inside does not agree on all computers...
+        # as we do not keep individual results, no need to store then all
+        # first, collapse directly
 
-        ind,=np.where(np.sum(res_temp,axis=1)>=1)
-        res = np.zeros(len(xy))
+        #res_temp = np.zeros((len(xy),len(self._olist)))
+        #for ek,ok in enumerate(self._olist):
+        #    res_temp[:, ek] = ok.points_inside(xy, dlogT=dlogT, dlogg=dlogg).astype(int)
+        res_temp = np.zeros(len(xy), dtype=int)
+        for ek, ok in enumerate(self._olist):
+            res_temp += ok.points_inside(xy, dlogT=dlogT, dlogg=dlogg).astype(int)
+
+        ind = res_temp > 0
+        res = np.zeros(len(xy), dtype=int)
         res[ind] = 1
-        res = res -1
-        
+        res = res - 1
+
         #res = self.points_inside(xy, dlogT=dlogT, dlogg=dlogg).astype(int) - 1
         # if res == -1: invalid point, res == 0: proceed
 
@@ -992,9 +999,9 @@ class CompositeStellib(Stellib):
         """
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
-        
+
         osl_index = self.which_osl(zip(pts['logT'], pts['logg']), dlogT=dlogT, dlogg=dlogg)
-        
+
         seds = []
         grid = []
         l0 = self.wavelength
@@ -1029,7 +1036,7 @@ class CompositeStellib(Stellib):
         _grid = recfunctions.stack_arrays( grid, defaults=None, usemask=False, asrecarray=True)
 
         g = SpectralGrid(l0, seds=np.vstack(seds), grid=Table(_grid), header=header, backend='memory')
-        
+
         return g
 
 
