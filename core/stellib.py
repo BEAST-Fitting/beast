@@ -699,7 +699,16 @@ class CompositeStellib(Stellib):
         xy = np.asarray(xypoints)
 
         # check that all points are in the full boundary area
-        res = self.points_inside(xy, dlogT=dlogT, dlogg=dlogg).astype(int) - 1
+        res_temp = np.zeros((len(xy),len(self._olist)))
+        for ek,ok in enumerate(self._olist):
+            res_temp[:,ek] = ok.points_inside(xy,dlogT=dlogT, dlogg=dlogg).astype(int)
+
+        ind,=np.where(np.sum(res_temp,axis=1)>=1)
+        res = np.zeros(len(xy))
+        res[ind] = 1
+        res = res -1
+        
+        #res = self.points_inside(xy, dlogT=dlogT, dlogg=dlogg).astype(int) - 1
         # if res == -1: invalid point, res == 0: proceed
 
         if max(res) < 0:
@@ -812,7 +821,7 @@ class CompositeStellib(Stellib):
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
 
-        osl_index = self.which_osl(np.atleast_2d([g0, T0]), dlogT=dlogT, dlogg=dlogg)[0]
+        osl_index = self.which_osl(np.atleast_2d([T0, g0]), dlogT=dlogT, dlogg=dlogg)[0]
 
         if osl_index > 0:
             return (osl_index, self._olist[osl_index - 1].interp(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6))
@@ -875,7 +884,7 @@ class CompositeStellib(Stellib):
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
 
-        osl_index = self.which_osl(zip(g0, T0), dlogT=dlogT, dlogg=dlogg)
+        osl_index = self.which_osl(zip(T0, g0), dlogT=dlogT, dlogg=dlogg)
 
         g = []
         for oslk, osl in enumerate(self._olist):
@@ -983,9 +992,9 @@ class CompositeStellib(Stellib):
         """
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
-
+        
         osl_index = self.which_osl(zip(pts['logT'], pts['logg']), dlogT=dlogT, dlogg=dlogg)
-
+        
         seds = []
         grid = []
         l0 = self.wavelength
@@ -1020,7 +1029,7 @@ class CompositeStellib(Stellib):
         _grid = recfunctions.stack_arrays( grid, defaults=None, usemask=False, asrecarray=True)
 
         g = SpectralGrid(l0, seds=np.vstack(seds), grid=Table(_grid), header=header, backend='memory')
-
+        
         return g
 
 
