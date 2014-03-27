@@ -329,13 +329,14 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
             cols[key][N0 * count: N0 * (count + 1)] = g0.grid[key]
 
     #Adding Density
-    tempgrid = np.array([ cols[k] for k in 'logA M_ini M_act Av Rv f_bump Z'.split() if k in cols ]).T
-    tr = KDTreeDensityEstimator(tempgrid)
-    cols['Density'] = tr(tempgrid)
+    #tempgrid = np.array([ cols[k] for k in 'logA M_ini M_act Av Rv f_bump Z'.split() if k in cols ]).T
+    #tr = KDTreeDensityEstimator(tempgrid)
+    #cols['Density'] = tr(tempgrid)
     _lamb = temp_results.lamb[:]
 
     # free the memory of temp_results
     del temp_results
+    #del tempgrid
 
     # Ship
     g = SpectralGrid(_lamb, seds=_seds, grid=Table(cols), backend='memory')

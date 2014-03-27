@@ -38,8 +38,7 @@ from beast.external.eztables import Table
 
 __all__ = [ 't_isochrones',  't_spectra', 't_seds' ]
 
-
-def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=0.019, **kwargs):
+def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):#logmhmin=-2.2, logmhmax=0.11, dlogmh = 0.1):
     """ Generate a proper table directly from the PADOVA website
 
     keywords
@@ -57,38 +56,61 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=0.019, **k
     dlogt: float
         log-age step to request
 
-    z: float
-        unique metalicity value
+    z: list
+        list of metalicity values
 
     returns
     -------
     outname: str
         file into which save the table of isochrones (any format eztables can handle)
     """
-    # grab a set of solar isochrones
-    iso_table = ezpadova.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
-    iso_table.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
+    # Now account for several metallicities
+    
+    #Zsun = 0.019        # define the solar metallicity
 
-    #clean painful naming
-    d = odict()
-    drop = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode'] + "U UX B BX V R I J H K L L' M".split()
-    for k in iso_table.keys():
-        if not k in drop:
-            if k == 'log(age/yr)':
-                d['logA'] = iso_table[k]
-            elif k == 'logL/Lo':
-                d['logL'] = iso_table[k]
-            elif k == 'logTe':
-                d['logT'] = iso_table[k]
-            elif k == 'logG':
-                d['logg'] = iso_table[k]
-            else:
-                d[k] = iso_table[k]
-    #add metal
-    d['Z'] = np.ones(iso_table.nrows) * z
+    # Build the metallicity list in the CMD unit - Only for a future use
+    #z = 10 ** (np.arange(max(logmhmin,-2.27),min(logmhmax,0.19),dlogmh)) * Zsun
+    
+    D = odict()         # dictionnary that will contain the merged isochrones
+    d = odict()         # dictionnary that will contain the single metallicity isochrones
+    
+    for i,Z in enumerate(z):
+        # grab a set of single Z isochrones
+        iso_table = ezpadova.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z)
+        iso_table.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
+        #clean painful naming
+        key = str(i)
+        d[key] = odict()
+        drop = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode'] + "U UX B BX V R I J H K L L' M".split()
+        for k in iso_table.keys():
+            if not k in drop:
+                if k == 'log(age/yr)':
+                    d[key]['logA'] = iso_table[k]
+                elif k == 'logL/Lo':
+                    d[key]['logL'] = iso_table[k]
+                elif k == 'logTe':
+                    d[key]['logT'] = iso_table[k]
+                elif k == 'logG':
+                    d[key]['logg'] = iso_table[k]
+                else:
+                    d[key][k] = iso_table[k]
+        #add metal
+        d[key]['Z'] = np.ones(iso_table.nrows) * Z
+
+        #removing problematic stars
+        bad,= np.where((d[key]['logL']>3) & (d[key]['M_act']<1.) & (np.log10(d[key]['M_ini']/d[key]['M_act'])>0.1))
+        #bad,= np.where(iso_table['M_hec'] != 0)
+        for k in d[key].keys():
+            d[key][k]=np.delete(d[key][k],bad)
+
+    D = d['0']
+    for i in range(len(z))[1:]: 
+        for k in d[0].keys():
+            D[k] = np.concatenate((D[k],d[str(i)][k]))
+            
     #make a Table
-    t = Table(d)
+    t = Table(D)
     for k, v, in iso_table.header.iteritems():
         t.header[k] = v
 
@@ -115,7 +137,6 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=0.019, **k
 
     t.write(outname)
     return outname
-
 
 def make_spectra(outname, oiso, osl=None, bounds={}, **kwargs):
     """
