@@ -90,8 +90,8 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
                 else:
                     raise AttributeError('getObs is expected to return 3 or 4 values, got {0}'.format(len(obk)))
                 # include grid sampling prior
-                lnp = lnp - np.log(g0['Density'] / g0['Density'].sum())
-                print len(lnp)
+                #lnp = lnp - np.log(g0['Density'] / g0['Density'].sum())
+                #print len(lnp)
                 #Need ragged arrays rather than uniform table
                 star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
                 indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
