@@ -13,6 +13,7 @@ Requires dependencies:
     memtrace        This decorator uses <memory_profiler> to trace line by line the memory
 
 """
+from __future__ import print_function
 import functools
 from functools import wraps
 import time
@@ -57,12 +58,12 @@ class timeit(object):
         self.verbose = verbose
 
     def __enter__(self):
-        print "Timing %s" % (self.text)
+        print("Timing %s" % (self.text))
         self.start = time.time()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop = time.time()
-        print self.time
+        print(self.time)
 
     def __pretty_print(self, t):
         units = [u"s", u"ms", u'us', "ns"]
@@ -85,7 +86,7 @@ class timeit(object):
         r = self.f(*args, **kwargs)
         self.stop = time.time()
         if self.verbose:
-            print self.time
+            print(self.time)
         return r
 
 try:
@@ -123,7 +124,7 @@ try:
         a = 2
         b = [1] * 5
         c = args
-        print args
+        print(args)
         return args
 except ImportError:
     pass
@@ -296,16 +297,16 @@ def example():
     test_memtrace.prof
 
     test_locals()
-    print test_locals._locals
+    print(test_locals._locals)
 
 
 @run_async
 def test_async():
     from time import sleep
-    print 'starting print_somedata'
+    print('starting print_somedata')
     sleep(2)
-    print 'print_somedata: 2 sec passed'
+    print('print_somedata: 2 sec passed')
     sleep(2)
-    print 'print_somedata: 2 sec passed'
+    print('print_somedata: 2 sec passed')
     sleep(2)
-    print 'finished print_somedata'
+    print('finished print_somedata')
