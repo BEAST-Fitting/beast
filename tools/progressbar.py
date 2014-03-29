@@ -64,6 +64,11 @@ except ImportError:
     pass
 import signal
 
+if sys.version_info.major < 3:
+    basestring = str, unicode
+else:
+    basestring = str, bytes
+
 
 class ProgressBarWidget(object):
     """This is an element of ProgressBar formatting.
@@ -172,14 +177,14 @@ class Bar(ProgressBarWidgetHFill):
         self.right = right
 
     def _format_marker(self, pbar):
-        if isinstance(self.marker, (str, unicode)):
+        if isinstance(self.marker, basestring):
             return self.marker
         else:
             return self.marker.update(pbar)
 
     def update(self, pbar, width):
         percent = pbar.percentage()
-        cwidth = width - len(self.left) - len(self.right)
+        cwidth = int(width - len(self.left) - len(self.right))
         marked_width = int(percent * cwidth / 100)
         m = self._format_marker(pbar)
         bar = (self.left + (m * marked_width).ljust(cwidth) + self.right)
@@ -270,7 +275,7 @@ class ProgressBar(object):
                 r.append(w)
                 hfill_inds.append(i)
                 num_hfill += 1
-            elif isinstance(w, (str, unicode)):
+            elif isinstance(w, basestring):
                 r.append(w)
                 currwidth += len(w)
             else:

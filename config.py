@@ -1,3 +1,7 @@
+from __future__ import print_function
+import os
+import inspect
+
 # Set to use some C code instead of pure python to speed up the computations.
 # If False, only numpy and python code are used.
 #__WITH_C_LIBS__ = True
@@ -10,9 +14,6 @@ __USE_NUMEXPR__ = True
 __NTHREADS__ = 25
 
 #directories
-import os
-import inspect
-
 __ROOT__ = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 libsdir = __ROOT__ + '/libs/'
 
@@ -42,7 +43,7 @@ except ImportError:
 
 
 def printConfig():
-    print """ ============ pyPEGASE defaut configuration ===========
+    print(""" ============ pyPEGASE defaut configuration ===========
     * Including C-code during computations: %s
     * Parallel processing using %d threads
-    """ % (__WITH_C_LIBS__, __NTHREADS__)
+    """ % (__WITH_C_LIBS__, __NTHREADS__))
