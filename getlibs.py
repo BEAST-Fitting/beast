@@ -2,7 +2,7 @@
 from __future__ import print_function
 import sys
 import os
-if sys.version_info.major <= 3:
+if sys.version_info.major < 3:
     import urllib2 as request
 else:
     from urllib import request
