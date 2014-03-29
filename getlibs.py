@@ -1,17 +1,25 @@
-
 #!/usr/bin/env python
-# vim:fileencoding=UTF-8:ts=4:sw=4:sta:et:sts=4:ai
-
+from __future__ import print_function
+import sys
 import os
-import urllib2
-from tools import progressbar as pb
-from config import libs_server, libs, __ROOT__
+if sys.version_info.major <= 3:
+    import urllib2 as request
+else:
+    from urllib import request
 
-libsdir = __ROOT__ + '/libs/'
+from .tools import progressbar as pb
+from .config import libs_server, libs, libsdir
 
 
-class Reporter:  # {{{
-    """ Report Status during the download of files """
+class Reporter:
+    """ Report Status during the download of files
+
+    Attributes
+    ----------
+    pbar: ProgressBar
+        instance of progress bar configured to indicate the downloading
+        progression and status.
+    """
     def __init__(self, fname):
         widgets = ['Downloading %s: ' % fname,
                    pb.Percentage(), ' ',
@@ -28,10 +36,8 @@ class Reporter:  # {{{
             self.pbar.finish()
         else:
             self.pbar.update(percent)
-# }}}
 
 
-# {{{ Downloading code
 def chunk_read(response, buf, chunk_size=8192, report_hook=None):
     total_size = response.info().getheader('Content-Length').strip()
     total_size = int(total_size)
@@ -52,7 +58,8 @@ def chunk_read(response, buf, chunk_size=8192, report_hook=None):
 
 
 def urlretrieve(url, reporthook, f):
-    response = urllib2.urlopen(url)
+    """ Retrieve data from an url """
+    response = request.urlopen(url)
     return chunk_read(response, f, report_hook=reporthook)
 
 
@@ -69,7 +76,6 @@ def _dl(urltxt, dest, fname=None):
         s /= 1000
     size = fmt % (s, u)
     print('\nDownloaded %s bytes' % size)
-# }}}
 
 
 def dl_install_all_libs(server, libs):
@@ -90,7 +96,7 @@ def dl_install_all_libs(server, libs):
         _dl(url, libdir + libs[k], libs[k])
 
 if __name__ == '__main__':
-    print """
+    print("""
             Installing libraries
-          """
+          """)
     dl_install_all_libs(libs_server, libs)
