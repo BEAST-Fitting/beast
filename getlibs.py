@@ -7,8 +7,8 @@ if sys.version_info.major < 3:
 else:
     from urllib import request
 
-from .tools import progressbar as pb
-from .config import libs_server, libs, libsdir
+from tools import progressbar as pb
+from config import libs_server, libs, libsdir
 
 
 class Reporter:
@@ -39,7 +39,11 @@ class Reporter:
 
 
 def chunk_read(response, buf, chunk_size=8192, report_hook=None):
-    total_size = response.info().getheader('Content-Length').strip()
+    total_size = response.info()
+    if hasattr(total_size, 'getheader'):
+        total_size = total_size.getheader('Content-Length').strip()
+    else:
+        total_size = total_size.get('Content-Length').strip()
     total_size = int(total_size)
     bytes_so_far = 0
 
