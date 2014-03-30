@@ -29,16 +29,16 @@ from beast.core import grid
 from beast.core import creategrid
 from beast.core import stellib
 from beast.core import extinction
-from beast.core import ezpadova
-from beast.core.odict import odict
+from beast.core import isochrone
 from beast.core.isochrone import ezIsoch
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 from beast.external.ezpipe import Pipeline
-from beast.external.eztables import Table
+#from beast.external.eztables import Table
 
 __all__ = [ 't_isochrones',  't_spectra', 't_seds' ]
 
-def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):#logmhmin=-2.2, logmhmax=0.11, dlogmh = 0.1):
+
+def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):
     """ Generate a proper table directly from the PADOVA website
 
     keywords
@@ -56,7 +56,7 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):#
     dlogt: float
         log-age step to request
 
-    z: list
+    z: float or sequence
         list of metalicity values
 
     returns
@@ -64,79 +64,18 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):#
     outname: str
         file into which save the table of isochrones (any format eztables can handle)
     """
-    # Now account for several metallicities
-    
-    #Zsun = 0.019        # define the solar metallicity
+    oiso = isochrone.PadovaWeb()
+    t = oiso.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
+    t.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
-    # Build the metallicity list in the CMD unit - Only for a future use
-    #z = 10 ** (np.arange(max(logmhmin,-2.27),min(logmhmax,0.19),dlogmh)) * Zsun
-    
-    D = odict()         # dictionnary that will contain the merged isochrones
-    d = odict()         # dictionnary that will contain the single metallicity isochrones
-    
-    for i,Z in enumerate(z):
-        # grab a set of single Z isochrones
-        iso_table = ezpadova.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z)
-        iso_table.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
-
-        #clean painful naming
-        key = str(i)
-        d[key] = odict()
-        drop = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode'] + "U UX B BX V R I J H K L L' M".split()
-        for k in iso_table.keys():
-            if not k in drop:
-                if k == 'log(age/yr)':
-                    d[key]['logA'] = iso_table[k]
-                elif k == 'logL/Lo':
-                    d[key]['logL'] = iso_table[k]
-                elif k == 'logTe':
-                    d[key]['logT'] = iso_table[k]
-                elif k == 'logG':
-                    d[key]['logg'] = iso_table[k]
-                else:
-                    d[key][k] = iso_table[k]
-        #add metal
-        d[key]['Z'] = np.ones(iso_table.nrows) * Z
-
-        #removing problematic stars
-        bad,= np.where((d[key]['logL']>3) & (d[key]['M_act']<1.) & (np.log10(d[key]['M_ini']/d[key]['M_act'])>0.1))
-        #bad,= np.where(iso_table['M_hec'] != 0)
-        for k in d[key].keys():
-            d[key][k]=np.delete(d[key][k],bad)
-
-    D = d['0']
-    for i in range(len(z))[1:]: 
-        for k in d[0].keys():
-            D[k] = np.concatenate((D[k],d[str(i)][k]))
-            
-    #make a Table
-    t = Table(D)
-    for k, v, in iso_table.header.iteritems():
-        t.header[k] = v
-
-    # polish the header
-    t.setUnit('logA', 'yr')
-    t.setComment('logA', 'Age')
-    t.setUnit('logT', 'K')
-    t.setComment('logT', 'Effective temperature')
-    t.setUnit('logL', 'Lsun')
-    t.setComment('logL', 'Luminosity')
-    t.setUnit('M_ini', 'Msun')
-    t.setComment('M_ini', 'Initial Mass')
-    t.setUnit('M_act', 'Msun')
-    t.setComment('M_act', 'Current Mass, M(t)')
-    t.setUnit('logMdot', 'Msun/yr')
-    t.setComment('logMdot', 'Mass loss')
-    t.setUnit('logg', 'cm/s**2')
-    t.setComment('logg', 'Surface gravity')
-    t.setComment('Z', 'Metallicity')
-
-    #set proper aliases
-    t.set_alias('logTe', 'logT')
-    t.set_alias('logG', 'logg')
+    # this condition does not make sense to me
+    # when I use it I loose all young ages
+    cond = '(logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1)'
+    t = t.selectWhere('*', cond)
 
     t.write(outname)
     return outname
+
 
 def make_spectra(outname, oiso, osl=None, bounds={}, **kwargs):
     """
