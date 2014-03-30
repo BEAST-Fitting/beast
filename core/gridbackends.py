@@ -36,6 +36,7 @@ TODO: add readCoordinates into all backends
 
 TODO: check read(field=) exists into all backends.grid, give direct access
 """
+from __future__ import print_function
 import sys
 import numpy
 import pyfits
@@ -106,8 +107,8 @@ class GridBackend(object):
     def _from_HDFBackend(self, b):
         """_from_HDFBackend -- convert from HDFBackend
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         b: GridBackend or sub class
             backend to convert from
@@ -122,8 +123,8 @@ class GridBackend(object):
     def _from_GridBackend(self, b):
         """_from_GridBackend -- convert from generic backend
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         b: GridBackend or sub class
             backend to convert from
@@ -155,8 +156,8 @@ class MemoryBackend(GridBackend):
     def __init__(self, lamb, seds=None, grid=None, header={}, aliases={}):
         """__init__
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         lamb: ndarray or GridBackend subclass
             if ndarray: wavelength of the SEDs (requires seds and grid arguments)
@@ -217,8 +218,8 @@ class MemoryBackend(GridBackend):
     def _from_File(self, fname):
         """_from_File -- load the content of a FITS or HDF file
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         fname: str
             filename (incl. path) to read from
@@ -242,8 +243,8 @@ class MemoryBackend(GridBackend):
     def writeFITS(self, fname, *args, **kwargs):
         """write -- export to fits file
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         fname: str
             filename (incl. path) to export to
@@ -257,20 +258,30 @@ class MemoryBackend(GridBackend):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
             self.grid.write(fname, append=True)
 
-    def writeHDF(self, fname, *args, **kwargs):
+    def writeHDF(self, fname, append=False, *args, **kwargs):
         """write -- export to HDF file
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         fname: str
             filename (incl. path) to export to
+
+        append: bool, optional (default False)
+            if set, it will append data to each Array or Table
         """
         if ( (self.lamb is not None) & (self.seds is not None) & (self.grid is not None) ):
             assert(isinstance(self.grid, Table)), 'Only eztables.Table are supported so far'
             with HDFStore(fname, mode='a') as hd:
-                hd['/seds'] = self.seds
-                hd['/lamb'] = self.lamb
+                if not append:
+                    hd['/seds'] = self.seds[:]
+                    hd['/lamb'] = self.lamb[:]
+                else:
+                    try:
+                        node = hd.getNode('/seds')
+                        node.append(self.seds[:])
+                    except:
+                        hd['/seds'] = self.seds[:]
             if getattr(self, 'filters', None) is not None:
                 if ('FILTERS' not in self.grid.header.keys()):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
@@ -298,8 +309,8 @@ class CacheBackend(GridBackend):
     def __init__(self, fname, *args, **kwargs):
         """__init__
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         fname: str
             FITS or HD5 file containing the grid
@@ -313,8 +324,8 @@ class CacheBackend(GridBackend):
     def clear(self, attrname=None):
         """clear current cache
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         attrname: str in [lamb, filters, grid, header, lamb, seds]
             if provided clear only one attribute
@@ -443,8 +454,8 @@ class CacheBackend(GridBackend):
     def writeFITS(self, fname, *args, **kwargs):
         """write -- export to fits file
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         fname: str
             filename (incl. path) to export to
@@ -459,20 +470,30 @@ class CacheBackend(GridBackend):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
             self.grid.write(fname, append=True)
 
-    def writeHDF(self, fname, *args, **kwargs):
+    def writeHDF(self, fname, append=False, *args, **kwargs):
         """write -- export to HDF file
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         fname: str
             filename (incl. path) to export to
+
+        append: bool, optional (default False)
+            if set, it will append data to each Array or Table
         """
         if ( (self.lamb is not None) & (self.seds is not None) & (self.grid is not None) ):
             assert(isinstance(self.grid, Table)), 'Only eztables.Table are supported so far'
             with HDFStore(fname, mode='a') as hd:
-                hd['/seds'] = self.seds
-                hd['/lamb'] = self.lamb
+                if not append:
+                    hd['/seds'] = self.seds[:]
+                    hd['/lamb'] = self.lamb[:]
+                else:
+                    try:
+                        node = hd.getNode('/seds')
+                        node.append(self.seds[:])
+                    except:
+                        hd['/seds'] = self.seds[:]
             if getattr(self, 'filters', None) is not None:
                 if ('FILTERS' not in self.grid.header.keys()):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
@@ -550,20 +571,30 @@ class HDFBackend(GridBackend):
         else:
             return []
 
-    def writeHDF(self, fname, *args, **kwargs):
+    def writeHDF(self, fname, append=False, *args, **kwargs):
         """write -- export to HDF file
 
-        keywords
-        --------
+        Parameters
+        ---------
 
         fname: str
             filename (incl. path) to export to
+
+        append: bool, optional (default False)
+            if set, it will append data to each Array or Table
         """
         if ( (self.lamb is not None) & (self.seds is not None) & (self.grid is not None) ):
             with HDFStore(fname, mode='a') as hd:
-                hd['/seds'] = self.seds[:]
-                hd['/lamb'] = self.lamb[:]
-                hd.write(self.grid[:], group='/', tablename='grid', header=self.header)
+                if not append:
+                    hd['/seds'] = self.seds[:]
+                    hd['/lamb'] = self.lamb[:]
+                else:
+                    try:
+                        node = hd.getNode('/seds')
+                        node.append(self.seds[:])
+                    except:
+                        hd['/seds'] = self.seds[:]
+                hd.write(self.grid[:], group='/', tablename='grid', header=self.header, append=append)
 
     def copy(self):
         g = HDFBackend(self.fname)
