@@ -22,6 +22,7 @@ Could work either as a (key, value) storage or as a classic tables.file.File obj
             hd.removeNode('/subdir1', recursive=True)
 
 """
+from __future__ import print_function
 import tables
 import numpy as np
 
@@ -54,8 +55,8 @@ def __descr_from_dtype__(dtype_, shape_={}):
     """
     Get a description instance and byteorder from a (nested) NumPy dtype.
 
-    keywords
-    --------
+    Parameters
+    ----------
     dtype_:  dtype
         dtype of a ndarray
 
@@ -102,8 +103,8 @@ def __descr_from_dtype__(dtype_, shape_={}):
 def __createTable__(hd5, tab, group, tablename):
     """__createTable__ -- make a new table in the hdf file
 
-    keywords
-    --------
+    Parameters
+    ----------
 
     hd5: tables.file.File
         opened hdf file
@@ -138,8 +139,8 @@ def __createTable__(hd5, tab, group, tablename):
 def convert_dict_to_structured_ndarray(data):
     """convert_dict_to_structured_ndarray
 
-    keywords
-    --------
+    Parameters
+    ----------
 
     data: dictionary like object
         data structure which provides iteritems and itervalues
@@ -171,8 +172,8 @@ def convert_dict_to_structured_ndarray(data):
 def __write__(data, hd5, group='/', tablename=None, append=False, silent=False, header={}, **kwargs):
     """__write__
 
-    keywords
-    --------
+    Parameters
+    ----------
     data: dict like object
         structure that contains individual columns
 
@@ -206,11 +207,13 @@ def __write__(data, hd5, group='/', tablename=None, append=False, silent=False, 
         tab = data
 
     if tab.dtype.names is None:
-        if append:
-            print "Warning: Append has not effect when creating arrays"
-        hd5.createArray(group, tablename, tab, createparents=True)
-        hd5.flush()
-        t = hd5.getNode(group + '/' + tablename)
+        if not append:
+            hd5.createEArray(group, tablename, obj=tab, createparents=True)
+            hd5.flush()
+            t = hd5.getNode(group + '/' + tablename)
+        else:
+            t = hd5.getNode(group + '/' + tablename)
+            t.append(tab)
     else:
         #generate the empty table
         if not append:
@@ -220,13 +223,13 @@ def __write__(data, hd5, group='/', tablename=None, append=False, silent=False, 
                 t = hd5.getNode(group + '/' + tablename)
             except tables.NoSuchNodeError:
                 if not silent:
-                    print "Warning: Table does not exists.  New table will be created"
+                    print("Warning: Table does not exists.  New table will be created")
                 t = __createTable__(hd5, tab, group, tablename)
                 try:
                     t = __createTable__(hd5, tab, group, tablename)
                 except:
                     if not silent:
-                        print "Warning: Table creation exception. Table may already exist."
+                        print("Warning: Table creation exception. Table may already exist.")
                     t = hd5.getNode(group + '/' + tablename)
 
         t.append( tab.astype(t.description._v_dtype) )
@@ -252,8 +255,8 @@ class HDFStore(object):
     def __init__(self, lnpfile, mode='r', **kwargs):
         """__init__
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         lnpfile: str or tables.file.File
             storage to use
@@ -276,8 +279,8 @@ class HDFStore(object):
         if the mode changes, and the storage already opened, it will close the
         storage and reopen it in the new mode
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         val: str (optional)
             The mode to open the file.  It can be one of the following:
@@ -310,8 +313,8 @@ class HDFStore(object):
     def keep_open(self, val=None):
         """keep_open - set a flag to keep the storage file open for multiple operations
 
-        keywords
-        --------
+        Parameters
+        ----------
 
         val: bool (optional)
             if set, set the flags to apply
@@ -347,8 +350,8 @@ class HDFStore(object):
         """close_source
         close the file only if the object opened any file
 
-        keywords
-        --------
+        Parameters
+        ----------
         force: bool (default: False)
             if set, bypass keep_open status
         """
@@ -389,8 +392,8 @@ class HDFStore(object):
     def write(self, data, group='/', tablename=None, append=False, silent=False, header={}, **kwargs):
         """write -- write a data structure into the source file
 
-        keywords
-        --------
+        Parameters
+        ----------
         data: dict like object
             structure that contains individual columns
 
@@ -503,8 +506,8 @@ class HDFStore(object):
             list we build the context of evaluation by adding missing values
             from the node.
 
-            keywords
-            --------
+            Parameters
+            ----------
             nodename: str or ables.table.Table
                 the Table node to get data from (need named columns)
 
@@ -565,16 +568,18 @@ def unittest():
         d = {}
         d['a'] = np.arange(10, dtype=float)
         d['b'] = np.arange(10, dtype='int')
-        c = np.random.normal(0, 1, (10, 10))
-        d['c'] = c
+        c1 = np.random.normal(0, 1, (10, 10))
+        c2 = np.random.normal(0, 1, (10, 10))
+        d['c'] = c1
 
         #put values into the store
         hd['/subdir/table'] = d
-        hd['/subdir1/array'] = c
+        hd['/subdir1/array'] = c1
+        hd.write(c2, '/subdir1', 'array', append=True)
 
         #check values
-        print hd.keys()
-        print hd['subdir/table']
-        print hd['subdir1/array']
+        print(hd.keys())
+        print(hd['subdir/table'])
+        print(hd['subdir1/array'])
         hd.removeNode('/subdir1', recursive=True)
-        print hd.keys()
+        print(hd.keys())
