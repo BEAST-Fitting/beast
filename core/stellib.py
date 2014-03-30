@@ -531,8 +531,15 @@ class Stellib(object):
         specs = np.empty( (ndata, len(self.wavelength)), dtype=float )
 
         # copy meta data of pts into the resulting structure
-        for key in pts.keys():
-            _grid[key] = np.asarray(pts[key])
+        if hasattr(pts, 'keys'):
+            for key in pts.keys():
+                _grid[key] = np.asarray(pts[key])
+        elif hasattr(pts, 'dtype'):
+            if pts.dtype.names is not None:
+                for key in pts.dtype.names:
+                    _grid[key] = pts[key]
+            else:
+                raise AttributeError('pts is expected to have named items (keys or dtype.names)')
 
         # Step 1: Avoid Extrapolation
         # ===========================
