@@ -12,8 +12,10 @@ from numpy import log10
 from scipy import interpolate
 import tables
 from ..external.eztables import Table
+from ..external.eztables.table import recfunctions
 from ..external.ezunits import unit, hasUnit
 from ..config import __ROOT__
+from .ezpadova import cmd as _cmd
 
 
 class Isochrone(object):
@@ -153,10 +155,10 @@ class padova2010(Isochrone):
         assert (metal in self.Z), "Metal %f not find in %s" % (metal, self.Z)
 
         data = {}
-        t = self.data.selectWhere( '(Z == _z)', condvars={'_z': metal} )
+        t = self.data.selectWhere( '*', '(Z == _z)', condvars={'_z': metal} )
         if _age in self.ages:
             #no interpolation, isochrone already in the file
-            t = t.selectWhere( '(logA == _age)', condvars={'_age': log10(_age)} )
+            t = t.selectWhere('*', '(logA == _age)', condvars={'_age': log10(_age)} )
             for kn in t.keys():
                 data[kn] = numpy.asarray(t[kn])
         else:
@@ -166,8 +168,8 @@ class padova2010(Isochrone):
             #print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
             r = numpy.log10(_age / a1) / numpy.log10(a2 / a1)
 
-            t1 = t.selectWhere( 'logA == _age', condvars={'_age': log10(a1)} )
-            t2 = t.selectWhere( 'logA == _age', condvars={'_age': log10(a2)} )
+            t1 = t.selectWhere('*', 'logA == _age', condvars={'_age': log10(a1)} )
+            t2 = t.selectWhere('*', 'logA == _age', condvars={'_age': log10(a2)} )
 
             stop = min(t1.nrows, t2.nrows)
 
@@ -309,7 +311,7 @@ class ezIsoch(Isochrone):
     def __getitem__(self, key):
         return self.data[key]
 
-    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None, *args, **kwargs):
+    def _get_t_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None, *args, **kwargs):
         """ Retrieve isochrone from the original source
             internal use to adapt any library
         """
@@ -389,3 +391,112 @@ class ezIsoch(Isochrone):
                 for kn in tab.keys():
                     data[kn] = interp(_m, data_logM, tab[kn], left=np.nan, right=np.nan)
                 return Table(data)
+
+
+class PadovaWeb(Isochrone):
+    def __init__(self, logtmin=6.0, logtmax=10.2, dlogt=0.2, Z=0.019, *args, **kwargs):
+        self.name = 'Padova CMD isochrones'
+        self.logtmin = logtmin
+        self.logtmax = logtmax
+        self.dlogt = dlogt
+        self.Z = Z
+
+    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'],
+                       *args, **kwargs):
+        """ Retrieve isochrone from the original source
+            internal use to adapt any library
+        """
+        if hasUnit(age):
+            _age = int(age.to('yr').magnitude)
+        else:
+            _age = int(age * inputUnit.to('yr').magnitude)
+
+        assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
+
+        if (metal is not None) & (FeH is not None):
+            print "Warning: both Z & [Fe/H] provided, ignoring [Fe/H]."
+
+        if metal is None:
+            metal = self.FeHtometal(FeH)
+
+        iso_table = _cmd.get_one_isochrone(_age, metal, ret_table=True)
+        self._clean_namings(iso_table)
+        #iso_table = self._filter_bad_points(iso_table)
+        return iso_table
+
+    def _clean_namings(self, iso_table):
+        """clean painful naming"""
+        iso_table.add_column('logA', iso_table['log(age/yr)'][:], description='log(age)', unit='yr')
+        iso_table.add_column('logL', iso_table['logL/Lo'][:], description='log(luminosity)')
+        iso_table.add_column('logT', iso_table['logTe'][:], description='log(effective temperature)', unit='K')
+        iso_table.add_column('logg', iso_table['logG'][:], description='log(surface gravity)', unit='cm/s^2')
+        iso_table.remove_columns(['log(age/yr)', 'logL/Lo', 'logTe', 'logG'])
+        return iso_table
+
+    def _filter_bad_points(self, iso_table):
+        """ filter bad points, yes that happens! The selection is an empirical definition
+        """
+        cond = '(logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1)'
+        return iso_table.selectWhere('*', cond)
+
+    def get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.019):
+        """ Generate a proper table directly from the PADOVA website
+
+        Parameters
+        ----------
+        logtmin: float
+            log-age min (age in yr)
+
+        logtmax: float
+            log-age max (age in yr)
+
+        dlogt: float
+            log-age step to request
+
+        Z: float or sequence
+            single value of list of values of metalicity Z
+
+        returns
+        -------
+        tab: eztable.Table
+            the table of isochrones
+        """
+        if not hasattr(Z, '__iter__'):
+            iso_table = _cmd.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z)
+            iso_table.header['NAME'] = 'Padova Isochrones'
+            iso_table.add_column('Z', np.ones(iso_table.nrows) * Z, description='metallicity')
+
+            self._clean_namings(iso_table)
+
+            #remove phot columns and unnecessary properties
+            drop = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode'] + "U UX B BX V R I J H K L L' M".split()
+
+            #make sure also that the column exist
+            iso_table.remove_columns(filter(lambda x: x in iso_table, drop))
+
+            #iso_table = self._filter_bad_points(iso_table)
+        else:
+            # iterate over Z values and concatenate into one table
+            iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
+            if len(Z) > 1:
+                more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]
+                iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more, usemask=False, asrecarray=True)
+
+        # polish the header
+        iso_table.setUnit('logA', 'yr')
+        iso_table.setComment('logA', 'Age')
+        iso_table.setUnit('logT', 'K')
+        iso_table.setComment('logT', 'Effective temperature')
+        iso_table.setUnit('logL', 'Lsun')
+        iso_table.setComment('logL', 'Luminosity')
+        iso_table.setUnit('M_ini', 'Msun')
+        iso_table.setComment('M_ini', 'Initial Mass')
+        iso_table.setUnit('M_act', 'Msun')
+        iso_table.setComment('M_act', 'Current Mass, M(t)')
+        iso_table.setUnit('logMdot', 'Msun/yr')
+        iso_table.setComment('logMdot', 'Mass loss')
+        iso_table.setUnit('logg', 'cm/s**2')
+        iso_table.setComment('logg', 'Surface gravity')
+        iso_table.setComment('Z', 'Metallicity')
+
+        return iso_table
