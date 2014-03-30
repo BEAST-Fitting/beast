@@ -1,6 +1,7 @@
 """ This is a first collection of tools making the design of a pipeline easy.
 Pipeline being a succesion of  entities that produce and consume data.
 """
+from __future__ import print_function
 import os
 
 
@@ -23,7 +24,6 @@ class RequiredFile(object):
         if self._producer is None:
             return None
         else:
-            #return '{}({}, {})'.format(self._producer.__name__, self.args, self.kwargs)
             return '{0}({1}, {2})'.format(self._producer.__name__, '...', '...')
 
     def __repr__(self):
@@ -35,7 +35,7 @@ class RequiredFile(object):
     def __call__(self, *args, **kwargs):
         if not (os.path.isfile(self.fname) | os.path.islink(self.fname)):
             if self.producer is not None:
-                print "File {0} is missing.\n Running {1})".format(self.fname, self.producer)
+                print("File {0} is missing.\n Running {1})".format(self.fname, self.producer))
                 return self._producer(*(self.args), **(self.kwargs))
             else:
                 raise Exception('File {0} is required but no producer is referenced'.format(self.fname))
