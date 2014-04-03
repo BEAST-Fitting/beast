@@ -26,7 +26,7 @@ import numpy as np
 
 # BEAST imports
 from beast.core import grid
-from beast.core import creategrid
+from beast.core import createbiggrid as creategrid
 from beast.core import stellib
 from beast.core import extinction
 from beast.core import isochrone
@@ -70,8 +70,8 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):
 
     # this condition does not make sense to me
     # when I use it I loose all young ages
-    cond = '(logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1)'
-    t = t.selectWhere('*', cond)
+    #cond = '(logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1)'
+    #t = t.selectWhere('*', cond)
 
     t.write(outname)
     return outname
@@ -110,10 +110,15 @@ def make_spectra(outname, oiso, osl=None, bounds={}, **kwargs):
         bounds['dlogg'] = 0.3
 
     #make the spectral grid
+    print('Make spectra')
     g = creategrid.gen_spectral_grid_from_stellib_given_points(osl, oiso.data, bounds=bounds)
 
     #write to disk
-    g.writeHDF(outname)
+    if hasattr(g, 'writeHDF'):
+        g.writeHDF(outname)
+    else:
+        for gk in g:
+            gk.writeHDF(outname, append=True)
 
     return outname
 
@@ -160,12 +165,20 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2], fbum
     avs = np.arange(av[0], av[1] + 0.5 * av[2], av[2])
     rvs = np.arange(rv[0], rv[1] + 0.5 * rv[2], rv[2])
 
+    print('Make SEDS')
+
     if fbump is not None:
         fbumps = np.arange(fbump[0], fbump[1] + 0.5 * fbump[2], fbump[2])
         g = creategrid.make_extinguished_grid(specgrid, filters, extLaw, avs, rvs, fbumps)
     else:
         g = creategrid.make_extinguished_grid(specgrid, filters, extLaw, avs, rvs)
-    g.writeHDF(outname)
+
+    #write to disk
+    if hasattr(g, 'writeHDF'):
+        g.writeHDF(outname)
+    else:
+        for gk in g:
+            gk.writeHDF(outname, append=True)
     return outname
 
 
