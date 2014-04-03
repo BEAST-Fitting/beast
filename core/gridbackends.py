@@ -282,6 +282,7 @@ class MemoryBackend(GridBackend):
                         node.append(self.seds[:])
                     except:
                         hd['/seds'] = self.seds[:]
+                        hd['/lamb'] = self.lamb[:]
             if getattr(self, 'filters', None) is not None:
                 if ('FILTERS' not in self.grid.header.keys()):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
@@ -494,6 +495,7 @@ class CacheBackend(GridBackend):
                         node.append(self.seds[:])
                     except:
                         hd['/seds'] = self.seds[:]
+                        hd['/lamb'] = self.lamb[:]
             if getattr(self, 'filters', None) is not None:
                 if ('FILTERS' not in self.grid.header.keys()):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
@@ -594,6 +596,7 @@ class HDFBackend(GridBackend):
                         node.append(self.seds[:])
                     except:
                         hd['/seds'] = self.seds[:]
+                        hd['/lamb'] = self.lamb[:]
                 hd.write(self.grid[:], group='/', tablename='grid', header=self.header, append=append)
 
     def copy(self):
