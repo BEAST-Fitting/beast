@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 import itertools
 
-from ezunits import unit, hasUnit
+from ..external.ezunits import unit, hasUnit
 
 #replace the common range by the generator
 try:
