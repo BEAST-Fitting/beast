@@ -347,6 +347,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
               number of valid points = {1:d} (based on restrictions in R(V) versus f_bump plane)
               """.format(niter, npts))
 
+        if npts == 0:
+            raise AttributeError('No valid points')
+
+
     else:
         it = np.nditer(np.ix_(avs, rvs))
         npts = np.size(avs) * np.size(rvs)
