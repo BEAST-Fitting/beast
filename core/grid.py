@@ -153,8 +153,8 @@ class ModelGrid(object):
             return self.__dict__[name]
         elif hasattr(self._backend, name):
             return getattr(self._backend, name)
-        elif name in self.keys():
-            return self.grid[name]
+        #elif name in self.keys():
+        #    return self.grid[name]
         elif hasattr(self.grid, 'keys'):
             return self.grid[name]
         else:
