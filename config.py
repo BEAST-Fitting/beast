@@ -21,16 +21,16 @@ libsdir = __ROOT__ + '/libs/'
 # will be replaced by a more flexible support (JSON is easy!)
 libs_server = 'http://chex.astro.washington.edu:7777/beastlibs/'
 libs = dict(
-    #vega     = 'vega.hd5',
-    #filters  = 'filters.hd5',
+    vega     = 'vega.hd5',
+    filters  = 'filters.hd5',
     #basel22p = 'BaSeL_v2.2.pegase.grid.fits',
     #elodie31 = 'Elodie_v3.1.grid.fits',
-    #kurucz04 = 'kurucz2004.grid.fits',
-    #tlusty09 = 'tlusty.lowres.grid.fits'
+    kurucz04 = 'kurucz2004.grid.fits',
+    tlusty09 = 'tlusty.lowres.grid.fits'
     #specgrid = 'basel_padova2010.spectralgrid.fits',
     #sedgrid  = 'PHATSEDs_basel_padovaiso.fits'
     #kuruczgrid = 'kurucz2004.grid.fits',
-    padovaiso='padova2010.iso.fits',
+    #padovaiso='padova2010.iso.fits',
     #kuruczisog  = 'stellib_kurucz2004_padovaiso.spectralgrid.fits'
 )
 
