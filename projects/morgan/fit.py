@@ -23,9 +23,9 @@ import numpy as np
 import tables
 from beast.core import grid
 from beast.core.odict import odict
-from beast.tools import progressbar
 from beast.proba import N_logLikelihood, SN_logLikelihood
 from beast.proba import expectation, percentile, getNorm_lnP
+from beast.tools.pbar import Pbar
 from beast.external.eztables import Table
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
@@ -77,33 +77,31 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
             _seds = g0.seds.read()
         else:
             _seds = g0.seds
-        with progressbar.PBar(len(obs), txt="Calculating lnp") as pbar:
 
-            for tn, obk in obs.enumobs():
-                if len(obk) == 3:
-                    (sed, err, mask) = obk
-                    lnp = N_logLikelihood(  sed, err, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
-                elif len(obk) == 4:
-                    (sed, errp, errm, mask) = obk
-                    lnp = SN_logLikelihood(  sed, errp, errm, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
-                else:
-                    raise AttributeError('getObs is expected to return 3 or 4 values, got {0}'.format(len(obk)))
-                # include grid sampling prior
-                #lnp = lnp - np.log(g0['Density'] / g0['Density'].sum())
-                #print len(lnp)
-                #Need ragged arrays rather than uniform table
-                star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
-                indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
-                if len(obk) == 4:
-                    outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
-                else:
-                    outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
-                outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int64))
-                outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
-                #commit changes
-                outfile.flush()
+        for tn, obk in Pbar(len(obs), desc='Calculating Lnp').iterover(obs.enumobs()):
+            if len(obk) == 3:
+                (sed, err, mask) = obk
+                lnp = N_logLikelihood(  sed, err, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
+            elif len(obk) == 4:
+                (sed, errp, errm, mask) = obk
+                lnp = SN_logLikelihood(  sed, errp, errm, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
+            else:
+                raise AttributeError('getObs is expected to return 3 or 4 values, got {0}'.format(len(obk)))
+            # include grid sampling prior
+            #lnp = lnp - np.log(g0['Density'] / g0['Density'].sum())
+            #print len(lnp)
+            #Need ragged arrays rather than uniform table
+            star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
+            indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
+            if len(obk) == 4:
+                outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
+            else:
+                outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
+            outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int64))
+            outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
+            #commit changes
+            outfile.flush()
 
-                pbar.update(tn, force=True)  # Forcing because it can be long to show the first ETA
     return outname
 
 
@@ -224,9 +222,10 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
         #q = get_Q_from_node(node, qname)
         q = g0[qname]
         r = np.empty(len(objlist), dtype=float)
-        with progressbar.PBar(nobs, txt='Expectations') as pb:
-            for e, obj in enumerate(objlist):
-                pb.update(e, txt='E({0})'.format(qname))
+
+        with Pbar(nobs, txt='Expectations') as pb:
+            for e, obj in pb.iterover(enumerate(objlist)):
+                pb.desc = 'E({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
@@ -314,9 +313,9 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache
         #q = get_Q_from_node(node, qname)
         q = g0[qname]
         r = np.empty(len(objlist), dtype=float)
-        with progressbar.PBar(nobs, txt='Best') as pb:
-            for e, obj in enumerate(objlist):
-                pb.update(e, txt='Best({0})'.format(qname))
+        with Pbar(nobs, txt='Best') as pb:
+            for e, obj in pb.iterover(enumerate(objlist)):
+                pb.desc = 'Best({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
@@ -404,9 +403,9 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         nval = len(p)
         _p = np.asarray(p, dtype=float)
         r = np.empty((len(objlist), nval), dtype=float)
-        with progressbar.PBar(nobs, txt='Percentiles') as pb:
-            for e, obj in enumerate(objlist):
-                pb.update(e, txt='Percentiles({0})'.format(qname))
+        with Pbar(nobs, desc='Percentiles') as pb:
+            for e, obj in pb.iterover(enumerate(objlist)):
+                pb.desc = 'Percentiles({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
