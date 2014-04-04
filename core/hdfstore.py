@@ -26,6 +26,12 @@ from __future__ import print_function
 import tables
 import numpy as np
 
+if int(tables.__version__[0]) < 3:
+    _future = True
+    from future.tables_file import createEArray
+else:
+    _future = False
+
 __all__ = ['HDFStore', 'convert_dict_to_structured_ndarray']
 
 # Type conversion mapping between numpy and pytables
@@ -208,7 +214,10 @@ def __write__(data, hd5, group='/', tablename=None, append=False, silent=False, 
 
     if tab.dtype.names is None:
         if not append:
-            hd5.createEArray(group, tablename, obj=tab, createparents=True)
+            if _future:
+                createEArray(hd5, group, tablename, obj=tab, createparents=True)
+            else:
+                hd5.createEArray(group, tablename, obj=tab, createparents=True)
             hd5.flush()
             t = hd5.getNode(group + '/' + tablename)
         else:
