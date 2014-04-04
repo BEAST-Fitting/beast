@@ -34,7 +34,6 @@ __all__ = ['fit_model_seds_pytables', 't_fit', 'summary_table', 't_summary_table
 
 
 def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', gridbackend='cache'):
-
     """
     Fit model seds with noise for sensitivity tests
 
@@ -95,8 +94,10 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
                 #Need ragged arrays rather than uniform table
                 star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
                 indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
-                #outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
-                outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
+                if len(obk) == 4:
+                    outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
+                else:
+                    outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
                 outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int64))
                 outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
                 #commit changes
