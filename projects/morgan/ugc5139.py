@@ -10,6 +10,9 @@ from beast.core.observations import Observations
 from beast.core.vega import Vega, from_Vegamag_to_Flux_SN_errors
 from beast.external.ezpipe import Pipeline
 from beast.external.ezpipe.helpers import task_decorator
+from .beast.tools.helpers import chunks
+from .beast.tools.pbar import Pbar
+from .beast.external.eztables import Table
 
 # Morgan imports
 from models import t_isochrones, t_spectra, t_seds
@@ -150,6 +153,7 @@ def t_project_dir(project, *args, **kwargs):
         os.mkdir(outdir)
     return '{0:s}/{0:s}'.format(outdir)
 
+
 #---------------------------------------------------------
 # Model Pipeline                                [sec:pipe]
 #---------------------------------------------------------
@@ -163,23 +167,87 @@ def t_project_dir(project, *args, **kwargs):
 #     5. Fit the stars
 #     6. Extract statistics
 #---------------------------------------------------------
+def prepare_individual_inputs(obsfile, chunksize):
+    """ Prepare N chuncks of data input to be run in parallel """
+    if chunksize <= 0:
+        return [obsfile]
+
+    obs = Table(obsfile)
+    # name will be <initial name>.<partk>.<initial_extension>
+    outname = obsfile.split('.')
+    outname = ('.'.join(outname[:-1]), outname[-1])
+
+    obsfiles = []
+
+    fpart = 0
+    for chunk_slice in Pbar().iterover(chunks(range(obs.nrows), chunksize)):
+        l_obs = obs[chunk_slice]
+        l_file = '{0:s}.part{1:d}.{2:s}'.format(outname[0], fpart, outname[1])
+        l_obs.write(l_file)
+        obsfiles.append(l_file)
+        fpart += 1
+
+    return obsfiles
 
 
-if __name__ == '__main__':
+def make_models():
     # calling sequences
     iso_kwargs = dict(logtmin=logt[0], logtmax=logt[1], dlogt=logt[2], z=z)
     spec_kwargs = dict(osl=osl)
     seds_kwargs = dict(extLaw=extLaw, av=avs, rv=rvs, fbump=fbumps)
-    fit_kwargs = dict( threshold=-10 )
-    stat_kwargs = dict( keys=None, method=['best'] )
-    obscat_kwargs = dict(obsfile=obsfile, distanceModulus=distanceModulus)
 
     # make models if not there yet
     tasks_models = ( t_project_dir, t_isochrones(**iso_kwargs),  t_spectra(**spec_kwargs), t_seds(filters, **seds_kwargs) )
     models = Pipeline('make_models', tasks_models)
     job, (p, g) = models(project)
+    return job, (p, g)
 
+
+def run_fit(project, g, obsfile, distanceModulus):
+    fit_kwargs = dict( threshold=-10 )
+    stat_kwargs = dict( keys=None, method=['best'] )
+    obscat_kwargs = dict(obsfile=obsfile, distanceModulus=distanceModulus)
     # do the real job
     tasks_fit = ( t_project_dir, t_get_obscat(**obscat_kwargs),  t_fit(g, **fit_kwargs), t_summary_table(g, **stat_kwargs) )
     fit_data = Pipeline('fit', tasks_fit)
     job, (p, stat, obs, sedgrid) = fit_data(project)
+    return job, (p, stat, obs, sedgrid)
+
+
+def run_chunk_fit(project, g, obsfile, distanceModulus, chunk):
+
+    #forcing output names
+    outname = project[:]
+    l_file = '{0:s}_part{1:d}'.format(outname, chunk)
+
+    fit_kwargs = dict( threshold=-10, outname=l_file )
+    stat_kwargs = dict( keys=None, method=['best'], outname=l_file)
+    obscat_kwargs = dict(obsfile=obsfile, distanceModulus=distanceModulus)
+    # do the real job
+    tasks_fit = ( t_project_dir, t_get_obscat(**obscat_kwargs),  t_fit(g, **fit_kwargs), t_summary_table(g, **stat_kwargs) )
+    fit_data = Pipeline('fit', tasks_fit)
+    job, (p, stat, obs, sedgrid) = fit_data(project)
+    return job, (p, stat, obs, sedgrid)
+
+
+if __name__ == '__main__':
+    job, (p, g) = make_models()
+    job, (p, stat, obs, sedgrid) = run_fit(p, g, obsfile, distanceModulus)
+
+#    # calling sequences
+#    iso_kwargs = dict(logtmin=logt[0], logtmax=logt[1], dlogt=logt[2], z=z)
+#    spec_kwargs = dict(osl=osl)
+#    seds_kwargs = dict(extLaw=extLaw, av=avs, rv=rvs, fbump=fbumps)
+#    fit_kwargs = dict( threshold=-10 )
+#    stat_kwargs = dict( keys=None, method=['best'] )
+#    obscat_kwargs = dict(obsfile=obsfile, distanceModulus=distanceModulus)
+#
+#    # make models if not there yet
+#    tasks_models = ( t_project_dir, t_isochrones(**iso_kwargs),  t_spectra(**spec_kwargs), t_seds(filters, **seds_kwargs) )
+#    models = Pipeline('make_models', tasks_models)
+#    job, (p, g) = models(project)
+#
+#    # do the real job
+#    tasks_fit = ( t_project_dir, t_get_obscat(**obscat_kwargs),  t_fit(g, **fit_kwargs), t_summary_table(g, **stat_kwargs) )
+#    fit_data = Pipeline('fit', tasks_fit)
+#    job, (p, stat, obs, sedgrid) = fit_data(project)
