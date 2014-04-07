@@ -1,5 +1,4 @@
 """
-Fitting PHAT data
 
 TODO: make better documentation
 """
@@ -14,7 +13,6 @@ from beast.tools.helpers import chunks
 from beast.tools.pbar import Pbar
 from beast.external.eztables import Table
 
-# Morgan imports
 from models import t_isochrones, t_spectra, t_seds
 from fit import t_fit, t_summary_table
 
@@ -28,12 +26,6 @@ import numpy as np
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-
-#project = 'mf_ngc4214_sub'
-#obsfile = 'ngc4214/data/N4214_4band_detects.fits'
-
-#project = 'mf_ngc4214_sub'
-#obsfile = 'ngc4214/data/N4214_3band_detects_sub.fits'
 
 project = 'mf_ugc5139_noIR'
 obsfile = 'mf_ugc5139/13364_UGC5139_phil.gst.fits'
@@ -52,7 +44,6 @@ logt = [6.0, 10.13, 0.05]
 z = 0.004  # SMC metal
 
 osl = stellib.Tlusty() + stellib.Kurucz()
-#osl = stellib.Kurucz()
 
 #extLaw = extinction.RvFbumpLaw()
 extLaw = extinction.Cardelli()
@@ -90,7 +81,7 @@ with Vega() as v:
 
 # derive the global class and update what's needed
 class Data(Observations):
-    """ PHAT catalog for clusters in M31 """
+    """ UGC5139 Catalog """
     def __init__(self, inputFile, distanceModulus=distanceModulus):
         desc = 'PHAT star: %s' % inputFile
         Observations.__init__(self, inputFile, distanceModulus, desc=desc)
@@ -148,7 +139,7 @@ def t_project_dir(project, *args, **kwargs):
     outdir = project
     if os.path.exists(outdir):
         if not os.path.isdir(outdir):
-            raise Exception('Output directory "{}" already exists but is not a directory'.format(outdir))
+            raise Exception('Output directory "{0}" already exists but is not a directory'.format(outdir))
     else:
         os.mkdir(outdir)
     return '{0:s}/{0:s}'.format(outdir)

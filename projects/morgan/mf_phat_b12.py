@@ -28,7 +28,7 @@ import numpy as np
 #---------------------------------------------------------
 
 project = 'mf_phat_b12'
-obsfile = 'mf_phat_b12/b12-6filt-cut-2_True4band_det.fits'
+obsfile = 'mf_phat_b12/mf_phat_b12_input.fits'
 
 #all filters
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
