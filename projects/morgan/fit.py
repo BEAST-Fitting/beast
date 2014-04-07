@@ -499,7 +499,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
 #---------------------------------------------------------
 
 @task_decorator(logger=sys.stdout)
-def t_fit(project, obs, g, threshold=-40, gridbackend='cache'):
+def t_fit(project, obs, g, threshold=-40, gridbackend='cache', outname=None):
     """t_fit -- run the fitting part
 
     keywords
@@ -522,6 +522,9 @@ def t_fit(project, obs, g, threshold=-40, gridbackend='cache'):
         backend to use to load the grid if necessary (memory, cache, hdf)
         (see beast.core.grid)
 
+    outname: str, optional
+        optional filename and path to store the outputs
+
     returns
     -------
     project: str
@@ -533,14 +536,16 @@ def t_fit(project, obs, g, threshold=-40, gridbackend='cache'):
     obs: Observation object instance
         observation catalog
     """
-
-    outname = '{0}_lnp.hd5'.format(project)
+    if outname is None:
+        outname = '{0}_lnp.hd5'.format(project)
+    else:
+        outname = '{0}_lnp.hd5'.format(outname)
     lnp_source = RequiredFile(outname, fit_model_seds_pytables, obs, g, threshold=threshold, outname=outname, gridbackend=gridbackend)
     return project, lnp_source(), obs
 
 
 @task_decorator(logger=sys.stdout)
-def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None, gridbackend='cache'):
+def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None, gridbackend='cache', outname=None):
     """t_summary_table -- task to generate the summary table
 
     keywords
@@ -568,6 +573,9 @@ def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None, gri
         backend to use to load the grid if necessary (memory, cache, hdf)
         (see beast.core.grid)
 
+    outname: str, optional
+        optional filename and path to store the outputs
+
     returns
     -------
     project: str
@@ -582,7 +590,9 @@ def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None, gri
     sedgrid: grid.SpectralGrid instance
         SED model grid instance
     """
-
-    outname = '{0}_stats.fits'.format(project)
+    if outname is None:
+        outname = '{0}_stats.fits'.format(project)
+    else:
+        outname = '{0}_stats.fits'.format(outname)
     stat_source = RequiredFile(outname, summary_table, lnpfname, obs, sedgrid, keys=keys, method=method, outname=outname, gridbackend=gridbackend)
     return project, stat_source(), obs, sedgrid
