@@ -10,9 +10,9 @@ from beast.core.observations import Observations
 from beast.core.vega import Vega, from_Vegamag_to_Flux_SN_errors
 from beast.external.ezpipe import Pipeline
 from beast.external.ezpipe.helpers import task_decorator
-from .beast.tools.helpers import chunks
-from .beast.tools.pbar import Pbar
-from .beast.external.eztables import Table
+from beast.tools.helpers import chunks
+from beast.tools.pbar import Pbar
+from beast.external.eztables import Table
 
 # Morgan imports
 from models import t_isochrones, t_spectra, t_seds
