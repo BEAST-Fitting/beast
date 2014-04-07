@@ -183,7 +183,7 @@ def prepare_individual_inputs(obsfile, chunksize):
     for chunk_slice in Pbar().iterover(chunks(range(obs.nrows), chunksize)):
         l_obs = obs[chunk_slice]
         l_file = '{0:s}.part{1:d}.{2:s}'.format(outname[0], fpart, outname[1])
-        l_obs.write(l_file)
+        Table(l_obs).write(l_file)
         obsfiles.append(l_file)
         fpart += 1
 
@@ -203,7 +203,7 @@ def make_models():
     return job, (p, g)
 
 
-def run_fit(project, g, obsfile, distanceModulus):
+def run_fit(project, g, obsfile=obsfile):
     fit_kwargs = dict( threshold=-10 )
     stat_kwargs = dict( keys=None, method=['best'] )
     obscat_kwargs = dict(obsfile=obsfile, distanceModulus=distanceModulus)
@@ -214,15 +214,30 @@ def run_fit(project, g, obsfile, distanceModulus):
     return job, (p, stat, obs, sedgrid)
 
 
-def run_chunk_fit(project, g, obsfile, distanceModulus, chunk):
+def run_chunk_fit(project, g, chunk, obsfile=obsfile):
+    import glob
+
+    obs_base = obsfile.split('.')
+    obs_ext = obs_base[-1]
+    obs_base = obs_base[:-1]
+
+    lst = glob.glob('.'.join(obs_base) + '.part*.' + obs_ext)
+    if len(lst) == 0:
+        raise ValueError('cannot find any chunk. Did you run prepare_individual_inputs?')
+
+    if chunk >= len(lst):
+        print('Chunk not valid')
+
+    l_obs = lst[chunk]
+    print('running chunk {0:s}'.format(l_obs))
 
     #forcing output names
     outname = project[:]
-    l_file = '{0:s}_part{1:d}'.format(outname, chunk)
+    l_file = '{0:s}.part{1:d}'.format(outname, chunk)
 
     fit_kwargs = dict( threshold=-10, outname=l_file )
     stat_kwargs = dict( keys=None, method=['best'], outname=l_file)
-    obscat_kwargs = dict(obsfile=obsfile, distanceModulus=distanceModulus)
+    obscat_kwargs = dict(obsfile=l_obs, distanceModulus=distanceModulus)
     # do the real job
     tasks_fit = ( t_project_dir, t_get_obscat(**obscat_kwargs),  t_fit(g, **fit_kwargs), t_summary_table(g, **stat_kwargs) )
     fit_data = Pipeline('fit', tasks_fit)
