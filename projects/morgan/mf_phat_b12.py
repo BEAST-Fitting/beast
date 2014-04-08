@@ -219,7 +219,7 @@ def run_chunk_fit(project, g, chunk, obsfile=obsfile):
 
     #forcing output names
     outname = project[:]
-    l_file = '{0:s}.part{1:d}'.format(outname, chunk)
+    l_file = '{0:s}/{0:s}.part{1:d}'.format(outname, chunk)
 
     fit_kwargs = dict( threshold=-10, outname=l_file )
     stat_kwargs = dict( keys=None, method=['best'], outname=l_file)
