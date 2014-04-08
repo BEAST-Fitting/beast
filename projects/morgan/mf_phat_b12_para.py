@@ -10,6 +10,40 @@ def prepare_input_chunks():
     return datamod.prepare_individual_inputs(datamod.obsfile, 14000)
 
 
+def merge_inputs_outputs():
+    import mf_phat_b12 as datamod
+    import glob
+    from beast.external.eztables import Table
+    from beast.tools.pbar import Pbar
+
+    obs_base = datamod.obsfile.split('.')
+    obs_ext = obs_base[-1]
+    obs_base = obs_base[:-1]
+
+    lst = glob.glob('.'.join(obs_base) + '.part*.' + obs_ext)
+    if len(lst) == 0:
+        raise ValueError('cannot find any chunk. Did you run prepare_individual_inputs?')
+
+    outname = datamod.project[:]
+
+    t_final = None
+    for chunk, input_fname in Pbar(len(lst)).iterover(enumerate(lst)):
+        ti = Table(input_fname)
+        s_file = '{0:s}/{0:s}.part{1:d}_stats.fits'.format(outname, chunk)
+        to = Table(s_file)
+
+        for k in to.keys():
+            ti.addCol(k, to[k])
+
+        if t_final is None:
+            t_final = ti
+        else:
+            t_final.stack(ti.data)
+
+    t_final.write('{0:s}/{0:s}.final_stats.fits'.format(outname))
+    return t_final
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('must have a chunk number or -prep option')
