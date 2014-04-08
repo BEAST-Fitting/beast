@@ -22,9 +22,9 @@ def merge_inputs_outputs(project=None):
 
     t_final = None
     for chunk, input_fname in Pbar(len(lst)).iterover(enumerate(lst)):
-        ti = Table(input_fname)
+        ti = Table(input_fname, silent=True)
         s_file = '{0:s}/{0:s}.part{1:d}_stats.fits'.format(outname, chunk)
-        to = Table(s_file)
+        to = Table(s_file, silent=True)
 
         for k in to.keys():
             ti.addCol(k, to[k])
