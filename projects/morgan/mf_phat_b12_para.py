@@ -10,7 +10,7 @@ def prepare_input_chunks():
     return datamod.prepare_individual_inputs(datamod.obsfile, 14000)
 
 
-def merge_inputs_outputs():
+def merge_inputs_outputs(project=None):
     import mf_phat_b12 as datamod
     import glob
     from beast.external.eztables import Table
@@ -24,7 +24,10 @@ def merge_inputs_outputs():
     if len(lst) == 0:
         raise ValueError('cannot find any chunk. Did you run prepare_individual_inputs?')
 
-    outname = datamod.project[:]
+    if project is None:
+        outname = datamod.project[:]
+    else:
+        outname = project[:]
 
     t_final = None
     for chunk, input_fname in Pbar(len(lst)).iterover(enumerate(lst)):
