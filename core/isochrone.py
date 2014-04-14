@@ -439,7 +439,7 @@ class PadovaWeb(Isochrone):
         cond = '(logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1)'
         return iso_table.selectWhere('*', cond)
 
-    def get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.019):
+    def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.019):
         """ Generate a proper table directly from the PADOVA website
 
         Parameters
