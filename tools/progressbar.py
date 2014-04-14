@@ -64,7 +64,7 @@ except ImportError:
     pass
 import signal
 
-if sys.version_info.major < 3:
+if sys.version_info[0] < 3:
     basestring = str, unicode
 else:
     basestring = str, bytes
