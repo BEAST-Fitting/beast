@@ -68,11 +68,10 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):
     t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
     t.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
-    # this condition does not make sense to me
-    # when I use it I loose all young ages
-    #cond = '(logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1)'
-    #t = t.selectWhere('*', cond)
-
+    # Isochrone filtering, check that no AGB stars are removed
+    cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
+    t = t.selectWhere('*', cond)
+    
     t.write(outname)
     return outname
 
