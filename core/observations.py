@@ -154,17 +154,50 @@ class Observations(object):
     def getErrors(self, num, filters):
         return numpy.array([ self.data[tt + 'err'][num] for tt in filters])
 
+    def getFlux(self, num, filters):
+        """returns the absolute flux of an observation from the number of counts"""
+        with Vega() as v:
+            filter_name, vega_flux, lamb = v.getFlux(filters)
+
+        flux = numpy.empty(len(filters))
+        for ek,ok in enumerate(filters):
+            flux[ek] = self.data[ok][num]*vega_flux[ek]*10**(2*((self.distanceModulus+5)/5.-1))
+            
+        return flux
+    
+    def getFluxerr(self, num, filters):
+        """returns the error on the absolute flux of an observation from the number of counts (not used in the analysis)"""
+        with Vega() as v:
+            filter_name, vega_flux, lamb = v.getFlux(filters)
+
+        fluxerr = numpy.empty(len(filters))
+        for ek,ok in enumerate(filters):
+            fluxerr[ek] = self.data[ok+'_raterr'][num]*vega_flux[ek]*10**(2*((distanceModulus+5)/5.-1))
+            
+        return fluxerr
+        
     def getObs(self, num=0):
-        """ returns the dictionnary used during the analysis """
+        """ returns the dictionnary used during the analysis updated to perform the fit on fluxes"""
+        assert ( not self.filters is None), "No filter set."
+
+        flux = self.getFlux(num, self.filters)
+
+        return flux
+  
+
+    def getObs2(self, num=0):
+        """ returns the dictionnary used during the analysis (old version on mag with errors in the catalog) """
         assert ( not self.filters is None), "No filter set."
         mags = self.getMags(num, self.filters)
         errs = self.getErrors(num, self.filters)
+    
         if not self.badvalue is None:
             mask = (mags >= self.badvalue)
         else:
             mask = numpy.zeros(len(mags), dtype=bool)
 
-        return mags, errs, mask
+        
+        return mags, errs, mask   
 
     def readData(self):
         """ read the dataset from the original source file """

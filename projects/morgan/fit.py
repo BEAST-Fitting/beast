@@ -23,7 +23,7 @@ import numpy as np
 import tables
 from beast.core import grid
 from beast.core.odict import odict
-from beast.proba import N_logLikelihood, SN_logLikelihood
+from beast.proba.likelihood import *
 from beast.proba import expectation, percentile, getNorm_lnP
 from beast.tools.pbar import Pbar
 from beast.external.eztables import Table
@@ -33,7 +33,7 @@ from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 __all__ = ['fit_model_seds_pytables', 't_fit', 'summary_table', 't_summary_table']
 
 
-def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', gridbackend='cache'):
+def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-40, outname='lnp.hd5', gridbackend='cache'):
     """
     Fit model seds with noise for sensitivity tests
 
@@ -67,6 +67,9 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
     else:
         g0 = sedgrid
 
+    ast_error = ast.root.error[:]
+    ast_bias = ast.root.bias[:]
+
     with tables.openFile(outname, 'w') as outfile:
         #Save wavelengths in root, remember #n_stars = root._v_nchildren -1
         outfile.createArray(outfile.root, 'grid_waves', g0.lamb[:])
@@ -79,26 +82,30 @@ def fit_model_seds_pytables(obs, sedgrid, threshold=-40, outname='lnp.hd5', grid
             _seds = g0.seds
 
         for tn, obk in Pbar(len(obs), desc='Calculating Lnp').iterover(obs.enumobs()):
-            if len(obk) == 3:
-                (sed, err, mask) = obk
-                lnp = N_logLikelihood(  sed, err, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
-            elif len(obk) == 4:
-                (sed, errp, errm, mask) = obk
-                lnp = SN_logLikelihood(  sed, errp, errm, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
-            else:
-                raise AttributeError('getObs is expected to return 3 or 4 values, got {0}'.format(len(obk)))
+            #if len(obk) == 3:
+            #    (sed, err, mask) = obk
+            #    lnp = N_logLikelihood(  sed, err, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
+            #elif len(obk) == 4:
+            #    (sed, errp, errm, mask) = obk
+            #    lnp = SN_logLikelihood(  sed, errp, errm, _seds, mask=mask.astype(np.int32), lnp_threshold=abs(threshold) )
+            #else:
+            #    raise AttributeError('getObs is expected to return 3 or 4 values, got {0}'.format(len(obk)))
+            (sed) = obk
+            (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold) )
             # include grid sampling prior
             #lnp = lnp - np.log(g0['Density'] / g0['Density'].sum())
             #print len(lnp)
             #Need ragged arrays rather than uniform table
             star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
             indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
-            if len(obk) == 4:
-                outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
-            else:
-                outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
+            #if len(obk) == 4:
+            #    outfile.createArray(star_group, 'input', np.array([sed, errp, errm, mask]).T)
+            #else:
+            #    outfile.createArray(star_group, 'input', np.array([sed, err, mask]).T)
+            outfile.createArray(star_group, 'input', np.array([sed]).T)
             outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int64))
             outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
+            outfile.createArray(star_group, 'chi2', np.array(chi2[indx[0]], dtype=np.float32))
             #commit changes
             outfile.flush()
 
@@ -213,7 +220,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
             lbl = '{0:s}_E'.format(qk)
             r[lbl] = Q_expect(f, g0, qk, objlist, prior)
     else:
-        #make sure keys are real keys
+        #make sure keys are useful keys
         if not (qname in g0.keys()):
             raise KeyError('Key "{0}" not recognized'.format(qname))
         #get grid node
@@ -469,6 +476,9 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
         method = 'best expectation percentile'.split()
 
     #make sure keys are real keys
+    keys.remove('osl')
+    keys.remove('keep')
+    keys.remove('weight')
     for key in keys:
         if not (key in g0.keys()):
             raise KeyError('Key "{0}" not recognized'.format(key))
@@ -499,7 +509,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
 #---------------------------------------------------------
 
 @task_decorator(logger=sys.stdout)
-def t_fit(project, obs, g, threshold=-40, gridbackend='cache', outname=None):
+def t_fit(project, obs, g, ast, threshold=-40, gridbackend='cache', outname=None):
     """t_fit -- run the fitting part
 
     keywords
@@ -536,11 +546,12 @@ def t_fit(project, obs, g, threshold=-40, gridbackend='cache', outname=None):
     obs: Observation object instance
         observation catalog
     """
+
     if outname is None:
         outname = '{0}_lnp.hd5'.format(project)
     else:
         outname = '{0}_lnp.hd5'.format(outname)
-    lnp_source = RequiredFile(outname, fit_model_seds_pytables, obs, g, threshold=threshold, outname=outname, gridbackend=gridbackend)
+    lnp_source = RequiredFile(outname, fit_model_seds_pytables, obs, g, ast, threshold=threshold, outname=outname, gridbackend=gridbackend)
     return project, lnp_source(), obs
 
 
@@ -590,6 +601,7 @@ def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None, gri
     sedgrid: grid.SpectralGrid instance
         SED model grid instance
     """
+
     if outname is None:
         outname = '{0}_stats.fits'.format(project)
     else:
