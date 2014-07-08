@@ -130,7 +130,7 @@ byte = 8 * bit = Bo = octet
 baud = bit / second = Bd = bps
 
 # Length
-angstrom = 1e-10 * meter
+angstrom = 1e-10 * meter = AA = Angstrom
 inch = 2.54 * centimeter = international_inch = inches = international_inches
 foot = 12 * inch = international_foot = ft = feet = international_foot = international_feet
 mile = 5280 * foot = mi = international_mile
@@ -297,6 +297,10 @@ firkin = barrel / 4
 lsun = 3.839e26 * watt = Lsun 
 msun = 1.98892e30 * kilogram = Msun
 rsun = 6.955e8 * meter = Rsun
+stephan_constant = 5.67037321e-8 * watt * meter ** -2 * kelvin ** -4
+magnitude = [luminosity] = mag
+
 
 #useful aliases
+micron = micrometer
 microns = micrometer
