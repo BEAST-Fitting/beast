@@ -28,11 +28,14 @@ TODO: make all static code go into a different module
 #from beast.core import extinction
 from beast.external.ezpipe import Pipeline
 from beast.external.ezpipe.helpers import task_decorator
+from beast.core.observations import Observations
+from beast.core.vega import Vega
+from fit import t_fit, t_summary_table
 
 from models import t_isochrones, t_spectra, t_seds
 import tables
 
-from GRID_PATH_DEF import * #TO UPDATE
+from GRID_PATH_DEF import *  # TO UPDATE
 
 
 import os
@@ -56,7 +59,7 @@ TODO: make a function that takes user pars and return the pipeline instance
 """
 
 # calling sequences
-iso_kwargs = dict(logtmin=logt[0], logtmax=logt[1], dlogt=logt[2], z=z)#logmhmin=logmh[0], logmhmax=logmh[1], dlogmh=logmh[2])
+iso_kwargs = dict(logtmin=logt[0], logtmax=logt[1], dlogt=logt[2], z=z)
 spec_kwargs = dict(osl=osl)
 seds_kwargs = dict(extLaw=extLaw, av=avs, rv=rvs, fbump=fbumps)
 
@@ -87,23 +90,99 @@ Run the grid on specific data
 TO DO: make figures
 """
 
-from beast.core.observations import Observations
-from beast.core.vega import Vega, from_Vegamag_to_Flux
-from fit import t_fit, t_summary_table
-import numpy as np
-
 with Vega() as v:
     vega_f, vega_mag, lamb = v.getMag(filters)
 
+
 class PHATcatalog(Observations):
-    """PHAT new photometry in M31"""
-    def __init__(self, inputFile, distanceModulus=distanceModulus):
+    """PHAT 6 filter photometry
+    This class implements a direct access to the PHAT measured fluxes.
+
+    ..note::
+        it does not implement uncertainties as in this model, the noise is
+        given through artificial star tests
+    """
+    def __init__(self, inputFile, distanceModulus=distanceModulus, filters=filters):
+        """ Construct the interface """
         desc = 'PHAT star: %s' % inputFile
         Observations.__init__(self, inputFile, distanceModulus, desc=desc)
         self.setFilters( filters )
-        self.setBadValue(6e-11)#(50.0)  # some bad values smaller than expected
-        self.minError = 0.0001
-        self.floorError = 0.01  # constant error term to match the IDL fitter
+        #some bad values smaller than expected
+        # in RATE = flux units
+        self.setBadValue(6e-11)
+
+        #hard code mapping directly with the interface to PHAT
+        for k in filters:
+            self.data.set_alias(k, k.split('_')[-1].lower() + '_rate')
+
+    def getFlux(self, num, units=False):
+        """returns the absolute flux of an observation from the number of
+        counts
+
+        Parameters
+        ----------
+        num: int
+            index of the star in the catalog to get measurement from
+
+        units: bool
+            if set returns the fluxes with a unit capsule
+
+        Returns
+        -------
+        flux: ndarray[dtype=float, ndim=1]
+            Measured integrated flux values throughout the filters in erg/s/cm^2
+        """
+
+        flux = Observations.getFlux(self, num) * self.vega_flux
+        if units is True:
+            return flux * unit['erg/s/cm^2']
+        else:
+            return flux
+
+    def getFluxerr(self, num, units=False):
+        """returns the error on the absolute flux of an observation from the
+        number of counts (not used in the analysis)
+
+        Parameters
+        ----------
+        num: int
+            index of the star in the catalog to get measurement from
+
+        units: bool
+            if set returns the fluxes with a unit capsule
+
+        Returns
+        -------
+        fluxerr: ndarray[dtype=float, ndim=1]
+            Measured integrated flux uncertainties in erg/s/cm^2
+        """
+
+        fluxerr = Observations.getFluxerr(self, num) * self.vega_flux
+        if units is True:
+            return fluxerr * unit['erg/s/cm^2']
+        else:
+            return fluxerr
+
+    def setFilters(self, filters):
+        """ set the filters and update the vega reference for the conversions
+
+        Parameters
+        ----------
+        filters: sequence
+            list of filters using the internally normalized namings
+        """
+        self.filters = filters
+
+        #Data "rates" are normalized to Vega already, fits are not using vega
+
+        # for optimization purpose: pre-compute
+        #   getting vega mags, require to open and read the content of one file.
+        #   since getObs, calls getFlux, for each star you need to do this expensive
+        #   op.
+        with Vega() as v:
+            _, vega_flux, _ = v.getFlux(filters)
+
+        self.vega_flux = vega_flux
 
 
 obs = PHATcatalog(obsfile, distanceModulus)
@@ -120,5 +199,5 @@ tasks_fit = ( t_project_dir, t_fit(obs, g, ast, **fit_kwargs), t_summary_table(g
 fit_phat = Pipeline('fit_phat', tasks_fit)
 
 job, (p, stat, obs, sedgrid) = fit_phat(project)
-  
+
 #TODO: make figures
