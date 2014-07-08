@@ -204,6 +204,133 @@ def extractSEDs(g0, flist, absFlux=True):
     return cls, seds, g0.grid
 
 
+def STmag_to_flux( v ):
+    """
+    Convert an ST magnitude to erg/s/cm2/AA (Flambda)
+
+    .. math::
+        mag = -2.5 \log_{10}(F) - 21.10
+
+        M0 = 21.10
+        F0 = 3.6307805477010028 10^{-9} erg/s/cm2/AA
+
+    Parameters
+    ----------
+    v: np.ndarray[float, ndim=N] or float
+        array of magnitudes
+
+    Returns
+    -------
+    flux: np.ndarray[float, ndim=N], or float
+        array of fluxes
+    """
+    v0 = 21.1
+    return 10. ** ( -0.4 * (v - v0) )
+
+
+def STmag_from_flux( v ):
+    """
+    Convert to ST magnitude from erg/s/cm2/AA (Flambda)
+
+    .. math::
+        mag = -2.5 \log_{10}(F) - 21.10
+
+        M0 = 21.10
+        F0 = 3.6307805477010028 10^{-9} erg/s/cm2/AA
+
+    Parameters
+    ----------
+    v: np.ndarray[float, ndim=N], or float
+        array of fluxes
+
+    Returns
+    -------
+    mag: np.ndarray[float, ndim=N], or float
+        array of magnitudes
+    """
+    v0 = 21.1
+    return -2.5 * numpy.log10( v ) - v0
+
+
+def fluxToMag(flux):
+    """ Return the magnitudes from flux values
+
+    Parameters
+    ----------
+    flux: np.ndarray[float, ndim=N]
+        array of fluxes
+
+    Returns
+    -------
+    mag: np.ndarray[float, ndim=N]
+        array of magnitudes
+    """
+    return -2.5 * numpy.log10(flux)
+
+
+def fluxErrTomag(flux, fluxerr):
+    """ Return the magnitudes and associated errors from fluxes and flux error
+    values
+
+    Parameters
+    ----------
+    flux:    np.ndarray[float, ndim=1]
+        array of fluxes
+
+    fluxerr: np.ndarray[float, ndim=1]
+        array of flux errors
+
+    Returns
+    -------
+    mag: np.ndarray[float, ndim=1]
+        array of magnitudes
+
+    err: np.ndarray[float, ndim=1]
+        array of magnitude errors
+    """
+    mag = fluxToMag(flux)
+    return mag, -2.5 * numpy.log10( 1. - fluxerr / flux )
+
+
+def magToFlux(mag):
+    """ Return the flux from magnitude values
+
+    Parameters
+    ----------
+    mag: np.ndarray[float, ndim=N]
+        array of magnitudes
+
+    Returns
+    -------
+    flux:  np.ndarray[float, ndim=N]
+        array of fluxes
+    """
+    return 10 ** (-0.4 * mag)
+
+
+def magErrToFlux(mag, err):
+    """ Return the flux and associated errors from magnitude and mag error values
+
+    Parameters
+    ----------
+    mag: np.ndarray[float, ndim=1]
+        array of magnitudes
+
+    err: np.ndarray[float, ndim=1]
+        array of magnitude errors
+
+    Returns
+    -------
+    flux:    np.ndarray[float, ndim=1]
+        array of fluxes
+
+    fluxerr: np.ndarray[float, ndim=1]
+        array of flux errors
+    """
+    flux = magToFlux(mag)
+    return flux, flux * ( 1. - magToFlux(err) )
+
+
 def test(absFlux=True):
     """ Test units """
     gridfile = 'libs/stellib_kurucz2004_padovaiso.spectralgrid.fits'

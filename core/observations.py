@@ -2,88 +2,43 @@
     This enables to handle non detections, (upper limits one day?), flux and
     magnitude conversions to avoid painful preparation of the dataset
 
-UNDER DEV
-
-TODO:
-    convert magnitudes to fluxes
-        * need to store the magnitudes type {vega, ab, st}
-        * generate a converter especially for vega...
-
+    Data model v2 with limited quantity units handling
 """
-import numpy
 import numpy as np
 from scipy.interpolate import interp1d
-from .vega import Vega
-
-
-"""
-STMAGS --- Convert an ST magnitude to erg/s/cm2/AA (Flambda)
-      mag = -2.5*log10(F) - 21.10
-      M0 = 21.10
-      F0 = 3.6307805477010028e-09 erg/s/cm2/AA
-"""
-
-
-def STmag_to_flux( v ):
-    v0 = 21.1
-    return numpy.power(10., -0.4 * (v - v0) )
-
-
-def STmag_from_flux( v ):
-    v0 = 21.1
-    return -2.5 * numpy.log10( v ) - v0
-
-
-""" Some helpers """
-def fluxToMag(flux):
-    """ Return the magnitudes from flux values
-    INPUTS:
-        flux    np.ndarray[float, ndim=N]   array of fluxes
-    OUTPUTS:
-        mag np.ndarray[float, ndim=N]   array of magnitudes
-    """
-    return -2.5 * np.log10(flux)
-
-
-def fluxErrTomag(flux, fluxerr):
-    """ Return the magnitudes and associated errors from fluxes and flux error values
-    INPUTS:
-        flux    np.ndarray[float, ndim=1]   array of fluxes
-        fluxerr np.ndarray[float, ndim=1]   array of flux errors
-    OUTPUTS:
-        mag np.ndarray[float, ndim=1]   array of magnitudes
-        err np.ndarray[float, ndim=1]   array of magnitude errors
-    """
-    mag = fluxToMag(flux)
-    return mag, -2.5 * np.log10( 1. - fluxerr / flux )
-
-
-def magToFlux(mag):
-    """ Return the flux from magnitude values
-    INPUTS:
-        mag np.ndarray[float, ndim=N]   array of magnitudes
-    OUTPUTS:
-        flux    np.ndarray[float, ndim=N]   array of fluxes
-    """
-    return 10 ** (-0.4 * mag)
-
-
-def magErrToFlux(mag, err):
-    """ Return the flux and associated errors from magnitude and mag error values
-    INPUTS:
-        mag np.ndarray[float, ndim=1]   array of magnitudes
-        err np.ndarray[float, ndim=1]   array of magnitude errors
-    OUTPUTS:
-        flux    np.ndarray[float, ndim=1]   array of fluxes
-        fluxerr np.ndarray[float, ndim=1]   array of flux errors
-    """
-    flux = magToFlux(mag)
-    return flux, flux * ( 1. - magToFlux(err) )
+from ..external.ezunits import unit
+from ..tools.helpers import val_in_unit
 
 
 class Observations(object):
+    """ A generic class that interfaces observation catalog in a standardized way
 
-    def __init__(self, inputFile, distanceModulus=0., desc=None):
+    Attributes
+    ----------
+    inputFile: str
+        catalog source file
+
+    filters: sequence(str)
+        list of filter names (internal standards)
+
+    desc: str, optional
+        description of the observations
+
+    distanceModulus: float, optional (default=0)
+        global distance modulus of the observations
+
+    distance: float
+        physical global distance to the observed sources. Linked to
+        `distanceModulus`.
+
+    badvalue: float, optional
+        value that tags a bad measurement that should not be used in the
+        fitting.
+
+    nObs: int
+        number of observations in the catalog
+    """
+    def __init__(self, inputFile, distanceModulus=None, desc=None):
         """ Generate a data interface object """
         self.inputFile = inputFile
         self.filters   = None
@@ -101,6 +56,16 @@ class Observations(object):
 
     def __call__(self):
         """ Calling the object will show info """
+        self.info()
+
+    def info(self):
+        """ Prints some information about the catalog """
+        txt = "Data read from {s.inputFile:s}\n"
+        if self.desc is not None:
+            txt += "Description: {s.desc:s}\n"
+        txt += "Number of records: {s.nObs:d}\n\n"
+        txt += "Dataset contains:"
+
         print "Data read from %s " % self.inputFile
         if self.desc is not None:
             print "Description: %s" % self.desc
@@ -109,12 +74,14 @@ class Observations(object):
             print "Dataset contains:"
 
         for k in self.data.keys():
-            print "\t %s" % k
+            txt += "\t {0:s}\n".format(k)
 
         if self.filters is None:
-            print "No filters set yet!"
+            txt += '\n No filters given yet!'
         else:
-            print "Using filters:", self.filters
+            txt += '\n Using Filters: {s.filters}\n'
+
+        print(txt.format(s=self))
 
     def __getitem__(self, *args, **kwargs):
         """ get item will generate a subsample """
@@ -129,15 +96,22 @@ class Observations(object):
 
     def setDistanceModulus(self, val):
         """ Set the distance modulus to consider the dataset """
-        self.distanceModulus = val
-        self.distance = 10 ** ( (val - 25.) / 5. )
+
+        if val is None:
+            val = 0. * unit['mag']
+
+        _val = val_in_unit('distance Modulus', val, 'mag')
+
+        self.distanceModulus = _val
+        self.distance = 10 ** ( (_val.magnitude - 25.) / 5. )
 
     def setDistance(self, val):
         """ Set observed object distance to X Megaparsecs
             this will update also the distance Modulus
         """
-        self.distance = val
-        self.distanceModulus = 5. * numpy.log10( val * 1e5 )
+        _val = val_in_unit('Distance', val, 'pc')
+        self.distance = _val
+        self.distanceModulus = 5. * np.log10( 0.1 * _val.magnitude)
 
     def setBadValue(self, val):
         self.badvalue = val
@@ -149,55 +123,55 @@ class Observations(object):
         self.filters = filters
 
     def getMags(self, num, filters):
-        return numpy.array([ self.data[tt][num] - self.distanceModulus for tt in filters])
+        raise Exception('Do not use as magnitudes')
+        return np.array([ self.data[tt][num] - self.distanceModulus for tt in filters])
 
     def getErrors(self, num, filters):
-        return numpy.array([ self.data[tt + 'err'][num] for tt in filters])
+        raise Exception('Do not use as magnitudes')
+        return np.array([ self.data[tt + 'err'][num] for tt in filters])
 
-    def getFlux(self, num, filters):
+    def getFlux(self, num):
         """returns the absolute flux of an observation from the number of counts"""
-        with Vega() as v:
-            filter_name, vega_flux, lamb = v.getFlux(filters)
 
-        flux = numpy.empty(len(filters))
-        for ek,ok in enumerate(filters):
-            flux[ek] = self.data[ok][num]*vega_flux[ek]*10**(2*((self.distanceModulus+5)/5.-1))
-            
+        flux = np.empty(len(self.filters), dtype=float)
+        distance = self.distance.to('pc').magnitude
+        for ek, ok in enumerate(self.filters):
+            flux[ek] = self.data[ok][num] / (0.1 * distance) ** 2
+
         return flux
-    
-    def getFluxerr(self, num, filters):
-        """returns the error on the absolute flux of an observation from the number of counts (not used in the analysis)"""
-        with Vega() as v:
-            filter_name, vega_flux, lamb = v.getFlux(filters)
 
-        fluxerr = numpy.empty(len(filters))
-        for ek,ok in enumerate(filters):
-            fluxerr[ek] = self.data[ok+'_raterr'][num]*vega_flux[ek]*10**(2*((distanceModulus+5)/5.-1))
-            
+    def getFluxerr(self, num):
+        """returns the error on the absolute flux of an observation from the number of counts (not used in the analysis)"""
+
+        fluxerr = np.empty(len(self.filters), dtype=float)
+        distance = self.distance.to('pc').magnitude
+
+        for ek, ok in enumerate(self.filters):
+            fluxerr[ek] = self.data[ok + '_err'][num] / (0.1 * distance) ** 2
+
         return fluxerr
-        
+
     def getObs(self, num=0):
-        """ returns the dictionnary used during the analysis updated to perform the fit on fluxes"""
-        assert ( not self.filters is None), "No filter set."
+        """ returns the flux corrected for distance """
+        if self.filters is None:
+            raise AttributeError('No filter set provided.')
 
         flux = self.getFlux(num, self.filters)
 
         return flux
-  
 
-    def getObs2(self, num=0):
-        """ returns the dictionnary used during the analysis (old version on mag with errors in the catalog) """
+    def getObsWithUncertainties(self, num=0):
+        """ returns the flux and uncertainties corrected for distance and the mask of bad values"""
         assert ( not self.filters is None), "No filter set."
         mags = self.getMags(num, self.filters)
         errs = self.getErrors(num, self.filters)
-    
+
         if not self.badvalue is None:
             mask = (mags >= self.badvalue)
         else:
-            mask = numpy.zeros(len(mags), dtype=bool)
+            mask = np.zeros(len(mags), dtype=bool)
 
-        
-        return mags, errs, mask   
+        return mags, errs, mask
 
     def readData(self):
         """ read the dataset from the original source file """
@@ -208,6 +182,7 @@ class Observations(object):
             self.data = self.inputFile
 
     def iterobs(self):
+        """ yield getObs """
         for k in range(self.nObs):
             yield self.getObs(k)
 
@@ -221,12 +196,12 @@ class FakeObs(Observations):
     def getObs(self, num=0, err=0.05):
         assert ( self.filters is not None), "No filter set."
         mags = self.getMags(num, self.filters)
-        #errs = numpy.ones(len(mags), dtype=float) * err
+        #errs = np.ones(len(mags), dtype=float) * err
         errs = self.getErrors(num, self.filters)
         if self.badvalue is not None:
             mask = (mags >= self.badvalue)
         else:
-            mask = numpy.zeros(len(mags), dtype=bool)
+            mask = np.zeros(len(mags), dtype=bool)
 
         return mags, errs, mask
 
@@ -242,12 +217,12 @@ def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, distanceModulus=0., filte
     if type(sedgrid) == str:
         sedgrid = grid.FileSEDGrid(sedgrid)
 
-    inds = numpy.random.randint(0, high=sedgrid.grid.nrows, size=nrows)
+    inds = np.random.randint(0, high=sedgrid.grid.nrows, size=nrows)
     obsTab = Table()
     if filters is None:
         filters = sedgrid.grid.header.FILTERS.split()
     for e, filt in enumerate(filters):
-        errs = numpy.random.normal(loc=0., scale=err, size=nrows)
+        errs = np.random.normal(loc=0., scale=err, size=nrows)
         obsTab.addCol(filt, (1. + errs) * sedgrid.seds[inds, e])
         obsTab.addCol(filt + 'err', err * sedgrid.seds[inds, e])
     for key in sedgrid.grid.keys():
@@ -262,7 +237,9 @@ def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, distanceModulus=0., filte
 class PhotCharact(object):
     def __init__(self, fname, filters):
         self.inputFile = fname
-        self.filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W', 'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+        self.filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W',
+                        'HST_ACS_WFC_F475W', 'HST_ACS_WFC_F814W',
+                        'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
         self.pars = { 'magin': 'magin',
                       'comp': 'comp',
@@ -277,10 +254,10 @@ class PhotCharact(object):
                              'fill_value': 0.0 }
 
         self.interp_bias_error = { 'kind': 'linear',
-                             'axis': -1,
-                             'copy': False,
-                             'bounds_error': False,
-                             'fill_value': 0.0 }
+                                   'axis': -1,
+                                   'copy': False,
+                                   'bounds_error': False,
+                                   'fill_value': 0.0 }
 
         self.interp_comp = { 'kind': 'linear',
                              'axis': -1,
@@ -294,6 +271,8 @@ class PhotCharact(object):
     def readData(self):
         """ read the dataset from the original source file """
         from ..external.eztables import AstroTable
+        from .vega import Vega
+
         self.data = AstroTable(self.inputFile)
 
         #data_filters = [ k.split(self.pars['join'])[0] for k in self.data.keys() if k[-5:] == self.pars['magin'] ]
@@ -337,9 +316,9 @@ class PhotCharact(object):
             #vegamag to fluxes
             #b_val is a delta_mag, does not need to check the vega ref.
             vega_mag = self.vega[1][self.get_filter_index(_fname)]
-            flux_in = numpy.power(10., -0.4 * (m_val + vega_mag))
-            flux_bias = numpy.power(10., -0.4 * (b_val))
-            flux_err = b_val * ( 1. - numpy.power(10., -0.4 * e_val) )
+            flux_in = np.power(10., -0.4 * (m_val + vega_mag))
+            flux_bias = np.power(10., -0.4 * (b_val))
+            flux_err = b_val * ( 1. - np.power(10., -0.4 * e_val) )
             bias_flux_fn = interp1d(flux_in, flux_bias, **self.interp_bias)
             bias_err_flux_fn  = interp1d(flux_in, flux_err, **self.interp_bias_error)
             self.flux_in = flux_in
