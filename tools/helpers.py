@@ -308,10 +308,14 @@ def kfpartial(fun, *args, **kwargs):
     return partial(keywords_first(fun), *args, **kwargs)
 
 
+def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
+    return " {0:s}:{1:d} {2:s}:{3:s}".format(filename, lineno, category.__name__, message)
+
+
 def missing_units_warning(name, defaultunit):
     """ Warn if any unit is missing
 
-    Paramaters
+    Parameters
     ----------
     name: str
         name of the variable
@@ -324,7 +328,8 @@ def missing_units_warning(name, defaultunit):
     warning: warnings.warn
         warn if units are assumed
     """
-    warnings.warn('Variable {0:s} does not have explicit units. Assuming `{1:s}`'.format(name, defaultunit))
+    warnings.formatwarning = warning_on_one_line
+    warnings.warn('Variable {0:s} does not have explicit units. Assuming `{1:s}`\n'.format(name, defaultunit), stacklevel=4)
 
 
 def val_in_unit(varname, value, defaultunit):
