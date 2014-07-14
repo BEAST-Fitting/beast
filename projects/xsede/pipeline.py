@@ -124,7 +124,7 @@ def prepare_individual_inputs(obsfile, chunksize=14000):
     obsfiles = []
 
     fpart = 0
-    for chunk_slice in Pbar('Preparing input catalogs').iterover(chunks(range(obs.nrows), chunksize)):
+    for chunk_slice in Pbar(desc='Preparing input catalogs').iterover(chunks(range(obs.nrows), chunksize)):
         l_obs = obs[chunk_slice]
         l_file = '{0:s}.part{1:d}.{2:s}'.format(outname[0], fpart, outname[1])
         Table(l_obs).write(l_file)

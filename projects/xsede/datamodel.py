@@ -26,13 +26,13 @@ from beast.external.ezunits import unit
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'b15_may'
+project = 'mf_phat_july14'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
-obsfile = 'b15_may_4band_det.fits'
-astfile = 'noise_model_b15_may.hd5'
+obsfile = 'mf_phat_july14/mf_phat_july14_obs_4bands_det.fits'
+astfile = 'mf_phat_july14/mf_phat_july14_noisemodel.hd5'
 
 distanceModulus = 24.47 * unit['mag']
 
