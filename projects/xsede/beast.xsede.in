@@ -1,24 +1,14 @@
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_0 -p12107_M31-B04-F03_fake0.param >> log_fakestars_0
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_1 -p12107_M31-B04-F03_fake1.param >> log_fakestars_1
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_2 -p12107_M31-B04-F03_fake2.param >> log_fakestars_2
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_3 -p12107_M31-B04-F03_fake3.param >> log_fakestars_3
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_4 -p12107_M31-B04-F03_fake4.param >> log_fakestars_4
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_5 -p12107_M31-B04-F03_fake5.param >> log_fakestars_5
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_6 -p12107_M31-B04-F03_fake6.param >> log_fakestars_6
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_7 -p12107_M31-B04-F03_fake7.param >> log_fakestars_7
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_8 -p12107_M31-B04-F03_fake8.param >> log_fakestars_8
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_9 -p12107_M31-B04-F03_fake9.param >> log_fakestars_9
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_10 -p12107_M31-B04-F03_fake10.param >> log_fakestars_10
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_11 -p12107_M31-B04-F03_fake11.param >> log_fakestars_11
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_12 -p12107_M31-B04-F03_fake12.param >> log_fakestars_12
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_13 -p12107_M31-B04-F03_fake13.param >> log_fakestars_13
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_14 -p12107_M31-B04-F03_fake14.param >> log_fakestars_14
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_15 -p12107_M31-B04-F03_fake15.param >> log_fakestars_15
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_16 -p12107_M31-B04-F03_fake16.param >> log_fakestars_16
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_17 -p12107_M31-B04-F03_fake17.param >> log_fakestars_17
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_18 -p12107_M31-B04-F03_fake18.param >> log_fakestars_18
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_19 -p12107_M31-B04-F03_fake19.param >> log_fakestars_19
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_20 -p12107_M31-B04-F03_fake20.param >> log_fakestars_20
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_21 -p12107_M31-B04-F03_fake21.param >> log_fakestars_21
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_22 -p12107_M31-B04-F03_fake22.param >> log_fakestars_22
-/home1/02742/lcjohnso/dolphot2.0sm/bin/dolphot 12107_M31-B04-F03.phot_23 -p12107_M31-B04-F03_fake23.param >> log_fakestars_23
+ python run_parallel.py 0 >> mf_phat_july14_part0.log
+ python run_parallel.py 10 >> mf_phat_july14_part10.log
+ python run_parallel.py 11 >> mf_phat_july14_part11.log
+ python run_parallel.py 12 >> mf_phat_july14_part12.log
+ python run_parallel.py 13 >> mf_phat_july14_part13.log
+ python run_parallel.py 1 >> mf_phat_july14_part1.log
+ python run_parallel.py 2 >> mf_phat_july14_part2.log
+ python run_parallel.py 3 >> mf_phat_july14_part3.log
+ python run_parallel.py 4 >> mf_phat_july14_part4.log
+ python run_parallel.py 5 >> mf_phat_july14_part5.log
+ python run_parallel.py 6 >> mf_phat_july14_part6.log
+ python run_parallel.py 7 >> mf_phat_july14_part7.log
+ python run_parallel.py 8 >> mf_phat_july14_part8.log
+ python run_parallel.py 9 >> mf_phat_july14_part9.log
