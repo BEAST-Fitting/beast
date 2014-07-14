@@ -1,11 +1,11 @@
 #!/bin/csh
 #-------------------------------------------------------
 #SBATCH -J Beast          # Job name
-#SBATCH -n 4              # Total number of tasks
-#SBATCH -N 2              # Total number of nodes
+#SBATCH -n 41             # Total number of tasks
+#SBATCH -N 3              # Total number of nodes
 #SBATCH -p normal         # Queue name
-#SBATCH -o AP4603.out     # Name of stdout file
-#SBATCH -t 10:00:00       # Run time (hh:mm:ss)
+#SBATCH -o mf_phat_b12.xsede.out     # Name of stdout file
+#SBATCH -t 20:00:00       # Run time (hh:mm:ss)
 #SBATCH -A TG-AST130057   # Account Assignment
 #------------------------------------------------------
 
@@ -13,8 +13,8 @@ echo StartTime: `date`
 
 module load launcher
 setenv EXECUTABLE     $TACC_LAUNCHER_DIR/init_launcher 
-setenv CONTROL_FILE   beast.in
-setenv WORKDIR        $WORK/phat/beast
+setenv CONTROL_FILE   beast.xsede.in
+setenv WORKDIR        $WORK/phat/beast/beast/projects/xsede
 
 # 
 # # Variable description:
