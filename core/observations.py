@@ -103,7 +103,7 @@ class Observations(object):
         _val = val_in_unit('distance Modulus', val, 'mag')
 
         self.distanceModulus = _val
-        self.distance = 10 ** ( (_val.magnitude - 25.) / 5. )
+        self.distance = 10 ** ( (_val.magnitude - 25.) / 5. ) * unit['pc']
 
     def setDistance(self, val):
         """ Set observed object distance to X Megaparsecs
@@ -111,7 +111,7 @@ class Observations(object):
         """
         _val = val_in_unit('Distance', val, 'pc')
         self.distance = _val
-        self.distanceModulus = 5. * np.log10( 0.1 * _val.magnitude)
+        self.distanceModulus = 5. * np.log10( 0.1 * _val.magnitude) * unit['mag']
 
     def setBadValue(self, val):
         self.badvalue = val
