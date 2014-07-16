@@ -1,14 +1,6 @@
  python run_parallel.py 0 >> mf_phat_july14_part0.log
- python run_parallel.py 10 >> mf_phat_july14_part10.log
- python run_parallel.py 11 >> mf_phat_july14_part11.log
- python run_parallel.py 12 >> mf_phat_july14_part12.log
- python run_parallel.py 13 >> mf_phat_july14_part13.log
  python run_parallel.py 1 >> mf_phat_july14_part1.log
  python run_parallel.py 2 >> mf_phat_july14_part2.log
  python run_parallel.py 3 >> mf_phat_july14_part3.log
  python run_parallel.py 4 >> mf_phat_july14_part4.log
  python run_parallel.py 5 >> mf_phat_july14_part5.log
- python run_parallel.py 6 >> mf_phat_july14_part6.log
- python run_parallel.py 7 >> mf_phat_july14_part7.log
- python run_parallel.py 8 >> mf_phat_july14_part8.log
- python run_parallel.py 9 >> mf_phat_july14_part9.log
