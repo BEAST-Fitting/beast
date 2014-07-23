@@ -219,12 +219,12 @@ def extract_bias_std(brick,subdivision):
     """
 
     if brick > 10: 
-	    direct = '/astro/dust_kg/harab/beast_data/b%s_bis/' % brick
+	    direct = '/astro/dust_kg/harab/beast_data/b%s_bis/' % brick       #OBSERVATION PATH
 	    file_vis = direct + 'fake_stars_b%s_%s_opt.fits' % (brick,subdivision)
 	    file_ir = direct + 'fake_stars_b%s_%s_ir.fits' % (brick,subdivision)
 	    file_uv = direct + 'fake_stars_b%s_%s_uv.fits' % (brick,subdivision)
     else:
-	    direct = '/astro/dust_kg/harab/beast_data/b0%s_bis/' % brick
+	    direct = '/astro/dust_kg/harab/beast_data/b0%s_bis/' % brick      #OBSERVATION PATH
 	    file_vis = direct + 'fake_stars_b0%s_%s_opt.fits' % (brick,subdivision)
 	    file_ir = direct + 'fake_stars_b0%s_%s_ir.fits' % (brick,subdivision)
 	    file_uv = direct + 'fake_stars_b0%s_%s_uv.fits' % (brick,subdivision)
@@ -241,7 +241,7 @@ def extract_bias_std(brick,subdivision):
 
     D = {'uv':Table(d1), 'opt':Table(d2), 'ir':Table(d3)}
 
-    outdir = 'PHAT_camera_AST/'
+    outdir = 'PHAT_camera_AST/'        # Path of AST data from Ben
     outfile1 =  outdir + 'bias_std_uv_b%s_reg%s.dat' % (brick,subdivision)
     outfile2 = outdir +'bias_std_opt_b%s_reg%s.dat' % (brick,subdivision)
     outfile3 = outdir +'bias_std_ir_b%s_reg%s.dat' % (brick,subdivision)
@@ -312,14 +312,14 @@ def ast_interp(D,sedgrid):
     return (bias,sigma)
 
 
-brick = '15'
-subdivision ='15'
+brick = '15'       # Brick index
+subdivision ='15'  #Index of the subregion in brick 
 
 project = 'b%s_%s' % (brick,subdivision)
-dir_project = '/astro/dust_kg/harab/beast/projects/prod/%s/' % project
-sedgrid = FileSEDGrid( dir_project + '/' + project + '_seds.grid.hd5')  
+dir_project = '/astro/dust_kg/harab/beast/projects/prod/%s/' % project  #Directory where to write the noise model file =  Project directory
+sedgrid = FileSEDGrid( dir_project + '/' + project + '_seds.grid.hd5')  # Model grid
 
-abs_calib = [1.19,1.04,0.71,0.74,0.84,0.88]
+abs_calib = [1.19,1.04,0.71,0.74,0.84,0.88]                             # absolute flux calibration uncertainties
 abs_calib_flux = sedgrid.seds*abs_calib*0.01
 
 D = extract_bias_std(brick,subdivision)
