@@ -41,6 +41,14 @@ filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
 #filters = ['HST_WFC3_F438W', 'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 #filters = ['HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
+# absflux calibration covariance matrix for NGC4214 specific filters
+ngc4214_calibration_covariance = [1.80e-4,  1.37e-4, 6.02e-5, 2.44e-5, 1.23e-6, -4.21e-6,
+                                  1.37e-4,  1.09e-4, 5.72e-5, 3.23e-5, 1.65e-5, 1.32e-5,
+                                  6.02e-5,  5.72e-5, 5.07e-5, 4.66e-5, 4.40e-5, 4.34e-5,
+                                  2.44e-5,  3.23e-5, 4.66e-5, 5.42e-5, 5.87e-5, 5.99e-5,
+                                  1.23e-6,  1.65e-5, 4.40e-5, 5.87e-5, 6.98e-5, 7.33e-5,
+                                  -4.21e-6, 1.32e-5, 4.34e-5, 5.99e-5, 7.33e-5, 7.81e-5 ]
+
 distanceModulus = 27.41
 
 logt = [6.0, 10.13, 0.05]
