@@ -4,7 +4,7 @@ import tables
 # from functools import wraps
 
 from beast.external.eztables import Table
-from beast.core.grid import FileSEDGrid
+#from beast.core.grid import FileSEDGrid
 #from beast.external.ezunits import unit
 from beast.core.vega import Vega
 
@@ -314,65 +314,54 @@ def compute_stddev(mag_in, mag_out, k=10, eps=0,
     return convert_dict_to_structured_ndarray(d)
 
 
-def toothpick_ast_interp(D, sedgrid):
-    """
-    Interpolate the results of the ASTs on a sed model grid
-
-    Parameters
-    ----------
-    D: dictionary
-        output of extract_bias_std
-
-    sedgrid: beast.core.grid type
-        model grid to interpolate AST results on
-
-    Returns
-    -------
-    (bias,sigma): tuple
-        Two 1d numpy arrays
-    """
-
-    N = sedgrid.grid.nrows
-    filters = sedgrid.filters
-    #filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
-    #           'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
-    M = len(filters)
-
-    flux = sedgrid.seds
-    with Vega() as v:
-        names,vega_flux,lamb = v.getFlux(filters)
-
-    bias = np.empty((N,M), dtype=float)
-    sigma = np.empty((N,M), dtype=float)
-
-    keys = ['uv', 'opt', 'ir']
-
-    for i in range(M):
-        ii = (i % 2) + 1
-        key = keys[(i // 2)]
-
-        var1 = D[key]['F{0:d}IN'.format(ii)]
-        var2 = D[key]['BIAS{0:d}_FLUX'.format(ii)]
-        var3 = D[key]['STD{0:d}_FLUX'.format(ii)]
-
-        arg_sort = np.argsort(var1)
-
-        bias[:, i] = np.interp(flux[:, i], var1[arg_sort], var2[arg_sort])
-        sigma[:, i] = np.interp(flux[:, i], var1[arg_sort], var3[arg_sort])
-
-    return (bias, sigma)
-
-
-# absflux calibration covariance matrix for NGC4214 specific filters
-ngc4214_calibration_covariance = [1.80e-4,  1.37e-4, 6.02e-5, 2.44e-5, 1.23e-6, -4.21e-6,
-                                  1.37e-4,  1.09e-4, 5.72e-5, 3.23e-5, 1.65e-5, 1.32e-5,
-                                  6.02e-5,  5.72e-5, 5.07e-5, 4.66e-5, 4.40e-5, 4.34e-5,
-                                  2.44e-5,  3.23e-5, 4.66e-5, 5.42e-5, 5.87e-5, 5.99e-5,
-                                  1.23e-6,  1.65e-5, 4.40e-5, 5.87e-5, 6.98e-5, 7.33e-5,
-                                  -4.21e-6, 1.32e-5, 4.34e-5, 5.99e-5, 7.33e-5, 7.81e-5 ]
-
-# PHAT values:
-# abs_calib = np.array([1.19,1.04,0.71,0.74,0.84,0.88]) * 0.01
+# def toothpick_ast_interp(D, sedgrid):
+#     """
+#     Interpolate the results of the ASTs on a sed model grid
+#
+#     Parameters
+#     ----------
+#     D: dictionary
+#         output of extract_bias_std
+#
+#     sedgrid: beast.core.grid type
+#         model grid to interpolate AST results on
+#
+#     Returns
+#     -------
+#     (bias,sigma): tuple
+#         Two 1d numpy arrays
+#     """
+#
+#     N = sedgrid.grid.nrows
+#     filters = sedgrid.filters
+#     #filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
+#     #           'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+#     M = len(filters)
+#
+#     flux = sedgrid.seds
+#     with Vega() as v:
+#         names,vega_flux,lamb = v.getFlux(filters)
+#
+#     bias = np.empty((N,M), dtype=float)
+#     sigma = np.empty((N,M), dtype=float)
+#
+#     keys = ['uv', 'opt', 'ir']
+#
+#     for i in range(M):
+#         ii = (i % 2) + 1
+#         key = keys[(i // 2)]
+#
+#         var1 = D[key]['F{0:d}IN'.format(ii)]
+#         var2 = D[key]['BIAS{0:d}_FLUX'.format(ii)]
+#         var3 = D[key]['STD{0:d}_FLUX'.format(ii)]
+#
+#         arg_sort = np.argsort(var1)
+#
+#         bias[:, i] = np.interp(flux[:, i], var1[arg_sort], var2[arg_sort])
+#         sigma[:, i] = np.interp(flux[:, i], var1[arg_sort], var3[arg_sort])
+#
+#     return (bias, sigma)
+#
 
 
 def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwargs):
@@ -407,6 +396,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwa
 
 
 class NoiseModel(object):
+
     def __init__(self, astfile, *args, **kwargs):
         self.astfile = astfile
         self.load_data()
@@ -414,8 +404,12 @@ class NoiseModel(object):
     def load_data(self):
         self.data = Table(self.astfile)
 
+    def fit(self, *args, **kwargs):
+        raise NotImplemented
+
 
 class ToothPick_MultiFilterASTs(NoiseModel):
+
     def __init__(self, astfile, filters, *args, **kwargs):
         NoiseModel.__init__(self, astfile, *args, **kwargs)
         self.setFilters(filters)
@@ -442,10 +436,106 @@ class ToothPick_MultiFilterASTs(NoiseModel):
             print(e)
             print('Warning: Mapping failed. This could lead to wrong results')
 
-    def compute_knn_statistics(self, k=10, eps=0, completeness_mag_cut=80):
+    def _compute_stddev(self, mag_in, mag_out, k=10, eps=0,
+                        completeness_mag_cut=80, name_prefix=None):
         """
+        Computes standard deviation and store the result in a dictionary
 
-        .. see also: :func:`compute_stddev`
+        Parameters
+        ----------
+        mag_in: ndarray
+            input magnitudes
+
+        mag_out: ndarray
+            output magnitudes
+
+        completeness_mag_cut: float
+            magnitude at which consider a star not recovered
+
+        k: Integer
+            Number of nearest neighbors taken in the standard deviation computation
+
+        eps: non-negative float
+            precision on the NN search
+
+        name_prefix: str
+            if set, all output names in the final structure will start with this
+            prefix.
+
+        Returns
+        -------
+        d: np.recarray
+            named array containing the statistics
+
+
+        Method
+        ------
+        Statistics are computed for each input artificial star.
+        For each input star, we find the k-NN in input magnitude space and compute
+        their mean and variance also in magnitude and completeness fractions.
+
+        Finally, we return the flux conversion of the statistics: bias and stddev
+        dispersion per input star averaged over k-NN.
+
+        """
+        n_asts = len(mag_in)
+
+        if name_prefix is None:
+            name_prefix = ''
+        else:
+            if name_prefix[-1] != '_':
+                name_prefix += '_'
+
+        mag_in_prep = _prepare_x(mag_in)
+        NN_mag = nearest_neighbors(mag_in_prep, k=k, eps=eps)
+
+        std_mag = np.zeros(n_asts, dtype=float)
+        completeness = np.zeros(n_asts, dtype=float)
+
+        for i in range(n_asts):
+            nn_i = mag_out[NN_mag[i]]
+            std_mag[i] = np.sqrt( (1. / k) * ( (nn_i - mag_in[i]) ** 2).sum(axis=0))
+            completeness[i] = np.sum(nn_i < completeness_mag_cut, axis=0)
+
+        completeness /= float(k)
+
+        mag_inup = mag_in + std_mag
+        mag_indown = mag_in - std_mag
+
+        f_in = toFlux(mag_in)
+        f_out = toFlux(mag_out)
+        f_up = toFlux(mag_indown)
+        f_down = toFlux(mag_inup)
+        std_flux = 0.5 * (f_up - f_down)
+
+        d = {name_prefix + 'MAG_STD': std_mag,
+             name_prefix + 'MAG_BIAS': mag_out - mag_in,
+             name_prefix + 'MAG_IN': mag_in,
+             name_prefix + 'MAG_OUT': mag_out,
+             name_prefix + 'FLUX_STD': std_flux,
+             name_prefix + 'FLUX_BIAS': f_out - f_in,
+             name_prefix + 'FLUX_IN': f_in,
+             name_prefix + 'FLUX_OUT': f_out,
+             name_prefix + 'COMPLETENESS': completeness}
+
+        return convert_dict_to_structured_ndarray(d)
+
+    def fit(self, k=10, eps=0, completeness_mag_cut=80):
+        """
+        Compute the necessary statistics before evaluating the noise model
+
+        Parameters
+        ----------
+        k: Integer
+            Number of nearest neighbors taken in the standard deviation computation
+
+        eps: non-negative float
+            precision on the NN search
+
+        completeness_mag_cut: float
+            magnitude at which consider a star not recovered
+
+        .. see also: :func:`_compute_stddev`
         """
 
         shape = len(self.data), len(self.filters)
@@ -459,8 +549,8 @@ class ToothPick_MultiFilterASTs(NoiseModel):
             mag_in = self.data[k + '_in']
             mag_out = self.data[k + '_out']
 
-            d = compute_stddev(mag_in, mag_out, k=k, eps=eps,
-                               completeness_mag_cut=completeness_mag_cut)
+            d = self._compute_stddev(mag_in, mag_out, k=k, eps=eps,
+                                     completeness_mag_cut=completeness_mag_cut)
 
             self._fluxes[:, e] = d['FLUX_IN'] / self.vega_flux[e]
             self._sigmas[:, e] = d['FLUX_STD'] / self.vega_flux[e]
@@ -534,6 +624,7 @@ class ToothPick_MultiFilterASTs(NoiseModel):
 
 
 class ToothPick_perCamereASTs(NoiseModel):
+
     def __init__(self, astfiles, filters, *args, **kwargs):
 
         NoiseModel.__init__(self, astfiles, *args, **kwargs)
@@ -550,10 +641,9 @@ class ToothPick_perCamereASTs(NoiseModel):
         #TODO: update the mapping to stick to the initial PHAT version
         pass
 
-    def compute_knn_statistics(self, k=10, eps=0, completeness_mag_cut=80):
+    def fit(self, k=10, eps=0, completeness_mag_cut=80):
         """
-
-        .. see also: :func:`compute_stddev`
+        Fit one model per camera
         """
         for model in self.models:
             model.compute_knn_statistics(k=k, eps=eps,
@@ -574,7 +664,6 @@ class ToothPick_perCamereASTs(NoiseModel):
     @property
     def vega_flux(self):
         return self.models[0].vega_flux
-
 
     def interpolate(self, sedgrid):
         """
@@ -619,76 +708,53 @@ class ToothPick_perCamereASTs(NoiseModel):
         return (bias, sigma, compl)
 
 
-def ast_interp(D, sedgrid):
-    """
-    Interpolate the results of the ASTs on a model grid
-
-    Parameters
-    ----------
-    D: dictionary
-        output of extract_bias_std
-
-    sedgrid: beast.core.grid type
-        model grid to interpolate AST results on
-
-    Returns
-    -------
-    (bias,sigma): tuple
-        Two 1d numpy arrays
-    """
-
-    N = sedgrid.grid.nrows
-    filters = sedgrid.filters
-    #filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
-    #           'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
-    M = len(filters)
-
-    flux = sedgrid.seds
-    with Vega() as v:
-        names,vega_flux,lamb = v.getFlux(filters)
-
-    bias = np.empty((N,M), dtype=float)
-    sigma = np.empty((N,M), dtype=float)
-
-    keys = ['uv', 'opt', 'ir']
-
-    for i in range(M):
-        ii = (i % 2) + 1
-        key = keys[(i // 2)]
-
-        var1 = D[key]['F{0:d}IN'.format(ii)]
-        var2 = D[key]['BIAS{0:d}_FLUX'.format(ii)]
-        var3 = D[key]['STD{0:d}_FLUX'.format(ii)]
-
-        arg_sort = np.argsort(var1)
-
-        bias[:, i] = np.interp(flux[:, i], var1[arg_sort], var2[arg_sort])
-        sigma[:, i] = np.interp(flux[:, i], var1[arg_sort], var3[arg_sort])
-
-    return (bias, sigma)
+# def ast_interp(D, sedgrid):
+#     """
+#     Interpolate the results of the ASTs on a model grid
+#
+#     Parameters
+#     ----------
+#     D: dictionary
+#         output of extract_bias_std
+#
+#     sedgrid: beast.core.grid type
+#         model grid to interpolate AST results on
+#
+#     Returns
+#     -------
+#     (bias,sigma): tuple
+#         Two 1d numpy arrays
+#     """
+#
+#     N = sedgrid.grid.nrows
+#     filters = sedgrid.filters
+#     #filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
+#     #           'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+#     M = len(filters)
+#
+#     flux = sedgrid.seds
+#     with Vega() as v:
+#         names,vega_flux,lamb = v.getFlux(filters)
+#
+#     bias = np.empty((N,M), dtype=float)
+#     sigma = np.empty((N,M), dtype=float)
+#
+#     keys = ['uv', 'opt', 'ir']
+#
+#     for i in range(M):
+#         ii = (i % 2) + 1
+#         key = keys[(i // 2)]
+#
+#         var1 = D[key]['F{0:d}IN'.format(ii)]
+#         var2 = D[key]['BIAS{0:d}_FLUX'.format(ii)]
+#         var3 = D[key]['STD{0:d}_FLUX'.format(ii)]
+#
+#         arg_sort = np.argsort(var1)
+#
+#         bias[:, i] = np.interp(flux[:, i], var1[arg_sort], var2[arg_sort])
+#         sigma[:, i] = np.interp(flux[:, i], var1[arg_sort], var3[arg_sort])
+#
+#     return (bias, sigma)
 
 if __name__ == '__main__':
-    brick = '15'       # Brick index
-    subdivision = '15'  # Index of the subregion in brick
-
-    project = 'b%s_%s' % (brick, subdivision)
-
-    # Directory where to write the noise model file =  Project directory
-    dir_project = '/astro/dust_kg/harab/beast/projects/prod/%s/' % project
-    # Model Grid
-    sedgrid = FileSEDGrid( dir_project + '/' + project + '_seds.grid.hd5')
-
-    # absolute flux calibration uncertainties
-    abs_calib = [1.19,1.04,0.71,0.74,0.84,0.88]
-    abs_calib_flux = sedgrid.seds * abs_calib * 0.01
-
-    D = extract_bias_std(brick, subdivision)
-    (bias, sig) = ast_interp(D, sedgrid)
-
-    noise = np.sqrt(abs_calib_flux ** 2 + sig ** 2)
-
-    outname = dir_project + 'noise_model_b%s_%s.hd5' % (brick,subdivision)
-
-    with tables.openFile(outname, 'w') as outfile:
-        outfile.createArray(outfile.root,'bias',bias)
-        outfile.createArray(outfile.root,'error',noise)
+    pass
