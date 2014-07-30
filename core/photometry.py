@@ -43,9 +43,9 @@ class filter(object):
         if True in numpy.isinf(sflux):
             indinf = numpy.where(numpy.isinf(sflux))
             indfin = numpy.where(numpy.isfinite(sflux))
-            sflux[indinf] = numpy.interp(slamb[indinf],
-                slamb[indfin], sflux[indfin])
-            ifT = numpy.interp(slamb, self.wavelength, self.transmit, left=0., right=0.)
+            sflux[indinf] = numpy.interp(slamb[indinf], slamb[indfin], sflux[indfin])
+
+        ifT = numpy.interp(slamb, self.wavelength, self.transmit, left=0., right=0.)
         if True in (ifT > 0.):
             ind = numpy.where(ifT > 0.)
             a = numpy.trapz(slamb[ind] * ifT[ind] * sflux[ind], slamb[ind])
