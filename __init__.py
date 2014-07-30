@@ -14,3 +14,4 @@ from .core import phot
 from .core import photometry
 from .core import stellib
 from .core import vega
+from .core import noisemodel
