@@ -4,6 +4,7 @@ from .noisemodel import NoiseModel
 from ..vega import Vega
 
 from .helpers import _prepare_x, nearest_neighbors, toFlux, convert_dict_to_structured_ndarray
+from ...tools.pbar import Pbar
 
 
 class MultiFilterASTs(NoiseModel):
@@ -118,7 +119,7 @@ class MultiFilterASTs(NoiseModel):
 
         return convert_dict_to_structured_ndarray(d)
 
-    def fit(self, k=10, eps=0, completeness_mag_cut=80):
+    def fit(self, k=10, eps=0, completeness_mag_cut=80, progress=True):
         """
         Compute the necessary statistics before evaluating the noise model
 
@@ -133,19 +134,28 @@ class MultiFilterASTs(NoiseModel):
         completeness_mag_cut: float
             magnitude at which consider a star not recovered
 
+        progress: bool, optional
+            if set, display a progress bar
+
         .. see also: :func:`_compute_stddev`
         """
 
         shape = len(self.data), len(self.filters)
 
+        self._fluxes = np.empty( shape, dtype=float)
         self._biases = np.empty( shape, dtype=float)
         self._sigmas = np.empty( shape, dtype=float)
         self._compls = np.empty( shape, dtype=float)
 
-        for e, k in enumerate(self.filters):
+        if progress is True:
+            it = Pbar(desc='fitting model').iterover(self.filters)
+        else:
+            it = self.filters
 
-            mag_in = self.data[k + '_in']
-            mag_out = self.data[k + '_out']
+        for e, filterk in enumerate(it):
+
+            mag_in = self.data[filterk + '_in']
+            mag_out = self.data[filterk + '_out']
 
             d = self._compute_stddev(mag_in, mag_out, k=k, eps=eps,
                                      completeness_mag_cut=completeness_mag_cut)
@@ -174,7 +184,7 @@ class MultiFilterASTs(NoiseModel):
 
         self.vega_flux = vega_flux
 
-    def interpolate(self, sedgrid):
+    def interpolate(self, sedgrid, progress=True):
         """
         Interpolate the results of the ASTs on a model grid
 
@@ -193,18 +203,26 @@ class MultiFilterASTs(NoiseModel):
 
         comp: ndarray
             completeness table per model
+
+        progress: bool, optional
+            if set, display a progress bar
         """
         flux = sedgrid.seds
         N, M = flux.shape
 
-        if M != len(self.filter):
+        if M != len(self.filters):
             raise AttributeError('the grid of models does not seem to be defined with the same number of filters')
 
         bias = np.empty((N, M), dtype=float)
         sigma = np.empty((N, M), dtype=float)
         compl = np.empty((N, M), dtype=float)
 
-        for i in range(M):
+        if progress is True:
+            it = Pbar(desc='Evaluating model').iterover(range(M))
+        else:
+            it = range(M)
+
+        for i in it:
 
             _fluxes = self._fluxes[:, i]
             arg_sort = np.argsort(self._fluxes[:, i])
@@ -215,6 +233,9 @@ class MultiFilterASTs(NoiseModel):
             compl[:, i] = np.interp(flux[:, i], _fluxes, self._compls[arg_sort, i])
 
         return (bias, sigma, compl)
+
+    def __call__(self, sedgrid, **kwargs):
+        return self.interpolate(sedgrid, **kwargs)
 
 
 class perCamereASTs(NoiseModel):
@@ -235,13 +256,32 @@ class perCamereASTs(NoiseModel):
         #TODO: update the mapping to stick to the initial PHAT version
         pass
 
-    def fit(self, k=10, eps=0, completeness_mag_cut=80):
+    def fit(self, k=10, eps=0, completeness_mag_cut=80, progress=True):
         """
         Fit one model per camera
+
+        Parameters
+        ----------
+        k: Integer
+            Number of nearest neighbors taken in the standard deviation computation
+
+        eps: non-negative float
+            precision on the NN search
+
+        completeness_mag_cut: float
+            magnitude at which consider a star not recovered
+
+        progress: bool, optional
+            if set, display a progress bar
         """
-        for model in self.models:
-            model.compute_knn_statistics(k=k, eps=eps,
-                                         completeness_mag_cut=completeness_mag_cut)
+        if progress is True:
+            it = Pbar(desc='fitting camera').iterover(self.models)
+        else:
+            it = self.models
+
+        for model in it:
+            model.fit(k=k, eps=eps, completeness_mag_cut=completeness_mag_cut,
+                      progress=progress)
 
     def setFilters(self, filters):
         """ set the filters and update the vega reference for the conversions
@@ -279,10 +319,11 @@ class perCamereASTs(NoiseModel):
         comp: ndarray
             completeness table per model
         """
+        raise NotImplemented
         flux = sedgrid.seds
         N, M = flux.shape
 
-        if M != len(self.filter):
+        if M != len(self.filters):
             raise AttributeError('the grid of models does not seem to be defined with the same number of filters')
 
         bias = np.empty((N, M), dtype=float)
@@ -301,5 +342,5 @@ class perCamereASTs(NoiseModel):
 
         return (bias, sigma, compl)
 
-    def __call__(self, sedgrid):
-        return self.interpolate(sedgrid)
+    def __call__(self, sedgrid, **kwargs):
+        return self.interpolate(sedgrid, **kwargs)
