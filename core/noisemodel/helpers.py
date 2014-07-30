@@ -1,10 +1,5 @@
 import numpy as np
 from scipy.spatial import cKDTree
-import tables
-
-# will be in beast.core.noisemodel.toothpick
-from ...external.eztables import Table
-from ..vega import Vega
 
 
 def convert_dict_to_structured_ndarray(data):
