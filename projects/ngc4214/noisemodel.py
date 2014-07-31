@@ -92,7 +92,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwa
     return outname
 
 
-@task_decorator
+@task_decorator()
 def t_gen_noise_model(project, sedgrid, astfile, outname=None,
                       covariance=None, *args, **kwargs):
     """
