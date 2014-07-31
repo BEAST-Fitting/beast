@@ -79,7 +79,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwa
         else:   # assumes a cov matrix
             abs_calib_2 = np.diag(covariance)
 
-        noise = np.sqrt(abs_calib_2 * sedgrid.seds ** 2 + sigma ** 2)
+        noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma ** 2)
     else:
         noise = sigma
 
