@@ -127,10 +127,7 @@ def t_gen_noise_model(project, sedgrid, astfile, outname=None,
         SED model grid instance
     """
     if outname is None:
-        outname = project
-        if outname[-1] != '/':
-            outname += '/'
-        outname += '{0:s}_noisemodel.hd5'.format(project)
+        outname = '{0:s}_noisemodel.hd5'.format(project)
 
     noise_source = RequiredFile(outname, make_toothpick_noise_model, outname,
                                 astfile, sedgrid, covariance=covariance,
