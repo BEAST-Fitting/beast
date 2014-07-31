@@ -31,7 +31,7 @@ from beast.external.ezunits import unit
 project = 'mf_ngc4214_July2014'
 
 obsfile = 'data/N4214_3band_detects.fits'
-astfile = 'data/data/N4214_gst_fake.fits'
+astfile = 'data/N4214_gst_fake.fits'
 
 filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
            'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
