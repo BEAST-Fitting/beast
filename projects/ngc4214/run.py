@@ -36,10 +36,11 @@ import noisemodel
 import sys
 
 if __name__ == '__main__':
-    if ('-?' in sys.argv[1]) or ('--help' in sys.argv[1]):
-        print(__doc__)
-    elif '-models' in sys.argv[1]:
-        make_models()
+    if len(sys.argv) > 1:
+        if ('-?' in sys.argv[1]) or ('--help' in sys.argv[1]):
+            print(__doc__)
+        elif '-models' in sys.argv[1]:
+            make_models()
     else:
         g = '{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project)
         noisefile = '{project:s}/{project:s}_noisemodel.hd5'.format(project=datamodel.project)
