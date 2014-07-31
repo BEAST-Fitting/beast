@@ -13,6 +13,8 @@ with limited quantity units handling to help both reading and robustness.
     By default units on returned values from function calls are turned off to
     avoid breaking possible other scripts.
 """
+import numpy as np
+
 # BEAST imports
 from beast.core import stellib
 from beast.core import extinction
@@ -36,12 +38,13 @@ filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
 
 
 # absflux calibration covariance matrix for NGC4214 specific filters
-calibration_covariance = [1.80e-4,  1.37e-4, 6.02e-5, 2.44e-5, 1.23e-6, -4.21e-6,
-                          1.37e-4,  1.09e-4, 5.72e-5, 3.23e-5, 1.65e-5, 1.32e-5,
-                          6.02e-5,  5.72e-5, 5.07e-5, 4.66e-5, 4.40e-5, 4.34e-5,
-                          2.44e-5,  3.23e-5, 4.66e-5, 5.42e-5, 5.87e-5, 5.99e-5,
-                          1.23e-6,  1.65e-5, 4.40e-5, 5.87e-5, 6.98e-5, 7.33e-5,
-                          -4.21e-6, 1.32e-5, 4.34e-5, 5.99e-5, 7.33e-5, 7.81e-5 ]
+calibration_covariance = np.array(
+    [[1.80e-4,  1.37e-4, 6.02e-5, 2.44e-5, 1.23e-6, -4.21e-6],
+    [1.37e-4,  1.09e-4, 5.72e-5, 3.23e-5, 1.65e-5, 1.32e-5],
+    [6.02e-5,  5.72e-5, 5.07e-5, 4.66e-5, 4.40e-5, 4.34e-5],
+    [2.44e-5,  3.23e-5, 4.66e-5, 5.42e-5, 5.87e-5, 5.99e-5],
+    [1.23e-6,  1.65e-5, 4.40e-5, 5.87e-5, 6.98e-5, 7.33e-5],
+    [-4.21e-6, 1.32e-5, 4.34e-5, 5.99e-5, 7.33e-5, 7.81e-5] ])
 
 #TODO: replace astfile below by noisemodel file
 #TODO: add task that computes the noisemodel file
