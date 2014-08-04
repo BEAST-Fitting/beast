@@ -114,9 +114,11 @@ class NGC4214_FluxCatalog(Observations):
             Measured integrated flux values throughout the filters in erg/s/cm^2
         """
         # catalog uses _VEGA which are vega magnitudes.
-        flux = 10 ** (-0.4 * Observations.getFlux(self, num)) * self.vega_flux
+        d = self.data[num]
+        flux = 10 ** (-0.4 * np.array([ d[self.data.resolve_alias(ok)] for ok in self.filters ])) * self.vega_flux
+
         if units is True:
-            return flux * unit['erg/s/cm^2']
+            return flux * unit['erg/s/cm**2']
         else:
             return flux
 
@@ -140,7 +142,7 @@ class NGC4214_FluxCatalog(Observations):
 
         fluxerr = 10 ** (-0.4 * Observations.getFluxerr(self, num)) * self.vega_flux
         if units is True:
-            return fluxerr * unit['erg/s/cm^2']
+            return fluxerr * unit['erg/s/cm**2']
         else:
             return fluxerr
 
