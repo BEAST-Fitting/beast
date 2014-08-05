@@ -10,10 +10,6 @@ SN_chi2           Computes a chi2 with split errors pr non-symmetric errors
 N_logLikelihood   Computes a normal likelihood (default, symmetric errors)
 SN_logLikelihood  Computes a Split Normal likelihood (asymmetric errors)
 getNorm_lnP       Compute the norm of a log-likelihood (overflow robust)
-
-
-:author:        MF
-:last update:   Mon May 20 11:43:27 PDT 2013
 """
 import numpy as np
 
@@ -22,21 +18,24 @@ def N_chi2(flux, fluxerr, fluxmod, mask=None):
     """ compute the non-reduced chi2 between data with uncertainties and
         perfectly known models
 
-    INPUTS:
-        flux:    np.ndarray[float, ndim=1]
-            array of fluxes
-        fluxerr: np.ndarray[float, ndim=1]
-            array of flux errors
-        fluxmod: np.ndarray[float, ndim=2]
-            array of modeled fluxes (nfilters , nmodels)
+    Parameters
+    ----------
+    flux:    np.ndarray[float, ndim=1]
+        array of fluxes
 
-    KEYWORDS:
-        mask:    np.ndarray[bool, ndim=1]
-            mask array to apply during the calculations mask.shape = flux.shape
+    fluxerr: np.ndarray[float, ndim=1]
+        array of flux errors
 
-    OUTPUTS:
-        chi2:    np.ndarray[float, ndim=1]
-            array of chi2 values (nmodels)
+    fluxmod: np.ndarray[float, ndim=2]
+        array of modeled fluxes (nfilters , nmodels)
+
+    mask:    np.ndarray[bool, ndim=1]
+        mask array to apply during the calculations mask.shape = flux.shape
+
+    Returns
+    -------
+    chi2:    np.ndarray[float, ndim=1]
+        array of chi2 values (nmodels)
     """
     if mask is None:
         temp = flux[None, :] - fluxmod
@@ -58,23 +57,27 @@ def SN_chi2(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None):
     """ compute the non-reduced chi2 between data with asymmetric uncertainties and
         perfectly known models
 
-    INPUTS:
-        flux:    np.ndarray[float, ndim=1]
-            array of fluxes
-        fluxerr_m: np.ndarray[float, ndim=1]
-            array of flux errors on the left side (<= flux)
-        fluxerr_p: np.ndarray[float, ndim=1]
-            array of flux errors on the right side (>= flux)
-        fluxmod: np.ndarray[float, ndim=2]
-            array of modeled fluxes (nfilters , nmodels)
+    Parameters
+    ----------
+    flux:    np.ndarray[float, ndim=1]
+        array of fluxes
 
-    KEYWORDS:
-        mask:    np.ndarray[bool, ndim=1]
-            mask array to apply during the calculations mask.shape = flux.shape
+    fluxerr_m: np.ndarray[float, ndim=1]
+        array of flux errors on the left side (<= flux)
 
-    OUTPUTS:
-        chi2:    np.ndarray[float, ndim=1]
-            array of chi2 values (nmodels)
+    fluxerr_p: np.ndarray[float, ndim=1]
+        array of flux errors on the right side (>= flux)
+
+    fluxmod: np.ndarray[float, ndim=2]
+        array of modeled fluxes (nfilters , nmodels)
+
+    mask:    np.ndarray[bool, ndim=1]
+        mask array to apply during the calculations mask.shape = flux.shape
+
+    Returns
+    -------
+    chi2:    np.ndarray[float, ndim=1]
+        array of chi2 values (nmodels)
     """
     if mask is None:
         temp = flux[None, :] - fluxmod
@@ -100,61 +103,69 @@ def N_chi2_NM(flux, fluxmod, fluxerr, fluxbias, mask=None):
     """ compute the non-reduced chi2 between data and model taking into account
     the noise model computed from ASTs.
 
-    INPUTS:
-        flux:    np.ndarray[float, ndim=1]
-            array of fluxes
-        fluxmod: np.ndarray[float, ndim=2]
-            array of modeled fluxes (nfilters , nmodels)
-        fluxerr: np.ndarray[float, ndim=2]
-            array of modeled fluxes (nfilters , nmodels)
-        fluxbias: np.ndarray[float, ndim=2]
-            array of modeled fluxes (nfilters , nmodels)
+    Parameters
+    ----------
+    flux:    np.ndarray[float, ndim=1]
+        array of fluxes
 
-    KEYWORDS:
-        mask:    np.ndarray[bool, ndim=1]
-            mask array to apply during the calculations mask.shape = flux.shape
+    fluxmod: np.ndarray[float, ndim=2]
+        array of modeled fluxes (nfilters , nmodels)
 
-    OUTPUTS:
-        chi2:    np.ndarray[float, ndim=1]
-            array of chi2 values (nmodels)
+    fluxerr: np.ndarray[float, ndim=2]
+        array of dispersions per model (nfilters , nmodels)
+
+    fluxbias: np.ndarray[float, ndim=2]
+        array of fluxes biases per model (nfilters , nmodels)
+
+    mask:    np.ndarray[bool, ndim=1]
+        mask array to apply during the calculations mask.shape = flux.shape
+
+    Returns
+    -------
+    chi2:    np.ndarray[float, ndim=1]
+        array of chi2 values (nmodels)
     """
     if mask is None:
-        temp = flux[None, :] - (fluxmod-fluxbias)
+        temp = flux[None, :] - (fluxmod + fluxbias)
         _e = fluxerr
     else:
         _m = ~mask.astype(bool)
         temp = flux[_m]
-        temp = temp[None, :] - (fluxmod[:, _m]-fluxbias[:,_m])
+        temp = temp[None, :] - (fluxmod[:, _m] + fluxbias[:,_m])
         _e = fluxerr[:,_m]
-        #print _e
+
     for j in range(np.shape(_e)[1]):
-        #print j
-        #if _e[:,j] > 0: #By definition errors computed from ASTs are positive.
         temp[:,j] /= _e[:,j]
 
     return (temp ** 2).sum(axis=1)
+
 
 def SN_logLikelihood(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None, lnp_threshold=1000.):
     """ Compute the log of the chi2 likelihood between data with uncertainties and perfectly known models
     with split errors (or non symmetric errors)
 
-    INPUTS:
-        flux:    np.ndarray[float, ndim=1]
-            array of fluxes
-        fluxerr_m: np.ndarray[float, ndim=1]
-            array of flux errors on the left side (<= flux)
-        fluxerr_p: np.ndarray[float, ndim=1]
-            array of flux errors on the right side (>= flux)
-        fluxmod: np.ndarray[float, ndim=2]
-            array of modeled fluxes (Nfilters , Nmodels)
+    Parameters
+    ----------
+    flux:    np.ndarray[float, ndim=1]
+        array of fluxes
 
-    KEYWORDS:
-        mask:    np.ndarray[bool, ndim=1]
-            mask array to apply during the calculations mask.shape = flux.shape
-        lnp_threshold:  float
-            cut the values outside -x, x in lnp
+    fluxerr_m: np.ndarray[float, ndim=1]
+        array of flux errors on the left side (<= flux)
 
-    OUTPUTS:
+    fluxerr_p: np.ndarray[float, ndim=1]
+        array of flux errors on the right side (>= flux)
+
+    fluxmod: np.ndarray[float, ndim=2]
+        array of modeled fluxes (Nfilters , Nmodels)
+
+    mask:    np.ndarray[bool, ndim=1]
+        mask array to apply during the calculations mask.shape = flux.shape
+
+    lnp_threshold:  float
+        cut the values outside -x, x in lnp
+
+    Returns
+    -------
         lnP:    np.ndarray[float, ndim=1]
             array of ln(P) values (Nmodels)
 
@@ -186,21 +197,25 @@ def SN_logLikelihood(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None, lnp_thresho
 def N_logLikelihood(flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
     """ Compute the log of the chi2 likelihood between data with uncertainties and perfectly known models
 
-    INPUTS:
-        flux:    np.ndarray[float, ndim=1]
-            array of fluxes
-        fluxerr: np.ndarray[float, ndim=1]
-            array of flux errors
-        fluxmod: np.ndarray[float, ndim=2]
-            array of modeled fluxes (Nfilters , Nmodels)
+    Parameters
+    ----------
+    flux:    np.ndarray[float, ndim=1]
+        array of fluxes
 
-    KEYWORDS:
-        mask:    np.ndarray[bool, ndim=1]
-            mask array to apply during the calculations mask.shape = flux.shape
-        lnp_threshold:  float
-            cut the values outside -x, x in lnp
+    fluxerr: np.ndarray[float, ndim=1]
+        array of flux errors
 
-    OUTPUTS:
+    fluxmod: np.ndarray[float, ndim=2]
+        array of modeled fluxes (Nfilters , Nmodels)
+
+    mask:    np.ndarray[bool, ndim=1]
+        mask array to apply during the calculations mask.shape = flux.shape
+
+    lnp_threshold:  float
+        cut the values outside -x, x in lnp
+
+    Returns
+    -------
         lnP:    np.ndarray[float, ndim=1]
             array of ln(P) values (Nmodels)
 
@@ -229,30 +244,40 @@ def N_logLikelihood(flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
 
     return lnP
 
+
 def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None, lnp_threshold=1000.):
-    """ Computes the log of the chi2 likelihood between data and model taking into account the noise model.
+    """ Computes the log of the chi2 likelihood between data and model taking
+    into account the noise model.
 
-    INPUTS:
-        flux:    np.ndarray[float, ndim=1]
-            array of fluxes
-        fluxmod: np.ndarray[float, ndim=2]
-            array of modeled fluxes (nfilters , nmodels)
-        fluxerr: np.ndarray[float, ndim=2]
-            array of modeled fluxes (nfilters , nmodels)
-        fluxbias: np.ndarray[float, ndim=2]
-            array of modeled fluxes (nfilters , nmodels)
+    Parameters
+    ----------
+    flux: np.ndarray[float, ndim=1]
+        array of fluxes
 
-    KEYWORDS:
-        mask:    np.ndarray[bool, ndim=1]
-            mask array to apply during the calculations mask.shape = flux.shape
-        lnp_threshold:  float
-            cut the values outside -x, x in lnp
+    fluxmod: np.ndarray[float, ndim=2]
+        array of modeled fluxes (nfilters , nmodels)
 
-    OUTPUTS:
-        lnP:    np.ndarray[float, ndim=1]
-            array of ln(P) values (Nmodels)
+    fluxerr: np.ndarray[float, ndim=2]
+        array of modeled fluxes (nfilters , nmodels)
 
-        with P = 1/[sqrt(2pi) * sig**2 ] * exp ( - 0.5 * chi2 )
+    fluxbias: np.ndarray[float, ndim=2]
+        array of modeled fluxes (nfilters , nmodels)
+
+    mask:    np.ndarray[bool, ndim=1]
+        mask array to apply during the calculations mask.shape = flux.shape
+
+    lnp_threshold:  float
+        cut the values outside -x, x in lnp
+
+    Returns
+    -------
+    lnP:    np.ndarray[float, ndim=1]
+        array of ln(P) values (Nmodels)
+
+    .. math::
+
+        P = \\frac{1}{\\sqrt{2pi} * \\sigma} \\times exp ( - \\chi^2 / 2 )
+        and \\chi ^ 2 = \\sum_{k} (flux_{obs,k} - flux_{pred,k} - \mu_k) ^ 2 / \sigma^2_{pred,k}
     """
     ni, nj = np.shape(fluxmod)
 
@@ -264,9 +289,9 @@ def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None, lnp_threshol
     else:
         _m = ~mask.astype(bool)
         temp1 = fluxerr[:,_m]
-    
+
     n = np.shape(temp1)[1]  # By definition errors computed from ASTs are positive.
-    # lnQ different for each model 
+    # lnQ different for each model
     lnQ = n * temp + np.sum(np.log(temp1),axis=1)
     #lnQ is to be used * -1
 
@@ -277,17 +302,22 @@ def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None, lnp_threshol
 
     return (lnP, _chi2)
 
+
 def N_covar_logLikelihood(flux, inv_cholesky_covar, lnQ, bias, fluxmod):
     """
     Compute the log-likelihood given data, a covariance matrix,
     and a bias term. Very slow.
-    INPUTS:
-        flux:    np.ndarray([float, ndim=1])
-             Measured fluxes
-        inv_cholesky_covar:   np.ndarray([float, ndim=3])
-             The inverses of the Cholesky decompositions of the covariance matrices
-        lnQ:     np.ndarray([float, ndim=1])
-             Logarithm of the determinants of the covariance matrices
+
+    Parameters
+    ----------
+    flux:    np.ndarray([float, ndim=1])
+            Measured fluxes
+
+    inv_cholesky_covar:   np.ndarray([float, ndim=3])
+            The inverses of the Cholesky decompositions of the covariance matrices
+
+    lnQ:     np.ndarray([float, ndim=1])
+            Logarithm of the determinants of the covariance matrices
 
     """
     lnP = np.zeros(fluxmod.shape)
@@ -304,13 +334,15 @@ def getNorm_lnP(lnP):
     """ Compute the norm of a log-likelihood
     To make sure we don't have overflows, we normalize the sum by its max
 
-    INPUTS:
-        lnP:    np.ndarray[float, ndim=1]
-            array of ln(P) values (Nmodels)
+    Parameters
+    ----------
+    lnP:    np.ndarray[float, ndim=1]
+        array of ln(P) values (Nmodels)
 
-    OUTPUTS:
-        norm:   float
-            sum_i { exp( lnP[i] ) }
+    Returns
+    -------
+    norm:   float
+        sum_i { exp( lnP[i] ) }
     """
     K = max(lnP)
     norm = np.exp(K) * np.sum(np.exp(lnP - K))
