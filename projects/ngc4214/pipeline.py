@@ -172,6 +172,8 @@ def make_models(*args, **kwargs):
                        av=datamodel.avs,
                        rv=datamodel.rvs,
                        fbump=datamodel.fbumps)
+    if hasattr(datamodel, 'get_spectral_properties_kwargs'):
+        seds_kwargs['add_spectral_properties_kwargs'] = datamodel.get_spectral_properties_kwargs()
 
     noise_kwargs = dict(covariance=datamodel.calibration_covariance)
 
