@@ -30,8 +30,8 @@ from .gridhelpers import pretty_size_print, isNestedInstance
 def find_backend(txt):
     """find_backend
 
-    keywords
-    --------
+    Parameters
+    ----------
 
     txt: str
         name to find in the list
@@ -55,8 +55,9 @@ class ModelGrid(object):
     """ Generic class for a minimum update of future codes """
     def __init__(self, *args, **kwargs):
         """
-        keywords
-        --------
+        Parameters
+        ----------
+
         *args and **kwargs are directly forwarded to the backend constructor
 
         lamb: ndarray or str or GridBackend
@@ -182,15 +183,28 @@ class SpectralGrid(ModelGrid):
     def getSEDs(self, filter_names, absFlux=True, extLaw=None, inplace=False, **kwargs):
         """
         Extract integrated fluxes through filters
-        INPUTS:
-            filter_names    list    list of filter names according to the filter lib
-        KEYWORDS:
-            absFlux         bool    returns absolute fluxes if set
-            extLaw          extinction.ExtinctionLaw    apply extinction law if provided
-            import pdb; pdb.set_trace() ### XXX BREAKPOINT
-            inplace         bool                        if set, do not copy the grid and apply on it
 
-            **kwargs        extra keywords will be forwrded to extLaw
+        Parameters
+        ----------
+        filter_names: list
+            list of filter names according to the filter lib or filter instances
+            (no mixing between name and instances)
+
+        absFlux:bool
+            returns absolute fluxes if set
+
+        extLaw: extinction.ExtinctionLaw
+            apply extinction law if provided
+
+        inplace:bool
+            if set, do not copy the grid and apply extinction on it
+
+        **kwargs extra keywords will be forwrded to extLaw
+
+        Returns
+        -------
+        memgrid: MemoryGrid instance
+            grid of SEDs
         """
         if type(filter_names[0]) == str:
             flist = phot.load_filters(filter_names, interp=True, lamb=self.lamb)
@@ -213,12 +227,22 @@ class SpectralGrid(ModelGrid):
     def applyExtinctionLaw(self, extLaw, inplace=False, **kwargs):
         """
         Apply an extinction law to the model grid
-        INPUTS:
-            extLaw          extinction.ExtinctionLaw    apply extinction law if provided
-        KEYWORDS:
-            inplace         bool                        if set, do not copy the grid and apply on it
 
-            **kwargs        extra keywords will be forwrded to extLaw
+        Parameters
+        ----------
+        extLaw: extinction.ExtinctionLaw
+            apply extinction law if provided
+
+        inplace: bool
+            if set, do not copy the grid and apply on it
+
+        **kwargs        extra keywords will be forwrded to extLaw
+
+        Return
+        ------
+        g: ModelGrid instance or None
+            if not inplace, returns a new ModelGrid instance. Otherwise returns
+            nothing
         """
         assert( isinstance(extLaw, extinction.ExtinctionLaw)), 'Expecting ExtinctionLaw object got %s' % type(extLaw)
         extCurve = np.exp(-1. * extLaw.function(self.lamb[:], **kwargs))
@@ -257,8 +281,8 @@ def MemoryGrid(lamb, seds=None, grid=None, header={}, aliases={}):
         Helps to create new grids on the fly. Because it deriveds from
         ModelGrid, this can be exported on disk too.
 
-    keywords
-    --------
+    Parameters
+    ----------
 
     lamb: ndarray or GridBackend subclass
         if ndarray: wavelength of the SEDs (requires seds and grid arguments)
@@ -289,8 +313,8 @@ def FileSEDGrid(fname, header={}, aliases={}, backend='memory'):
     """ Replace the FileSEDGrid class for backwards compatibility
         Generates a grid from a spectral library on disk
 
-    keywords
-    --------
+    Parameters
+    ----------
 
     lamb: ndarray or GridBackend subclass
         if ndarray: wavelength of the SEDs (requires seds and grid arguments)
