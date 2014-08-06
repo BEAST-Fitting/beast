@@ -190,7 +190,9 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
     return g
 
 
-def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=None):
+def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
+                           fbumps=None, add_spectral_properties_kwargs=None,
+                           **kwargs):
     """
     Extinguish spectra and extract an SEDGrid through given series of filters
     (all wavelengths in stellar SEDs and filter response functions are assumed
@@ -219,6 +221,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
     fbumps: sequence (optional)
         f_bump values to iterate over
         f_bump can be omitted if the extinction Law does not use it or allow fixed values
+
+    add_spectral_properties_kwargs: dict
+        keyword arguments to call :func:`add_spectral_properties` at each
+        iteration to add model properties from the spectra into the grid property table
 
     returns
     -------
@@ -303,12 +309,18 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
 
     _seds = np.empty( (N, len(filter_names)), dtype=float)
 
+    if add_spectral_properties_kwargs is not None:
+        nameformat = add_spectral_properties.pop('nameformat', '{0:s}') + '_1'
+
     for count, pt in Pbar(npts, desc='SED grid').iterover(enumerate(pts)):
 
         if with_fb:
             Av, Rv, f_bump = pt
             Rv_MW = extLaw.get_Rv_A(Rv, f_bump)
-            temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv, f_bump=f_bump)
+            r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_bump=f_bump, inplace=False)
+            if add_spectral_properties_kwargs is not None:
+                add_spectral_properties(r, nameformat=nameformat, **add_spectral_properties_kwargs)
+            temp_results = r.getSEDs(filter_names)
             # adding the dust parameters to the models
             cols['Av'][N0 * count: N0 * (count + 1)] = Av
             cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
@@ -316,7 +328,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
             cols['Rv_MW'][N0 * count: N0 * (count + 1)] = Rv_MW
         else:
             Av, Rv = pt
-            temp_results = g0.getSEDs(filter_names, extLaw=extLaw, Av=Av, Rv=Rv)
+            r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
+            if add_spectral_properties_kwargs is not None:
+                add_spectral_properties(r, nameformat=nameformat, **add_spectral_properties_kwargs)
+            temp_results = r.getSEDs(filter_names)
             # adding the dust parameters to the models
             cols['Av'][N0 * count: N0 * (count + 1)] = Av
             cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
@@ -344,8 +359,56 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs, fbumps=Non
     return g
 
 
-#=================== TESTUNITS ============================
+def add_spectral_properties(specgrid, filternames=None, filters=None, callables=None, nameformat=None):
+    """ Addon spectral calculations to spectral grids to extract in the fitting
+    routines
 
+    Parameters
+    ----------
+    specgrid: SpectralGrid instance
+        instance of the spectral grid
+
+    filternames: sequence(str)
+        compute the integrated values through given filters in the library
+
+    filters: sequence(Filters)
+        sequence of filter instances from which extract integrated values
+
+    callables: sequence(callable)
+        sequence of functions to apply onto the spectral grid assuming storing
+        results is internally processed by the individual functions
+
+    nameformat: str
+        naming format to adopt for filternames and filters
+        default value is '{0:s}' where the value will be the filter name
+
+    Returns
+    -------
+    specgrid: SpectralGrid instance
+        instance of the input spectral grid which will include more properties
+    """
+    if nameformat is None:
+        nameformat = '{0:s}'
+    if filternames is not None:
+        temp = specgrid.getSEDs(filternames, extLaw=None)
+        for i, fk in enumerate(filternames):
+            specgrid.grid[nameformat.format(fk)] = temp.seds[:, i]
+        del temp
+
+    if filters is not None:
+        temp = specgrid.getSEDs(filters, extLaw=None)
+        for i, fk in enumerate(filters):
+            specgrid.grid[nameformat.format(fk.name)] = temp.seds[:, i]
+        del temp
+
+    if callables is not None:
+        for fn in callables:
+            fn(specgrid)
+
+    return specgrid
+
+
+#=================== TESTUNITS ============================
 def test_gen_spectral_grid_from_stellib_given_points():
     """test_gen_spectral_grid_from_stellib_given_points
     Make sure it runs and returns a grid
