@@ -26,7 +26,7 @@ import numpy as np
 
 # BEAST imports
 from beast.core import grid
-from beast.core import createbiggrid as creategrid
+from beast.core import createbiggrid as creategrid, add_spectral_properties
 from beast.core import stellib
 from beast.core import extinction
 from beast.core import isochrone
@@ -76,7 +76,8 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):
     return outname
 
 
-def make_spectra(outname, oiso, osl=None, bounds={}, **kwargs):
+def make_spectra(outname, oiso, osl=None, bounds={},
+                 add_spectral_properties_kwargs=None, **kwargs):
     """
      a spectral grid will be generated using the stellar parameters by
      interpolation of the isochrones and the generation of spectra into the
@@ -93,6 +94,10 @@ def make_spectra(outname, oiso, osl=None, bounds={}, **kwargs):
 
     osl: stellib.Stellib object
         Spectral library to use (default stellib.Kurucz)
+
+    add_spectral_properties_kwargs: dict
+        keyword arguments to call :func:`add_spectral_properties`
+        to add model properties from the spectra into the grid property table
 
     Returns
     -------
@@ -111,6 +116,10 @@ def make_spectra(outname, oiso, osl=None, bounds={}, **kwargs):
     #make the spectral grid
     print('Make spectra')
     g = creategrid.gen_spectral_grid_from_stellib_given_points(osl, oiso.data, bounds=bounds)
+
+    if add_spectral_properties_kwargs is not None:
+        nameformat = add_spectral_properties.pop('nameformat', '{0:s}') + '_0'
+        g = add_spectral_properties(g, nameformat=nameformat, **add_spectral_properties_kwargs)
 
     #write to disk
     if hasattr(g, 'writeHDF'):
