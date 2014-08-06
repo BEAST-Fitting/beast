@@ -26,7 +26,7 @@ import numpy as np
 
 # BEAST imports
 from beast.core import grid
-from beast.core import createbiggrid as creategrid, add_spectral_properties
+from beast.core import createbiggrid as creategrid
 from beast.core import stellib
 from beast.core import extinction
 from beast.core import isochrone
@@ -119,7 +119,7 @@ def make_spectra(outname, oiso, osl=None, bounds={},
 
     if add_spectral_properties_kwargs is not None:
         nameformat = add_spectral_properties.pop('nameformat', '{0:s}') + '_0'
-        g = add_spectral_properties(g, nameformat=nameformat, **add_spectral_properties_kwargs)
+        g = creategrid.add_spectral_properties(g, nameformat=nameformat, **add_spectral_properties_kwargs)
 
     #write to disk
     if hasattr(g, 'writeHDF'):
