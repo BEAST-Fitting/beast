@@ -374,7 +374,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
         chunksize = npts
 
     if add_spectral_properties_kwargs is not None:
-        nameformat = add_spectral_properties.pop('nameformat', '{0:s}') + '_1'
+        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_1'
 
     for chunk_pts in helpers.chunks(pts, chunksize):
         # iter over chunks of models
@@ -477,13 +477,13 @@ def add_spectral_properties(specgrid, filternames=None, filters=None, callables=
     if filternames is not None:
         temp = specgrid.getSEDs(filternames, extLaw=None)
         for i, fk in enumerate(filternames):
-            specgrid.grid[nameformat.format(fk)] = temp.seds[:, i]
+            specgrid.grid.addCol(nameformat.format(fk), temp.seds[:, i])
         del temp
 
     if filters is not None:
         temp = specgrid.getSEDs(filters, extLaw=None)
         for i, fk in enumerate(filters):
-            specgrid.grid[nameformat.format(fk.name)] = temp.seds[:, i]
+            specgrid.grid.addCol(nameformat.format(fk.name), temp.seds[:, i])
         del temp
 
     if callables is not None:
