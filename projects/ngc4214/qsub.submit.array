@@ -1,0 +1,34 @@
+#!/bin/sh
+# This script submit to CHEX's SGE queue em.py over an "array" of clusters
+#
+# USAGE:
+#	> qsub -t 1-10:1 qsub.submit.array
+#	(this will submit <CMD> 1 then <CMD> 2 ...)
+#
+#======== SGE ============
+#$ -S /bin/sh
+# The batch system should use the current directory as working directory.
+#$ -cwd
+# Join the error stream to the output stream.
+#$ -j yes
+# Send status information to this email address.
+#$ -M fouesneau@mpia.de
+# Send an e-mail when the job is done.
+#$ -m e
+# Job Name
+#$ -N "Beast_NGC4214"
+# Parallel mode
+#$ -pe openmp 1
+#======== SGE ============
+
+
+# define python to EPD envir
+if [ -z $EPDDIR ]; then
+	export EPDDIR="/opt/epd-7.3-2-rh3-x86_64/"
+	# define python to EPD envir
+	export PATH="${EPDDIR}/bin/:${PATH}"
+fi
+
+echo "Python Distribution: `python -c "import sys; print 'Python %s' % sys.version.split('\n')[0]"`"
+echo "python testunits.py ${SGE_TASK_ID}" 
+python run_parallel.py ${SGE_TASK_ID} 
