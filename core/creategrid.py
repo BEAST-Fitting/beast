@@ -25,7 +25,7 @@ from .gridhelpers import isNestedInstance
 from ..external import ezunits
 from ..external.eztables import Table
 from ..tools.pbar import Pbar
-from .priors import KDTreeDensityEstimator
+#from .priors import KDTreeDensityEstimator
 
 
 def gen_spectral_grid_from_stellib_given_points(osl, pts, bounds=dict(dlogT=0.1, dlogg=0.3)):
@@ -319,7 +319,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
             Rv_MW = extLaw.get_Rv_A(Rv, f_bump)
             r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_bump=f_bump, inplace=False)
             if add_spectral_properties_kwargs is not None:
-                add_spectral_properties(r, nameformat=nameformat, **add_spectral_properties_kwargs)
+                r = add_spectral_properties(r, nameformat=nameformat, **add_spectral_properties_kwargs)
             temp_results = r.getSEDs(filter_names)
             # adding the dust parameters to the models
             cols['Av'][N0 * count: N0 * (count + 1)] = Av
@@ -330,11 +330,16 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
             Av, Rv = pt
             r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
             if add_spectral_properties_kwargs is not None:
-                add_spectral_properties(r, nameformat=nameformat, **add_spectral_properties_kwargs)
+                r = add_spectral_properties(r, nameformat=nameformat, **add_spectral_properties_kwargs)
             temp_results = r.getSEDs(filter_names)
             # adding the dust parameters to the models
             cols['Av'][N0 * count: N0 * (count + 1)] = Av
             cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
+
+        # get new attributes if exist
+        for key in temp_results.grid.keys():
+            if key not in keys:
+                cols.setdefault(key, np.empty(N, dtype=float))[N0 * count: N0 * (count + 1)] = temp_results.grid[key]
 
         # assign the extinguished SEDs to the output object
         _seds[N0 * count: N0 * (count + 1)] = temp_results.seds[:]
