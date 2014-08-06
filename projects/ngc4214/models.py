@@ -21,6 +21,7 @@ grid = project | t_isochrones(**iso_kwargs) | t_spectra(**spec_kwargs) | t_seds(
 """
 
 # system imports
+from __future__ import print_function
 import sys
 import numpy as np
 
@@ -117,21 +118,27 @@ def make_spectra(outname, oiso, osl=None, bounds={},
     print('Make spectra')
     g = creategrid.gen_spectral_grid_from_stellib_given_points(osl, oiso.data, bounds=bounds)
 
+    print('Adding spectral properties:', add_spectral_properties_kwargs is not None)
     if add_spectral_properties_kwargs is not None:
-        nameformat = add_spectral_properties.pop('nameformat', '{0:s}') + '_0'
-        g = creategrid.add_spectral_properties(g, nameformat=nameformat, **add_spectral_properties_kwargs)
+        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_0'
 
     #write to disk
     if hasattr(g, 'writeHDF'):
+        if add_spectral_properties_kwargs is not None:
+            g = creategrid.add_spectral_properties(g, nameformat=nameformat, **add_spectral_properties_kwargs)
         g.writeHDF(outname)
     else:
         for gk in g:
+            if add_spectral_properties_kwargs is not None:
+                gk = creategrid.add_spectral_properties(gk, nameformat=nameformat, **add_spectral_properties_kwargs)
             gk.writeHDF(outname, append=True)
 
     return outname
 
 
-def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2], fbump=None, extLaw=None, **kwargs):
+def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
+              fbump=None, extLaw=None, add_spectral_properties_kwargs=None,
+              **kwargs):
     """make_seds -- Create SED model grid integrated into filters and
     extinguished using the rest of the parameters
 
@@ -161,6 +168,10 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2], fbum
     extLaw: extinction.ExtLaw
         extinction law to use during the process
 
+    add_spectral_properties_kwargs: dict
+        keyword arguments to call :func:`add_spectral_properties`
+        to add model properties from the spectra into the grid property table
+
     returns
     -------
 
@@ -177,9 +188,9 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2], fbum
 
     if fbump is not None:
         fbumps = np.arange(fbump[0], fbump[1] + 0.5 * fbump[2], fbump[2])
-        g = creategrid.make_extinguished_grid(specgrid, filters, extLaw, avs, rvs, fbumps)
+        g = creategrid.make_extinguished_grid(specgrid, filters, extLaw, avs, rvs, fbumps, add_spectral_properties_kwargs=add_spectral_properties_kwargs)
     else:
-        g = creategrid.make_extinguished_grid(specgrid, filters, extLaw, avs, rvs)
+        g = creategrid.make_extinguished_grid(specgrid, filters, extLaw, avs, rvs, add_spectral_properties_kwargs=add_spectral_properties_kwargs)
 
     #write to disk
     if hasattr(g, 'writeHDF'):
