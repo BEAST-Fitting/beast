@@ -21,6 +21,7 @@ from beast.core import extinction
 from beast.core.observations import Observations
 from beast.core.vega import Vega
 from beast.external.ezunits import unit
+from special import make_top_hat_filter
 
 #---------------------------------------------------------
 # User inputs                                   [sec:conf]
@@ -72,7 +73,14 @@ fbumps = [0., 1.01, 0.25]
 ##      in the above the upper limit makes sure the last point of interest is
 ##      included
 
-add_spectral_properties_kwargs = dict(filternames=filters)
+# extracting non-default spectral properties of the models
+# -------------------------------------------------------
+
+qion_filter = make_top_hat_filter(912., 2066., 1, 'F_QION')
+qion_filter.name = 'F_QION'  # getting rid of instrument etc
+# note: remember to multiply by bandwidth to get the actual energy
+
+add_spectral_properties_kwargs = dict(filternames=filters, filters=[qion_filter])
 
 
 class NGC4214_FluxCatalog(Observations):
