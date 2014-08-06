@@ -458,13 +458,13 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
     if keys is None:
         keys = g0.keys()
 
+    #make sure keys are real keys
+    skip_keys = 'osl keep weight'.split()
+    keys = [k for k in keys if k not in skip_keys]
+
     if method is None:
         method = 'best expectation percentile'.split()
 
-    #make sure keys are real keys
-    keys.remove('osl')
-    keys.remove('keep')
-    keys.remove('weight')
     for key in keys:
         if not (key in g0.keys()):
             raise KeyError('Key "{0}" not recognized'.format(key))
