@@ -46,10 +46,7 @@ calibration_covariance = np.array(
     [1.23e-6,  1.65e-5, 4.40e-5, 5.87e-5, 6.98e-5, 7.33e-5],
     [-4.21e-6, 1.32e-5, 4.34e-5, 5.99e-5, 7.33e-5, 7.81e-5] ])
 
-#TODO: replace astfile below by noisemodel file
-#TODO: add task that computes the noisemodel file
 noisefile = 'ngc4214/mf_phat_july14_noisemodel.hd5'
-
 
 distanceModulus = 27.41 * unit['mag']
 
@@ -74,6 +71,8 @@ fbumps = [0., 1.01, 0.25]
 ## ..note::
 ##      in the above the upper limit makes sure the last point of interest is
 ##      included
+
+add_spectral_properties_kwargs = dict(filternames=filters)
 
 
 class NGC4214_FluxCatalog(Observations):
