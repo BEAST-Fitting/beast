@@ -154,9 +154,11 @@ def merge_individual_outputs(obsfile=datamodel.obsfile, project=datamodel.projec
     """
     from glob import glob
     lst = glob('./{project:s}/{project:s}.part*_stats.fits'.format(project=project))
-    t = Table(lst[0])
-    for l in lst:
-        t.stack(Table(l).data)
+    N = len(lst)
+    fname = './{project:s}/{project:s}.part{chunk:d}_stats.fits'
+    t = Table(fname.format(project=project, chunk=0))
+    for c in range(N):
+        t.stack(Table(fname.format(project=project, chunk=c)).data)
     t.write('./{project:s}/{project:s}_stats.fits'.format(project=project))
     obs = Table(datamodel.obsfile)
     for k in t.keys():
