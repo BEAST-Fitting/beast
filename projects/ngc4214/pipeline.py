@@ -156,8 +156,10 @@ def merge_individual_outputs(obsfile=datamodel.obsfile, project=datamodel.projec
     lst = glob('./{project:s}/{project:s}.part*_stats.fits'.format(project=project))
     t = Table(lst[0])
     for l in lst:
+        print('Processing table: {0:s}'.format(l))
         t.stack(Table(l).data)
     t.write('./{project:s}/{project:s}_stats.fits'.format(project=project))
+    print('Merging with input catalog')
     obs = Table(datamodel.obsfile)
     for k in t.keys():
         obs.addCol(k, t[k])
