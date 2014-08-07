@@ -146,7 +146,6 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
                 gk = creategrid.add_spectral_properties(gk, nameformat=nameformat, **add_spectral_properties_kwargs)
             gk.writeHDF(outname, append=True)
 
-    raise Exception
     return outname
 
 
