@@ -29,7 +29,7 @@ from special import make_top_hat_filter
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'mf_ngc4214_Aug2014'
+project = 'mf_ngc4214_Aug2014_new'
 
 obsfile = 'data/N4214_3band_detects.fits'
 astfile = 'data/N4214_gst_fake.fits'
