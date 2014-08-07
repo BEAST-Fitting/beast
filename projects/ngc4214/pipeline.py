@@ -198,7 +198,7 @@ def make_models(*args, **kwargs):
                       z=datamodel.z)
 
     dmod = val_in_unit('distance Modulus', datamodel.distanceModulus, 'mag').magnitude
-    distance = 10 ** ( (dmod - 25.) / 5. ) * unit['pc']
+    distance = 10 ** ( (dmod / 5.) + 1 ) * unit['pc']
 
     spec_kwargs = dict(osl=datamodel.osl, distance=distance)
 
