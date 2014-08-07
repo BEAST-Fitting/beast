@@ -17,7 +17,9 @@ from beast.external.ezpipe import Pipeline
 from beast.external.ezpipe.helpers import task_decorator
 from beast.external.eztables import Table
 from beast.tools.helpers import chunks
+from beast.tools.helpers import val_in_unit
 from beast.tools.pbar import Pbar
+from beast.external.ezunits import unit
 
 import os
 
@@ -166,7 +168,10 @@ def make_models(*args, **kwargs):
                       dlogt=datamodel.logt[2],
                       z=datamodel.z)
 
-    spec_kwargs = dict(osl=datamodel.osl)
+    dmod = val_in_unit('distance Modulus', datamodel.distanceModulus, 'mag')
+    distance = 10 ** ( (dmod - 25.) / 5. ) * unit['pc']
+
+    spec_kwargs = dict(osl=datamodel.osl, distance=distance)
 
     seds_kwargs = dict(extLaw=datamodel.extLaw,
                        av=datamodel.avs,
