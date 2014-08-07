@@ -120,8 +120,6 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
     if 'dlogg' not in bounds:
         bounds['dlogg'] = 0.3
 
-    print('distance', distance)
-    raise Exception
     #make the spectral grid
     print('Make spectra')
     g = creategrid.gen_spectral_grid_from_stellib_given_points(osl, oiso.data, bounds=bounds)
@@ -148,6 +146,7 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
                 g.seds[:] = g.seds / (0.1 * _distance) ** 2
             gk.writeHDF(outname, append=True)
 
+    raise Exception
     return outname
 
 
