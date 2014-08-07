@@ -133,17 +133,17 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
 
     #write to disk
     if hasattr(g, 'writeHDF'):
+        if distance is not None:
+            g.seds = g.seds / (0.1 * _distance) ** 2
         if add_spectral_properties_kwargs is not None:
             g = creategrid.add_spectral_properties(g, nameformat=nameformat, **add_spectral_properties_kwargs)
-        if distance is not None:
-            g.seds /= (0.1 * _distance) ** 2
         g.writeHDF(outname)
     else:
         for gk in g:
+            if distance is not None:
+                gk.seds = gk.seds / (0.1 * _distance) ** 2
             if add_spectral_properties_kwargs is not None:
                 gk = creategrid.add_spectral_properties(gk, nameformat=nameformat, **add_spectral_properties_kwargs)
-            if distance is not None:
-                gk.seds /= (0.1 * _distance) ** 2
             gk.writeHDF(outname, append=True)
 
     raise Exception
