@@ -103,7 +103,7 @@ class Observations(object):
         _val = val_in_unit('distance Modulus', val, 'mag')
 
         self.distanceModulus = _val
-        self.distance = 10 ** ( (_val.magnitude - 25.) / 5. ) * unit['pc']
+        self.distance = (10 ** (_val.magnitude / 5. + 1. )) * unit['pc']
 
     def setDistance(self, val):
         """ Set observed object distance to X Megaparsecs
