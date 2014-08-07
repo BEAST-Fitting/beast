@@ -126,7 +126,6 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
 
     if distance is not None:
         _distance = val_in_unit('distance', distance, 'pc').magnitude
-        g.seds /= (0.1 * _distance) ** 2
 
     print('Adding spectral properties:', add_spectral_properties_kwargs is not None)
     if add_spectral_properties_kwargs is not None:
@@ -136,11 +135,15 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
     if hasattr(g, 'writeHDF'):
         if add_spectral_properties_kwargs is not None:
             g = creategrid.add_spectral_properties(g, nameformat=nameformat, **add_spectral_properties_kwargs)
+        if distance is not None:
+            g.seds /= (0.1 * _distance) ** 2
         g.writeHDF(outname)
     else:
         for gk in g:
             if add_spectral_properties_kwargs is not None:
                 gk = creategrid.add_spectral_properties(gk, nameformat=nameformat, **add_spectral_properties_kwargs)
+            if distance is not None:
+                gk.seds /= (0.1 * _distance) ** 2
             gk.writeHDF(outname, append=True)
 
     return outname
