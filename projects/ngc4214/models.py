@@ -34,6 +34,7 @@ from beast.core import isochrone
 from beast.core.isochrone import ezIsoch
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 from beast.external.ezpipe import Pipeline
+from beast.tools.helpers import val_in_unit
 #from beast.external.eztables import Table
 
 __all__ = [ 't_isochrones',  't_spectra', 't_seds' ]
@@ -77,7 +78,7 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):
     return outname
 
 
-def make_spectra(outname, oiso, osl=None, bounds={},
+def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
                  add_spectral_properties_kwargs=None, **kwargs):
     """
      a spectral grid will be generated using the stellar parameters by
@@ -95,6 +96,11 @@ def make_spectra(outname, oiso, osl=None, bounds={},
 
     osl: stellib.Stellib object
         Spectral library to use (default stellib.Kurucz)
+
+    distance: float
+        Distance at which models should be shifted
+        0 means absolute magnitude.
+        Expecting pc units
 
     add_spectral_properties_kwargs: dict
         keyword arguments to call :func:`add_spectral_properties`
@@ -117,6 +123,10 @@ def make_spectra(outname, oiso, osl=None, bounds={},
     #make the spectral grid
     print('Make spectra')
     g = creategrid.gen_spectral_grid_from_stellib_given_points(osl, oiso.data, bounds=bounds)
+
+    if distance is not None:
+        _distance = val_in_unit('distance', distance, 'pc').magnitude
+        g.seds /= (0.1 * _distance) ** 2
 
     print('Adding spectral properties:', add_spectral_properties_kwargs is not None)
     if add_spectral_properties_kwargs is not None:
