@@ -137,6 +137,35 @@ def prepare_individual_inputs(obsfile, chunksize=14000):
     return obsfiles
 
 
+def merge_individual_outputs(obsfile=datamodel.obsfile, project=datamodel.project):
+    """
+    Parameters
+    ----------
+    obsfile: fname
+        input file containing observations
+
+    project: str
+        project name that will identify the individual parts
+
+    Returns
+    -------
+    obs: Table
+        final catalog Table
+    """
+    from glob import glob
+    lst = glob('./{project:s}/{project:s}.part*_stats.fits'.format(project=project))
+    t = Table(lst[0])
+    for l in lst:
+        t.stack(Table(l).data)
+    t.write('./{project:s}/{project:s}_stats.fits'.format(project=project))
+    obs = Table(datamodel.obsfile)
+    for k in t.keys():
+        obs.addCol(k, t[k])
+    obs.write('./{project:s}/{project:s}_merged.fits'.format(project=project))
+
+    return obs
+
+
 def make_models(*args, **kwargs):
     """ generates models from scratch
 
