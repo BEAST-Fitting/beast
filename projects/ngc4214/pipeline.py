@@ -157,7 +157,7 @@ def merge_individual_outputs(obsfile=datamodel.obsfile, project=datamodel.projec
     N = len(lst)
     fname = './{project:s}/{project:s}.part{chunk:d}_stats.fits'
     t = Table(fname.format(project=project, chunk=0))
-    for c in range(N):
+    for c in range(1, N):
         _fname = fname.format(project=project, chunk=c)
         print('Processing table: {0:s}'.format(_fname))
         t.stack(Table(_fname).data)
