@@ -1,21 +1,30 @@
-""" Trying to speed up the photometry part """
+"""
+Photometric package
+===================
 
-from ..config import __NTHREADS__
-from ..config import __USE_NUMEXPR__
-if __USE_NUMEXPR__:
-    import numexpr
-    numexpr.set_num_threads(__NTHREADS__)
+Defines a Filter class and associated functions to extract photometry.
 
+This also include functions to keep libraries up to date
+
+.. note::
+
+    integrations are done using :func:`trapz`
+    Why not Simpsons? Simpsons principle is to take sequence of 3 points to
+    make a quadratic interpolation. Which in the end, when filters have sharp
+    edges, the error due to this "interpolation" are extremely large in
+    comparison to the uncertainties induced by trapeze integration.
+"""
+from __future__ import print_function, division
+import sys
 import numpy
 import tables
-from scipy.integrate import simps
-
+from scipy.integrate import trapz
 
 from ..tools.decorators import timeit
 from ..config import __ROOT__
 
 __default__      = __ROOT__ + '/libs/filters.hd5'
-#__default_vega__ = __ROOT__ + '/libs/vega.hd5'
+__default_vega__ = __ROOT__ + '/libs/vega.hd5'
 
 # this is used to convert from bolometric luminosities to abs fluxes
 # object to 10parsecs -- abs mag.
@@ -28,13 +37,15 @@ class Filter(object):
     """
     #----------------------------------------------------------------------
     def info(self):
+
+        print("""
+Filter object information:
+    name: {s.name:s}
+    central wavelength: {s.cl:f}
+    norm: {s.norm:f}
+    pivot wavelength: {s.lpivot:f}
+    definition contains {s.transmit.size:d} points""".format(s=self))
         """ display information about the current filter"""
-        print "Filter object information:"
-        print "   name: %s" % self.name
-        print "   central wavelength: %f" % self.cl
-        print "   norm: %f" % self.norm
-        print "   pivot wavelength: %f" % self.lpivot
-        print "   definition contains %d points" % self.transmit.size
 
     def __repr__(self):
         return "Filter: %s, %s" % (self.name, object.__repr__(self))
@@ -42,12 +53,21 @@ class Filter(object):
     def getFlux(self, slamb, sflux):
         """getFlux
         Integrate the flux within the filter and return the integrated energy
-        If you consider applying the filter to many spectra, you might want to consider extractSEDs
-        INPUTS:
-           slamb: spectrum wavelength definition domain
-           sflux: associated flux
-        OUTPUTS:
-           <float>: Energy of the spectrum within the filter
+        If you consider applying the filter to many spectra, you might want to
+        consider extractSEDs.
+
+        Parameters
+        ----------
+        slamb: ndarray(dtype=float, ndim=1)
+            spectrum wavelength definition domain
+
+        sflux: ndarray(dtype=float, ndim=1)
+            associated flux
+
+        Returns
+        -------
+        flux: float
+            Energy of the spectrum within the filter
         """
         if True in numpy.isinf(sflux):
             indinf = numpy.where(numpy.isinf(sflux))
@@ -59,7 +79,7 @@ class Filter(object):
             a = numpy.trapz( slamb[ind] * ifT[ind] * sflux[ind], slamb[ind] )
             b = numpy.trapz( slamb[ind] * ifT[ind], slamb[ind] )
             if (numpy.isinf(a) | numpy.isinf(b)):
-                print self.name, "Warn for inf value"
+                print(self.name, "Warn for inf value")
             return a / b
         else:
             return 0.
@@ -68,13 +88,21 @@ class Filter(object):
         return self.applyTo(slamb, sflux)
 
     def applyTo(self, slamb, sflux):
-        """applyTo
+        """
         Apply filter to a spectrum
-        INPUTS:
-           slamb: spectrum wavelength definition domain
-           sflux: associated flux
-        OUTPUTS:
-           [<float>]: new spectrum values accounting for the filter
+
+        Parameters
+        ----------
+        slamb: ndarray
+            spectrum wavelength definition domain
+
+        sflux: ndarray
+            associated flux
+
+        Returns
+        -------
+        flux: float
+            new spectrum values accounting for the filter
         """
         ifT = numpy.interp(slamb, self.wavelength, self.transmit)
         return ifT * sflux
@@ -84,22 +112,33 @@ class Filter(object):
         self.name       = name
         self.wavelength = wavelength
         self.transmit   = transmit
-        self.norm       = simps(transmit, wavelength)
-        self.lT         = simps(wavelength * transmit, wavelength)
-        self.lpivot     = numpy.sqrt( self.lT / simps(transmit / wavelength, wavelength) )
+        self.norm       = trapz(transmit, wavelength)
+        self.lT         = trapz(wavelength * transmit, wavelength)
+        self.lpivot     = numpy.sqrt( self.lT / trapz(transmit / wavelength, wavelength) )
         self.cl         = self.lT / self.norm
 
 
 def __load__(fname, ftab, interp=True, lamb=None):
     """ Load a given filter from the library
-        INPUTS:
-            fname       str                     normalized names according to filtersLib
-            ftab        hd5root                 root from the filter library hd5 file
-        KEYWORDS:
-            interp      bool                    reinterpolate the filters over given lambda points
-            lamb        ndarray[float, ndim=1]  desired wavelength definition of the filter
-        OUTPUTS:
-            filter      filter                  filter object
+
+    Parameters
+    ----------
+    fname: str
+        normalized names according to filtersLib
+
+    ftab: hd5root
+        root from the filter library hd5 file
+
+    interp: bool, optional
+        reinterpolate the filters over given lambda points
+
+    lamb: ndarray[float, ndim=1]
+        desired wavelength definition of the filter
+
+    Returns
+    -------
+    filter: Filter instance
+        filter object
     """
     fnode    = ftab.getNode('/filters/' + fname)
     flamb    = fnode[:]['WAVELENGTH']
@@ -113,12 +152,22 @@ def __load__(fname, ftab, interp=True, lamb=None):
 
 def load_all_filters(interp=True, lamb=None, filterLib=None):
     """ load all filters from the library
-        KEYWORDS:
-            interp      bool                    reinterpolate the filters over given lambda points
-            lamb        ndarray[float, ndim=1]  desired wavelength definition of the filter
-            filterLib   path                    path to the filter library hd5 file
-        OUTPUTS:
-            filters     list[filter]            list of filter objects
+
+    Parameters
+    ----------
+    interp: bool
+        reinterpolate the filters over given lambda points
+
+    lamb: ndarray[float, ndim=1]
+        desired wavelength definition of the filter
+
+    filterLib:  str
+        path to the filter library hd5 file
+
+    Returns
+    -------
+    filters: list[filter]
+        list of filter objects
     """
     if filterLib is None:
         filterLib = __default__
@@ -129,14 +178,25 @@ def load_all_filters(interp=True, lamb=None, filterLib=None):
 
 def load_filters(names, interp=True, lamb=None, filterLib=None):
     """ load a limited set of filters
-        INPUTS:
-            names       list[str]               normalized names according to filtersLib
-        KEYWORDS:
-            interp      bool                    reinterpolate the filters over given lambda points
-            lamb        ndarray[float, ndim=1]  desired wavelength definition of the filter
-            filterLib   path                    path to the filter library hd5 file
-        OUTPUTS:
-            filters     list[filter]            list of filter objects
+
+        Parameters
+        ----------
+        names: list[str]
+            normalized names according to filtersLib
+
+        interp: bool
+            reinterpolate the filters over given lambda points
+
+        lamb: ndarray[float, ndim=1]
+            desired wavelength definition of the filter
+
+        filterLib: path
+            path to the filter library hd5 file
+
+        Returns
+        -------
+        filters: list[filter]
+            list of filter objects
     """
     if filterLib is None:
         filterLib = __default__
@@ -146,17 +206,29 @@ def load_filters(names, interp=True, lamb=None, filterLib=None):
 
 
 def extractPhotometry(lamb, spec, flist, absFlux=True):
-    """ Extract seds from a one single spectrum
+    """Extract seds from a one single spectrum
 
-        INPUTS:
-            lamb    ndarray[float,ndim=1]   wavelength of spec
-            spec    ndarray[float, ndim=1]  spectrum
-            flist   list[filter]            list of filter objects
-        KEYWORDS:
-            absflux bool                    return SEDs in absolute fluxes if set
-        OUTPUT:
-            cls     ndarray[float, ndim=1]  filters central wavelength
-            seds    ndarray[float, ndim=1]  integrated sed
+    Parameters
+    ----------
+    lamb: ndarray[float,ndim=1]
+        wavelength of spec
+
+    spec: ndarray[float, ndim=1]
+        spectrum
+
+    flist: list[filter]
+        list of filter objects
+
+    absflux: bool
+        return SEDs in absolute fluxes if set
+
+    Returns
+    -------
+    cls: ndarray[float, ndim=1]
+        filters central wavelength
+
+    seds: ndarray[float, ndim=1]
+        integrated sed
     """
     cls  = numpy.empty( len(flist), dtype=float)
     seds = numpy.empty( len(flist), dtype=float)
@@ -167,7 +239,7 @@ def extractPhotometry(lamb, spec, flist, absFlux=True):
         # apply absolute flux conversion if requested
         if absFlux:
             s0 /= distc
-        a = simps( tmp[None, :] * s0, lamb[xl], axis=1 )
+        a = trapz( tmp[None, :] * s0, lamb[xl], axis=1 )
         seds[e] = a / k.lT
         cls[e]  = k.cl
 
@@ -177,13 +249,27 @@ def extractPhotometry(lamb, spec, flist, absFlux=True):
 def extractSEDs(g0, flist, absFlux=True):
     """ Extract seds from a grid
 
-        INPUTS:
-            g0      grid            Initial spectral grid
-            flist   list[filter]    list of filter objects
-        KEYWORDS:
-            absflux bool            return SEDs in absolute fluxes if set
-        OUTPUT:
-            g       grid            SED grid object
+    Parameters
+    ----------
+    g0: ModelGrid instance
+        initial spectral grid
+
+    flist: sequence(filter)
+        list of filter object instances
+
+    absflux: bool
+        return SEDs in absolute fluxes if set
+
+    Returns
+    -------
+    cls: ndarray[float, ndim=1]
+        filters central wavelength
+
+    seds: ndarray[float, ndim=1]
+        integrated sed
+
+    grid: Table
+        SED grid properties table from g0 (g0.grid)
     """
     lamb = g0.lamb
     seds = numpy.empty(( len(g0.grid), len(flist) ), dtype=float)
@@ -195,7 +281,7 @@ def extractSEDs(g0, flist, absFlux=True):
         # apply absolute flux conversion if requested
         if absFlux:
             s0 /= distc
-        a = simps( tmp[None, :] * s0, lamb[xl], axis=1 )
+        a = trapz( tmp[None, :] * s0, lamb[xl], axis=1 )
         seds[:, e] = a / k.lT
         cls[e] = k.cl
 
@@ -329,6 +415,151 @@ def magErrToFlux(mag, err):
     """
     flux = magToFlux(mag)
     return flux, flux * ( 1. - magToFlux(err) )
+
+
+class __newFilterTable__(tables.IsDescription):
+    """ define table to store filter dataset """
+    WAVELENGTH = tables.FloatCol(pos=0)
+    THROUGHPUT = tables.FloatCol(pos=1)
+
+
+def append_filter(lamb, flux, tablename, observatory, instrument, name,
+                  comment=None, filterLib=__default__, updateVegaLib=True):
+    """
+    Edit the filter catalog and append a new one given by its transfer function
+
+    Parameters
+    ----------
+    lamb: ndarray(dtype=float)
+        wavelength of the filter definition
+
+    flux: ndarray(dtype=float)
+        transimission of the filter
+
+    tablename: str
+        table name in the library
+
+    observatory: str
+        observatory of the filter (Ground, HST, Spitzer, ...)
+
+    instrument: str
+        instrument associated with the filter
+
+    name: str
+        name of the filter
+
+    comment: str, optional
+        optinal comment to keep with the filter
+
+    filterLib: str, optional
+        filter library file to use
+
+    updateVegaLib: bool
+        if set calls the update function to the vega library
+    """
+    ftab = tables.openFile(filterLib, 'a')
+    contentTab = ftab.getNode('/content')
+    if contentTab.readWhere('TABLENAME == "{0}"'.format(tablename)).size > 0:
+        print('% {0}: Filter {1} already exists. Returning'.format(sys.argv[0], tablename))
+        return
+
+    # Gen Filter object including relevant details
+    filtInst = filter(lamb, flux, name=name)
+    # Add a new line in the content table
+    newRow = contentTab.row
+    newRow['TABLENAME'] = tablename
+    newRow['OBSERVATORY'] = observatory
+    newRow['INSTRUMENT'] = instrument
+    newRow['NAME'] = filtInst.name
+    newRow['NORM'] = filtInst.norm
+    newRow['CWAVE'] = filtInst.cl
+    newRow['PWAVE'] = filtInst.lpivot
+    if comment is not None:
+        newRow['COMMENT'] = comment
+    newRow.append()
+    contentTab.flush()
+    # Create Table
+    newTab = ftab.createTable('/filters', tablename, __newFilterTable__,
+                              title=filtInst.name,
+                              expectedrows=filtInst.wavelength.size)
+    newRow = newTab.row
+    for i in xrange(filtInst.wavelength.size):
+        newRow["WAVELENGTH"] = filtInst.wavelength[i]
+        newRow["THROUGHPUT"] = filtInst.transmit[i]
+        newRow.append()
+    newTab.flush()
+    ftab.flush()
+    ftab.close()
+    print('% {0}: Filter {1} added to {2}'.format(sys.argv[0], name, filterLib))
+    if updateVegaLib:
+        appendVegaFilter(filtInst)
+
+
+#-------------------------------------------------------------------------------
+# VEGA SPECTRUM and VEGA ZEROPOINTS
+#-------------------------------------------------------------------------------
+def __analyseVegaSpectrum__(w, f, filters):
+    """
+    Returns property information from the application of a given set of filters
+
+    Parameters
+    ----------
+    w: ndarray(dtype=float)
+        wavelength definition of the spectrum
+
+    f: ndarray(dtype=float)
+        flux definition of the spectrum
+
+    Returns
+    -------
+    props: dict
+        properties to store with the filter that includes flux, magnitude
+        values.
+    """
+    nFilters = len(filters)
+    phot     = numpy.zeros((nFilters))
+    cwave    = numpy.zeros((nFilters))
+    fname    = []
+    mag      = numpy.zeros((nFilters))
+    for j in xrange(0, nFilters):
+        fname.append(filters[j].name)
+        cwave[j] = filters[j].cl
+        phot[j] = filters[j].getFlux( w, f )
+        mag[j] = -2.5 * numpy.log10(phot[j])
+    return ({ 'fname': fname, 'cwave': cwave, 'lum': phot, 'mag': mag})
+
+
+def appendVegaFilter(filtInst, VegaLib=__default_vega__):
+    """
+    Add filter properties to the Vega library
+
+    Parameters
+    ----------
+    filtInst: Filter instance
+        filter instance to get properties from and store information with Vega.
+
+    VegaLib: str
+        Vega Library
+    """
+    import tables
+    vtab = tables.openFile(VegaLib, 'a')
+    vl = vtab.root.spectrum[:]['WAVELENGTH']
+    vf = vtab.root.spectrum[:]['FLUX']
+    sedTab = vtab.getNode('/sed')
+    if sedTab.readWhere('FNAME == "{0}"'.format(filtInst.name)).size > 0:
+        print('% {0}: Filter {1} already exists. Returning'.format(sys.argv[0], filtInst.name))
+        return
+
+    data = __analyseVegaSpectrum__(vl, vf, [filtInst])
+    newRow = sedTab.row
+    newRow['FNAME'] = filtInst.name
+    newRow['CWAVE'] = filtInst.cl
+    newRow['LUM']   = data['lum'][0]
+    newRow['MAG']   = data['mag'][0]
+    newRow.append()
+    sedTab.flush()
+    vtab.close()
+    print('% {0}: Filter {1} added to {2}'.format(sys.argv[0], filtInst.name, VegaLib))
 
 
 def test(absFlux=True):
