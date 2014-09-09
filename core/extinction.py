@@ -5,9 +5,13 @@ on given laws.
 """
 import numpy as np
 from scipy import interpolate
-from . import phot
 
-__version__ = '0.1'
+from . import phot
+from .helpers import val_in_unit
+from .units import unit
+
+__version__ = '1.0'
+__all__ = ['Calzetti', 'Cardelli', 'ExtinctionLaw', 'Fitzpatrick99', 'Gordon03_SMCBar']
 
 
 class ExtinctionLaw(object):
@@ -19,22 +23,22 @@ class ExtinctionLaw(object):
         """ expected to contain a function of lambda that return the
         extinction values
         """
-        pass
+        raise NotImplementedError
 
     def inFilter(self, names, filterLib=None, *args, **kwargs):
         """
         returns the extinction value for a given filter band or filter color
         colors (e.g. U, U-B ...)
 
-        INPUTS
-        ------
+        Parameters
+        ----------
         names: str or list(str) or list(filters)
             filter names or filter instances to evaluate. a name can be a color such as 'U-B'
 
         filterLib: filepath
             path to the filter library hd5 file (default is the internal library)
 
-        OUTPUTS
+        Returns
         -------
         r: float or ndarray(dtype=float)
             attenuation value or array of values
@@ -73,20 +77,19 @@ class ExtinctionLaw(object):
 
 class Calzetti(ExtinctionLaw):
     """
-    Calzetti et al.  (2000, ApJ 533, 682) developed a recipe for dereddening
-    the spectra of galaxies where massive stars dominate the radiation
-    output, valid between 0.12 to 2.2 microns.
+    Calzetti et al.  (2000, ApJ 533, 682) developed a recipe for dereddening the
+    spectra of galaxies where massive stars dominate the radiation output, valid
+    between 0.12 to 2.2 microns.
     Extrapolation down to 0.0912 microns
 
     Note that the supplied color excess should be that derived for the
-    stellar  continuum, EBV(stars), which is related to the reddening
-    derived from the gas, EBV(gas), via the Balmer decrement by
-    EBV(stars) = 0.44 * EBV(gas)
+    stellar  continuum, :math:`EBV(stars)`, which is related to the reddening
+    derived from the gas, :math:`EBV(gas)`, via the Balmer decrement by
+    :math:`EBV(stars) = 0.44 \\times EBV(gas)`
 
-    R_V - Ratio of total to selective extinction, default = 4.05.  Calzetti
-    et al. (2000) estimate R_V = 4.05 +/- 0.80 from optical-IR observations
-    of 4 starbursts.
-
+    :math:`R_V` - Ratio of total to selective extinction, default is 4.05.
+    Calzetti et al. (2000) estimate :math:`R_V = 4.05 \pm 0.80` from optical-IR
+    observations of 4 starbursts.
     """
     def __init__(self):
         self.name = 'Calzetti'
@@ -95,8 +98,8 @@ class Calzetti(ExtinctionLaw):
         """
         Returns Alambda or tau for a Calzetti law Lamb is input in Angstroms
 
-        INPUTS
-        ------
+        Parameters
+        ----------
         lamb: float or ndarray(dtype=float)
             wavelength [in Angstroms] at which evaluate the law.
 
@@ -107,15 +110,18 @@ class Calzetti(ExtinctionLaw):
             desired R(V) (default 4.05)
 
         Alambda: bool
-            if set returns +2.5*1./log(10.)*tau, tau otherwise
+            if set returns +2.5 * 1. / log(10.) * tau, tau otherwise
 
-        OUTPUTS
+        Returns
         -------
         r: float or ndarray(dtype=float)
             attenuation as a function of wavelength
             depending on Alambda option +2.5*1./log(10.)*tau,  or tau
         """
-        if isinstance(lamb, float) or isinstance(lamb, np.float_):
+        # handle units
+        _lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
+
+        if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])
         else:
             _lamb = lamb[:]
@@ -143,10 +149,9 @@ class Cardelli(ExtinctionLaw):
     def function(self, lamb, Av=1., Rv=3.1, Alambda=True, **kwargs):
         """
         Cardelli extinction Law
-        Lamb is input in Anstroms
 
-        INPUTS
-        ------
+        Parameters
+        ----------
         lamb: float or ndarray(dtype=float)
             wavelength [in Angstroms] at which evaluate the law.
 
@@ -159,33 +164,35 @@ class Cardelli(ExtinctionLaw):
         Alambda: bool
             if set returns +2.5*1./log(10.)*tau, tau otherwise
 
-        OUTPUTS
+        Returns
         -------
         r: float or ndarray(dtype=float)
             attenuation as a function of wavelength
             depending on Alambda option +2.5*1./log(10.)*tau,  or tau
         """
-        if isinstance(lamb, float) or isinstance(lamb, np.float_):
+        _lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
+
+        if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])
         else:
             _lamb = lamb[:]
 
-        #init variables
+        # init variables
         x = 1.e4 / _lamb  # wavenumber in um^-1
         a = np.zeros(np.size(x))
         b = np.zeros(np.size(x))
-        #Infrared (Eq 2a,2b)
+        # Infrared (Eq 2a,2b)
         ind = np.where((x >= 0.3) & (x < 1.1))
         a[ind] =  0.574 * x[ind] ** 1.61
         b[ind] = -0.527 * x[ind] ** 1.61
-        #Optical & Near IR
-        #Eq 3a, 3b
+        # Optical & Near IR
+        # Eq 3a, 3b
         ind = np.where((x >= 1.1) & (x <= 3.3))
         y = x[ind] - 1.82
         a[ind] = 1. + 0.17699 * y - 0.50447 * y ** 2 - 0.02427 * y ** 3 + 0.72085 * y ** 4 + 0.01979 * y ** 5 - 0.77530 * y ** 6 + 0.32999 * y ** 7
         b[ind] =      1.41338 * y + 2.28305 * y ** 2 + 1.07233 * y ** 3 - 5.38434 * y ** 4 - 0.62251 * y ** 5 + 5.30260 * y ** 6 - 2.09002 * y ** 7
-        #UV
-        #Eq 4a, 4b
+        # UV
+        # Eq 4a, 4b
         ind = np.where((x >= 3.3) & (x <= 8.0))
         a[ind] =  1.752 - 0.316 * x[ind] - 0.104 / ((x[ind] - 4.67) ** 2 + 0.341)
         b[ind] = -3.090 + 1.825 * x[ind] + 1.206 / ((x[ind] - 4.62) ** 2 + 0.263)
@@ -195,10 +202,10 @@ class Cardelli(ExtinctionLaw):
         Fb     =  0.21300 * (x[ind] - 5.9) ** 2 + 0.120700 * (x[ind] - 5.9) ** 3
         a[ind] = a[ind] + Fa
         b[ind] = b[ind] + Fb
-        #Far UV
-        #Eq 5a, 5b
+        # Far UV
+        # Eq 5a, 5b
         ind = np.where((x >= 8.0) & (x <= 10.0))
-        #Fa = Fb = 0
+        # Fa = Fb = 0
         a[ind] = -1.073 - 0.628 * (x[ind] - 8.) + 0.137 * ((x[ind] - 8.) ** 2) - 0.070 * (x[ind] - 8.) ** 3
         b[ind] = 13.670 + 4.257 * (x[ind] - 8.) + 0.420 * ((x[ind] - 8.) ** 2) + 0.374 * (x[ind] - 8.) ** 3
 
@@ -207,12 +214,12 @@ class Cardelli(ExtinctionLaw):
         a[ind] = 0.0
         b[ind] = 0.0
 
-        #Return Extinction vector
-        #Eq 1
+        # Return Extinction vector
+        # Eq 1
         if (Alambda):
             return( ( a + b / Rv ) * Av)
         else:
-            #return( 1./(2.5 * 1. / np.log(10.)) * ( a + b / Rv ) * Av)
+            # return( 1./(2.5 * 1. / np.log(10.)) * ( a + b / Rv ) * Av)
             return( 0.4 * np.log(10.) * ( a + b / Rv ) * Av)
 
 
@@ -231,8 +238,8 @@ class Fitzpatrick99(ExtinctionLaw):
         Fitzpatrick99 extinction Law
         Lamb is input in Anstroms
 
-        INPUTS
-        ------
+        Parameters
+        ----------
         lamb: float or ndarray(dtype=float)
             wavelength [in Angstroms] at which evaluate the law.
 
@@ -245,14 +252,15 @@ class Fitzpatrick99(ExtinctionLaw):
         Alambda: bool
             if set returns +2.5*1./log(10.)*tau, tau otherwise
 
-        OUTPUTS
+        Returns
         -------
         r: float or ndarray(dtype=float)
             attenuation as a function of wavelength
             depending on Alambda option +2.5*1./log(10.)*tau,  or tau
         """
+        _lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
 
-        if isinstance(lamb, float) or isinstance(lamb, np.float_):
+        if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])
         else:
             _lamb = lamb[:]
@@ -326,8 +334,8 @@ class Gordon03_SMCBar(ExtinctionLaw):
         Lamb is input in Anstroms
         Note that Rv is not given as a variable in the paper of reference
 
-        INPUTS
-        ------
+        Parameters
+        ----------
         lamb: float or ndarray(dtype=float)
             wavelength [in Angstroms] at which evaluate the law.
 
@@ -340,13 +348,15 @@ class Gordon03_SMCBar(ExtinctionLaw):
         Alambda: bool
             if set returns +2.5*1./log(10.)*tau, tau otherwise
 
-        OUTPUTS
+        Returns
         -------
         r: float or ndarray(dtype=float)
             attenuation as a function of wavelength
             depending on Alambda option +2.5*1./log(10.)*tau,  or tau
         """
-        if isinstance(lamb, float) or isinstance(lamb, np.float_):
+        _lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
+
+        if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])
         else:
             _lamb = lamb[:]
@@ -403,8 +413,9 @@ class RvFbumpLaw(ExtinctionLaw):
     """
     def __init__(self, RvLaw=None, NoBumpLaw=None, name=None):
         """ Constructor
-        INPUTS
-        ------
+
+        Parameters
+        ----------
         RvLaw: ExtinctionLaw
             Component which models attenuation related to the bump
             (default Fitzpatrick99)
@@ -417,12 +428,13 @@ class RvFbumpLaw(ExtinctionLaw):
         self.NoBumpLaw = NoBumpLaw or Gordon03_SMCBar()
         self.name = name or 'RvFbumpLaw'
 
-    def function(self, lamb, Av=1, Rv_A=None, Alambda=True, f_bump=0.5, Rv_B=None, Rv=None, **kwargs):
+    def function(self, lamb, Av=1, Rv_A=None, Alambda=True, f_A=0.5, Rv_B=None,
+                 Rv=None, **kwargs):
         """
         Lamb as to be in Angstroms!!!
 
-        INPUTS
-        ------
+        Parameters
+        ----------
         lamb: float or ndarray(dtype=float)
             wavelength [in Angstroms] at which evaluate the law.
 
@@ -432,7 +444,7 @@ class RvFbumpLaw(ExtinctionLaw):
         Alambda: bool
             if set returns +2.5*1./log(10.)*tau, tau otherwise
 
-        f_bump: float
+        f_A: float
             set the mixture ratio between the two laws (default 0.5)
 
         Rv_A: float
@@ -444,14 +456,17 @@ class RvFbumpLaw(ExtinctionLaw):
         Rv: float
             effective R(V) according to the mixture
 
-        OUTPUTS
+        Returns
         -------
         r: float or ndarray(dtype=float)
             attenuation as a function of wavelength
             depending on Alambda option +2.5*1./log(10.)*tau,  or tau
 
-            f_bump * RvLaw(*args, **kwargs) + (1. - f_bump) * NoBumpLaw(*args, **kwargs)
+        .. math::
+            f_A * RvLaw(*args, **kwargs) + (1. - f_A) * NoBumpLaw(*args, **kwargs)
         """
+        _lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
+
         if Rv_A is None:
             Rv_A = getattr(self.RvLaw, 'Rv', None)
 
@@ -462,23 +477,26 @@ class RvFbumpLaw(ExtinctionLaw):
             raise ValueError('Must provide at least 2 Rv values')
 
         if Rv_A is None:
-            Rv_A = self.get_Rv_A(Rv, f_bump, Rv_B)
+            Rv_A = self.get_Rv_A(Rv, f_A, Rv_B)
         if Rv_B is None:
-            Rv_B = self.get_Rv_B(Rv, Rv_A, f_bump)
+            Rv_B = self.get_Rv_B(Rv, Rv_A, f_A)
 
-        return f_bump * self.RvLaw.function(lamb, Av=Av, Rv=Rv_A, Alambda=Alambda) + (1. - f_bump) * self.NoBumpLaw.function(lamb, Av=Av, Alambda=Alambda, Rv=Rv_B)
+        return f_A * self.RvLaw.function(_lamb, Av=Av, Rv=Rv_A, Alambda=Alambda) + (1. - f_A) * self.NoBumpLaw.function(_lamb, Av=Av, Alambda=Alambda, Rv=Rv_B)
 
-    def isvalid(self, Av=None, Rv=None, f_bump=0.5, Rv_A=None, Rv_B=None):
+    def isvalid(self, Av=None, Rv=None, f_A=0.5, Rv_A=None, Rv_B=None):
         """ Test the validity of an extinction vector (Av, Rv, Rv_A, Rv_B, fbump)
 
-        Law = fbump * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - fbump) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
+        .. math::
+            Law = f_A * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - f_A) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
 
-        The validity impose Rv ranges and fbump to be a fraction (i.e., between 0 and 1)
+        The validity impose :math:`R_V` ranges and  to be a fraction (i.e.,
+        between 0 and 1)
 
-        At least 2 out of the 3 Rv values must be provided, the 3rd will be computed if missing.
+        At least 2 out of the 3 :math:`R_V` values must be provided, the 3rd
+        will be computed if missing.
 
-        INPUTS
-        ------
+        Parameters
+        ----------
         Av: float
             Av value (any value is allowed, even <0)
 
@@ -486,10 +504,10 @@ class RvFbumpLaw(ExtinctionLaw):
             effective Rv, RvLaw component and bumpless component Rv values, respectively.
             At least 2 must be provided.
 
-        f_bump: float
+        f_A: float
             Mixture ratio between the two components
 
-        OUTPUTS
+        Returns
         -------
         r: bool
             True, if the values a coherent with the definition.
@@ -506,24 +524,26 @@ class RvFbumpLaw(ExtinctionLaw):
             return False
 
         if Rv_A is None:
-            Rv_A = self.get_Rv_A(Rv, f_bump, Rv_B=Rv_B)
+            Rv_A = self.get_Rv_A(Rv, f_A, Rv_B=Rv_B)
         if Rv is None:
-            Rv = self.get_Rv(Rv_A, f_bump, Rv_B=Rv_B)
+            Rv = self.get_Rv(Rv_A, f_A, Rv_B=Rv_B)
         if Rv_B is None:
-            Rv_B = self.get_Rv_B(Rv, Rv_A, f_bump)
+            Rv_B = self.get_Rv_B(Rv, Rv_A, f_A)
 
-        # fbump is a fraction and any Rv is limited to [2.0, 6.0]
-        return (0. <= f_bump <= 1.) & (2.0 <= Rv_B <= 6.0) & (2.0 <= Rv_A <= 6.0) & (2.0 <= Rv <= 6.0)
+        # f_A is a fraction and any Rv is limited to [2.0, 6.0]
+        return (0. <= f_A <= 1.) & (2.0 <= Rv_B <= 6.0) & (2.0 <= Rv_A <= 6.0) & (2.0 <= Rv <= 6.0)
 
-    def get_Rv_A(self, Rv, fbump=0.5, Rv_B=None):
+    def get_Rv_A(self, Rv, f_A=0.5, Rv_B=None):
         """ Returns the equivalent Rv to use in the bump component
             Law = f_A * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - f_A) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
 
-            and Rv_A is such that
+            and Rv_A is such that:
 
-            1 / Rv = f_A / Rv_A + (1 - f_A) / Rv_B
+            ..math::
 
-            Rv_A = 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
+                1 / Rv = f_A / Rv_A + (1 - f_A) / Rv_B
+
+                Rv_A = 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
 
             not that Gordon03_SMCBar has a fixed Rv=2.74
         """
@@ -531,19 +551,23 @@ class RvFbumpLaw(ExtinctionLaw):
         if Rv_B is None and hasattr(self.NoBumpLaw, 'Rv'):
             Rv_B = self.NoBumpLaw.Rv
 
-        return 1. / (1. / (Rv * fbump) - (1. - fbump) / (fbump * Rv_B))
+        return 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
 
-    def get_Rv(self, Rv_A=None, fbump=0.5, Rv_B=None):
+    def get_Rv(self, Rv_A=None, f_A=0.5, Rv_B=None):
         """ Returns the equivalent effective Rv according to the mixture
+
+        ..math::
             Law = f_A * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - f_A) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
 
-            and Rv is such that
+        and Rv is such that:
+
+        ..math::
 
             1 / Rv = f_A / Rv_A + (1 - f_A) / Rv_B
 
             Rv_A = 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
 
-            not that Gordon03_SMCBar has a fixed Rv=2.74
+        note that Gordon03_SMCBar has a fixed Rv=2.74
         """
         if Rv_B is None and hasattr(self.NoBumpLaw, 'Rv'):
             Rv_B = self.NoBumpLaw.Rv
@@ -551,24 +575,27 @@ class RvFbumpLaw(ExtinctionLaw):
         if Rv_A is None and hasattr(self.RvLaw, 'Rv'):
             Rv_A = self.RvLaw.Rv
 
-        return 1. / (fbump / Rv_A + (1 - fbump) / Rv_B)
+        return 1. / (f_A / Rv_A + (1 - f_A) / Rv_B)
 
-    def get_Rv_B(self, Rv, Rv_A=None, fbump=0.5):
+    def get_Rv_B(self, Rv, Rv_A=None, f_A=0.5):
         """ Returns the equivalent Rv to use in the bumpless component
+
+        .. math::
             Law = f_A * RvLaw (lamb, Av=Av, Rv=Rv_A) + (1. - f_A) * NoBumpLaw(lamb, Av=Av, Rv=Rv_B)
 
-            and Rv_B is such that
+        and Rv_B is such that
 
+        .. math::
             1 / Rv = f_A / Rv_A + (1 - f_A) / Rv_B
 
             Rv_A = 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
 
-            not that Gordon03_SMCBar has a fixed Rv=2.74
+        note that Gordon03_SMCBar has a fixed Rv=2.74
         """
         if Rv_A is None and hasattr(self.RvLaw, 'Rv'):
             Rv_A = self.RvLaw.Rv
 
-        return (1. - fbump) / (1. / Rv - fbump / Rv_A)
+        return (1. - f_A) / (1. / Rv - f_A / Rv_A)
 
 
 def testunit():
@@ -576,10 +603,10 @@ def testunit():
     # -> make some plots
     import pylab
 
-    x = np.arange(0,1, 10, 0.1)   # in um^-1
-    lamb = 1.e4 / x
+    x = np.arange(0.1, 10, 0.1)   # in um^-1
+    lamb = 1.e4 / x * unit['angstrom']
 
-    #ccm  = Cardelli()
+    # ccm  = Cardelli()
     f99  = Fitzpatrick99()
     gsmc = Gordon03_SMCBar()
 
@@ -588,10 +615,10 @@ def testunit():
 
     Rv_vals = np.arange(2, 6, dtype=float)
     for Rv in Rv_vals:
-        #yccm = ccm.function(lamb, Rv=Rv)
+        # yccm = ccm.function(lamb, Rv=Rv)
         yf99 = f99.function(lamb, Rv=Rv)
 
-        #pylab.plot(x,yccm,label='CCM, Rv=%0.1f' % (Rv) )
+        # plt.plot(x,yccm,label='CCM, Rv=%0.1f' % (Rv) )
         plt.plot(x, yf99, label='F99, Rv=%0.1f' % (Rv) )
 
     ygsmc = gsmc.function(lamb)
