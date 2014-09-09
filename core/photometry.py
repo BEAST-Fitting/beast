@@ -32,7 +32,6 @@ class filter(object):
 
     def getFlux(self, slamb, sflux):
         """getFlux
-        import pdb; pdb.set_trace() ### XXX BREAKPOINT
         Integrate the flux within the filter and return the integrated energy
         INPUTS:
            slamb: spectrum wavelength definition domain
@@ -84,26 +83,26 @@ class filter(object):
 
 
 def __load__(fname, ftab):
-	fnode = ftab.getNode('/filters/' + fname)
-	return filter( fnode[:]['WAVELENGTH'], fnode[:]['THROUGHPUT'], name=fnode.name )
+    fnode = ftab.getNode('/filters/' + fname)
+    return filter( fnode[:]['WAVELENGTH'], fnode[:]['THROUGHPUT'], name=fnode.name )
 
 
 def load_all_filters(filterLib=__default__):
-	with tables.openFile(filterLib, 'r') as ftab:
-		filters = [ __load__(fname, ftab) for fname in ftab.root.content.cols.TABLENAME ]
-	return(filters)
+    with tables.openFile(filterLib, 'r') as ftab:
+        filters = [ __load__(fname, ftab) for fname in ftab.root.content.cols.TABLENAME ]
+    return(filters)
 
 
 def load_filters(names, filterLib=__default__):
-	with tables.openFile(filterLib, 'r') as ftab:
-		filters = [ __load__(fname, ftab) for fname in names ]
-	return(filters)
+    with tables.openFile(filterLib, 'r') as ftab:
+        filters = [ __load__(fname, ftab) for fname in names ]
+    return(filters)
 
 
 class __newFilterTable__(tables.IsDescription):
-	""" define table to store filter dataset """
-	WAVELENGTH = tables.FloatCol(pos=0)
-	THROUGHPUT = tables.FloatCol(pos=1)
+    """ define table to store filter dataset """
+    WAVELENGTH = tables.FloatCol(pos=0)
+    THROUGHPUT = tables.FloatCol(pos=1)
 
 
 def append_filter(lamb, flux, tablename, observatory, instrument, name,
@@ -113,8 +112,8 @@ def append_filter(lamb, flux, tablename, observatory, instrument, name,
     """
     ftab = tables.openFile(filterLib, 'a')
     contentTab = ftab.getNode('/content')
-    if contentTab.readWhere('TABLENAME == tablename').size > 0:
-        print '% ' + sys.argv[0] + ": Filter Table %s already exists.  Returning." % tablename
+    if contentTab.readWhere('TABLENAME == "{0}"'.format(tablename)).size > 0:
+        print('% {0}: Filter {1} already exists. Returning'.format(sys.argv[0], tablename))
         return
 
     # Gen Filter object including relevant details
@@ -134,7 +133,8 @@ def append_filter(lamb, flux, tablename, observatory, instrument, name,
     contentTab.flush()
     # Create Table
     newTab = ftab.createTable('/filters', tablename, __newFilterTable__,
-                            title=filtInst.name, expectedrows=filtInst.wavelength.size)
+                              title=filtInst.name,
+                              expectedrows=filtInst.wavelength.size)
     newRow = newTab.row
     for i in xrange(filtInst.wavelength.size):
         newRow["WAVELENGTH"] = filtInst.wavelength[i]
@@ -143,7 +143,7 @@ def append_filter(lamb, flux, tablename, observatory, instrument, name,
     newTab.flush()
     ftab.flush()
     ftab.close()
-    print '% ' + sys.argv[0] + ": Filter %s added to %s." % (name, filterLib)
+    print('% {0}: Filter {1} added to {2}'.format(sys.argv[0], name, filterLib))
     if updateVegaLib:
         appendVegaFilter(filtInst)
 
@@ -166,25 +166,25 @@ def analyseVegaSpectrum(w, f, filters):
 
 
 def appendVegaFilter(filtInst, VegaLib=__default_vega__):
-	import tables
-	vtab = tables.openFile(VegaLib, 'a')
-	vl = vtab.root.spectrum[:]['WAVELENGTH']
-	vf = vtab.root.spectrum[:]['FLUX']
-	sedTab = vtab.getNode('/sed')
-	if sedTab.readWhere('FNAME == fname').size > 0:
-		print '% ' + sys.argv[0] + ": Filter %s already exists.  Returning." % filtInst.name
-		return
+    import tables
+    vtab = tables.openFile(VegaLib, 'a')
+    vl = vtab.root.spectrum[:]['WAVELENGTH']
+    vf = vtab.root.spectrum[:]['FLUX']
+    sedTab = vtab.getNode('/sed')
+    if sedTab.readWhere('FNAME == "{0}"'.format(filtInst.name)).size > 0:
+        print('% {0}: Filter {1} already exists. Returning'.format(sys.argv[0], filtInst.name))
+        return
 
-	data = analyseVegaSpectrum(vl, vf, [filtInst])
-	newRow = sedTab.row
-	newRow['FNAME'] = filtInst.name
-	newRow['CWAVE'] = filtInst.cl
-	newRow['LUM']   = data['lum'][0]
-	newRow['MAG']   = data['mag'][0]
-	newRow.append()
-	sedTab.flush()
-	vtab.close()
-	print '% ' + sys.argv[0] + ": Filter %s added to %s." % (filtInst.name, VegaLib)
+    data = analyseVegaSpectrum(vl, vf, [filtInst])
+    newRow = sedTab.row
+    newRow['FNAME'] = filtInst.name
+    newRow['CWAVE'] = filtInst.cl
+    newRow['LUM']   = data['lum'][0]
+    newRow['MAG']   = data['mag'][0]
+    newRow.append()
+    sedTab.flush()
+    vtab.close()
+    print('% {0}: Filter {1} added to {2}'.format(sys.argv[0], filtInst.name, VegaLib))
 
 
 def extractPhotometry(l, f, filters, silent=True):
