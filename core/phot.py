@@ -28,7 +28,7 @@ __default_vega__ = __ROOT__ + '/libs/vega.hd5'
 
 # this is used to convert from bolometric luminosities to abs fluxes
 # object to 10parsecs -- abs mag.
-distc = 4. * numpy.pi * (3.1e19) ** 2
+distc = 4. * numpy.pi * (3.0856775e19) ** 2
 
 
 class Filter(object):
