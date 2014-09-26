@@ -57,6 +57,8 @@ def make_top_hat_filter(startlam, endlam, dlamb, name,
     bandwidth = lam1 - lam0
 
     # adjust filter form to actual filter transmission per photons
+    # make an effectively perfect cuts
+    # integral ( lambda T F dlambda ) = integral (lambda G / lambda F dlambda)
     flam_ph = flam / lam
 
     _name = '{obs:s}_{inst:s}_{name:s}'.format(obs=observatory, inst=instrument, name=name)
