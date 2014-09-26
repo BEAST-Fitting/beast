@@ -399,7 +399,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
             if with_fb:
                 Av, Rv, f_bump = pt
                 Rv_MW = extLaw.get_Rv_A(Rv, f_bump)
-                r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_bump=f_bump, inplace=False)
+                r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_bump, inplace=False)
                 if add_spectral_properties_kwargs is not None:
                     r = add_spectral_properties(r, nameformat=nameformat, **add_spectral_properties_kwargs)
                 temp_results = r.getSEDs(filter_names)
