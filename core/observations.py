@@ -136,7 +136,7 @@ class Observations(object):
         flux = np.empty(len(self.filters), dtype=float)
         distance = self.distance.to('pc').magnitude
         for ek, ok in enumerate(self.filters):
-            flux[ek] = self.data[ok][num] / (0.1 * distance) ** 2
+            flux[ek] = self.data[ok][num] * (0.1 * distance) ** 2
 
         return flux
 
@@ -147,7 +147,7 @@ class Observations(object):
         distance = self.distance.to('pc').magnitude
 
         for ek, ok in enumerate(self.filters):
-            fluxerr[ek] = self.data[ok + '_err'][num] / (0.1 * distance) ** 2
+            fluxerr[ek] = self.data[ok + '_err'][num] * (0.1 * distance) ** 2
 
         return fluxerr
 
