@@ -103,7 +103,7 @@ class NGC4214_FluxCatalog(Observations):
         self.setFilters( filters )
         #some bad values smaller than expected
         # in RATE = flux units
-        self.setBadValue(6e-11)
+        self.setBadValue(6e-30)
 
         #hard code mapping directly with the interface
         for k in filters:
