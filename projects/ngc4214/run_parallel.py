@@ -28,7 +28,8 @@ if __name__ == '__main__':
     elif '-merge' in sys.argv[1]:
         merge_individual_outputs(datamodel.obsfile, datamodel.project)
     else:
-        chunk = int(sys.argv[1])
+        chunk = int(sys.argv[1]) - 1
+        # qsub only starts from 1 not 0
         # ==================================================================
         # MODULE TO CHANGE
         # note: import at the final stage only to avoid reading files if not
