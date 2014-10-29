@@ -155,6 +155,5 @@ def get_noisemodelcat(filename):
 
 if __name__ == '__main__':
     from beast.core.grid import FileSEDGrid
-    g = FileSEDGrid('./mf_ngc4214/mf_ngc4214_full_seds.grid.hd5')
-    astfile = './mf_ngc4214/mf_ngc4214_gst_fake.fits'
+    g = FileSEDGrid('./mf_ngc4214_Aug2014_new/mf_ngc4214_Aug2014_new_seds.grid.hd5')
     make_toothpick_noise_model('mf_ngc4214/mf_ngc4214_noisemodel.hd5', astfile, g)

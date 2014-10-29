@@ -31,8 +31,8 @@ from special import make_top_hat_filter
 #---------------------------------------------------------
 project = 'mf_ngc4214_Aug2014_new'
 
-obsfile = 'data/N4214_3band_detects.fits'
-astfile = 'data/N4214_gst_fake.fits'
+obsfile = 'data/mf_ngc4214_input_best.fits'
+astfile = 'data/11360_NGC-4214.gst.fake_new.fits'
 
 filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
            'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
@@ -47,7 +47,7 @@ calibration_covariance = np.array(
     [1.23e-6,  1.65e-5, 4.40e-5, 5.87e-5, 6.98e-5, 7.33e-5],
     [-4.21e-6, 1.32e-5, 4.34e-5, 5.99e-5, 7.33e-5, 7.81e-5] ])
 
-noisefile = 'ngc4214/mf_phat_july14_noisemodel.hd5'
+noisefile = 'data/mf_ngc4214_Aug2014_noisemodel.hd5'
 
 distanceModulus = 27.41 * unit['mag']
 
