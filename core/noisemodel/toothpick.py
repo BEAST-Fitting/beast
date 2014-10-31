@@ -75,9 +75,126 @@ class MultiFilterASTs(NoiseModel):
             print(e)
             print('Warning: Mapping failed. This could lead to wrong results')
 
-    def _compute_stddev(self, mag_in, mag_out, k=10, eps=0,
+    def _compute_stddev(self, magflux_in, magflux_out, k=10, eps=0,
                                completeness_mag_cut=80, name_prefix=None,
                                asarray=False):
+        """
+        Computes standard deviation and store the result in a dictionary
+
+        Parameters
+        ----------
+        magflux_in: ndarray
+             input mag or flux
+
+        kagflux_out: ndarray
+             output mag or flux
+
+        completeness_mag_cut: float
+            magnitude at which consider a star not recovered
+            set to -1 if the magflux_out is in fluxes (not magnitudes)
+
+        k: Integer
+            Number of nearest neighbors taken in the standard deviation computation
+
+        eps: non-negative float
+            precision on the NN search
+
+        name_prefix: str
+            if set, all output names in the final structure will start with this
+            prefix.
+
+        asarray: bool
+            if set returns a structured ndarray instead of a dictionary
+
+        Returns
+        -------
+        d: dict or np.recarray
+            dictionary or named array containing the statistics
+
+
+        Method
+        ------
+        Statistics are computed for each input artificial star.
+        For each input star, we find the k-NN in input flux space and compute
+        their mean and variance in flux only.
+
+        """
+        if name_prefix is None:
+            name_prefix = ''
+        else:
+            if name_prefix[-1] != '_':
+                name_prefix += '_'
+
+        # convert the AST input from magnitudes to fluxes
+        # always convert the magflux_in to fluxes (the way the ASTs are reported)
+        flux_in = 10 ** (-0.4*magflux_in)
+
+        # convert the AST output from magnitudes to fluxes if needed
+        #  this is designated by setting the completeness_mag_cut to a negative number
+        #    good_indxs gives the list of recovered sources
+        if completeness_mag_cut > 0: 
+            flux_out = 10 ** (-0.4*magflux_out)
+            bad_indxs,= np.where(magflux_out >= completeness_mag_cut)
+            flux_out[bad_indxs] = 0.0
+        else:
+            flux_out = magflux_out
+
+        # number of ASTs (all)
+        n_asts = len(flux_in)
+
+        ### compute the completeness using the full set of ASTs
+        # setup the nearest neighbors
+        flux_in_prep = _prepare_x(flux_in)
+        NN_flux = nearest_neighbors(flux_in_prep, k=k, eps=eps)
+
+        # storage for the completeness
+        completeness = np.zeros(n_asts, dtype=float)
+
+        for i in range(n_asts):
+            nn_i = flux_out[NN_flux[i]]
+            # only recovered stars are considered with recovered stars w/ flux != 0
+            ind = (nn_i != 0.)
+            completeness[i] = np.sum(ind)
+
+        completeness /= float(k)
+
+        # get the ASTs that were recovered
+        #  only bias and stddev values for these sources will be calculated 
+        good_indxs,= np.where(flux_out != 0.0)
+        flux_in = flux_in[good_indxs]
+        flux_out = flux_out[good_indxs]
+
+        # number of ASTs
+        n_asts = len(flux_in)
+
+        # setup the nearest neighbors
+        flux_in_prep = _prepare_x(flux_in)
+        NN_flux = nearest_neighbors(flux_in_prep, k=k, eps=eps)
+
+        # setup variables to store the average bias and std dev around that bias
+        ave_bias = np.zeros(n_asts, dtype=float)
+        std_bias = np.zeros(n_asts, dtype=float)
+
+        # compute the bias for each AST
+        bias_flux = flux_out - flux_in
+
+        ave_bias = np.mean(bias_flux[NN_flux], axis=1)
+        std_bias = np.std(bias_flux[NN_flux], axis=1)
+
+        d = {name_prefix + 'FLUX_STD': std_bias,
+             name_prefix + 'FLUX_BIAS': ave_bias,
+             name_prefix + 'FLUX_IN': flux_in,
+             name_prefix + 'FLUX_OUT': flux_in + ave_bias,
+             name_prefix + 'COMPLETENESS': completeness[good_indxs]}
+
+        if asarray:
+            return convert_dict_to_structured_ndarray(d)
+        else:
+            return d
+
+    def _compute_stddev_mag(self, mag_in, mag_out, k=10, eps=0,
+                            completeness_mag_cut=80, name_prefix=None,
+                            asarray=False):
         """
         Computes standard deviation and store the result in a dictionary
 
@@ -330,6 +447,7 @@ class MultiFilterASTs(NoiseModel):
         self._biases = np.empty( shape, dtype=float)
         self._sigmas = np.empty( shape, dtype=float)
         self._compls = np.empty( shape, dtype=float)
+        self._nasts = np.empty(shape[1], dtype=long)
 
         if progress is True:
             it = Pbar(desc='fitting model').iterover(self.filters)
@@ -339,15 +457,18 @@ class MultiFilterASTs(NoiseModel):
         for e, filterk in enumerate(it):
 
             mag_in = self.data[filterk + '_in']
-            mag_out = self.data[filterk + '_out']
+            magflux_out = self.data[filterk + '_out']
 
-            d = self._compute_stddev(mag_in, mag_out, k=k, eps=eps,
+            d = self._compute_stddev(mag_in, magflux_out, k=k, eps=eps,
                                      completeness_mag_cut=completeness_mag_cut)
 
-            self._fluxes[:, e] = d['FLUX_IN'] * self.vega_flux[e]
-            self._sigmas[:, e] = d['FLUX_STD'] * self.vega_flux[e]
-            self._biases[:, e] = d['FLUX_BIAS'] * self.vega_flux[e]
-            self._compls[:, e] = d['COMPLETENESS']
+            ncurasts = len(d['FLUX_IN'])
+            self._fluxes[0:ncurasts, e] = d['FLUX_IN'] * self.vega_flux[e]
+            self._sigmas[0:ncurasts, e] = d['FLUX_STD'] * self.vega_flux[e]
+            self._biases[0:ncurasts, e] = d['FLUX_BIAS'] * self.vega_flux[e]
+            self._compls[0:ncurasts, e] = d['COMPLETENESS']
+            self._nasts[e] = ncurasts
+
             del d
 
     def setFilters(self, filters):
@@ -408,13 +529,18 @@ class MultiFilterASTs(NoiseModel):
 
         for i in it:
 
-            _fluxes = self._fluxes[:, i]
-            arg_sort = np.argsort(self._fluxes[:, i])
+            ncurasts = self._nasts[i]
+            _fluxes = self._fluxes[0:ncurasts, i]
+            _biases = self._biases[0:ncurasts, i]
+            _sigmas = self._sigmas[0:ncurasts, i]
+            _compls = self._compls[0:ncurasts, i]
+
+            arg_sort = np.argsort(_fluxes)
             _fluxes = _fluxes[arg_sort]
 
-            bias[:, i] = np.interp(flux[:, i], _fluxes, self._biases[arg_sort, i] )
-            sigma[:, i] = np.interp(flux[:, i], _fluxes, self._sigmas[arg_sort, i])
-            compl[:, i] = np.interp(flux[:, i], _fluxes, self._compls[arg_sort, i])
+            bias[:, i] = np.interp(flux[:, i], _fluxes, _biases[arg_sort] )
+            sigma[:, i] = np.interp(flux[:, i], _fluxes, _sigmas[arg_sort])
+            compl[:, i] = np.interp(flux[:, i], _fluxes, _compls[arg_sort])
 
         return (bias, sigma, compl)
 
