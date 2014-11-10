@@ -24,8 +24,8 @@ the completeness, nothing else.
 Finally, we return the flux conversion of the statistics: bias and stddev
 dispersion per input star averaged over k-NN.
 
-TODO: +++ not recovered if delta_mag > 0.8 (factor of 2 in flux)
-  +++ change to do the calcuation in flux space as this is more accurate (linear instead of log averaging)
+TODO:
+  +++ perCameraASTs has not been updated - delete?  Does not work with PHAT single camera ASTs - column names duplicated
 """
 import numpy as np
 
@@ -132,7 +132,7 @@ class MultiFilterASTs(NoiseModel):
         # convert the AST output from magnitudes to fluxes if needed
         #  this is designated by setting the completeness_mag_cut to a negative number
         #    good_indxs gives the list of recovered sources
-        if completeness_mag_cut > 0: 
+        if completeness_mag_cut > 0:
             flux_out = 10 ** (-0.4*magflux_out)
             bad_indxs,= np.where(magflux_out >= completeness_mag_cut)
             flux_out[bad_indxs] = 0.0
