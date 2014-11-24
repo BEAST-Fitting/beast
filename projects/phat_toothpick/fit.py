@@ -85,6 +85,9 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-40, outname='lnp.hd5',
             (sed) = obk
             (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold) )
 
+            print sed
+            print chi2
+
             star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
             indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
 
