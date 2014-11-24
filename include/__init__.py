@@ -4,6 +4,8 @@ import numpy
 try:
     from .interp import __interp__ as __cinterp__
 
+    raise ImportError
+    
     def __interp__(T0, g0, T, g, dT_max=0.1, eps=1e-6):
         """ interp.pyx
         Interpolation of the (T,g) grid at fixed Z
@@ -146,7 +148,7 @@ except ImportError:
 
         ## Looking for i_{1..4}
         # looking for i1
-        ind = numpy.where( (deltag > 0.) & (deltaT > 0) )[0]
+        ind = numpy.where( (deltag >= 0.) & (deltaT >= 0) )[0]
         if len(ind) == 0:
             i1 = -1
         else:

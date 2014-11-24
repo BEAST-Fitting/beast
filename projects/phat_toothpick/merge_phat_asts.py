@@ -6,7 +6,6 @@
 
 """
 import numpy as np
-#import tables
 from beast.external.eztables import Table
 
 def merge_phat_asts(uvfile, optfile, irfile, outfile):
@@ -43,5 +42,5 @@ def merge_phat_asts(uvfile, optfile, irfile, outfile):
 
 if __name__ == '__main__':
 
-    Merge_PHAT_ASTs('PHAT_camera_AST/fake_stars_b15_27_uv.fits','PHAT_camera_AST/fake_stars_b15_27_opt.fits',
-                    'PHAT_camera_AST/fake_stars_b15_27_ir.fits','PHAT_camera_AST/fake_stars_b15_27_all.hd5')
+    merge_phat_asts('data/fake_stars_b15_27_uv.fits','data/fake_stars_b15_27_opt.fits',
+                    'data/fake_stars_b15_27_ir.fits','data/fake_stars_b15_27_all.hd5')

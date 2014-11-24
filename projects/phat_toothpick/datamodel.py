@@ -34,7 +34,8 @@ filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
 # observations
-obsfile = 'data/b15_data_test.fits'
+#obsfile = 'data/b15_data_test.fits'
+obsfile = 'data/b15_4band_det_27_A.fits'
 
 # AST files (single camera ASTs)
 uvastfile = 'data/fake_stars_b15_27_uv.fits'
@@ -45,22 +46,22 @@ astfile = 'data/fake_stars_b15_27_all.hd5'
 # name for noise model
 noisefile = project + '/b15_27_noisemodel.hd5'
 
-# absflux calibration covariance matrix for NGC4214 specific filters
+# absflux calibration covariance matrix for PHAT specific filters
+
 calibration_covariance = np.array(
-    [[1.80e-4,  1.37e-4, 6.02e-5, 2.44e-5, 1.23e-6, -4.21e-6],
-    [1.37e-4,  1.09e-4, 5.72e-5, 3.23e-5, 1.65e-5, 1.32e-5],
-    [6.02e-5,  5.72e-5, 5.07e-5, 4.66e-5, 4.40e-5, 4.34e-5],
-    [2.44e-5,  3.23e-5, 4.66e-5, 5.42e-5, 5.87e-5, 5.99e-5],
-    [1.23e-6,  1.65e-5, 4.40e-5, 5.87e-5, 6.98e-5, 7.33e-5],
-    [-4.21e-6, 1.32e-5, 4.34e-5, 5.99e-5, 7.33e-5, 7.81e-5] ])
+    [[1.19, 1.11, 0.74, 0.53, 0.30, 0.22],
+     [1.11, 1.04, 0.74, 0.57, 0.41, 0.36],
+     [0.74, 0.74, 0.71, 0.69, 0.68, 0.67],
+     [0.53, 0.57, 0.69, 0.74, 0.77, 0.77],
+     [0.30, 0.41, 0.68, 0.77, 0.84, 0.86],
+     [0.22, 0.36, 0.67, 0.77, 0.86, 0.88]])
+
+calibration_covariance = (calibration_covariance*0.01)**2.
 
 # distance to M31
 distanceModulus = 24.47 * unit['mag']
 
 ### Stellar grid definition
-
-# Stellar Atmospheres library definition
-osl = stellib.Tlusty() + stellib.Kurucz()
 
 # log10(Age) -- [min,max,step] to generate the isochrones
 logt = [6.0, 10.13, 0.15]
@@ -69,6 +70,10 @@ logt = [6.0, 10.13, 0.15]
 
 #Metallicity
 z = [0.03, 0.019, 0.008, 0.004]
+#z = 0.019
+
+# Stellar Atmospheres library definition
+osl = stellib.Tlusty() + stellib.Kurucz()
 
 ################
 
@@ -76,13 +81,16 @@ z = [0.03, 0.019, 0.008, 0.004]
 extLaw = extinction.RvFbumpLaw()
 
 # A(V): dust column
-avs = [6.0, 10.13,0.15]
+avs = [0.0, 10.055, 0.15]
+#avs = [0.0, 10.055, 0.5]
 
 # R(V): dust average grain size
-rvs = [2.0, 6.1, 1.0]
+rvs = [2.0, 6.1, 0.5]
+#rvs = [3.0,3.0,1.0]
 
 # fbump (should be f_A): mixture factor between "MW" and "SMCBar" extinction curves
 fbumps = [0., 1.01, 0.25]
+#fbumps = [1.0,1.0, 0.25]
 
 ################
 
@@ -130,35 +138,19 @@ class PHATFluxCatalog(Observations):
             Measured integrated flux values throughout the filters in erg/s/cm^2
         """
 
-        flux = Observations.getFlux(self, num) * self.vega_flux
+        # case for using '_RATE' result instead of '_VEGA'
+        d = self.data[num]
+        flux = np.array([ d[self.data.resolve_alias(ok)] for ok in self.filters ]) * self.vega_flux
+        #flux = Observations.getFlux(self, num) * self.vega_flux
+        
+        # catalog uses _VEGA which are vega magnitudes.
+        #d = self.data[num]
+        #flux = 10 ** (-0.4 * np.array([ d[self.data.resolve_alias(ok)] for ok in self.filters ])) * self.vega_flux
+
         if units is True:
             return flux * unit['erg/s/cm**2']
         else:
             return flux
-
-    def getFluxerr(self, num, units=False):
-        """returns the error on the absolute flux of an observation from the
-        number of counts (not used in the analysis)
-
-        Parameters
-        ----------
-        num: int
-            index of the star in the catalog to get measurement from
-
-        units: bool
-            if set returns the fluxes with a unit capsule
-
-        Returns
-        -------
-        fluxerr: ndarray[dtype=float, ndim=1]
-            Measured integrated flux uncertainties in erg/s/cm^2
-        """
-
-        fluxerr = Observations.getFluxerr(self, num) * self.vega_flux
-        if units is True:
-            return fluxerr * unit['erg/s/cm**2']
-        else:
-            return fluxerr
 
     def setFilters(self, filters):
         """ set the filters and update the vega reference for the conversions
