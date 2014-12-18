@@ -34,11 +34,15 @@ project, stat, obs, sedgrid = project | t_project_dir
                                       | t_summary_table(g, **stat_kwargs)
 """
 
+# system imports
+import sys
+
+# BEAST imports
 from pipeline import run_fit, make_models
 import datamodel
 import noisemodel 
-from merge_phat_asts import merge_phat_asts 
-import sys
+from merge_phat_asts import merge_phat_asts
+from beast.core import prior_weights
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
@@ -46,6 +50,10 @@ if __name__ == '__main__':
             print(__doc__)
         elif '-models' in sys.argv[1]:
             make_models()
+        elif '-priors' in sys.argv[1]:
+            modelsedgrid = '{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project)
+            modelsedgridwpriors = '{project:s}/{project:s}_seds_w_priors.grid.hd5'.format(project=datamodel.project)
+            prior_weights.add_priors_sedgrid(modelsedgrid, modelsedgridwpriors, datamodel.filters)
         elif '-noise' in sys.argv[1]:
             print 'generating noise model from ASTs'
             # merge the single camera ASTs into a single file
