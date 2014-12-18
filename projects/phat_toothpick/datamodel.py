@@ -48,7 +48,7 @@ noisefile = project + '/b15_27_noisemodel.hd5'
 
 # absflux calibration covariance matrix for PHAT specific filters
 
-calibration_covariance = np.array(
+absflux_a_matrix = np.array(
     [[1.19, 1.11, 0.74, 0.53, 0.30, 0.22],
      [1.11, 1.04, 0.74, 0.57, 0.41, 0.36],
      [0.74, 0.74, 0.71, 0.69, 0.68, 0.67],
@@ -56,7 +56,7 @@ calibration_covariance = np.array(
      [0.30, 0.41, 0.68, 0.77, 0.84, 0.86],
      [0.22, 0.36, 0.67, 0.77, 0.86, 0.88]])
 
-calibration_covariance = (calibration_covariance*0.01)**2.
+absflux_a_matrix = (absflux_a_matrix*0.01)**2.
 
 # distance to M31
 distanceModulus = 24.47 * unit['mag']

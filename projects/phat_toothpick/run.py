@@ -62,7 +62,6 @@ if __name__ == '__main__':
             # get the modesedgrid on which to generate the noisemodel
             from beast.core.grid import FileSEDGrid
             modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))
-            print modelsedgrid.filters
                         
             # generate the AST noise model
             noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, modelsedgrid)
@@ -71,7 +70,7 @@ if __name__ == '__main__':
 
     else:
         # define the file in which to store the grid of model SED
-        modelsedgrid = '{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project)
+        modelsedgrid = '{project:s}/{project:s}_seds_w_priors.grid.hd5'.format(project=datamodel.project)
 
         # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
