@@ -67,6 +67,8 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-40, outname='lnp.hd5',
     else:
         g0 = sedgrid
 
+    g0_weights = np.log(g0['weight'] / g0['weight'].sum())
+
     ast_error = ast.root.error[:]
     ast_bias = ast.root.bias[:]
 
@@ -85,8 +87,7 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-40, outname='lnp.hd5',
             (sed) = obk
             (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold) )
 
-            print sed
-            print chi2
+            lnp = lnp + g0_weights  # multiply by the prior weights (sum in log space)
 
             star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
             indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)

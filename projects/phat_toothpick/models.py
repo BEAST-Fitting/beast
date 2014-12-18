@@ -308,7 +308,6 @@ def t_seds(project, specgrid, filters, **seds_kwargs):
     g = grid.FileSEDGrid(seds_source(), backend='hdf')
     return project, g
 
-
 # =================== Pipeline Example ==========================
 
 def unittest():
