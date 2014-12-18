@@ -40,7 +40,7 @@ class PHAT_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
                 print('Warning: Mapping failed. This could lead to wrong results')
 
 
-def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwargs):
+def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None, **kwargs):
     """ toothpick noise model assumes that every filter is independent with
     any other.
 
@@ -55,9 +55,9 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwa
     sedgrid: SEDGrid instance
         sed model grid for everyone of which we will evaluate the model
 
-    covariance: ndarray
-        absolute calibration covariance matrix
-        when the filters are independent, the diagonal values are also accepted.
+    absflux_a_matrix: ndarray
+        absolute calibration a matrix giving the fractional uncertainties including
+        correlated terms (off diagonals)
 
     returns
     -------
@@ -76,11 +76,12 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwa
     # save to disk/mem
 
     # absolute flux calibration uncertainties
-    if covariance is not None:
-        if covariance.ndim == 1:
-            abs_calib_2 = covariance[:] ** 2
+    #  currently we are ignoring the off-diagnonal terms
+    if absflux_a_matrix is not None:
+        if absflux_a_matrix.ndim == 1:
+            abs_calib_2 = absflux_a_matrix[:] ** 2
         else:   # assumes a cov matrix
-            abs_calib_2 = np.diag(covariance)
+            abs_calib_2 = np.diag(absflux_a_matrix)
 
         noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma ** 2)
     else:
