@@ -44,7 +44,7 @@ irastfile = 'data/fake_stars_b15_27_ir.fits'
 astfile = 'data/fake_stars_b15_27_all.hd5'
 
 # name for noise model
-noisefile = project + '/b15_27_noisemodel.hd5'
+noisefile = project + '/' + project + '_noisemodel.hd5'
 
 # absflux calibration covariance matrix for PHAT specific filters
 
