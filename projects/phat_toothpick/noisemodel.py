@@ -70,7 +70,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
     # read mag_in, mag_out
     model = PHAT_ToothPick_Noisemodel(astfile, sedgrid.filters)
     # compute k-NN statistics: bias, stddev, completeness
-    model.fit(k=10, eps=0, completeness_mag_cut=80)
+    model.fit_bins(nbins=30, completeness_mag_cut=80)
     # evaluate the noise model for all the models in sedgrid
     bias, sigma, compl = model(sedgrid)
     # save to disk/mem
@@ -86,6 +86,8 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
         noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma ** 2)
     else:
         noise = sigma
+
+    noise = sigma
 
     print('Writting to disk into {0:s}'.format(outname))
     with tables.openFile(outname, 'w') as outfile:

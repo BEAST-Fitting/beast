@@ -48,7 +48,7 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-40, outname='lnp.hd5',
     threshold: float
         toss out grid points where lnp - lnp_max < threshold
         This value defined how sparse the final storage will be
-
+b
     outname: string
         output file directory for results
 

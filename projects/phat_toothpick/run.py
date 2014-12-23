@@ -61,10 +61,10 @@ if __name__ == '__main__':
 
             # get the modesedgrid on which to generate the noisemodel
             from beast.core.grid import FileSEDGrid
-            modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))
+            modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds_w_priors.grid.hd5'.format(project=datamodel.project))
                         
             # generate the AST noise model
-            noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, modelsedgrid)
+            noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, modelsedgrid, datamodel.absflux_a_matrix)
         else:
             print sys.argv[1] + ' option is not supported'
 
