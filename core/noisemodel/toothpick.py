@@ -590,8 +590,8 @@ class MultiFilterASTs(NoiseModel):
             mag_in = self.data[filterk + '_in']
             magflux_out = self.data[filterk + '_out']
             
-            d = self._compute_stddev_bins(mag_in, magflux_out, k=k, eps=eps,
-                                          completeness_mag_cut=completeness_mag_cut)
+            d = self._compute_stddev(mag_in, magflux_out, k=k, eps=eps,
+                                     completeness_mag_cut=completeness_mag_cut)
 
             ncurasts = len(d['FLUX_IN'])
             self._fluxes[0:ncurasts, e] = d['FLUX_IN'] * self.vega_flux[e]
