@@ -87,8 +87,6 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
     else:
         noise = sigma
 
-    noise = sigma
-
     print('Writting to disk into {0:s}'.format(outname))
     with tables.openFile(outname, 'w') as outfile:
         outfile.createArray(outfile.root,'bias', bias)
