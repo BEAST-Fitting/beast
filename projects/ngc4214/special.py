@@ -1,17 +1,7 @@
 import numpy as np
-from beast.core.phot import Filter
+from beast.core.phot import IntegrationFilter
 import pyfits
 
-
-""" Provide lambda points to reinterpolate the filters over.
-While filters in filters.hd5 or vega.hd5 are loaded via the fucntion 'load_all_filters' 
-in the beast/core/phot.py, the filters defined here are not loaded via the function.
-So there is no reinterpolaraion process, which is done by '__load__' function called in 'load_all_filters', 
-during SED extraction for these filters. Have to reinterpolate separately here over the stellar model spectrum 
-wavelength points. Default is Tlusty stellar model.  
-"""
-tmp = pyfits.getdata('/local/tmp/spiral/uv/beast/libs/tlusty.lowres.grid.fits',0)
-wavelength = tmp[len(tmp)-1]
 
 
 def make_integration_filter(startlam, endlam, dlamb, name,
@@ -65,10 +55,9 @@ def make_integration_filter(startlam, endlam, dlamb, name,
     lam1 = lam[np.invert(mask_f)][-1]
 
     bandwidth = lam1 - lam0
-    ifT = np.interp(wavelength, lam, flam, left=0., right=0.)
 
     _name = '{obs:s}_{inst:s}_{name:s}'.format(obs=observatory, inst=instrument, name=name)
-    filt = Filter(wavelength, ifT, name=_name)
+    filt = IntegrationFilter(lam, flam, name=_name)
     filt.bandwidth = bandwidth
     filt.comment = 'Multiply values by integral{lamb*dlamb}/hc'
     if comment is not None:
@@ -134,10 +123,9 @@ def make_top_hat_filter(startlam, endlam, dlamb, name,
     # make an effectively perfect cuts
     # integral ( lambda T F dlambda ) = integral (lambda G / lambda F dlambda)
     flam_ph = flam / lam
-    ifT = np.interp(wavelength, lam, flam_ph, left=0., right=0.)
 
     _name = '{obs:s}_{inst:s}_{name:s}'.format(obs=observatory, inst=instrument, name=name)
-    filt = Filter(wavelength, ifT, name=_name)
+    filt = Filter(lam, flam_ph, name=_name)
     filt.bandwidth = bandwidth
     filt.comment = 'Multiply values by bandwidth'
     if comment is not None:
