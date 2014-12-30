@@ -210,7 +210,7 @@ class SpectralGrid(ModelGrid):
             flist = phot.load_filters(filter_names, interp=True, lamb=self.lamb)
             _fnames = filter_names
         else:
-            flist = filter_names
+            flist = phot.load_Integrationfilters(filter_names, interp=True, lamb=self.lamb)
             _fnames = [ fk.name for fk in filter_names ]
         if extLaw is not None:
             if not inplace:
