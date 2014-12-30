@@ -40,7 +40,7 @@ from beast.tools.helpers import val_in_unit
 __all__ = [ 't_isochrones',  't_spectra', 't_seds' ]
 
 
-def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):
+def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019], trackVersion=2.3):
     """ Generate a proper table directly from the PADOVA website
 
     Parameters
@@ -61,17 +61,25 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):
     z: float or sequence
         list of metalicity values
 
+    trackVersion: 2.3 or 2.7
+        Padova CMD version
+        2.3 for Marigo et al. (2008) with the Girardi et al. (2010)
+        2.7 for PARSEC1.2S (Tang et al. 2014)
+
     Returns
     -------
     outname: str
         file into which save the table of isochrones (any format eztables can handle)
     """
     oiso = isochrone.PadovaWeb()
-    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
+    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z, trackVersion)
     t.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
     # Isochrone filtering, check that no AGB stars are removed
-    cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
+    if trackVersion < 2.7:
+        cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
+    else:
+        cond = '~((M_ini < 12.) & (stage == 0))' # do not include Pre-MS
     t = t.selectWhere('*', cond)
 
     t.write(outname)
