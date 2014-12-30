@@ -12,7 +12,7 @@ It compiles the URL needed to query the website and retrives the data into a pyt
 
 TODO list
 --------
-* test with parsec 1.1 (currently working with cmd2.3)
+* test with parsec 1.1 (currently working with cmd2.3) -> done by Yumi Choi on Dec. 27, 2014. It's working with parsec 1.2S (CMD2.7)
 * make a full doc
 * cleanup the mess
 
@@ -43,7 +43,8 @@ from StringIO import StringIO
 # ---------------
 
 map_cmd_version = {
-    2.3: ('2.3', "Old version of the models, before PARSEC")
+    2.3: ('2.3', "Old version of the models, before PARSEC"),
+    2.7: ('2.7', "PARSEC1.2S, Tang et al. (2014)")
 }
 
 
@@ -110,6 +111,7 @@ map_phot = {"2mass_spitzer": " 2MASS + Spitzer (IRAC+MIPS)",
 
 #available tracks
 map_models = {
+    '2014': ('parsec_CAF09_v1.2S', 'Tang et al. (2014) extended to include massive stars, up to 350M at Z=0.001-0.004'),
     '2010': ('gi10a',  'Marigo et al. (2008) with the Girardi et al. (2010) Case A correction for low-mass, low-metallicity AGB tracks'),
     '2010b': ('gi10b',  'Marigo et al. (2008) with the Girardi et al. (2010) Case B correction for low-mass, low-metallicity AGB tracks'),
     '2008': ('ma08',   'Marigo et al. (2008): Girardi et al. (2000) up to early-AGB + detailed TP-AGB from Marigo & Girardi (2007) (for M <= 7 Msun) + Bertelli et al. (1994) (for M > 7 Msun) + additional Z=0.0001 and Z=0.001 tracks.'),
@@ -176,7 +178,7 @@ __def_args__ = {'binary_frac': 0.3,
                 'eta_reimers': 0.2,
                 'extinction_av': 0,
                 'icm_lim': 4,
-                'imf_file': 'tab_imf/imf_chabrier_lognormal.dat',
+                'imf_file': 'tab_imf/imf_kroupa.dat',
                 'isoc_age': 1e7,
                 'isoc_age0': 12.7e9,
                 'isoc_dlage': 0.05,
@@ -195,7 +197,7 @@ __def_args__ = {'binary_frac': 0.3,
                 'kind_mag': 2,
                 'kind_postagb': -1,
                 'kind_pulsecycle': 0,
-                'kind_tpagb': 3,
+                'kind_tpagb': 0,
                 'lf_deltamag': 0.2,
                 'lf_maginf': 20,
                 'lf_magsup': -20,
@@ -264,7 +266,7 @@ def __query_website(d):
     print('Interrogating {0}...'.format(webserver))
     q = urllib.urlencode(d)
     #print('Query content: {0}'.format(q))
-    c = urllib2.urlopen(webserver + '/cgi-bin/cmd_2.3', q).read()
+    c = urllib2.urlopen(webserver + '/cgi-bin/cmd_2.7', q).read()
     aa = re.compile('output\d+')
     fname = aa.findall(c)
     if len(fname) > 0:
@@ -291,7 +293,7 @@ def __convert_to_Table(r, d=None):
     return t
 
 
-def get_one_isochrone(age, metal, ret_table=True, **kwargs):
+def get_one_isochrone(age, metal, trackVersion, ret_table=True, **kwargs):
     """ get one isochrone at a given time and Z
     INPUTS
     ------
@@ -299,6 +301,10 @@ def get_one_isochrone(age, metal, ret_table=True, **kwargs):
         age of the isochrone (in yr)
     metal: float
         metalicity of the isochrone
+    trackVersion: float
+        Padova CMD version
+        2.3 for 
+        2.7 for PARSEC1.2S (Tang et al. 2014)
 
     KEYWORDS
     --------
@@ -317,6 +323,10 @@ def get_one_isochrone(age, metal, ret_table=True, **kwargs):
     d['isoc_val'] = 0
     d['isoc_age'] = age
     d['isoc_zeta'] = metal
+    d['cmd_version'] = trackVersion
+    if trackVersion > 2.3:
+        d['isoc_kind'] = 'parsec_CAF09_v1.2S'
+        d['output_evstage'] = 1
 
     r = __query_website(d)
     if ret_table is True:
@@ -325,7 +335,7 @@ def get_one_isochrone(age, metal, ret_table=True, **kwargs):
         return r
 
 
-def get_Z_isochrones(z0, z1, dz, age, ret_table=True, **kwargs):
+def get_Z_isochrones(z0, z1, dz, age, trackVersion, ret_table=True, **kwargs):
     """ get a sequence of isochrones at constant time but variable Z
     INPUTS
     ------
@@ -357,6 +367,10 @@ def get_Z_isochrones(z0, z1, dz, age, ret_table=True, **kwargs):
     d['isoc_z0'] = z0
     d['isoc_z1'] = z1
     d['isoc_dz'] = dz
+    d['cmd_version'] = trackVersion
+    if trackVersion > 2.3:
+        d['isoc_kind'] = 'parsec_CAF09_v1.2S'
+        d['output_evstage'] = 1
 
     r = __query_website(d)
     if ret_table is True:
@@ -365,7 +379,7 @@ def get_Z_isochrones(z0, z1, dz, age, ret_table=True, **kwargs):
         return r
 
 
-def get_t_isochrones(logt0, logt1, dlogt, metal, ret_table=True, **kwargs):
+def get_t_isochrones(logt0, logt1, dlogt, metal, trackVersion, ret_table=True, **kwargs):
     """ get a sequence of isochrones at constant Z
     INPUTS
     ------
@@ -397,6 +411,10 @@ def get_t_isochrones(logt0, logt1, dlogt, metal, ret_table=True, **kwargs):
     d['isoc_lage0'] = logt0
     d['isoc_lage1'] = logt1
     d['isoc_dlage'] = dlogt
+    d['cmd_version'] = trackVersion
+    if trackVersion > 2.3:
+        d['isoc_kind'] = 'parsec_CAF09_v1.2S'
+        d['output_evstage'] = 1 
 
     r = __query_website(d)
     if ret_table is True:
