@@ -118,7 +118,102 @@ Filter object information:
         self.cl         = self.lT / self.norm
 
 
-def __load__(fname, ftab, interp=True, lamb=None):
+class IntegrationFilter(object):
+    """Class filter
+
+    Define an integration filter from the range of integration
+    """
+    def info(self):
+
+        print("""
+    Integration Filter object information:
+    name: {s.name:s}
+    central wavelength: {s.cl:f}
+    norm: {s.norm:f}
+    pivot wavelength: {s.lpivot:f}
+    definition contains {s.transmit.size:d} points""".format(s=self))
+        """ display information about the current filter"""
+
+
+    def __repr__(self):
+        return "Filter: %s, %s" % (self.name, object.__repr__(self))
+
+    def getFlux(self, slamb, sflux):
+        """getFlux
+        Integrate the flux within the filter and return the integrated energy
+        If you consider applying the filter to many spectra, you might want to
+        consider extractSEDs.
+
+        Parameters
+        ----------
+        slamb: ndarray(dtype=float, ndim=1)
+            spectrum wavelength definition domain
+
+        sflux: ndarray(dtype=float, ndim=1)
+            associated flux
+
+        Returns
+        -------
+        flux: float
+            Energy of the spectrum within the filter
+        """
+        if True in numpy.isinf(sflux):
+            indinf = numpy.where(numpy.isinf(sflux))
+            indfin = numpy.where(numpy.isfinite(sflux))
+            sflux[indinf] = numpy.interp(slamb[indinf], slamb[indfin], sflux[indfin])
+
+        # find common wavelength interval
+        ind = ((slamb <= self.wavelength.max()) & (slamb >= self.wavelength.min()))
+
+        if True in ind:
+            _slamb = slamb[ind]
+            a = numpy.trapz(_slamb * sflux[ind], _slamb)
+            b = numpy.trapz(numpy.ones(_slamb.shape, dtype=float) * _slamb, _slamb)
+
+            if (numpy.isinf(a) | numpy.isinf(b)):
+                print(self.name, "Warn for inf value")
+            return a / b
+        else:
+            return 0.
+
+    def applyTo(self, slamb, sflux):
+        """
+        Apply filter to a spectrum
+
+        Parameters
+        ----------
+        slamb: ndarray
+            spectrum wavelength definition domain
+
+        sflux: ndarray
+            associated flux
+
+        Returns
+        -------
+        flux: float
+            new spectrum values accounting for the filter
+        """
+        # find common wavelength interval
+        ind = ((slamb <= self.wavelength.max()) & (slamb >= self.wavelength.min()))
+
+        r = numpy.sflux[:]
+        r[~ind] = 0
+        return r
+
+    def __init__(self, wavelength, transmit, name=''):
+        """Constructor"""
+        self.name       = name
+        self.wavelength = wavelength
+        self.transmit   = transmit
+        self.norm       = trapz(transmit, wavelength)
+        self.lT         = trapz(transmit * wavelength, wavelength)
+        self.lpivot     = numpy.sqrt( self.lT / trapz(1. / wavelength, wavelength) )
+        self.cl         = self.lT / self.norm
+
+
+
+
+def __load__(fname, ftab, interp=True, lamb=None, integrationFilter=False):
     """ Load a given filter from the library
 
     Parameters
@@ -135,19 +230,29 @@ def __load__(fname, ftab, interp=True, lamb=None):
     lamb: ndarray[float, ndim=1]
         desired wavelength definition of the filter
 
+    integrationFilter: bool, optional
+        set True for specail integraion filter such as Qion or E_uv
+        if set, lamb should be given
+
     Returns
     -------
     filter: Filter instance
         filter object
     """
-    fnode    = ftab.getNode('/filters/' + fname)
-    flamb    = fnode[:]['WAVELENGTH']
-    transmit = fnode[:]['THROUGHPUT']
-    if interp & (lamb is not None):
-        ifT = numpy.interp(lamb, flamb, transmit, left=0., right=0.)
-        return Filter( lamb, ifT, name=fnode.name )
+    if integrationFilter:
+        ifT = numpy.interp(lamb, fname.wavelength, fname.transmit, left=0., right=0.)
+        return IntegrationFilter(lamb, ifT, name=fname)
+
     else:
-        return Filter( flamb, transmit, name=fnode.name )
+        fnode    = ftab.getNode('/filters/' + fname)
+        flamb    = fnode[:]['WAVELENGTH']
+        transmit = fnode[:]['THROUGHPUT']
+        if interp & (lamb is not None):
+            ifT = numpy.interp(lamb, flamb, transmit, left=0., right=0.)
+            return Filter( lamb, ifT, name=fnode.name )
+        else:
+            return Filter( flamb, transmit, name=fnode.name )
+
 
 
 def load_all_filters(interp=True, lamb=None, filterLib=None):
@@ -203,6 +308,31 @@ def load_filters(names, interp=True, lamb=None, filterLib=None):
     with tables.openFile(filterLib, 'r') as ftab:
         filters = [ __load__(fname, ftab, interp=interp, lamb=lamb) for fname in names ]
     return(filters)
+
+
+def load_Integrationfilters(flist, interp=True, lamb=None):
+    """ load a limited set of filters
+
+        Parameters
+        ----------
+        flist: sequence(filter)
+            list of filter object instances
+
+        interp: bool
+            reinterpolate the filters over given lambda points
+
+        lamb: ndarray[float, ndim=1]
+            desired wavelength definition of the filter
+
+
+        Returns
+        -------
+        filters: list[filter]
+            list of filter objects
+    """
+    filters = [ __load__(fname, ftab=None, interp=interp, lamb=lamb, integrationFilter=True) for fname in flist ]
+    return(filters)
+
 
 
 def extractPhotometry(lamb, spec, flist, absFlux=True):
