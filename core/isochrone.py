@@ -394,12 +394,13 @@ class ezIsoch(Isochrone):
 
 
 class PadovaWeb(Isochrone):
-    def __init__(self, logtmin=6.0, logtmax=10.2, dlogt=0.2, Z=0.019, *args, **kwargs):
+    def __init__(self, logtmin=6.0, logtmax=10.2, dlogt=0.2, Z=0.019, trackVersion=2.3, *args, **kwargs):
         self.name = 'Padova CMD isochrones'
         self.logtmin = logtmin
         self.logtmax = logtmax
         self.dlogt = dlogt
         self.Z = Z
+        self.trackVersion = trackVersion
 
     def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'],
                        *args, **kwargs):
@@ -439,7 +440,7 @@ class PadovaWeb(Isochrone):
         cond = '(logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1)'
         return iso_table.selectWhere('*', cond)
 
-    def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.019):
+    def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.019, trackVersion=2.3):
         """ Generate a proper table directly from the PADOVA website
 
         Parameters
@@ -455,6 +456,10 @@ class PadovaWeb(Isochrone):
 
         Z: float or sequence
             single value of list of values of metalicity Z
+ 
+        trackVersion: Padova CMD version
+            2.7 for PARSEC1.2S (Tang et al. 2014)
+            2.3 for Marigo et al. (2008) with the Girardi et al. (2010) before PARSEC
 
         returns
         -------
@@ -462,9 +467,10 @@ class PadovaWeb(Isochrone):
             the table of isochrones
         """
         if not hasattr(Z, '__iter__'):
-            iso_table = _cmd.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z)
+            iso_table = _cmd.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z, trackVersion)
             iso_table.header['NAME'] = 'Padova Isochrones'
-            iso_table.add_column('Z', np.ones(iso_table.nrows) * Z, description='metallicity')
+            if trackVersion < 2.7:
+                iso_table.add_column('Z', np.ones(iso_table.nrows) * Z, description='metallicity')
 
             self._clean_namings(iso_table)
 
@@ -493,10 +499,11 @@ class PadovaWeb(Isochrone):
         iso_table.setComment('M_ini', 'Initial Mass')
         iso_table.setUnit('M_act', 'Msun')
         iso_table.setComment('M_act', 'Current Mass, M(t)')
-        iso_table.setUnit('logMdot', 'Msun/yr')
-        iso_table.setComment('logMdot', 'Mass loss')
         iso_table.setUnit('logg', 'cm/s**2')
         iso_table.setComment('logg', 'Surface gravity')
         iso_table.setComment('Z', 'Metallicity')
+        if trackVersion < 2.7:
+            iso_table.setUnit('logMdot', 'Msun/yr')
+            iso_table.setComment('logMdot', 'Mass loss')
 
         return iso_table
