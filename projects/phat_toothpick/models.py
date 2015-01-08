@@ -40,7 +40,7 @@ from beast.tools.helpers import val_in_unit
 __all__ = [ 't_isochrones',  't_spectra', 't_seds' ]
 
 
-def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019]):
+def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019], trackVersion=2.3):
     """ Generate a proper table directly from the PADOVA website
 
     Parameters
