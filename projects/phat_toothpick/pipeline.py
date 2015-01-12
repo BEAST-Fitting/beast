@@ -25,7 +25,7 @@ import os
 
 import datamodel
 import noisemodel
-from models import t_isochrones, t_spectra, t_seds
+from models import t_isochrones, t_spectra, t_seds, t_priors
 from fit import t_fit, t_summary_table
 from noisemodel import t_gen_noise_model
 
@@ -223,6 +223,7 @@ def make_models(*args, **kwargs):
     tasks_models = (t_project_dir,
                     t_isochrones(**iso_kwargs),
                     t_spectra(**spec_kwargs),
+                    t_priors(),
                     t_seds(datamodel.filters, **seds_kwargs),
                     t_gen_noise_model(datamodel.astfile, **noise_kwargs))
 
