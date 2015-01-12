@@ -48,8 +48,10 @@ def imf_salpeter(x):
 
 # compute the age weights for a constant SFR in linear age
 def compute_age_weights(logages):
-    logages2 = compute_bin_width(logages)    # Computes the bin size in log
-    return np.diff(10**(logages2))           # Returns the age weight as a numpy array
+    aindxs, = np.argsort(logages)   # ages need to be monotonically increasing
+    logages2 = compute_bin_width(logages[aindxs])    # Computes the bin size in log
+    age_weights[aindxs] = np.diff(10**(logages2))           # Returns the age weight as a numpy array
+    return age_weights    # return in the order that logages was passed
 
 # compute the mass weights at a constant age
 # uses an assumed IMF to generate the weights
@@ -172,8 +174,8 @@ def add_priors_sedgrid(sedgrid_file, outname, filter_names):
         
         ind,=np.where(d_dages['logages']==iso_val)   # extract models for the given log(age)
         linage_binw = d_dages['weight'][ind]         # store the weights assign along this isochrone (linear age)
-        print(d_dages['logages'][ind])
-        print(linage_binw)
+        #print(d_dages['logages'][ind])
+        #print(linage_binw)
         
         d = {}
         
@@ -188,10 +190,10 @@ def add_priors_sedgrid(sedgrid_file, outname, filter_names):
             res = quad(integ, isoc2[ik], isoc2[ik+1]) # integrate according to the prior on the mass bin
             I1[ik] = res[0]/denom*linage_binw         # Compute the final weight
         
-        print(isoc)
-        print(I1)
+        #print(isoc)
+        #print(I1)
 
-        exit()
+        #exit()
                   
         d['weight'] = I1                              # Store the result in a dict
         #d['index'] = index_isoc
