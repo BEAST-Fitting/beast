@@ -39,6 +39,7 @@ import sys
 
 # BEAST imports
 from pipeline import run_fit, make_models
+#import datamodel_small as datamodel
 import datamodel
 import noisemodel 
 from merge_phat_asts import merge_phat_asts
@@ -70,7 +71,7 @@ if __name__ == '__main__':
 
     else:
         # define the file in which to store the grid of model SED
-        modelsedgrid = '{project:s}/{project:s}_seds_w_priors.grid.hd5'.format(project=datamodel.project)
+        modelsedgrid = '{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project)
 
         # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)

@@ -98,7 +98,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
 
 @task_decorator()
 def t_gen_noise_model(project, sedgrid, astfile, outname=None,
-                      covariance=None, *args, **kwargs):
+                      absflux_a_matrix=None, *args, **kwargs):
     """
     Parameters
     ----------
@@ -114,9 +114,9 @@ def t_gen_noise_model(project, sedgrid, astfile, outname=None,
     astfile: str
         path to the file into which are ASTs results
 
-    covariance: ndarray
-        absolute calibration covariance matrix
-        when the filters are independent, the diagonal values are also accepted.
+    absflux_a_matrix: ndarray
+        absolute calibration a matrix giving the fractional uncertainties including
+        correlated terms (off diagonals)
 
     Returns
     -------
@@ -134,7 +134,7 @@ def t_gen_noise_model(project, sedgrid, astfile, outname=None,
         outname = '{0:s}_noisemodel.hd5'.format(project)
 
     noise_source = RequiredFile(outname, make_toothpick_noise_model, outname,
-                                astfile, sedgrid, covariance=covariance,
+                                astfile, sedgrid, absflux_a_matrix=absflux_a_matrix,
                                 **kwargs)
 
     return project, noise_source(), sedgrid

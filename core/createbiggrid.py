@@ -219,7 +219,6 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
 
     return g
 
-
 def _make_dust_fbump_valid_points_generator(it, min_Rv, max_Rv):
     """
     compute the allowed points based on the R(V) versus f_bump plane

@@ -527,6 +527,9 @@ class Stellib(object):
         _grid['radius'] = np.empty(ndata, dtype=float )
         _grid['keep'] = np.empty(ndata, dtype=bool )
 
+        # weight stores the priors (initialize to 1)
+        _grid['weight'] = np.full(ndata, 1.0, dtype=float)
+
         specs = np.empty( (ndata, len(self.wavelength)), dtype=float )
 
         # copy meta data of pts into the resulting structure
@@ -580,6 +583,7 @@ class Stellib(object):
                   'name': 'Reinterpolated stellib grid'}
 
         g = SpectralGrid(lamb, seds=specs, grid=Table(_grid), header=header, backend='memory')
+
         return g
 
     def plot_boundary(self, ax=None, dlogT=0., dlogg=0., **kwargs):

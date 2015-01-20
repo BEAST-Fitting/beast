@@ -25,7 +25,7 @@ import os
 
 import datamodel
 import noisemodel
-from models import t_isochrones, t_spectra, t_seds
+from models import t_isochrones, t_spectra, t_seds, t_priors
 from fit import t_fit, t_summary_table
 from noisemodel import t_gen_noise_model
 
@@ -200,7 +200,8 @@ def make_models(*args, **kwargs):
     iso_kwargs = dict(logtmin=datamodel.logt[0],
                       logtmax=datamodel.logt[1],
                       dlogt=datamodel.logt[2],
-                      z=datamodel.z)
+                      z=datamodel.z,
+                      trackVersion=datamodel.trackVersion)
 
     dmod = val_in_unit('distance Modulus', datamodel.distanceModulus, 'mag').magnitude
     distance = 10 ** ( (dmod / 5.) + 1 ) * unit['pc']
@@ -216,12 +217,13 @@ def make_models(*args, **kwargs):
         seds_kwargs['add_spectral_properties_kwargs'] = datamodel.add_spectral_properties_kwargs
         spec_kwargs['add_spectral_properties_kwargs'] = datamodel.add_spectral_properties_kwargs
 
-    noise_kwargs = dict(covariance=datamodel.calibration_covariance)
+    noise_kwargs = dict(covariance=datamodel.absflux_a_matrix)
 
     # make models if not there yet
     tasks_models = (t_project_dir,
                     t_isochrones(**iso_kwargs),
                     t_spectra(**spec_kwargs),
+                    t_priors(),
                     t_seds(datamodel.filters, **seds_kwargs),
                     t_gen_noise_model(datamodel.astfile, **noise_kwargs))
 
