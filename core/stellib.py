@@ -18,9 +18,8 @@ from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
 from .future import Path
 
-
 lsun = 3.839e+26   # in W (Watts)
-sig_stephan = 5.67037321 * 1e-8  # W * m**-2 * K**-4
+sig_stefan = 5.67037321 * 1e-8  # W * m**-2 * K**-4
 rsun = 6.955e8  # in meters
 
 config = {
@@ -387,7 +386,7 @@ class Stellib(object):
         radii: ndarray[float, ndim=1]
             array of radii in m (SI units)
         """
-        return np.sqrt( (10 ** logl) * lsun / (4.0 * np.pi * sig_stephan * ((10 ** logt) ** 4)) )
+        return np.sqrt( (10 ** logl) * lsun / (4.0 * np.pi * sig_stefan * ((10 ** logt) ** 4)) )
 
     def get_boundaries(self, dlogT=0.1, dlogg=0.3, **kwargs):
         """ Returns the closed boundary polygon around the stellar library with
