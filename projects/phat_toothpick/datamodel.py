@@ -28,7 +28,7 @@ from beast.external.ezunits import unit
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'b15_nov15_test'
+project = 'b15_jan15_test'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
@@ -71,6 +71,9 @@ logt = [6.0, 10.13, 0.15]
 #Metallicity
 z = [0.03, 0.019, 0.008, 0.004]
 #z = 0.019
+
+# Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
+trackVersion = 2.3
 
 # Stellar Atmospheres library definition
 osl = stellib.Tlusty() + stellib.Kurucz()
