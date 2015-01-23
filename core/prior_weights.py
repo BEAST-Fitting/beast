@@ -58,8 +58,9 @@ def compute_age_weights(logages):
 
 # compute the mass weights at a constant age
 # uses an assumed IMF to generate the weights
-#def compute_mass_weights(cols,z_val,iso_val,d_dages):
-def compute_mass_weights(masses):
+#  IMF norm is the integral of the assumed IMF over the full possible mass range
+#  must be precomputed as this information is not usual available for a specific isochrone age
+def compute_mass_weights(masses, full_imf_integral):
     d = np.zeros(len(masses))
         
     isoc = np.sort(masses)               # sort the initial mass along this isochrone
@@ -67,19 +68,17 @@ def compute_mass_weights(masses):
     
     isoc2 = compute_bin_boundaries(isoc)      # Compute the initial mass bin boundaries
 
-    res1 = quad(imf_kroupa, isoc2.min(), isoc2.max())   # integrate according to the desired IMF along the isochrone
-                                                        # integrate from the bin min to bin max to match the next integration step
-
-    denom = res1[0]
     I1 = np.empty(len(isoc))
-    res = np.empty(len(isoc))
     for ik, uk in enumerate(isoc2[:-1]):
         res = quad(imf_kroupa, isoc2[ik], isoc2[ik+1]) # integrate according to the prior on the mass bin
-        I1[index_isoc[ik]] = res[0]/denom         # Compute the final weight
+        I1[index_isoc[ik]] = res[0]/full_imf_integral      # compute the weight
     return I1
 
-# compute age-mass prior weights
-def compute_age_mass_prior_weights(_tgrid):
+# compute age-mass-metallicity prior weights
+# age prior is a constant SFR in linear age
+# mass prior is a Kroupa IMF (need to update code to allow user to pick the function)
+# metallicity prior is flat
+def compute_age_mass_metallicity_prior_weights(_tgrid):
 
     uniq_Zs = np.unique(_tgrid['Z'])  # get the unique metallicities
     total_z_weight = np.zeros(len(uniq_Zs))
@@ -90,11 +89,18 @@ def compute_age_mass_prior_weights(_tgrid):
         uniq_ages = np.unique(_tgrid[zindxs]['logA']) # get the unique ages for this metallicity
         age_weights = compute_age_weights(uniq_ages)  # compute the age weights for a constant SFR in linear age
 
+        # get the integral over the IMF
+        # assuming the min/max masses at any age for a single metallicity are the assumed min/max masses
+        #min_mass = np.min(_tgrid[zindxs]['M_ini'])
+        #max_mass = np.max(_tgrid[zindxs]['M_ini'])
+        #imf_norm = quad(imf_kroupa, min_mass, max_mass)   # integrate according to the desired IMF along the isochrone
+        imf_norm = [1.0]  # effectively ignore this term - assumes same mass range for all metallicities
+
         for ak, age_val in enumerate(uniq_ages):
             aindxs, = np.where((_tgrid['logA'] == age_val) & (_tgrid['Z'] == z_val))   # get the grid for a single age
             _tgrid_single_age = _tgrid[aindxs]
             if len(aindxs) > 1:
-                mass_weights = compute_mass_weights(_tgrid_single_age['M_ini'])
+                mass_weights = compute_mass_weights(_tgrid_single_age['M_ini'],imf_norm[0])
             else:
                 # must be a single mass for this age,z combination
                 # set mass weight to zero to remove this point from the grid
