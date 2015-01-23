@@ -21,6 +21,7 @@ from beast.core import extinction
 from beast.core.observations import Observations
 from beast.core.vega import Vega
 from beast.external.ezunits import unit
+from extra_filters import make_integration_filter, make_top_hat_filter
 
 #---------------------------------------------------------
 # User inputs                                   [sec:conf]
@@ -28,7 +29,7 @@ from beast.external.ezunits import unit
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'b15_jan15_test'
+project = 'b15_late_jan15_test'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
@@ -94,6 +95,21 @@ rvs = [2.0, 6.1, 0.5]
 # fbump (should be f_A): mixture factor between "MW" and "SMCBar" extinction curves
 fbumps = [0., 1.01, 0.25]
 #fbumps = [1.0,1.0, 0.25]
+
+################
+
+### extra filters for specific projects
+
+qion_filter = make_integration_filter(90., 912., 1, 'F_QION')
+qion_filter.name = 'F_QION'  # getting rid of instrument etc
+maria_filter = make_top_hat_filter(912., 2066., 1, 'F_UV_6_13e')
+maria_filter.name = 'F_UV_6_13e'
+
+additional_filters = ['GALEX_FUV', 'GALEX_NUV']
+# note: remember to multiply by bandwidth to get the actual energy
+
+add_spectral_properties_kwargs = dict(filternames=filters + additional_filters,
+                                      filters=[qion_filter, maria_filter])
 
 ################
 

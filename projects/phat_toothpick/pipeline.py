@@ -29,7 +29,6 @@ from models import t_isochrones, t_spectra, t_seds, t_priors
 from fit import t_fit, t_summary_table
 from noisemodel import t_gen_noise_model
 
-
 @task_decorator()
 def t_get_obscat(project, obsfile=datamodel.obsfile,
                  distanceModulus=datamodel.distanceModulus,
@@ -177,23 +176,22 @@ def make_models(*args, **kwargs):
     1. creates the project directory,
     2. download isochrones,
     3. compute dust-free spectra from the isochrones
-    4. apply dust and generate photometry to obtain the set of seds
-    5. generate the noise model
+    4. compute the age-mass-metallicity prior weights
+    5. apply dust and generate photometry to obtain the set of seds
 
     Equivalent to using individual tasks as follow:
     project, noisefile, grid = project | t_isochrones(**iso_kwargs)
                                        | t_spectra(**spec_kwargs)
+                                       | t_priors()
                                        | t_seds(filters, **seds_kwargs)
-                                       | t_gen_noise_model(astfile, **noise_kwargs)
 
     returns
     -------
     job: int
         job id
 
-    (p, n, g): project, noisefile and ModelGrid
+    (p, g): project, noisefile and ModelGrid
         project identification
-        noise model file
         Modelgrid instance constaining the collection of SEDs
     """
     # calling sequences
@@ -217,18 +215,53 @@ def make_models(*args, **kwargs):
         seds_kwargs['add_spectral_properties_kwargs'] = datamodel.add_spectral_properties_kwargs
         spec_kwargs['add_spectral_properties_kwargs'] = datamodel.add_spectral_properties_kwargs
 
-    noise_kwargs = dict(covariance=datamodel.absflux_a_matrix)
+#    noise_kwargs = dict(covariance=datamodel.absflux_a_matrix)
 
     # make models if not there yet
     tasks_models = (t_project_dir,
                     t_isochrones(**iso_kwargs),
                     t_spectra(**spec_kwargs),
                     t_priors(),
-                    t_seds(datamodel.filters, **seds_kwargs),
-                    t_gen_noise_model(datamodel.astfile, **noise_kwargs))
+                    t_seds(datamodel.filters, **seds_kwargs))
+#                    t_gen_noise_model(datamodel.astfile, **noise_kwargs))
 
     models = Pipeline('make_models', tasks_models)
-    job, (p, n, g) = models(datamodel.project)
+    job, (p, g) = models(datamodel.project)
+
+    return job, (p, g)
+
+
+def compute_noise_and_trim_grid(*args, **kwargs):
+    """ compute the noise model for a specific catalog and
+        trim bright/faint models to speed up the calcuations
+
+    1. compute the noise model given the ASTs and absflux A matrix
+    2. trim the model sed grid of models that are so bright
+       or faint that will always get a zero fit probability (speed optimization)
+
+    Equivalent to using individual tasks as follow:
+    project, noisefile, grid = project | t_gen_noise_model(datamodel.astfile, **noise_kwargs)
+                                       | t_trim_model_sed(????)
+
+    returns
+    -------
+    job: int
+        job id
+
+    (p, n, g): project, noisemodel, ModelGrid
+        project identification
+        noise model file
+        Modelgrid instance constaining the collection of SEDs
+    """
+    # calling sequences
+
+    noise_kwargs = dict(covariance=datamodel.absflux_a_matrix)
+
+    # make models if not there yet
+    tasks_noise_and_trim = (t_gen_noise_model(datamodel.astfile, **noise_kwargs))
+
+    noise_and_trim = Pipeline('compute_noise_and_trim_grid', tasks_noise_and_trim)
+    job, (p, n, g) = noise_and_trim(datamodel.project)
 
     return job, (p, n, g)
 

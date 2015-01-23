@@ -51,21 +51,12 @@ if __name__ == '__main__':
             print(__doc__)
         elif '-models' in sys.argv[1]:
             make_models()
-        elif '-priors' in sys.argv[1]:
-            modelsedgrid = '{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project)
-            modelsedgridwpriors = '{project:s}/{project:s}_seds_w_priors.grid.hd5'.format(project=datamodel.project)
-            prior_weights.add_priors_sedgrid(modelsedgrid, modelsedgridwpriors, datamodel.filters)
         elif '-noise' in sys.argv[1]:
             print 'generating noise model from ASTs'
-            # merge the single camera ASTs into a single file
-            merge_phat_asts(datamodel.uvastfile,datamodel.optastfile,datamodel.irastfile,datamodel.astfile)
+            compute_noise_and_trim_grid()
 
-            # get the modesedgrid on which to generate the noisemodel
-            from beast.core.grid import FileSEDGrid
-            modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds_w_priors.grid.hd5'.format(project=datamodel.project))
-                        
-            # generate the AST noise model
-            noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, modelsedgrid, datamodel.absflux_a_matrix)
+            # merge the single camera ASTs into a single file
+            #merge_phat_asts(datamodel.uvastfile,datamodel.optastfile,datamodel.irastfile,datamodel.astfile)
         else:
             print sys.argv[1] + ' option is not supported'
 

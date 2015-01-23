@@ -384,8 +384,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                 }
 
         if with_fb:
-            cols['Rv_MW'] = np.empty(N, dtype=float)
-            cols['f_bump'] = np.empty(N, dtype=float)
+            cols['Rv_A'] = np.empty(N, dtype=float)
+            cols['f_A'] = np.empty(N, dtype=float)
 
         keys = g0.keys()
         for key in keys:
@@ -405,8 +405,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                 # adding the dust parameters to the models
                 cols['Av'][N0 * count: N0 * (count + 1)] = Av
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
-                cols['f_bump'][N0 * count:N0 * (count + 1)] = f_bump
-                cols['Rv_MW'][N0 * count: N0 * (count + 1)] = Rv_MW
+                cols['f_A'][N0 * count:N0 * (count + 1)] = f_bump
+                cols['Rv_A'][N0 * count: N0 * (count + 1)] = Rv_MW
             else:
                 Av, Rv = pt
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
