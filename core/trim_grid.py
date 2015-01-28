@@ -17,17 +17,18 @@ from .grid import FileSEDGrid
 from .grid import SpectralGrid
 from ..external.eztables import Table
 
-def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_outname):
+def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_outname,
+                sigma_fac=3.):
     
     # cache the model bias and uncertainty
     model_bias = sedgrid_noisemodel.root.bias[:]
     model_unc = sedgrid_noisemodel.root.error[:]
     model_compl = sedgrid_noisemodel.root.completeness[:]
 
-    # Get upper and lower values for the models given the noise model + 5%
-    # maybe change to -/+ 3 sigma (or 5 sigma) and remove 5% (???)
-    model_down = sedgrid.seds + model_bias - model_unc - sedgrid.seds*0.05
-    model_up = sedgrid.seds + model_bias + model_unc + sedgrid.seds*0.05
+    # Get upper and lower values for the models given the noise model 
+    #  sigma_fac defaults to 3.
+    model_down = sedgrid.seds + model_bias - sigma_fac*model_unc
+    model_up = sedgrid.seds + model_bias + sigma_fac*model_unc
     
     # Store the brigtest and faintest fluxes in each band (for model + data)
     n_filters = len(obsdata.filters)
