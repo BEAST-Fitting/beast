@@ -23,7 +23,8 @@ from beast.external.ezunits import unit
 
 import os
 
-import datamodel
+import datamodel_small as datamodel
+#import datamodel
 import noisemodel
 from models import t_isochrones, t_spectra, t_seds, t_priors
 from fit import t_fit, t_summary_table
@@ -190,7 +191,7 @@ def make_models(*args, **kwargs):
     job: int
         job id
 
-    (p, g): project, noisefile and ModelGrid
+    (p, g): project and ModelGrid
         project identification
         Modelgrid instance constaining the collection of SEDs
     """

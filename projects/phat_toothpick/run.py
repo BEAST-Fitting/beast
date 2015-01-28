@@ -38,12 +38,13 @@ project, stat, obs, sedgrid = project | t_project_dir
 import sys
 
 # BEAST imports
-from pipeline import run_fit, make_models
-#import datamodel_small as datamodel
-import datamodel
+from pipeline import run_fit, make_models, compute_noise_and_trim_grid
+import datamodel_small as datamodel
+#import datamodel
 import noisemodel 
 from merge_phat_asts import merge_phat_asts
 from beast.core import prior_weights
+from beast.core import trim_grid
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
@@ -53,7 +54,26 @@ if __name__ == '__main__':
             make_models()
         elif '-noise' in sys.argv[1]:
             print 'generating noise model from ASTs'
-            compute_noise_and_trim_grid()
+ 
+            # get the modesedgrid on which to generate the noisemodel  
+            from beast.core.grid import FileSEDGrid  
+            modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))  
+            
+            # generate the AST noise model  
+            noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, modelsedgrid, datamodel.absflux_a_matrix)  
+
+            # read in the noise model just created
+            noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
+
+            # read in the observed data
+            obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
+            # trim the model sedgrid
+            sed_trimname = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
+            noisemodel_trimname = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
+
+            trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname)
+
+            #compute_noise_and_trim_grid()
 
             # merge the single camera ASTs into a single file
             #merge_phat_asts(datamodel.uvastfile,datamodel.optastfile,datamodel.irastfile,datamodel.astfile)
@@ -61,10 +81,11 @@ if __name__ == '__main__':
             print sys.argv[1] + ' option is not supported'
 
     else:
-        # define the file in which to store the grid of model SED
-        modelsedgrid = '{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project)
+        # the files for the trimmed model grid and noisemodel grid
+        modelsedgrid = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
+        noisemodelfile = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
 
         # read in the the AST noise model
-        noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
+        noisemodel_vals = noisemodel.get_noisemodelcat(noisemodelfile)
 
         run_fit(datamodel.project, modelsedgrid, noise=noisemodel_vals, obsfile=datamodel.obsfile)

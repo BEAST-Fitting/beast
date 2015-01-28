@@ -252,6 +252,71 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
             gk.writeHDF(outname, append=True)
     return outname
 
+def make_priors(outname, specgrid, **kwargs):
+    """make_priors -- compute the weights for the priors
+
+    Parameters
+    ----------
+
+    outname: str
+        file into which save the final SED grid (any format grid.SpectralGrid handles)
+
+    specgrid: grid.SpectralGrid object
+        spectral grid to transform
+        result from the make_spectra function
+
+    returns
+    -------
+
+    outname: str
+        file into which save the SED grid
+    """
+
+    print('Make Prior Weights')
+
+    prior_weights.compute_age_mass_metallicity_prior_weights(specgrid.grid)
+
+    #write to disk
+    if hasattr(specgrid, 'writeHDF'):
+        specgrid.writeHDF(outname)
+    else:
+        for gk in specgrid:
+            gk.writeHDF(outname, append=True)
+    return outname
+
+def trim_models(outname, sedgrid, **kwargs):
+    """trim_model - remove the model grid points that are too bright/faint
+
+    Parameters
+    ----------
+
+    outname: str
+        file into which save the final SED grid (any format grid.SpectralGrid handles)
+
+    sedgrid: grid.SpectralGrid object
+        sedgrid to transform
+        result from the make_seds function
+
+    returns
+    -------
+
+    outname: str
+        file into which save the SED grid
+    """
+
+    print('Trim Models')
+
+    outname = trim_grid
+
+    #write to disk
+    if hasattr(specgrid, 'writeHDF'):
+        specgrid.writeHDF(outname)
+    else:
+        for gk in specgrid:
+            gk.writeHDF(outname, append=True)
+
+    return outname
+
 
 # =================== Pipeline Tasks ==========================
 
