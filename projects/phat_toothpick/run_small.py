@@ -42,9 +42,8 @@ import argparse
 import time
 
 # BEAST imports
-from pipeline import run_fit, make_models, compute_noise_and_trim_grid
-#import datamodel_small as datamodel
-import datamodel
+from pipeline_small import run_fit, make_models, compute_noise_and_trim_grid
+import datamodel_small as datamodel
 import noisemodel 
 from merge_phat_asts import merge_phat_asts
 from beast.core import prior_weights
@@ -93,7 +92,7 @@ if __name__ == '__main__':
 
     else:
         start_time = time.clock()
-
+    
         # the files for the trimmed model grid and noisemodel grid
         modelsedgrid = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
         noisemodelfile = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
