@@ -51,6 +51,7 @@ try:
 except ImportError:
     _C_code = False
 
+_C_code = False
 
 def percentile(data, percentiles, weights=None):
     """Compute weighted percentiles.
@@ -102,6 +103,7 @@ def percentile(data, percentiles, weights=None):
         raise ValueError("wrong data shape, expecting 1d")
 
     if len(weights) != n:
+        print(n, len(weights))
         raise ValueError("weights must be the same shape as data")
     if not np.greater_equal(weights, 0.0).all():
         raise ValueError("Not all weights are non-negative.")
