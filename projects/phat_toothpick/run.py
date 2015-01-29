@@ -41,8 +41,8 @@ import argparse
 
 # BEAST imports
 from pipeline import run_fit, make_models, compute_noise_and_trim_grid
-import datamodel_small as datamodel
-#import datamodel
+#import datamodel_small as datamodel
+import datamodel
 import noisemodel 
 from merge_phat_asts import merge_phat_asts
 from beast.core import prior_weights

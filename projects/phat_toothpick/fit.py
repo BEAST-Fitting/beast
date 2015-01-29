@@ -26,6 +26,7 @@ from beast.core.odict import odict
 from beast.proba.likelihood import *
 from beast.proba import expectation, percentile, getNorm_lnP
 from beast.tools.pbar import Pbar
+from beast.tools.binningAxis import binningAxis
 from beast.external.eztables import Table
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
@@ -220,7 +221,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
         q = g0[qname]
         r = np.empty(len(objlist), dtype=float)
 
-        with Pbar(nobs, txt='Expectations') as pb:
+        with Pbar(nobs, txt=qname+': Expectations') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
                 pb.desc = 'E({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
@@ -310,7 +311,7 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache
         #q = get_Q_from_node(node, qname)
         q = g0[qname]
         r = np.empty(len(objlist), dtype=float)
-        with Pbar(nobs, txt='Best') as pb:
+        with Pbar(nobs, txt=qname+': Best') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
                 pb.desc = 'Best({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
@@ -329,7 +330,7 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache
     return r
 
 
-def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior=None, gridbackend='cache'):
+def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior=None, gridbackend='cache', max_nbins=50):
     """ Percentile values of any given grid property (incl. expression) but seds,
 
     see also:    sed_percentile, percentile
@@ -361,12 +362,40 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         backend to use to load the grid if necessary (memory, cache, hdf)
         (see beast.core.grid)
 
+    max_nbins: maxiumum number of bins to use for the 1D likelihood calculations
+
     returns
     -------
     e_dict: dict or ndarray[float, ndim=2]
         if qname is iterable, returns a dict with a (qname, ndarray) pair
         else returns only the ndarray of percentile values (one per obj in cllist)
     """
+
+    def pdf1d(lnps, idxs, binAx_dict):
+	"""
+	Computes the 1d PDF given the N-d likelihoods. Uses project function in binningAxis class
+
+	lnps:       array of float (1D)
+	                 Array of the likelihood associated with this star as written in the likelihood file
+	idxs:       array of int (1D - same size as lnps)
+	                Array of the indices associated with this star as written in the likelihood file
+	binAx_dict: Dictionary
+	                Contains all the info about the SED grid needed to compute 1d PDFs
+	"""
+
+        import numexpr
+
+        prob = numexpr.evaluate('exp(lnp)',local_dict={'lnp': np.float64(lnps)})
+
+        width = binAx_dict.edges[1:]-binAx_dict.edges[:-1]
+        xmin = binAx_dict.edges[0]
+        xmax = binAx_dict.edges[-1]
+        pp = binAx_dict.project(prob,inds=idxs)
+        logpp = np.full(len(pp),-100.)
+        indxs = np.where(pp > 0)
+        logpp[indxs] = np.log(pp[indxs])
+        return logpp
+
     if type(lnpfile) == str:
         f = tables.openFile(lnpfile)
     elif isinstance(lnpfile, tables.file.File):
@@ -397,21 +426,56 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         #node = f.getNode('/mods_grid')
         #q = get_Q_from_node(node, qname)
         q = g0[qname]
+        
+        # determine if the calculation will be done from the full nD likelihood
+        #  or from the 1D likelihood
+        #  basically if the number of unique parameter values is < # of objects -> 1D
+        #  needed to avoid discretized percentile values
+        from1d = False
+        n_uniq = len(np.unique(q))
+        if len(q) != n_uniq:
+            from1d = True
+            if len(np.unique(q)) > max_nbins: 
+                nbins = max_nbins  # limit the number of bins in the 1D likelihood for speed
+            else:
+                nbins = n_uniq
+            bin_edges = np.linspace(q.min(), q.max(), nbins) # compute the bin edges
+            # Store the info in the dictionary by calling binningAxis function
+            print('Computing the binning details for ' + qname)
+            if qname in ['Av','Rv','Rv_A','Z','f_A','logA']:
+                binAx_dict = binningAxis(sedgrid, qname, bin_edges, var_spacing='fixed')
+            else:
+                binAx_dict = binningAxis(sedgrid, qname, bin_edges, var_spacing='rect', fixed_key='logA')
+            print('Done')
+                
         nval = len(p)
         _p = np.asarray(p, dtype=float)
         r = np.empty((len(objlist), nval), dtype=float)
-        with Pbar(nobs, desc='Percentiles') as pb:
+        with Pbar(nobs, desc=qname+': Percentiles') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
                 pb.desc = 'Percentiles({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
-                log_norm = np.log(getNorm_lnP(lnps))
-                if not np.isfinite(log_norm):
-                    log_norm = lnps.max()
-                weights = np.exp(lnps - log_norm)
-                if prior is not None:
-                    weights *= prior[indx]
-                r[e, :] = percentile(q[indx], _p, weights=weights)
+
+                if from1d:
+                    lnp1d = pdf1d(lnps, indx, binAx_dict)   # Compute the 1d likelihood for this star and qname
+                    ind1d = binAx_dict.bins                      # Store the bins in a variable
+                    log_norm = np.log(getNorm_lnP(lnp1d))           # Normalization of the 1d PDF 
+                    if not np.isfinite(log_norm):
+                        log_norm = lnp1d.max()                  # checking when 1d PDF contains infinite values
+                    weights = np.exp(lnp1d - log_norm)              # weights for each bin
+                    if True not in np.isfinite(lnp1d):              # Store the percentile values
+                        r[e,:] = np.asarray([float('NaN'),float('NaN'),float('NaN')])
+                    else:
+                        r[e, :] = percentile(ind1d, _p, weights=weights)
+                else:
+                    log_norm = np.log(getNorm_lnP(lnps))
+                    if not np.isfinite(log_norm):
+                        log_norm = lnps.max()
+                    weights = np.exp(lnps - log_norm)
+                    if prior is not None:
+                        weights *= prior[indx]
+                    r[e, :] = percentile(q[indx], _p, weights=weights)
 
     if not isinstance(lnpfile, tables.file.File):
         f.close()
@@ -429,7 +493,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
 
     sedgrid: str or grid.SEDgrid instance
         model grid
-
+ 
     keys: str or list of str
         if str:  name of the quantity or expression to evaluate from the grid table
         if list: list of qquantities or expresions
@@ -463,11 +527,12 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
         keys = g0.keys()
 
     #make sure keys are real keys
-    skip_keys = 'osl keep weight'.split()
+    skip_keys = 'osl keep weight fullgrid_idx'.split()
     keys = [k for k in keys if k not in skip_keys]
 
     if method is None:
-        method = 'best expectation percentile'.split()
+        method = 'percentile'.split()
+        #method = 'best expectation percentile'.split()
 
     for key in keys:
         if not (key in g0.keys()):

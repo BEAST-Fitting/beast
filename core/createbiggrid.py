@@ -373,7 +373,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
         chunksize = npts
 
     if add_spectral_properties_kwargs is not None:
-        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_1'
+        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_wd'
 
     for chunk_pts in helpers.chunks(pts, chunksize):
         # iter over chunks of models

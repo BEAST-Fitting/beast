@@ -88,10 +88,10 @@ extLaw = extinction.RvFbumpLaw()
 avs = [0.0, 10.055, 0.5]
 
 # R(V): dust average grain size
-rvs = [3.0,3.0,1.0]
+rvs = [2.0,6.0,1.0]
 
 # fbump (should be f_A): mixture factor between "MW" and "SMCBar" extinction curves
-fbumps = [1.0,1.0, 0.25]
+fbumps = [0.0,1.0, 0.25]
 
 ################
 

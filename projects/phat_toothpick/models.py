@@ -137,7 +137,7 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
 
     print('Adding spectral properties:', add_spectral_properties_kwargs is not None)
     if add_spectral_properties_kwargs is not None:
-        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_0'
+        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_nd'
 
     #write to disk
     if hasattr(g, 'writeHDF'):
@@ -249,38 +249,6 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
         g.writeHDF(outname)
     else:
         for gk in g:
-            gk.writeHDF(outname, append=True)
-    return outname
-
-def make_priors(outname, specgrid, **kwargs):
-    """make_priors -- compute the weights for the priors
-
-    Parameters
-    ----------
-
-    outname: str
-        file into which save the final SED grid (any format grid.SpectralGrid handles)
-
-    specgrid: grid.SpectralGrid object
-        spectral grid to transform
-        result from the make_spectra function
-
-    returns
-    -------
-
-    outname: str
-        file into which save the SED grid
-    """
-
-    print('Make Prior Weights')
-
-    prior_weights.compute_age_mass_metallicity_prior_weights(specgrid.grid)
-
-    #write to disk
-    if hasattr(specgrid, 'writeHDF'):
-        specgrid.writeHDF(outname)
-    else:
-        for gk in specgrid:
             gk.writeHDF(outname, append=True)
     return outname
 
