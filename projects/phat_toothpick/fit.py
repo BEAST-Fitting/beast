@@ -19,6 +19,7 @@ table = (project, obs) | t_fit(g, **fit_kwargs) | t_summary_table(g, **stat_kwar
 """
 
 import sys
+import time
 import numpy as np
 import tables
 from beast.core import grid
@@ -29,6 +30,7 @@ from beast.tools.pbar import Pbar
 from beast.external.eztables import Table
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
+from beast.core.pdf1d import pdf1d
 
 __all__ = ['fit_model_seds_pytables', 't_fit', 'summary_table', 't_summary_table']
 
@@ -207,7 +209,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
     if hasattr(qname, '__iter__'):
         r = odict()
         for qk in qname:
-            lbl = '{0:s}_E'.format(qk)
+            lbl = '{0:s}_Exp'.format(qk)
             r[lbl] = Q_expect(f, g0, qk, objlist, prior)
     else:
         #make sure keys are useful keys
@@ -220,9 +222,9 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
         q = g0[qname]
         r = np.empty(len(objlist), dtype=float)
 
-        with Pbar(nobs, txt='Expectations') as pb:
+        with Pbar(nobs, txt=qname+': Expectations') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
-                pb.desc = 'E({0})'.format(qname)
+                pb.desc = 'Exp({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
@@ -310,7 +312,7 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache
         #q = get_Q_from_node(node, qname)
         q = g0[qname]
         r = np.empty(len(objlist), dtype=float)
-        with Pbar(nobs, txt='Best') as pb:
+        with Pbar(nobs, txt=qname+': Best') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
                 pb.desc = 'Best({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
@@ -329,7 +331,7 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache
     return r
 
 
-def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior=None, gridbackend='cache'):
+def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior=None, gridbackend='cache', max_nbins=50):
     """ Percentile values of any given grid property (incl. expression) but seds,
 
     see also:    sed_percentile, percentile
@@ -361,12 +363,15 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         backend to use to load the grid if necessary (memory, cache, hdf)
         (see beast.core.grid)
 
+    max_nbins: maxiumum number of bins to use for the 1D likelihood calculations
+
     returns
     -------
     e_dict: dict or ndarray[float, ndim=2]
         if qname is iterable, returns a dict with a (qname, ndarray) pair
         else returns only the ndarray of percentile values (one per obj in cllist)
     """
+
     if type(lnpfile) == str:
         f = tables.openFile(lnpfile)
     elif isinstance(lnpfile, tables.file.File):
@@ -397,21 +402,31 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         #node = f.getNode('/mods_grid')
         #q = get_Q_from_node(node, qname)
         q = g0[qname]
+        
+        n_uniq = len(np.unique(q))
+        if len(np.unique(q)) > max_nbins: 
+            nbins = max_nbins  # limit the number of bins in the 1D likelihood for speed
+        else:
+            nbins = n_uniq
+        start_time = time.clock()
+        # setup the fast 1d pdf
+        fast_pdf1d = pdf1d(q, nbins)
+        new_time = time.clock()
+        print('fast_pdf1d time taken: ',(new_time - start_time)/60., ' min')
+
         nval = len(p)
         _p = np.asarray(p, dtype=float)
         r = np.empty((len(objlist), nval), dtype=float)
-        with Pbar(nobs, desc='Percentiles') as pb:
+        with Pbar(nobs, desc=qname+': Percentiles') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
                 pb.desc = 'Percentiles({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
-                log_norm = np.log(getNorm_lnP(lnps))
-                if not np.isfinite(log_norm):
-                    log_norm = lnps.max()
-                weights = np.exp(lnps - log_norm)
-                if prior is not None:
-                    weights *= prior[indx]
-                r[e, :] = percentile(q[indx], _p, weights=weights)
+
+                pdf1d_bins, pdf1d_vals = fast_pdf1d.gen1d(indx, np.exp(lnps))
+                pdf1d_vals /= pdf1d_vals.max()
+
+                r[e, :] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
 
     if not isinstance(lnpfile, tables.file.File):
         f.close()
@@ -429,7 +444,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
 
     sedgrid: str or grid.SEDgrid instance
         model grid
-
+ 
     keys: str or list of str
         if str:  name of the quantity or expression to evaluate from the grid table
         if list: list of qquantities or expresions
@@ -463,10 +478,11 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
         keys = g0.keys()
 
     #make sure keys are real keys
-    skip_keys = 'osl keep weight'.split()
+    skip_keys = 'osl keep weight fullgrid_idx'.split()
     keys = [k for k in keys if k not in skip_keys]
 
     if method is None:
+        #method = 'percentile'.split()
         method = 'best expectation percentile'.split()
 
     for key in keys:

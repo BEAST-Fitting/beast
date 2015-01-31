@@ -373,7 +373,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
         chunksize = npts
 
     if add_spectral_properties_kwargs is not None:
-        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_1'
+        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_wd'
 
     for chunk_pts in helpers.chunks(pts, chunksize):
         # iter over chunks of models
@@ -384,8 +384,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                 }
 
         if with_fb:
-            cols['Rv_MW'] = np.empty(N, dtype=float)
-            cols['f_bump'] = np.empty(N, dtype=float)
+            cols['Rv_A'] = np.empty(N, dtype=float)
+            cols['f_A'] = np.empty(N, dtype=float)
 
         keys = g0.keys()
         for key in keys:
@@ -405,8 +405,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                 # adding the dust parameters to the models
                 cols['Av'][N0 * count: N0 * (count + 1)] = Av
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
-                cols['f_bump'][N0 * count:N0 * (count + 1)] = f_bump
-                cols['Rv_MW'][N0 * count: N0 * (count + 1)] = Rv_MW
+                cols['f_A'][N0 * count:N0 * (count + 1)] = f_bump
+                cols['Rv_A'][N0 * count: N0 * (count + 1)] = Rv_MW
             else:
                 Av, Rv = pt
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
@@ -481,14 +481,32 @@ def add_spectral_properties(specgrid, filternames=None, filters=None, callables=
 
     if filternames is not None:
         temp = specgrid.getSEDs(filternames, extLaw=None)
+
+        logtempseds = np.array(temp.seds)
+        indxs = np.where(temp > 0)
+        if len(indxs) > 0:
+            logtempseds[indxs] = np.log10(temp.seds[indxs])
+        indxs = np.where(temp <= 0)
+        if len(indxs) > 0:
+            logtempseds[indxs] = -100.
+
         for i, fk in enumerate(filternames):
-            specgrid.grid.addCol(nameformat.format(fk), temp.seds[:, i])
+            specgrid.grid.addCol('log'+nameformat.format(fk), logtempseds[:, i])
         del temp
 
     if filters is not None:
         temp = specgrid.getSEDs(filters, extLaw=None)
+
+        logtempseds = np.array(temp.seds)
+        indxs = np.where(temp > 0)
+        if len(indxs) > 0:
+            logtempseds[indxs] = np.log10(temp.seds[indxs])
+        indxs = np.where(temp <= 0)
+        if len(indxs) > 0:
+            logtempseds[indxs] = -100.
+
         for i, fk in enumerate(filters):
-            specgrid.grid.addCol(nameformat.format(fk.name), temp.seds[:, i])
+            specgrid.grid.addCol('log'+nameformat.format(fk.name), logtempseds[:, i])
         del temp
 
     if callables is not None:

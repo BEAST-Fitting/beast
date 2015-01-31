@@ -2,15 +2,18 @@
 Grid Pipeline
 =============
 
-Everything I need to generate a grid in a few easy lines (see unittest function)
+Everything needed to generate a grid in a few easy lines (see unittest function)
 
-I use `ezpipe`, a pipeline package I wrote in order to clean the syntax and
-allow more flexibilities. In particular it will simplifies the management of
+`ezpipe` is used, a pipeline package allowing a clean the syntax and
+flexibility. In particular it simplifies the management of
 intermediate results or broken jobs.
 
 make models
 -----------
 the pipeline is sequence of tasks
+
+for example:
+    
 tasks = ( t_isochrones(**iso_kwargs),  t_spectra(**spec_kwargs), t_seds(filters, **seds_kwargs) )
 
 models = Pipeline('make_models', tasks)
@@ -68,11 +71,14 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019], t
         file into which save the table of isochrones (any format eztables can handle)
     """
     oiso = isochrone.PadovaWeb()
-    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
+    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z, trackVersion)
     t.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
     # Isochrone filtering, check that no AGB stars are removed
-    cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
+    if trackVersion < 2.7:  
+ 	cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'  
+    else:  
+ 	cond = '~((M_ini < 12.) & (stage == 0))' # do not include Pre-MS  
     t = t.selectWhere('*', cond)
 
     t.write(outname)
@@ -131,7 +137,7 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
 
     print('Adding spectral properties:', add_spectral_properties_kwargs is not None)
     if add_spectral_properties_kwargs is not None:
-        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_0'
+        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_nd'
 
     #write to disk
     if hasattr(g, 'writeHDF'):
@@ -172,7 +178,7 @@ def make_priors(outname, specgrid, **kwargs):
 
     print('Make Prior Weights')
 
-    prior_weights.compute_age_mass_prior_weights(specgrid.grid)
+    prior_weights.compute_age_mass_metallicity_prior_weights(specgrid.grid)
 
     #write to disk
     if hasattr(specgrid, 'writeHDF'):
@@ -244,6 +250,39 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
     else:
         for gk in g:
             gk.writeHDF(outname, append=True)
+    return outname
+
+def trim_models(outname, sedgrid, **kwargs):
+    """trim_model - remove the model grid points that are too bright/faint
+
+    Parameters
+    ----------
+
+    outname: str
+        file into which save the final SED grid (any format grid.SpectralGrid handles)
+
+    sedgrid: grid.SpectralGrid object
+        sedgrid to transform
+        result from the make_seds function
+
+    returns
+    -------
+
+    outname: str
+        file into which save the SED grid
+    """
+
+    print('Trim Models')
+
+    outname = trim_grid
+
+    #write to disk
+    if hasattr(specgrid, 'writeHDF'):
+        specgrid.writeHDF(outname)
+    else:
+        for gk in specgrid:
+            gk.writeHDF(outname, append=True)
+
     return outname
 
 

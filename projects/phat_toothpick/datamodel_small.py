@@ -29,7 +29,7 @@ from extra_filters import make_integration_filter, make_top_hat_filter
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'b15_late_jan15_test'
+project = 'b15_late_jan15_test_small'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
@@ -65,7 +65,7 @@ distanceModulus = 24.47 * unit['mag']
 ### Stellar grid definition
 
 # log10(Age) -- [min,max,step] to generate the isochrones
-logt = [6.0, 10.13, 0.15]
+logt = [6.0, 10.13, 1.0]
 
 #note: Mass is not sampled, use the isochrone def instead.
 
@@ -85,16 +85,13 @@ osl = stellib.Tlusty() + stellib.Kurucz()
 extLaw = extinction.RvFbumpLaw()
 
 # A(V): dust column
-avs = [0.0, 10.055, 0.15]
-#avs = [0.0, 10.055, 0.5]
+avs = [0.0, 10.055, 0.5]
 
 # R(V): dust average grain size
-rvs = [2.0, 6.1, 0.5]
-#rvs = [3.0,3.0,1.0]
+rvs = [2.0,6.0,1.0]
 
 # fbump (should be f_A): mixture factor between "MW" and "SMCBar" extinction curves
-fbumps = [0., 1.01, 0.25]
-#fbumps = [1.0,1.0, 0.25]
+fbumps = [0.0,1.0, 0.25]
 
 ################
 
@@ -140,7 +137,8 @@ class PHATFluxCatalog(Observations):
             self.data.set_alias(k, k.split('_')[-1].lower() + '_rate')
 
     def getFlux(self, num, units=False):
-        """returns the flux of an observation from the number of counts
+        """returns the absolute flux of an observation from the number of
+        counts
 
         Parameters
         ----------

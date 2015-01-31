@@ -23,8 +23,7 @@ from beast.external.ezunits import unit
 
 import os
 
-#import datamodel_small as datamodel
-import datamodel
+import datamodel_small as datamodel
 import noisemodel
 from models import t_isochrones, t_spectra, t_seds, t_priors
 from fit import t_fit, t_summary_table
