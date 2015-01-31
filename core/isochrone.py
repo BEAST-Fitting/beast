@@ -483,9 +483,10 @@ class PadovaWeb(Isochrone):
             #iso_table = self._filter_bad_points(iso_table)
         else:
             # iterate over Z values and concatenate into one table
-            iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
+            iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0], trackVersion)
+            iso_table.header['NAME'] = 'Padova Isochrones'
             if len(Z) > 1:
-                more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]
+                more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk, trackVersion).data for Zk in Z[1:] ]
                 iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more, usemask=False, asrecarray=True)
 
         # polish the header
