@@ -21,7 +21,7 @@ from beast.core import extinction
 from beast.core.observations import Observations
 from beast.core.vega import Vega
 from beast.external.ezunits import unit
-from special import make_top_hat_filter
+from special import make_integration_filter
 
 #---------------------------------------------------------
 # User inputs                                   [sec:conf]
@@ -29,17 +29,17 @@ from special import make_top_hat_filter
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'mf_ngc4214_Aug2014_new'
+project = 'choi_ngc4214'
 
-obsfile = 'data/mf_ngc4214_input_best.fits'
-astfile = 'data/11360_NGC-4214.gst.fake_new.fits'
+obsfile = '../../../N4214_3band_detects.part7.fits'
+astfile = '../../../N4214_gst_fake.fits'
 
 filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
            'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
 
 # absflux calibration covariance matrix for NGC4214 specific filters
-calibration_covariance = np.array(
+absflux_a_matrix = np.array(
     [[1.80e-4,  1.37e-4, 6.02e-5, 2.44e-5, 1.23e-6, -4.21e-6],
     [1.37e-4,  1.09e-4, 5.72e-5, 3.23e-5, 1.65e-5, 1.32e-5],
     [6.02e-5,  5.72e-5, 5.07e-5, 4.66e-5, 4.40e-5, 4.34e-5],
@@ -47,9 +47,9 @@ calibration_covariance = np.array(
     [1.23e-6,  1.65e-5, 4.40e-5, 5.87e-5, 6.98e-5, 7.33e-5],
     [-4.21e-6, 1.32e-5, 4.34e-5, 5.99e-5, 7.33e-5, 7.81e-5] ])
 
-noisefile = 'data/mf_ngc4214_Aug2014_noisemodel.hd5'
+noisefile = '{project:s}/{project:s}_noisemodel.hd5'.format(project=project)
 
-distanceModulus = 27.41 * unit['mag']
+distanceModulus = 27.414 * unit['mag']
 
 #Spectral grid definition
 #log10(Age) -- [min,max,step] to generate the isochrones
@@ -61,12 +61,15 @@ logt = [6.0, 10.13, 0.15]
 z = [0.03, 0.019, 0.008, 0.004]
 z = 0.004  # Strong prior SMC metalliticy
 
+# Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
+trackVersion = 2.7
+
 #Stellar library definition
 osl = stellib.Tlusty() + stellib.Kurucz()
 
 #Extinction's law definition
 extLaw = extinction.RvFbumpLaw()
-avs = [0., 10.055,0.15]
+avs = [0., 8, 0.1]
 rvs = [2.0, 6.1, 1.0]
 fbumps = [0., 1.01, 0.25]
 ## ..note::
@@ -76,10 +79,8 @@ fbumps = [0., 1.01, 0.25]
 # extracting non-default spectral properties of the models
 # -------------------------------------------------------
 
-qion_filter = make_top_hat_filter(90., 912., 1, 'F_QION')
+qion_filter = make_integration_filter(90., 916., 1, 'F_QION')
 qion_filter.name = 'F_QION'  # getting rid of instrument etc
-maria_filter = make_top_hat_filter(912., 2066., 1, 'F_UV_6_13e')
-maria_filter.name = 'F_UV_6_13e'
 
 additional_filters = ['GALEX_FUV', 'GALEX_NUV']
 # note: remember to multiply by bandwidth to get the actual energy
