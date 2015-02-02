@@ -28,12 +28,12 @@ from beast.proba import expectation, percentile, getNorm_lnP
 from beast.tools.pbar import Pbar
 from beast.external.eztables import Table
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
-
+from beast.core.pdf1d import pdf1d
 
 __all__ = ['fit_model_seds_pytables', 't_fit', 'summary_table', 't_summary_table']
 
 
-def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-40, outname='lnp.hd5', gridbackend='cache'):
+def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-5, outname='lnp.hd5', gridbackend='cache'):
     """
     Fit model seds with noise for sensitivity tests
 
@@ -66,6 +66,8 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-40, outname='lnp.hd5',
         g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
+
+    g0_weights = np.log(g0['weight'] / g0['weight'].sum())
 
     ast_error = ast.root.error[:]
     ast_bias = ast.root.bias[:]
@@ -325,7 +327,7 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache
     return r
 
 
-def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior=None, gridbackend='cache'):
+def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior=None, gridbackend='cache', max_nbins=50):
     """ Percentile values of any given grid property (incl. expression) but seds,
 
     see also:    sed_percentile, percentile
@@ -356,6 +358,7 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
     gridbackend: str or grid.GridBackend
         backend to use to load the grid if necessary (memory, cache, hdf)
         (see beast.core.grid)
+    max_nbins: maxiumum number of bins to use for the 1D likelihood calculations
 
     returns
     -------
@@ -393,6 +396,16 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         #node = f.getNode('/mods_grid')
         #q = get_Q_from_node(node, qname)
         q = g0[qname]
+
+        n_uniq = len(np.unique(q))
+        if len(np.unique(q)) > max_nbins:
+            nbins = max_nbins  # limit the number of bins in the 1D likelihood for speed
+        else:
+            nbins = n_uniq
+
+        # setup the fast 1d pdf
+        fast_pdf1d = pdf1d(q, nbins)
+
         nval = len(p)
         _p = np.asarray(p, dtype=float)
         r = np.empty((len(objlist), nval), dtype=float)
@@ -401,13 +414,11 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
                 pb.desc = 'Percentiles({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
-                log_norm = np.log(getNorm_lnP(lnps))
-                if not np.isfinite(log_norm):
-                    log_norm = lnps.max()
-                weights = np.exp(lnps - log_norm)
-                if prior is not None:
-                    weights *= prior[indx]
-                r[e, :] = percentile(q[indx], _p, weights=weights)
+
+                pdf1d_bins, pdf1d_vals = fast_pdf1d.gen1d(indx, np.exp(lnps))
+                pdf1d_vals /= pdf1d_vals.max()
+
+                r[e, :] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
 
     if not isinstance(lnpfile, tables.file.File):
         f.close()
@@ -495,7 +506,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
 #---------------------------------------------------------
 
 @task_decorator(logger=sys.stdout)
-def t_fit(project, obs, g, ast, threshold=-40, gridbackend='cache', outname=None):
+def t_fit(project, obs, g, ast, threshold=-5, gridbackend='cache', outname=None):
     """t_fit -- run the fitting part
 
     keywords
