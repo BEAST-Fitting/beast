@@ -37,7 +37,7 @@ class NGC4214_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
                 print('Warning: Mapping failed. This could lead to wrong results')
 
 
-def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwargs):
+def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None, **kwargs):
     """ toothpick noise model assumes that every filter is independent with
     any other.
 
@@ -52,9 +52,9 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwa
     sedgrid: SEDGrid instance
         sed model grid for everyone of which we will evaluate the model
 
-    covariance: ndarray
-        absolute calibration covariance matrix
-        when the filters are independent, the diagonal values are also accepted.
+    absflux_a_matrix: ndarray
+        absolute calibration a matrix giving the fractional uncertainties including
+        correlated terms (off diagonals)
 
     returns
     -------
@@ -67,17 +67,18 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwa
     # read mag_in, mag_out
     model = NGC4214_ToothPick_Noisemodel(astfile, sedgrid.filters)
     # compute k-NN statistics: bias, stddev, completeness
-    model.fit(k=10, eps=0, completeness_mag_cut=80)
+    #model.fit(k=10, eps=0, completeness_mag_cut=80)
+    model.fit_bins(nbins=30, completeness_mag_cut=80)
     # evaluate the noise model for all the models in sedgrid
     bias, sigma, compl = model(sedgrid)
     # save to disk/mem
 
     # absolute flux calibration uncertainties
-    if covariance is not None:
-        if covariance.ndim == 1:
-            abs_calib_2 = covariance[:] ** 2
+    if absflux_a_matrix is not None:
+        if absflux_a_matrix.ndim == 1:
+            abs_calib_2 = absflux_a_matrix[:] ** 2
         else:   # assumes a cov matrix
-            abs_calib_2 = np.diag(covariance)
+            abs_calib_2 = np.diag(absflux_a_matrix)
 
         noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma ** 2)
     else:
@@ -94,7 +95,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, covariance=None, **kwa
 
 @task_decorator()
 def t_gen_noise_model(project, sedgrid, astfile, outname=None,
-                      covariance=None, *args, **kwargs):
+                      absflux_a_matrix=None, *args, **kwargs):
     """
     Parameters
     ----------
@@ -110,9 +111,9 @@ def t_gen_noise_model(project, sedgrid, astfile, outname=None,
     astfile: str
         path to the file into which are ASTs results
 
-    covariance: ndarray
-        absolute calibration covariance matrix
-        when the filters are independent, the diagonal values are also accepted.
+    absflux_a_matrix: ndarray
+        absolute calibration a matrix giving the fractional uncertainties including
+        correlated terms (off diagonals)
 
     Returns
     -------
@@ -155,6 +156,6 @@ def get_noisemodelcat(filename):
 
 if __name__ == '__main__':
     from beast.core.grid import FileSEDGrid
-    g = FileSEDGrid('./mf_ngc4214_Aug2014_new/mf_ngc4214_Aug2014_new_seds.grid.hd5')
-    astfile = 'data/11360_NGC-4214.gst.fake_new.fits'
-    make_toothpick_noise_model('ngc4214_Oct2014/ngc4214_Oct2014_noisemodel.hd5', astfile, g)
+    g = FileSEDGrid('./choi_ngc4214/choi_ngc4214_seds.grid.hd5')
+    astfile = '../../..//N4214_gst_fake.fits'
+    make_toothpick_noise_model('choi_ngc4214/choi_ngc4214_noisemodel_trim.hd5', astfile, g)
