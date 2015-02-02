@@ -30,20 +30,54 @@ project, stat, obs, sedgrid = project | t_project_dir
                                       | t_summary_table(g, **stat_kwargs)
 """
 
-from pipeline import run_fit, make_models
+from pipeline import run_fit, make_models, compute_noise_and_trim_grid
 import datamodel
 import noisemodel
-import sys
+import sys, argparse
+from beast.core import prior_weights, trim_grid
+from beast.core.grid import FileSEDGrid
+
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        if ('-?' in sys.argv[1]) or ('--help' in sys.argv[1]):
-            print(__doc__)
-        elif '-models' in sys.argv[1]:
-            make_models()
+    # commandline parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--models", help="Generate the model grid",
+                        action="store_true")
+    parser.add_argument("-n", "--noise", help="Calculate the noise model",
+                        action="store_true")
+    parser.add_argument("-t", "--trim", help="Trim the model and noise grids",
+                        action="store_true")
+    args = parser.parse_args()
+    
+    if args.models:
+        make_models()
+        
+    elif args.noise:
+        print('Generating noise model from ASTs and absflux A matrix')
+        # get the modesedgrid on which to generate the noisemodel
+        modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))
+        # generate the AST noise model  
+        noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, 
+                                              modelsedgrid, datamodel.absflux_a_matrix)
+    
+    elif args.trim:
+        print('Trimming the model and noise grids')
+
+        # get the modesedgrid on which to generate the noisemodel  
+        modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))
+        # read in the noise model just created
+        noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
+        # read in the observed data
+        obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
+        # trim the model sedgrid
+        sed_trimname = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
+        noisemodel_trimname = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
+
+        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+
     else:
-        g = '{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project)
-        noisefile = '{project:s}/{project:s}_noisemodel.hd5'.format(project=datamodel.project)
+        g = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
+        noisefile = '{project:s}/{project:s}_noisemodel_trim.hd5'.format(project=datamodel.project)
         noise = noisemodel.get_noisemodelcat(noisefile)
 
         run_fit(datamodel.project, g, noise=noise, obsfile=datamodel.obsfile)
