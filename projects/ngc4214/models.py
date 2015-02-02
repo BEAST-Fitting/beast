@@ -37,7 +37,7 @@ from beast.external.ezpipe import Pipeline
 from beast.tools.helpers import val_in_unit
 #from beast.external.eztables import Table
 
-__all__ = [ 't_isochrones',  't_spectra', 't_seds' ]
+__all__ = [ 't_isochrones',  't_spectra', 't_priors', 't_seds' ]
 
 
 def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019], trackVersion=2.3):
@@ -156,6 +156,39 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
 
     return outname
 
+def make_priors(outname, specgrid, **kwargs):
+    """make_priors -- compute the weights for the priors
+
+    Parameters
+    ----------
+
+    outname: str
+        file into which save the final SED grid (any format grid.SpectralGrid handles)
+
+    specgrid: grid.SpectralGrid object
+        spectral grid to transform
+        result from the make_spectra function
+
+    returns
+    -------
+
+    outname: str
+        file into which save the SED grid
+    """
+
+    print('Make Prior Weights')
+
+    prior_weights.compute_age_mass_metallicity_prior_weights(specgrid.grid)
+
+    #write to disk
+    if hasattr(specgrid, 'writeHDF'):
+        specgrid.writeHDF(outname)
+    else:
+        for gk in specgrid:
+            gk.writeHDF(outname, append=True)
+    return outname
+
+
 
 def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
               fbump=None, extLaw=None, add_spectral_properties_kwargs=None,
@@ -222,6 +255,39 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
     return outname
 
 
+def trim_models(outname, sedgrid, **kwargs):
+    """trim_model - remove the model grid points that are too bright/faint
+
+    Parameters
+    ----------
+
+    outname: str
+        file into which save the final SED grid (any format grid.SpectralGrid handles)
+
+    sedgrid: grid.SpectralGrid object
+        sedgrid to transform
+        result from the make_seds function
+
+    returns
+    -------
+
+    outname: str
+        file into which save the SED grid
+    """
+    print('Trim Models')
+
+    outname = trim_grid
+
+    #write to disk
+    if hasattr(specgrid, 'writeHDF'):
+        specgrid.writeHDF(outname)
+    else:
+        for gk in specgrid:
+            gk.writeHDF(outname, append=True)
+
+    return outname
+
+
 # =================== Pipeline Tasks ==========================
 
 @task_decorator(logger=sys.stdout)
@@ -280,6 +346,39 @@ def t_spectra(project, oiso, **spec_kwargs):
     spec_fname = '{0}_spec.grid.hd5'.format(project)
     spec_source = RequiredFile(spec_fname, make_spectra, spec_fname, oiso, **spec_kwargs)
     g = grid.FileSpectralGrid(spec_source(), backend='memory')
+    return project, g
+
+@task_decorator(logger=sys.stdout)
+def t_priors(project, specgrid, **priors_kwargs):
+    """t_priors -- Task that updates the weights to include the priors
+
+    Parameters
+    ----------
+
+    project: str
+        token of the project this task belongs to
+
+    specgrid: grid.SpectralGrid instance
+        spectral grid instance
+
+    filters: sequence
+        sequence of filter standard names
+
+    **priors_kwargs:
+        any arguments forwarded to compute_priors
+
+    returns
+    -------
+    project: str
+       project token that needs to be kept along the task
+
+    g: grid.SpectralGrid instance
+        spectral grid instance
+    """
+    priors_fname = '{0}_spec_w_priors.grid.hd5'.format(project)
+    priors_source = RequiredFile(priors_fname, make_priors, priors_fname, specgrid, **priors_kwargs)
+    g = grid.FileSpectralGrid(priors_source(), backend='memory')
+
     return project, g
 
 
