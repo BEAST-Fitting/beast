@@ -29,20 +29,20 @@ from extra_filters import make_integration_filter, make_top_hat_filter
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'b15_late_jan15_test_cmd23'
+project = 'production'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
 # observations
 #obsfile = 'data/b15_data_test.fits'
-obsfile = 'data/b15_4band_det_27_A.fits'
+obsfile = 'set_in_script'
 
 # AST files (single camera ASTs)
-uvastfile = 'data/fake_stars_b15_27_uv.fits'
-optastfile = 'data/fake_stars_b15_27_opt.fits'
-irastfile = 'data/fake_stars_b15_27_ir.fits'
-astfile = 'data/fake_stars_b15_27_all.hd5'
+#uvastfile = 'data/fake_stars_b15_27_uv.fits'
+#optastfile = 'data/fake_stars_b15_27_opt.fits'
+#irastfile = 'data/fake_stars_b15_27_ir.fits'
+astfile = 'set_in_script'
 
 # name for noise model
 noisefile = project + '/' + project + '_noisemodel.hd5'
@@ -74,7 +74,7 @@ z = [0.03, 0.019, 0.008, 0.004]
 #z = 0.019
 
 # Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
-trackVersion = 2.3
+trackVersion = 2.7
 
 # Stellar Atmospheres library definition
 osl = stellib.Tlusty() + stellib.Kurucz()

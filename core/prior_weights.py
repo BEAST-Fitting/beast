@@ -71,7 +71,7 @@ def compute_mass_weights(masses, full_imf_integral):
     I1 = np.empty(len(isoc))
     for ik, uk in enumerate(isoc2[:-1]):
         res = quad(imf_kroupa, isoc2[ik], isoc2[ik+1]) # integrate according to the prior on the mass bin
-        I1[index_isoc[ik]] = res[0]/full_imf_integral      # compute the weight
+        I1[index_isoc[ik]] = res[0]/full_imf_integral      # compute the integrated weight
     return I1
 
 # compute age-mass-metallicity prior weights

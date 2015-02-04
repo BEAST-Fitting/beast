@@ -22,6 +22,10 @@ import sys
 import time
 import numpy as np
 import tables
+
+from astropy.coordinates import ICRS as ap_ICRS
+from astropy import units as ap_units
+
 from beast.core import grid
 from beast.core.odict import odict
 from beast.proba.likelihood import *
@@ -408,11 +412,11 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
             nbins = max_nbins  # limit the number of bins in the 1D likelihood for speed
         else:
             nbins = n_uniq
-        start_time = time.clock()
+        #start_time = time.clock()
         # setup the fast 1d pdf
         fast_pdf1d = pdf1d(q, nbins)
-        new_time = time.clock()
-        print('fast_pdf1d time taken: ',(new_time - start_time)/60., ' min')
+        #new_time = time.clock()
+        #print('fast_pdf1d time taken: ',(new_time - start_time)/60., ' min')
 
         nval = len(p)
         _p = np.asarray(p, dtype=float)
@@ -433,6 +437,32 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
 
     return r
 
+def IAU_names_and_extra_info(obsdata):
+    # program to generate a IAU approved name for the PHAT data
+    # RA, DEC used
+    # program also added other useful information from the 
+    r = odict()
+
+    #print(obsdata.data.keys())
+
+    _tnames = []
+    for i in range(len(obsdata)):
+        c = ap_ICRS(ra=obsdata.data['ra'][i], dec=obsdata.data['dec'][i],
+                    unit=(ap_units.degree, ap_units.degree))
+        _tnames.append('PHAT J' + 
+                       c.ra.to_string(sep="",precision=2,alwayssign=False,pad=True) + 
+                       c.dec.to_string(sep="",precision=2,alwayssign=True,pad=True))
+
+    r['Name'] = _tnames
+
+    # other useful information
+    r['RA'] = obsdata.data['ra']
+    r['DEC'] = obsdata.data['dec']
+    r['field'] = obsdata.data['field']
+    r['inside_brick'] = obsdata.data['inside_brick']
+    r['inside_chipgap'] = obsdata.data['inside_chipgap']
+
+    return r
 
 def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, gridbackend='cache'):
     """
@@ -478,7 +508,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
         keys = g0.keys()
 
     #make sure keys are real keys
-    skip_keys = 'osl keep weight fullgrid_idx'.split()
+    skip_keys = 'osl keep weight fullgrid_idx stage'.split()
     keys = [k for k in keys if k not in skip_keys]
 
     if method is None:
@@ -490,6 +520,10 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
             raise KeyError('Key "{0}" not recognized'.format(key))
 
     r = odict()
+
+    # generate an IAU complient name for each source and add other inform
+    r.update( IAU_names_and_extra_info(obs) )
+
     if ('expectation' in method):
         r.update( Q_expect(lnpfile, g0, keys) )
 

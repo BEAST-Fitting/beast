@@ -42,8 +42,9 @@ import argparse
 import time
 
 # BEAST imports
-from pipeline_small import run_fit, make_models, compute_noise_and_trim_grid
-import datamodel_small as datamodel
+from pipeline_production import run_fit, make_models, compute_noise_and_trim_grid
+#import datamodel_small as datamodel
+import datamodel_production as datamodel
 import noisemodel 
 from merge_phat_asts import merge_phat_asts
 from beast.core import prior_weights
@@ -61,7 +62,33 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-f", "--fit", help="Fit the observed data",
                         action="store_true")
+    parser.add_argument("brick", help="brick number")
+    parser.add_argument("source_density", help="source density bin")
+    parser.add_argument("sub_source_density", help="subset of the source density bin [A, B, C, ...]")
     args = parser.parse_args()
+
+    # update project datamodel information for this brick and source density bin
+    datamodel.project += '_b' + args.brick
+    datamodel.obsfile = datamodel.project + '/b' + args.brick + '_obs' + \
+                        '/b' + args.brick + '_' + args.source_density + \
+                        '/b' + args.brick + '_4band_det_' + args.source_density + '_' + args.sub_source_density + '.fits'
+    datamodel.astfile = datamodel.project + '/merged_asts_b' + args.brick + '/fake_stars_b' + args.brick + \
+                        '_' + args.source_density + '_all.hd5'
+    datamodel.noisefile = datamodel.project + '/' + datamodel.project + \
+                          '_sd' + args.source_density + '_noisemodel.hd5'
+    stats_filebase = datamodel.project + '/' + datamodel.project + \
+                     '_sd' + args.source_density + '_' + args.sub_source_density 
+    sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
+    noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
+
+    print("***run information***")
+    print("  project = " + datamodel.project)
+    print("  obsfile = " + datamodel.obsfile)
+    print("  astfile = " + datamodel.astfile)
+    print("        noisefile = " + datamodel.noisefile)
+    print("   trimed sedfile = " + sed_trimname)
+    print("trimed noisefiles = " + noisemodel_trimname)
+    print("   stats filebase = " + stats_filebase)
 
     if args.models:
         make_models()
@@ -87,22 +114,18 @@ if __name__ == '__main__':
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
         # trim the model sedgrid
-        sed_trimname = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
-        noisemodel_trimname = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
 
         trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
 
     if args.fit:
         start_time = time.clock()
-    
+
         # the files for the trimmed model grid and noisemodel grid
-        modelsedgrid = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
-        noisemodelfile = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
-
         # read in the the AST noise model
-        noisemodel_vals = noisemodel.get_noisemodelcat(noisemodelfile)
+        noisemodel_vals = noisemodel.get_noisemodelcat(noisemodel_trimname)
 
-        run_fit(datamodel.project, modelsedgrid, noise=noisemodel_vals, obsfile=datamodel.obsfile)
+        run_fit(datamodel.project, sed_trimname, noise=noisemodel_vals, obsfile=datamodel.obsfile,
+                outname=stats_filebase)
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')
