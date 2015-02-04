@@ -60,12 +60,14 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-t", "--trim", help="Trim the model and noise grids",
                         action="store_true")
+    parser.add_argument("-f", "--fit", help="Fit the observed data",
+                        action="store_true")
     args = parser.parse_args()
 
     if args.models:
         make_models()
 
-    elif args.noise:
+    if args.noise:
         print('Generating noise model from ASTs and absflux A matrix')
  
         # get the modesedgrid on which to generate the noisemodel  
@@ -74,7 +76,7 @@ if __name__ == '__main__':
         # generate the AST noise model  
         noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, modelsedgrid, datamodel.absflux_a_matrix)  
 
-    elif args.trim:
+    if args.trim:
         print('Trimming the model and noise grids')
 
         # get the modesedgrid on which to generate the noisemodel  
@@ -91,7 +93,7 @@ if __name__ == '__main__':
 
         trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
 
-    else:
+    if args.fit:
         start_time = time.clock()
 
         # the files for the trimmed model grid and noisemodel grid

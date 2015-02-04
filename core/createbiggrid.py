@@ -483,10 +483,10 @@ def add_spectral_properties(specgrid, filternames=None, filters=None, callables=
         temp = specgrid.getSEDs(filternames, extLaw=None)
 
         logtempseds = np.array(temp.seds)
-        indxs = np.where(temp > 0)
+        indxs = np.where(temp.seds > 0)
         if len(indxs) > 0:
             logtempseds[indxs] = np.log10(temp.seds[indxs])
-        indxs = np.where(temp <= 0)
+        indxs = np.where(temp.seds <= 0)
         if len(indxs) > 0:
             logtempseds[indxs] = -100.
 
@@ -498,13 +498,14 @@ def add_spectral_properties(specgrid, filternames=None, filters=None, callables=
         temp = specgrid.getSEDs(filters, extLaw=None)
 
         logtempseds = np.array(temp.seds)
-        indxs = np.where(temp > 0)
+        indxs = np.where(temp.seds > 0)
         if len(indxs) > 0:
             logtempseds[indxs] = np.log10(temp.seds[indxs])
-        indxs = np.where(temp <= 0)
+                
+        indxs = np.where(temp.seds <= 0)
         if len(indxs) > 0:
             logtempseds[indxs] = -100.
-
+                    
         for i, fk in enumerate(filters):
             specgrid.grid.addCol('log'+nameformat.format(fk.name), logtempseds[:, i])
         del temp
