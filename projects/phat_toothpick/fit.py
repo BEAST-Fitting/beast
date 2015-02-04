@@ -438,13 +438,22 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
     return r
 
 def IAU_names_and_extra_info(obsdata):
-    # program to generate a IAU approved name for the PHAT data
-    # RA, DEC used
-    # program also added other useful information from the 
+    """
+    generates IAU approved names for the PHAT data using RA & DEC
+      and extra information about the sources (ra, dec, photometry, etc.)
+
+    keywords
+    --------
+    obs: Observations
+
+    returns
+    -------
+    e_dict: dict 
+        returns a dict with a (name, ndarray) pair
+    """
     r = odict()
 
-    #print(obsdata.data.keys())
-
+    # generate the IAU names
     _tnames = []
     for i in range(len(obsdata)):
         c = ap_ICRS(ra=obsdata.data['ra'][i], dec=obsdata.data['dec'][i],
@@ -461,6 +470,10 @@ def IAU_names_and_extra_info(obsdata):
     r['field'] = obsdata.data['field']
     r['inside_brick'] = obsdata.data['inside_brick']
     r['inside_chipgap'] = obsdata.data['inside_chipgap']
+
+    # include the observed filter fluxes
+    for k, filtername in enumerate(obsdata.filters): 
+        r[filtername] = (obsdata.data[filtername]*obsdata.vega_flux[k]).astype(float) 
 
     return r
 
