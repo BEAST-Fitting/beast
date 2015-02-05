@@ -10,7 +10,7 @@ class pdf1d():
         self.n_gridvals = len(gridvals)
 
         if ignorebelow is not None:
-            indxs, = np.where(gridvals > ignore_below)
+            indxs, = np.where(gridvals > ignorebelow)
         else:
             indxs = np.arange(self.n_gridvals)
         self.n_indxs = len(indxs)

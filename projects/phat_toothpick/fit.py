@@ -1,9 +1,15 @@
 """
-Fitting Pipeline
+Fitting Pipeline for PHAT
+BEAST Toothpick version (v1, 5 Feb 2015)
+based on code by Morgan Fouesneau
+major modifications by Karl Gordon
+  - added a number of additional parameters
+  - uses a fast 1D PDF generator
+  - combines best,expectation,percentiles for speed
 =============
 
-I use `ezpipe`, a pipeline package I wrote in order to clean the syntax and
-allow more flexibilities. In particular it will simplifies the management of
+This code uses `ezpipe`, a pipeline package written by Morgan Fouesneau to provide a clean
+and flexible interface. In particular this package simplifies the management of
 intermediate results or broken jobs.
 
 do the fit

@@ -1,38 +1,15 @@
 #!/usr/bin/env python
 """
-Example of running the BEAST on M31 PHAT data.
-Karl G. - 5 Nov 2014
+Code to run the BEAST on the PHAT data in production mode.
+  - specific to the BEAST toothpick version (v1, 5 Feb 2015)
+  - specific to the format setup by Heddy A. for the PHAT bricks and source density regions
+  - setup to allow for batch processing through commandline variables
 
------- previous comments by Morgan
-Everything I need to generate a grid, make fake data and fit
+based on previous code by Morgan F.
+started modifications by Karl G. - 5 Nov 2014
+finalized by Karl G. - 5 Feb 2015
 
-I use the pipeline package I wrote in order to clean the syntax and allow more
-flexibilities. In particular it will simplifies the managment of intermediate
-results or broken jobs.
-
-> python run [--models] [-?]
-
-    --models         generates the models only (needed once)
-    -?, --help       display this message
-
-Make models
------------
-:func:`make_models` is equivalent to using individual tasks as follow:
-
-project, noisefile, grid = project | t_project_dir
-                                   | t_isochrones(**iso_kwargs)
-                                   | t_spectra(**spec_kwargs)
-                                   | t_seds(filters, **seds_kwargs)
-                                   | t_gen_noise_model(astfile, **noise_kwargs)
-
-Running the fit
----------------
-:func:`run_fit`  is equivalent to using individual tasks as follow:
-
-project, stat, obs, sedgrid = project | t_project_dir
-                                      | t_get_obscat(**obscat_kwargs)
-                                      | t_fit(g, noise, **fit_kwargs)
-                                      | t_summary_table(g, **stat_kwargs)
+see datamodel_production.py, pipeline_production.py, noisemodel.py, fit.py for more details
 """
 
 # system imports

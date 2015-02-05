@@ -306,7 +306,8 @@ def run_fit(project, g, noise=None, obsfile=None, outname=None):
                          distanceModulus=datamodel.distanceModulus,
                          filters=datamodel.filters)
 
-    fit_kwargs = dict( threshold=-10 )
+    fit_kwargs = dict( threshold=-10,
+                       outname=outname )
 
     stat_kwargs = dict( keys=None, method=None, outname=outname )
 
