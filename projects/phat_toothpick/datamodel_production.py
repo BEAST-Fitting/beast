@@ -1,15 +1,18 @@
 """ Data Model interface v2.0
 
-Includes artificial star tests (ASTs) and related function to generate the
-noise model
+This datamodel is specific to the BEAST toothpick production runs on the PHAT data.
 
-The noise model is then applied to the models while only data measurements are
-used in constrasts with using measurement uncertainties.
+Details:
+    
+Uses artificial star tests (ASTs) and absflux A matrix to generate the
+noise model.
 
-with limited quantity units handling to help both reading and robustness.
+The noise model is interpolated to the models SEDs.  This is in sharp contrast to
+using a noise model that is based on the data itself (*not* done for the BEAST).
+
+There is limited quantity units handling to help both reading and robustness.
 
 ..note::
-
     By default units on returned values from function calls are turned off to
     avoid breaking possible other scripts.
 """
@@ -123,8 +126,7 @@ class PHATFluxCatalog(Observations):
     This class implements a direct access to the PHAT measured fluxes.
 
     ..note::
-        it does not implement uncertainties as in this model, the noise is
-        given through artificial star tests
+        it does not implement uncertainties as this is *correctly* handled in the model
     """
     def __init__(self, inputFile, distanceModulus=distanceModulus, filters=filters):
         """ Construct the interface """
@@ -203,7 +205,7 @@ def get_obscat(obsfile=obsfile, distanceModulus=distanceModulus,
         observation file
 
     distanceModulus: float, optional (default datamodel.distanceModulus)
-        distance modulus to correct the data from (in magitude)
+        distance modulus for the observations
 
     filters: sequence(str), optional, datamodel.filters
         seaquence of filters of the data
