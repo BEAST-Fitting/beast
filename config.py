@@ -11,7 +11,8 @@ __WITH_C_LIBS__ = False
 __USE_NUMEXPR__ = True
 
 # Default number of threads to use when parallel computing
-__NTHREADS__ = 25
+#__NTHREADS__ = 25
+__NTHREADS__ = 1
 
 #directories
 __ROOT__ = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
@@ -37,10 +38,22 @@ libs = dict(
 #Make sure the configuration is coherent for the python installation
 try:
     import numexpr
-    numexpr.set_num_threads(__NTHREADS__)
+    if not __USE_NUMEXPR__:
+        numexpr.set_num_threads(1)
+        numexpr.set_vml_num_threads(1)
+    else:
+        numexpr.set_num_threads(__NTHREADS__)
+        numexpr.set_vml_num_threads(__NTHREADS__)
 except ImportError:
     __USE_NUMEXPR__ = False
 
+try:
+    import tables
+    tables.parameters.MAX_NUMEXPR_THREADS = __NTHREADS__
+    tables.parameters.MAX_BLOSC_THREADS = __NTHREADS__
+    tables.set_blosc_max_threads(__NTHREADS__)
+except ImportError:
+    pass 
 
 def printConfig():
     print(""" ============ pyPEGASE defaut configuration ===========

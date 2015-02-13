@@ -1763,6 +1763,12 @@ except ImportError:
 	print "Warning: FITS files could not be managed."
 
 try:
+	# set the number of threads used by numexpr
+	#  "sneaky" issue as numexpr is used by pytables 'import tables'
+	from ..config import __NTHREADS__
+	import numexpr
+	numexpr.set_num_threads(__NTHREADS__)
+
 	import tables
 	class hd5Manager(TableManager):
 

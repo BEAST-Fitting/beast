@@ -228,7 +228,7 @@ def run_async(func, pool=None):
 def mapreduce(func, pool=None, ncpu=None, chunksize=None):
 
     if ncpu is None:
-        ncpu = cpu_count()
+       ncpu = cpu_count()
     _pool = pool or Pool(processes=ncpu)
 
     @wraps(func)
@@ -268,45 +268,47 @@ def trace(f, output=sys.stdout, time=True):
     return func
 
 
-@trace
-@memoize
-def fibonacci(n):
-    """Return the nth fibonacci number."""
-    if n in (0, 1):
-        return n
-    return fibonacci(n - 1) + fibonacci(n - 2)
+if __name__ == '__main__': 
+
+    @trace
+    @memoize
+    def fibonacci(n):
+        """Return the nth fibonacci number."""
+        if n in (0, 1):
+            return n
+        return fibonacci(n - 1) + fibonacci(n - 2)
 
 
-@persistent_locals
-def test_locals(*args, **kwargs):
-    a = 2
-    b = range(10)
-    c = 'hello'
-    return a + a
+    @persistent_locals
+    def test_locals(*args, **kwargs):
+        a = 2
+        b = range(10)
+        c = 'hello'
+        return a + a
 
 
-@timeit
-def example():
-    with timeit('Fibonacci cold start'):
-        fibonacci(50)
+    @timeit
+    def example():
+        with timeit('Fibonacci cold start'):
+            fibonacci(50)
 
-    with timeit('Fibonacci second call'):
-        fibonacci(50)
+        with timeit('Fibonacci second call'):
+            fibonacci(50)
 
-    test_memtrace([2] * 4)
-    test_memtrace.prof
+        test_memtrace([2] * 4)
+        test_memtrace.prof
 
-    test_locals()
-    print(test_locals._locals)
+        test_locals()
+        print(test_locals._locals)
 
 
-@run_async
-def test_async():
-    from time import sleep
-    print('starting print_somedata')
-    sleep(2)
-    print('print_somedata: 2 sec passed')
-    sleep(2)
-    print('print_somedata: 2 sec passed')
-    sleep(2)
-    print('finished print_somedata')
+    @run_async
+    def test_async():
+        from time import sleep
+        print('starting print_somedata')
+        sleep(2)
+        print('print_somedata: 2 sec passed')
+        sleep(2)
+        print('print_somedata: 2 sec passed')
+        sleep(2)
+        print('finished print_somedata')

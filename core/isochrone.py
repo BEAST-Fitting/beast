@@ -10,6 +10,7 @@ import numpy as np
 from numpy import interp
 from numpy import log10
 from scipy import interpolate
+
 import tables
 from ..external.eztables import Table
 from ..external.eztables.table import recfunctions

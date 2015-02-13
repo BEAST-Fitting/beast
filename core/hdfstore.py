@@ -23,6 +23,7 @@ Could work either as a (key, value) storage or as a classic tables.file.File obj
 
 """
 from __future__ import print_function
+
 import tables
 import numpy as np
 

@@ -1,6 +1,7 @@
 """ Handle vega spec/mags/fluxes manipulations """
 from functools import wraps
 import numpy
+
 import tables
 from ..config import __ROOT__
 

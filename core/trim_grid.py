@@ -30,7 +30,7 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_ou
     model_down = sedgrid.seds + model_bias - sigma_fac*model_unc
     model_up = sedgrid.seds + model_bias + sigma_fac*model_unc
     
-    # Store the brigtest and faintest fluxes in each band (for model + data)
+    # Store the brigtest and faintest fluxes in each band (for data)
     n_filters = len(obsdata.filters)
     min_data = np.zeros(n_filters)
     max_data = np.zeros(n_filters)
