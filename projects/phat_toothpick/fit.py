@@ -434,7 +434,7 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         with Pbar(nobs, desc=qname+': Percentiles') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
                 pb.desc = 'Percentiles({0})'.format(qname)
-                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
+                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float64)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
 
                 pdf1d_bins, pdf1d_vals = fast_pdf1d.gen1d(indx, np.exp(lnps))
