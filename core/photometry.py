@@ -5,6 +5,7 @@ This python module aims at generating the integrated photometry of spectra
 # TODO: replace trapz by simps
 
 import numpy
+
 import tables
 import sys
 from ..config import __ROOT__
@@ -166,7 +167,7 @@ def analyseVegaSpectrum(w, f, filters):
 
 
 def appendVegaFilter(filtInst, VegaLib=__default_vega__):
-    import tables
+#    import tables
     vtab = tables.openFile(VegaLib, 'a')
     vl = vtab.root.spectrum[:]['WAVELENGTH']
     vf = vtab.root.spectrum[:]['FLUX']

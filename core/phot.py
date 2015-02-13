@@ -17,6 +17,7 @@ This also include functions to keep libraries up to date
 from __future__ import print_function, division
 import sys
 import numpy
+
 import tables
 from scipy.integrate import trapz
 
@@ -671,7 +672,7 @@ def appendVegaFilter(filtInst, VegaLib=__default_vega__):
     VegaLib: str
         Vega Library
     """
-    import tables
+#    import tables
     vtab = tables.openFile(VegaLib, 'a')
     vl = vtab.root.spectrum[:]['WAVELENGTH']
     vf = vtab.root.spectrum[:]['FLUX']

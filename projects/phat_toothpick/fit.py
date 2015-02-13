@@ -576,9 +576,9 @@ def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend
             r['{0:s}_p{1:d}'.format(qname, int(pval))] = per_vals[:,k,i]
 
     r['chi2min'] = chi2_vals
-    r['chi2min_indx'] = chi2_indx
+    r['chi2min_indx'] = chi2_indx.astype(int)
     r['Pmax'] = lnp_vals
-    r['Pmax_indx'] = lnp_indx
+    r['Pmax_indx'] = lnp_indx.astype(int)
 
     if not isinstance(lnpfile, tables.file.File):
         f.close()

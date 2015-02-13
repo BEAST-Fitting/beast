@@ -17,6 +17,7 @@ from __future__ import print_function
 import sys
 import argparse
 import time
+import string
 
 # BEAST imports
 from pipeline_production import run_fit, make_models, compute_noise_and_trim_grid
@@ -45,18 +46,21 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # update project datamodel information for this brick and source density bin
-    datamodel.project += '_b' + args.brick
-    datamodel.obsfile = datamodel.project + '/b' + args.brick + '_obs' + \
-                        '/b' + args.brick + '_' + args.source_density + \
-                        '/b' + args.brick + '_4band_det_' + args.source_density + '_' + args.sub_source_density + '.fits'
-    datamodel.astfile = datamodel.project + '/merged_asts_b' + args.brick + '/fake_stars_b' + args.brick + \
-                        '_' + args.source_density + '_all.hd5'
-    datamodel.noisefile = datamodel.project + '/' + datamodel.project + \
-                          '_sd' + args.source_density + '_noisemodel.hd5'
-    stats_filebase = datamodel.project + '/' + datamodel.project + \
-                     '_sd' + args.source_density + '_' + args.sub_source_density 
+    datamodel.project = 'b' + args.brick
+    datamodel.obsfile = 'BEAST_production/' + datamodel.project + '/obscat/b' + args.brick + \
+                        '-6filt-cut-4band-gst-bright-SD-' + string.replace(args.source_density,'_','-') + \
+                        '-sub' + args.sub_source_density + '.fits'
+    datamodel.astfile = 'BEAST_production/merged_asts/PHAT_fake_stars_SD_' + \
+                        string.replace(args.source_density,'-','_' ) + '.fits'
+    datamodel.noisefile = 'BEAST_production/production_sd_' + \
+                          string.replace(args.source_density,'_','-' ) + '_noisemodel.fits'
+
+    stats_filebase = 'BEAST_production/b' + args.brick + '/b' + args.brick + \
+                     '_sd' + string.replace(args.source_density,'_','-') + '_sub' + args.sub_source_density 
     sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
+
+    modelsedgrid_filename = 'BEAST_production/production_seds.grid.hd5'
 
     print("***run information***")
     print("  project = " + datamodel.project)
@@ -74,7 +78,7 @@ if __name__ == '__main__':
         print('Generating noise model from ASTs and absflux A matrix')
  
         # get the modesedgrid on which to generate the noisemodel  
-        modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))  
+        modelsedgrid = FileSEDGrid(modelsedgrid_filename.format(project=datamodel.project))  
             
         # generate the AST noise model  
         noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, modelsedgrid, datamodel.absflux_a_matrix)  
@@ -83,7 +87,7 @@ if __name__ == '__main__':
         print('Trimming the model and noise grids')
 
         # get the modesedgrid on which to generate the noisemodel  
-        modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))  
+        modelsedgrid = FileSEDGrid(modelsedgrid_filename.format(project=datamodel.project))  
 
         # read in the noise model just created
         noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)

@@ -10,7 +10,6 @@ from __future__ import print_function
 
 import numpy as np
 from scipy.integrate import quad
-import numexpr
 
 from .grid import FileSEDGrid
 from .grid import SpectralGrid

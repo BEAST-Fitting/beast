@@ -51,6 +51,12 @@ except:
     pyfits = None
 
 try:
+    # set the number of threads used by numexpr
+    #  "sneaky" issue as numexpr is used by pytables 'import tables'
+    from ..config import __NTHREADS__
+    import numexpr
+    numexpr.set_num_threads(__NTHREADS__)
+
     import tables
 except ImportError:
     tables = None
