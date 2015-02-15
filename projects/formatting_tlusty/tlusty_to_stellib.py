@@ -87,6 +87,7 @@ with progressbar.PBar(len(filepaths), txt='Reading %d files' %(len(filepaths))) 
     vect_int = np.vectorize(spl.integral)
     integrated_flux = vect_int(ck_wave_bounds[:-1], ck_wave_bounds[1:])
     flux_per_wavelength = integrated_flux/ck_wave_spans
+    # the factor of 4*pi is needed to convert between Eddington flux and surface flux
     spectrum[e] = flux_per_wavelength*4*np.pi
     m = p.findall(filepath)[0]
     Z_vals[e] = Z_dict[m[0]]
