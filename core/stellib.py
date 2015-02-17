@@ -530,6 +530,11 @@ class Stellib(object):
         # weight stores the priors (initialize to 1)
         _grid['weight'] = np.full(ndata, 1.0, dtype=float)
 
+        # index to the grid
+        # initialize to zero now, later assign the index value
+        # useful to setup here as it will then be cleanly propagated to the SED grid
+        _grid['specgrid_indx'] = np.zeros(ndata, dtype=np.int64)
+
         specs = np.empty( (ndata, len(self.wavelength)), dtype=float )
 
         # copy meta data of pts into the resulting structure
