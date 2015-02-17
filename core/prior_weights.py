@@ -191,3 +191,7 @@ def compute_age_mass_metallicity_prior_weights(_tgrid):
             zindxs, = np.where(_tgrid['Z'] == z_val)   # get the grid for a single metallicity
             _tgrid[zindxs]['weight'] *= z_weights[az]
 
+    # Add index for use later with the SED grid
+    # =================================================
+    # useful for looking up the best fit spectrum from a SED fit
+    _tgrid[:]['specgrid_indx'] = np.arange(len(_tgrid), dtype=np.int64)

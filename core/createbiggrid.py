@@ -208,7 +208,7 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
     for k in _grid.keys():
             _grid[k] = _grid[k].compress(idx, axis=0)
 
-    # Step 5: Ship
+    # Step 6: Ship
     # ============
     header = {'stellib': osl.source,
               'isoch': oiso.source,

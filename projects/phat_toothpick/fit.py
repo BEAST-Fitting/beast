@@ -239,7 +239,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
         with Pbar(nobs, txt=qname+': Expectations') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
                 pb.desc = 'Exp({0})'.format(qname)
-                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
+                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(np.float64)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
                 if not np.isfinite(log_norm):
@@ -329,7 +329,7 @@ def Q_best(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cache
         with Pbar(nobs, txt=qname+': Best') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
                 pb.desc = 'Best({0})'.format(qname)
-                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
+                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(np.float64)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
                 if not np.isfinite(log_norm):
@@ -434,7 +434,7 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
         with Pbar(nobs, desc=qname+': Percentiles') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
                 pb.desc = 'Percentiles({0})'.format(qname)
-                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float64)
+                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(np.float64)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
 
                 pdf1d_bins, pdf1d_vals = fast_pdf1d.gen1d(indx, np.exp(lnps))
@@ -509,7 +509,8 @@ def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend
     chi2_indx = np.zeros(nobs)
     lnp_vals = np.zeros(nobs)
     lnp_indx = np.zeros(nobs)
-
+    best_specgrid_indx = np.zeros(nobs)
+    
     # setup the mapping for the 1D PDFs
     fast_pdf1d_objs = []
     save_pdf1d_vals = []
@@ -534,29 +535,36 @@ def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend
         save_pdf1d_vals[-1][nobs,:] = _tpdf1d.bin_vals
 
     # loop over the objects and get all the requested quantities
+    g0_specgrid_indx = g0['specgrid_indx']
     _p = np.asarray(p, dtype=float)
     with Pbar(nobs, desc='Best/Exp/Per') as pb:
         for e, obj in pb.iterover(enumerate(objlist)):
+            # get the sparse nD posterior
+            lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(np.float64)
+            chi2 = f.getNode('/star_{0:d}/chi2'.format(obj)).read().astype(float)
+            indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
+            log_norm = np.log(getNorm_lnP(lnps))
+            if not np.isfinite(log_norm):
+                log_norm = lnps.max()
+            weights = np.exp(lnps - log_norm)
+                
+            # index to the full model grid for the best fit values
+            best_full_indx = indx[weights.argmax()]
+
+            # index to the spectral grid 
+            best_specgrid_indx[e] = g0_specgrid_indx[best_full_indx]
+            
+            # goodness of fit quantities
+            chi2_vals[e] = chi2.min()
+            chi2_indx[e] = indx[chi2.argmin()]
+            lnp_vals[e] = lnps.max()
+            lnp_indx[e] = best_full_indx
+
             for k, qname in enumerate(qnames):
                 q = g0[qname]
 
-                # get the sparse nD posterior
-                lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
-                chi2 = f.getNode('/star_{0:d}/chi2'.format(obj)).read().astype(float)
-                indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
-                log_norm = np.log(getNorm_lnP(lnps))
-                if not np.isfinite(log_norm):
-                    log_norm = lnps.max()
-                weights = np.exp(lnps - log_norm)
-                
-                # goodness of fit quantities
-                chi2_vals[e] = chi2.min()
-                chi2_indx[e] = indx[chi2.argmin()]
-                lnp_vals[e] = lnps.max()
-                lnp_indx[e] = indx[lnps.argmax()]
-
                 # best value
-                best_vals[e,k] = q[indx[weights.argmax()]]
+                best_vals[e,k] = q[best_full_indx]
 
                 # expectration value
                 exp_vals[e,k] = expectation(q[indx], weights=weights)
@@ -579,6 +587,7 @@ def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend
     r['chi2min_indx'] = chi2_indx.astype(int)
     r['Pmax'] = lnp_vals
     r['Pmax_indx'] = lnp_indx.astype(int)
+    r['specgrid_indx'] = best_specgrid_indx
 
     if not isinstance(lnpfile, tables.file.File):
         f.close()

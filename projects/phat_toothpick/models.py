@@ -140,6 +140,8 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
         nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_nd'
 
     #write to disk
+    # and apply the distance to the particular galaxy of interest
+    # seds already at 10 pc, need multiplcation by the square of the ratio to this distance
     if hasattr(g, 'writeHDF'):
         if distance is not None:
             g.seds = g.seds / (0.1 * _distance) ** 2

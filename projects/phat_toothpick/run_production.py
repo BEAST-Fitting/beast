@@ -15,6 +15,7 @@ see datamodel_production.py, pipeline_production.py, noisemodel.py, fit.py for m
 # system imports
 from __future__ import print_function
 import sys
+import os
 import argparse
 import time
 import string
@@ -52,7 +53,7 @@ if __name__ == '__main__':
                         '-sub' + args.sub_source_density + '.fits'
     datamodel.astfile = 'BEAST_production/merged_asts/PHAT_fake_stars_SD_' + \
                         string.replace(args.source_density,'-','_' ) + '.fits'
-    datamodel.noisefile = 'BEAST_production/production_sd_' + \
+    datamodel.noisefile = 'BEAST_production/BEAST_production_sd_' + \
                           string.replace(args.source_density,'_','-' ) + '_noisemodel.fits'
 
     stats_filebase = 'BEAST_production/b' + args.brick + '/b' + args.brick + \
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
 
-    modelsedgrid_filename = 'BEAST_production/production_seds.grid.hd5'
+    modelsedgrid_filename = 'BEAST_production/BEAST_production_seds.grid.hd5'
 
     print("***run information***")
     print("  project = " + datamodel.project)
@@ -72,31 +73,42 @@ if __name__ == '__main__':
     print("   stats filebase = " + stats_filebase)
 
     if args.models:
+        datamodel.project = 'BEAST_production'
         make_models()
 
     if args.noise:
         print('Generating noise model from ASTs and absflux A matrix')
  
         # get the modesedgrid on which to generate the noisemodel  
-        modelsedgrid = FileSEDGrid(modelsedgrid_filename.format(project=datamodel.project))  
-            
+        modelsedgrid = FileSEDGrid(modelsedgrid_filename)  
+
         # generate the AST noise model  
         noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, modelsedgrid, datamodel.absflux_a_matrix)  
 
     if args.trim:
         print('Trimming the model and noise grids')
+        start_time = time.clock()
 
-        # get the modesedgrid on which to generate the noisemodel  
-        modelsedgrid = FileSEDGrid(modelsedgrid_filename.format(project=datamodel.project))  
+        # check if the trimmed files already exist
+        if (not os.path.isfile(sed_trimname)) & (not os.path.isfile(noisemodel_trimname)):
+            # get the modesedgrid on which to generate the noisemodel  
+            modelsedgrid = FileSEDGrid(modelsedgrid_filename.format(project=datamodel.project))  
 
-        # read in the noise model just created
-        noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
+            # read in the noise model just created
+            noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
 
-        # read in the observed data
-        obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
-        # trim the model sedgrid
+            # read in the observed data
+            obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
 
-        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+            # trim the model sedgrid
+
+            trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+        else:
+            print('trimming requested - but trimmed sed and noisemodel files already exist')
+            print('using existing trimmed files')
+
+        new_time = time.clock()
+        print('time to trim: ',(new_time - start_time)/60., ' min')
 
     if args.fit:
         start_time = time.clock()
