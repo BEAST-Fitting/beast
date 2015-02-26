@@ -12,7 +12,7 @@ SN_logLikelihood  Computes a Split Normal likelihood (asymmetric errors)
 getNorm_lnP       Compute the norm of a log-likelihood (overflow robust)
 """
 import numpy as np
-
+#import numexpr
 
 def N_chi2(flux, fluxerr, fluxmod, mask=None):
     """ compute the non-reduced chi2 between data with uncertainties and
@@ -127,6 +127,8 @@ def N_chi2_NM(flux, fluxmod, fluxerr, fluxbias, mask=None):
     """
     if mask is None:
         temp = flux[None, :] - (fluxmod + fluxbias)
+        #tflux = flux[None, :]
+        #temp = numexpr.evaluate('tflux - fluxmod + fluxbias')
         _e = fluxerr
     else:
         _m = ~mask.astype(bool)

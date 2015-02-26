@@ -20,7 +20,6 @@ import tables
 from beast.core.noisemodel import toothpick
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
-
 class PHAT_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
 
     def set_data_mappings(self):

@@ -17,9 +17,36 @@ from .grid import FileSEDGrid
 from .grid import SpectralGrid
 from ..external.eztables import Table
 
-def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_outname,
-                sigma_fac=3.):
+def trim_models(sedgrid, sedgrid_noisemodel, obsdata, astdata, sed_outname, noisemodel_outname,
+                sigma_fac=3., n_detected=4):
     
+    # Store the brigtest and faintest fluxes in each band (for data and asts)
+    n_filters = len(obsdata.filters)
+    min_data = np.zeros(n_filters)
+    max_data = np.zeros(n_filters)
+    min_asts = np.zeros(n_filters)
+    max_asts = np.zeros(n_filters)
+    min_models = np.zeros(n_filters)
+    max_models = np.zeros(n_filters)
+    for k, filtername in enumerate(obsdata.filters):
+        # get the name of the column with the rate in it (normalized to the vega flux)
+        nfiltername = filtername.split('_')[-1].lower() + '_rate'
+        min_data[k] = np.amin(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
+        max_data[k] = np.amax(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
+        afiltername = filtername.split('_')[-1].upper() + '_IN'
+        ofiltername = filtername.split('_')[-1].upper() + '_VEGA'
+        indxs, = np.where(astdata.data[ofiltername] < 80.)
+        _ast_fluxes = 10 ** (-0.4*astdata.data[afiltername][indxs])*obsdata.vega_flux[k]
+        min_asts[k] = np.amin(_ast_fluxes)
+        max_asts[k] = np.amax(_ast_fluxes)
+        min_models[k] = np.amin(sedgrid.seds[:,k])
+        max_models[k] = np.amax(sedgrid.seds[:,k])
+
+    #print(min_data)
+    #print(min_models)
+    #print(min_asts)
+    #exit()
+
     # cache the model bias and uncertainty
     model_bias = sedgrid_noisemodel.root.bias[:]
     model_unc = sedgrid_noisemodel.root.error[:]
@@ -30,21 +57,27 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_ou
     model_down = sedgrid.seds + model_bias - sigma_fac*model_unc
     model_up = sedgrid.seds + model_bias + sigma_fac*model_unc
     
-    # Store the brigtest and faintest fluxes in each band (for data)
-    n_filters = len(obsdata.filters)
-    min_data = np.zeros(n_filters)
-    max_data = np.zeros(n_filters)
-    for k, filtername in enumerate(obsdata.filters):
-        # get the name of the column with the rate in it (normalized to the vega flux)
-        nfiltername = filtername.split('_')[-1].lower() + '_rate'
-        min_data[k] = np.amin(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
-        max_data[k] = np.amax(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
+    # first remove all models that have any band with fluxes below the faintest ASTs run
+    #indxs = np.arange(len(sedgrid.seds[:,0]))
+    gvals = np.zeros(len(sedgrid.seds[:,0]),np.int64)
+    for i in range(len(sedgrid.seds[:,0])):
+        # only look at models above the faintest asts run to avoide huge extrapolations
+        #  extrapolations to higher fluxes is likely ok given the small values at high fluxes
+        gindxs, = np.where((sedgrid.seds[i,:] >= min_asts) == True)
+        if len(gindxs) >= n_detected:
+            gvals[i] = 1
+
+    indxs, = np.where(gvals > 0)
+    
+    if len(indxs) <= 0:
+        print('no models are brighter than the minimum ASTs run')
+        exit()
+
+    n_ast_indxs = len(indxs)
 
     # Find models with fluxes (with margin) between faintest and brightest data
-    indxs = np.arange(len(model_bias))
     for k in range(n_filters):
-        #nindxs = np.where((model_down[indxs,k] >= min_data[k]) & (model_up[indxs,k] <= max_data[k]))
-        nindxs = np.where((model_up[indxs,k] >= min_data[k]) & (model_down[indxs,k] <= max_data[k]))
+        nindxs, = np.where((model_up[indxs,k] >= min_data[k]) & (model_down[indxs,k] <= max_data[k]))
         if len(nindxs) > 0:
             indxs = indxs[nindxs]
 
@@ -52,7 +85,8 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_ou
         print('no models that are within the data range')
         exit()
 
-    print('number of original models = ', len(model_bias))
+    print('number of original models = ', len(sedgrid.seds[:,0]))
+    print('number of ast trimmed models = ', n_ast_indxs)
     print(' number of trimmed models = ', len(indxs))
 
     #print(min_data)

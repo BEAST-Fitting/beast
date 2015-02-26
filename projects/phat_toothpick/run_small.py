@@ -42,7 +42,7 @@ import argparse
 import time
 
 # BEAST imports
-from pipeline_small import run_fit, make_models, compute_noise_and_trim_grid
+from pipeline_small import run_fit, make_models
 import datamodel_small as datamodel
 import noisemodel 
 from merge_phat_asts import merge_phat_asts
@@ -84,13 +84,17 @@ if __name__ == '__main__':
         # read in the noise model just created
         noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
 
+        # read in the ast file used to create the noise model
+        astdata = noisemodel.PHAT_ToothPick_Noisemodel(datamodel.astfile, modelsedgrid.filters)            
+
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
+
         # trim the model sedgrid
         sed_trimname = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
         noisemodel_trimname = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
 
-        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, astdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
 
     if args.fit:
         start_time = time.clock()

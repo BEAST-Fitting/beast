@@ -97,8 +97,10 @@ if __name__ == '__main__':
         start_time = time.clock()
 
         # the files for the trimmed model grid and noisemodel grid
-        modelsedgrid = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
-        noisemodelfile = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
+        #modelsedgrid = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
+        #noisemodelfile = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
+        modelsedgrid = '{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project)
+        noisemodelfile = '{project:s}/{project:s}_noisemodel.hd5'.format(project=datamodel.project)
 
         # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(noisemodelfile)
