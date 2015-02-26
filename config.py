@@ -11,7 +11,7 @@ __WITH_C_LIBS__ = False
 __USE_NUMEXPR__ = True
 
 # Default number of threads to use when parallel computing
-#__NTHREADS__ = 10
+#__NTHREADS__ = 6
 __NTHREADS__ = 1
 
 #directories

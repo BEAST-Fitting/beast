@@ -61,6 +61,7 @@ if __name__ == '__main__':
     sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
 
+    #modelsedgrid_filename = 'b15_late_jan15_test_small/b15_late_jan15_test_small_seds.grid.hd5'
     modelsedgrid_filename = 'BEAST_production/BEAST_production_seds.grid.hd5'
 
     print("***run information***")
@@ -90,19 +91,21 @@ if __name__ == '__main__':
         start_time = time.clock()
 
         # check if the trimmed files already exist
-        if (not os.path.isfile(sed_trimname)) & (not os.path.isfile(noisemodel_trimname)):
+        if (not os.path.isfile(sed_trimname)) | (not os.path.isfile(noisemodel_trimname)):
             # get the modesedgrid on which to generate the noisemodel  
             modelsedgrid = FileSEDGrid(modelsedgrid_filename.format(project=datamodel.project))  
 
-            # read in the noise model just created
+            # read in the noise model
             noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
+
+            # read in the ast file used to create the noise model
+            astdata = noisemodel.PHAT_ToothPick_Noisemodel(datamodel.astfile, modelsedgrid.filters)            
 
             # read in the observed data
             obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
 
             # trim the model sedgrid
-
-            trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+            trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, astdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
         else:
             print('trimming requested - but trimmed sed and noisemodel files already exist')
             print('using existing trimmed files')

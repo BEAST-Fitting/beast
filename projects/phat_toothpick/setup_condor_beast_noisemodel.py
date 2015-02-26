@@ -66,7 +66,7 @@ if __name__ == '__main__':
         f.write('Executable = ./run_production.py\n')
         f.write('Arguments = -n 0 ' + sd_num + ' 0\n')
         f.write('GetEnv = True\n')
-        #f.write('Requirements  = Memory >= 22528\n')
+	f.write('Requirements  = Memory >= 10000\n')
         f.write('InitialDir = /user/kgordon/BEAST/beast/projects/phat_toothpick/\n')
         f.write('Log = '+log_path+jobbase+'.log\n')
         f.write('Error = '+log_path+jobbase+'_error.log\n')

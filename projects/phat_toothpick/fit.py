@@ -32,6 +32,8 @@ import numpy as np
 import tables
 import string
 
+import numexpr
+
 from astropy.coordinates import ICRS as ap_ICRS
 from astropy import units as ap_units
 from astropy.io import fits
@@ -83,7 +85,12 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-40, outname='lnp.hd5',
     else:
         g0 = sedgrid
 
-    g0_weights = np.log(g0['weight'] / g0['weight'].sum())
+    g0_indxs, = np.where(g0['weight'] > 0.0)
+    g0_weights = np.log(g0['weight'][g0_indxs])
+    g0_weights_sum = np.log(g0['weight'][g0_indxs].sum())
+    g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
+
+    #g0_weights = np.log(g0['weight']/g0['weight'].sum())
 
     ast_error = ast.root.error[:]
     ast_bias = ast.root.bias[:]
@@ -102,16 +109,23 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-40, outname='lnp.hd5',
         for tn, obk in Pbar(len(obs), desc='Calculating Lnp').iterover(obs.enumobs()):
             (sed) = obk
             (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold) )
-
-            lnp = lnp + g0_weights  # multiply by the prior weights (sum in log space)
+            
+            lnp = lnp[g0_indxs]
+            chi2 = chi2[g0_indxs]
+            lnp = numexpr.evaluate('lnp + g0_weights')
+            #lnp +=  g0_weights  # multiply by the prior weights (sum in log space)
 
             star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
-            indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
+            indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
+            #indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
 
             outfile.createArray(star_group, 'input', np.array([sed]).T)
-            outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int64))
-            outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
-            outfile.createArray(star_group, 'chi2', np.array(chi2[indx[0]], dtype=np.float32))
+            outfile.createArray(star_group, 'idx', np.array(g0_indxs[indx], dtype=np.int64))
+            outfile.createArray(star_group, 'lnp', np.array(lnp[indx], dtype=np.float32))
+            outfile.createArray(star_group, 'chi2', np.array(chi2[indx], dtype=np.float32))
+            #outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int64))
+            #outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
+            #outfile.createArray(star_group, 'chi2', np.array(chi2[indx[0]], dtype=np.float32))
             #commit changes
             outfile.flush()
 
@@ -543,9 +557,11 @@ def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend
             lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(np.float64)
             chi2 = f.getNode('/star_{0:d}/chi2'.format(obj)).read().astype(float)
             indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
-            log_norm = np.log(getNorm_lnP(lnps))
-            if not np.isfinite(log_norm):
-                log_norm = lnps.max()
+
+            #log_norm = np.log(getNorm_lnP(lnps))
+            #if not np.isfinite(log_norm):
+            #    log_norm = lnps.max()
+            log_norm = lnps.max()
             weights = np.exp(lnps - log_norm)
                 
             # index to the full model grid for the best fit values
@@ -572,8 +588,11 @@ def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend
                 # percentile values
                 pdf1d_bins, pdf1d_vals = fast_pdf1d_objs[k].gen1d(indx, np.exp(lnps))
                 save_pdf1d_vals[k][e,:] = pdf1d_vals
-                pdf1d_vals /= pdf1d_vals.max()
-                per_vals[e,k,:] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
+                if pdf1d_vals.max() > 0:
+                    pdf1d_vals /= pdf1d_vals.max()
+                    per_vals[e,k,:] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
+                else:
+                    per_vals[e,k,:] = [0.0,0.0,0.0]
 
     # populate the dict array
     r = odict()
@@ -694,7 +713,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
         keys = g0.keys()
 
     #make sure keys are real keys
-    skip_keys = 'osl keep weight fullgrid_idx stage'.split()
+    skip_keys = 'osl keep weight fullgrid_idx stage specgrid_indx'.split()
     keys = [k for k in keys if k not in skip_keys]
 
     if method is None:

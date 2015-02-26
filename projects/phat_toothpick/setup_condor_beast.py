@@ -35,6 +35,15 @@ if __name__ == '__main__':
     if not os.path.isdir(log_path):
         os.mkdir(log_path)
 
+    # setup the subdirectory for the beast batc files
+    bjob_path = basepath+'b'+brick+'/batch_jobs/'
+    if not os.path.isdir(bjob_path):
+        os.mkdir(bjob_path)
+
+    blog_path = bjob_path+'logs/'
+    if not os.path.isdir(blog_path):
+        os.mkdir(blog_path)
+
     # open the shell file to population with condor_submit commands
     cs_filename = job_path+'condor_submit_b'+brick
     cs = open(cs_filename, 'w')
@@ -49,6 +58,11 @@ if __name__ == '__main__':
     tcs.write('#\n')
     tcs.write('\n')
 
+    # open a txt fle for batch trimming of models
+    bt_filename = basepath+'b'+brick + '/b' + brick + '_many_trim.txt' 
+    bt = open(bt_filename,'w')
+    bt.write('BEAST_production/BEAST_production_seds.grid.hd5\n')
+   
     for cat_file in cat_files:
         # get the sd number
         dpos = string.find(cat_file,'SD-')
@@ -98,9 +112,16 @@ if __name__ == '__main__':
 
         f.close()
 
+        # fit batch job
+        f = open(bjob_path+jobbase+'.batch', 'w')
+        f.write('nice -n 10 ./run_production.py -f ' + brick + ' ' + sd_num + ' ' + sub_num+' &> ' + blog_path+jobbase + '.out\n')
+        f.close()
+
         tcs.write('condor_submit ' + job_path+jobbase+'_trim.job\n')
         cs.write('condor_submit ' + job_path+jobbase+'.job\n')
 
+        bt.write(brick + ' ' + sd_num + ' ' + sub_num + '\n')
+        
     tcs.write('\n')
     tcs.write('exit 0\n')
     tcs.close()
@@ -109,6 +130,8 @@ if __name__ == '__main__':
     cs.write('exit 0\n')
     cs.close()
 
+    bt.close()
+    
     os.chmod(tcs_filename, 0744)
     os.chmod(cs_filename, 0744)
 
