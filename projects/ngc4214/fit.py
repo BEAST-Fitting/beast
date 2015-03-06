@@ -19,6 +19,7 @@ table = (project, obs) | t_fit(g, **fit_kwargs) | t_summary_table(g, **stat_kwar
 """
 
 import sys
+import numexpr
 import numpy as np
 import tables
 from beast.core import grid
@@ -33,7 +34,7 @@ from beast.core.pdf1d import pdf1d
 __all__ = ['fit_model_seds_pytables', 't_fit', 'summary_table', 't_summary_table']
 
 
-def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-5, outname='lnp.hd5', gridbackend='cache'):
+def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-10., outname='lnp.hd5', gridbackend='cache'):
     """
     Fit model seds with noise for sensitivity tests
 
@@ -67,7 +68,12 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-5, outname='lnp.hd5', 
     else:
         g0 = sedgrid
 
-    g0_weights = np.log(g0['weight'] / g0['weight'].sum())
+    g0_indxs, = np.where(g0['weight'] > 0.0)
+    g0_weights = np.log(g0['weight'][g0_indxs])
+    g0_weights_sum = np.log(g0['weight'][g0_indxs].sum())
+    g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
+
+    #g0_weights = np.log(g0['weight'] / g0['weight'].sum())
 
     ast_error = ast.root.error[:]
     ast_bias = ast.root.bias[:]
@@ -85,15 +91,19 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-5, outname='lnp.hd5', 
 
         for tn, obk in Pbar(len(obs), desc='Calculating Lnp').iterover(obs.enumobs()):
             (sed) = obk
-            (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold) )
+            (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold))
+
+            lnp = lnp[g0_indxs]
+            chi2 = chi2[g0_indxs]
+            lnp = numexpr.evaluate('lnp + g0_weights')
 
             star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
-            indx = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
+            indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
 
             outfile.createArray(star_group, 'input', np.array([sed]).T)
-            outfile.createArray(star_group, 'idx', np.array(indx[0], dtype=np.int64))
-            outfile.createArray(star_group, 'lnp', np.array(lnp[indx[0]], dtype=np.float32))
-            outfile.createArray(star_group, 'chi2', np.array(chi2[indx[0]], dtype=np.float32))
+            outfile.createArray(star_group, 'idx', np.array(g0_indxs[indx], dtype=np.int64))
+            outfile.createArray(star_group, 'lnp', np.array(lnp[indx], dtype=np.float32))
+            outfile.createArray(star_group, 'chi2', np.array(chi2[indx], dtype=np.float32))
             #commit changes
             outfile.flush()
 
@@ -205,7 +215,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
     if hasattr(qname, '__iter__'):
         r = odict()
         for qk in qname:
-            lbl = '{0:s}_E'.format(qk)
+            lbl = '{0:s}_Exp'.format(qk)
             r[lbl] = Q_expect(f, g0, qk, objlist, prior)
     else:
         #make sure keys are useful keys
@@ -220,7 +230,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
 
         with Pbar(nobs, txt='Expectations') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
-                pb.desc = 'E({0})'.format(qname)
+                pb.desc = 'Exp({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
@@ -416,12 +426,184 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
 
                 pdf1d_bins, pdf1d_vals = fast_pdf1d.gen1d(indx, np.exp(lnps))
-                pdf1d_vals /= pdf1d_vals.max()
+                if pdf1d_vals.max() > 0:
+                    pdf1d_vals /= pdf1d_vals.max()
+                    per_vals[e,k,:] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
+                else:
+                    per_vals[e,k,:] = [0.0,0.0,0.0]
 
                 r[e, :] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
 
     if not isinstance(lnpfile, tables.file.File):
         f.close()
+
+    return r
+
+
+def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend='cache', max_nbins=50,
+          pdf1d_outname=None):
+    """ Get the best, expectation, and percentile values of all the given grid property
+      (done in once function for speed)
+
+    keywords
+    --------
+
+    lnpfile: str or tables.file.File
+        lnp file to use given by its path or the open file
+
+    sedgrid: str or grid.SEDgrid instance
+        model grid
+
+    qnames: list of quantities or expresions
+
+    p: array-like
+        list of percentile values
+    objlist: list or array like
+        index numbers of objects to extract
+
+    gridbackend: str or grid.GridBackend
+        backend to use to load the grid if necessary (memory, cache, hdf)
+        (see beast.core.grid)
+
+    max_nbins: maxiumum number of bins to use for the 1D likelihood calculations
+
+    pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
+
+    returns
+    -------
+    e_dict: dict with a (qname, ndarray) pair
+    """
+
+    if type(lnpfile) == str:
+        f = tables.openFile(lnpfile)
+    elif isinstance(lnpfile, tables.file.File):
+        f = lnpfile
+
+    if type(sedgrid) == str:
+        g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
+    else:
+        g0 = sedgrid
+
+    if objlist is None:
+        # nchildren - 2 since wavelength, and filters are also saved there
+        nobs = f.root._v_nchildren - 2
+        objlist = range(nobs)
+    else:
+        nobs = len(objlist)
+
+    # setup the arrays to temp sore the results
+    n_qnames = len(qnames)
+    n_pers = len(p)
+    best_vals = np.zeros((nobs, n_qnames))
+    exp_vals = np.zeros((nobs, n_qnames))
+    per_vals = np.zeros((nobs, n_qnames, n_pers))
+    chi2_vals = np.zeros(nobs)
+    chi2_indx = np.zeros(nobs)
+    lnp_vals = np.zeros(nobs)
+    lnp_indx = np.zeros(nobs)
+    best_specgrid_indx = np.zeros(nobs)
+
+    # setup the mapping for the 1D PDFs
+    fast_pdf1d_objs = []
+    save_pdf1d_vals = []
+    for qname in qnames:
+        q = g0[qname]
+
+        n_uniq = len(np.unique(q))
+        if len(np.unique(q)) > max_nbins:
+            nbins = max_nbins  # limit the number of bins in the 1D likelihood for speed
+        else:
+            nbins = n_uniq
+
+        # setup the fast 1d pdf
+        ignorebelow = None  # need to know so 'zeros' (defined at -100) are ignored
+        if (qname.find('_wd') > 0) | (qname.find('_wd') > 0):
+            ignorebelow = -99.99
+        _tpdf1d = pdf1d(q, nbins, ignorebelow=ignorebelow)
+        fast_pdf1d_objs.append(_tpdf1d)
+
+        # setup the arrays to save the 1d PDFs
+        save_pdf1d_vals.append(np.zeros((nobs+1, nbins)))
+        save_pdf1d_vals[-1][nobs,:] = _tpdf1d.bin_vals
+
+    # loop over the objects and get all the requested quantities
+    g0_specgrid_indx = g0['specgrid_indx']
+    _p = np.asarray(p, dtype=float)
+    with Pbar(nobs, desc='Best/Exp/Per') as pb:
+        for e, obj in pb.iterover(enumerate(objlist)):
+            # get the sparse nD posterior
+            lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(np.float64)
+            chi2 = f.getNode('/star_{0:d}/chi2'.format(obj)).read().astype(float)
+            indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
+
+            #log_norm = np.log(getNorm_lnP(lnps))
+            #if not np.isfinite(log_norm):
+            #    log_norm = lnps.max()
+            log_norm = lnps.max()
+            weights = np.exp(lnps - log_norm)
+
+            # index to the full model grid for the best fit values
+            best_full_indx = indx[weights.argmax()]
+
+            # index to the spectral grid 
+            best_specgrid_indx[e] = g0_specgrid_indx[best_full_indx]
+
+            # goodness of fit quantities
+            chi2_vals[e] = chi2.min()
+            chi2_indx[e] = indx[chi2.argmin()]
+            lnp_vals[e] = lnps.max()
+            lnp_indx[e] = best_full_indx
+
+            for k, qname in enumerate(qnames):
+                q = g0[qname]
+
+                # best value
+                best_vals[e,k] = q[best_full_indx]
+
+                # expectration value
+                exp_vals[e,k] = expectation(q[indx], weights=weights)
+
+                # percentile values
+                pdf1d_bins, pdf1d_vals = fast_pdf1d_objs[k].gen1d(indx, np.exp(lnps))
+                save_pdf1d_vals[k][e,:] = pdf1d_vals
+                if pdf1d_vals.max() > 0:
+                    pdf1d_vals /= pdf1d_vals.max()
+                    per_vals[e,k,:] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
+                else:
+                    per_vals[e,k,:] = [0.0,0.0,0.0]
+
+    # populate the dict array
+    r = odict()
+    for k, qname in enumerate(qnames):
+        r['{0:s}_Best'.format(qname)] = best_vals[:,k]
+        r['{0:s}_Exp'.format(qname)] = exp_vals[:,k]
+        for i, pval in enumerate(p):
+            r['{0:s}_p{1:d}'.format(qname, int(pval))] = per_vals[:,k,i]
+
+    r['chi2min'] = chi2_vals
+    r['chi2min_indx'] = chi2_indx.astype(int)
+    r['Pmax'] = lnp_vals
+    r['Pmax_indx'] = lnp_indx.astype(int)
+    r['specgrid_indx'] = best_specgrid_indx
+
+    if not isinstance(lnpfile, tables.file.File):
+        f.close()
+
+    # save the 1D PDFs
+    if pdf1d_outname is not None:
+        if os.path.isfile(pdf1d_outname):
+            os.remove(pdf1d_outname)
+
+        # write a small primary header
+        fits.append(pdf1d_outname, np.zeros((2,2)))
+
+        # write the 1D PDFs for all the objects, 1 set per extension
+        for k, qname in enumerate(qnames):
+            hdu = fits.PrimaryHDU(save_pdf1d_vals[k])
+            pheader = hdu.header
+            pheader.set('XTENSION','IMAGE')
+            pheader.set('EXTNAME',qname)
+            fits.append(pdf1d_outname, save_pdf1d_vals[k], header=pheader)
 
     return r
 
@@ -474,7 +656,8 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
     keys = [k for k in keys if k not in skip_keys]
 
     if method is None:
-        method = 'best expectation percentile'.split()
+        #method = 'best expectation percentile'.split()
+        method = 'all'
 
     for key in keys:
         if not (key in g0.keys()):
@@ -489,6 +672,10 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
 
     if ('percentile' in method):
         r.update(Q_percentile(lnpfile, g0, keys, p=[16., 50., 84.]))
+
+    if ('all' in method):
+        r.update(Q_all(lnpfile, g0, keys, p=[16., 50., 84.],
+                       pdf1d_outname=outname.replace('stats.fits','pdf1d.fits')))
 
     summary_tab = Table(r, name="Summary Table")
 
@@ -506,7 +693,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
 #---------------------------------------------------------
 
 @task_decorator(logger=sys.stdout)
-def t_fit(project, obs, g, ast, threshold=-5, gridbackend='cache', outname=None):
+def t_fit(project, obs, g, ast, threshold=-10., gridbackend='cache', outname=None):
     """t_fit -- run the fitting part
 
     keywords
