@@ -452,7 +452,11 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
 
                 pdf1d_bins, pdf1d_vals = fast_pdf1d.gen1d(indx, np.exp(lnps))
-                pdf1d_vals /= pdf1d_vals.max()
+                if pdf1d_vals.max() > 0:
+                    pdf1d_vals /= pdf1d_vals.max()
+                    per_vals[e,k,:] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
+                else:
+                    per_vals[e,k,:] = [0.0,0.0,0.0]
 
                 r[e, :] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
 
