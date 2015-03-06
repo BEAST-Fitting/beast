@@ -24,7 +24,7 @@ if __name__ == '__main__':
     basename = 'obscat/'
 
     basepath = 'BEAST_production/'
-    cat_files = glob.glob(basepath + 'b'+brick+'/'+basename + 'b'+brick+'*.fits')
+    cat_files = glob.glob(basepath + 'b'+brick+'/'+basename + 'b*.fits')
 
     # setup the subdirectory for the beast job files
     job_path = basepath+'b'+brick+'/condor_jobs/'
@@ -70,6 +70,7 @@ if __name__ == '__main__':
         ppos = string.rfind(cat_file,'.')
         sd_num = cat_file[dpos+3:spos-1]
         sub_num = cat_file[spos+3:ppos]
+        jobbase = 'beast_phat_toothpick_b'+brick+'_sd'+sd_num+'_sub'+sub_num
 
         ##########
         # print the min/max observed flux in the file
@@ -81,8 +82,6 @@ if __name__ == '__main__':
         ##########
 
         # write the beast job files
-        jobbase = 'beast_phat_toothpick_b'+brick+'_sd'+sd_num+'_sub'+sub_num
-        print(jobbase)
 
         # trim job
         f = open(job_path+jobbase+'_trim.job', 'w')
@@ -114,7 +113,7 @@ if __name__ == '__main__':
 
         # fit batch job
         f = open(bjob_path+jobbase+'.batch', 'w')
-        f.write('nice -n 10 ./run_production.py -f ' + brick + ' ' + sd_num + ' ' + sub_num+' &> ' + blog_path+jobbase + '.out\n')
+        f.write('nice -n 8 ./run_production_memory.py -f ' + brick + ' ' + sd_num + ' ' + sub_num+' > ' + blog_path+jobbase + '.out\n')
         f.close()
 
         tcs.write('condor_submit ' + job_path+jobbase+'_trim.job\n')
