@@ -43,7 +43,8 @@ from beast.core.odict import odict
 from beast.proba.likelihood import *
 from beast.proba import expectation, percentile, getNorm_lnP
 from beast.tools.pbar import Pbar
-from beast.external.eztables import Table
+#from beast.external.eztables import Table
+from astropy.table import Table
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
 from beast.core.pdf1d import pdf1d
@@ -729,10 +730,14 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
         if not (key in g0.keys()):
             raise KeyError('Key "{0}" not recognized'.format(key))
 
-    r = odict()
+    r = {}
+    #r = odict()
 
     # generate an IAU complient name for each source and add other inform
-    r.update( IAU_names_and_extra_info(obs) )
+    #r.update( IAU_names_and_extra_info(obs) )
+    res = IAU_names_and_extra_info(obs)
+    for key in res.keys():
+        r[key] = res[key]
 
     if ('expectation' in method):
         r.update( Q_expect(lnpfile, g0, keys) )
@@ -744,10 +749,15 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
         r.update(Q_percentile(lnpfile, g0, keys, p=[16., 50., 84.]))
 
     if ('all' in method):
-        r.update(Q_all(lnpfile, g0, keys, p=[16., 50., 84.],
-                       pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits')))
+        #r.update(Q_all(lnpfile, g0, keys, p=[16., 50., 84.],
+        #               pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits')))
+        res = Q_all(lnpfile, g0, keys, p=[16., 50., 84.],
+                    pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits'))
+        for key in res.keys():
+            r[key] = res[key]
 
-    summary_tab = Table(r, name="Summary Table")
+    #summary_tab = Table(r, name="Summary Table")
+    summary_tab = Table(r)
 
     if not isinstance(lnpfname, tables.file.File):
         lnpfile.close()

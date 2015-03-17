@@ -43,7 +43,8 @@ from beast.core.odict import odict
 from beast.proba.likelihood import *
 from beast.proba import expectation, percentile, getNorm_lnP
 from beast.tools.pbar import Pbar
-from beast.external.eztables import Table
+#from beast.external.eztables import Table
+from astropy.table import Table
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
 from beast.core.pdf1d import pdf1d
@@ -140,7 +141,7 @@ def Q_all_memory(obs, sedgrid, ast, qnames, p=[16., 50., 84.], gridbackend='cach
     else:
         _seds = g0.seds
 
-    for e, obj in Pbar(len(obs), desc='Calculating Lnp').iterover(obs.enumobs()):
+    for e, obj in Pbar(len(obs), desc='Calculating Lnp/Stats').iterover(obs.enumobs()):
     #with Pbar(nobs, desc='Best/Exp/Per') as pb:
     #    for e, obj in pb.iterover(enumerate(obs)):
             # get the full nD posterior
@@ -313,16 +314,26 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None, method=None, outna
         if not (key in g0.keys()):
             raise KeyError('Key "{0}" not recognized'.format(key))
 
-    r = odict()
+    r = {}
+    #r = odict()
 
     # generate an IAU complient name for each source and add other inform
-    r.update( IAU_names_and_extra_info(obs) )
+    #r.update( IAU_names_and_extra_info(obs) )
+    res = IAU_names_and_extra_info(obs)
+    for key in res.keys():
+        r[key] = res[key]
+
 
     if ('all' in method):
-        r.update(Q_all_memory(obs, g0, noisemodel, keys, p=[16., 50., 84.],
-                             pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits')))
+        #r.update(Q_all_memory(obs, g0, noisemodel, keys, p=[16., 50., 84.],
+        #                     pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits')))
+        res = Q_all_memory(obs, g0, noisemodel, keys, p=[16., 50., 84.],threshold=-10.,
+                           pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits'))
+        for key in res.keys():
+            r[key] = res[key]
 
-    summary_tab = Table(r, name="Summary Table")
+    #summary_tab = Table(r, name="Summary Table")
+    summary_tab = Table(r)
 
     if outname is not None:
         summary_tab.write(outname)
