@@ -19,7 +19,7 @@ import datamodel_production as datamodel
 
 if __name__ == '__main__':
     
-    brick = '19'
+    brick = '15'
 
     basename = 'obscat/'
 
