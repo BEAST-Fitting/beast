@@ -98,14 +98,11 @@ if __name__ == '__main__':
             # read in the noise model
             noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
 
-            # read in the ast file used to create the noise model
-            astdata = noisemodel.PHAT_ToothPick_Noisemodel(datamodel.astfile, modelsedgrid.filters)            
-
             # read in the observed data
             obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
 
             # trim the model sedgrid
-            trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, astdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+            trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
         else:
             print('trimming requested - but trimmed sed and noisemodel files already exist')
             print('using existing trimmed files')

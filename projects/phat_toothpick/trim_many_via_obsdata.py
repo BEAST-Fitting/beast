@@ -71,15 +71,13 @@ if __name__ == '__main__':
         start_time = time.clock()
 
         if noisefile == old_noisefile:
-            print('not reading noisefile/astfile - same as last')
+            print('not reading noisefile - same as last')
             #print(noisefile)
             #print(astfile)
         else:
             print('reading noisefile/astfile')
             # read in the noise model
             noisemodel_vals = noisemodel.get_noisemodelcat(noisefile)
-            # read in the ast file used to create the noise model
-            astdata = noisemodel.PHAT_ToothPick_Noisemodel(astfile, modelsedgrid.filters)            
             old_noisefile = noisefile
 
         # read in the observed data
@@ -88,7 +86,7 @@ if __name__ == '__main__':
 
         # trim the model sedgrid
 
-        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, astdata, sed_trimname, noisemodel_trimname, sigma_fac=3., n_detected=4)
+        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3., n_detected=4)
 
         new_time = time.clock()
         print('time to trim: ',(new_time - start_time)/60., ' min')

@@ -393,7 +393,7 @@ class MultiFilterASTs(NoiseModel):
         .. see also: :func:`_compute_stddev`
         """
 
-        shape = len(self.data), len(self.filters)
+        shape = nbins, len(self.filters)
 
         self._fluxes = np.empty( shape, dtype=float)
         self._biases = np.empty( shape, dtype=float)
