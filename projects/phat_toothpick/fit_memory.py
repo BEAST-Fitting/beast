@@ -39,26 +39,60 @@ from astropy import units as ap_units
 from astropy.io import fits
 
 from beast.core import grid
-from beast.core.odict import odict
 from beast.proba.likelihood import *
 from beast.proba import expectation, percentile, getNorm_lnP
 from beast.tools.pbar import Pbar
-#from beast.external.eztables import Table
 from astropy.table import Table
-from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
 from beast.core.pdf1d import pdf1d
 
-__all__ = ['summary_table_memory']
+def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals, per_vals, chi2_vals, chi2_indx, 
+               lnp_vals, lnp_indx, best_specgrid_indx, qnames, p):
 
+    stats_dict = stats_dict_in.copy()
 
-def Q_all_memory(obs, sedgrid, ast, qnames, p=[16., 50., 84.], gridbackend='cache', max_nbins=50,
-          pdf1d_outname=None, threshold=-40):
+    # populate the dict array
+    for k, qname in enumerate(qnames):
+        stats_dict['{0:s}_Best'.format(qname)] = best_vals[:,k]
+        stats_dict['{0:s}_Exp'.format(qname)] = exp_vals[:,k]
+        for i, pval in enumerate(p):
+            stats_dict['{0:s}_p{1:d}'.format(qname, int(pval))] = per_vals[:,k,i]
+
+    stats_dict['chi2min'] = chi2_vals
+    stats_dict['chi2min_indx'] = chi2_indx.astype(int)
+    stats_dict['Pmax'] = lnp_vals
+    stats_dict['Pmax_indx'] = lnp_indx.astype(int)
+    stats_dict['specgrid_indx'] = best_specgrid_indx
+
+    summary_tab = Table(stats_dict)
+
+    if stats_outname is not None:
+        summary_tab.write(stats_outname, overwrite=True)
+
+def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
+
+    # write a small primary header
+    fits.writeto(pdf1d_outname, np.zeros((2,2)), clobber=True)
+
+    # write the 1D PDFs for all the objects, 1 set per extension
+    for k, qname in enumerate(qnames):
+        hdu = fits.PrimaryHDU(save_pdf1d_vals[k])
+        pheader = hdu.header
+        pheader.set('XTENSION','IMAGE') 
+        pheader.set('EXTNAME',qname) 
+        fits.append(pdf1d_outname, save_pdf1d_vals[k], header=pheader)
+
+def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], gridbackend='cache', max_nbins=50,
+                 stats_outname=None, pdf1d_outname=None, lnp_outname=None, lnp_npts=None, save_every_npts=None,
+                 threshold=-40):
     """ Get the best, expectation, and percentile values of all the given grid property
       (done in once function for speed)
 
     keywords
     --------
+    prev_result: dict
+        previous results to include in the output summary table
+        usually basic data on each source
 
     sedgrid: str or grid.SEDgrid instance
         model grid
@@ -141,91 +175,100 @@ def Q_all_memory(obs, sedgrid, ast, qnames, p=[16., 50., 84.], gridbackend='cach
     else:
         _seds = g0.seds
 
+    if lnp_outname is not None:
+        outfile = tables.openFile(lnp_outname, 'w')
+        #Save wavelengths in root, remember #n_stars = root._v_nchildren -1
+        outfile.createArray(outfile.root, 'grid_waves', g0.lamb[:])
+        filters = obs.getFilters()
+        outfile.createArray(outfile.root, 'obs_filters', filters[:])
+
     for e, obj in Pbar(len(obs), desc='Calculating Lnp/Stats').iterover(obs.enumobs()):
-    #with Pbar(nobs, desc='Best/Exp/Per') as pb:
-    #    for e, obj in pb.iterover(enumerate(obs)):
-            # get the full nD posterior
-            (sed) = obj
-            (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold) )
+        # get the full nD posterior
+        (sed) = obj
+        (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold) )
             
-            lnp = lnp[g0_indxs]
-            chi2 = chi2[g0_indxs]
-            lnp = numexpr.evaluate('lnp + g0_weights')
-            #lnp +=  g0_weights  # multiply by the prior weights (sum in log space)
+        lnp = lnp[g0_indxs]
+        chi2 = chi2[g0_indxs]
+        lnp = numexpr.evaluate('lnp + g0_weights')
+        #lnp +=  g0_weights  # multiply by the prior weights (sum in log space)
 
-            indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
+        indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
 
-            # now generate the sparse likelihood (remove later if this works by updating code below)
-            lnps = lnp[indx]
-            chi2 = chi2[indx]
+        if lnp_outname is not None:
+            star_group = outfile.createGroup('/', 'star_%d'  % e, title="star %d" % e)
+            outfile.createArray(star_group, 'input', np.array([sed]).T)
+            if lnp_npts is not None:
+                rindx = np.random.choice(indx,size=lnp_npts)
+                outfile.createArray(star_group, 'idx', np.array(g0_indxs[rindx], dtype=np.int64))
+                outfile.createArray(star_group, 'lnp', np.array(lnp[rindx], dtype=np.float32))
+                outfile.createArray(star_group, 'chi2', np.array(chi2[rindx], dtype=np.float32))
+            else:
+                outfile.createArray(star_group, 'idx', np.array(g0_indxs[indx], dtype=np.int64))
+                outfile.createArray(star_group, 'lnp', np.array(lnp[indx], dtype=np.float32))
+                outfile.createArray(star_group, 'chi2', np.array(chi2[indx], dtype=np.float32))
+            #commit changes
+            outfile.flush()
 
-            #log_norm = np.log(getNorm_lnP(lnps))
-            #if not np.isfinite(log_norm):
-            #    log_norm = lnps.max()
-            log_norm = lnps.max()
-            weights = np.exp(lnps - log_norm)
+        # now generate the sparse likelihood (remove later if this works by updating code below)
+        lnps = lnp[indx]
+        chi2 = chi2[indx]
+
+        #log_norm = np.log(getNorm_lnP(lnps))
+        #if not np.isfinite(log_norm):
+        #    log_norm = lnps.max()
+        log_norm = lnps.max()
+        weights = np.exp(lnps - log_norm)
                 
-            # index to the full model grid for the best fit values
-            best_full_indx = indx[weights.argmax()]
+        # index to the full model grid for the best fit values
+        best_full_indx = indx[weights.argmax()]
 
-            # index to the spectral grid 
-            best_specgrid_indx[e] = g0_specgrid_indx[best_full_indx]
+        # index to the spectral grid 
+        best_specgrid_indx[e] = g0_specgrid_indx[best_full_indx]
             
-            # goodness of fit quantities
-            chi2_vals[e] = chi2.min()
-            chi2_indx[e] = indx[chi2.argmin()]
-            lnp_vals[e] = lnps.max()
-            lnp_indx[e] = best_full_indx
+        # goodness of fit quantities
+        chi2_vals[e] = chi2.min()
+        chi2_indx[e] = indx[chi2.argmin()]
+        lnp_vals[e] = lnps.max()
+        lnp_indx[e] = best_full_indx
 
-            for k, qname in enumerate(qnames):
-                q = g0[qname]
+        for k, qname in enumerate(qnames):
+            q = g0[qname]
 
-                # best value
-                best_vals[e,k] = q[best_full_indx]
+            # best value
+            best_vals[e,k] = q[best_full_indx]
 
-                # expectration value
-                exp_vals[e,k] = expectation(q[indx], weights=weights)
+            # expectration value
+            exp_vals[e,k] = expectation(q[indx], weights=weights)
 
-                # percentile values
-                pdf1d_bins, pdf1d_vals = fast_pdf1d_objs[k].gen1d(indx, np.exp(lnps))
-                save_pdf1d_vals[k][e,:] = pdf1d_vals
-                if pdf1d_vals.max() > 0:
-                    pdf1d_vals /= pdf1d_vals.max()
-                    per_vals[e,k,:] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
-                else:
-                    per_vals[e,k,:] = [0.0,0.0,0.0]
+            # percentile values
+            pdf1d_bins, pdf1d_vals = fast_pdf1d_objs[k].gen1d(indx, np.exp(lnps))
+            save_pdf1d_vals[k][e,:] = pdf1d_vals
+            if pdf1d_vals.max() > 0:
+                pdf1d_vals /= pdf1d_vals.max()
+                per_vals[e,k,:] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
+            else:
+                per_vals[e,k,:] = [0.0,0.0,0.0]
 
-    # populate the dict array
-    r = odict()
-    for k, qname in enumerate(qnames):
-        r['{0:s}_Best'.format(qname)] = best_vals[:,k]
-        r['{0:s}_Exp'.format(qname)] = exp_vals[:,k]
-        for i, pval in enumerate(p):
-            r['{0:s}_p{1:d}'.format(qname, int(pval))] = per_vals[:,k,i]
-
-    r['chi2min'] = chi2_vals
-    r['chi2min_indx'] = chi2_indx.astype(int)
-    r['Pmax'] = lnp_vals
-    r['Pmax_indx'] = lnp_indx.astype(int)
-    r['specgrid_indx'] = best_specgrid_indx
+        # incremental save (useful if job dies early to recover most of the computations)
+        if save_every_npts is not None:
+            if (e > 0) & (e%save_every_npts == 0):
+                # save the 1D PDFs
+                if pdf1d_outname is not None:
+                    save_pdf1d(pdf1d_outname,save_pdf1d_vals, qnames)
+    
+                # save the stats/catalog file
+                if stats_outname is not None:
+                    save_stats(stats_outname, prev_result, best_vals, exp_vals, per_vals, chi2_vals, chi2_indx,
+                               lnp_vals, lnp_indx, best_specgrid_indx, qnames, p)
 
     # save the 1D PDFs
     if pdf1d_outname is not None:
-        if os.path.isfile(pdf1d_outname):
-            os.remove(pdf1d_outname)
-
-        # write a small primary header
-        fits.append(pdf1d_outname, np.zeros((2,2)))
-
-        # write the 1D PDFs for all the objects, 1 set per extension
-        for k, qname in enumerate(qnames):
-            hdu = fits.PrimaryHDU(save_pdf1d_vals[k])
-            pheader = hdu.header
-            pheader.set('XTENSION','IMAGE') 
-            pheader.set('EXTNAME',qname) 
-            fits.append(pdf1d_outname, save_pdf1d_vals[k], header=pheader)
-
-    return r
+        save_pdf1d(pdf1d_outname,save_pdf1d_vals, qnames)
+    
+    # save the stats/catalog file
+    if stats_outname is not None:
+        save_stats(stats_outname, prev_result, best_vals, exp_vals, per_vals, chi2_vals, chi2_indx,
+                   lnp_vals, lnp_indx, best_specgrid_indx, qnames, p)
 
 def IAU_names_and_extra_info(obsdata):
     """
@@ -238,10 +281,10 @@ def IAU_names_and_extra_info(obsdata):
 
     returns
     -------
-    e_dict: dict 
+    r: dict 
         returns a dict with a (name, ndarray) pair
     """
-    r = odict()
+    r = {}
 
     # generate the IAU names
     _tnames = []
@@ -291,8 +334,6 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None, method=None, outna
 
     returns
     -------
-    tab: eztable.Table
-        table object containing all the statistics
     """
 
     if type(sedgrid) == str:
@@ -307,143 +348,17 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None, method=None, outna
     skip_keys = 'osl keep weight fullgrid_idx stage specgrid_indx'.split()
     keys = [k for k in keys if k not in skip_keys]
 
-    if method is None:
-        method = 'all'.split()
-
     for key in keys:
         if not (key in g0.keys()):
             raise KeyError('Key "{0}" not recognized'.format(key))
 
-    r = {}
-    #r = odict()
-
     # generate an IAU complient name for each source and add other inform
-    #r.update( IAU_names_and_extra_info(obs) )
     res = IAU_names_and_extra_info(obs)
-    for key in res.keys():
-        r[key] = res[key]
+
+    Q_all_memory(res, obs, g0, noisemodel, keys, p=[16., 50., 84.],threshold=-10.,
+                 stats_outname=outname,save_every_npts=500,
+                 pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits'),
+                 lnp_outname=string.replace(outname,'stats.fits','lnp.fits'),lnp_npts=60)
 
 
-    if ('all' in method):
-        #r.update(Q_all_memory(obs, g0, noisemodel, keys, p=[16., 50., 84.],
-        #                     pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits')))
-        res = Q_all_memory(obs, g0, noisemodel, keys, p=[16., 50., 84.],threshold=-10.,
-                           pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits'))
-        for key in res.keys():
-            r[key] = res[key]
 
-    #summary_tab = Table(r, name="Summary Table")
-    summary_tab = Table(r)
-
-    if outname is not None:
-        summary_tab.write(outname)
-
-    return summary_tab
-
-
-#---------------------------------------------------------
-# Pipeline interface                        [sec:pipeline]
-#---------------------------------------------------------
-
-# needs updating or deleting due to change of doing all in memory (no lnp file)
-
-@task_decorator(logger=sys.stdout)
-def t_fit(project, obs, g, ast, threshold=-40, gridbackend='cache', outname=None):
-    """t_fit -- run the fitting part
-
-    keywords
-    --------
-
-    project: str
-        token of the project this task belongs to
-
-    obs: Observation object instance
-        observation catalog
-
-    g: grid.SpectralGrid instance
-        SED model grid instance
-
-    threshold: float
-        toss out grid points where lnp - lnp_max < threshold
-        This value defined how sparse the final storage will be
-
-    gridbackend: str or grid.GridBackend
-        backend to use to load the grid if necessary (memory, cache, hdf)
-        (see beast.core.grid)
-
-    outname: str, optional
-        optional filename and path to store the outputs
-
-    returns
-    -------
-    project: str
-        token of the project this task belongs to
-
-    lnp_source: str
-        file in which sparse lnp values are stored
-
-    obs: Observation object instance
-        observation catalog
-    """
-
-    if outname is None:
-        outname = '{0}_lnp.hd5'.format(project)
-    else:
-        outname = '{0}_lnp.hd5'.format(outname)
-    lnp_source = RequiredFile(outname, fit_model_seds_pytables, obs, g, ast, threshold=threshold, outname=outname, gridbackend=gridbackend)
-    return project, lnp_source(), obs
-
-
-@task_decorator(logger=sys.stdout)
-def t_summary_table(project, lnpfname, obs, sedgrid, keys=None, method=None, gridbackend='cache', outname=None):
-    """t_summary_table -- task to generate the summary table
-
-    keywords
-    --------
-    project: str
-        token of the project this task belongs to
-
-    lnpfname: str
-        file in which sparse lnp values are stored
-
-    obs: Observation object instance
-        observation catalog
-
-    sedgrid: grid.SpectralGrid instance
-        SED model grid instance
-
-    keys: str or list of str
-        if str:  name of the quantity or expression to evaluate from the grid table
-        if list: list of qquantities or expresions
-
-    method: str or list of str
-        method must be in ['expectation', 'best', 'percentile']
-
-    gridbackend: str or grid.GridBackend
-        backend to use to load the grid if necessary (memory, cache, hdf)
-        (see beast.core.grid)
-
-    outname: str, optional
-        optional filename and path to store the outputs
-
-    returns
-    -------
-    project: str
-        token of the project this task belongs to
-
-    stats: eztable.Table
-        statistics table
-
-    obs: Observation object instance
-        observation catalog
-
-    sedgrid: grid.SpectralGrid instance
-        SED model grid instance
-    """
-
-    if outname is None:
-        outname = '{0}_stats.fits'.format(project)
-    else:
-        outname = '{0}_stats.fits'.format(outname)
-    stat_source = RequiredFile(outname, summary_table, lnpfname, obs, sedgrid, keys=keys, method=method, outname=outname, gridbackend=gridbackend)
-    return project, stat_source(), obs, sedgrid
