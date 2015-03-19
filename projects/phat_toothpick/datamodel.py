@@ -29,7 +29,7 @@ from extra_filters import make_integration_filter, make_top_hat_filter
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'b15_late_jan15_test_cmd27'
+project = 'b15_xsede_mar15_cmd27'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
@@ -37,7 +37,6 @@ filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
 # observations
 #obsfile = 'data/b15_data_test.fits'
 obsfile = 'data/b15_4band_det_27_A.fits'
-
 # AST files (single camera ASTs)
 uvastfile = 'data/fake_stars_b15_27_uv.fits'
 optastfile = 'data/fake_stars_b15_27_opt.fits'
