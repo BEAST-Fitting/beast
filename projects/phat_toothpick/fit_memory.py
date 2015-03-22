@@ -32,6 +32,8 @@ import numpy as np
 import tables
 import string
 
+from itertools import islice
+
 import numexpr
 
 from astropy.coordinates import ICRS as ap_ICRS
@@ -84,7 +86,7 @@ def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
 
 def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], gridbackend='cache', max_nbins=50,
                  stats_outname=None, pdf1d_outname=None, lnp_outname=None, lnp_npts=None, save_every_npts=None,
-                 threshold=-40):
+                 threshold=-40, resume=False):
     """ Get the best, expectation, and percentile values of all the given grid property
       (done in once function for speed)
 
@@ -165,6 +167,53 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
         save_pdf1d_vals.append(np.zeros((nobs+1, nbins)))
         save_pdf1d_vals[-1][nobs,:] = _tpdf1d.bin_vals
 
+    # if this is a resume job, read in the already computed stats and fill the variables
+    # also - find the start position for the resumed run
+    if resume:
+        stats_table = Table.read(stats_outname)
+        
+        for k, qname in enumerate(qnames):
+            best_vals[:,k] = stats_table['{0:s}_Best'.format(qname)]
+            exp_vals[:,k] = stats_table['{0:s}_Exp'.format(qname)]
+            for i, pval in enumerate(p):
+                per_vals[:,k,i] = stats_table['{0:s}_p{1:d}'.format(qname, int(pval))]
+                
+        chi2_vals = stats_table['chi2min']
+        chi2_indx = stats_table['chi2min_indx']
+        lnp_vals = stats_table['Pmax']
+        lnp_indx = stats_table['Pmax_indx']
+        best_specgrid_indx = stats_table['specgrid_indx']
+
+        indxs, = np.where(stats_table['Pmax'] != 0.0)
+        start_pos = max(indxs) + 1
+        print('resuming run with start indx = ' + str(start_pos) + ' out of ' + str(len(stats_table['Pmax'])))
+
+        # read in the already computed 1D PDFs
+        if pdf1d_outname != None:
+            print('restoring the already computed 1D PDFs from ' + pdf1d_outname)
+            hdulist = fits.open(pdf1d_outname)
+            for k in range(len(qnames)):
+                save_pdf1d_vals[k] = hdulist[k+1].data
+            hdulist.close()
+
+        # setup the lnp file 
+        if lnp_outname is not None:
+
+#            outfile = tables.openFile(lnp_outname, 'r')
+            #for group in outfile.walk_groups():
+            #    print(group)
+            outfile = tables.openFile(lnp_outname, 'a')
+    else:
+        start_pos = 0
+
+        # setup a new lnp file
+        if lnp_outname is not None:
+            outfile = tables.openFile(lnp_outname, 'w')
+            #Save wavelengths in root, remember #n_stars = root._v_nchildren -1
+            outfile.createArray(outfile.root, 'grid_waves', g0.lamb[:])
+            filters = obs.getFilters()
+            outfile.createArray(outfile.root, 'obs_filters', filters[:])
+
     # loop over the objects and get all the requested quantities
     g0_specgrid_indx = g0['specgrid_indx']
     _p = np.asarray(p, dtype=float)
@@ -175,15 +224,8 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
     else:
         _seds = g0.seds
 
-    if lnp_outname is not None:
-        outfile = tables.openFile(lnp_outname, 'w')
-        #Save wavelengths in root, remember #n_stars = root._v_nchildren -1
-        outfile.createArray(outfile.root, 'grid_waves', g0.lamb[:])
-        filters = obs.getFilters()
-        outfile.createArray(outfile.root, 'obs_filters', filters[:])
-
-    for e, obj in Pbar(len(obs), desc='Calculating Lnp/Stats').iterover(obs.enumobs()):
-        # get the full nD posterior
+    for e, obj in Pbar(len(obs)-start_pos, desc='Calculating Lnp/Stats').iterover(islice(obs.enumobs(),start_pos,None)):
+        # calculate the full nD posterior
         (sed) = obj
         (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold) )
             
@@ -195,19 +237,22 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
         indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
 
         if lnp_outname is not None:
-            star_group = outfile.createGroup('/', 'star_%d'  % e, title="star %d" % e)
-            outfile.createArray(star_group, 'input', np.array([sed]).T)
-            if lnp_npts is not None:
-                rindx = np.random.choice(indx,size=lnp_npts)
-                outfile.createArray(star_group, 'idx', np.array(g0_indxs[rindx], dtype=np.int64))
-                outfile.createArray(star_group, 'lnp', np.array(lnp[rindx], dtype=np.float32))
-                outfile.createArray(star_group, 'chi2', np.array(chi2[rindx], dtype=np.float32))
+            try:
+                star_group = outfile.createGroup('/', 'star_%d'  % e, title="star %d" % e)
+            except tables.exceptions.NodeError:
+                print('lnp for star ' + str(e) + ' already in file')
             else:
-                outfile.createArray(star_group, 'idx', np.array(g0_indxs[indx], dtype=np.int64))
-                outfile.createArray(star_group, 'lnp', np.array(lnp[indx], dtype=np.float32))
-                outfile.createArray(star_group, 'chi2', np.array(chi2[indx], dtype=np.float32))
-            #commit changes
-            outfile.flush()
+                outfile.createArray(star_group, 'input', np.array([sed]).T)
+                if lnp_npts is not None:
+                    rindx = np.random.choice(indx,size=lnp_npts)
+                    outfile.createArray(star_group, 'idx', np.array(g0_indxs[rindx], dtype=np.int64))
+                    outfile.createArray(star_group, 'lnp', np.array(lnp[rindx], dtype=np.float32))
+                    outfile.createArray(star_group, 'chi2', np.array(chi2[rindx], dtype=np.float32))
+                else:
+                    outfile.createArray(star_group, 'idx', np.array(g0_indxs[indx], dtype=np.int64))
+                    outfile.createArray(star_group, 'lnp', np.array(lnp[indx], dtype=np.float32))
+                    outfile.createArray(star_group, 'chi2', np.array(chi2[indx], dtype=np.float32))
+                    outfile.flush() #commit changes
 
         # now generate the sparse likelihood (remove later if this works by updating code below)
         lnps = lnp[indx]
@@ -260,7 +305,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
                 if stats_outname is not None:
                     save_stats(stats_outname, prev_result, best_vals, exp_vals, per_vals, chi2_vals, chi2_indx,
                                lnp_vals, lnp_indx, best_specgrid_indx, qnames, p)
-
     # save the 1D PDFs
     if pdf1d_outname is not None:
         save_pdf1d(pdf1d_outname,save_pdf1d_vals, qnames)
@@ -310,7 +354,9 @@ def IAU_names_and_extra_info(obsdata):
 
     return r
 
-def summary_table_memory(obs, noisemodel, sedgrid, keys=None, method=None, outname=None, gridbackend='cache'):
+def summary_table_memory(obs, noisemodel, sedgrid, keys=None, method=None, gridbackend='cache',
+                         threshold=-10, save_every_npts=None, lnp_npts=None, resume=False,
+                         stats_outname=None, pdf1d_outname=None, lnp_outname=None):
     """
     keywords
     --------
@@ -355,10 +401,11 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None, method=None, outna
     # generate an IAU complient name for each source and add other inform
     res = IAU_names_and_extra_info(obs)
 
-    Q_all_memory(res, obs, g0, noisemodel, keys, p=[16., 50., 84.],threshold=-10.,
-                 stats_outname=outname,save_every_npts=500,
-                 pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits'),
-                 lnp_outname=string.replace(outname,'stats.fits','lnp.fits'),lnp_npts=60)
+    Q_all_memory(res, obs, g0, noisemodel, keys, p=[16., 50., 84.], resume=resume,
+                 threshold=-10.,save_every_npts=save_every_npts, lnp_npts=lnp_npts,
+                 stats_outname=stats_outname,
+                 pdf1d_outname=pdf1d_outname,
+                 lnp_outname=lnp_outname)
 
 
 

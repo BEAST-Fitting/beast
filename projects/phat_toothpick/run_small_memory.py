@@ -40,6 +40,7 @@ from __future__ import print_function
 import sys
 import argparse
 import time
+import string
 
 # BEAST imports
 from pipeline_small import run_fit, make_models
@@ -111,8 +112,11 @@ if __name__ == '__main__':
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
 
-        fit_memory.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid,
-                                        outname=statsfile)
+        fit_memory.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid, resume=True,
+                                        threshold=-10., save_every_npts=100, lnp_npts=60,
+                                        stats_outname=statsfile,
+                                        pdf1d_outname=string.replace(statsfile,'stats.fits','pdf1d.fits'),
+                                        lnp_outname=string.replace(statsfile,'stats.fits','lnp.fits'))
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')

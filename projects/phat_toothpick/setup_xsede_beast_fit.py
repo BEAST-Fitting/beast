@@ -12,14 +12,17 @@ from __future__ import print_function
 import os
 import glob
 import string
+import argparse
 #####
 import numpy as np
 import datamodel_production as datamodel
 #####
 
 if __name__ == '__main__':
-
-    brick = '15'
+    parser = argparse.ArgumentParser()
+    parser.add_argument("brick", help="brick number")
+    args = parser.parse_args()
+    brick = args.brick
     
     basename = 'obscat/'
 
@@ -28,7 +31,7 @@ if __name__ == '__main__':
     cat_files = np.array(cat_files)
 
     n_cat_files = len(cat_files)
-    n_pernode_files = 32
+    n_pernode_files = 500
 
     # setup the subdirectory for the xsede slurm and log files
     job_path = basepath+'b'+brick+'/fit_xsede_jobs/'
@@ -66,7 +69,7 @@ if __name__ == '__main__':
         sd_num = cat_file[dpos+3:spos-1]
         sub_num = cat_file[spos+3:ppos]
 
-        if i%32 == 0:
+        if i%n_pernode_files == 0:
             cur_f += 1
 
             # close previous files
@@ -97,7 +100,7 @@ if __name__ == '__main__':
             sf.write('#         <------ Setup Parameters ------>\n')
             sf.write('#\n')
             sf.write('#SBATCH -J BeastF'+str(cur_f)+'             # Job name\n')
-            sf.write('#SBATCH -N 1                   # Total number of nodes (16 cores/node)\n')
+            sf.write('#SBATCH -N 1                   # Total number of nodes (32 cores/node)\n')
             sf.write('#SBATCH -n 32                  # Total number of tasks\n')
             sf.write('#SBATCH -p largemem            # Queue name\n')
             sf.write('#SBATCH -o '+log_path+'BeastF'+str(cur_f)+'.o%j         # Name of stdout output file (%j expands to jobid)\n')
