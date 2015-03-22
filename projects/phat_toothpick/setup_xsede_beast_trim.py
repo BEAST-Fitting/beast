@@ -12,15 +12,20 @@ from __future__ import print_function
 import os
 import glob
 import string
+import argparse
 #####
 import numpy as np
 import datamodel_production as datamodel
 #####
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-a", "--faint", help="Faint set of 4 band detections (instead of bright)",
+                        action="store_true")
+    parser.add_argument("brick", help="brick number")
+    args = parser.parse_args()
+    brick = args.brick
 
-    brick = '15'
-    
     basename = 'obscat/'
 
     basepath = 'BEAST_production/'
@@ -28,12 +33,12 @@ if __name__ == '__main__':
 
     n_cat_files = len(cat_files)
     n_subtrim_files = 32
-    n_per_subtrim = int(n_cat_files/32)
+    n_per_subtrim = int(n_cat_files/32) + 1
 
     print('# trim files per process = ',n_per_subtrim)
 
     # setup the subdirectory for the xsede slurm and log files
-    job_path = basepath+'trim_xsede_jobs/'
+    job_path = basepath+'b'+brick+'/trim_xsede_jobs/'
     if not os.path.isdir(job_path):
         os.mkdir(job_path)
 
@@ -142,7 +147,10 @@ if __name__ == '__main__':
         trimfile = job_path+'BeastTR_' + str(i+1)
         bt_f.append(open(trimfile,'w'))
         bt_f[-1].write('BEAST_production/BEAST_production_seds.grid.hd5\n')
-        pf.write('./trim_many_via_obsdata.py '+trimfile+' > '+log_path+'beast_trim_tr'+str(i+1)+'.log\n')
+        if args.faint:
+            pf.write('./trim_many_via_obsdata.py -a '+trimfile+' > '+log_path+'beast_trim_tr'+str(i+1)+'.log\n')
+        else:
+            pf.write('./trim_many_via_obsdata.py '+trimfile+' > '+log_path+'beast_trim_tr'+str(i+1)+'.log\n')
     pf.close()
     
     for i, cat_file in enumerate(cat_files):
