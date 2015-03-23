@@ -133,7 +133,7 @@ if __name__ == '__main__':
 
         statsfile = stats_filebase + '_stats.fits'
         fit_memory.summary_table_memory(obsdata, noisemodel_vals, sed_trimname, resume=args.resume,
-                                        threshold=-10., save_every_npts=500, lnp_npts=60,
+                                        threshold=-10., save_every_npts=250, lnp_npts=60,
                                         stats_outname=stats_filebase + '_stats.fits',
                                         pdf1d_outname=stats_filebase + '_pdf1d.fits',
                                         lnp_outname=stats_filebase + '_lnp.fits')

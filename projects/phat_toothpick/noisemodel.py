@@ -91,10 +91,9 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
     # if so, then set the noise to a negative value (later may be used to trim the model of "invalid" models)
     # we are assuming that extrapolation at high fluxes is ok as the noise will be very small there
     for k in range(len(model.filters)):
-        min_asts = np.amin(model._fluxes[0:model._nasts[k],k])
-        indxs, = np.where(sedgrid.seds[:,k] <= min_asts)
+        indxs, = np.where(sedgrid.seds[:,k] <= model._minmax_asts[0,k])
         if len(indxs) > 0:
-            noise[indxs] *= -1.0
+            noise[indxs,k] *= -1.0
 
     print('Writting to disk into {0:s}'.format(outname))
     with tables.openFile(outname, 'w') as outfile:
