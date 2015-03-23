@@ -20,6 +20,8 @@ import datamodel_production as datamodel
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument("-a", "--faint", help="Faint set of 4 band detections (instead of bright)",
+                        action="store_true")
     parser.add_argument("brick", help="brick number")
     args = parser.parse_args()
     brick = args.brick
@@ -174,7 +176,10 @@ if __name__ == '__main__':
             sf.write('echo " "\n')
             sf.close()
 
-        pf.write('./run_production_memory.py -f ' + brick + ' ' + sd_num + ' '+sub_num+' > '+log_path+'beast_fit_b'+brick+'_sd'+sd_num+'_sub'+sub_num+'.log\n')
+        if args.faint:
+            pf.write('./run_production_memory.py -f -a ' + brick + ' ' + sd_num + ' '+sub_num+' > '+log_path+'beast_fit_b'+brick+'_sd'+sd_num+'_sub'+sub_num+'.log\n')
+        else:
+            pf.write('./run_production_memory.py -f ' + brick + ' ' + sd_num + ' '+sub_num+' > '+log_path+'beast_fit_b'+brick+'_sd'+sd_num+'_sub'+sub_num+'.log\n')
         cur_total_size += sed_size[i]
 
     print('total sed_trim size [Gb] = ', cur_total_size/(1024.*1024.*1024.))

@@ -51,13 +51,13 @@ if __name__ == '__main__':
         sub_source_density = line[s2pos+1:len(line)].rstrip()
     
         if args.faint:
-            datamodel.obsfile = 'BEAST_production/' + datamodel.project + '/obscat/b' + args.brick + \
-                '-6filt-cut-4band-gst-faint-SD-' + string.replace(args.source_density,'_','-') + \
-                '-sub' + args.sub_source_density + '.fits'
+            obsfile = 'BEAST_production/b' + brick + '/obscat/b' + brick + \
+                '-6filt-cut-4band-gst-faint-SD-' + string.replace(source_density,'_','-') + \
+                '-sub' + sub_source_density + '.fits'
         else:
-            datamodel.obsfile = 'BEAST_production/' + datamodel.project + '/obscat/b' + args.brick + \
-                '-6filt-cut-4band-gst-bright-SD-' + string.replace(args.source_density,'_','-') + \
-                '-sub' + args.sub_source_density + '.fits'
+            obsfile = 'BEAST_production/b' + brick + '/obscat/b' + brick + \
+                '-6filt-cut-4band-gst-bright-SD-' + string.replace(source_density,'_','-') + \
+                '-sub' + sub_source_density + '.fits'
 
         astfile = 'BEAST_production/merged_asts/PHAT_fake_stars_SD_' + \
                   string.replace(source_density,'-','_' ) + '.fits'

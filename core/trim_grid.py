@@ -42,24 +42,70 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_ou
     #   the idea here is that if the ASTs are not measured that means that *none* were recovered and this implies
     #   that no model with these values would be recovered and thus the probability should always be zero
     model_unc = sedgrid_noisemodel.root.error[:]
-    above_ast = (model_unc >= 0)
+    above_ast = (model_unc > 0)
     sum_above_ast = np.sum(above_ast,axis=1)
     indxs, = np.where(sum_above_ast >= n_detected)
+
+    #min_gmodel = np.zeros(n_filters)
+    #for k in range(n_filters):
+    #    min_gmodel[k] = np.amin(sedgrid.seds[indxs,k])
+
+
+    #min_asts = [1.3879187495103194e-19,
+    #            1.6550853881968002e-19,
+    #            1.068305101054377e-20,
+    #            2.0358040415431349e-20,
+    #            1.0525632892236783e-19,
+    #            7.2018979602833484e-20]
+
+    #min_asts = [2.7215185446506946e-19,
+    #            2.1813920602921763e-19,
+    #            1.420197564598432e-19,
+    #            6.6257679757877467e-20,
+    #            7.3476470356322374e-19,
+    #            1.9272005768395571e-19]
+
+    #print(min_asts)
+    #print(min_gmodel)
+
+    #gvals = np.zeros(len(sedgrid.seds[:,0]),np.int64)  
+    #for i in range(len(sedgrid.seds[:,0])):  
+        # only look at models above the faintest asts run to avoide huge extrapolations  
+        #  extrapolations to higher fluxes is likely ok given the small values at high fluxes  
+    #    gindxs, = np.where((sedgrid.seds[i,:] >= min_asts) == True)  
+    #    if len(gindxs) >= n_detected:  
+    #        gvals[i] = 1  
+    
+    #oindxs, = np.where(gvals > 0)  
+
+    #print(len(oindxs), len(indxs))
+
+    #print(oindxs)
+    #print(indxs)
+
+    #exit()
 
     # cache the noisemodel values
     model_bias = sedgrid_noisemodel.root.bias[:]
     model_unc = np.fabs(sedgrid_noisemodel.root.error[:])  # needed to remove the negative values that designate a model below the faintest ASTs
     model_compl = sedgrid_noisemodel.root.completeness[:]
-    
+
     if len(indxs) <= 0:
         print('no models are brighter than the minimum ASTs run')
         exit()
 
+    #indxs = np.arange(len(model_bias))
     n_ast_indxs = len(indxs)
 
     # Find models with fluxes (with margin) between faintest and brightest data
     for k in range(n_filters):
         print('working on filter # = ', k)
+
+        #min_gmodel = np.amin(sedgrid.seds[indxs,k])
+        #print(min_gmodel, min_data[k], min_models[k])
+        #max_gmodel = np.amax(sedgrid.seds[indxs,k])
+        #print(max_gmodel, max_data[k], max_models[k])
+
         # Get upper and lower values for the models given the noise model 
         #  sigma_fac defaults to 3.
         model_val = sedgrid.seds[indxs,k] + model_bias[indxs,k]
