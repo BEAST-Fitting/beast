@@ -17,7 +17,8 @@ if __name__ == '__main__':
     #oldresults = Table("/astro/dust_kg/beast_share/b15_out/output_catalog_bSD_b15_27.fits")
     #oldresults = Table("b15_late_jan15_test_cmd23/b15_late_jan15_test_cmd23_stats_w_trimgrid.fits")
     #oldresults = Table("b15_late_jan15_test_cmd27/b15_late_jan15_test_cmd27_stats.fits")
-    oldresults = Table("b15_late_jan15_test_small/b15_late_jan15_test_small_stats.fits")
+    #oldresults = Table("b15_late_jan15_test_small/b15_late_jan15_test_small_stats_save.fits")
+    oldresults = Table("b15_xsede_mar15_small_stats.fits")
 
     #newresults = Table("b15_late_jan15_test_small/b15_late_jan15_test_small_stats.fits")
     #newresults = Table("b15_late_jan15_test/b15_late_jan15_test_stats.fits")
@@ -25,7 +26,8 @@ if __name__ == '__main__':
     #newresults = Table("BEAST_production/old_production_b15/production_b15_sd27_A_stats.fits")
     #newresults = Table("b15_late_jan15_test_cmd23/b15_late_jan15_test_cmd23_stats.fits")
     #newresults = Table("b15_late_jan15_test_cmd27_cut/b15_late_jan15_test_cmd27_cut_stats.fits")
-    newresults = Table("b15_late_jan15_test_small/b15_late_jan15_test_small_memory_stats.fits")
+    #newresults = Table("b15_late_jan15_test_small/b15_late_jan15_test_small_memory_stats_save.fits")
+    newresults = Table("b15_xsede_mar15_small_memory_stats.fits")
 
     print oldresults.keys()
     print newresults.keys()

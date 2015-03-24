@@ -2,26 +2,18 @@
 Fitting Pipeline for PHAT
 BEAST Toothpick version (v1, 5 Feb 2015)
 based on code by Morgan Fouesneau
-major modifications by Karl Gordon
+major modifications by Karl Gordon (Feb-Mar 2015)
   - added a number of additional parameters
   - uses a fast 1D PDF generator
   - combines best,expectation,percentiles for speed
-=============
-
-This code uses `ezpipe`, a pipeline package written by Morgan Fouesneau to provide a clean
-and flexible interface. In particular this package simplifies the management of
-intermediate results or broken jobs.
-
-do the fit
-----------
-the pipeline is sequence of tasks
-    tasks = ( t_fit(g, **fit_kwargs), t_summary_table(g, **stat_kwargs) )
-    fit = Pipeline('fit_fake', tasks_fit)
-
-    fit(project, obs)
-
-The pipeline is equivalent to:
-table = (project, obs) | t_fit(g, **fit_kwargs) | t_summary_table(g, **stat_kwargs)
+  - updated to compute the lnp right before it is needed
+    this allows the option not to save the sparse lnp to disk
+  - added the option to save a random sampling of the lnp to disk
+  - code now can save the results every n stars if requested
+    things allows a partially completed run to be recovered and continue
+  - removed the use of ezpipe as everything is now packaged into a single routine
+    and this routine often needs to be run even if results file already exist
+  - switched from eztables to astropy.table to (potentially) avoid bus/memory errors
 """
 
 import os
@@ -50,6 +42,27 @@ from beast.core.pdf1d import pdf1d
 
 def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals, per_vals, chi2_vals, chi2_indx, 
                lnp_vals, lnp_indx, best_specgrid_indx, qnames, p):
+    """ Saves the stats to a file
+
+    Keywords
+    ----------
+    stats_outname(str) : output filename
+    stats_dict_in(dict) : input dictonary with ancilliary info
+    best_vals(2D nparray) : best fit parameters
+    exp_vals(2D nparray) : expectation fit parameters
+    per_vals(3D nparray) : percentile fit parameters
+    chi2_vals(1D nparray) : chisqr values (does not include model weights)
+    chi2_indx(1D nparray) : indx in model grid of chisqr values
+    lnp_vals(1D nparray) : P(max) values (includes model weights)
+    lnp_indx(1D nparray) : indx in model grid of P(max) values
+    best_specgrid_indx(1D nparray) : indx in spectroscopic model grid of P(max) values
+    qnames(1D nparray) : list of the parameter names
+    p(1D nparray) : list of percentiles use to create the per_vals
+
+    Returns
+    -------
+    N/A
+    """
 
     stats_dict = stats_dict_in.copy()
 
@@ -64,7 +77,7 @@ def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals, per_vals, chi2
     stats_dict['chi2min_indx'] = chi2_indx.astype(int)
     stats_dict['Pmax'] = lnp_vals
     stats_dict['Pmax_indx'] = lnp_indx.astype(int)
-    stats_dict['specgrid_indx'] = best_specgrid_indx
+    stats_dict['specgrid_indx'] = best_specgrid_indx.astype(int)
 
     summary_tab = Table(stats_dict)
 
@@ -110,11 +123,15 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
 
     max_nbins: maxiumum number of bins to use for the 1D likelihood calculations
 
+    stats_outname: set to output the stats file into a FITS file with extensions
+
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
+
+    lnp_outname: set to output the sparse likelihoods into a (usually HDF5) file
 
     returns
     -------
-    e_dict: dict with a (qname, ndarray) pair
+    N/A
     """
 
     if type(sedgrid) == str:
@@ -126,6 +143,8 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
     g0_weights = np.log(g0['weight'][g0_indxs])
     g0_weights_sum = np.log(g0['weight'][g0_indxs].sum())
     g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
+
+    print('orig/g0_indxs', len(g0['weight']),len(g0_indxs))
 
     ast_error = ast.root.error[:]
     ast_bias = ast.root.bias[:]
@@ -235,12 +254,14 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
         #lnp +=  g0_weights  # multiply by the prior weights (sum in log space)
 
         indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
+        #print(lnp[indx],max(lnp[np.isfinite(lnp)]))
 
         if lnp_outname is not None:
             try:
                 star_group = outfile.createGroup('/', 'star_%d'  % e, title="star %d" % e)
             except tables.exceptions.NodeError:
-                print('lnp for star ' + str(e) + ' already in file')
+                #print('lnp for star ' + str(e) + ' already in file')
+                pass
             else:
                 outfile.createArray(star_group, 'input', np.array([sed]).T)
                 if lnp_npts is not None:
@@ -265,7 +286,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
         weights = np.exp(lnps - log_norm)
                 
         # index to the full model grid for the best fit values
-        best_full_indx = indx[weights.argmax()]
+        best_full_indx = g0_indxs[indx[weights.argmax()]]
 
         # index to the spectral grid 
         best_specgrid_indx[e] = g0_specgrid_indx[best_full_indx]
@@ -276,6 +297,8 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
         lnp_vals[e] = lnps.max()
         lnp_indx[e] = best_full_indx
 
+        #print(chi2_vals[e], chi2_indx[e], lnp_vals[e], lnp_indx[e])
+
         for k, qname in enumerate(qnames):
             q = g0[qname]
 
@@ -283,16 +306,20 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
             best_vals[e,k] = q[best_full_indx]
 
             # expectration value
-            exp_vals[e,k] = expectation(q[indx], weights=weights)
+            exp_vals[e,k] = expectation(q[g0_indxs[indx]], weights=weights)
+
+            #print(qname, best_vals[e,k], exp_vals[e,k])
 
             # percentile values
-            pdf1d_bins, pdf1d_vals = fast_pdf1d_objs[k].gen1d(indx, np.exp(lnps))
+            pdf1d_bins, pdf1d_vals = fast_pdf1d_objs[k].gen1d(g0_indxs[indx], weights)
             save_pdf1d_vals[k][e,:] = pdf1d_vals
             if pdf1d_vals.max() > 0:
                 pdf1d_vals /= pdf1d_vals.max()
                 per_vals[e,k,:] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
             else:
                 per_vals[e,k,:] = [0.0,0.0,0.0]
+
+            #print(qname, per_vals[e,k,:])
 
         # incremental save (useful if job dies early to recover most of the computations)
         if save_every_npts is not None:
