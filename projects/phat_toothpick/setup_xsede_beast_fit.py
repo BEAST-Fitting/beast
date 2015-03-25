@@ -119,6 +119,7 @@ if __name__ == '__main__':
             sf.write('setenv EXECUTABLE     $TACC_LAUNCHER_DIR/init_launcher \n')
             sf.write('setenv CONTROL_FILE   '+joblist_file+'\n')
             sf.write('setenv WORKDIR        .\n')
+            sf.write('setenv LAUNCHER_SCHED dynamic\n')
             sf.write('# \n')
             sf.write('# Variable description:\n')
             sf.write('#\n')
