@@ -110,7 +110,7 @@ if __name__ == '__main__':
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
 
         fit_memory.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid, resume=False,
-                                        threshold=-10., save_every_npts=100, lnp_npts=60,
+                                        threshold=-10., save_every_npts=None, lnp_npts=60,
                                         stats_outname=statsfile,
                                         pdf1d_outname=string.replace(statsfile,'stats.fits','pdf1d.fits'),
                                         lnp_outname=string.replace(statsfile,'stats.fits','lnp.fits'))
