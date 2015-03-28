@@ -49,3 +49,12 @@ class pdf1d():
 
         return (self.bin_vals, _vals_1d)
 
+    def gen1d_full(self, weights):
+
+        _vals_1d = np.zeros(self.nbins)
+        for i in range(self.nbins):
+            if self.bin_edges_indxs[i] < self.bin_edges_indxs[i+1]:
+                _vals_1d[i] = np.sum(weights[self.tpdf_indxs[self.bin_edges_indxs[i]:self.bin_edges_indxs[i+1]]])
+
+        return (self.bin_vals, _vals_1d)
+
