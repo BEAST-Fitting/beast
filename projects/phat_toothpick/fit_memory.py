@@ -97,6 +97,31 @@ def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
         pheader.set('EXTNAME',qname) 
         fits.append(pdf1d_outname, save_pdf1d_vals[k], header=pheader)
 
+def save_lnp(lnp_outname, save_lnp_vals, resume):
+
+    # code needed if hdf5 is corrupted - usually due to job ending in the middle of the writing of the lnp file
+    #  should be rare (not originally as the lnp file was open and written to continuously - 
+    #                  should be fixed with the new code where the lnp is saved every n stars instead)
+    try:
+        outfile = tables.openFile(lnp_outname, 'a')
+    except Exception, error:
+        print('partial run lnp file is corrupted - saving new lnp values in ' + string.replace(lnp_outname,'lnp','lnp_partial'))
+        outfile = tables.openFile(string.replace(lnp_outname,'lnp','lnp_partial'), 'a')
+            
+    for lnp_val in save_lnp_vals:
+        e = lnp_val[0]
+        try:
+            star_group = outfile.createGroup('/', 'star_%d'  % e, title="star %d" % e)
+        except tables.exceptions.NodeError:
+            #print('lnp for star ' + str(e) + ' already in file')
+            pass
+        else:
+            outfile.createArray(star_group, 'input', lnp_val[4])
+            outfile.createArray(star_group, 'idx', lnp_val[1])
+            outfile.createArray(star_group, 'lnp', lnp_val[2])
+            outfile.createArray(star_group, 'chi2', lnp_val[3])
+    outfile.close()
+
 def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], gridbackend='cache', max_nbins=50,
                  stats_outname=None, pdf1d_outname=None, lnp_outname=None, lnp_npts=None, save_every_npts=None,
                  threshold=-40, resume=False):
@@ -151,7 +176,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
 
     nobs = len(obs)
 
-    # setup the arrays to temp sore the results
+    # setup the arrays to temp store the results
     n_qnames = len(qnames)
     n_pers = len(p)
     best_vals = np.zeros((nobs, n_qnames))
@@ -162,6 +187,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
     lnp_vals = np.zeros(nobs)
     lnp_indx = np.zeros(nobs)
     best_specgrid_indx = np.zeros(nobs)
+
+    # variable to save the lnp files
+    save_lnp_vals = []
     
     # setup the mapping for the 1D PDFs
     fast_pdf1d_objs = []
@@ -214,14 +242,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
             for k in range(len(qnames)):
                 save_pdf1d_vals[k] = hdulist[k+1].data
             hdulist.close()
-
-        # setup the lnp file 
-        if lnp_outname is not None:
-
-#            outfile = tables.openFile(lnp_outname, 'r')
-            #for group in outfile.walk_groups():
-            #    print(group)
-            outfile = tables.openFile(lnp_outname, 'a')
     else:
         start_pos = 0
 
@@ -232,6 +252,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
             outfile.createArray(outfile.root, 'grid_waves', g0.lamb[:])
             filters = obs.getFilters()
             outfile.createArray(outfile.root, 'obs_filters', filters[:])
+            outfile.close()
 
     # loop over the objects and get all the requested quantities
     g0_specgrid_indx = g0['specgrid_indx']
@@ -256,24 +277,17 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
         indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
         #print(lnp[indx],max(lnp[np.isfinite(lnp)]))
 
+        # save the current set of lnps
         if lnp_outname is not None:
-            try:
-                star_group = outfile.createGroup('/', 'star_%d'  % e, title="star %d" % e)
-            except tables.exceptions.NodeError:
-                #print('lnp for star ' + str(e) + ' already in file')
-                pass
+            if lnp_npts is not None:
+                rindx = np.random.choice(indx,size=lnp_npts)
             else:
-                outfile.createArray(star_group, 'input', np.array([sed]).T)
-                if lnp_npts is not None:
-                    rindx = np.random.choice(indx,size=lnp_npts)
-                    outfile.createArray(star_group, 'idx', np.array(g0_indxs[rindx], dtype=np.int64))
-                    outfile.createArray(star_group, 'lnp', np.array(lnp[rindx], dtype=np.float32))
-                    outfile.createArray(star_group, 'chi2', np.array(chi2[rindx], dtype=np.float32))
-                else:
-                    outfile.createArray(star_group, 'idx', np.array(g0_indxs[indx], dtype=np.int64))
-                    outfile.createArray(star_group, 'lnp', np.array(lnp[indx], dtype=np.float32))
-                    outfile.createArray(star_group, 'chi2', np.array(chi2[indx], dtype=np.float32))
-                    outfile.flush() #commit changes
+                rindx = indx
+            save_lnp_vals.append([e,
+                                  np.array(g0_indxs[rindx], dtype=np.int64),
+                                  np.array(lnp[rindx], dtype=np.float32),
+                                  np.array(chi2[rindx], dtype=np.float32),
+                                  np.array([sed]).T])
 
         # now generate the sparse likelihood (remove later if this works by updating code below)
         lnps = lnp[indx]
@@ -328,18 +342,30 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
                 if pdf1d_outname is not None:
                     save_pdf1d(pdf1d_outname,save_pdf1d_vals, qnames)
     
-                # save the stats/catalog file
+                # save the stats/catalog
                 if stats_outname is not None:
                     save_stats(stats_outname, prev_result, best_vals, exp_vals, per_vals, chi2_vals, chi2_indx,
                                lnp_vals, lnp_indx, best_specgrid_indx, qnames, p)
+
+                # save the lnps
+                if lnp_outname is not None:
+                    save_lnp(lnp_outname, save_lnp_vals, resume)
+                    save_lnp_vals = []
+
+    ## do the final save of everything (or the last set for the lnp values)
+
     # save the 1D PDFs
     if pdf1d_outname is not None:
         save_pdf1d(pdf1d_outname,save_pdf1d_vals, qnames)
     
-    # save the stats/catalog file
+    # save the stats/catalog
     if stats_outname is not None:
         save_stats(stats_outname, prev_result, best_vals, exp_vals, per_vals, chi2_vals, chi2_indx,
                    lnp_vals, lnp_indx, best_specgrid_indx, qnames, p)
+
+    # save the lnps
+    if lnp_outname is not None:
+        save_lnp(lnp_outname, save_lnp_vals, resume)
 
 def IAU_names_and_extra_info(obsdata):
     """

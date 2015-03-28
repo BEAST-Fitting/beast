@@ -63,6 +63,8 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-f", "--fit", help="Fit the observed data",
                         action="store_true")
+    parser.add_argument("-r", "--resume", help="Resume a run",
+                        action="store_true")
     args = parser.parse_args()
 
     if args.models:
@@ -109,8 +111,8 @@ if __name__ == '__main__':
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
 
-        fit_memory.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid, resume=False,
-                                        threshold=-10., save_every_npts=None, lnp_npts=60,
+        fit_memory.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid, resume=args.resume,
+                                        threshold=-10., save_every_npts=100, lnp_npts=60,
                                         stats_outname=statsfile,
                                         pdf1d_outname=string.replace(statsfile,'stats.fits','pdf1d.fits'),
                                         lnp_outname=string.replace(statsfile,'stats.fits','lnp.fits'))
