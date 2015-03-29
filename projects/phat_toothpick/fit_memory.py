@@ -23,7 +23,6 @@ import time
 import numpy as np
 import tables
 import string
-
 from itertools import islice
 
 import numexpr
@@ -31,13 +30,12 @@ import numexpr
 from astropy.coordinates import ICRS as ap_ICRS
 from astropy import units as ap_units
 from astropy.io import fits
+from astropy.table import Table
 
 from beast.core import grid
 from beast.proba.likelihood import *
 from beast.proba import expectation, percentile, getNorm_lnP
 from beast.tools.pbar import Pbar
-from astropy.table import Table
-
 from beast.core.pdf1d import pdf1d
 
 def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals, per_vals, chi2_vals, chi2_indx, 
@@ -85,6 +83,18 @@ def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals, per_vals, chi2
         summary_tab.write(stats_outname, overwrite=True)
 
 def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
+    """ Saves the 1D PDFs to a file
+
+    Keywords
+    ----------
+    pdf1d_outname(str) : output filename
+    save_pdf1d_vals(list) : list of 2D nparrays giving the 1D PDFs for each parameter/variable
+    qnames(1D nparray) : list of the parameter names
+
+    Returns
+    -------
+    N/A
+    """
 
     # write a small primary header
     fits.writeto(pdf1d_outname, np.zeros((2,2)), clobber=True)
@@ -98,6 +108,18 @@ def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
         fits.append(pdf1d_outname, save_pdf1d_vals[k], header=pheader)
 
 def save_lnp(lnp_outname, save_lnp_vals, resume):
+    """ Saves the nD lnps to a file
+
+    Keywords
+    ----------
+    lnp_outname(str) : output filename
+    save_lnp_vals(list) : list of 5 parameter lists giving the lnp/chisqr info for each star
+    resume(boolean) : **not used** remove later
+
+    Returns
+    -------
+    N/A
+    """
 
     # code needed if hdf5 is corrupted - usually due to job ending in the middle of the writing of the lnp file
     #  should be rare (not originally as the lnp file was open and written to continuously - 
@@ -125,8 +147,8 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
 def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], gridbackend='cache', max_nbins=50,
                  stats_outname=None, pdf1d_outname=None, lnp_outname=None, lnp_npts=None, save_every_npts=None,
                  threshold=-40, resume=False):
-    """ Get the best, expectation, and percentile values of all the given grid property
-      (done in once function for speed)
+    """ Fit each star, calculate various fit statistics, and output them to files
+      (done in one function for speed and ability to resume partially completed runs)
 
     keywords
     --------
@@ -134,8 +156,14 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
         previous results to include in the output summary table
         usually basic data on each source
 
+    obs: Observation object instance
+        observation catalog
+
     sedgrid: str or grid.SEDgrid instance
         model grid
+
+    ast: beast noisemodel instance
+        noise model data
 
     qnames: list of quantities or expresions
 
@@ -148,11 +176,23 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
 
     max_nbins: maxiumum number of bins to use for the 1D likelihood calculations
 
+    save_every_npts: integer
+        set to save the files below (if set) every n stars
+        a requirement for recovering from partially complete runs
+
+    resume: boolean
+        set to designate this run is resuming a partially complete run
+
     stats_outname: set to output the stats file into a FITS file with extensions
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
 
     lnp_outname: set to output the sparse likelihoods into a (usually HDF5) file
+
+    threshold: value above which to use/save for the lnps (defines the sparse likelihood)
+
+    lnp_npts: set to a number to output a random sampling of the lnp points above the threshold
+              otherwise, the full sparse likelihood is output
 
     returns
     -------
@@ -407,12 +447,18 @@ def IAU_names_and_extra_info(obsdata):
 
     return r
 
-def summary_table_memory(obs, noisemodel, sedgrid, keys=None, method=None, gridbackend='cache',
+def summary_table_memory(obs, noisemodel, sedgrid, keys=None, gridbackend='cache',
                          threshold=-10, save_every_npts=None, lnp_npts=None, resume=False,
                          stats_outname=None, pdf1d_outname=None, lnp_outname=None):
     """
     keywords
     --------
+
+    obs: Observation object instance
+        observation catalog
+
+    noisemodel: beast noisemodel instance
+        noise model data
 
     sedgrid: str or grid.SEDgrid instance
         model grid
@@ -421,18 +467,31 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None, method=None, gridb
         if str:  name of the quantity or expression to evaluate from the grid table
         if list: list of qquantities or expresions
 
-    method: str or list of str
-        method must be in ['expectation', 'best', 'percentile']
-
-    outname: str
-        if set, save the table into this file
-
     gridbackend: str or grid.GridBackend
         backend to use to load the grid if necessary (memory, cache, hdf)
         (see beast.core.grid)
 
+    save_every_npts: integer
+        set to save the files below (if set) every n stars
+        a requirement for recovering from partially complete runs
+
+    resume: boolean
+        set to designate this run is resuming a partially complete run
+
+    stats_outname: set to output the stats file into a FITS file with extensions
+
+    pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
+
+    lnp_outname: set to output the sparse likelihoods into a (usually HDF5) file
+
+    threshold: value above which to use/save for the lnps (defines the sparse likelihood)
+
+    lnp_npts: set to a number to output a random sampling of the lnp points above the threshold
+              otherwise, the full sparse likelihood is output
+
     returns
     -------
+    N/A
     """
 
     if type(sedgrid) == str:
@@ -455,7 +514,7 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None, method=None, gridb
     res = IAU_names_and_extra_info(obs)
 
     Q_all_memory(res, obs, g0, noisemodel, keys, p=[16., 50., 84.], resume=resume,
-                 threshold=-10.,save_every_npts=save_every_npts, lnp_npts=lnp_npts,
+                 threshold=threshold,save_every_npts=save_every_npts, lnp_npts=lnp_npts,
                  stats_outname=stats_outname,
                  pdf1d_outname=pdf1d_outname,
                  lnp_outname=lnp_outname)
