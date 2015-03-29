@@ -37,7 +37,7 @@ def write_slurm_file(slurm_filename, brick, log_path, joblist_file, queue_name='
     sf.write('# \n')
     sf.write('#         <------ Setup Parameters ------>\n')
     sf.write('#\n')
-    sf.write('#SBATCH -J BeastRF'+str(brick)+'             # Job name\n')
+    sf.write('#SBATCH -J BeastR'+str(brick)+'             # Job name\n')
     sf.write('#SBATCH -N 1                   # Total number of nodes (32 cores/node)\n')
     sf.write('#SBATCH -n '+queue_ntasks+'                  # Total number of tasks\n')
     sf.write('#SBATCH -p '+queue_name+'            # Queue name\n')
@@ -202,7 +202,7 @@ if __name__ == '__main__':
                     cur_total_size = 0.0
 
                 # open the slurm and param files
-                joblist_file = job_path+'beast_xsede_refit_'+str(cur_f)+'.joblist'
+                joblist_file = job_path+'beast_xsede_refit_'+str(brick)+'.joblist'
                 pf = open(joblist_file,'w')
 
                 write_slurm_file(job_path+'beast_xsede_refit_'+str(brick)+'.slurm',
