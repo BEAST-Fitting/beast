@@ -21,6 +21,8 @@ from beast.core.grid import FileSEDGrid
 if __name__ == '__main__':
     # commandline parser
     parser = argparse.ArgumentParser()
+    parser.add_argument("-a", "--faint", help="Faint set of 4 band detections (instead of bright)",
+                        action="store_true")
     parser.add_argument("trimfile", help="file with modelgrid, astfiles, obsfiles to use")
     args = parser.parse_args()
 
@@ -48,9 +50,15 @@ if __name__ == '__main__':
         source_density = line[s1pos+1:s2pos].rstrip()
         sub_source_density = line[s2pos+1:len(line)].rstrip()
     
-        obsfile = 'BEAST_production/b'+brick+'/obscat/b' + brick + \
-                  '-6filt-cut-4band-gst-bright-SD-' + string.replace(source_density,'_','-') + \
-                  '-sub' + sub_source_density + '.fits'
+        if args.faint:
+            obsfile = 'BEAST_production/b' + brick + '/obscat/b' + brick + \
+                '-6filt-cut-4band-gst-faint-SD-' + string.replace(source_density,'_','-') + \
+                '-sub' + sub_source_density + '.fits'
+        else:
+            obsfile = 'BEAST_production/b' + brick + '/obscat/b' + brick + \
+                '-6filt-cut-4band-gst-bright-SD-' + string.replace(source_density,'_','-') + \
+                '-sub' + sub_source_density + '.fits'
+
         astfile = 'BEAST_production/merged_asts/PHAT_fake_stars_SD_' + \
                   string.replace(source_density,'-','_' ) + '.fits'
         noisefile = 'BEAST_production/BEAST_production_sd_' + \
@@ -71,15 +79,13 @@ if __name__ == '__main__':
         start_time = time.clock()
 
         if noisefile == old_noisefile:
-            print('not reading noisefile/astfile - same as last')
+            print('not reading noisefile - same as last')
             #print(noisefile)
             #print(astfile)
         else:
             print('reading noisefile/astfile')
             # read in the noise model
             noisemodel_vals = noisemodel.get_noisemodelcat(noisefile)
-            # read in the ast file used to create the noise model
-            astdata = noisemodel.PHAT_ToothPick_Noisemodel(astfile, modelsedgrid.filters)            
             old_noisefile = noisefile
 
         # read in the observed data
@@ -88,7 +94,7 @@ if __name__ == '__main__':
 
         # trim the model sedgrid
 
-        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, astdata, sed_trimname, noisemodel_trimname, sigma_fac=3., n_detected=4)
+        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3., n_detected=4)
 
         new_time = time.clock()
         print('time to trim: ',(new_time - start_time)/60., ' min')
