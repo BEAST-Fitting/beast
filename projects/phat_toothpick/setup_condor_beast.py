@@ -19,15 +19,15 @@ import datamodel_production as datamodel
 
 if __name__ == '__main__':
     
-    brick = '19'
+    brick = '15'
 
     basename = 'obscat/'
 
     basepath = 'BEAST_production/'
     cat_files = glob.glob(basepath + 'b'+brick+'/'+basename + 'b*.fits')
 
-    # setup the subdirectory for the beast job files
-    job_path = basepath+'b'+brick+'/condor_jobs/'
+    # setup the subdirectory for the beast condor files
+    job_path = basepath+'b'+brick+'/condor_job/'
     if not os.path.isdir(job_path):
         os.mkdir(job_path)
 

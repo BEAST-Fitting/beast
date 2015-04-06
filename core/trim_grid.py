@@ -17,67 +17,102 @@ from .grid import FileSEDGrid
 from .grid import SpectralGrid
 from ..external.eztables import Table
 
-def trim_models(sedgrid, sedgrid_noisemodel, obsdata, astdata, sed_outname, noisemodel_outname,
+def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_outname,
                 sigma_fac=3., n_detected=4):
     
     # Store the brigtest and faintest fluxes in each band (for data and asts)
     n_filters = len(obsdata.filters)
     min_data = np.zeros(n_filters)
     max_data = np.zeros(n_filters)
-    min_asts = np.zeros(n_filters)
-    max_asts = np.zeros(n_filters)
     min_models = np.zeros(n_filters)
     max_models = np.zeros(n_filters)
     for k, filtername in enumerate(obsdata.filters):
         # get the name of the column with the rate in it (normalized to the vega flux)
         nfiltername = filtername.split('_')[-1].lower() + '_rate'
+
         min_data[k] = np.amin(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
         max_data[k] = np.amax(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
-        afiltername = filtername.split('_')[-1].upper() + '_IN'
-        ofiltername = filtername.split('_')[-1].upper() + '_VEGA'
-        indxs, = np.where(astdata.data[ofiltername] < 80.)
-        _ast_fluxes = 10 ** (-0.4*astdata.data[afiltername][indxs])*obsdata.vega_flux[k]
-        min_asts[k] = np.amin(_ast_fluxes)
-        max_asts[k] = np.amax(_ast_fluxes)
+
         min_models[k] = np.amin(sedgrid.seds[:,k])
         max_models[k] = np.amax(sedgrid.seds[:,k])
 
-    #print(min_data)
-    #print(min_models)
+    # first remove all models that have any band with fluxes below the faintest ASTs run
+    # when the noisemodel was computed, models with fluxes below the faintest ASTs were tagged with a negative error/uncertainty
+    # identify the models that have been detected in enough bands
+    #   the idea here is that if the ASTs are not measured that means that *none* were recovered and this implies
+    #   that no model with these values would be recovered and thus the probability should always be zero
+    model_unc = sedgrid_noisemodel.root.error[:]
+    above_ast = (model_unc > 0)
+    sum_above_ast = np.sum(above_ast,axis=1)
+    indxs, = np.where(sum_above_ast >= n_detected)
+
+    #min_gmodel = np.zeros(n_filters)
+    #for k in range(n_filters):
+    #    min_gmodel[k] = np.amin(sedgrid.seds[indxs,k])
+
+
+    #min_asts = [1.3879187495103194e-19,
+    #            1.6550853881968002e-19,
+    #            1.068305101054377e-20,
+    #            2.0358040415431349e-20,
+    #            1.0525632892236783e-19,
+    #            7.2018979602833484e-20]
+
+    #min_asts = [2.7215185446506946e-19,
+    #            2.1813920602921763e-19,
+    #            1.420197564598432e-19,
+    #            6.6257679757877467e-20,
+    #            7.3476470356322374e-19,
+    #            1.9272005768395571e-19]
+
     #print(min_asts)
+    #print(min_gmodel)
+
+    #gvals = np.zeros(len(sedgrid.seds[:,0]),np.int64)  
+    #for i in range(len(sedgrid.seds[:,0])):  
+        # only look at models above the faintest asts run to avoide huge extrapolations  
+        #  extrapolations to higher fluxes is likely ok given the small values at high fluxes  
+    #    gindxs, = np.where((sedgrid.seds[i,:] >= min_asts) == True)  
+    #    if len(gindxs) >= n_detected:  
+    #        gvals[i] = 1  
+    
+    #oindxs, = np.where(gvals > 0)  
+
+    #print(len(oindxs), len(indxs))
+
+    #print(oindxs)
+    #print(indxs)
+
     #exit()
 
-    # cache the model bias and uncertainty
+    # cache the noisemodel values
     model_bias = sedgrid_noisemodel.root.bias[:]
-    model_unc = sedgrid_noisemodel.root.error[:]
+    model_unc = np.fabs(sedgrid_noisemodel.root.error[:])  # needed to remove the negative values that designate a model below the faintest ASTs
     model_compl = sedgrid_noisemodel.root.completeness[:]
 
-    # Get upper and lower values for the models given the noise model 
-    #  sigma_fac defaults to 3.
-    model_down = sedgrid.seds + model_bias - sigma_fac*model_unc
-    model_up = sedgrid.seds + model_bias + sigma_fac*model_unc
-    
-    # first remove all models that have any band with fluxes below the faintest ASTs run
-    #indxs = np.arange(len(sedgrid.seds[:,0]))
-    gvals = np.zeros(len(sedgrid.seds[:,0]),np.int64)
-    for i in range(len(sedgrid.seds[:,0])):
-        # only look at models above the faintest asts run to avoide huge extrapolations
-        #  extrapolations to higher fluxes is likely ok given the small values at high fluxes
-        gindxs, = np.where((sedgrid.seds[i,:] >= min_asts) == True)
-        if len(gindxs) >= n_detected:
-            gvals[i] = 1
-
-    indxs, = np.where(gvals > 0)
-    
     if len(indxs) <= 0:
         print('no models are brighter than the minimum ASTs run')
         exit()
 
+    #indxs = np.arange(len(model_bias))
     n_ast_indxs = len(indxs)
 
     # Find models with fluxes (with margin) between faintest and brightest data
     for k in range(n_filters):
-        nindxs, = np.where((model_up[indxs,k] >= min_data[k]) & (model_down[indxs,k] <= max_data[k]))
+        print('working on filter # = ', k)
+
+        #min_gmodel = np.amin(sedgrid.seds[indxs,k])
+        #print(min_gmodel, min_data[k], min_models[k])
+        #max_gmodel = np.amax(sedgrid.seds[indxs,k])
+        #print(max_gmodel, max_data[k], max_models[k])
+
+        # Get upper and lower values for the models given the noise model 
+        #  sigma_fac defaults to 3.
+        model_val = sedgrid.seds[indxs,k] + model_bias[indxs,k]
+        model_down = model_val - sigma_fac*model_unc[indxs,k]
+        model_up = model_val + sigma_fac*model_unc[indxs,k]
+
+        nindxs, = np.where((model_up >= min_data[k]) & (model_down <= max_data[k]))
         if len(nindxs) > 0:
             indxs = indxs[nindxs]
 
@@ -89,12 +124,6 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, astdata, sed_outname, nois
     print('number of ast trimmed models = ', n_ast_indxs)
     print(' number of trimmed models = ', len(indxs))
 
-    #print(min_data)
-    #print(max_data)
-    #for k in range(n_filters):
-    #    print(np.min(sedgrid.seds[indxs,k]),np.max(sedgrid.seds[indxs,k]), np.min(model_down[indxs,k]), np.max(model_up[indxs,k]))
-    #exit()
-
     #Save the grid
     print('Writing trimmed sedgrid to disk into {0:s}'.format(sed_outname))
     cols = {}
@@ -103,11 +132,9 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, astdata, sed_outname, nois
 
     cols['fullgrid_idx'] = indxs.astype(int) # New column to save the index of the model in the full grid
     g = SpectralGrid(sedgrid.lamb, seds=sedgrid.seds[indxs], grid=Table(cols), backend='memory')
-    #filter_names = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W', 'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
-    #g.grid.header['filters'] = ' '.join(filter_names)
     filternames = obsdata.filters
     g.grid.header['filters'] = ' '.join(filternames)
-    
+
     g.writeHDF(sed_outname) # trimmed grid name
 
     # save the trimmed noise model

@@ -278,6 +278,10 @@ class MultiFilterASTs(NoiseModel):
         # get the indexs to the recovered fluxes
         good_indxs,= np.where(flux_out != 0.0)
 
+        ast_minmax = np.empty(2)
+        ast_minmax[0] = np.amin(flux_in[good_indxs])
+        ast_minmax[1] = np.amax(flux_in[good_indxs])
+
         # setup the bins (done in log units due to dynamic range)
         #  add a very small value to the max to make sure all the data is included
         min_flux = math.log10(min(flux_in))
@@ -320,7 +324,8 @@ class MultiFilterASTs(NoiseModel):
              name_prefix + 'FLUX_OUT': bin_ave_vals[gindxs] + ave_bias[gindxs],
              #name_prefix + 'FLUX_IN': ave_flux_in,
              #name_prefix + 'FLUX_OUT': ave_flux_in + ave_bias,
-             name_prefix + 'COMPLETENESS': completeness[gindxs]}
+             name_prefix + 'COMPLETENESS': completeness[gindxs],
+             name_prefix + 'MINMAX': ast_minmax}
 
         if asarray:
             return convert_dict_to_structured_ndarray(d)
@@ -393,13 +398,14 @@ class MultiFilterASTs(NoiseModel):
         .. see also: :func:`_compute_stddev`
         """
 
-        shape = len(self.data), len(self.filters)
+        shape = nbins, len(self.filters)
 
         self._fluxes = np.empty( shape, dtype=float)
         self._biases = np.empty( shape, dtype=float)
         self._sigmas = np.empty( shape, dtype=float)
         self._compls = np.empty( shape, dtype=float)
         self._nasts = np.empty(shape[1], dtype=long)
+        self._minmax_asts = np.empty((2,shape[1]), dtype=float)
 
         if progress is True:
             it = Pbar(desc='fitting model').iterover(self.filters)
@@ -420,6 +426,7 @@ class MultiFilterASTs(NoiseModel):
             self._biases[0:ncurasts, e] = d['FLUX_BIAS'] * self.vega_flux[e]
             self._compls[0:ncurasts, e] = d['COMPLETENESS']
             self._nasts[e] = ncurasts
+            self._minmax_asts[:,e] = d['MINMAX'] * self.vega_flux[e]
 
             del d
 

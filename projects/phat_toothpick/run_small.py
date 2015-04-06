@@ -77,15 +77,13 @@ if __name__ == '__main__':
 
     if args.trim:
         print('Trimming the model and noise grids')
+        start_time = time.clock()
 
         # get the modesedgrid on which to generate the noisemodel  
         modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))  
 
         # read in the noise model just created
         noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
-
-        # read in the ast file used to create the noise model
-        astdata = noisemodel.PHAT_ToothPick_Noisemodel(datamodel.astfile, modelsedgrid.filters)            
 
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
@@ -94,7 +92,10 @@ if __name__ == '__main__':
         sed_trimname = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
         noisemodel_trimname = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
 
-        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, astdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+
+        new_time = time.clock()
+        print('time to trim: ',(new_time - start_time)/60., ' min')
 
     if args.fit:
         start_time = time.clock()

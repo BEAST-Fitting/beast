@@ -40,6 +40,7 @@ from __future__ import print_function
 import sys
 import argparse
 import time
+import string
 
 # BEAST imports
 from pipeline_small import run_fit, make_models
@@ -61,6 +62,8 @@ if __name__ == '__main__':
     parser.add_argument("-t", "--trim", help="Trim the model and noise grids",
                         action="store_true")
     parser.add_argument("-f", "--fit", help="Fit the observed data",
+                        action="store_true")
+    parser.add_argument("-r", "--resume", help="Resume a run",
                         action="store_true")
     args = parser.parse_args()
 
@@ -85,9 +88,6 @@ if __name__ == '__main__':
         # read in the noise model just created
         noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
 
-        # read in the ast file used to create the noise model
-        astdata = noisemodel.PHAT_ToothPick_Noisemodel(datamodel.astfile, modelsedgrid.filters)            
-
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         sed_trimname = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
         noisemodel_trimname = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
 
-        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, astdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
 
     if args.fit:
         start_time = time.clock()
@@ -111,8 +111,11 @@ if __name__ == '__main__':
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
 
-        fit_memory.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid,
-                                        outname=statsfile)
+        fit_memory.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid, resume=args.resume,
+                                        threshold=-10., save_every_npts=100, lnp_npts=60,
+                                        stats_outname=statsfile,
+                                        pdf1d_outname=string.replace(statsfile,'stats.fits','pdf1d.fits'),
+                                        lnp_outname=string.replace(statsfile,'stats.fits','lnp.fits'))
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')

@@ -42,6 +42,10 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-f", "--fit", help="Fit the observed data",
                         action="store_true")
+    parser.add_argument("-r", "--resume", help="Resume a run",
+                        action="store_true")
+    parser.add_argument("-a", "--faint", help="Faint set of 4 band detections (instead of bright)",
+                        action="store_true")
     parser.add_argument("brick", help="brick number")
     parser.add_argument("source_density", help="source density bin")
     parser.add_argument("sub_source_density", help="subset of the source density bin [A, B, C, ...]")
@@ -49,9 +53,15 @@ if __name__ == '__main__':
 
     # update project datamodel information for this brick and source density bin
     datamodel.project = 'b' + args.brick
-    datamodel.obsfile = 'BEAST_production/' + datamodel.project + '/obscat/b' + args.brick + \
-                        '-6filt-cut-4band-gst-bright-SD-' + string.replace(args.source_density,'_','-') + \
-                        '-sub' + args.sub_source_density + '.fits'
+    if args.faint:
+        datamodel.obsfile = 'BEAST_production/' + datamodel.project + '/obscat/b' + args.brick + \
+            '-6filt-cut-4band-gst-faint-SD-' + string.replace(args.source_density,'_','-') + \
+            '-sub' + args.sub_source_density + '.fits'
+    else:
+        datamodel.obsfile = 'BEAST_production/' + datamodel.project + '/obscat/b' + args.brick + \
+            '-6filt-cut-4band-gst-bright-SD-' + string.replace(args.source_density,'_','-') + \
+            '-sub' + args.sub_source_density + '.fits'
+
     datamodel.astfile = 'BEAST_production/merged_asts/PHAT_fake_stars_SD_' + \
                         string.replace(args.source_density,'-','_' ) + '.fits'
     datamodel.noisefile = 'BEAST_production/BEAST_production_sd_' + \
@@ -93,20 +103,17 @@ if __name__ == '__main__':
 
         # check if the trimmed files already exist
         if (not os.path.isfile(sed_trimname)) | (not os.path.isfile(noisemodel_trimname)):
+            # read in the observed data
+            obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
+
             # get the modesedgrid on which to generate the noisemodel  
             modelsedgrid = FileSEDGrid(modelsedgrid_filename.format(project=datamodel.project))  
 
             # read in the noise model
             noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
 
-            # read in the ast file used to create the noise model
-            astdata = noisemodel.PHAT_ToothPick_Noisemodel(datamodel.astfile, modelsedgrid.filters)            
-
-            # read in the observed data
-            obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
-
             # trim the model sedgrid
-            trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, astdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+            trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
         else:
             print('trimming requested - but trimmed sed and noisemodel files already exist')
             print('using existing trimmed files')
@@ -124,8 +131,12 @@ if __name__ == '__main__':
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
 
-        fit_memory.summary_table_memory(obsdata, noisemodel_vals, sed_trimname, 
-                                        outname=stats_filebase + '_stats.fits')
+        statsfile = stats_filebase + '_stats.fits'
+        fit_memory.summary_table_memory(obsdata, noisemodel_vals, sed_trimname, resume=args.resume,
+                                        threshold=-10., save_every_npts=250, lnp_npts=60,
+                                        stats_outname=stats_filebase + '_stats.fits',
+                                        pdf1d_outname=stats_filebase + '_pdf1d.fits',
+                                        lnp_outname=stats_filebase + '_lnp.fits')
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')
