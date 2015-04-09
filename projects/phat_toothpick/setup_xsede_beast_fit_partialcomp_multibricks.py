@@ -19,7 +19,7 @@ import datamodel_production as datamodel
 from astropy.table import Table
 #####
 
-def write_slurm_file(slurm_filename, brick, log_path, joblist_file, queue_name='largemem', queue_ntasks='32'):
+def write_slurm_file(slurm_filename, log_path, joblist_file, queue_name='largemem', queue_ntasks='32'):
     sf = open(slurm_filename, 'w')
     # fill the slurm file with all the needed lines (lots of them)
     sf.write('#!/bin/csh\n')
@@ -37,11 +37,11 @@ def write_slurm_file(slurm_filename, brick, log_path, joblist_file, queue_name='
     sf.write('# \n')
     sf.write('#         <------ Setup Parameters ------>\n')
     sf.write('#\n')
-    sf.write('#SBATCH -J BeastR'+str(brick)+'             # Job name\n')
+    sf.write('#SBATCH -J BeastRF             # Job name\n')
     sf.write('#SBATCH -N 1                   # Total number of nodes (32 cores/node)\n')
     sf.write('#SBATCH -n '+queue_ntasks+'                  # Total number of tasks\n')
     sf.write('#SBATCH -p '+queue_name+'            # Queue name\n')
-    sf.write('#SBATCH -o '+log_path+'BeastF'+str(brick)+'_'+queue_name+'.o%j         # Name of stdout output file (%j expands to jobid)\n')
+    sf.write('#SBATCH -o '+log_path+'BeastRF_'+queue_name+'.o%j         # Name of stdout output file (%j expands to jobid)\n')
     sf.write('#SBATCH -t 48:00:00            # Run time (hh:mm:ss)\n')
     sf.write('#SBATCH --mail-user=kgordon@stsci.edu\n')
     sf.write('#SBATCH --mail-type=begin  # email me when the job starts\n')
@@ -117,26 +117,39 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--faint", help="Faint set of 4 band detections (instead of bright)",
                         action="store_true")
-    parser.add_argument("brick", help="brick number")
+    parser.add_argument("-t", "--tag", help="tag for files")
+    parser.add_argument("bricks", metavar='N', type=str, nargs='+',
+                        help='bricks to use')
+    #parser.add_argument("brick", help="brick number")
     args = parser.parse_args()
-    brick = args.brick
+    bricks = args.bricks
     
     if args.faint:
         ext_brick = 'f'
     else:
         ext_brick = ''
 
+    if args.tag:
+        ext_tag = '_' + args.tag
+    else:
+        ext_tag = ''
+
     basename = 'obscat/'
 
     basepath = 'BEAST_production/'
-    cat_files = glob.glob(basepath + 'b'+brick+ext_brick+'/'+basename + 'b*.fits')
+    for k, brick in enumerate(bricks):
+        icat_files = glob.glob(basepath + 'b'+brick+ext_brick+'/'+basename + 'b*.fits')
+        if k == 0:
+            cat_files = icat_files
+        else:
+            cat_files = np.concatenate((cat_files,icat_files))
     cat_files = np.array(cat_files)
 
     n_cat_files = len(cat_files)
-    n_pernode_files = 500
+    n_pernode_files = 400
 
     # setup the subdirectory for the xsede slurm and log files
-    job_path = basepath+'b'+brick+ext_brick+'/fit_xsede_jobs/'
+    job_path = basepath+'/refit_xsede_jobs/'
     if not os.path.isdir(job_path):
         os.mkdir(job_path)
 
@@ -147,43 +160,47 @@ if __name__ == '__main__':
     # get the size of the sed_trim files
     sed_size = np.zeros(n_cat_files)
     for i, cat_file in enumerate(cat_files):
+        bpos = string.find(cat_file,'obscat/')
         dpos = string.find(cat_file,'SD-')
         spos = string.find(cat_file,'sub')
         ppos = string.rfind(cat_file,'.')
+        brick_num = cat_file[bpos+8:bpos+10]
         sd_num = cat_file[dpos+3:spos-1]
         sub_num = cat_file[spos+3:ppos]
-        sed_file = basepath+'b'+brick+ext_brick+'/b'+brick+'_sd'+sd_num+'_sub'+sub_num+'_sed_trim.grid.hd5'
+        sed_file = basepath+'b'+brick_num+ext_brick+'/b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_sed_trim.grid.hd5'
         sed_size[i] = os.path.getsize(sed_file)
 
     # now sort on size to put similar sized files together for efficiency
-    sindxs = np.argsort(sed_size)
-    sindxs = sindxs[::-1]
-    cat_files = cat_files[sindxs]
-    sed_size = sed_size[sindxs]
+    #sindxs = np.argsort(sed_size)
+    #sindxs = sindxs[::-1]
+    #cat_files = cat_files[sindxs]
+    #sed_size = sed_size[sindxs]
 
     # open jobfile for smaller jobs (if they exists)
-    njoblist_file = job_path+'beast_xsede_refit_'+str(brick)+'_normal_queue.joblist'
+    njoblist_file = job_path+'beast_xsede_refit'+ext_tag+'_normal_queue.joblist'
     npf = open(njoblist_file,'w')
     # assume inflation of a factor of 3.0 from sed_trim size
     normal_queue_size = 2.*1024*1024*1024/2.5  # 2 Gb RAM/run
 
-    write_slurm_file(job_path+'beast_xsede_refit_'+str(brick)+'_normal_queue.slurm',
-                     brick, log_path, njoblist_file, queue_name='normal', queue_ntasks='16')
+    write_slurm_file(job_path+'beast_xsede_refit'+ext_tag+'_normal_queue.slurm',
+                     log_path, njoblist_file, queue_name='normal', queue_ntasks='16')
 
     cur_f = 0
     cur_total_size = 0.0
     j = -1
     for i, cat_file in enumerate(cat_files):
         # get the sd number
+        bpos = string.find(cat_file,'obscat/')
         dpos = string.find(cat_file,'SD-')
         spos = string.find(cat_file,'sub')
         ppos = string.rfind(cat_file,'.')
+        brick_num = cat_file[bpos+8:bpos+10]
         sd_num = cat_file[dpos+3:spos-1]
         sub_num = cat_file[spos+3:ppos]
 
         # read the stats file and see if this subregion is done yet
-        results_path = basepath+'b'+brick+ext_brick+'/'
-        stats_file = results_path+'b'+brick+'_sd'+sd_num+'_sub'+sub_num+'_stats.fits'
+        results_path = basepath+'b'+brick_num+ext_brick+'/'
+        stats_file = results_path+'b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_stats.fits'
         reg_run = False
         run_done = False
         if not os.path.isfile(stats_file):
@@ -209,11 +226,11 @@ if __name__ == '__main__':
                     cur_total_size = 0.0
 
                 # open the slurm and param files
-                joblist_file = job_path+'beast_xsede_refit_'+str(brick)+'.joblist'
+                joblist_file = job_path+'beast_xsede_refit'+ext_tag+'_'+str(cur_f)+'.joblist'
                 pf = open(joblist_file,'w')
 
-                write_slurm_file(job_path+'beast_xsede_refit_'+str(brick)+'.slurm',
-                                 brick, log_path, joblist_file, queue_name='largemem', queue_ntasks='32')
+                write_slurm_file(job_path+'beast_xsede_refit'+ext_tag+'_'+str(cur_f)+'.slurm',
+                                 log_path, joblist_file, queue_name='largemem', queue_ntasks='32')
 
             if args.faint:
                 ext_switch = '-a '
@@ -222,10 +239,10 @@ if __name__ == '__main__':
 
             if reg_run:
                 print(stats_file + ' does not exist - adding job as a regular fit job (not resume job)')
-                job_command = './run_production_memory.py -f ' + ext_switch + brick + ' ' + sd_num + ' '+sub_num+' > '+log_path+'beast_fit_resume_b'+brick+'_sd'+sd_num+'_sub'+sub_num+'.log'
+                job_command = './run_production_memory.py -f ' + ext_switch + brick_num + ' ' + sd_num + ' '+sub_num+' > '+log_path+'beast_fit_resume_b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'.log'
             else:
                 print(stats_file + ' not done - adding to continue fitting list (' + str(len(indxs)) + '/' + str(len(t['Pmax'])) + ')')
-                job_command = './run_production_memory.py -f -r ' + ext_switch + brick + ' ' + sd_num + ' '+sub_num+' > '+log_path+'beast_fit_resume_b'+brick+'_sd'+sd_num+'_sub'+sub_num+'.log'
+                job_command = './run_production_memory.py -f -r ' + ext_switch + brick_num + ' ' + sd_num + ' '+sub_num+' > '+log_path+'beast_fit_resume_b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'.log'
 
             if sed_size[i] <= normal_queue_size:
                 npf.write(job_command+'\n')

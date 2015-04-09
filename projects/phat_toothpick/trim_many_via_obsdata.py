@@ -39,6 +39,11 @@ if __name__ == '__main__':
 
     new_time = time.clock()
     print('time to read: ',(new_time - start_time)/60., ' min')
+
+    if args.faint:
+        ext_brick = 'f'
+    else:
+        ext_brick = ''
     
     old_noisefile = ''
     for k in range(1,len(file_lines)):
@@ -51,7 +56,7 @@ if __name__ == '__main__':
         sub_source_density = line[s2pos+1:len(line)].rstrip()
     
         if args.faint:
-            obsfile = 'BEAST_production/b' + brick + '/obscat/b' + brick + \
+            obsfile = 'BEAST_production/b' + brick + 'f/obscat/b' + brick + \
                 '-6filt-cut-4band-gst-faint-SD-' + string.replace(source_density,'_','-') + \
                 '-sub' + sub_source_density + '.fits'
         else:
@@ -64,7 +69,7 @@ if __name__ == '__main__':
         noisefile = 'BEAST_production/BEAST_production_sd_' + \
                     string.replace(source_density,'_','-' ) + '_noisemodel.fits'
         
-        stats_filebase = 'BEAST_production/b' + brick + '/b' + brick + \
+        stats_filebase = 'BEAST_production/b' + brick + ext_brick + '/b' + brick + \
                          '_sd' + string.replace(source_density,'_','-') + '_sub' + sub_source_density 
         sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
         noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
