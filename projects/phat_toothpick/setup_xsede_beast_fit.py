@@ -120,6 +120,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     brick = args.brick
     
+    if args.faint:
+        ext_brick = 'f'
+    else:
+        ext_brick = ''
+
     basename = 'obscat/'
 
     basepath = 'BEAST_production/'
@@ -130,7 +135,7 @@ if __name__ == '__main__':
     n_pernode_files = 500
 
     # setup the subdirectory for the xsede slurm and log files
-    job_path = basepath+'b'+brick+'/fit_xsede_jobs/'
+    job_path = basepath+'b'+brick+ext_brick+'/fit_xsede_jobs/'
     if not os.path.isdir(job_path):
         os.mkdir(job_path)
 
@@ -146,7 +151,7 @@ if __name__ == '__main__':
         ppos = string.rfind(cat_file,'.')
         sd_num = cat_file[dpos+3:spos-1]
         sub_num = cat_file[spos+3:ppos]
-        sed_file = basepath+'b'+brick+'/b'+brick+'_sd'+sd_num+'_sub'+sub_num+'_sed_trim.grid.hd5'
+        sed_file = basepath+'b'+brick+ext_brick+'/b'+brick+'_sd'+sd_num+'_sub'+sub_num+'_sed_trim.grid.hd5'
         sed_size[i] = os.path.getsize(sed_file)
 
     # now sort on size to put similar sized files together for efficiency
@@ -158,8 +163,8 @@ if __name__ == '__main__':
     # open jobfile for smaller jobs (if they exists)
     njoblist_file = job_path+'beast_xsede_fit_'+str(brick)+'_normal_queue.joblist'
     npf = open(njoblist_file,'w')
-    # assume inflation of a factor of 2.5 from sed_trim size
-    normal_queue_size = 2.*1024*1024*1024/2.5  # 2 Gb RAM/run
+    # assume inflation of a factor of 3 from sed_trim size
+    normal_queue_size = 2.*1024*1024*1024/3.0  # 2 Gb RAM/run
 
     write_slurm_file(job_path+'beast_xsede_fit_'+str(brick)+'_normal_queue.slurm',
                      brick, log_path, njoblist_file, queue_name='normal', queue_ntasks='16')
@@ -184,14 +189,14 @@ if __name__ == '__main__':
                 cur_total_size = 0.0
 
             # open the slurm and param files
-            joblist_file = job_path+'beast_xsede_fit_'+str(cur_f)+'.joblist'
+            joblist_file = job_path+'beast_xsede_fit_'+str(brick)+'.joblist'
             pf = open(joblist_file,'w')
 
-            write_slurm_file(job_path+'beast_xsede_fit_'+str(cur_f)+'.slurm',
+            write_slurm_file(job_path+'beast_xsede_fit_'+str(brick)+'.slurm',
                              brick, log_path, joblist_file, queue_name='largemem', queue_ntasks='32')
 
         if args.faint:
-            ext_switch = ' -a'
+            ext_switch = '-a '
         else:
             ext_switch = ''
 

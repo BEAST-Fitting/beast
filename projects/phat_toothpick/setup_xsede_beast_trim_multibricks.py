@@ -22,9 +22,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--faint", help="Faint set of 4 band detections (instead of bright)",
                         action="store_true")
-    parser.add_argument("brick", help="brick number")
+    #parser.add_argument("bricks", help="comma list of bricks (e.g, 2,3,4) [no spaces]")
+    parser.add_argument("bricks", metavar='N', type=str, nargs='+',
+                        help='bricks to use')
     args = parser.parse_args()
-    brick = args.brick
+    bricks = args.bricks
 
     basename = 'obscat/'
 
@@ -33,17 +35,27 @@ if __name__ == '__main__':
     else:
         ext_brick = ''
 
+    n_bricks = len(bricks)
+
     basepath = 'BEAST_production/'
-    cat_files = glob.glob(basepath + 'b'+brick+ext_brick+'/'+basename + 'b*.fits')
+    for k, brick in enumerate(bricks):
+        icat_files = glob.glob(basepath + 'b'+brick+ext_brick+'/'+basename + 'b*.fits')
+        if k == 0:
+            cat_files = icat_files
+        else:
+            cat_files = np.concatenate((cat_files,icat_files))
 
     n_cat_files = len(cat_files)
     n_subtrim_files = 32
     n_per_subtrim = int(n_cat_files/32) + 1
 
+    tot_hours = int(n_per_subtrim/4.)
+
     print('# trim files per process = ',n_per_subtrim)
+    print('total hours = ',tot_hours)
 
     # setup the subdirectory for the xsede slurm and log files
-    job_path = basepath+'b'+brick+ext_brick+'/trim_xsede_jobs/'
+    job_path = basepath+'/trim_xsede_jobs/'
     if not os.path.isdir(job_path):
         os.mkdir(job_path)
 
@@ -52,8 +64,11 @@ if __name__ == '__main__':
         os.mkdir(log_path)
 
     # open the noise model xsede slurm and param files
-    sf = open(job_path+'beast_xsede_trim.slurm','w')
-    joblist_file = job_path+'beast_xsede_trim.joblist'
+    basefile = 'beast_xsede_trim'
+    if args.faint:
+        basefile += '_faint'
+    sf = open(job_path+basefile+'.slurm','w')
+    joblist_file = job_path+basefile+'.joblist'
     pf = open(joblist_file,'w')
 
     # fill the slurm file with all the needed lines (lots of them)
@@ -77,7 +92,7 @@ if __name__ == '__main__':
     sf.write('#SBATCH -n 32                  # Total number of tasks\n')
     sf.write('#SBATCH -p largemem            # Queue name\n')
     sf.write('#SBATCH -o '+log_path+'BeastTR.o%j         # Name of stdout output file (%j expands to jobid)\n')
-    sf.write('#SBATCH -t '+str(n_per_subtrim)+':00:00            # Run time (hh:mm:ss)\n')
+    sf.write('#SBATCH -t '+str(tot_hours)+':00:00            # Run time (hh:mm:ss)\n')
     sf.write('#SBATCH --mail-user=kgordon@stsci.edu\n')
     sf.write('#SBATCH --mail-type=begin  # email me when the job starts\n')
     sf.write('#SBATCH --mail-type=end    # email me when the job finishes\n')
@@ -158,16 +173,34 @@ if __name__ == '__main__':
             pf.write('./trim_many_via_obsdata.py '+trimfile+' > '+log_path+'beast_trim_tr'+str(i+1)+'.log\n')
     pf.close()
     
+    sd_nums = np.empty(n_cat_files, dtype=int)
     for i, cat_file in enumerate(cat_files):
         # get the sd number
         dpos = string.find(cat_file,'SD-')
+        ddpos = string.find(cat_file,'-',dpos+4)
+        sd_nums[i] = int(cat_file[dpos+3:ddpos])
+
+    # now sort on sd num
+    sindxs = np.argsort(sd_nums)
+    cat_files = cat_files[sindxs]
+
+    k = 0
+    n_cur = 0
+    for i, cat_file in enumerate(cat_files):
+        # get the sd number
+        bpos = string.find(cat_file,'obscat/')
+        dpos = string.find(cat_file,'SD-')
         spos = string.find(cat_file,'sub')
         ppos = string.rfind(cat_file,'.')
+        brick_num = cat_file[bpos+8:bpos+10]
         sd_num = cat_file[dpos+3:spos-1]
         sub_num = cat_file[spos+3:ppos]
         
-        k = i%32
-        bt_f[k].write(brick + ' ' + sd_num + ' ' + sub_num + '\n')
+        bt_f[k].write(brick_num + ' ' + sd_num + ' ' + sub_num + '\n')
+        n_cur += 1
+        if n_cur >= n_per_subtrim:
+            n_cur = 0
+            k += 1
 
     for i in range(n_subtrim_files):
         bt_f[i].close()
