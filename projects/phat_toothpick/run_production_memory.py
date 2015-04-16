@@ -54,6 +54,7 @@ if __name__ == '__main__':
     # update project datamodel information for this brick and source density bin
     datamodel.project = 'b' + args.brick
     if args.faint:
+        datamodel.project += 'f'
         datamodel.obsfile = 'BEAST_production/' + datamodel.project + '/obscat/b' + args.brick + \
             '-6filt-cut-4band-gst-faint-SD-' + string.replace(args.source_density,'_','-') + \
             '-sub' + args.sub_source_density + '.fits'
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     datamodel.noisefile = 'BEAST_production/BEAST_production_sd_' + \
                           string.replace(args.source_density,'_','-' ) + '_noisemodel.fits'
 
-    stats_filebase = 'BEAST_production/b' + args.brick + '/b' + args.brick + \
+    stats_filebase = 'BEAST_production/' + datamodel.project + '/b' + args.brick + \
                      '_sd' + string.replace(args.source_density,'_','-') + '_sub' + args.sub_source_density 
     sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
