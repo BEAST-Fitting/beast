@@ -31,6 +31,7 @@ from beast.core import createbiggrid as creategrid
 from beast.core import stellib
 from beast.core import extinction
 from beast.core import isochrone
+from beast.core import prior_weights
 from beast.core.isochrone import ezIsoch
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 from beast.external.ezpipe import Pipeline
