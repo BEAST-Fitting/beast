@@ -18,10 +18,12 @@ The pipeline is equivalent to:
 table = (project, obs) | t_fit(g, **fit_kwargs) | t_summary_table(g, **stat_kwargs)
 """
 
-import sys
-import numexpr
+import sys, os
 import numpy as np
-import tables
+import numexpr
+import tables, string
+from astropy.io import fits
+
 from beast.core import grid
 from beast.core.odict import odict
 from beast.proba.likelihood import *
@@ -34,7 +36,7 @@ from beast.core.pdf1d import pdf1d
 __all__ = ['fit_model_seds_pytables', 't_fit', 'summary_table', 't_summary_table']
 
 
-def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-10., outname='lnp.hd5', gridbackend='cache'):
+def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-10, outname='lnp.hd5', gridbackend='cache'):
     """
     Fit model seds with noise for sensitivity tests
 
@@ -68,12 +70,10 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-10., outname='lnp.hd5'
     else:
         g0 = sedgrid
 
-    g0_indxs, = np.where(g0['weight'] > 0.0)
-    g0_weights = np.log(g0['weight'][g0_indxs])
-    g0_weights_sum = np.log(g0['weight'][g0_indxs].sum())
+    g0_indxs, = np.where(g0['weight'] > 0.0)  
+    g0_weights = np.log(g0['weight'][g0_indxs])  
+    g0_weights_sum = np.log(g0['weight'][g0_indxs].sum())  
     g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
-
-    #g0_weights = np.log(g0['weight'] / g0['weight'].sum())
 
     ast_error = ast.root.error[:]
     ast_bias = ast.root.bias[:]
@@ -91,11 +91,12 @@ def fit_model_seds_pytables(obs, sedgrid, ast, threshold=-10., outname='lnp.hd5'
 
         for tn, obk in Pbar(len(obs), desc='Calculating Lnp').iterover(obs.enumobs()):
             (sed) = obk
-            (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold))
+            (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold) )
 
             lnp = lnp[g0_indxs]
             chi2 = chi2[g0_indxs]
             lnp = numexpr.evaluate('lnp + g0_weights')
+            #lnp +=  g0_weights  # multiply by the prior weights (sum in log space)
 
             star_group = outfile.createGroup('/', 'star_%d'  % tn, title="star %d" % tn)
             indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
@@ -215,7 +216,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
     if hasattr(qname, '__iter__'):
         r = odict()
         for qk in qname:
-            lbl = '{0:s}_Exp'.format(qk)
+            lbl = '{0:s}_E'.format(qk)
             r[lbl] = Q_expect(f, g0, qk, objlist, prior)
     else:
         #make sure keys are useful keys
@@ -230,7 +231,7 @@ def Q_expect(lnpfile, sedgrid, qname, objlist=None, prior=None, gridbackend='cac
 
         with Pbar(nobs, txt='Expectations') as pb:
             for e, obj in pb.iterover(enumerate(objlist)):
-                pb.desc = 'Exp({0})'.format(qname)
+                pb.desc = 'E({0})'.format(qname)
                 lnps = f.getNode('/star_{0:d}/lnp'.format(obj)).read().astype(float)
                 indx = f.getNode('/star_{0:d}/idx'.format(obj)).read().astype(int)
                 log_norm = np.log(getNorm_lnP(lnps))
@@ -432,13 +433,13 @@ def Q_percentile(lnpfile, sedgrid, qname, p=[16., 50., 84.], objlist=None, prior
                 else:
                     per_vals[e,k,:] = [0.0,0.0,0.0]
 
+
                 r[e, :] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
 
     if not isinstance(lnpfile, tables.file.File):
         f.close()
 
     return r
-
 
 def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend='cache', max_nbins=50,
           pdf1d_outname=None):
@@ -458,6 +459,7 @@ def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend
 
     p: array-like
         list of percentile values
+
     objlist: list or array like
         index numbers of objects to extract
 
@@ -473,7 +475,6 @@ def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend
     -------
     e_dict: dict with a (qname, ndarray) pair
     """
-
     if type(lnpfile) == str:
         f = tables.openFile(lnpfile)
     elif isinstance(lnpfile, tables.file.File):
@@ -517,7 +518,7 @@ def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend
 
         # setup the fast 1d pdf
         ignorebelow = None  # need to know so 'zeros' (defined at -100) are ignored
-        if (qname.find('_wd') > 0) | (qname.find('_wd') > 0):
+        if (string.find(qname,'_wd') > 0) | (string.find(qname,'_wd') > 0):
             ignorebelow = -99.99
         _tpdf1d = pdf1d(q, nbins, ignorebelow=ignorebelow)
         fast_pdf1d_objs.append(_tpdf1d)
@@ -553,7 +554,6 @@ def Q_all(lnpfile, sedgrid, qnames, p=[16., 50., 84.], objlist=None, gridbackend
             chi2_indx[e] = indx[chi2.argmin()]
             lnp_vals[e] = lnps.max()
             lnp_indx[e] = best_full_indx
-
             for k, qname in enumerate(qnames):
                 q = g0[qname]
 
@@ -657,7 +657,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
 
     if method is None:
         #method = 'best expectation percentile'.split()
-        method = 'all'
+        method = 'all'.split()
 
     for key in keys:
         if not (key in g0.keys()):
@@ -674,8 +674,12 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
         r.update(Q_percentile(lnpfile, g0, keys, p=[16., 50., 84.]))
 
     if ('all' in method):
-        r.update(Q_all(lnpfile, g0, keys, p=[16., 50., 84.],
-                       pdf1d_outname=outname.replace('stats.fits','pdf1d.fits')))
+        #r.update(Q_all(lnpfile, g0, keys, p=[16., 50., 84.],
+        #               pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits')))
+        res = Q_all(lnpfile, g0, keys, p=[16., 50., 84.],
+                    pdf1d_outname=string.replace(outname,'stats.fits','pdf1d.fits'))
+        for key in res.keys():
+            r[key] = res[key]
 
     summary_tab = Table(r, name="Summary Table")
 
@@ -693,7 +697,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
 #---------------------------------------------------------
 
 @task_decorator(logger=sys.stdout)
-def t_fit(project, obs, g, ast, threshold=-10., gridbackend='cache', outname=None):
+def t_fit(project, obs, g, ast, threshold=-5, gridbackend='cache', outname=None):
     """t_fit -- run the fitting part
 
     keywords
