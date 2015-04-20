@@ -76,8 +76,8 @@ if __name__ == '__main__':
         trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
 
     else:
-        g = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
-        noisefile = '{project:s}/{project:s}_noisemodel_trim.hd5'.format(project=datamodel.project)
+        g = '{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project)
+        noisefile = '{project:s}/{project:s}_noisemodel.hd5'.format(project=datamodel.project)
         noise = noisemodel.get_noisemodelcat(noisefile)
 
         run_fit(datamodel.project, g, noise=noise, obsfile=datamodel.obsfile)
