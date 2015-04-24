@@ -31,7 +31,7 @@ from special import make_integration_filter
 #---------------------------------------------------------
 project = 'choi_ngc4214'
 
-obsfile = '../../../N4214_3band_detects.part7.fits'
+obsfile = '../../../N4214_3band_detects.part8.fits'
 astfile = '../../../N4214_gst_fake.fits'
 
 filters = ['HST_WFC3_F225W', 'HST_WFC3_F336W', 'HST_WFC3_F438W',
@@ -58,7 +58,7 @@ logt = [6.0, 10.13, 0.15]
 #note: Mass is not sampled, use the isochrone def instead.
 
 #Metallicity
-z = [0.03, 0.019, 0.008, 0.004]
+#z = [0.03, 0.019, 0.008, 0.004]
 z = 0.004  # Strong prior SMC metalliticy
 
 # Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
