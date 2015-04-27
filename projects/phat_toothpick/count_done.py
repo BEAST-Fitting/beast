@@ -22,6 +22,8 @@ from astropy.table import Table
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument("-a", "--faint", help="Faint set of 4 band detections (instead of bright)",
+                        action="store_true")
     parser.add_argument("bricks", metavar='N', type=str, nargs='+',
                         help='bricks to use')
     #parser.add_argument("brick", help="brick number")
@@ -30,8 +32,12 @@ if __name__ == '__main__':
 
     basename = 'obscat/'
     basepath = 'BEAST_production/'
-    ext_brick = ''
 
+    if args.faint:
+        ext_brick = 'f'
+    else:
+        ext_brick = ''
+        
     tot_all_poss = 0
     tot_all_done = 0
 

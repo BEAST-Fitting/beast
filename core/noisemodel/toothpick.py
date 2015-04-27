@@ -198,7 +198,7 @@ class MultiFilterASTs(NoiseModel):
         else:
             return d
 
-    def _compute_stddev_bins(self, magflux_in, magflux_out, nbins=30,
+    def _compute_stddev_bins(self, magflux_in, magflux_out, nbins=30, min_per_bin=5,
                              completeness_mag_cut=80, name_prefix=None,
                              asarray=False):
         """
@@ -218,6 +218,9 @@ class MultiFilterASTs(NoiseModel):
 
         nbins: Integer
             Number of logrithmically spaced bins between the min/max values
+
+       min_per_bins: Integer
+            Number of recovered ASTs required per bin
 
         name_prefix: str
             if set, all output names in the final structure will start with this
@@ -277,6 +280,10 @@ class MultiFilterASTs(NoiseModel):
 
         # get the indexs to the recovered fluxes
         good_indxs,= np.where(flux_out != 0.0)
+        # ensure the recovery of the flux is good to 50%
+        #frac_change = abs((flux_out[good_indxs] - flux_in[good_indxs])/flux_in[good_indxs])
+        #good_indxs2, = np.where((frac_change <= 0.5))
+        #good_indxs = good_indxs[good_indxs2]
 
         ast_minmax = np.empty(2)
         ast_minmax[0] = np.amin(flux_in[good_indxs])
@@ -304,9 +311,14 @@ class MultiFilterASTs(NoiseModel):
                 bin_flux_out = flux_out[bindxs]
                 # compute completenss
                 g_bindxs, = np.where(bin_flux_out != 0.0)
+                # ensure the recovery of the flux is good to 50%
+                #frac_change = abs((flux_out[g_bindxs] - flux_in[g_bindxs])/flux_in[g_bindxs])
+                #g_bindxs2, = np.where((frac_change <= 0.5))
+                #g_bindxs = g_bindxs[g_bindxs2]
+
                 n_g_bindxs = len(g_bindxs)
                 completeness[i] = n_g_bindxs/float(n_bindxs)
-                if n_g_bindxs > 5:
+                if n_g_bindxs > min_per_bin:
                     ave_flux_in[i] = np.mean(bin_flux_in)
                     bin_bias_flux = bin_flux_out[g_bindxs] - bin_flux_in[g_bindxs]
                     ave_bias[i] = np.mean(bin_bias_flux)
