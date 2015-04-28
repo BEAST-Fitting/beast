@@ -234,6 +234,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
     # setup the mapping for the 1D PDFs
     fast_pdf1d_objs = []
     save_pdf1d_vals = []
+
     for qname in qnames:
         q = g0[qname]
         
@@ -244,10 +245,22 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
             nbins = n_uniq
 
         # setup the fast 1d pdf
-        ignorebelow = None  # need to know so 'zeros' (defined at -100) are ignored
+
+        # need to know so 'zeros' (defined at -100) are ignored
         if (string.find(qname,'_wd') > 0) | (string.find(qname,'_wd') > 0):
             ignorebelow = -99.99
-        _tpdf1d = pdf1d(q, nbins, ignorebelow=ignorebelow)
+        else:
+            ignorebelow = None
+
+        # needed for mass parameters as they are stored as linear values
+        # computationally, less bins needed if 1D PDFs done as log spacing
+        if qname in set(['M_ini', 'M_act','radius']):
+            logspacing = True
+        else:
+            logspacing = False
+
+        # generate the fast 1d pdf mapping
+        _tpdf1d = pdf1d(q, nbins, ignorebelow=ignorebelow, logspacing=logspacing)
         fast_pdf1d_objs.append(_tpdf1d)
         
         # setup the arrays to save the 1d PDFs
