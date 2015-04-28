@@ -137,7 +137,7 @@ if __name__ == '__main__':
                                         threshold=-10., save_every_npts=250, lnp_npts=60,
                                         stats_outname=stats_filebase + '_stats.fits',
                                         pdf1d_outname=stats_filebase + '_pdf1d.fits',
-                                        lnp_outname=stats_filebase + '_lnp.fits')
+                                        lnp_outname=stats_filebase + '_lnp.hd5')
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')
