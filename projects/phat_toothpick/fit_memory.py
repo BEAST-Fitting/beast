@@ -330,10 +330,26 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
 
         indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
 
+        # now generate the sparse likelihood (remove later if this works by updating code below)
+        #   checked if changing to the full likelihood speeds things up - the answer is no
+        #   and is likely related to the switch here to the sparse likelihood for the weight calculation
+        lnps = lnp[indx]
+        chi2s = chi2[indx]
+
+        #log_norm = np.log(getNorm_lnP(lnps))
+        #if not np.isfinite(log_norm):
+        #    log_norm = lnps.max()
+        log_norm = lnps.max()
+        weights = np.exp(lnps - log_norm)
+
+        # normalize the weights make sure they sum to one
+        #   needed for np.random.choice
+        weights /= np.sum(weights)
+                
         # save the current set of lnps
         if lnp_outname is not None:
             if lnp_npts is not None:
-                rindx = np.random.choice(indx,size=lnp_npts)
+                rindx = np.random.choice(indx,size=lnp_npts,p=weights)
             else:
                 rindx = indx
             save_lnp_vals.append([e,
@@ -342,18 +358,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
                                   np.array(chi2[rindx], dtype=np.float32),
                                   np.array([sed]).T])
 
-        # now generate the sparse likelihood (remove later if this works by updating code below)
-        #   checked if changing to the full likelihood speeds things up - the answer is no
-        #   and is likely related to the switch here to the sparse likelihood for the weight calculation
-        lnps = lnp[indx]
-        chi2 = chi2[indx]
-
-        #log_norm = np.log(getNorm_lnP(lnps))
-        #if not np.isfinite(log_norm):
-        #    log_norm = lnps.max()
-        log_norm = lnps.max()
-        weights = np.exp(lnps - log_norm)
-                
         # index to the full model grid for the best fit values
         best_full_indx = g0_indxs[indx[weights.argmax()]]
 
@@ -361,8 +365,8 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
         best_specgrid_indx[e] = g0_specgrid_indx[best_full_indx]
             
         # goodness of fit quantities
-        chi2_vals[e] = chi2.min()
-        chi2_indx[e] = g0_indxs[indx[chi2.argmin()]]
+        chi2_vals[e] = chi2s.min()
+        chi2_indx[e] = g0_indxs[indx[chi2s.argmin()]]
         lnp_vals[e] = lnps.max()
         lnp_indx[e] = best_full_indx
 
