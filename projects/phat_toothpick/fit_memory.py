@@ -236,6 +236,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
     save_pdf1d_vals = []
 
     for qname in qnames:
+        #q = g0[qname][g0_indxs]
         q = g0[qname]
         
         n_uniq = len(np.unique(q))
@@ -324,11 +325,10 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
             
         lnp = lnp[g0_indxs]
         chi2 = chi2[g0_indxs]
-        lnp = numexpr.evaluate('lnp + g0_weights')
-        #lnp +=  g0_weights  # multiply by the prior weights (sum in log space)
+        #lnp = numexpr.evaluate('lnp + g0_weights')
+        lnp +=  g0_weights  # multiply by the prior weights (sum in log space)
 
         indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
-        #print(lnp[indx],max(lnp[np.isfinite(lnp)]))
 
         # save the current set of lnps
         if lnp_outname is not None:
@@ -343,6 +343,8 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
                                   np.array([sed]).T])
 
         # now generate the sparse likelihood (remove later if this works by updating code below)
+        #   checked if changing to the full likelihood speeds things up - the answer is no
+        #   and is likely related to the switch here to the sparse likelihood for the weight calculation
         lnps = lnp[indx]
         chi2 = chi2[indx]
 
@@ -360,11 +362,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
             
         # goodness of fit quantities
         chi2_vals[e] = chi2.min()
-        chi2_indx[e] = indx[chi2.argmin()]
+        chi2_indx[e] = g0_indxs[indx[chi2.argmin()]]
         lnp_vals[e] = lnps.max()
         lnp_indx[e] = best_full_indx
-
-        #print(chi2_vals[e], chi2_indx[e], lnp_vals[e], lnp_indx[e])
 
         for k, qname in enumerate(qnames):
             q = g0[qname]
@@ -375,8 +375,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
             # expectration value
             exp_vals[e,k] = expectation(q[g0_indxs[indx]], weights=weights)
 
-            #print(qname, best_vals[e,k], exp_vals[e,k])
-
             # percentile values
             pdf1d_bins, pdf1d_vals = fast_pdf1d_objs[k].gen1d(g0_indxs[indx], weights)
             save_pdf1d_vals[k][e,:] = pdf1d_vals
@@ -385,8 +383,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
                 per_vals[e,k,:] = percentile(pdf1d_bins, _p, weights=pdf1d_vals)
             else:
                 per_vals[e,k,:] = [0.0,0.0,0.0]
-
-            #print(qname, per_vals[e,k,:])
 
         # incremental save (useful if job dies early to recover most of the computations)
         if save_every_npts is not None:

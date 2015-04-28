@@ -46,6 +46,7 @@ import string
 from pipeline_small import run_fit, make_models
 import datamodel_small as datamodel
 import noisemodel 
+#import fit_memory_test as fit_memory
 import fit_memory
 from merge_phat_asts import merge_phat_asts
 from beast.core import prior_weights
