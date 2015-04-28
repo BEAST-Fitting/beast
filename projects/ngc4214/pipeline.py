@@ -268,7 +268,7 @@ def compute_noise_and_trim_grid(*args, **kwargs):
     return job, (p, n, g)
 
 
-def run_fit(project, g, noise=None, obsfile=None):
+def run_fit(project, g, noise=None, obsfile=None, outname=None):
     """ Run the fit on specific inputs
 
     Parameters
@@ -307,9 +307,9 @@ def run_fit(project, g, noise=None, obsfile=None):
                          distanceModulus=datamodel.distanceModulus,
                          filters=datamodel.filters)
 
-    fit_kwargs = dict( threshold=-5.0 )
+    fit_kwargs = dict( threshold=-10.0, outname=outname )
 
-    stat_kwargs = dict( keys=None, method=None )
+    stat_kwargs = dict( keys=None, method=None, outname=outname )
 
     tasks_fit = (t_project_dir,
                  t_get_obscat(**obscat_kwargs),
