@@ -19,7 +19,7 @@ import datamodel_production as datamodel
 from astropy.table import Table
 #####
 
-def write_slurm_file(slurm_filename, log_path, joblist_file, queue_name='largemem', queue_ntasks='32'):
+def write_slurm_file(slurm_filename, log_path, joblist_file, listnum, queue_name='largemem', queue_ntasks='32'):
     sf = open(slurm_filename, 'w')
     # fill the slurm file with all the needed lines (lots of them)
     sf.write('#!/bin/csh\n')
@@ -37,11 +37,11 @@ def write_slurm_file(slurm_filename, log_path, joblist_file, queue_name='largeme
     sf.write('# \n')
     sf.write('#         <------ Setup Parameters ------>\n')
     sf.write('#\n')
-    sf.write('#SBATCH -J BeastRF             # Job name\n')
+    sf.write('#SBATCH -J BeastR'+str(listnum)+'             # Job name\n')
     sf.write('#SBATCH -N 1                   # Total number of nodes (32 cores/node)\n')
     sf.write('#SBATCH -n '+queue_ntasks+'                  # Total number of tasks\n')
     sf.write('#SBATCH -p '+queue_name+'            # Queue name\n')
-    sf.write('#SBATCH -o '+log_path+'BeastRF_'+queue_name+'.o%j         # Name of stdout output file (%j expands to jobid)\n')
+    sf.write('#SBATCH -o '+log_path+'BeastR'+str(listnum)+'_'+queue_name+'.o%j         # Name of stdout output file (%j expands to jobid)\n')
     sf.write('#SBATCH -t 48:00:00            # Run time (hh:mm:ss)\n')
     sf.write('#SBATCH --mail-user=kgordon@stsci.edu\n')
     sf.write('#SBATCH --mail-type=begin  # email me when the job starts\n')
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     cat_files = np.array(cat_files)
 
     n_cat_files = len(cat_files)
-    n_pernode_files = 400
+    n_pernode_files = 250
 
     # setup the subdirectory for the xsede slurm and log files
     job_path = basepath+'/refit_xsede_jobs/'
@@ -168,7 +168,16 @@ if __name__ == '__main__':
         sd_num = cat_file[dpos+3:spos-1]
         sub_num = cat_file[spos+3:ppos]
         sed_file = basepath+'b'+brick_num+ext_brick+'/b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_sed_trim.grid.hd5'
-        sed_size[i] = os.path.getsize(sed_file)
+        if not os.path.isfile(sed_file):
+            print('no sed_trim file for ', cat_file)
+            sed_size[i] = 0.0
+        else:
+            sed_size[i] = os.path.getsize(sed_file)
+
+    # now remove all the missing sed_trim subregions
+    gindxs, = np.where(sed_size > 0.0)
+    cat_files = cat_files[gindxs]
+    sed_size = sed_size[gindxs]
 
     # now sort on size to put similar sized files together for efficiency
     #sindxs = np.argsort(sed_size)
@@ -183,7 +192,7 @@ if __name__ == '__main__':
     normal_queue_size = 2.*1024*1024*1024/2.5  # 2 Gb RAM/run
 
     write_slurm_file(job_path+'beast_xsede_refit'+ext_tag+'_normal_queue.slurm',
-                     log_path, njoblist_file, queue_name='normal', queue_ntasks='16')
+                     log_path, njoblist_file, 1, queue_name='normal', queue_ntasks='16')
 
     cur_f = 0
     cur_total_size = 0.0
@@ -215,34 +224,40 @@ if __name__ == '__main__':
         if run_done:
             print(stats_file + ' done')
         else:
-            j += 1
-            if j%n_pernode_files == 0:
-                cur_f += 1
-
-                # close previous files
-                if j != 0:
-                    pf.close()
-                    print('total sed_trim size [Gb] = ', cur_total_size/(1024.*1024.*1024.))
-                    cur_total_size = 0.0
-
-                # open the slurm and param files
-                joblist_file = job_path+'beast_xsede_refit'+ext_tag+'_'+str(cur_f)+'.joblist'
-                pf = open(joblist_file,'w')
-
-                write_slurm_file(job_path+'beast_xsede_refit'+ext_tag+'_'+str(cur_f)+'.slurm',
-                                 log_path, joblist_file, queue_name='largemem', queue_ntasks='32')
-
             if args.faint:
                 ext_switch = '-a '
             else:
                 ext_switch = ''
 
+            if sed_size[i] > normal_queue_size:
+                j += 1
+                if j%n_pernode_files == 0:
+                    cur_f += 1
+
+                    # close previous files
+                    if j != 0:
+                        pf.close()
+                        print('total sed_trim size [Gb] = ', cur_total_size/(1024.*1024.*1024.))
+                        cur_total_size = 0.0
+
+                    # open the slurm and param files
+                    joblist_file = job_path+'beast_xsede_refit'+ext_tag+'_'+str(cur_f)+'.joblist'
+                    pf = open(joblist_file,'w')
+
+                    write_slurm_file(job_path+'beast_xsede_refit'+ext_tag+'_'+str(cur_f)+'.slurm',
+                                     log_path, joblist_file, cur_f, queue_name='largemem', queue_ntasks='32')
+
             if reg_run:
                 print(stats_file + ' does not exist - adding job as a regular fit job (not resume job)')
-                job_command = './run_production_memory.py -f ' + ext_switch + brick_num + ' ' + sd_num + ' '+sub_num+' > '+log_path+'beast_fit_resume_b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'.log'
+                job_command = './run_production_memory.py -f ' + ext_switch + brick_num + ' ' + \
+                    sd_num + ' '+sub_num+' > '+log_path+'beast_fit_resume_b'+brick_num+ \
+                    '_sd'+sd_num+'_sub'+sub_num+ext_tag+'.log'
             else:
-                print(stats_file + ' not done - adding to continue fitting list (' + str(len(indxs)) + '/' + str(len(t['Pmax'])) + ')')
-                job_command = './run_production_memory.py -f -r ' + ext_switch + brick_num + ' ' + sd_num + ' '+sub_num+' > '+log_path+'beast_fit_resume_b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'.log'
+                print(stats_file + ' not done - adding to continue fitting list (' + \
+                          str(len(indxs)) + '/' + str(len(t['Pmax'])) + ')')
+                job_command = './run_production_memory.py -f -r ' + ext_switch + brick_num + \
+                    ' ' + sd_num + ' '+sub_num+' > '+log_path+'beast_fit_resume_b'+brick_num+ \
+                    '_sd'+sd_num+'_sub'+sub_num+ext_tag+'.log'
 
             if sed_size[i] <= normal_queue_size:
                 npf.write(job_command+'\n')
