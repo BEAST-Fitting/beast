@@ -18,7 +18,7 @@ from .grid import SpectralGrid
 from ..external.eztables import Table
 
 def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_outname,
-                sigma_fac=3., n_detected=4):
+                sigma_fac=3., n_detected=4, inFlux=True):
     
     # Store the brigtest and faintest fluxes in each band (for data and asts)
     n_filters = len(obsdata.filters)
@@ -28,10 +28,15 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_ou
     max_models = np.zeros(n_filters)
     for k, filtername in enumerate(obsdata.filters):
         # get the name of the column with the rate in it (normalized to the vega flux)
-        nfiltername = filtername.split('_')[-1].lower() + '_rate'
+        if inFlux:
+            nfiltername = filtername.split('_')[-1].lower() + '_rate'
+            min_data[k] = np.amin(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
+            max_data[k] = np.amax(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
+        else:
+            nfiltername = filtername.split('_')[-1] + '_VEGA'
+            min_data[k] = np.amin(10 **(-0.4*obsdata.data[:][nfiltername])*obsdata.vega_flux[k])
+            max_data[k] = np.amax(10 **(-0.4*obsdata.data[:][nfiltername])**obsdata.vega_flux[k])
 
-        min_data[k] = np.amin(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
-        max_data[k] = np.amax(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
 
         min_models[k] = np.amin(sedgrid.seds[:,k])
         max_models[k] = np.amax(sedgrid.seds[:,k])
