@@ -73,7 +73,8 @@ if __name__ == '__main__':
         sed_trimname = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
         noisemodel_trimname = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
 
-        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.,
+                              n_detected=3, inFlux=False)
 
     else:
         g = '{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project)

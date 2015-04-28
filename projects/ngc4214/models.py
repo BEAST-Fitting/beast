@@ -138,7 +138,7 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
 
     print('Adding spectral properties:', add_spectral_properties_kwargs is not None)
     if add_spectral_properties_kwargs is not None:
-        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_0'
+        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_nd'
 
     #write to disk
     if hasattr(g, 'writeHDF'):
