@@ -247,6 +247,7 @@ if __name__ == '__main__':
                     write_slurm_file(job_path+'beast_xsede_refit'+ext_tag+'_'+str(cur_f)+'.slurm',
                                      log_path, joblist_file, cur_f, queue_name='largemem', queue_ntasks='32')
 
+            reg_run = True
             if reg_run:
                 print(stats_file + ' does not exist - adding job as a regular fit job (not resume job)')
                 job_command = './run_production_memory.py -f ' + ext_switch + brick_num + ' ' + \
