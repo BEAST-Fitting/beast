@@ -17,6 +17,7 @@ import argparse
 import numpy as np
 import datamodel_production as datamodel
 from astropy.table import Table
+from astropy.io import fits
 #####
 
 def write_slurm_file(slurm_filename, log_path, joblist_file, listnum, queue_name='largemem', queue_ntasks='32'):
@@ -123,6 +124,8 @@ if __name__ == '__main__':
     #parser.add_argument("brick", help="brick number")
     args = parser.parse_args()
     bricks = args.bricks
+
+    print('doing brisk = ', bricks)
     
     if args.faint:
         ext_brick = 'f'
@@ -194,6 +197,7 @@ if __name__ == '__main__':
     write_slurm_file(job_path+'beast_xsede_refit'+ext_tag+'_normal_queue.slurm',
                      log_path, njoblist_file, 1, queue_name='normal', queue_ntasks='16')
 
+    pf_open = False
     cur_f = 0
     cur_total_size = 0.0
     j = -1
@@ -210,6 +214,7 @@ if __name__ == '__main__':
         # read the stats file and see if this subregion is done yet
         results_path = basepath+'b'+brick_num+ext_brick+'/'
         stats_file = results_path+'b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_stats.fits'
+
         reg_run = False
         run_done = False
         if not os.path.isfile(stats_file):
@@ -241,13 +246,22 @@ if __name__ == '__main__':
                         cur_total_size = 0.0
 
                     # open the slurm and param files
+                    pf_open = True
                     joblist_file = job_path+'beast_xsede_refit'+ext_tag+'_'+str(cur_f)+'.joblist'
                     pf = open(joblist_file,'w')
 
                     write_slurm_file(job_path+'beast_xsede_refit'+ext_tag+'_'+str(cur_f)+'.slurm',
                                      log_path, joblist_file, cur_f, queue_name='largemem', queue_ntasks='32')
 
-            reg_run = True
+            if not reg_run:
+                # check the mass spacing and redo if it is the old linear spacing
+                pdf1d_filename = results_path+'b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_pdf1d.fits'
+                hdulist = fits.open(pdf1d_filename)
+                delta1 = hdulist['M_ini'].data[len(t['Pmax']),1] - hdulist['M_ini'].data[len(t['Pmax']),0]
+                if delta1 > 1.0:  # old linear spacing
+                    print('old linear spacing in partial run - full refitting needed')
+                    reg_run = True
+
             if reg_run:
                 print(stats_file + ' does not exist - adding job as a regular fit job (not resume job)')
                 job_command = './run_production_memory.py -f ' + ext_switch + brick_num + ' ' + \
@@ -268,5 +282,6 @@ if __name__ == '__main__':
             cur_total_size += sed_size[i]
 
     print('total sed_trim size [Gb] = ', cur_total_size/(1024.*1024.*1024.))
-    pf.close()
+    if pf_open:
+        pf.close()
     npf.close()
