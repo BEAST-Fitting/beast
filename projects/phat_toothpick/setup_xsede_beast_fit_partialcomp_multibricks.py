@@ -125,7 +125,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     bricks = args.bricks
 
-    print('doing brisk = ', bricks)
+    print('doing bricks = ', bricks)
     
     if args.faint:
         ext_brick = 'f'
@@ -160,22 +160,35 @@ if __name__ == '__main__':
     if not os.path.isdir(log_path):
         os.mkdir(log_path)
 
+    use_sed_size_cache = True
+    if use_sed_size_cache:
+        # read in the sed_trim filesize from the previously created file
+        sed_size_cache = Table.read(job_path+'beast_xsede_refit_sed_trim_size.dat', format='ascii.basic')
+        
     # get the size of the sed_trim files
     sed_size = np.zeros(n_cat_files)
     for i, cat_file in enumerate(cat_files):
-        bpos = string.find(cat_file,'obscat/')
-        dpos = string.find(cat_file,'SD-')
-        spos = string.find(cat_file,'sub')
-        ppos = string.rfind(cat_file,'.')
-        brick_num = cat_file[bpos+8:bpos+10]
-        sd_num = cat_file[dpos+3:spos-1]
-        sub_num = cat_file[spos+3:ppos]
-        sed_file = basepath+'b'+brick_num+ext_brick+'/b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_sed_trim.grid.hd5'
-        if not os.path.isfile(sed_file):
-            print('no sed_trim file for ', cat_file)
-            sed_size[i] = 0.0
+        if use_sed_size_cache:
+            indxs, = np.where(sed_size_cache['cat_file'] == cat_file)
+            if len(indxs) == 0:
+                print('no sed_trim file for ', cat_file)
+                sed_size[i] = 0.0
+            else:
+                sed_size[i] = sed_size_cache['size'][indxs[0]]
         else:
-            sed_size[i] = os.path.getsize(sed_file)
+            bpos = string.find(cat_file,'obscat/')
+            dpos = string.find(cat_file,'SD-')
+            spos = string.find(cat_file,'sub')
+            ppos = string.rfind(cat_file,'.')
+            brick_num = cat_file[bpos+8:bpos+10]
+            sd_num = cat_file[dpos+3:spos-1]
+            sub_num = cat_file[spos+3:ppos]
+            sed_file = basepath+'b'+brick_num+ext_brick+'/b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_sed_trim.grid.hd5'
+            if not os.path.isfile(sed_file):
+                print('no sed_trim file for ', cat_file)
+                sed_size[i] = 0.0
+            else:
+                sed_size[i] = os.path.getsize(sed_file)
 
     # now remove all the missing sed_trim subregions
     gindxs, = np.where(sed_size > 0.0)
