@@ -455,7 +455,7 @@ def IAU_names_and_extra_info(obsdata):
             r['inside_brick'] = obsdata.data['inside_brick']
             r['inside_chipgap'] = obsdata.data['inside_chipgap']
     else:
-        r['Name'] = np.replicate(len(obsdata),'noname')
+        r['Name'] = ["noname" for x in range(len(obsdata))]
 
     # include the observed filter fluxes
     for k, filtername in enumerate(obsdata.filters): 
