@@ -436,23 +436,26 @@ def IAU_names_and_extra_info(obsdata):
     """
     r = {}
 
-    # generate the IAU names
-    _tnames = []
-    for i in range(len(obsdata)):
-        c = ap_ICRS(ra=obsdata.data['ra'][i], dec=obsdata.data['dec'][i],
-                    unit=(ap_units.degree, ap_units.degree))
-        _tnames.append('PHAT J' + 
-                       c.ra.to_string(sep="",precision=2,alwayssign=False,pad=True) + 
-                       c.dec.to_string(sep="",precision=2,alwayssign=True,pad=True))
+    if 'ra' in obsdata.data.keys():
+        # generate the IAU names
+        _tnames = []
+        for i in range(len(obsdata)):
+            c = ap_ICRS(ra=obsdata.data['ra'][i], dec=obsdata.data['dec'][i],
+                        unit=(ap_units.degree, ap_units.degree))
+            _tnames.append('PHAT J' + 
+                           c.ra.to_string(sep="",precision=2,alwayssign=False,pad=True) + 
+                           c.dec.to_string(sep="",precision=2,alwayssign=True,pad=True))
 
-    r['Name'] = _tnames
+            r['Name'] = _tnames
 
-    # other useful information
-    r['RA'] = obsdata.data['ra']
-    r['DEC'] = obsdata.data['dec']
-    r['field'] = obsdata.data['field']
-    r['inside_brick'] = obsdata.data['inside_brick']
-    r['inside_chipgap'] = obsdata.data['inside_chipgap']
+            # other useful information
+            r['RA'] = obsdata.data['ra']
+            r['DEC'] = obsdata.data['dec']
+            r['field'] = obsdata.data['field']
+            r['inside_brick'] = obsdata.data['inside_brick']
+            r['inside_chipgap'] = obsdata.data['inside_chipgap']
+    else:
+        r['Name'] = np.replicate(len(obsdata),'noname')
 
     # include the observed filter fluxes
     for k, filtername in enumerate(obsdata.filters): 
