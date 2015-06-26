@@ -41,9 +41,29 @@ if __name__ == '__main__':
     for k, brick in enumerate(bricks):
         icat_files = glob.glob(basepath + 'b'+brick+ext_brick+'/'+basename + 'b*.fits')
         if k == 0:
-            cat_files = icat_files
+            cat_files = np.array(icat_files)
         else:
             cat_files = np.concatenate((cat_files,icat_files))
+
+    # find the files that need new trim files
+    need_trim = np.empty(len(cat_files),dtype=int)
+    for i, cat_file in enumerate(cat_files):
+        # get the sd number
+        bpos = string.find(cat_file,'obscat/')
+        dpos = string.find(cat_file,'SD-')
+        spos = string.find(cat_file,'sub')
+        ppos = string.rfind(cat_file,'.')
+        brick_num = cat_file[bpos+8:bpos+10]
+        sd_num = cat_file[dpos+3:spos-1]
+        sub_num = cat_file[spos+3:ppos]
+        sed_file = basepath+'b'+brick_num+ext_brick+'/b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_sed_trim.grid.hd5'
+        if not os.path.isfile(sed_file):
+            need_trim[i] = 1
+        else:
+            need_trim[i] = 0
+
+    gindxs, = np.where(need_trim == 1)
+    cat_files = cat_files[gindxs]
 
     n_cat_files = len(cat_files)
     n_subtrim_files = 32
