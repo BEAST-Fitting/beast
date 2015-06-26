@@ -66,6 +66,7 @@ if __name__ == '__main__':
         brick_num = cat_file[bpos+8:bpos+10]
         sd_num = cat_file[dpos+3:spos-1]
         sub_num = cat_file[spos+3:ppos]
+
         sed_file = basepath+'b'+brick_num+ext_brick+'/b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_sed_trim.grid.hd5'
         if not os.path.isfile(sed_file):
             print('no sed_trim file for ', cat_file)
