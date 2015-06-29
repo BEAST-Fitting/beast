@@ -39,7 +39,7 @@ def write_slurm_file(slurm_filename, log_path, joblist_file, listnum, queue_name
     sf.write('#         <------ Setup Parameters ------>\n')
     sf.write('#\n')
     sf.write('#SBATCH -J BeastR'+str(listnum)+'             # Job name\n')
-    sf.write('#SBATCH -N 1                   # Total number of nodes (32 cores/node)\n')
+    sf.write('#SBATCH -N 4                   # Total number of nodes (32 cores/node)\n')
     sf.write('#SBATCH -n '+queue_ntasks+'                  # Total number of tasks\n')
     sf.write('#SBATCH -p '+queue_name+'            # Queue name\n')
     sf.write('#SBATCH -o '+log_path+'BeastR'+str(listnum)+'_'+queue_name+'.o%j         # Name of stdout output file (%j expands to jobid)\n')
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     cat_files = np.array(cat_files)
 
     n_cat_files = len(cat_files)
-    n_pernode_files = 250
+    n_pernode_files = 750
 
     # setup the subdirectory for the xsede slurm and log files
     job_path = basepath+'/refit_xsede_jobs/'
@@ -264,7 +264,7 @@ if __name__ == '__main__':
                     pf = open(joblist_file,'w')
 
                     write_slurm_file(job_path+'beast_xsede_refit'+ext_tag+'_'+str(cur_f)+'.slurm',
-                                     log_path, joblist_file, cur_f, queue_name='largemem', queue_ntasks='32')
+                                     log_path, joblist_file, cur_f, queue_name='largemem', queue_ntasks='128')
 
             if not reg_run:
                 # check the mass spacing and redo if it is the old linear spacing
