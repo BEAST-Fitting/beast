@@ -57,8 +57,13 @@ if __name__ == '__main__':
         sd_num = cat_file[dpos+3:spos-1]
         sub_num = cat_file[spos+3:ppos]
         sed_file = basepath+'b'+brick_num+ext_brick+'/b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_sed_trim.grid.hd5'
-        if not os.path.isfile(sed_file):
+        noise_file = basepath+'b'+brick_num+ext_brick+'/b'+brick_num+'_sd'+sd_num+'_sub'+sub_num+'_noisemodel_trim.hd5'
+        if (not os.path.isfile(sed_file)) or (not os.path.isfile(noise_file)):
             need_trim[i] = 1
+            if os.path.isfile(sed_file):
+                os.remove(sed_file)
+            if os.path.isfile(noise_file):
+                os.remove(noise_file)
         else:
             need_trim[i] = 0
 
