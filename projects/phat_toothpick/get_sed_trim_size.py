@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     # save the sed trim sizes to an ASCII file
     job_path = basepath+'/refit_xsede_jobs/'
-    sedtrim_file = job_path+'beast_xsede_refit_sed_trim_size.dat'
+    sedtrim_file = job_path+'beast_xsede_refit_sed_trim_size'+ext_brick+'.dat'
     stf = open(sedtrim_file,'w')
 
     stf.write('cat_file     size\n')
