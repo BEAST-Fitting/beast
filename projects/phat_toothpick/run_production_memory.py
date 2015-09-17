@@ -46,6 +46,8 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-a", "--faint", help="Faint set of 4 band detections (instead of bright)",
                         action="store_true")
+    parser.add_argument("-i", "--index", help="Use indexes to generate sed and noisemodel trim files",
+                        action="store_true")
     parser.add_argument("brick", help="brick number")
     parser.add_argument("source_density", help="source density bin")
     parser.add_argument("sub_source_density", help="subset of the source density bin [A, B, C, ...]")
@@ -72,6 +74,7 @@ if __name__ == '__main__':
                      '_sd' + string.replace(args.source_density,'_','-') + '_sub' + args.sub_source_density 
     sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
+    index_name = stats_filebase+'_sed_trim.grid_indexs.fits'
 
     #modelsedgrid_filename = 'b15_late_jan15_test_small/b15_late_jan15_test_small_seds.grid.hd5'
     modelsedgrid_filename = 'BEAST_production/BEAST_production_seds.grid.hd5'
@@ -125,9 +128,12 @@ if __name__ == '__main__':
     if args.fit:
         start_time = time.clock()
 
-        # the files for the trimmed model grid and noisemodel grid
-        # read in the the AST noise model
-        noisemodel_vals = noisemodel.get_noisemodelcat(noisemodel_trimname)
+        if args.index:
+
+        else:
+            # the files for the trimmed model grid and noisemodel grid
+            # read in the the AST noise model
+            noisemodel_vals = noisemodel.get_noisemodelcat(noisemodel_trimname)
 
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
