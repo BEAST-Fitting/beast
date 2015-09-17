@@ -128,12 +128,12 @@ if __name__ == '__main__':
     if args.fit:
         start_time = time.clock()
 
-        if args.index:
+        #if args.index:
 
-        else:
+        #else:
             # the files for the trimmed model grid and noisemodel grid
             # read in the the AST noise model
-            noisemodel_vals = noisemodel.get_noisemodelcat(noisemodel_trimname)
+        noisemodel_vals = noisemodel.get_noisemodelcat(noisemodel_trimname)
 
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
