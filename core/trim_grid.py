@@ -27,15 +27,12 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_ou
     min_models = np.zeros(n_filters)
     max_models = np.zeros(n_filters)
     for k, filtername in enumerate(obsdata.filters):
-        # get the name of the column with the rate in it (normalized to the vega flux)
         if inFlux:
-            nfiltername = filtername.split('_')[-1].lower() + '_rate'
-            min_data[k] = np.amin(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
-            max_data[k] = np.amax(obsdata.data[:][nfiltername]*obsdata.vega_flux[k])
+            min_data[k] = np.amin(obsdata.data[:][obsdata.data.resolve_alias(filtername)]*obsdata.vega_flux[k])
+            max_data[k] = np.amax(obsdata.data[:][obsdata.data.resolve_alias(filtername)]*obsdata.vega_flux[k])
         else:
-            nfiltername = filtername.split('_')[-1] + '_VEGA'
-            min_data[k] = np.amin(10 **(-0.4*obsdata.data[:][nfiltername])*obsdata.vega_flux[k])
-            max_data[k] = np.amax(10 **(-0.4*obsdata.data[:][nfiltername])**obsdata.vega_flux[k])
+            min_data[k] = np.amin(10 **(-0.4*obsdata.data[:][obsdata.data.resolve_alias(filtername)])*obsdata.vega_flux[k])
+            max_data[k] = np.amax(10 **(-0.4*obsdata.data[:][obsdata.data.resolve_alias(filtername)])*obsdata.vega_flux[k])
 
 
         min_models[k] = np.amin(sedgrid.seds[:,k])
