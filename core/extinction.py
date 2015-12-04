@@ -472,6 +472,7 @@ class RvFbumpLaw(ExtinctionLaw):
 
         if Rv_B is None:
             Rv_B = getattr(self.NoBumpLaw, 'Rv', None)
+        #print(Rv, Rv_A, Rv_B, f_A)
 
         if sum([Rv_A is None, Rv_B is None, Rv is None]) >= 2:
             raise ValueError('Must provide at least 2 Rv values')
@@ -480,6 +481,8 @@ class RvFbumpLaw(ExtinctionLaw):
             Rv_A = self.get_Rv_A(Rv, f_A, Rv_B)
         if Rv_B is None:
             Rv_B = self.get_Rv_B(Rv, Rv_A, f_A)
+
+        #print(Rv, Rv_A, Rv_B, f_A)
 
         return f_A * self.RvLaw.function(_lamb, Av=Av, Rv=Rv_A, Alambda=Alambda) + (1. - f_A) * self.NoBumpLaw.function(_lamb, Av=Av, Alambda=Alambda, Rv=Rv_B)
 
