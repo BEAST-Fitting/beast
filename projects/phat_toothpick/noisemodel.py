@@ -6,12 +6,9 @@ The idea is to use artificial star tests (ASTs) to characterize the noise
 introduced by crowding and selection function.
 
 .. history::
-    Based on code from the ngc4214 products directory (18oct16, KDG)
+    Based on code from the ngc4214 products directory (18oct14, KDG)
        adapted for the PHAT AST files
        updated to sync up with HA's work on the PHAT ASTs
-
-.. note::
-
 """
 
 import numpy as np
@@ -23,24 +20,23 @@ from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 class PHAT_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
 
     def set_data_mappings(self):
-        """ hard code mapping directly with the interface to ASTs format
-
-        .. note::
-
-            As noted in the class documentation, it is trivial to adapt the
-            class to specific formats
+        """
+        hard code mapping directly with the interface to ASTs format
         """
         for k in self.filters:
             try:
-                #self.data.set_alias(k, k.split('_')[-1].lower() + '_rate')
-                self.data.set_alias(k + '_out', k.split('_')[-1].upper() + '_VEGA')
-                self.data.set_alias(k + '_in', k.split('_')[-1].upper() + '_IN')
+                self.data.set_alias(k + '_out',
+                                    k.split('_')[-1].upper() + '_VEGA')
+                self.data.set_alias(k + '_in',
+                                    k.split('_')[-1].upper() + '_IN')
             except Exception as e:
                 print(e)
-                print('Warning: Mapping failed. This could lead to wrong results')
+                print('Warning: Mapping failed. This could lead to ' +
+                      'wrong results')
 
 
-def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None, **kwargs):
+def make_toothpick_noise_model(outname, astfile, sedgrid,
+                               absflux_a_matrix=None, **kwargs):
     """ toothpick noise model assumes that every filter is independent with
     any other.
 
@@ -56,24 +52,21 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
         sed model grid for everyone of which we will evaluate the model
 
     absflux_a_matrix: ndarray
-        absolute calibration a matrix giving the fractional uncertainties including
-        correlated terms (off diagonals)
+        absolute calibration a matrix giving the fractional uncertainties
+        including correlated terms (off diagonals)
 
     returns
     -------
-
     noisefile: str
         noisemodel file name
     """
-    #outname = dir_project + 'noise_model_b%s_%s.hd5' % (brick,subdivision)
 
     # read mag_in, mag_out
     model = PHAT_ToothPick_Noisemodel(astfile, sedgrid.filters)
-    # compute k-NN statistics: bias, stddev, completeness
+    # compute binned biases and uncertainties as a function of flux
     model.fit_bins(nbins=30, completeness_mag_cut=80)
     # evaluate the noise model for all the models in sedgrid
     bias, sigma, compl = model(sedgrid)
-    # save to disk/mem
 
     # absolute flux calibration uncertainties
     #  currently we are ignoring the off-diagnonal terms
@@ -88,8 +81,10 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
         noise = sigma
 
     # check if the noise model has been extrapolated at the faint flux levels
-    # if so, then set the noise to a negative value (later may be used to trim the model of "invalid" models)
-    # we are assuming that extrapolation at high fluxes is ok as the noise will be very small there
+    # if so, then set the noise to a negative value (later may be used to
+    # trim the model of "invalid" models)
+    # we are assuming that extrapolation at high fluxes is ok as the noise
+    # will be very small there
     for k in range(len(model.filters)):
         indxs, = np.where(sedgrid.seds[:,k] <= model._minmax_asts[0,k])
         if len(indxs) > 0:
@@ -102,7 +97,6 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
         outfile.createArray(outfile.root,'completeness', compl)
 
     return outname
-
 
 @task_decorator()
 def t_gen_noise_model(project, sedgrid, astfile, outname=None,
@@ -123,8 +117,8 @@ def t_gen_noise_model(project, sedgrid, astfile, outname=None,
         path to the file into which are ASTs results
 
     absflux_a_matrix: ndarray
-        absolute calibration a matrix giving the fractional uncertainties including
-        correlated terms (off diagonals)
+        absolute calibration a matrix giving the fractional uncertainties
+        including correlated terms (off diagonals)
 
     Returns
     -------
@@ -142,27 +136,11 @@ def t_gen_noise_model(project, sedgrid, astfile, outname=None,
         outname = '{0:s}_noisemodel.hd5'.format(project)
 
     noise_source = RequiredFile(outname, make_toothpick_noise_model, outname,
-                                astfile, sedgrid, absflux_a_matrix=absflux_a_matrix,
+                                astfile, sedgrid,
+                                absflux_a_matrix=absflux_a_matrix,
                                 **kwargs)
 
     return project, noise_source(), sedgrid
-
-
-def get_noisemodelcat(filename):
-    """
-    returns the noise model
-
-    Parameters
-    ----------
-    filename: str
-        file containing the outputs from OneD_ASTs_ModelGenerator
-
-    Returns
-    -------
-    table: pytables.Table
-        table containing the elements of the noise model
-    """
-    return tables.openFile(filename)
 
 
 if __name__ == '__main__':
