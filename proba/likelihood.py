@@ -247,7 +247,8 @@ def N_logLikelihood(flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
     return lnP
 
 
-def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None, lnp_threshold=1000.):
+def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None,
+                       lnp_threshold=1000.):
     """ Computes the log of the chi2 likelihood between data and model taking
     into account the noise model.
 
@@ -279,7 +280,9 @@ def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None, lnp_threshol
     .. math::
 
         P = \\frac{1}{\\sqrt{2pi} * \\sigma} \\times exp ( - \\chi^2 / 2 )
-        and \\chi ^ 2 = \\sum_{k} (flux_{obs,k} - flux_{pred,k} - \mu_k) ^ 2 / \sigma^2_{pred,k}
+        and
+        \\chi ^ 2 = \\sum_{k} (flux_{obs,k} - flux_{pred,k} - \mu_k) ^ 2 /
+                    \sigma^2_{pred,k}
     """
     ni, nj = np.shape(fluxmod)
 
@@ -292,7 +295,8 @@ def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None, lnp_threshol
         _m = ~mask.astype(bool)
         temp1 = fluxerr[:,_m]
 
-    n = np.shape(temp1)[1]  # By definition errors computed from ASTs are positive.
+    # By definition errors computed from ASTs are positive.
+    n = np.shape(temp1)[1]  
     # lnQ different for each model
     lnQ = n * temp + np.sum(np.log(temp1),axis=1)
     #lnQ is to be used * -1
