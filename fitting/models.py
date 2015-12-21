@@ -29,16 +29,16 @@ import sys
 import numpy as np
 
 # BEAST imports
-from beast.core import grid
-from beast.core import createbiggrid as creategrid
-from beast.core import stellib
-from beast.core import extinction
-from beast.core import isochrone
-from beast.core import prior_weights
-from beast.core.isochrone import ezIsoch
-from beast.external.ezpipe.helpers import RequiredFile, task_decorator
-from beast.external.ezpipe import Pipeline
-from beast.tools.helpers import val_in_unit
+from ..core import grid
+from ..core import createbiggrid as creategrid
+from ..core import stellib
+from ..core import extinction
+from ..core import isochrone
+from ..core import prior_weights
+from ..core.isochrone import ezIsoch
+from ..external.ezpipe.helpers import RequiredFile, task_decorator
+from ..external.ezpipe import Pipeline
+from ..tools.helpers import val_in_unit
 #from beast.external.eztables import Table
 
 __all__ = [ 't_isochrones',  't_spectra', 't_priors', 't_seds' ]

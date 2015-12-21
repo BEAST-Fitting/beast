@@ -11,9 +11,11 @@ major modifications by Karl Gordon (Feb-Mar 2015)
   - added the option to save a random sampling of the lnp to disk
   - code now can save the results every n stars if requested
     things allows a partially completed run to be recovered and continue
-  - removed the use of ezpipe as everything is now packaged into a single routine
-    and this routine often needs to be run even if results file already exist
-  - switched from eztables to astropy.table to (potentially) avoid bus/memory errors
+  - removed the use of ezpipe as everything is now packaged into a
+    single routine and this routine often needs to be run even if
+    results file already exist
+  - switched from eztables to astropy.table to (potentially) avoid
+    bus/memory errors
 """
 
 import os
@@ -32,11 +34,11 @@ from astropy import units as ap_units
 from astropy.io import fits
 from astropy.table import Table
 
-from beast.core import grid
-from beast.proba.likelihood import *
-from beast.proba import expectation, percentile, getNorm_lnP
-from beast.tools.pbar import Pbar
-from beast.core.pdf1d import pdf1d
+from ..core import grid
+from ..proba.likelihood import *
+from ..proba import expectation, percentile, getNorm_lnP
+from ..tools.pbar import Pbar
+from ..core.pdf1d import pdf1d
 
 def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals,
                per_vals, chi2_vals, chi2_indx, 
@@ -350,8 +352,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
     for e, obj in it:
         # calculate the full nD posterior
         (sed) = obj
+        cur_mask = (sed != 0)
         (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,
-                                        mask=None,
+                                        mask=cur_mask,
                                         lnp_threshold=abs(threshold) )
             
         lnp = lnp[g0_indxs]
@@ -476,11 +479,23 @@ def IAU_names_and_extra_info(obsdata):
     """
     r = {}
 
+    go_name = False
     if 'ra' in obsdata.data.keys():
+        go_name = True
+        ra_str = 'ra'
+        dec_str = 'dec'
+
+    if 'RA' in obsdata.data.keys():
+        go_name = True
+        ra_str = 'RA'
+        dec_str = 'DEC'
+
+    if go_name:
         # generate the IAU names
         _tnames = []
         for i in range(len(obsdata)):
-            c = ap_ICRS(ra=obsdata.data['ra'][i], dec=obsdata.data['dec'][i],
+            c = ap_ICRS(ra=obsdata.data[ra_str][i],
+                        dec=obsdata.data[dec_str][i],
                         unit=(ap_units.degree, ap_units.degree))
             _tnames.append('PHAT J' + 
                            c.ra.to_string(sep="",precision=2,
@@ -491,8 +506,8 @@ def IAU_names_and_extra_info(obsdata):
             r['Name'] = _tnames
 
             # other useful information
-            r['RA'] = obsdata.data['ra']
-            r['DEC'] = obsdata.data['dec']
+            r['RA'] = obsdata.data[ra_str]
+            r['DEC'] = obsdata.data[dec_str]
             r['field'] = obsdata.data['field']
             r['inside_brick'] = obsdata.data['inside_brick']
             r['inside_chipgap'] = obsdata.data['inside_chipgap']

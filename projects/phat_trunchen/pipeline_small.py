@@ -25,7 +25,7 @@ import os
 
 import datamodel_small as datamodel
 import noisemodel
-from models import t_isochrones, t_spectra, t_seds, t_priors
+from beast.fitting.models import t_isochrones, t_spectra, t_seds, t_priors
 
 @task_decorator()
 def t_get_obscat(project, obsfile=datamodel.obsfile,
