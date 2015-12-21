@@ -327,9 +327,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
                        desc='Calculating Lnp/Stats').iterover(islice(obs.enumobs(),start_pos,None)):
         # calculate the full nD posterior
         (sed) = obj
-        print(sed)
         cur_mask = (sed != 0)
-        print(cur_mask)
         (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=cur_mask,
                                         lnp_threshold=abs(threshold) )
         lnp = lnp[g0_indxs]
@@ -378,7 +376,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
         chi2_indx[e] = g0_indxs[indx[chi2s.argmin()]]
         lnp_vals[e] = lnps.max()
         lnp_indx[e] = best_full_indx
-        print(chi2_vals[e],lnp_vals[e])
 
         for k, qname in enumerate(qnames):
             q = g0[qname]
