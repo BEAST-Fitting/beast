@@ -50,9 +50,10 @@ if __name__ == '__main__':
 
     # update project datamodel information for this brick and source density bin
     datamodel.project = 'http'
-    datamodel.obsfile = 'HTTP_production/obscat/http_2015_09_14_fullflux_23sep15_with_source_density_SD_' + \
-                                                string.replace(args.source_density,'_','-') + \
-                                                '_sub' + args.sub_source_density + '.fits'
+    datamodel.obsfile = 'HTTP_production/obscat/' + \
+                        'http_2015_09_14_fullflux_23sep15_with_source_density_SD_' + \
+                        string.replace(args.source_density,'_','-') + \
+                        '_sub' + args.sub_source_density + '.fits'
 
     datamodel.astfile = 'HTTP_production/http_asts_6jul15.fits'
 
@@ -62,7 +63,8 @@ if __name__ == '__main__':
     #                      string.replace(args.source_density,'_','-' ) + '_noisemodel.fits'
 
     stats_filebase = 'HTTP_production/results/http' + \
-                     '_sd' + string.replace(args.source_density,'_','-') + '_sub' + args.sub_source_density 
+                     '_sd' + string.replace(args.source_density,'_','-') + '_sub' + \
+                     args.sub_source_density 
     sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
 
@@ -89,7 +91,8 @@ if __name__ == '__main__':
         modelsedgrid = FileSEDGrid(modelsedgrid_filename)  
 
         # generate the AST noise model  
-        noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, modelsedgrid, datamodel.absflux_a_matrix)  
+        noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile,
+                                              modelsedgrid, datamodel.absflux_a_matrix)  
 
     if args.trim:
         print('Trimming the model and noise grids')
@@ -98,7 +101,8 @@ if __name__ == '__main__':
         # check if the trimmed files already exist
         if (not os.path.isfile(sed_trimname)) | (not os.path.isfile(noisemodel_trimname)):
             # read in the observed data
-            obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
+            obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus,
+                                           datamodel.filters)
 
             # get the modesedgrid on which to generate the noisemodel  
             modelsedgrid = FileSEDGrid(modelsedgrid_filename.format(project=datamodel.project))  
@@ -107,7 +111,8 @@ if __name__ == '__main__':
             noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
 
             # trim the model sedgrid
-            trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+            trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname,
+                                  noisemodel_trimname, sigma_fac=3.)
         else:
             print('trimming requested - but trimmed sed and noisemodel files already exist')
             print('using existing trimmed files')

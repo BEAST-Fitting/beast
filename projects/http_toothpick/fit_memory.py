@@ -121,13 +121,15 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
     N/A
     """
 
-    # code needed if hdf5 is corrupted - usually due to job ending in the middle of the writing of the lnp file
+    # code needed if hdf5 is corrupted - usually due to job ending in the middle of the writing of
+    #     the lnp file
     #  should be rare (not originally as the lnp file was open and written to continuously - 
     #                  should be fixed with the new code where the lnp is saved every n stars instead)
     try:
         outfile = tables.openFile(lnp_outname, 'a')
     except Exception, error:
-        print('partial run lnp file is corrupted - saving new lnp values in ' + string.replace(lnp_outname,'lnp','lnp_partial'))
+        print('partial run lnp file is corrupted - saving new lnp values in ' +
+              string.replace(lnp_outname,'lnp','lnp_partial'))
         outfile = tables.openFile(string.replace(lnp_outname,'lnp','lnp_partial'), 'a')
             
     for lnp_val in save_lnp_vals:
@@ -144,8 +146,10 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
             outfile.createArray(star_group, 'chi2', lnp_val[3])
     outfile.close()
 
-def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], gridbackend='cache', max_nbins=50,
-                 stats_outname=None, pdf1d_outname=None, lnp_outname=None, lnp_npts=None, save_every_npts=None,
+def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], gridbackend='cache',
+                 max_nbins=50,
+                 stats_outname=None, pdf1d_outname=None, lnp_outname=None, lnp_npts=None,
+                 save_every_npts=None,
                  threshold=-40, resume=False):
     """ Fit each star, calculate various fit statistics, and output them to files
       (done in one function for speed and ability to resume partially completed runs)
@@ -287,7 +291,8 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
 
         indxs, = np.where(stats_table['Pmax'] != 0.0)
         start_pos = max(indxs) + 1
-        print('resuming run with start indx = ' + str(start_pos) + ' out of ' + str(len(stats_table['Pmax'])))
+        print('resuming run with start indx = ' + str(start_pos) + ' out of ' + \
+              str(len(stats_table['Pmax'])))
 
         # read in the already computed 1D PDFs
         if pdf1d_outname != None:
@@ -318,11 +323,15 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
     else:
         _seds = g0.seds
 
-    for e, obj in Pbar(len(obs)-start_pos, desc='Calculating Lnp/Stats').iterover(islice(obs.enumobs(),start_pos,None)):
+    for e, obj in Pbar(len(obs)-start_pos,
+                       desc='Calculating Lnp/Stats').iterover(islice(obs.enumobs(),start_pos,None)):
         # calculate the full nD posterior
         (sed) = obj
-        (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=None, lnp_threshold=abs(threshold) )
-            
+        print(sed)
+        cur_mask = (sed != 0)
+        print(cur_mask)
+        (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=cur_mask,
+                                        lnp_threshold=abs(threshold) )
         lnp = lnp[g0_indxs]
         chi2 = chi2[g0_indxs]
         #lnp = numexpr.evaluate('lnp + g0_weights')
@@ -369,6 +378,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
         chi2_indx[e] = g0_indxs[indx[chi2s.argmin()]]
         lnp_vals[e] = lnps.max()
         lnp_indx[e] = best_full_indx
+        print(chi2_vals[e],lnp_vals[e])
 
         for k, qname in enumerate(qnames):
             q = g0[qname]
