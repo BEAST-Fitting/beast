@@ -47,7 +47,8 @@ if __name__ == '__main__':
         modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))  
             
         # generate the AST noise model  
-        noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile, modelsedgrid, datamodel.absflux_a_matrix)  
+        noisemodel.make_toothpick_noise_model(datamodel.noisefile, datamodel.astfile,
+                                              modelsedgrid, datamodel.absflux_a_matrix)  
 
     if args.trim:
         print('Trimming the model and noise grids')

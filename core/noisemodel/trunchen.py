@@ -282,12 +282,13 @@ class MultiFilterASTs(NoiseModel):
             it = range(M)
 
         for i in it:
+            cur_flux = flux[i,:]/self.vega_flux
 
             # find the n nearest neighbors to the model SED
-            result = self._kdtree.query(np.log10(flux[i,:]),10)
+            result = self._kdtree.query(np.log10(cur_flux),10)
             print(i)
-            print(flux[i,:])
-            print(np.log10(flux[i,:]))
+            print(cur_flux)
+            print(np.log10(cur_flux))
             print(result)
 
             #result = self._kdtree.query_ball_point(np.log10(flux[i,:]),0.5)
