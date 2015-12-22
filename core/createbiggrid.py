@@ -1,5 +1,6 @@
 """
-Create extinguished grid more segmented dealing with large grids with enough memory
+Create extinguished grid more segmented dealing with large grids with enough
+memory
 
 All functions are now transformed into generators. As a result, any function
 allows computation of a grid in an arbitrary number of chunks. This offers the
@@ -28,12 +29,16 @@ from ..external.eztables import Table
 from ..tools.pbar import Pbar
 from ..tools.helpers import generator
 from ..tools import helpers
-#from .priors import KDTreeDensityEstimator
 
+from noisemodel import absflux_covmat
 
 @generator
-def gen_spectral_grid_from_stellib_given_points(osl, pts, bounds=dict(dlogT=0.1, dlogg=0.3), chunksize=0):
-    """ generator that reinterpolates a given stellar spectral library on to an Isochrone grid
+def gen_spectral_grid_from_stellib_given_points(osl, pts,
+                                                bounds=dict(dlogT=0.1,
+                                                            dlogg=0.3),
+                                                chunksize=0):
+    """ generator that reinterpolates a given stellar spectral library on to
+    an Isochrone grid
     it will iterate over a list of `pts` points and generate `chunksize` models
     until all the list of points is processed.
 
@@ -60,7 +65,8 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts, bounds=dict(dlogT=0.1,
     Returns
     -------
     g: SpectralGrid
-        Spectral grid (in memory) containing the requested list of stars and associated spectra
+        Spectral grid (in memory) containing the requested list of stars
+        and associated spectra
     """
 
     helpers.type_checker('osl', osl, stellib.Stellib)
@@ -73,16 +79,19 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts, bounds=dict(dlogT=0.1,
             # slices of the iterator
             for chunk_slice in helpers.chunks(range(len(pts)), chunksize):
                 chunk_pts = pts[chunk_slice]
-                yield osl.gen_spectral_grid_from_given_points(chunk_pts, bounds=bounds)
+                yield osl.gen_spectral_grid_from_given_points(chunk_pts,
+                                                              bounds=bounds)
         except Exception as e:
             #chunks may not work on this as pts is most likely a Table
             print(e)
             for chunk_pts in helpers.chunks(pts, chunksize):
-                yield osl.gen_spectral_grid_from_given_points(chunk_pts, bounds=bounds)
+                yield osl.gen_spectral_grid_from_given_points(chunk_pts,
+                                                              bounds=bounds)
 
 
 @helpers.deprecated
-def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,),
+def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
+                                   Z=(0.02,),
                                    bounds=dict(dlogT=0.1, dlogg=0.3)):
     """ Reinterpolate a given stellar spectral library on to an Isochrone grid
 
@@ -111,7 +120,8 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
     Returns
     -------
     g: SpectralGrid
-        Spectral grid (in memory) containing the requested list of stars and associated spectra
+        Spectral grid (in memory) containing the requested list of stars
+        and associated spectra
     """
     helpers.type_checker('osl', osl, stellib.Stellib)
     helpers.type_checker('oiso', oiso, isochrone.Isochrone)
@@ -137,7 +147,8 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
 
     # prepare outputs
     # ---------------
-    # Grid properties will be stored into a dictionary format until saved on disk
+    # Grid properties will be stored into a dictionary format until saved
+    #    on disk
     # SEDs are kept into a ndarray
 
     _grid  = {}
@@ -157,7 +168,8 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
     kdata = 0
     rsun = ezunits.unit['Rsun'].to('m').magnitude  # 6.955e8 m
 
-    for k, (_ak, _Zk) in Pbar(niter, desc='spectral grid').iterover(enumerate(it)):
+    for k, (_ak, _Zk) in \
+            Pbar(niter, desc='spectral grid').iterover(enumerate(it)):
 
         # Step 1: get isochrone points
         # ============================
@@ -170,7 +182,8 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
 
         # Step 2: Avoid Extrapolation
         # ===========================
-        # check boundary conditions, keep the data but do not compute the sed if not needed
+        # check boundary conditions, keep the data but do not compute the
+        #    sed if not needed
         bound_cond = osl.points_inside(zip(r['logg'], r['logT']))
         _grid['keep'][start_idx: end_idx] = bound_cond[:]
 
@@ -180,7 +193,8 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
         # Compute radii of each point using log(T) and log(L)
         # get the isochrone of (age, Z) sampled at given masses
         radii = osl.get_radius(r['logL'], r['logT'])
-        weights = 4. * np.pi * (radii * 1e2) ** 2  # denorm models are in cm**-2 (4*pi*rad)
+        # denorm models are in cm**-2 (4*pi*rad)
+        weights = 4. * np.pi * (radii * 1e2) ** 2  
         _grid['radius'][start_idx: end_idx] = radii / rsun
 
         # Step 4: Interpolation
@@ -188,7 +202,8 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
         # Do the actual interpolation, avoiding exptrapolations
         for mk in range(r.nrows):
             if bound_cond[mk]:
-                s = np.array( osl.interp(r['logT'][mk], r['logg'][mk], _Zk, 0.) ).T
+                s = np.array( osl.interp(r['logT'][mk], r['logg'][mk],
+                                         _Zk, 0.) ).T
                 specs[kdata, :] = osl.genSpectrum(s) * weights[mk]
             else:
                 specs[kdata, :] = np.zeros(len(lamb), dtype=float )
@@ -215,7 +230,8 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,), Z=(0.02,
               'comment': 'radius in Rsun',
               'name': 'Reinterpolated stellib grid'}
 
-    g = SpectralGrid(lamb, seds=specs, grid=Table(_grid), header=header, backend='memory')
+    g = SpectralGrid(lamb, seds=specs, grid=Table(_grid), header=header,
+                     backend='memory')
 
     return g
 
@@ -252,7 +268,8 @@ def _make_dust_fbump_valid_points_generator(it, min_Rv, max_Rv):
     npts = 0
 
     def is_valid(ak, rk, fk):
-        return (fk / max_Rv + (1. - fk) / 2.74 <= 1. / rk <= fk * 1. / min_Rv + (1. - fk) / 2.74)
+        return (fk / max_Rv + (1. - fk) / 2.74 <= 1. / rk <= fk * 1. /
+                min_Rv + (1. - fk) / 2.74)
 
     # explore the full list once
     # not very time consuming
@@ -261,7 +278,8 @@ def _make_dust_fbump_valid_points_generator(it, min_Rv, max_Rv):
             npts += 1
 
     #make the iterator
-    pts = ( (float(ak), float(rk), float(fk)) for ak, rk, fk in it if is_valid(ak, rk, fk) )
+    pts = ( (float(ak), float(rk), float(fk)) for ak, rk, fk in it if
+            is_valid(ak, rk, fk) )
 
     return npts, pts
 
@@ -281,10 +299,11 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
     spec_grid: string or grid.SpectralGrid
         if string:
             spec_grid is the filename to the grid file with stellar spectra
-            the backend to load this grid will be the minimal invasive: 'HDF' if
-            possible, 'cache' otherwise.
+            the backend to load this grid will be the minimal invasive: 'HDF'
+            if possible, 'cache' otherwise.
 
-        if not a string, expecting the corresponding SpectralGrid instance (backend already setup)
+        if not a string, expecting the corresponding SpectralGrid instance
+           (backend already setup)
 
     filter_names: list
         list of filter names according to the filter lib
@@ -297,7 +316,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
 
     fbumps: sequence (optional)
         f_bump values to iterate over
-        f_bump can be omitted if the extinction Law does not use it or allow fixed values
+        f_bump can be omitted if the extinction Law does not use it or allow
+            fixed values
 
     chunksize: int, optional (default=0)
         number of extinction model variations to generate at each cycle.
@@ -306,7 +326,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
 
     add_spectral_properties_kwargs: dict
         keyword arguments to call :func:`add_spectral_properties` at each
-        iteration to add model properties from the spectra into the grid property table
+        iteration to add model properties from the spectra into the grid
+        property table
 
     returns
     -------
@@ -349,7 +370,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
 
         # Pet the user
         print("""number of initially requested points = {0:d}
-              number of valid points = {1:d} (based on restrictions in R(V) versus f_A plane)
+              number of valid points = {1:d} (based on restrictions in R(V)
+                 versus f_A plane)
               """.format(niter, npts))
 
         if npts == 0:
@@ -367,13 +389,15 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
     if chunksize <= 0:
         print('Generating a final grid of {0:d} points'.format(N))
     else:
-        print('Generating a final grid of {0:d} points in {1:d} pieces'.format(N, int(float(N0) / chunksize + 1.)))
+        print('Generating a final grid of {0:d} points in {1:d}' + \
+              ' pieces'.format(N, int(float(N0) / chunksize + 1.)))
 
     if chunksize <= 0:
         chunksize = npts
 
     if add_spectral_properties_kwargs is not None:
-        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_wd'
+        nameformat = add_spectral_properties_kwargs.pop('nameformat',
+                                                        '{0:s}') + '_wd'
 
     for chunk_pts in helpers.chunks(pts, chunksize):
         # iter over chunks of models
@@ -393,14 +417,18 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
 
         _seds = np.empty( (N, len(filter_names)), dtype=float)
 
-        for count, pt in Pbar(npts, desc='SED grid').iterover(enumerate(chunk_pts)):
+        for count, pt in \
+                Pbar(npts, desc='SED grid').iterover(enumerate(chunk_pts)):
 
             if with_fb:
                 Av, Rv, f_bump = pt
                 Rv_MW = extLaw.get_Rv_A(Rv, f_bump)
-                r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_bump, inplace=False)
+                r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_bump,
+                                          inplace=False)
+                absflux_covmats = calc_absflux_cov_matrices(r, filter_names)
                 if add_spectral_properties_kwargs is not None:
-                    r = add_spectral_properties(r, nameformat=nameformat, **add_spectral_properties_kwargs)
+                    r = add_spectral_properties(r, nameformat=nameformat,
+                                            **add_spectral_properties_kwargs)
                 temp_results = r.getSEDs(filter_names)
                 # adding the dust parameters to the models
                 cols['Av'][N0 * count: N0 * (count + 1)] = Av
@@ -410,8 +438,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
             else:
                 Av, Rv = pt
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
+                
                 if add_spectral_properties_kwargs is not None:
-                    r = add_spectral_properties(r, nameformat=nameformat, **add_spectral_properties_kwargs)
+                    r = add_spectral_properties(r, nameformat=nameformat,
+                                            **add_spectral_properties_kwargs)
                 temp_results = r.getSEDs(filter_names)
                 # adding the dust parameters to the models
                 cols['Av'][N0 * count: N0 * (count + 1)] = Av
@@ -420,7 +450,9 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
             # get new attributes if exist
             for key in temp_results.grid.keys():
                 if key not in keys:
-                    cols.setdefault(key, np.empty(N, dtype=float))[N0 * count: N0 * (count + 1)] = temp_results.grid[key]
+                    cols.setdefault(key, np.empty(N, dtype=float))\
+                                         [N0 * count: N0 * (count + 1)] = \
+                                temp_results.grid[key]
 
             # assign the extinguished SEDs to the output object
             _seds[N0 * count: N0 * (count + 1)] = temp_results.seds[:]
@@ -432,10 +464,6 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
             if count == 0:
                 cols['lamb'] = temp_results.lamb[:]
 
-        #Adding Density
-        #tempgrid = np.array([ cols[k] for k in 'logA M_ini M_act Av Rv f_bump Z'.split() if k in cols ]).T
-        #tr = KDTreeDensityEstimator(tempgrid)
-        #cols['Density'] = tr(tempgrid)
         _lamb = cols.pop('lamb')
 
         # free the memory of temp_results
@@ -448,7 +476,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
         yield g
 
 
-def add_spectral_properties(specgrid, filternames=None, filters=None, callables=None, nameformat=None):
+def add_spectral_properties(specgrid, filternames=None, filters=None,
+                            callables=None, nameformat=None):
     """ Addon spectral calculations to spectral grids to extract in the fitting
     routines
 
@@ -491,7 +520,8 @@ def add_spectral_properties(specgrid, filternames=None, filters=None, callables=
             logtempseds[indxs] = -100.
 
         for i, fk in enumerate(filternames):
-            specgrid.grid.addCol('log'+nameformat.format(fk), logtempseds[:, i])
+            specgrid.grid.addCol('log'+nameformat.format(fk),
+                                 logtempseds[:, i])
         del temp
 
     if filters is not None:
@@ -507,7 +537,8 @@ def add_spectral_properties(specgrid, filternames=None, filters=None, callables=
             logtempseds[indxs] = -100.
                     
         for i, fk in enumerate(filters):
-            specgrid.grid.addCol('log'+nameformat.format(fk.name), logtempseds[:, i])
+            specgrid.grid.addCol('log'+nameformat.format(fk.name),
+                                 logtempseds[:, i])
         del temp
 
     if callables is not None:
@@ -516,6 +547,27 @@ def add_spectral_properties(specgrid, filternames=None, filters=None, callables=
 
     return specgrid
 
+def calc_absflux_cov_matrices(specgrid, filter_names):
+    """ Calculate the absflux covariance matrices for each model
+    Must be done on the full spectrum of each model to account for
+    the changing combined spectral response due to the model SED and
+    the filter response curve.
+
+    Parameters
+    ----------
+    specgrid: SpectralGrid instance
+        instance of the spectral grid
+
+    Returns
+    -------
+    absflux_covmat : 
+    """
+    seds = specgrid.seds
+    print(seds.shape)
+
+    results = absflux_covmat.hst_frac_matrix(filter_names,
+                                             spectrum=(specgrid.lamb[:], seds))
+    exit()
 
 #=================== TESTUNITS ============================
 

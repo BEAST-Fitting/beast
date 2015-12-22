@@ -49,6 +49,8 @@ noisefile = project + '/' + project + '_noisemodel.hd5'
 # absflux calibration covariance matrix for PHAT specific filters
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
+print(np.sqrt(absflux_a_matrix))
+
 # distance to M31
 distanceModulus = 24.47 * unit['mag']
 
