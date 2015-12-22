@@ -132,12 +132,14 @@ class ModelGrid(object):
 
     def __repr__(self):
         txt = '{} ({})'
-        return txt.format(object.__repr__(self), pretty_size_print(self.nbytes))
+        return txt.format(object.__repr__(self),
+                          pretty_size_print(self.nbytes))
 
     @property
     def nbytes(self):
         """ return the number of bytes of the object """
-        n = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in self.__dict__.values())
+        n = sum(k.nbytes if hasattr(k, 'nbytes') else \
+                sys.getsizeof(k) for k in self.__dict__.values())
         return n
 
     def keys(self):
@@ -180,14 +182,16 @@ class SpectralGrid(ModelGrid):
     """ Generate a grid that contains spectra.
     It provides an access to integrated photometry function getSEDs """
 
-    def getSEDs(self, filter_names, absFlux=True, extLaw=None, inplace=False, **kwargs):
+    def getSEDs(self, filter_names, absFlux=True, extLaw=None, inplace=False,
+                **kwargs):
         """
         Extract integrated fluxes through filters
 
         Parameters
         ----------
         filter_names: list
-            list of filter names according to the filter lib or filter instances
+            list of filter names according to the filter lib or filter
+            instances
             (no mixing between name and instances)
 
         absFlux:bool
@@ -207,10 +211,12 @@ class SpectralGrid(ModelGrid):
             grid of SEDs
         """
         if type(filter_names[0]) == str:
-            flist = phot.load_filters(filter_names, interp=True, lamb=self.lamb)
+            flist = phot.load_filters(filter_names, interp=True,
+                                      lamb=self.lamb)
             _fnames = filter_names
         else:
-            flist = phot.load_Integrationfilters(filter_names, interp=True, lamb=self.lamb)
+            flist = phot.load_Integrationfilters(filter_names, interp=True,
+                                                 lamb=self.lamb)
             _fnames = [ fk.name for fk in filter_names ]
         if extLaw is not None:
             if not inplace:
@@ -219,7 +225,8 @@ class SpectralGrid(ModelGrid):
             else:
                 self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
                 r = self
-                lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
+                lamb, seds, grid = phot.extractSEDs(self, flist,
+                                                    absFlux=absFlux)
         else:
             r = self
             lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
@@ -247,7 +254,8 @@ class SpectralGrid(ModelGrid):
             if not inplace, returns a new ModelGrid instance. Otherwise returns
             nothing
         """
-        assert( isinstance(extLaw, extinction.ExtinctionLaw)), 'Expecting ExtinctionLaw object got %s' % type(extLaw)
+        assert( isinstance(extLaw, extinction.ExtinctionLaw)), \
+                'Expecting ExtinctionLaw object got %s' % type(extLaw)
         extCurve = np.exp(-1. * extLaw.function(self.lamb[:], **kwargs))
         if not inplace:
             g = self.copy()

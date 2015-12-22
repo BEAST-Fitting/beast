@@ -2,7 +2,8 @@
 Grid Pipeline
 =============
 
-Everything needed to generate a grid in a few easy lines (see unittest function)
+Everything needed to generate a grid in a few easy lines
+   (see unittest function)
 
 `ezpipe` is used, a pipeline package allowing a clean the syntax and
 flexibility. In particular it simplifies the management of
@@ -14,13 +15,15 @@ the pipeline is sequence of tasks
 
 for example:
     
-tasks = ( t_isochrones(**iso_kwargs),  t_spectra(**spec_kwargs), t_seds(filters, **seds_kwargs) )
+tasks = ( t_isochrones(**iso_kwargs),  t_spectra(**spec_kwargs),
+  t_seds(filters, **seds_kwargs) )
 
 models = Pipeline('make_models', tasks)
 models(project)
 
 The pipeline is equivalent to:
-grid = project | t_isochrones(**iso_kwargs) | t_spectra(**spec_kwargs) | t_seds(filters, **seds_kwargs)
+grid = project | t_isochrones(**iso_kwargs) | t_spectra(**spec_kwargs) |
+       t_seds(filters, **seds_kwargs)
 """
 
 # system imports
@@ -44,14 +47,16 @@ from ..tools.helpers import val_in_unit
 __all__ = [ 't_isochrones',  't_spectra', 't_priors', 't_seds' ]
 
 
-def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019], trackVersion=2.3):
+def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
+                   z=[0.019], trackVersion=2.3):
     """ Generate a proper table directly from the PADOVA website
 
     Parameters
     ----------
 
     outname: str
-        file into which save the table of isochrones (any format eztables can handle)
+        file into which save the table of isochrones (any format
+        eztables can handle)
 
     logtmin: float
         log-age min
@@ -68,11 +73,14 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019], t
     Returns
     -------
     outname: str
-        file into which save the table of isochrones (any format eztables can handle)
+        file into which save the table of isochrones (any format eztables
+        can handle)
     """
     oiso = isochrone.PadovaWeb()
-    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z, trackVersion)
-    t.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
+    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax),
+                               dlogt, z, trackVersion)
+    t.header['NAME'] = '{0} Isochrones'.\
+                       format('_'.join(outname.split('_')[:-1]))
 
     # Isochrone filtering, check that no AGB stars are removed
     if trackVersion < 2.7:  
@@ -121,7 +129,8 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
     """
     osl = osl or stellib.Kurucz()
 
-    #filter extrapolations of the grid with given sensitivities in logg and logT
+    #filter extrapolations of the grid with given sensitivities in logg
+    #  and logT
     if 'dlogT' not in bounds:
         bounds['dlogT'] = 0.1
     if 'dlogg' not in bounds:
@@ -129,31 +138,39 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
 
     #make the spectral grid
     print('Make spectra')
-    g = creategrid.gen_spectral_grid_from_stellib_given_points(osl, oiso.data, bounds=bounds)
+    g = creategrid.gen_spectral_grid_from_stellib_given_points(osl,
+                                                               oiso.data,
+                                                               bounds=bounds)
 
     # get the distance
     if distance is not None:
         _distance = val_in_unit('distance', distance, 'pc').magnitude
 
-    print('Adding spectral properties:', add_spectral_properties_kwargs is not None)
+    print('Adding spectral properties:', add_spectral_properties_kwargs
+          is not None)
     if add_spectral_properties_kwargs is not None:
-        nameformat = add_spectral_properties_kwargs.pop('nameformat', '{0:s}') + '_nd'
+        nameformat = add_spectral_properties_kwargs.\
+                     pop('nameformat', '{0:s}') + '_nd'
 
     #write to disk
     # and apply the distance to the particular galaxy of interest
-    # seds already at 10 pc, need multiplcation by the square of the ratio to this distance
+    # seds already at 10 pc, need multiplcation by the square of the ratio
+    # to this distance
     if hasattr(g, 'writeHDF'):
         if distance is not None:
             g.seds = g.seds / (0.1 * _distance) ** 2
         if add_spectral_properties_kwargs is not None:
-            g = creategrid.add_spectral_properties(g, nameformat=nameformat, **add_spectral_properties_kwargs)
+            g = creategrid.add_spectral_properties(g, nameformat=nameformat,
+                                            **add_spectral_properties_kwargs)
         g.writeHDF(outname)
     else:
         for gk in g:
             if distance is not None:
                 gk.seds = gk.seds / (0.1 * _distance) ** 2
             if add_spectral_properties_kwargs is not None:
-                gk = creategrid.add_spectral_properties(gk, nameformat=nameformat, **add_spectral_properties_kwargs)
+                gk = creategrid.add_spectral_properties(gk,
+                                            nameformat=nameformat,
+                                            **add_spectral_properties_kwargs)
             gk.writeHDF(outname, append=True)
 
     return outname
@@ -165,7 +182,8 @@ def make_priors(outname, specgrid, **kwargs):
     ----------
 
     outname: str
-        file into which save the final SED grid (any format grid.SpectralGrid handles)
+        file into which save the final SED grid (any format
+        grid.SpectralGrid handles)
 
     specgrid: grid.SpectralGrid object
         spectral grid to transform
@@ -200,7 +218,8 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
     ----------
 
     outname: str
-        file into which save the final SED grid (any format grid.SpectralGrid handles)
+        file into which save the final SED grid (any format
+        grid.SpectralGrid handles)
 
     specgrid: grid.SpectralGrid object
         spectral grid to transform
@@ -242,9 +261,13 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
 
     if fbump is not None:
         fbumps = np.arange(fbump[0], fbump[1] + 0.5 * fbump[2], fbump[2])
-        g = creategrid.make_extinguished_grid(specgrid, filters, extLaw, avs, rvs, fbumps, add_spectral_properties_kwargs=add_spectral_properties_kwargs)
+        g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
+                avs, rvs, fbumps,
+                add_spectral_properties_kwargs=add_spectral_properties_kwargs)
     else:
-        g = creategrid.make_extinguished_grid(specgrid, filters, extLaw, avs, rvs, add_spectral_properties_kwargs=add_spectral_properties_kwargs)
+        g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
+                avs, rvs,
+                add_spectral_properties_kwargs=add_spectral_properties_kwargs)
 
     #write to disk
     if hasattr(g, 'writeHDF'):
@@ -261,7 +284,8 @@ def trim_models(outname, sedgrid, **kwargs):
     ----------
 
     outname: str
-        file into which save the final SED grid (any format grid.SpectralGrid handles)
+        file into which save the final SED grid (any format
+        grid.SpectralGrid handles)
 
     sedgrid: grid.SpectralGrid object
         sedgrid to transform
@@ -312,7 +336,8 @@ def t_isochrones(project, **iso_kwargs):
         Isochrone object instance
     """
     iso_fname = '{0}_iso.csv'.format(project)
-    iso_source = RequiredFile(iso_fname, make_iso_table, iso_fname, **iso_kwargs)
+    iso_source = RequiredFile(iso_fname, make_iso_table, iso_fname,
+                              **iso_kwargs)
     oiso = ezIsoch(iso_source())
     #clean header
     oiso.data.header = {'NAME': '{0} isochrones'.format(project)}
@@ -344,7 +369,8 @@ def t_spectra(project, oiso, **spec_kwargs):
         spectral grid instance
     """
     spec_fname = '{0}_spec.grid.hd5'.format(project)
-    spec_source = RequiredFile(spec_fname, make_spectra, spec_fname, oiso, **spec_kwargs)
+    spec_source = RequiredFile(spec_fname, make_spectra, spec_fname,
+                               oiso, **spec_kwargs)
     g = grid.FileSpectralGrid(spec_source(), backend='memory')
     
     return project, g
@@ -377,7 +403,8 @@ def t_priors(project, specgrid, **priors_kwargs):
         spectral grid instance
     """
     priors_fname = '{0}_spec_w_priors.grid.hd5'.format(project)
-    priors_source = RequiredFile(priors_fname, make_priors, priors_fname, specgrid, **priors_kwargs)
+    priors_source = RequiredFile(priors_fname, make_priors, priors_fname,
+                                 specgrid, **priors_kwargs)
     g = grid.FileSpectralGrid(priors_source(), backend='memory')
     
     return project, g
@@ -411,7 +438,8 @@ def t_seds(project, specgrid, filters, **seds_kwargs):
     """
 
     seds_fname = '{0}_seds.grid.hd5'.format(project)
-    seds_source = RequiredFile(seds_fname, make_seds, seds_fname, specgrid, filters, **seds_kwargs)
+    seds_source = RequiredFile(seds_fname, make_seds, seds_fname,
+                               specgrid, filters, **seds_kwargs)
     g = grid.FileSEDGrid(seds_source(), backend='hdf')
     return project, g
 
@@ -450,7 +478,8 @@ def unittest():
 
     # ======================= Pipeline ==============================
     # actual pipeline making models
-    tasks = ( t_isochrones(**iso_kwargs),  t_spectra(**spec_kwargs), t_seds(filters, **seds_kwargs) )
+    tasks = ( t_isochrones(**iso_kwargs),  t_spectra(**spec_kwargs),
+              t_seds(filters, **seds_kwargs) )
     models = Pipeline('make_models', tasks)
 
     # run

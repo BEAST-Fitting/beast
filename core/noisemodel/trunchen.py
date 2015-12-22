@@ -188,9 +188,9 @@ class MultiFilterASTs(NoiseModel):
 
         # setup the output
         n_filters = len(filters)
-        all_covs = np.empty((n_models,n_filters,n_filters),dtype=np.float32)
+        all_covs = np.empty((n_models,n_filters,n_filters),dtype=np.float64)
         all_corrs = np.empty((n_models,n_filters,n_filters),dtype=np.float32)
-        all_biases = np.empty((n_models,n_filters),dtype=np.float32)
+        all_biases = np.empty((n_models,n_filters),dtype=np.float64)
         all_imags = np.empty((n_models,n_filters),dtype=np.float32)
 
         # loop over the unique set of models and
@@ -202,8 +202,6 @@ class MultiFilterASTs(NoiseModel):
         else:
             it = range(n_models)
         for i in it:
-            #print('working on ', i, end='\r')
-
             # find all the ASTs for this model
             indxs, = np.where(self.data[filtername] == uvals[i])
             n_asts = len(indxs)
@@ -251,7 +249,7 @@ class MultiFilterASTs(NoiseModel):
 
     def __call__(self, sedgrid, progress=True):
         """
-        Interpolate the results of the ASTs on a model grid
+        Interpolate the results of the ASTs on the model grid
 
         Parameters
         ----------
@@ -265,41 +263,72 @@ class MultiFilterASTs(NoiseModel):
             if set, display a progress bar
         """
         flux = sedgrid.seds
-        N, M = flux.shape
+        n_models, n_filters = flux.shape
+        n_offdiag = (((n_filters**2)-n_filters)/2)
 
-        if M != len(self.filters):
+        if n_filters != len(self.filters):
             raise AttributeError('the grid of models does not seem to' + 
                                  'be defined with the same number of filters') 
 
-        #bias = np.empty((N, M), dtype=float)
-        #sigma = np.empty((N, M), dtype=float)
-        #compl = np.empty((N, M), dtype=float)
+        bias = np.empty((n_models, n_filters), dtype=np.float64)
+        sigmas = np.empty((n_models, n_filters), dtype=np.float64)
+        icov_diag = np.empty((n_models, n_filters), dtype=np.float64)
+        icov_offdiag = np.empty((n_models, n_offdiag), dtype=np.float64)
+        q_norm = np.empty((n_models), dtype=np.float64)
+        compl = np.empty((n_models, n_filters), dtype=float)
 
-        M = 10
+        n_models = 10
         if progress is True:
-            it = Pbar(desc='Evaluating model').iterover(range(M))
+            it = Pbar(desc='Evaluating model').iterover(range(n_models))
         else:
-            it = range(M)
+            it = range(n_models)
 
         for i in it:
+            # AST results are in vega normalized fluxes
             cur_flux = flux[i,:]/self.vega_flux
 
-            # find the n nearest neighbors to the model SED
+            # find the 10 nearest neighbors to the model SED
             result = self._kdtree.query(np.log10(cur_flux),10)
-            print(i)
-            print(cur_flux)
-            print(np.log10(cur_flux))
-            print(result)
 
-            #result = self._kdtree.query_ball_point(np.log10(flux[i,:]),0.5)
-            #print(i)
-            #print(flux[i,:])
-            #print(result)
+            dist = result[0]
+            indxs = result[1]
 
-            # compute the distance to these nearest neighbors
-            dist2 = np.sum(np.square(np.log10(flux[i,:]) -
-                                     np.log10(self._input_fluxes[result,:])),
-                           axis=2)
+            # compute the interpolated covariance matrix
+            #    use the distances to generate weights for the sum
+            dist_weights = 1.0/dist
+            dist_weights /= np.sum(dist_weights)
 
-            print(dist2)
-            print(np.sqrt(dist2))
+            cur_cov_matrix = np.average(self._cov_matrices[indxs,:,:],
+                                        axis=0,
+                                        weights=dist_weights)
+
+            # save the straight uncertainties
+            sigmas[i,:] = np.sqrt(np.diagonal(cur_cov_matrix))
+
+            # invert covariance matrix
+            inv_cur_cov_matrix = np.linalg.inv(cur_cov_matrix)
+
+            # save the diagnonal and packed version of non-diagonal terms
+            m = 0
+            icov_diag[i,n_filters-1] = inv_cur_cov_matrix[n_filters-1,
+                                                          n_filters-1]
+            for k in range(n_filters-1):
+                icov_diag[i,k] = inv_cur_cov_matrix[k,k]
+                for l in range(k+1,n_filters):
+                    icov_offdiag[i,m] = inv_cur_cov_matrix[k,l]
+                    m += 1
+
+            # save the log of the determinat for normalization
+            #   the ln(det) is calculated and saved as this is what will
+            #   be used in the actual calculation
+            #       norm = 1.0/sqrt(Q)
+            det = np.linalg.slogdet(cur_cov_matrix)
+            print(det)
+            if det[0] <= 0:
+                print('something bad happened')
+                print('determinant of covarinace matrix is zero or negative')
+                print(det)
+            q_norm[i] = -0.5*det[1]
+
+        return (bias, sigma, compl, q_norm, icov_diag, icov_offdiag)
+        

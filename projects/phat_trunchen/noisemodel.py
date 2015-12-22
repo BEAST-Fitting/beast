@@ -53,7 +53,14 @@ def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid,
     model.process_asts(basefilters)
     # evaluate the noise model for all the models in sedgrid
     results = model(sedgrid)
-    exit()
+
+    # unpack the results
+    bias = results[0]
+    sigma = results[1]
+    compl = results[2]
+    q_norm = results[3]
+    icov_diag = results[4]
+    icov_offdiag = results[5]
 
     # absolute flux calibration uncertainties
     #  currently we are ignoring the off-diagnonal terms

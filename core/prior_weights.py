@@ -31,7 +31,8 @@ def compute_bin_boundaries(tab):
     Note
     ----
     The bin boundaries are defined as the midpoint between each value in tab.
-    At the two edges, 1/2 of the bin width is subtractted/added to the min/max of tab.
+    At the two edges, 1/2 of the bin width is subtractted/added to the
+    min/max of tab.
     """
     temp = tab[1:]-np.diff(tab)/2.
     tab2 = np.empty(len(tab)+1)
@@ -81,7 +82,8 @@ def imf_salpeter(x):
 
 # compute the age weights for a constant SFR in linear age
 def compute_age_weights(logages):
-    """ Computes the age weights assuming a constant star formation rate (linear age)
+    """ Computes the age weights assuming a constant star formation rate
+    (linear age)
 
     Keywords
     --------
@@ -91,16 +93,21 @@ def compute_age_weights(logages):
     -------
     Unnormalized total masses at each age assuming a constant SFR.
     """
-    aindxs = np.argsort(logages)   # ages need to be monotonically increasing
-    logages2 = compute_bin_boundaries(logages[aindxs])    # Computes the bin boundaries in log
+    # ages need to be monotonically increasing
+    aindxs = np.argsort(logages)   
+    # Computes the bin boundaries in log
+    logages2 = compute_bin_boundaries(logages[aindxs])    
     age_weights = np.full(len(aindxs),0.0)
-    age_weights[aindxs] = np.diff(10**(logages2))           # Returns the age weight as a numpy array
-    return age_weights    # return in the order that logages was passed
+    # Returns the age weight as a numpy array
+    age_weights[aindxs] = np.diff(10**(logages2))           
+    # return in the order that logages was passed
+    return age_weights    
 
 # compute the mass weights at a constant age
 # uses an assumed IMF to generate the weights
-#  IMF norm is the integral of the assumed IMF over the full possible mass range
-#  must be precomputed as this information is not usual available for a specific isochrone age
+#  IMF norm is the integral of the assumed IMF over the full possible mass
+#  range must be precomputed as this information is not usual available for
+#  a specific isochrone age
 def compute_mass_weights(masses, full_imf_integral):
     """ Computes the mass weights for a Kroupa IMF.
 
@@ -110,8 +117,8 @@ def compute_mass_weights(masses, full_imf_integral):
 
     Returns
     -------
-    Unnormalized integral of the IMF for each input mass.  Integration is done between the
-    bin min/max boundary.
+    Unnormalized integral of the IMF for each input mass.  Integration is
+    done between the bin min/max boundary.
 
     Notes
     -----
