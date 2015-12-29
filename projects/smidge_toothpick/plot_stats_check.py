@@ -76,9 +76,10 @@ if __name__ == '__main__':
     ax[0,0].set_xlim(xedges[-1], xedges[0])
 
     # plot the chisqr values versus Teff
+    indxs, = np.where(stats['chi2min'].quantity > 0.0)
     count_chi2, xedges, yedges, binnum = \
-                binned_statistic_2d(stats['logT_Exp'].quantity,
-                                    np.log10(stats['chi2min'].quantity),
+                binned_statistic_2d(stats['logT_Exp'].quantity[indxs],
+                                    np.log10(stats['chi2min'].quantity[indxs]),
                                     dummy,
                                     'count',
                                     bins=n_bins)

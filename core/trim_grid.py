@@ -17,7 +17,8 @@ from .grid import FileSEDGrid
 from .grid import SpectralGrid
 from ..external.eztables import Table
 
-def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname, noisemodel_outname,
+def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
+                noisemodel_outname,
                 sigma_fac=3., n_detected=4, inFlux=True):
     
     # Store the brigtest and faintest fluxes in each band (for data and asts)

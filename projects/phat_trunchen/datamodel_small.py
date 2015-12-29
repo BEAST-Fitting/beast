@@ -47,9 +47,10 @@ astfile = 'ASTs_6band/12057_M31-B09-F02.gst.fake.fits'
 noisefile = project + '/' + project + '_noisemodel.hd5'
 
 # absflux calibration covariance matrix for PHAT specific filters
-absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
-
-print(np.sqrt(absflux_a_matrix))
+absflux_cov = True
+if not absflux_cov:
+    absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
+    print(np.sqrt(absflux_a_matrix))
 
 # distance to M31
 distanceModulus = 24.47 * unit['mag']
@@ -57,16 +58,16 @@ distanceModulus = 24.47 * unit['mag']
 ### Stellar grid definition
 
 # log10(Age) -- [min,max,step] to generate the isochrones
-logt = [6.0, 10.13, 1.0]
+logt = [6.0, 10.13, 2.0]
 
 #note: Mass is not sampled, use the isochrone def instead.
 
 #Metallicity
-z = [0.03, 0.019, 0.008, 0.004]
-#z = 0.019
+#z = [0.03, 0.019, 0.008, 0.004]
+z = 0.019
 
 # Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
-trackVersion = 2.3
+trackVersion = 2.7
 
 # Stellar Atmospheres library definition
 osl = stellib.Tlusty() + stellib.Kurucz()
@@ -77,13 +78,14 @@ osl = stellib.Tlusty() + stellib.Kurucz()
 extLaw = extinction.RvFbumpLaw()
 
 # A(V): dust column
-avs = [0.0, 10.055, 0.5]
+avs = [0.0, 5.055, 10.0]
 
 # R(V): dust average grain size
-rvs = [2.0,6.0,1.0]
+rvs = [2.0,6.0,5.0]
 
 # fbump (should be f_A): mixture factor between "MW" and "SMCBar" extinction curves
-fbumps = [0.0,1.0, 0.25]
+fbumps = None
+#fbumps = [0.0,1.0, 1.0]
 
 ################
 

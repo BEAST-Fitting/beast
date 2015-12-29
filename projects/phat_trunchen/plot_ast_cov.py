@@ -60,8 +60,8 @@ if __name__ == '__main__':
 
     # calculate the covariance matrix and biases for a single model
     cov_matrix, biases, stddevs, corr_matrix, \
-                diffs, imags = asts._calc_ast_cov(indxs, filters,
-                                                  return_all=True)
+                diffs, ifluxes, compl = asts._calc_ast_cov(indxs, filters,
+                                                           return_all=True)
 
     # make the nice plot
     n_filters = len(filters)
@@ -153,13 +153,14 @@ if __name__ == '__main__':
                              verticalalignment='center',
                              fontsize=1.8*fontsize,
                              transform=ax[i,j].transAxes)
-                ax[i,j].text(0.35,0.35,'% 6.2f' % imags[i] + ' mag',
+                imag = -2.5*np.log10(ifluxes[i]/asts.vega_flux[i])
+                ax[i,j].text(0.35,0.35,'% 6.2f' % imag + ' mag',
                              rotation=-45.0,
                              horizontalalignment='center',
                              verticalalignment='center',
                              fontsize=1.1*fontsize,
                              transform=ax[i,j].transAxes)
-                sn = np.power(10.0,-0.4*imags[i])/stddevs[i]
+                sn = ifluxes[i]/stddevs[i]
                 ax[i,j].text(0.46,0.46,'S/N = ' + '% 6.2f' % sn,
                              rotation=-45.0,
                              horizontalalignment='center',

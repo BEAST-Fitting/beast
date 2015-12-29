@@ -9,14 +9,21 @@ from astropy.io.fits import getdata
 from .. import phot
 from ...config import __ROOT__
 
-def hst_frac_matrix(filters, spectrum=None):
+from ...tools.pbar import Pbar
+
+def hst_frac_matrix(filters, spectrum=None, progress=True):
     """ Uses the Bohlin et al. (2013) provided spectroscopic
     absolute flux covariance matrix to generate the covariance matrix
     for the input set of HST filters.
 
-    Keywords
+    Parameters
     ----------
     filters : filter names
+
+    Keywords
+    --------
+    progress: bool, optional
+            if set, display a progress bar
     spectrum : 2 element tuple
                (wave, sed)
                wave = 1D numpy array with wavelengths in XX units
@@ -51,43 +58,59 @@ def hst_frac_matrix(filters, spectrum=None):
     # setup multiplication images to make it easy to compute the results
     n_filters = len(filters)
     mult_image = np.empty((n_waves,n_waves,n_filters))
+    mult_image_spec = np.empty((n_waves,n_waves,n_filters))
     image_ones = np.full((n_waves,n_waves),1.0)
+    band_ones = np.full((n_filters,n_filters),1.0)
 
+    for i in range(n_filters):
+        mult_image[:,:,i] = image_ones*flist[i].transmit
+        
     # handle single spectrum or many spectra
     if len(spectrum[1].shape) > 1:
         n_models = spectrum[1].shape[0]
         results = np.empty((n_models, n_filters, n_filters))
     else:
         n_models = 1
+        progress = False
 
-    print(n_models)
+    # setup the progress bar
+    if progress is True:
+        it = Pbar(desc='Calculating AbsFlux Covariance ' + \
+                  'Matrices').iterover(range(n_models))
+    else:
+        it = range(n_models)
 
-    for k in range(0,n_models,100):
-        print(k)
+    frac_covar_bands = np.empty((n_filters,n_filters))
+    for k in it:
         if n_models == 1:
             interp_spectrum = np.interp(waves, spectrum[0], spectrum[1])
         else:
             interp_spectrum = np.interp(waves, spectrum[0], spectrum[1][k,:])
 
-        frac_covar_bands = np.empty((n_filters,n_filters))
     
         for i in range(n_filters):
-            mult_image[:,:,i] = image_ones*flist[i].transmit*interp_spectrum
+            mult_image_spec[:,:,i] = mult_image[:,:,i]*interp_spectrum
 
         for i in range(n_filters):
-            for j in range(n_filters):
+            for j in range(i,n_filters):
                 frac_covar_bands[i,j] = np.sum(frac_spec_covar*
-                                               mult_image[:,:,i]*
-                                               mult_image[:,:,j].T)
-                frac_covar_bands[i,j] /= np.sum(mult_image[:,:,i]*
-                                                mult_image[:,:,j].T)
+                                               mult_image_spec[:,:,i]*
+                                               mult_image_spec[:,:,j].T)
+                frac_covar_bands[i,j] /= np.sum(mult_image_spec[:,:,i]*
+                                                mult_image_spec[:,:,j].T)
 
+        # fill in the symmetric terms
+        for i in range(n_filters):
+            for j in range(0,i):
+                frac_covar_bands[i,j] = frac_covar_bands[j,i]
+                
+        # add the term accounting for the uncertainty in the overall
+        #  zero point of the flux scale
+        #  (e.g., uncertainty in Vega at 5555 A)
         frac_covar_bands += 4.9e-5
-        print(np.sqrt(frac_covar_bands))
 
         if n_models > 1:
             results[k,:,:] = frac_covar_bands
-
 
     if n_models == 1:
         return frac_covar_bands

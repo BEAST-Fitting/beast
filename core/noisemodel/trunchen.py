@@ -35,6 +35,7 @@ class MultiFilterASTs(NoiseModel):
         # needs updating
         self._input_fluxes = None
         self._biases = None
+        self._completenesses = None
         self._cov_matrices = None
         self._corr_matrices = None
 
@@ -73,9 +74,9 @@ class MultiFilterASTs(NoiseModel):
         Returns
         -------
         if return_all = False
-           (cov_mat, bias)
+           (cov_mat, bias, compls)
         else
-           (cov_mat, bias, stddevs, corr_mat, diffs, imags)
+           (cov_mat, bias, stddevs, corr_mat, diffs, ifluxes, compls)
 
         cov_mat : NxN dim numpy array
                   covariance matrix in flux units
@@ -87,8 +88,10 @@ class MultiFilterASTs(NoiseModel):
                    correlation matrix
         diffs : KxN dim numpy vector
                 raw flux differences for N filters and K AST instances
-        imags : N dim numpy vector
-                input magnitude of the AST in each filter
+        ifluxes : N dim numpy vector
+                  input fluxes of the AST in each filter
+        compl : float
+                AST completeness for this model
         """
 
         # set the asts for this star using the input index array
@@ -110,47 +113,58 @@ class MultiFilterASTs(NoiseModel):
         if n_indxs <= 5:
             return False
 
+        # completeness
+        compl = float(n_indxs)/float(n_asts)
+
         # setup the variables for output
         n_filters = len(filters)
-        imags = np.empty((n_filters),dtype=np.float32)
+        ifluxes = np.empty((n_filters),dtype=np.float32)
         diffs = np.empty((n_filters,n_indxs),dtype=np.float32)
         biases = np.empty((n_filters),dtype=np.float32)
-        stddevs = np.empty((n_filters),dtype=np.float32)
         cov_matrix = np.full((n_filters, n_filters),0.0,dtype=np.float32)
     
         for ck, cfilter in enumerate(filters):
-            imags[ck] = asts[cfilter+'_IN'][indxs[0]]
+            ifluxes[ck] = np.power(10.0,-0.4*asts[cfilter+'_IN'][indxs[0]])* \
+                          self.vega_flux[ck]
             # compute the difference vector between the input and output fluxes
             #    note that the input fluxes are in magnitudes and the
             #    output fluxes in normalized vega fluxes
-            diffs[ck,:] = asts[cfilter+'_RATE'][indxs] - \
-                          np.power(10.0,-0.4*asts[cfilter+'_IN'][indxs])
+            diffs[ck,:] = asts[cfilter+'_RATE'][indxs]*self.vega_flux[ck] - \
+                          ifluxes[ck]
             # compute the bias and standard deviations around said bias
             biases[ck] = np.mean(diffs[ck,:])
-            stddevs[ck] = np.std(diffs[ck,:])
 
         # compute the covariance matrix
-        for ck, cfilter in enumerate(filters):
-            for dk, dfilter in enumerate(filters):
+        for ck in range(n_filters):
+            for dk in range(ck,n_filters):
                 for ci in range(n_indxs):
                     cov_matrix[ck,dk] += (diffs[ck,ci] - biases[ck])* \
                                          (diffs[dk,ci] - biases[dk])
-        cov_matrix /= (n_indxs-1)
+        # fill in the symmetric terms
+        for ck in range(n_filters):
+            for dk in range(0,ck):
+                cov_matrix[ck,dk] = cov_matrix[dk,ck]
+
+        cov_matrix /= (n_indxs - 1)
+        stddevs = np.sqrt(np.diagonal(cov_matrix))
 
         # compute the corrleation matrix
         corr_matrix = np.array(cov_matrix)
-        for ck, cfilter in enumerate(filters):
-            for dk, dfilter in enumerate(filters):
+        for ck in range(n_filters):
+            for dk in range(ck,n_filters):
                 if stddevs[ck]*stddevs[dk] > 0:
                     corr_matrix[ck,dk] /= stddevs[ck]*stddevs[dk]
                 else:
                     corr_matrix[ck,dk] = 0.0
+        for ck in range(n_filters):
+            for dk in range(0,ck):
+                corr_matrix[ck,dk] = corr_matrix[dk,ck]
 
         if return_all:
-            return (cov_matrix, biases, stddevs, corr_matrix, diffs, imags)
+            return (cov_matrix, biases, stddevs, corr_matrix, diffs, ifluxes,
+                    compl)
         else:
-            return (cov_matrix, biases)
-
+            return (cov_matrix, biases, compl)
 
     def _calc_all_ast_cov(self, filters, progress=True):
         """
@@ -168,12 +182,14 @@ class MultiFilterASTs(NoiseModel):
 
         Returns
         -------
-        (cov_mats, biases, corr_mats, ifluxes)
+        (cov_mats, biases, completenesses, corr_mats, ifluxes)
 
         cov_mats : KxNxN dim numpy array
                    K AST covariance matrices in flux units
         bias : KxN dim numpy vector
                K vectors of the biases in each filter
+        completenesses : K dim numpy vector
+                         completeness versus model
         corr_mats : KxNxN dim numpy array
                     K AST correlation matrices
         ifluxes : KxN dim numpy vector
@@ -191,7 +207,8 @@ class MultiFilterASTs(NoiseModel):
         all_covs = np.empty((n_models,n_filters,n_filters),dtype=np.float64)
         all_corrs = np.empty((n_models,n_filters,n_filters),dtype=np.float32)
         all_biases = np.empty((n_models,n_filters),dtype=np.float64)
-        all_imags = np.empty((n_models,n_filters),dtype=np.float32)
+        all_ifluxes = np.empty((n_models,n_filters),dtype=np.float32)
+        all_compls = np.empty((n_models),dtype=np.float32)
 
         # loop over the unique set of models and
         # calculate the covariance matrix using the ASTs for this model
@@ -213,14 +230,15 @@ class MultiFilterASTs(NoiseModel):
                     all_covs[i,:,:] = results[0]
                     all_biases[i,:] = results[1]
                     all_corrs[i,:,:] = results[3]
-                    all_imags[i,:] = results[5]
+                    all_ifluxes[i,:] = results[5]
+                    all_compls[i] = results[6]
                 else:
                     good_asts[i] = False
 
         indxs, = np.where(good_asts)
 
-        return (all_covs[indxs,:,:], all_biases[indxs,:],
-                all_corrs[indxs,:,:], np.power(10.0,-0.4*all_imags[indxs,:]))
+        return (all_covs[indxs,:,:], all_biases[indxs,:], all_compls[indxs], 
+                all_corrs[indxs,:,:], all_ifluxes[indxs,:])
 
     def process_asts(self, filters):
         """
@@ -240,8 +258,9 @@ class MultiFilterASTs(NoiseModel):
 
         self._cov_matrices = results[0]
         self._biases = results[1]
-        self._corr_matrices = results[2]
-        self._input_fluxes = results[3]
+        self._completenesses = results[2]
+        self._corr_matrices = results[3]
+        self._input_fluxes = results[4]
 
         print('building kd-tree...')
         self._kdtree = cKDTree(np.log10(self._input_fluxes))
@@ -263,6 +282,14 @@ class MultiFilterASTs(NoiseModel):
             if set, display a progress bar
         """
         flux = sedgrid.seds
+        if (sedgrid.cov_diag is not None) & (sedgrid.cov_offdiag is not None):
+            absflux_cov = True
+            absflux_cov_diag = sedgrid.cov_diag
+            absflux_cov_offdiag = sedgrid.cov_offdiag
+            print('using model dep absflux cov mat')
+        else:
+            absflux_cov = False
+
         n_models, n_filters = flux.shape
         n_offdiag = (((n_filters**2)-n_filters)/2)
 
@@ -270,22 +297,22 @@ class MultiFilterASTs(NoiseModel):
             raise AttributeError('the grid of models does not seem to' + 
                                  'be defined with the same number of filters') 
 
-        bias = np.empty((n_models, n_filters), dtype=np.float64)
+        biases = np.empty((n_models, n_filters), dtype=np.float64)
         sigmas = np.empty((n_models, n_filters), dtype=np.float64)
         icov_diag = np.empty((n_models, n_filters), dtype=np.float64)
         icov_offdiag = np.empty((n_models, n_offdiag), dtype=np.float64)
         q_norm = np.empty((n_models), dtype=np.float64)
-        compl = np.empty((n_models, n_filters), dtype=float)
+        compls = np.empty((n_models), dtype=float)
 
-        n_models = 10
+        #n_models = 10
         if progress is True:
             it = Pbar(desc='Evaluating model').iterover(range(n_models))
         else:
             it = range(n_models)
 
         for i in it:
-            # AST results are in vega normalized fluxes
-            cur_flux = flux[i,:]/self.vega_flux
+            # AST results are in vega fluxes
+            cur_flux = flux[i,:]
 
             # find the 10 nearest neighbors to the model SED
             result = self._kdtree.query(np.log10(cur_flux),10)
@@ -301,6 +328,28 @@ class MultiFilterASTs(NoiseModel):
             cur_cov_matrix = np.average(self._cov_matrices[indxs,:,:],
                                         axis=0,
                                         weights=dist_weights)
+
+            # add in the absflux covariance matrix
+            #   unpack off diagonal terms the same way they were packed
+            if absflux_cov:
+                m = 0
+                cur_cov_matrix[n_filters-1,n_filters-1] += \
+                                                absflux_cov_diag[i,n_filters-1]
+                for k in range(n_filters-1):
+                    cur_cov_matrix[k,k] += absflux_cov_diag[i,k]
+                    for l in range(k+1,n_filters):
+                        cur_cov_matrix[k,l] += absflux_cov_offdiag[i,m]
+                        cur_cov_matrix[l,k] += absflux_cov_offdiag[i,m]
+                        m += 1
+
+            # compute the interpolated biases
+            biases[i,:] = np.average(self._biases[indxs,:],
+                                     axis=0,
+                                     weights=dist_weights)
+
+            # compute the interpolated completeness
+            compls[i] = np.average(self._completenesses[indxs],
+                                  weights=dist_weights)
 
             # save the straight uncertainties
             sigmas[i,:] = np.sqrt(np.diagonal(cur_cov_matrix))
@@ -323,12 +372,12 @@ class MultiFilterASTs(NoiseModel):
             #   be used in the actual calculation
             #       norm = 1.0/sqrt(Q)
             det = np.linalg.slogdet(cur_cov_matrix)
-            print(det)
+            #print(det)
             if det[0] <= 0:
                 print('something bad happened')
                 print('determinant of covarinace matrix is zero or negative')
                 print(det)
             q_norm[i] = -0.5*det[1]
 
-        return (bias, sigma, compl, q_norm, icov_diag, icov_offdiag)
+        return (biases, sigmas, compls, q_norm, icov_diag, icov_offdiag)
         

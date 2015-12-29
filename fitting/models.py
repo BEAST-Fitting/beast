@@ -210,6 +210,7 @@ def make_priors(outname, specgrid, **kwargs):
 
 def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
               fbump=None, extLaw=None, add_spectral_properties_kwargs=None,
+              absflux_cov=True,
               **kwargs):
     """make_seds -- Create SED model grid integrated into filters and
     extinguished using the rest of the parameters
@@ -245,6 +246,10 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
         keyword arguments to call :func:`add_spectral_properties`
         to add model properties from the spectra into the grid property table
 
+    asbflux_cov: boolean
+        set to calculate the absflux covariance matrices for each model
+        (can be very slow!!!  But it is the right thing to do)
+
     returns
     -------
 
@@ -262,12 +267,14 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
     if fbump is not None:
         fbumps = np.arange(fbump[0], fbump[1] + 0.5 * fbump[2], fbump[2])
         g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
-                avs, rvs, fbumps,
-                add_spectral_properties_kwargs=add_spectral_properties_kwargs)
+                                              avs, rvs, fbumps,
+                add_spectral_properties_kwargs=add_spectral_properties_kwargs,
+                                              absflux_cov=absflux_cov)
     else:
         g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
-                avs, rvs,
-                add_spectral_properties_kwargs=add_spectral_properties_kwargs)
+                                              avs, rvs,
+                add_spectral_properties_kwargs=add_spectral_properties_kwargs,
+                                              absflux_cov=absflux_cov)
 
     #write to disk
     if hasattr(g, 'writeHDF'):
@@ -276,41 +283,6 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
         for gk in g:
             gk.writeHDF(outname, append=True)
     return outname
-
-def trim_models(outname, sedgrid, **kwargs):
-    """trim_model - remove the model grid points that are too bright/faint
-
-    Parameters
-    ----------
-
-    outname: str
-        file into which save the final SED grid (any format
-        grid.SpectralGrid handles)
-
-    sedgrid: grid.SpectralGrid object
-        sedgrid to transform
-        result from the make_seds function
-
-    returns
-    -------
-
-    outname: str
-        file into which save the SED grid
-    """
-
-    print('Trim Models')
-
-    outname = trim_grid
-
-    #write to disk
-    if hasattr(specgrid, 'writeHDF'):
-        specgrid.writeHDF(outname)
-    else:
-        for gk in specgrid:
-            gk.writeHDF(outname, append=True)
-
-    return outname
-
 
 # =================== Pipeline Tasks ==========================
 

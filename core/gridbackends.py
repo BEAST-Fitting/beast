@@ -55,7 +55,8 @@ class GridBackend(object):
     How the content of a grid is handled. The idea is to provide enough
     flexibility that low-memory footprint can be achieved if needed
 
-    This class is a generic implementation that will be derived into more classes
+    This class is a generic implementation that will be derived into
+    more classes
     """
     def __init__(self, *args, **kwargs):
         self._filters = None
@@ -66,7 +67,8 @@ class GridBackend(object):
     @property
     def nbytes(self):
         """ return the number of bytes of the object """
-        n = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in self.__dict__.values())
+        n = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) \
+                for k in self.__dict__.values())
         return n
 
     @property
@@ -102,7 +104,8 @@ class GridBackend(object):
     def __repr__(self):
         """__repr__"""
         txt = '{}\n source: {}, \n current memory footprint: {}'
-        return txt.format(object.__repr__(self), self.fname, pretty_size_print(self.nbytes))
+        return txt.format(object.__repr__(self),
+                          self.fname, pretty_size_print(self.nbytes))
 
     def _from_HDFBackend(self, b):
         """_from_HDFBackend -- convert from HDFBackend
@@ -153,14 +156,17 @@ class MemoryBackend(GridBackend):
         Helps to create new grids on the fly. Because it deriveds from
         ModelGrid, this can be exported on disk too.
     """
-    def __init__(self, lamb, seds=None, grid=None, header={}, aliases={}):
+    def __init__(self, lamb, seds=None, grid=None,
+                 cov_diag=None, cov_offdiag=None,
+                 header={}, aliases={}):
         """__init__
 
         Parameters
         ----------
 
         lamb: ndarray or GridBackend subclass
-            if ndarray: wavelength of the SEDs (requires seds and grid arguments)
+            if ndarray: wavelength of the SEDs (requires seds and grid
+                                                arguments)
             if backend: ref to the given grid
 
         seds: ndarray[dtype=float, ndim=2]
@@ -191,6 +197,13 @@ class MemoryBackend(GridBackend):
             self.lamb = lamb
             self.seds = seds
             self.grid = grid
+            if (cov_diag is not None) & (cov_offdiag is not None):
+                print('including cov diag and offdiag')
+                self.cov_diag = cov_diag
+                self.cov_offdiag = cov_offdiag
+            else:
+                self.cov_diag = None
+                self.cov_offdiag = None
 
         #update header
         if self._header is None:
@@ -206,7 +219,8 @@ class MemoryBackend(GridBackend):
     @property
     def filters(self):
         """filters"""
-        r = self._header.get('filters', None) or self._header.get('FILTERS', None)
+        r = self._header.get('filters', None) or self._header.get('FILTERS',
+                                                                  None)
         if r is not None:
             r = r.split()
         return r
@@ -236,6 +250,14 @@ class MemoryBackend(GridBackend):
             with HDFStore(fname, mode='r') as s:
                 self.seds = s['/seds'].read()
                 self.lamb = s['/lamb'].read()
+                try:
+                    self.cov_diag = s['/covdiag'].read()
+                except:
+                    self.cov_diag = None
+                try:
+                    self.cov_offdiag = s['/covoffdiag'].read()
+                except:
+                    self.cov_offdiag = None
             self.grid = Table(fname, tablename='/grid')
 
         self._header = self.grid.header
@@ -249,8 +271,10 @@ class MemoryBackend(GridBackend):
         fname: str
             filename (incl. path) to export to
         """
-        if ( (self.lamb is not None) & (self.seds is not None) & (self.grid is not None) ):
-            assert(isinstance(self.grid, Table)), 'Only eztables.Table are supported so far'
+        if ( (self.lamb is not None) & (self.seds is not None) &
+             (self.grid is not None) ):
+            assert(isinstance(self.grid, Table)), \
+                                    'Only eztables.Table are supported so far'
             r = numpy.vstack( [ self.seds, self.lamb ])
             pyfits.writeto(fname, r, **kwargs)
             if getattr(self, 'filters', None) is not None:
@@ -270,12 +294,18 @@ class MemoryBackend(GridBackend):
         append: bool, optional (default False)
             if set, it will append data to each Array or Table
         """
-        if ( (self.lamb is not None) & (self.seds is not None) & (self.grid is not None) ):
-            assert(isinstance(self.grid, Table)), 'Only eztables.Table are supported so far'
+        if ( (self.lamb is not None) & (self.seds is not None) &
+             (self.grid is not None) ):
+            assert(isinstance(self.grid, Table)), \
+                                    'Only eztables.Table are supported so far'
             with HDFStore(fname, mode='a') as hd:
                 if not append:
                     hd['/seds'] = self.seds[:]
                     hd['/lamb'] = self.lamb[:]
+                    if self.cov_diag is not None:
+                        hd['/covdiag'] = self.cov_diag[:]
+                    if self.cov_offdiag is not None:
+                        hd['/covoffdiag'] = self.cov_offdiag[:]
                 else:
                     try:
                         node = hd.getNode('/seds')
@@ -283,6 +313,10 @@ class MemoryBackend(GridBackend):
                     except:
                         hd['/seds'] = self.seds[:]
                         hd['/lamb'] = self.lamb[:]
+                        if self.cov_diag is not None:
+                            hd['/covdiag'] = self.cov_diag[:]
+                        if self.cov_offdiag is not None:
+                            hd['/covoffdiag'] = self.cov_offdiag[:]
             if getattr(self, 'filters', None) is not None:
                 if ('FILTERS' not in self.grid.header.keys()):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
@@ -291,8 +325,10 @@ class MemoryBackend(GridBackend):
     def copy(self):
         """ implement a copy method """
         g = MemoryBackend(copy.deepcopy(self.lamb),
-                          copy.deepcopy(self.seds),
-                          copy.deepcopy(self.grid))
+                          seds=copy.deepcopy(self.seds),
+                          grid=copy.deepcopy(self.grid),
+                          cov_diag=copy.deepcopy(self.cov_diag),
+                          cov_offdiag=copy.deepcopy(self.cov_offdiag))
         g._filters = copy.deepcopy(self._filters)
         g._header = copy.deepcopy(self._header)
         g._aliases = copy.deepcopy(self._aliases)

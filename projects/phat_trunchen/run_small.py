@@ -50,8 +50,7 @@ if __name__ == '__main__':
         make_trunchen_noise_model(datamodel.noisefile,
                                   datamodel.astfile,
                                   datamodel.ast_colnames,
-                                  modelsedgrid,
-                                  datamodel.absflux_a_matrix)  
+                                  modelsedgrid)  
 
     if args.trim:
         print('Trimming the model and noise grids')

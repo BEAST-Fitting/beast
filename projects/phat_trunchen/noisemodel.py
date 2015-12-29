@@ -20,8 +20,7 @@ from beast.core.noisemodel import trunchen
 class PHAT_Trunchen_Noisemodel(trunchen.MultiFilterASTs):
     pass
 
-def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid,
-                              absflux_a_matrix=None, **kwargs):
+def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid):
     """ trunchen noise model with full covariance information
 
     Parameters
@@ -35,16 +34,11 @@ def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid,
     sedgrid: SEDGrid instance
         sed model grid needing a noise model
 
-    absflux_a_matrix: ndarray
-        absolute calibration A matrix giving the fractional uncertainties
-        including correlated terms (off diagonals)
-
     returns
     -------
     noisefile: str
         noisemodel file name
     """
-
     # setup the noisemodel object
     #  including reading in the AST information
     model = PHAT_Trunchen_Noisemodel(astfile, sedgrid.filters)
@@ -61,19 +55,8 @@ def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid,
     q_norm = results[3]
     icov_diag = results[4]
     icov_offdiag = results[5]
-
-    # absolute flux calibration uncertainties
-    #  currently we are ignoring the off-diagnonal terms
-    if absflux_a_matrix is not None:
-        if absflux_a_matrix.ndim == 1:
-            abs_calib_2 = absflux_a_matrix[:] ** 2
-        else:   # assumes a cov matrix
-            abs_calib_2 = np.diag(absflux_a_matrix)
-
-        noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma ** 2)
-    else:
-        noise = sigma
-
+    exit()
+    
     # check if the noise model has been extrapolated at the faint flux levels
     # if so, then set the noise to a negative value (later may be used to
     # trim the model of "invalid" models)

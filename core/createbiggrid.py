@@ -287,7 +287,8 @@ def _make_dust_fbump_valid_points_generator(it, min_Rv, max_Rv):
 @generator
 def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                            fbumps=None, chunksize=0,
-                           add_spectral_properties_kwargs=None):
+                           add_spectral_properties_kwargs=None,
+                           absflux_cov=False):
     """
     Extinguish spectra and extract an SEDGrid through given series of filters
     (all wavelengths in stellar SEDs and filter response functions are assumed
@@ -328,6 +329,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
         keyword arguments to call :func:`add_spectral_properties` at each
         iteration to add model properties from the spectra into the grid
         property table
+
+    asbflux_cov: boolean
+        set to calculate the absflux covariance matrices for each model
+        (can be very slow!!!  But it is the right thing to do)
 
     returns
     -------
@@ -415,7 +420,12 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
         for key in keys:
             cols[key] = np.empty(N, dtype=float)
 
-        _seds = np.empty( (N, len(filter_names)), dtype=float)
+        n_filters = len(filter_names)
+        _seds = np.empty( (N, n_filters), dtype=float)
+        if absflux_cov:
+            n_offdiag = (((n_filters**2)-n_filters)/2)
+            _cov_diag = np.empty( (N, n_filters), dtype=float)
+            _cov_offdiag = np.empty( (N, n_offdiag), dtype=float)
 
         for count, pt in \
                 Pbar(npts, desc='SED grid').iterover(enumerate(chunk_pts)):
@@ -425,7 +435,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                 Rv_MW = extLaw.get_Rv_A(Rv, f_bump)
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_bump,
                                           inplace=False)
-                absflux_covmats = calc_absflux_cov_matrices(r, filter_names)
+                # add extra "spectral bands" if requested
                 if add_spectral_properties_kwargs is not None:
                     r = add_spectral_properties(r, nameformat=nameformat,
                                             **add_spectral_properties_kwargs)
@@ -435,6 +445,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
                 cols['f_A'][N0 * count:N0 * (count + 1)] = f_bump
                 cols['Rv_A'][N0 * count: N0 * (count + 1)] = Rv_MW
+
             else:
                 Av, Rv = pt
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
@@ -454,6 +465,13 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                                          [N0 * count: N0 * (count + 1)] = \
                                 temp_results.grid[key]
 
+            # compute the fractional absflux covariance matrices
+            if absflux_cov:
+                absflux_covmats = calc_absflux_cov_matrices(r, temp_results,
+                                                            filter_names)
+                _cov_diag[N0 * count: N0 * (count + 1)] = absflux_covmats[0]
+                _cov_offdiag[N0 * count: N0 * (count + 1)] = absflux_covmats[1]
+
             # assign the extinguished SEDs to the output object
             _seds[N0 * count: N0 * (count + 1)] = temp_results.seds[:]
 
@@ -471,8 +489,16 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
         #del tempgrid
 
         # Ship
-        g = SpectralGrid(_lamb, seds=_seds, grid=Table(cols), backend='memory')
+        if absflux_cov:
+            g = SpectralGrid(_lamb, seds=_seds,
+                             cov_diag=_cov_diag, cov_offdiag=_cov_offdiag,
+                             grid=Table(cols), backend='memory')
+        else:
+            g = SpectralGrid(_lamb, seds=_seds,
+                             grid=Table(cols), backend='memory')
+
         g.grid.header['filters'] = ' '.join(filter_names)
+
         yield g
 
 
@@ -547,7 +573,7 @@ def add_spectral_properties(specgrid, filternames=None, filters=None,
 
     return specgrid
 
-def calc_absflux_cov_matrices(specgrid, filter_names):
+def calc_absflux_cov_matrices(specgrid, sedgrid, filter_names):
     """ Calculate the absflux covariance matrices for each model
     Must be done on the full spectrum of each model to account for
     the changing combined spectral response due to the model SED and
@@ -556,18 +582,45 @@ def calc_absflux_cov_matrices(specgrid, filter_names):
     Parameters
     ----------
     specgrid: SpectralGrid instance
-        instance of the spectral grid
+        instance of the spectral grid containing the full spectrum fluxes
+
+    sedgrid: SpectralGrid instance
+        instance of the spectral grid containing the band SED fluxes
 
     Returns
     -------
     absflux_covmat : 
     """
-    seds = specgrid.seds
-    print(seds.shape)
 
-    results = absflux_covmat.hst_frac_matrix(filter_names,
-                                             spectrum=(specgrid.lamb[:], seds))
-    exit()
+    # get the fractional absflux covariance matrix
+    absflux_cov_mats = absflux_covmat.hst_frac_matrix(filter_names,
+                                                spectrum=(specgrid.lamb[:],
+                                                specgrid.seds))
+
+    # setup the output quantities
+    n_models = specgrid.seds.shape[0]
+    n_filters = len(filter_names)
+    n_offdiag = (((n_filters**2)-n_filters)/2)
+    cov_diag = np.empty((n_models, n_filters), dtype=np.float64)
+    cov_offdiag = np.empty((n_models, n_offdiag), dtype=np.float64)
+
+    # pack the resulting covariance matrices into diganonal and
+    # non-diagnonal terms
+    #   much more efficient for use later in combining with AST results
+    #     and fitting
+    #   also convert from fractional to physical flux units
+    m = 0
+    cov_diag[:,n_filters-1] = absflux_cov_mats[:,n_filters-1,n_filters-1]* \
+                              np.square(sedgrid.seds[:,n_filters-1])
+    for k in range(n_filters-1):
+        cov_diag[:,k] = absflux_cov_mats[:,k,k]* \
+                        np.square(sedgrid.seds[:,k])
+        for l in range(k+1,n_filters):
+            cov_offdiag[:,m] = absflux_cov_mats[:,k,l]* \
+                               sedgrid.seds[:,k]*sedgrid.seds[:,l]
+            m += 1
+    
+    return (cov_diag, cov_offdiag)
 
 #=================== TESTUNITS ============================
 
