@@ -12,7 +12,8 @@ import numpy as np
 
 from scipy.spatial import cKDTree
 
-from .noisemodel_trunchen import NoiseModel
+#from .noisemodel_trunchen import NoiseModel
+from .noisemodel import NoiseModel
 from ..vega import Vega
 
 from ...tools.pbar import Pbar
@@ -210,6 +211,10 @@ class MultiFilterASTs(NoiseModel):
         all_ifluxes = np.empty((n_models,n_filters),dtype=np.float32)
         all_compls = np.empty((n_models),dtype=np.float32)
 
+        ast_minmax = np.empty((2,n_filters),dtype=np.float64)
+        ast_minmax[0,:] = 1e99
+        ast_minmax[1,:] = 1e-99
+
         # loop over the unique set of models and
         # calculate the covariance matrix using the ASTs for this model
         good_asts = np.full((n_models),True)
@@ -232,13 +237,17 @@ class MultiFilterASTs(NoiseModel):
                     all_corrs[i,:,:] = results[3]
                     all_ifluxes[i,:] = results[5]
                     all_compls[i] = results[6]
+
+                    for k in range(n_filters):
+                        ast_minmax[0,k] = min(ast_minmax[0,k],all_ifluxes[i,k])
+                        ast_minmax[1,k] = max(ast_minmax[1,k],all_ifluxes[i,k])
                 else:
                     good_asts[i] = False
 
         indxs, = np.where(good_asts)
 
         return (all_covs[indxs,:,:], all_biases[indxs,:], all_compls[indxs], 
-                all_corrs[indxs,:,:], all_ifluxes[indxs,:])
+                all_corrs[indxs,:,:], all_ifluxes[indxs,:], ast_minmax)
 
     def process_asts(self, filters):
         """
@@ -261,12 +270,15 @@ class MultiFilterASTs(NoiseModel):
         self._completenesses = results[2]
         self._corr_matrices = results[3]
         self._input_fluxes = results[4]
+        self._minmax_asts = results[5]
 
         print('building kd-tree...')
         self._kdtree = cKDTree(np.log10(self._input_fluxes))
         print('...done')
 
-    def __call__(self, sedgrid, progress=True):
+    def __call__(self, sedgrid,
+                 generic_absflux_a_matrix=None,
+                 progress=True):
         """
         Interpolate the results of the ASTs on the model grid
 
@@ -282,14 +294,21 @@ class MultiFilterASTs(NoiseModel):
             if set, display a progress bar
         """
         flux = sedgrid.seds
-        if (sedgrid.cov_diag is not None) & (sedgrid.cov_offdiag is not None):
-            absflux_cov = True
+        if generic_absflux_a_matrix is not None:
+            model_absflux_cov = False
+            if generic_absflux_a_matrix is not None:
+                print('using model indepdent absflux cov matrix')
+            else:
+                print('not using any absflux cov matrix')
+        elif ((sedgrid.cov_diag is not None) &
+              (sedgrid.cov_offdiag is not None)):
+            model_absflux_cov = True
             absflux_cov_diag = sedgrid.cov_diag
             absflux_cov_offdiag = sedgrid.cov_offdiag
-            print('using model dep absflux cov mat')
+            print('using model dependent absflux cov matrix')
         else:
-            absflux_cov = False
-
+            model_absflux_cov = False
+            
         n_models, n_filters = flux.shape
         n_offdiag = (((n_filters**2)-n_filters)/2)
 
@@ -304,7 +323,6 @@ class MultiFilterASTs(NoiseModel):
         q_norm = np.empty((n_models), dtype=np.float64)
         compls = np.empty((n_models), dtype=float)
 
-        #n_models = 10
         if progress is True:
             it = Pbar(desc='Evaluating model').iterover(range(n_models))
         else:
@@ -331,7 +349,7 @@ class MultiFilterASTs(NoiseModel):
 
             # add in the absflux covariance matrix
             #   unpack off diagonal terms the same way they were packed
-            if absflux_cov:
+            if model_absflux_cov:
                 m = 0
                 cur_cov_matrix[n_filters-1,n_filters-1] += \
                                                 absflux_cov_diag[i,n_filters-1]
@@ -341,6 +359,12 @@ class MultiFilterASTs(NoiseModel):
                         cur_cov_matrix[k,l] += absflux_cov_offdiag[i,m]
                         cur_cov_matrix[l,k] += absflux_cov_offdiag[i,m]
                         m += 1
+            elif generic_absflux_a_matrix is not None:
+                for k in range(n_filters):
+                    for l in range(n_filters):
+                        cur_cov_matrix[k,l] += \
+                                        np.sqrt(generic_absflux_a_matrix[k,l]*
+                                                cur_flux[k]*cur_flux[l])
 
             # compute the interpolated biases
             biases[i,:] = np.average(self._biases[indxs,:],

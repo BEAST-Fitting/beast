@@ -47,10 +47,11 @@ astfile = 'ASTs_6band/12057_M31-B09-F02.gst.fake.fits'
 noisefile = project + '/' + project + '_noisemodel.hd5'
 
 # absflux calibration covariance matrix for PHAT specific filters
-absflux_cov = True
-if not absflux_cov:
-    absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
-    print(np.sqrt(absflux_a_matrix))
+moddep_absflux_cov = False
+generic_absflux_a_matrix = None
+if not moddep_absflux_cov:
+    generic_absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
+    print(np.sqrt(generic_absflux_a_matrix))
 
 # distance to M31
 distanceModulus = 24.47 * unit['mag']

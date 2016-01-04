@@ -14,7 +14,7 @@ import time
 # BEAST imports
 from pipeline_small import make_models
 import datamodel_small as datamodel
-from noisemodel import make_trunchen_noise_model
+import noisemodel 
 from beast.fitting import fit
 from beast.core import prior_weights
 from beast.core import trim_grid
@@ -47,19 +47,19 @@ if __name__ == '__main__':
                 project=datamodel.project))  
             
         # generate the AST noise model  
-        make_trunchen_noise_model(datamodel.noisefile,
-                                  datamodel.astfile,
-                                  datamodel.ast_colnames,
-                                  modelsedgrid)  
+        noisemodel.make_trunchen_noise_model(datamodel.noisefile,
+                                             datamodel.astfile,
+                                             datamodel.ast_colnames,
+                                             modelsedgrid,
+                generic_absflux_a_matrix=datamodel.generic_absflux_a_matrix)  
 
     if args.trim:
         print('Trimming the model and noise grids')
         start_time = time.clock()
 
         # get the modesedgrid on which to generate the noisemodel  
-        modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds' + \
-                                   '.grid.hd5'.format(project= 
-                                                      datamodel.project)) 
+        modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.\
+                                   format(project=datamodel.project))
            
 
         # read in the noise model just created
@@ -71,13 +71,14 @@ if __name__ == '__main__':
                                        datamodel.filters)
 
         # trim the model sedgrid
-        sed_trimname = '{project:s}/{project:s}_seds_trim' + \
-                       '.grid.hd5'.format(project=datamodel.project)
-        noisemodel_trimname = '{project:s}/{project:s}_noisemodel_trim' + \
-                              '.grid.hd5'.format(project=datamodel.project)
+        sed_trimname = '{project:s}/{project:s}_seds_trim.grid.hd5'.\
+                       format(project=datamodel.project)
+        nm_trimname = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.\
+                      format(project=datamodel.project)
 
         trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata,
-                              sed_trimname, noisemodel_trimname, sigma_fac=3.)
+                              sed_trimname, nm_trimname, sigma_fac=3.,
+                              trunchen=True)
 
         new_time = time.clock()
         print('time to trim: ',(new_time - start_time)/60., ' min')
@@ -86,12 +87,12 @@ if __name__ == '__main__':
         start_time = time.clock()
     
         # the files for the trimmed model grid and noisemodel grid
-        modelsedgrid = '{project:s}/{project:s}_seds_trim' + \
-                       '.grid.hd5'.format(project=datamodel.project)
-        noisemodelfile = '{project:s}/{project:s}_noisemodel_trim' + \
-                         '.grid.hd5'.format(project=datamodel.project)
-        statsfile = '{project:s}/{project:s}_memory_stats' + \
-                    '.fits'.format(project=datamodel.project)
+        modelsedgrid = '{project:s}/{project:s}_seds_trim.grid.hd5'.\
+                       format(project=datamodel.project)
+        noisemodelfile = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.\
+                         format(project=datamodel.project)
+        statsfile = '{project:s}/{project:s}_memory_stats.fits'.\
+                    format(project=datamodel.project)
 
         # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(noisemodelfile)
@@ -106,12 +107,10 @@ if __name__ == '__main__':
                                  threshold=-10., save_every_npts=100,
                                  lnp_npts=60,
                                  stats_outname=statsfile,
-                                 pdf1d_outname=
-                                 string.replace(statsfile,'stats.fits',
-                                                'pdf1d.fits'),
-                                 lnp_outname=
-                                 string.replace(statsfile,'stats.fits',
-                                                       'lnp.hd5'))
+                                 pdf1d_outname=statsfile.replace('stats.fits',
+                                                                 'pdf1d.fits'),
+                                 lnp_outname=statsfile.replace('stats.fits',
+                                                               'lnp.hd5'))
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')

@@ -142,6 +142,22 @@ def t_gen_noise_model(project, sedgrid, astfile, outname=None,
 
     return project, noise_source(), sedgrid
 
+def get_noisemodelcat(filename):
+    """
+    returns the noise model
+
+    Parameters
+    ----------
+    filename: str
+        file containing the outputs from OneD_ASTs_ModelGenerator
+
+    Returns
+    -------
+    table: pytables.Table
+        table containing the elements of the noise model
+    """
+    return tables.openFile(filename)
+
 
 if __name__ == '__main__':
     from beast.core.grid import FileSEDGrid
