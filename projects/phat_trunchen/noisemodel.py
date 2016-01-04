@@ -20,7 +20,8 @@ from beast.core.noisemodel import trunchen
 class PHAT_Trunchen_Noisemodel(trunchen.MultiFilterASTs):
     pass
 
-def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid):
+def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid,
+                              generic_absflux_a_matrix=None):
     """ trunchen noise model with full covariance information
 
     Parameters
@@ -46,7 +47,7 @@ def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid):
     # independent models in the AST file
     model.process_asts(basefilters)
     # evaluate the noise model for all the models in sedgrid
-    results = model(sedgrid)
+    results = model(sedgrid, generic_absflux_a_matrix=generic_absflux_a_matrix)
 
     # unpack the results
     bias = results[0]
@@ -55,7 +56,6 @@ def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid):
     q_norm = results[3]
     icov_diag = results[4]
     icov_offdiag = results[5]
-    exit()
     
     # check if the noise model has been extrapolated at the faint flux levels
     # if so, then set the noise to a negative value (later may be used to
@@ -65,15 +65,34 @@ def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid):
     for k in range(len(model.filters)):
         indxs, = np.where(sedgrid.seds[:,k] <= model._minmax_asts[0,k])
         if len(indxs) > 0:
-            noise[indxs,k] *= -1.0
+            sigma[indxs,k] *= -1.0
 
     print('Writting to disk into {0:s}'.format(outname))
     with tables.openFile(outname, 'w') as outfile:
         outfile.createArray(outfile.root,'bias', bias)
-        outfile.createArray(outfile.root,'error', noise)
+        outfile.createArray(outfile.root,'error', sigma)
         outfile.createArray(outfile.root,'completeness', compl)
+        outfile.createArray(outfile.root,'q_norm', q_norm)
+        outfile.createArray(outfile.root,'icov_diag', icov_diag)
+        outfile.createArray(outfile.root,'icov_offdiag', icov_offdiag)
 
     return outname
+
+def get_noisemodelcat(filename):
+    """
+    returns the noise model
+
+    Parameters
+    ----------
+    filename: str
+        file containing the outputs from OneD_ASTs_ModelGenerator
+
+    Returns
+    -------
+    table: pytables.Table
+        table containing the elements of the noise model
+    """
+    return tables.openFile(filename)
 
 if __name__ == '__main__':
     from beast.core.grid import FileSEDGrid
