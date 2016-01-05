@@ -226,16 +226,38 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
     else:
         g0 = sedgrid
 
+    # remove weights that are less than zero
     g0_indxs, = np.where(g0['weight'] > 0.0)
+
     g0_weights = np.log(g0['weight'][g0_indxs])
     g0_weights_sum = np.log(g0['weight'][g0_indxs].sum())
     g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
 
-    print('orig/g0_indxs', len(g0['weight']),len(g0_indxs))
+    if len(g0['weight']) != len(g0_indxs):
+        print('some zero weight models exist')
+        print('orig/g0_indxs', len(g0['weight']),len(g0_indxs))
 
+    # get the names of all the children in the ast structure
+    ast_children = []
+    for label, node in ast.root._v_children.items(): 
+        ast_children.append(label)
+
+    # links to errors and biases
     ast_error = ast.root.error[:]
     ast_bias = ast.root.bias[:]
 
+    # if the ast file includes the full covariance matrices, make links
+    full_cov_mat = False
+    if (('q_norm' in ast_children) &
+        ('icov_diag' in ast_children) &
+        ('icov_offdiag' in ast_children)):
+        full_cov_mat = True
+        ast_q_norm = ast.root.q_norm[:]
+        ast_icov_diag = ast.root.icov_diag[:]
+        ast_icov_offdiag = ast.root.icov_offdiag[:]
+    full_cov_mat = False
+
+    # number of observed SEDs to fit
     nobs = len(obs)
 
     # setup the arrays to temp store the results
@@ -352,10 +374,20 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
     for e, obj in it:
         # calculate the full nD posterior
         (sed) = obj
-        cur_mask = (sed != 0)
-        (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,
-                                        mask=cur_mask,
-                                        lnp_threshold=abs(threshold) )
+        cur_mask = (sed == 0)
+
+        if full_cov_mat:
+            (lnp, chi2) = N_covar_logLikelihood(sed, _seds,
+                                                ast_bias,
+                                                ast_q_norm,
+                                                ast_icov_diag,
+                                                ast_icov_offdiag,
+                                                mask=cur_mask,
+                                                lnp_threshold=abs(threshold))
+        else:
+            (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,
+                                            mask=cur_mask,
+                                            lnp_threshold=abs(threshold) )
             
         lnp = lnp[g0_indxs]
         chi2 = chi2[g0_indxs]
