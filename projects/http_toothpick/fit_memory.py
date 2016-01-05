@@ -327,7 +327,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
                        desc='Calculating Lnp/Stats').iterover(islice(obs.enumobs(),start_pos,None)):
         # calculate the full nD posterior
         (sed) = obj
-        cur_mask = (sed != 0)
+        cur_mask = (sed == 0)
         (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,mask=cur_mask,
                                         lnp_threshold=abs(threshold) )
         lnp = lnp[g0_indxs]

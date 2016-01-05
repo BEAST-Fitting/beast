@@ -142,6 +142,68 @@ def N_chi2_NM(flux, fluxmod, fluxerr, fluxbias, mask=None):
     return (temp ** 2).sum(axis=1)
 
 
+def N_covar_chi2(flux, fluxmod, fluxbias, icov_diag, icov_offdiag, mask=None):
+    """ compute the non-reduced chi2 between data and model using
+    the full covariance matrix information computed from ASTs.
+
+    Parameters
+    ----------
+    flux:    np.ndarray[float, ndim=1]
+        array of fluxes
+
+    fluxmod: np.ndarray[float, ndim=2]
+        array of modeled fluxes (nfilters , nmodels)
+
+    fluxbias: np.ndarray[float, ndim=2]
+        array of fluxes biases per model (nfilters , nmodels)
+
+    icov_diag: np.ndarray[float, ndim=2]
+        array giving the diagnonal terms of the covariance matrix inverse
+
+    icov_offdiag: np.ndarray[float, ndim=2]
+        array giving the off diagnonal terms of the covariance matrix inverse
+
+    mask:    np.ndarray[bool, ndim=1]
+        mask array to apply during the calculations mask.shape = flux.shape
+
+    Returns
+    -------
+    chi2:    np.ndarray[float, ndim=1]
+        array of chi2 values (nmodels)
+    """
+    # get the number of models and filters
+    n_models, n_filters = fluxmod.shape
+    
+    # setup the internal mask
+    if mask is None:
+        _mask = np.full((n_filters), True)
+    else:
+        _mask = ~mask
+
+    # compute the difference in fluxes
+    #    take into account the bias term from the AST results
+    fluxdiff = flux[None, :] - (fluxmod + fluxbias)
+
+    # compute the chisqr using the inverse of the covariance matrix
+    #   taking into account the packed format
+    if _mask[n_filters-1]:
+        chisqr = icov_diag[:,n_filters-1]*np.square(fluxdiff[:,n_filters-1])
+    else:
+        chisqr = np.zeros((n_models))
+            
+    m = 0
+    for k in range(n_filters-1):
+        if _mask[k]:
+            tchisqr = icov_diag[:,k]*fluxdiff[:,k]
+            for l in range(k+1,n_filters):
+                if _mask[l]:
+                    tchisqr += (2.0*icov_offdiag[:,m])*fluxdiff[:,l]
+                    m += 1
+            chisqr += tchisqr*fluxdiff[:,k]
+        
+    return chisqr
+
+
 def SN_logLikelihood(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None, lnp_threshold=1000.):
     """ Compute the log of the chi2 likelihood between data with uncertainties and perfectly known models
     with split errors (or non symmetric errors)
@@ -274,8 +336,11 @@ def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None,
 
     Returns
     -------
+    (lnp, chi2)
     lnP:    np.ndarray[float, ndim=1]
-        array of ln(P) values (Nmodels)
+            array of ln(P) values (Nmodels)
+    chi2:    np.ndarray[float, ndim=1]
+            array of chi-squared values (Nmodels)
 
     .. math::
 
@@ -309,7 +374,82 @@ def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None,
     return (lnP, _chi2)
 
 
-def N_covar_logLikelihood(flux, inv_cholesky_covar, lnQ, bias, fluxmod):
+def N_covar_logLikelihood(flux, fluxmod, fluxbias,
+                          q_norm, icov_diag, icov_offdiag,
+                          mask=None, lnp_threshold=1000.):
+    """ Computes the log of the chi2 likelihood between data and model taking
+    into account the noise model.
+
+    Parameters
+    ----------
+    flux: np.ndarray[float, ndim=1]
+        array of fluxes
+
+    fluxmod: np.ndarray[float, ndim=2]
+        array of modeled fluxes (nfilters , nmodels)
+
+    fluxbias: np.ndarray[float, ndim=2]
+        array of modeled fluxes (nfilters , nmodels)
+
+    q_norm: np.ndarray[float, ndim=2]
+        array givign the q normalization of the likelihood
+        q_norm = ln(1./Q) where Q = det(cov matrix)
+
+    icov_diag: np.ndarray[float, ndim=2]
+        array giving the diagnonal terms of the covariance matrix inverse
+
+    icov_offdiag: np.ndarray[float, ndim=2]
+        array giving the off diagnonal terms of the covariance matrix inverse
+
+    mask:    np.ndarray[bool, ndim=1]
+        mask array to apply during the calculations mask.shape = flux.shape
+
+    lnp_threshold:  float
+        cut the values outside -x, x in lnp
+
+    Returns
+    -------
+    (lnp, chi2)
+    lnP:    np.ndarray[float, ndim=1]
+            array of ln(P) values (Nmodels)
+    chi2:    np.ndarray[float, ndim=1]
+            array of chi-squared values (Nmodels)
+
+    ..notes
+        In the case where the mask removes filters,
+        the q_norm is not correct as it includes the removed filters
+        not easy to correct as q_norm includes the determinate of the
+        covariance matrix
+
+        This may be solveable if the the covariance matrix work is
+        switched to a cholesky decomposition techinque, but this is not
+        clear.
+
+        Regardless, the error should be small and *constant* for each
+        source
+    """
+    n_models, n_filters = np.shape(fluxmod)
+
+    #compute the pi normalization term
+    if mask is None:
+        n_good_filters = n_filters
+    else:
+        n_good_filters = sum(mask)
+        
+    pi_term = -0.5*n_good_filters*np.log(2.0*np.pi)
+
+    # get the chi2 value
+    _chi2 = N_covar_chi2(flux, fluxmod, fluxbias,
+                         icov_diag, icov_offdiag, mask=mask)
+
+    # compute the lnp = pi_term + q_norm - 0.5*chi2
+    lnP = pi_term + q_norm - (0.5*_chi2)
+
+    return (lnP, _chi2)
+
+
+def N_covar_logLikelihood_cholesky(flux, inv_cholesky_covar, lnQ,
+                                   bias, fluxmod):
     """
     Compute the log-likelihood given data, a covariance matrix,
     and a bias term. Very slow.

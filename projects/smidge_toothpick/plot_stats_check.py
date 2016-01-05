@@ -77,22 +77,23 @@ if __name__ == '__main__':
 
     # plot the chisqr values versus Teff
     indxs, = np.where(stats['chi2min'].quantity > 0.0)
-    count_chi2, xedges, yedges, binnum = \
-                binned_statistic_2d(stats['logT_Exp'].quantity[indxs],
-                                    np.log10(stats['chi2min'].quantity[indxs]),
-                                    dummy,
-                                    'count',
-                                    bins=n_bins)
-    cax1 = ax[0,1].imshow(count_chi2.T, origin='lower',
-                          norm=LogNorm(vmin=0.1),
-                          extent=[xedges[0], xedges[-1], yedges[0],
-                                  yedges[-1]],
-                          aspect='auto', interpolation='nearest')
+    if len(indxs) > 0:
+        count_chi2, xedges, yedges, binnum = \
+                    binned_statistic_2d(stats['logT_Exp'].quantity[indxs],
+                                        np.log10(stats['chi2min'].quantity[indxs]),
+                                        dummy,
+                                        'count',
+                                        bins=n_bins)
+        cax1 = ax[0,1].imshow(count_chi2.T, origin='lower',
+                              norm=LogNorm(vmin=0.1),
+                              extent=[xedges[0], xedges[-1], yedges[0],
+                                      yedges[-1]],
+                              aspect='auto', interpolation='nearest')
 
-    ax[0,1].set_xlabel(r'$logT(Exp)$')
-    ax[0,1].set_ylabel(r'$log(\chi^2)$')
+        ax[0,1].set_xlabel(r'$logT(Exp)$')
+        ax[0,1].set_ylabel(r'$log(\chi^2)$')
 
-    ax[0,1].set_xlim(xedges[-1], xedges[0])
+        ax[0,1].set_xlim(xedges[-1], xedges[0])
 
     # plot the A(V) values versus Teff
     count_av, xedges, yedges, binnum = \
