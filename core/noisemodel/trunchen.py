@@ -362,8 +362,7 @@ class MultiFilterASTs(NoiseModel):
             elif generic_absflux_a_matrix is not None:
                 for k in range(n_filters):
                     for l in range(n_filters):
-                        cur_cov_matrix[k,l] += \
-                                        np.sqrt(generic_absflux_a_matrix[k,l]*
+                        cur_cov_matrix[k,l] += (generic_absflux_a_matrix[k,l]*
                                                 cur_flux[k]*cur_flux[l])
 
             # compute the interpolated biases
