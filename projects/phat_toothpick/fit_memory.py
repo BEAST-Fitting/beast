@@ -381,6 +381,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.], grid
 
             # percentile values
             pdf1d_bins, pdf1d_vals = fast_pdf1d_objs[k].gen1d(g0_indxs[indx], weights)
+
             save_pdf1d_vals[k][e,:] = pdf1d_vals
             if pdf1d_vals.max() > 0:
                 pdf1d_vals /= pdf1d_vals.max()

@@ -255,7 +255,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
         ast_q_norm = ast.root.q_norm[:]
         ast_icov_diag = ast.root.icov_diag[:]
         ast_icov_offdiag = ast.root.icov_offdiag[:]
-    full_cov_mat = False
 
     # number of observed SEDs to fit
     nobs = len(obs)
@@ -451,6 +450,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
             # percentile values
             pdf1d_bins, pdf1d_vals = fast_pdf1d_objs[k].gen1d(g0_indxs[indx],
                                                               weights)
+
             save_pdf1d_vals[k][e,:] = pdf1d_vals
             if pdf1d_vals.max() > 0:
                 pdf1d_vals /= pdf1d_vals.max()

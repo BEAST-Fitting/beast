@@ -56,7 +56,7 @@ if __name__ == '__main__':
     asts = PHAT_Trunchen_Noisemodel(args.filename, datamodel.filters)
 
     # calcuate all the covariance matrices for all the ASTs in the file
-    all_covs, all_biases, all_compls, all_corrs, all_ifluxes = \
+    all_covs, all_biases, all_compls, all_corrs, all_ifluxes, ast_minmax = \
               asts._calc_all_ast_cov(filters)
 
     # make the nice plot
