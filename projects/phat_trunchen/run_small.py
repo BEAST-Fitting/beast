@@ -110,7 +110,9 @@ if __name__ == '__main__':
                                  pdf1d_outname=statsfile.replace('stats.fits',
                                                                  'pdf1d.fits'),
                                  lnp_outname=statsfile.replace('stats.fits',
-                                                               'lnp.hd5'))
+                                                               'lnp.hd5'),
+                                 use_full_cov_matrix=\
+                                 datamodel.use_full_cov_matrix)
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')

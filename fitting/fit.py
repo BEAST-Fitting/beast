@@ -16,6 +16,7 @@ major modifications by Karl Gordon (Feb-Mar 2015)
     results file already exist
   - switched from eztables to astropy.table to (potentially) avoid
     bus/memory errors
+updated to allow for trunchen noise model by Karl Gordon (Dec 2015/Jan 2016)
 """
 
 import os
@@ -161,7 +162,8 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
                  gridbackend='cache', max_nbins=50,
                  stats_outname=None, pdf1d_outname=None,
                  lnp_outname=None, lnp_npts=None, save_every_npts=None,
-                 threshold=-40, resume=False):
+                 threshold=-40, resume=False,
+                 use_full_cov_matrix=True):
     """ Fit each star, calculate various fit statistics, and output them
         to files
       (done in one function for speed and ability to resume partially
@@ -200,6 +202,10 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
 
     resume: boolean
         set to designate this run is resuming a partially complete run
+
+    use_full_cov_matrix: boolean
+        set to use the full covariance matrix if it is present in the
+        noise model file
 
     stats_outname: set to output the stats file into a FITS file with
                    extensions
@@ -248,13 +254,19 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
 
     # if the ast file includes the full covariance matrices, make links
     full_cov_mat = False
-    if (('q_norm' in ast_children) &
+    if (use_full_cov_matrix &
+        ('q_norm' in ast_children) &
         ('icov_diag' in ast_children) &
         ('icov_offdiag' in ast_children)):
         full_cov_mat = True
         ast_q_norm = ast.root.q_norm[:]
         ast_icov_diag = ast.root.icov_diag[:]
         ast_icov_offdiag = ast.root.icov_offdiag[:]
+
+    if full_cov_mat:
+        print('using full covariance matrix')
+    else:
+        print('not using full covariance matrix')
 
     # number of observed SEDs to fit
     nobs = len(obs)
@@ -558,7 +570,8 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                          threshold=-10, save_every_npts=None,
                          lnp_npts=None, resume=False,
                          stats_outname=None, pdf1d_outname=None,
-                         lnp_outname=None):
+                         lnp_outname=None,
+                         use_full_cov_matrix=True):
     """
     keywords
     --------
@@ -587,6 +600,10 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
 
     resume: boolean
         set to designate this run is resuming a partially complete run
+
+    use_full_cov_matrix: boolean
+        set to use the full covariance matrix if it is present in the
+        noise model file
 
     stats_outname: set to output the stats file into a FITS file with
                    extensions
@@ -633,7 +650,8 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                  lnp_npts=lnp_npts,
                  stats_outname=stats_outname,
                  pdf1d_outname=pdf1d_outname,
-                 lnp_outname=lnp_outname)
+                 lnp_outname=lnp_outname,
+                 use_full_cov_matrix=use_full_cov_matrix)
 
 
 
