@@ -1,6 +1,16 @@
 *.png
-b15*
+*.eps
+*.txt
+*b15*
+*b21*
 BEAST_production
 data
 Old
 *.log
+krsync*
+heddy
+logs
+*xsede*
+*condor*
+check*
+monitor*
