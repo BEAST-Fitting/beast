@@ -158,7 +158,7 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
             outfile.createArray(star_group, 'chi2', lnp_val[3])
     outfile.close()
 
-def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
+def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                  gridbackend='cache', max_nbins=50,
                  stats_outname=None, pdf1d_outname=None,
                  lnp_outname=None, lnp_npts=None, save_every_npts=None,
@@ -243,6 +243,12 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
         print('some zero weight models exist')
         print('orig/g0_indxs', len(g0['weight']),len(g0_indxs))
 
+    # get the model SEDs
+    if hasattr(g0.seds, 'read'):
+        _seds = g0.seds.read()
+    else:
+        _seds = g0.seds
+
     # get the names of all the children in the ast structure
     ast_children = []
     for label, node in ast.root._v_children.items(): 
@@ -271,6 +277,25 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
     # number of observed SEDs to fit
     nobs = len(obs)
 
+    # augment the qnames to include the *full* model SED
+    #  by this it means the physical model flux plus the noise model bias term
+    qnames = qnames_in
+    filters = sedgrid.filters
+    for i, cfilter in enumerate(filters):
+        qnames.append('log'+cfilter+'_wd_bias')
+
+    # create the full model fluxes for later use
+    #   save on log format like the other fluxes
+    full_model_flux = _seds + ast_bias
+    logtempseds = np.array(full_model_flux)
+    indxs = np.where(full_model_flux > 0)
+    if len(indxs) > 0:
+        logtempseds[indxs] = np.log10(full_model_flux[indxs])
+    indxs = np.where(full_model_flux <= 0)
+    if len(indxs) > 0:
+        logtempseds[indxs] = -100.
+    full_model_flux = logtempseds
+
     # setup the arrays to temp store the results
     n_qnames = len(qnames)
     n_pers = len(p)
@@ -292,7 +317,11 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
 
     for qname in qnames:
         #q = g0[qname][g0_indxs]
-        q = g0[qname]
+        if '_bias' in qname:
+            fname = (qname.replace('_wd_bias','')).replace('log','')
+            q = full_model_flux[:,filters.index(fname)]
+        else:
+            q = g0[qname]
         
         n_uniq = len(np.unique(q))
         if len(np.unique(q)) > max_nbins: 
@@ -373,12 +402,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
     g0_specgrid_indx = g0['specgrid_indx']
     _p = np.asarray(p, dtype=float)
 
-    #loop over the obs and do the work
-    if hasattr(g0.seds, 'read'):
-        _seds = g0.seds.read()
-    else:
-        _seds = g0.seds
-
     it = Pbar(len(obs)-start_pos,
               desc='Calculating Lnp/Stats').iterover(islice(obs.enumobs(),
                                                             start_pos,None))
@@ -451,7 +474,11 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames, p=[16., 50., 84.],
         lnp_indx[e] = best_full_indx
 
         for k, qname in enumerate(qnames):
-            q = g0[qname]
+            if '_bias' in qname:
+                fname = (qname.replace('_wd_bias','')).replace('log','')
+                q = full_model_flux[:,filters.index(fname)]
+            else:
+                q = g0[qname]
 
             # best value
             best_vals[e,k] = q[best_full_indx]
