@@ -29,7 +29,7 @@ from extra_filters import make_integration_filter, make_top_hat_filter
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'b15_jan16_small'
+project = 'b15_jan16_small_moddep'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
@@ -47,8 +47,8 @@ astfile = 'ASTs_6band/12057_M31-B09-F02.gst.fake.fits'
 noisefile = project + '/' + project + '_noisemodel.hd5'
 
 # absflux calibration covariance matrix for PHAT specific filters
-use_full_cov_matrix = False
-moddep_absflux_cov = False
+use_full_cov_matrix = True
+moddep_absflux_cov = True
 generic_absflux_a_matrix = None
 if not moddep_absflux_cov:
     generic_absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)

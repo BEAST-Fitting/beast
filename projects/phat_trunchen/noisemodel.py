@@ -95,18 +95,5 @@ def get_noisemodelcat(filename):
     return tables.openFile(filename)
 
 if __name__ == '__main__':
-    from beast.core.grid import FileSEDGrid
 
-    # get the filters
-    project = 'b15_nov15_test'
-    
-    modelseds = FileSEDGrid(project+'/'+project+'_seds.grid.hd5')
-
-    uvastfile = 'data/fake_stars_b15_27_uv.fits'
-    optastfile = 'data/fake_stars_b15_27_opt.fits'
-    irastfile = 'data/fake_stars_b15_27_ir.fits'
-    astfile = 'data/fake_stars_b15_27_all.hd5'
-    Merge_PHAT_ASTs(uvastfile,optastfile,irastfile,astfile)
-
-    noisefile = project + '/b15_27_noisemodel.hd5'
-    make_toothpick_noise_model(noisemodel, astfile, modelseds)
+    pass
