@@ -29,7 +29,7 @@ from extra_filters import make_integration_filter, make_top_hat_filter
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'b15_jan16_small_moddep'
+project = 'b21_f15_jan16_small'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
@@ -38,10 +38,10 @@ obs_colnames = [ f + '_rate' for f in basefilters ]
 ast_colnames = np.array(basefilters)
 
 # observations
-obsfile = 'data_small/b15_4band_det_27_A.fits'
+obsfile = 'data/brick21_field15_n1000.fits'
 
 # AST file
-astfile = 'ASTs_6band/12057_M31-B09-F02.gst.fake.fits'
+astfile = 'ASTs_6band/12055_M31-B21-F15.gst.fake.fits'
 
 # name for noise model
 noisefile = project + '/' + project + '_noisemodel.hd5'

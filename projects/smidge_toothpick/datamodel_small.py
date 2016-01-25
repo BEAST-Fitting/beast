@@ -20,14 +20,15 @@ from beast.external.ezunits import unit
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'smidge_dec15_small'
+project = 'smidge_jan16_small'
 
 filters = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W', 
            'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M', 'HST_ACS_WFC_F814W',
            'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
 # observations
-obsfile = 'data/13659_SMC-F14.gst.fits'
+#obsfile = 'data/13659_SMC-F14.gst.fits'
+obsfile = 'data/13659_SMIDGE-HALF3-B1.gst.fits'
 
 # AST files (single camera ASTs)
 astfile = ''
