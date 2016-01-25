@@ -30,8 +30,11 @@ from itertools import islice
 
 import numexpr
 
-from astropy.coordinates import ICRS as ap_ICRS
 from astropy import units as ap_units
+from astropy.coordinates import SkyCoord as ap_SkyCoord
+#from astropy.coordinates import ICRS as ap_ICRS
+#from astropy import units as ap_units
+
 from astropy.io import fits
 from astropy.table import Table
 
@@ -565,15 +568,14 @@ def IAU_names_and_extra_info(obsdata):
         # generate the IAU names
         _tnames = []
         for i in range(len(obsdata)):
-            c = ap_ICRS(ra=obsdata.data[ra_str][i],
-                        dec=obsdata.data[dec_str][i],
-                        unit=(ap_units.degree, ap_units.degree))
+            c = ap_SkyCoord(ra=obsdata.data[ra_str][i]*ap_units.degree,
+                            dec=obsdata.data[dec_str][i]*ap_units.degree,
+                            frame='icrs')
             _tnames.append('PHAT J' + 
                            c.ra.to_string(sep="",precision=2,
                                           alwayssign=False,pad=True) + 
                            c.dec.to_string(sep="",precision=2,
                                            alwayssign=True,pad=True))
-
             r['Name'] = _tnames
 
             # other useful information
