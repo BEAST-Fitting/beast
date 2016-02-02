@@ -534,14 +534,16 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     if lnp_outname is not None:
         save_lnp(lnp_outname, save_lnp_vals, resume)
 
-def IAU_names_and_extra_info(obsdata):
+def IAU_names_and_extra_info(obsdata,extraInfo=False):
     """
     generates IAU approved names for the PHAT data using RA & DEC
       and extra information about the sources (ra, dec, photometry, etc.)
 
     keywords
     --------
-    obs: Observations
+    obsdata: Observations
+    extraInfo: bool
+          set to get the PHAT survey information
 
     returns
     -------
@@ -579,9 +581,10 @@ def IAU_names_and_extra_info(obsdata):
             # other useful information
             r['RA'] = obsdata.data[ra_str]
             r['DEC'] = obsdata.data[dec_str]
-            r['field'] = obsdata.data['field']
-            r['inside_brick'] = obsdata.data['inside_brick']
-            r['inside_chipgap'] = obsdata.data['inside_chipgap']
+            if extraInfo:
+                r['field'] = obsdata.data['field']
+                r['inside_brick'] = obsdata.data['inside_brick']
+                r['inside_chipgap'] = obsdata.data['inside_chipgap']
     else:
         r['Name'] = ["noname" for x in range(len(obsdata))]
 
@@ -598,7 +601,7 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                          lnp_npts=None, resume=False,
                          stats_outname=None, pdf1d_outname=None,
                          lnp_outname=None,
-                         use_full_cov_matrix=True):
+                         use_full_cov_matrix=True, extraInfo=False):
     """
     keywords
     --------
@@ -647,6 +650,9 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
               lnp points above the threshold
               otherwise, the full sparse likelihood is output
 
+    extraInfo: bool
+        set to get extra information, such as IAU name, brick, field, etc.
+
     returns
     -------
     N/A
@@ -669,7 +675,7 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
             raise KeyError('Key "{0}" not recognized'.format(key))
 
     # generate an IAU complient name for each source and add other inform
-    res = IAU_names_and_extra_info(obs)
+    res = IAU_names_and_extra_info(obs,extraInfo=False)
 
     Q_all_memory(res, obs, g0, noisemodel, keys, p=[16., 50., 84.],
                  resume=resume,
@@ -679,6 +685,3 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                  pdf1d_outname=pdf1d_outname,
                  lnp_outname=lnp_outname,
                  use_full_cov_matrix=use_full_cov_matrix)
-
-
-
