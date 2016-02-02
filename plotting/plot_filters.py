@@ -72,6 +72,8 @@ def plot_filters(args, filter_names, out_names,
         fig.savefig(save_name+'.png')
     elif args.eps:
         fig.savefig(save_name+'.eps')
+    elif args.pdf:
+        fig.savefig(save_name+'.pdf')
     else:
         pyplot.show()
 
@@ -81,6 +83,8 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--png", help="save figure as a png file",
                         action="store_true")
     parser.add_argument("-e", "--eps", help="save figure as an eps file",
+                        action="store_true")
+    parser.add_argument("--pdf", help="save figure as a pdf file",
                         action="store_true")
     args = parser.parse_args()
 

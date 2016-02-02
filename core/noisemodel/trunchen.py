@@ -141,10 +141,8 @@ class MultiFilterASTs(NoiseModel):
                 for ci in range(n_indxs):
                     cov_matrix[ck,dk] += (diffs[ck,ci] - biases[ck])* \
                                          (diffs[dk,ci] - biases[dk])
-        # fill in the symmetric terms
-        for ck in range(n_filters):
-            for dk in range(0,ck):
-                cov_matrix[ck,dk] = cov_matrix[dk,ck]
+                # fill in the symmetric terms
+                cov_matrix[dk,ck] = cov_matrix[ck,dk]
 
         cov_matrix /= (n_indxs - 1)
         stddevs = np.sqrt(np.diagonal(cov_matrix))
@@ -157,9 +155,8 @@ class MultiFilterASTs(NoiseModel):
                     corr_matrix[ck,dk] /= stddevs[ck]*stddevs[dk]
                 else:
                     corr_matrix[ck,dk] = 0.0
-        for ck in range(n_filters):
-            for dk in range(0,ck):
-                corr_matrix[ck,dk] = corr_matrix[dk,ck]
+                # fill in the symmetric terms
+                corr_matrix[dk,ck] = corr_matrix[ck,dk]
 
         if return_all:
             return (cov_matrix, biases, stddevs, corr_matrix, diffs, ifluxes,

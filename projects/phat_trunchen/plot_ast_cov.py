@@ -31,6 +31,8 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-e", "--eps", help="save figure as an eps file",
                         action="store_true")
+    parser.add_argument("--pdf", help="save figure as a pdf file",
+                        action="store_true")
     args = parser.parse_args()
 
     # pretty plotting details
@@ -179,6 +181,8 @@ if __name__ == '__main__':
         fig.savefig(basename+'.png')
     elif args.eps:
         fig.savefig(basename+'.eps')
+    elif args.pdf:
+        fig.savefig(basename+'.pdf')
     else:
         pyplot.show()
     
