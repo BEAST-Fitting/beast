@@ -29,7 +29,7 @@ from extra_filters import make_integration_filter, make_top_hat_filter
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'b21_f15_jan16_small'
+project = 'b21_f15_feb16_small'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
@@ -48,7 +48,7 @@ noisefile = project + '/' + project + '_noisemodel.hd5'
 
 # absflux calibration covariance matrix for PHAT specific filters
 use_full_cov_matrix = True
-moddep_absflux_cov = True
+moddep_absflux_cov = False
 generic_absflux_a_matrix = None
 if not moddep_absflux_cov:
     generic_absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
@@ -69,7 +69,7 @@ z = [0.03, 0.019, 0.008, 0.004]
 #z = 0.019
 
 # Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
-trackVersion = 2.3
+trackVersion = 2.7
 
 # Stellar Atmospheres library definition
 osl = stellib.Tlusty() + stellib.Kurucz()

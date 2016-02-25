@@ -15,6 +15,7 @@ import numpy as np
 import matplotlib.pyplot as pyplot
 import matplotlib.gridspec as gridspec
 import matplotlib
+from matplotlib.ticker import MaxNLocator
 
 from scipy.stats import binned_statistic_2d
 
@@ -40,7 +41,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # pretty plotting details
-    fontsize = 12
+    fontsize = 14
     font = {'size'   : fontsize}
 
     matplotlib.rc('font', **font)
@@ -65,15 +66,15 @@ if __name__ == '__main__':
     n_filters = len(filters)
 
     fig, ax = pyplot.subplots(nrows=n_filters, ncols=n_filters,
-                              figsize=(20,14))
-    gs = gridspec.GridSpec(n_filters, n_filters+2,
-                           width_ratios=[0.25] + n_filters*[1.0] + [0.25])
+                              figsize=(14,14))
+    gs = gridspec.GridSpec(n_filters+2, n_filters,
+                           height_ratios=[0.25] + n_filters*[1.0] + [0.25])
 
     ax = []
     for i in range(n_filters):
         x = []
         for j in range(n_filters):
-            x.append(pyplot.subplot(gs[i,j+1]))
+            x.append(pyplot.subplot(gs[i+1,j]))
         ax.append(x)
     ax = np.array(ax)
 
@@ -97,8 +98,13 @@ if __name__ == '__main__':
                        extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]],
                        aspect='auto', interpolation='nearest')
 
-            ax[j,i].set_xlabel(r'$log[F('+filters[i]+')]$')
-            ax[j,i].set_ylabel(r'$log[F('+filters[j]+')]$')
+            if j == n_filters-1:
+                ax[j,i].set_xlabel('log[F('+filters[i]+')]')
+            if i == 0:
+                ax[j,i].set_ylabel('log[F('+filters[j]+')]')
+
+            ax[j,i].xaxis.set_major_locator(MaxNLocator(4,integer=True))
+            ax[j,i].yaxis.set_major_locator(MaxNLocator(4,integer=True))
 
             std_corr, xedges, yedges, binnum = \
                        binned_statistic_2d(np.log10(all_ifluxes[:,j]),
@@ -112,22 +118,37 @@ if __name__ == '__main__':
                                   aspect='auto', interpolation='nearest',
                                   cmap=pyplot.get_cmap('summer'))
 
-            ax[i,j].set_xlabel(r'$log[F('+filters[j]+')]$')
-            ax[i,j].set_ylabel(r'$log[F('+filters[i]+')]$')
+            if i == n_filters-1:
+                ax[i,j].set_xlabel('log[F('+filters[j]+')]')
+            if j == 0:
+                ax[i,j].set_ylabel('log[F('+filters[i]+')]')
+
+            ax[i,j].xaxis.set_major_locator(MaxNLocator(4,integer=True))
+            ax[i,j].yaxis.set_major_locator(MaxNLocator(4,integer=True))
 
     for i in range(n_filters):
         # plot the diagonal terms
         ax[i,i].plot(np.log10(all_ifluxes[:,i]),
-                     np.sqrt(all_covs[:,i,i])/all_ifluxes[:,i],'ro')
-        ax[i,i].set_yscale('log')
-        ax[i,i].set_ylabel(r'$\sigma/F('+filters[i]+')$')
-        ax[i,i].set_xlabel(r'$log[F('+filters[i]+')]$')
+                     np.log10(np.sqrt(all_covs[:,i,i])),'ro')
+        #np.sqrt(all_covs[:,i,i])/all_ifluxes[:,i],'ro')
+        #ax[i,i].set_yscale('log')
+        #ax[i,i].set_ylabel(r'$log(\sigma)$')
+        if i == n_filters-1:
+            ax[i,i].set_xlabel(r'$log[F('+filters[i]+')]$')
+        ax[i,i].xaxis.set_major_locator(MaxNLocator(4,integer=True))
+        ax[i,i].yaxis.set_major_locator(MaxNLocator(4,integer=True))
+
+        ax[i,i].text(0.1,0.8,r'log($\sigma$)',
+                             fontsize=fontsize,
+                             transform=ax[i,i].transAxes)
 
     # colorbar 1
-    fig.colorbar(cax1, cax=(pyplot.subplot(gs[1:n_filters,0])))
+    fig.colorbar(cax1, cax=(pyplot.subplot(gs[n_filters+1,0:n_filters-1])), 
+                 orientation='horizontal')
 
     # colorbar 2
-    fig.colorbar(cax2, cax=(pyplot.subplot(gs[0:n_filters-1,n_filters+1])))
+    fig.colorbar(cax2, cax=(pyplot.subplot(gs[0,1:n_filters])), 
+                 orientation='horizontal')
 
     # optimize the figure layout
     pyplot.tight_layout(h_pad=0.1,w_pad=0.1)

@@ -56,6 +56,8 @@ def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid,
     q_norm = results[3]
     icov_diag = results[4]
     icov_offdiag = results[5]
+    cov_diag = results[6]
+    cov_offdiag = results[7]
     
     # check if the noise model has been extrapolated at the faint flux levels
     # if so, then set the noise to a negative value (later may be used to
@@ -75,6 +77,8 @@ def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid,
         outfile.createArray(outfile.root,'q_norm', q_norm)
         outfile.createArray(outfile.root,'icov_diag', icov_diag)
         outfile.createArray(outfile.root,'icov_offdiag', icov_offdiag)
+        outfile.createArray(outfile.root,'cov_diag', cov_diag)
+        outfile.createArray(outfile.root,'cov_offdiag', cov_offdiag)
 
     return outname
 
