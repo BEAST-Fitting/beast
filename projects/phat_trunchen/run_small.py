@@ -41,22 +41,38 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("--sp2", help="Special case (brick 03, field 15)",
                         action="store_true")
+    parser.add_argument("--sim", help="Run simulated observations",
+                        action="store_true")
     args = parser.parse_args()
 
     # different sets of models (easier than making new scripts)
     if args.sp1:
-        datamodel.project = 'b09_f02_jan16_small'
+        datamodel.project = 'b09_f02_feb16_small'
         datamodel.obsfile = 'data/brick09_field02_n1000.fits'
         datamodel.astfile = 'ASTs_6band/12057_M31-B09-F02.gst.fake.fits'
         datamodel.noisefile = datamodel.project + '/' + datamodel.project + \
                               '_noisemodel.hd5'
     elif args.sp2:
-        datamodel.project = 'b03_f15_jan16_small'
+        datamodel.project = 'b03_f15_feb16_small'
         datamodel.obsfile = 'data/brick03_field15_n1000.fits'
         datamodel.astfile = 'ASTs_6band/12109_M31-B03-F15.gst.fake.fits'
         datamodel.noisefile = datamodel.project + '/' + datamodel.project + \
                               '_noisemodel.hd5'
 
+    statsfile = datamodel.project + '/' + datamodel.project + '_memory'
+    if args.nocovar:
+        statsfile += '_nocovar'
+        datamodel.use_full_cov_matrix = False
+        
+    if args.sim:
+        datamodel.obsfile = datamodel.project + '/' + datamodel.project + \
+                            '_sim_obs.fits'
+        statsfile += '_sim_obs'
+
+    statsfile += '_stats.fits'
+
+    # now get to work
+        
     if args.models:
         make_models()
 
@@ -113,15 +129,6 @@ if __name__ == '__main__':
                        format(project=datamodel.project)
         noisemodelfile = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.\
                          format(project=datamodel.project)
-        if args.nocovar:
-            print("Running with simple noise model")
-            datamodel.use_full_cov_matrix = False
-            statsfile = '{project:s}/{project:s}_memory_nocovar_stats.fits'.\
-                format(project=datamodel.project)
-        else:
-            print("Running with full noise model")
-            statsfile = '{project:s}/{project:s}_memory_stats.fits'.\
-                format(project=datamodel.project)
 
         # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(noisemodelfile)

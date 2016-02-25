@@ -25,6 +25,12 @@ project = 'smidge_jan16_small'
 filters = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W', 
            'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M', 'HST_ACS_WFC_F814W',
            'HST_WFC3_F110W', 'HST_WFC3_F160W']
+basefilters = ['F225W','F275W','F336W','F475W','F550M','F814W','F110W','F160W']
+obs_colnames = [ f + '_rate' for f in basefilters ]
+ast_colnames = np.array(basefilters)
+
+# sensitivity limits (used for AST input generation)
+sens_limits_mag = [26., 26., 27., 29., 27.5, 28.5, 27., 26.]
 
 # observations
 #obsfile = 'data/13659_SMC-F14.gst.fits'

@@ -13,6 +13,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as pyplot
 import matplotlib
+from matplotlib.ticker import MaxNLocator
 
 from beast.core.noisemodel import trunchen
 import datamodel_small as datamodel
@@ -108,6 +109,8 @@ if __name__ == '__main__':
             new_y += biases[j]/stddevs[j]
 
             ax[j,i].plot(new_x,new_y,'k-')
+            ax[j,i].xaxis.set_major_locator(MaxNLocator(5,integer=True))
+            ax[j,i].yaxis.set_major_locator(MaxNLocator(5,integer=True))
 
     # label the yaxis
     for i in range(1,n_filters):

@@ -315,6 +315,8 @@ class MultiFilterASTs(NoiseModel):
 
         biases = np.empty((n_models, n_filters), dtype=np.float64)
         sigmas = np.empty((n_models, n_filters), dtype=np.float64)
+        cov_diag = np.empty((n_models, n_filters), dtype=np.float64)
+        cov_offdiag = np.empty((n_models, n_offdiag), dtype=np.float64)
         icov_diag = np.empty((n_models, n_filters), dtype=np.float64)
         icov_offdiag = np.empty((n_models, n_offdiag), dtype=np.float64)
         q_norm = np.empty((n_models), dtype=np.float64)
@@ -334,6 +336,11 @@ class MultiFilterASTs(NoiseModel):
 
             dist = result[0]
             indxs = result[1]
+
+            # check if the distance is very small, set to a reasonable value
+            tindxs, = np.where(dist < 0.01)
+            if len(tindxs) > 0:
+                dist[tindxs] = 0.01
 
             # compute the interpolated covariance matrix
             #    use the distances to generate weights for the sum
@@ -381,10 +388,14 @@ class MultiFilterASTs(NoiseModel):
             m = 0
             icov_diag[i,n_filters-1] = inv_cur_cov_matrix[n_filters-1,
                                                           n_filters-1]
+            cov_diag[i,n_filters-1] = cur_cov_matrix[n_filters-1,
+                                                     n_filters-1]
             for k in range(n_filters-1):
                 icov_diag[i,k] = inv_cur_cov_matrix[k,k]
+                cov_diag[i,k] = cur_cov_matrix[k,k]
                 for l in range(k+1,n_filters):
                     icov_offdiag[i,m] = inv_cur_cov_matrix[k,l]
+                    cov_offdiag[i,m] = cur_cov_matrix[k,l]
                     m += 1
 
             # save the log of the determinat for normalization
@@ -399,5 +410,6 @@ class MultiFilterASTs(NoiseModel):
                 print(det)
             q_norm[i] = -0.5*det[1]
 
-        return (biases, sigmas, compls, q_norm, icov_diag, icov_offdiag)
+        return (biases, sigmas, compls, q_norm, icov_diag, icov_offdiag,
+                cov_diag, cov_offdiag)
         

@@ -411,15 +411,19 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     for e, obj in it:
         # calculate the full nD posterior
         (sed) = obj
-        cur_mask = (sed == 0)
 
+        cur_mask = (sed == 0)
+        # need an alternate way to generate the mask as zeros can be
+        # valid values in the observed SED (KDG 29 Jan 2016)
+        # currently, set mask to False always
+        cur_mask[:] = False
+        
         if full_cov_mat:
             (lnp, chi2) = N_covar_logLikelihood(sed, _seds,
                                                 ast_bias,
                                                 ast_q_norm,
                                                 ast_icov_diag,
                                                 ast_icov_offdiag,
-                                                mask=cur_mask,
                                                 lnp_threshold=abs(threshold))
         else:
             (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,

@@ -92,7 +92,6 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
 def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     # setup the plot grid
-    fig, ax = pyplot.subplots(figsize=(12,12))
     gs = gridspec.GridSpec(4, 4,
                            height_ratios=[1.0,1.0,1.0,1.0],
                            width_ratios=[1.0,1.0,1.0,1.0])
@@ -334,6 +333,8 @@ if __name__ == '__main__':
 
     # read in the stats
     stats = Table.read(filebase + '_stats.fits')
+    indxs, = np.where(stats['Av_p50'] > 2.0)
+    print(indxs)
 
     # open 1D PDF file
     pdf1d_hdu = fits.open(filebase+'_pdf1d.fits')
@@ -346,11 +347,15 @@ if __name__ == '__main__':
     waves = np.asarray([2722.05531502, 3366.00507206,4763.04670013,
                         8087.36760191,11672.35909295,15432.7387546])
 
+    
+    fig, ax = pyplot.subplots(figsize=(12,12))
+
     # make the plot!
     plot_beast_ifit(filters, waves, stats, pdf1d_hdu)
 
     # show or save
     basename = filebase + '_ifit_starnum_' + str(starnum)
+    print(basename)
     if args.png:
         fig.savefig(basename+'.png')
     elif args.eps:
