@@ -20,17 +20,20 @@ from beast.external.ezunits import unit
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'smidge_jan16_small'
+project = 'smidge_feb16_small'
 
 filters = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W', 
-           'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M', 'HST_ACS_WFC_F814W',
+           'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M', 
+           'HST_ACS_WFC_F658N', 'HST_ACS_WFC_F814W',
            'HST_WFC3_F110W', 'HST_WFC3_F160W']
-basefilters = ['F225W','F275W','F336W','F475W','F550M','F814W','F110W','F160W']
+basefilters = ['F225W','F275W','F336W','F475W','F550M','F658N',
+               'F814W','F110W','F160W']
 obs_colnames = [ f + '_rate' for f in basefilters ]
 ast_colnames = np.array(basefilters)
 
 # sensitivity limits (used for AST input generation)
-sens_limits_mag = [26., 26., 27., 29., 27.5, 28.5, 27., 26.]
+bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 14.]
+sens_limits_mag = [26., 26., 27., 29., 27.5, 28., 28.5, 27., 26.]
 
 # observations
 #obsfile = 'data/13659_SMC-F14.gst.fits'
