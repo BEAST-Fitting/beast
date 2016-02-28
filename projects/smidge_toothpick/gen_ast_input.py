@@ -51,8 +51,11 @@ if __name__ == '__main__':
         _, vega_fluxes, _ = v.getFlux(datamodel.filters)
 
     # convert the datamodel sensitivity limits in mags to fluxes
-    sens_limits = vega_fluxes*np.power(10.0,
-                                       -0.4*np.array(datamodel.sens_limits_mag))
+    sens_limits = vega_fluxes* \
+        np.power(10.0,-0.4*np.array(datamodel.sens_limits_mag))
+    # same for bright limits
+    bright_limits = vega_fluxes* \
+        np.power(10.0,-0.4*np.array(datamodel.bright_limits_mag))
     # make 5x lower to make sure to capture models that noise may make
     #  detectable
     sens_limits *= 0.2 
@@ -60,23 +63,30 @@ if __name__ == '__main__':
     # determine the number of models that are above the sensitivity limits
     #   in at least one band
     ngood = np.zeros((n_models))
+    nbright = np.zeros((n_models))
     for i in range(n_filters):
         gindxs, = np.where(flux[:,i] > sens_limits[i])
         ngood[gindxs] += 1
-        #print(i, len(gindxs), min(flux[:,i]), max(flux[:,i]))
 
-    gm_indxs, = np.where(ngood >= 1)
+        bindxs, = np.where(flux[:,i] < bright_limits[i])
+        nbright[bindxs] += 1
+        #print(i, len(bindxs), min(flux[:,i]), max(flux[:,i]), bright_limits[i])
+
+    gm_indxs, = np.where((ngood >= 1) & (nbright >= 3))
     n_gmodels = len(gm_indxs)
 
     # sort order for fluxes
     #   particular order required for the AST code
-    sort_band_indxs = np.array([3,4,5,0,1,2,6,7])
+    sort_band_indxs = np.array([3,4,5,6,0,1,2,7,8])
+    brightness_sort_indx = 6
 
     # setup table for the AST inputs
     tnames = np.array([x.lower() for x in datamodel.basefilters])
     tnames = ['d1','d2','x','y'] + tnames[sort_band_indxs].tolist()
+    print(tnames)
     ast_inputs = Table(names=tnames,
-                       dtype=[int, int, int, int] + [float]*n_filters)
+                       dtype=[int, int, float, float] + 
+                       [float]*n_filters)
 
     # pick the models for ASTs
     # use a sorted list on one bad and than pick every nth source
@@ -87,7 +97,7 @@ if __name__ == '__main__':
     n = n_gmodels/n_ast_models
     indxs = np.arange(0,n_gmodels,n)
     # sort indxes, hard coded for F814W
-    sindxs = np.argsort(flux[gm_indxs,5])
+    sindxs = np.argsort(flux[gm_indxs,brightness_sort_indx])
 
     # final indexs to the full flux array 
     #    (reversed to put the bright sources at the top)
@@ -103,8 +113,10 @@ if __name__ == '__main__':
     for findx in Pbar(desc='Evaluating model').iterover(fin_indxs):
         #for findx in fin_indxs:
         #print(findx)
-        x_vals = np.random.randint(x_range[0], x_range[1], n_asts_per_model)
-        y_vals = np.random.randint(y_range[0], y_range[1], n_asts_per_model)
+        x_vals = x_range[0] + \
+            np.random.random_sample(n_asts_per_model)*(x_range[1]-x_range[0])
+        y_vals = y_range[0] + \
+            np.random.random_sample(n_asts_per_model)*(y_range[1]-y_range[0])
         
         for j in range(n_asts_per_model):
             ast_mags = -2.5*np.log10(flux[findx,:]/vega_fluxes)

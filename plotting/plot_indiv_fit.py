@@ -51,13 +51,15 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
     xvals = pdf[n_objects,:]
     if logx:
         xvals = np.log10(xvals)
-    ax.plot(xvals,pdf[starnum,:],color='k')
-    ax.axes.set_yticks([])
+    ax.plot(xvals,pdf[starnum,:]/max(pdf[starnum,:]),color='k')
+    ax.yaxis.set_major_locator(MaxNLocator(6))
+    ax.set_yticklabels([])
     ax.xaxis.set_major_locator(MaxNLocator(4))
     xlim = [xvals.min(), xvals.max()]
     xlim_delta = xlim[1] - xlim[0]
     ax.set_xlim(xlim[0]-0.05*xlim_delta, xlim[1]+0.05*xlim_delta)
-    ax.set_ylim(0.0,1.1*pdf[starnum,:].max())
+    #ax.set_ylim(0.0,1.1*pdf[starnum,:].max())
+    ax.set_ylim(0.0,1.1)
 
     ax.text(0.95, 0.95, xlabel, transform=ax.transAxes,
             verticalalignment='top',horizontalalignment='right',
@@ -89,7 +91,7 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
         ax.plot(np.full((2),pvals[2]),[y1,y2],'-', color='m')
         ax.plot(pvals[1:3],[ym,ym],'-', color='m')
 
-def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
+def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
 
     # setup the plot grid
     gs = gridspec.GridSpec(4, 4,
@@ -222,11 +224,11 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     # plot the primary parameter 1D PDFs
     plot_1dpdf(ax[0], pdf1d_hdu, 'Av', 'A(V)', starnum,
-               stats=stats)
+               stats=stats, fontsize=fontsize)
     plot_1dpdf(ax[1], pdf1d_hdu, 'M_ini', 'log(M)', starnum, logx=True,
-               stats=stats)
+               stats=stats, fontsize=fontsize)
     plot_1dpdf(ax[2], pdf1d_hdu, 'logA', 'log(t)', starnum,
-               stats=stats)
+               stats=stats, fontsize=fontsize)
 
     # draw a box around them and label
     tax = ax[0]
@@ -250,11 +252,11 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     # plot the secondary parameter 1D PDFs
     plot_1dpdf(ax[4], pdf1d_hdu, 'Rv', 'R(V)', starnum,
-               stats=stats)
+               stats=stats, fontsize=fontsize)
     plot_1dpdf(ax[5], pdf1d_hdu, 'f_A', r'f$_\mathcal{A}$', starnum,
-               stats=stats)
+               stats=stats, fontsize=fontsize)
     plot_1dpdf(ax[6], pdf1d_hdu, 'Z', 'Z', starnum,
-               stats=stats)
+               stats=stats, fontsize=fontsize)
 
     # draw a box around them
     tax = ax[4]
@@ -278,9 +280,9 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     # plot the derived parameter 1D PDFs
     plot_1dpdf(ax[3], pdf1d_hdu, 'logT', r'log(T$_\mathrm{eff})$', starnum,
-               stats=stats)
+               stats=stats, fontsize=fontsize)
     plot_1dpdf(ax[7], pdf1d_hdu, 'logg', 'log(g)', starnum,
-               stats=stats)
+               stats=stats, fontsize=fontsize)
 
     # draw a box around them
     tax = ax[7]
@@ -334,7 +336,6 @@ if __name__ == '__main__':
     # read in the stats
     stats = Table.read(filebase + '_stats.fits')
     indxs, = np.where(stats['Av_p50'] > 2.0)
-    print(indxs)
 
     # open 1D PDF file
     pdf1d_hdu = fits.open(filebase+'_pdf1d.fits')
@@ -351,7 +352,7 @@ if __name__ == '__main__':
     fig, ax = pyplot.subplots(figsize=(12,12))
 
     # make the plot!
-    plot_beast_ifit(filters, waves, stats, pdf1d_hdu)
+    plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize)
 
     # show or save
     basename = filebase + '_ifit_starnum_' + str(starnum)
