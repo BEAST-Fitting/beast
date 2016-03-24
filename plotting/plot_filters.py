@@ -10,6 +10,7 @@ import matplotlib.pyplot as pyplot
 import matplotlib 
 
 from ..core import phot
+from ..core.vega import Vega
 
 def plot_filters_core(ax, filter_names, out_names, fontsize=15,
                       xrange=[0.2,2.0]):

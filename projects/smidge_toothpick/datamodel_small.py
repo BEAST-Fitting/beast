@@ -20,7 +20,7 @@ from beast.external.ezunits import unit
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'smidge_feb16_small'
+project = 'smidge_mar16_small'
 
 filters = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W', 
            'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M', 

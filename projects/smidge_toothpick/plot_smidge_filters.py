@@ -10,6 +10,7 @@ import matplotlib.pyplot as pyplot
 import matplotlib 
 
 from beast.core import phot
+from beast.core.vega import Vega
 
 if __name__ == '__main__':
 
@@ -26,6 +27,14 @@ if __name__ == '__main__':
                     'HST_WFC3_F110W', 'HST_WFC3_F160W']
     out_names = ['F225W','F275W','F336W','F475W','F550M','F814W',
                  'F110W','F160W']
+
+    # get the vega fluxes for zero magnitude
+    with Vega() as v:
+        _, vega_fluxes, _ = v.getFlux(filter_names)
+
+    print(filter_names)
+    print(vega_fluxes)
+    print(-2.5*np.log10(np.array([1e-13,5e-14,8e-15]/vega_fluxes[0])))
 
     # wavelength grid for response functions
     waves_range = np.array([1e3,3e4])
