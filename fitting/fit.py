@@ -499,7 +499,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
             save_pdf1d_vals[k][e,:] = pdf1d_vals
             if pdf1d_vals.max() > 0:
-                pdf1d_vals /= pdf1d_vals.max()
+                # remove normalization to allow for post processing with 
+                #   different distance runs (needed for the SMIDGE-SMC)
+                #pdf1d_vals /= pdf1d_vals.max()
                 per_vals[e,k,:] = percentile(pdf1d_bins, _p,
                                              weights=pdf1d_vals)
             else:
