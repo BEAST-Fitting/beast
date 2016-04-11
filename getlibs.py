@@ -39,6 +39,21 @@ class Reporter:
 
 
 def chunk_read(response, buf, chunk_size=8192, report_hook=None):
+    """ Read a piece of file from the server into a given buffer
+
+    Parameters
+    ----------
+
+    response: HTTP response
+        resquest response instance
+    buf: IIOStream
+        buffer to write the chunk into
+
+    Returns
+    -------
+    bytes_so_far: int
+        number of bytes read
+    """
     total_size = response.info()
     if hasattr(total_size, 'getheader'):
         total_size = total_size.getheader('Content-Length').strip()
@@ -68,6 +83,7 @@ def urlretrieve(url, reporthook, f):
 
 
 def _dl(urltxt, dest, fname=None):
+    """ Download a file from an URL """
     if fname is None:
         fname = dest
     with open(dest, 'wb') as f:
@@ -83,6 +99,16 @@ def _dl(urltxt, dest, fname=None):
 
 
 def dl_install_all_libs(server, libs):
+    """ Download all libraries and necessary files from the main server
+
+    Parameters
+    ----------
+    server: str
+        server address
+
+    libs: sequence(str)
+        list of files to download
+    """
     libdir = os.path.abspath(libsdir)
     if os.path.exists(libdir):
         if not os.path.isdir(libdir):
@@ -98,6 +124,7 @@ def dl_install_all_libs(server, libs):
     for k in libs:
         url = server + libs[k]
         _dl(url, libdir + libs[k], libs[k])
+
 
 if __name__ == '__main__':
     print("""
