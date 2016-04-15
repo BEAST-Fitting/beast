@@ -23,9 +23,9 @@ class NGC4214_Trunchen_Noisemodel(trunchen.MultiFilterASTs):
 def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid, 
                               generic_absflux_a_matrix=None, **kwargs):
     """ trunchen noise model with full covariance information 
+    ----------
 
     Parameters
-    ----------
     outname: str
         path and filename into which save the noise model
 
