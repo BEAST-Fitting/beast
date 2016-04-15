@@ -26,7 +26,6 @@ import os
 import datamodel
 import noisemodel
 from models import t_isochrones, t_spectra, t_seds, t_priors
-from fit import t_fit, t_summary_table
 from noisemodel import t_gen_noise_model
 
 
@@ -153,9 +152,9 @@ def merge_individual_outputs(obsfile=datamodel.obsfile, project=datamodel.projec
         final catalog Table
     """
     from glob import glob
-    lst = glob('./{project:s}/{project:s}.part*_stats.fits'.format(project=project))
+    lst = glob('./{project:s}/{project:s}_stats_part*.fits'.format(project=project))
     N = len(lst)
-    fname = './{project:s}/{project:s}.part{chunk:d}_stats.fits'
+    fname = './{project:s}/{project:s}_stats_part{chunk:d}.fits'
     t = Table(fname.format(project=project, chunk=0))
     for c in range(1, N):
         _fname = fname.format(project=project, chunk=c)
@@ -207,12 +206,14 @@ def make_models(*args, **kwargs):
     dmod = val_in_unit('distance Modulus', datamodel.distanceModulus, 'mag').magnitude
     distance = 10 ** ( (dmod / 5.) + 1 ) * unit['pc']
 
-    spec_kwargs = dict(osl=datamodel.osl, distance=distance)
+    spec_kwargs = dict(osl=datamodel.osl, distance=distance,
+                       extLaw=datamodel.FGextLaw, av=datamodel.FGextLaw)
 
     seds_kwargs = dict(extLaw=datamodel.extLaw,
                        av=datamodel.avs,
                        rv=datamodel.rvs,
-                       fbump=datamodel.fbumps)
+                       fbump=datamodel.fbumps,
+                       absflux_cov=datamodel.moddep_absflux_cov)
 
     if hasattr(datamodel, 'add_spectral_properties_kwargs'):
         seds_kwargs['add_spectral_properties_kwargs'] = datamodel.add_spectral_properties_kwargs
@@ -225,8 +226,7 @@ def make_models(*args, **kwargs):
                     t_isochrones(**iso_kwargs),
                     t_spectra(**spec_kwargs),
                     t_priors(),
-                    t_seds(datamodel.filters, **seds_kwargs))#,
-                    #t_gen_noise_model(datamodel.astfile, **noise_kwargs))
+                    t_seds(datamodel.filters, **seds_kwargs))
 
     models = Pipeline('make_models', tasks_models)
     job, (p, g) = models(datamodel.project)
@@ -266,136 +266,3 @@ def compute_noise_and_trim_grid(*args, **kwargs):
     job, (p, n, g) = noise_and_trim(datamodel.project)
 
     return job, (p, n, g)
-
-
-def run_fit(project, g, noise=None, obsfile=None, outname=None):
-    """ Run the fit on specific inputs
-
-    Parameters
-    ----------
-    project: str
-        project id
-
-    g: ModelGrid
-        grid of SED models
-
-    noise: tables.Table instance, optional
-        noise model table. if None, open file defined by `datamodel.noisefile`
-
-    obsfile: str, optional
-        observation catalog filename.
-        if None, use file defined by `datamodel.obsfile`
-
-    Returns
-    -------
-    job: int
-        job identification
-
-    (p, stat, obs, sedgrid): tuple
-        p: project identification
-        stat: summary table
-        obs: observation catalog
-        sedgrid: model grid
-    """
-    if obsfile is None:
-        obsfile = datamodel.obsfile
-
-    if noise is None:
-        noise = noisemodel.get_noisemodelcat(datamodel.noisefile)
-
-    obscat_kwargs = dict(obsfile=obsfile,
-                         distanceModulus=datamodel.distanceModulus,
-                         filters=datamodel.filters)
-
-    fit_kwargs = dict( threshold=-10.0, outname=outname )
-
-    stat_kwargs = dict( keys=None, method=None, outname=outname )
-
-    tasks_fit = (t_project_dir,
-                 t_get_obscat(**obscat_kwargs),
-                 t_fit(g, noise, **fit_kwargs),
-                 t_summary_table(g, **stat_kwargs) )
-
-    fit_data = Pipeline('fit', tasks_fit)
-
-    #run the job
-    job, (p, stat, obs, sedgrid) = fit_data(project)
-
-    return job, (p, stat, obs, sedgrid)
-
-
-def run_chunk_fit(project, g, chunk, noise=None, obsfile=None):
-    """
-    Parameters
-    ----------
-    project: str
-        project id
-
-    g: ModelGrid
-        grid of SED models
-
-    chunk: int
-        chunk number to run
-
-    noise: tables.Table instance, optional
-        noise table. if None, open file defined by `datamodel.noisefile`
-
-    obsfile: str, optional
-        observation catalog filename.
-        if None, use file defined by `datamodel.obsfile`
-
-    Returns
-    -------
-    job: int
-        job identification
-
-    (p, stat, obs, sedgrid): tuple
-        p: project identification
-        stat: summary table
-        obs: observation catalog
-        sedgrid: model grid
-    """
-    import glob
-
-    if obsfile is None:
-        obsfile = datamodel.obsfile
-
-    if noise is None:
-        noise = noisemodel.get_noisemodelcat(datamodel.noisefile)
-
-    obs_base = obsfile.split('.')
-    obs_ext = obs_base[-1]
-    obs_base = obs_base[:-1]
-
-    lst = glob.glob('.'.join(obs_base) + '.part*.' + obs_ext)
-    if len(lst) == 0:
-        raise ValueError('cannot find any chunk. Did you run prepare_individual_inputs?')
-
-    if chunk >= len(lst):
-        print('Chunk not valid')
-
-    l_obs = lst[chunk]
-    print('running chunk {0:s}'.format(l_obs))
-
-    #forcing output names
-    outname = project[:]
-    l_file = '{0:s}/{0:s}.part{1:d}'.format(outname, chunk)
-
-    fit_kwargs = dict( threshold=-5.0, outname=l_file )
-
-    stat_kwargs = dict( keys=None, method=None, outname=l_file)
-
-    obscat_kwargs = dict(obsfile=l_obs,
-                         distanceModulus=datamodel.distanceModulus,
-                         filters=datamodel.filters)
-
-    tasks_fit = (t_project_dir,
-                 t_get_obscat(**obscat_kwargs),
-                 t_fit(g, noise, **fit_kwargs),
-                 t_summary_table(g, **stat_kwargs) )
-
-    fit_data = Pipeline('fit', tasks_fit)
-
-    job, (p, stat, obs, sedgrid) = fit_data(project)
-
-    return job, (p, stat, obs, sedgrid)

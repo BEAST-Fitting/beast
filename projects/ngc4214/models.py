@@ -88,7 +88,8 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05, z=[0.019], t
 
 
 def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
-                 add_spectral_properties_kwargs=None, **kwargs):
+                 add_spectral_properties_kwargs=None,extLaw=None,av=[0.], 
+                 **kwargs):
     """
      a spectral grid will be generated using the stellar parameters by
      interpolation of the isochrones and the generation of spectra into the
@@ -114,6 +115,12 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
     add_spectral_properties_kwargs: dict
         keyword arguments to call :func:`add_spectral_properties`
         to add model properties from the spectra into the grid property table
+
+    extLaw: extinction.ExtLaw
+        extinction law to use during the process
+
+    av: float
+        MW foreground exticntion
 
     Returns
     -------
@@ -144,6 +151,9 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
     if hasattr(g, 'writeHDF'):
         if distance is not None:
             g.seds = g.seds / (0.1 * _distance) ** 2
+        if extLaw is not None:
+            extCurve = np.exp(-1. * extLaw.function(g.lamb[:], **kwargs))
+            g.seds = g.seds[:] * extCurve[None,:] 
         if add_spectral_properties_kwargs is not None:
             g = creategrid.add_spectral_properties(g, nameformat=nameformat, **add_spectral_properties_kwargs)
         g.writeHDF(outname)
@@ -151,6 +161,9 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
         for gk in g:
             if distance is not None:
                 gk.seds = gk.seds / (0.1 * _distance) ** 2
+            if extLaw is not None:
+                extCurve = np.exp(-1. * extLaw.function(gk.lamb[:], **kwargs))
+                gk.seds = gk.seds[:] * extCurve[None,:] 
             if add_spectral_properties_kwargs is not None:
                 gk = creategrid.add_spectral_properties(gk, nameformat=nameformat, **add_spectral_properties_kwargs)
             gk.writeHDF(outname, append=True)

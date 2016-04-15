@@ -1,9 +1,9 @@
 import core
 from distutils.core import setup
 
-
+=`=jedi=0, =`=     (*_***attrs*_*) =`=jedi=`=
 setup(
-    name="SED STELLAR NUTS CRACKER",
+    name="BEAST, Bayesian Extinction and Stellar Tool",
     version=core.__version__,
     author="Morgan Fouesneau, TBU",
     author_email="mfouesn@uw.edu",
