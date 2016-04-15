@@ -69,20 +69,12 @@ FGav = [0.06]
 
 
 #Stellar grid definition
-=======
-
-noisefile = '{project:s}/{project:s}_noisemodel.hd5'.format(project=project)
-
-distanceModulus = 27.414 * unit['mag']
-
-#Spectral grid definition
 #log10(Age) -- [min,max,step] to generate the isochrones
 logt = [6.0, 10.13, 0.15]
 
 #note: Mass is not sampled, use the isochrone def instead.
 
 #Metallicity
-#z = [0.03, 0.019, 0.008, 0.004]
 z = 0.004  # Strong prior SMC metalliticy
 
 # Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
