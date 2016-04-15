@@ -43,8 +43,8 @@ basefilters = ['F225W','F336W','F438W','F814W','F110W','F160W']
 obs_colnames = [ f + '_RATE' for f in basefilters ]
 ast_colnames = np.array(basefilters)
 
-# absflux calibration covariance matrix for NGC4214 specific filters
 """
+# absflux calibration covariance matrix for NGC4214 specific filters
 absflux_a_matrix = np.array(
     [[1.80e-4,  1.37e-4, 6.02e-5, 2.44e-5, 1.23e-6, -4.21e-6],
     [1.37e-4,  1.09e-4, 5.72e-5, 3.23e-5, 1.65e-5, 1.32e-5],
@@ -69,12 +69,20 @@ FGav = [0.06]
 
 
 #Stellar grid definition
+=======
+
+noisefile = '{project:s}/{project:s}_noisemodel.hd5'.format(project=project)
+
+distanceModulus = 27.414 * unit['mag']
+
+#Spectral grid definition
 #log10(Age) -- [min,max,step] to generate the isochrones
 logt = [6.0, 10.13, 0.15]
 
 #note: Mass is not sampled, use the isochrone def instead.
 
 #Metallicity
+#z = [0.03, 0.019, 0.008, 0.004]
 z = 0.004  # Strong prior SMC metalliticy
 
 # Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
@@ -97,7 +105,7 @@ fbumps = [0., 1.01, 0.25]
 
 qion_filter90 = make_integration_filter(90., 916., 1, 'F_QION90')
 qion_filter90.name = 'F_QION90'  # getting rid of instrument etc
-# 2278A corresponds to 4 Ryd (=54.42eV)
+# 227.8A corresponds to 4 Ryd (=54.42eV)
 qion_filter228 = make_integration_filter(228., 916., 1, 'F_QION228')
 qion_filter228.name = 'F_QION228'  # getting rid of instrument etc
 

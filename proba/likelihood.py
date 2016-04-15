@@ -142,11 +142,7 @@ def N_chi2_NM(flux, fluxmod, fluxerr, fluxbias, mask=None):
     return (temp ** 2).sum(axis=1)
 
 
-<<<<<<< HEAD
-def N_covar_chi2(flux, fluxmod, fluxbias, icov_diag, icov_offdiag, mask=None):
-=======
 def N_covar_chi2(flux, fluxmod, fluxbias, icov_diag, icov_offdiag):
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
     """ compute the non-reduced chi2 between data and model using
     the full covariance matrix information computed from ASTs.
 
@@ -167,59 +163,23 @@ def N_covar_chi2(flux, fluxmod, fluxbias, icov_diag, icov_offdiag):
     icov_offdiag: np.ndarray[float, ndim=2]
         array giving the off diagnonal terms of the covariance matrix inverse
 
-<<<<<<< HEAD
-    mask:    np.ndarray[bool, ndim=1]
-        mask array to apply during the calculations mask.shape = flux.shape
-
-=======
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
     Returns
     -------
     chi2:    np.ndarray[float, ndim=1]
         array of chi2 values (nmodels)
-<<<<<<< HEAD
-=======
 
     Note
     ----
     Mask removed as it cannot be used with a precomputed inverse
     covariance matrix.  (KDG 29 Jan 2016)
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
     """
     # get the number of models and filters
     n_models, n_filters = fluxmod.shape
     
-<<<<<<< HEAD
-    # setup the internal mask
-    if mask is None:
-        _mask = np.full((n_filters), True)
-    else:
-        _mask = ~mask
-
-=======
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
     # compute the difference in fluxes
     #    take into account the bias term from the AST results
     fluxdiff = flux[None, :] - (fluxmod + fluxbias)
 
-<<<<<<< HEAD
-    # compute the chisqr using the inverse of the covariance matrix
-    #   taking into account the packed format
-    if _mask[n_filters-1]:
-        chisqr = icov_diag[:,n_filters-1]*np.square(fluxdiff[:,n_filters-1])
-    else:
-        chisqr = np.zeros((n_models))
-            
-    m = 0
-    for k in range(n_filters-1):
-        if _mask[k]:
-            tchisqr = icov_diag[:,k]*fluxdiff[:,k]
-            for l in range(k+1,n_filters):
-                if _mask[l]:
-                    tchisqr += (2.0*icov_offdiag[:,m])*fluxdiff[:,l]
-                    m += 1
-            chisqr += tchisqr*fluxdiff[:,k]
-=======
     chisqr = icov_diag[:,n_filters-1]*np.square(fluxdiff[:,n_filters-1])
             
     m = 0
@@ -229,20 +189,14 @@ def N_covar_chi2(flux, fluxmod, fluxbias, icov_diag, icov_offdiag):
             tchisqr += (2.0*icov_offdiag[:,m])*fluxdiff[:,l]
             m += 1
         chisqr += tchisqr*fluxdiff[:,k]
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
         
     return chisqr
 
 
-<<<<<<< HEAD
-def SN_logLikelihood(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None, lnp_threshold=1000.):
-    """ Compute the log of the chi2 likelihood between data with uncertainties and perfectly known models
-=======
 def SN_logLikelihood(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None, 
                      lnp_threshold=1000.):
     """ Compute the log of the chi2 likelihood between data with 
     uncertainties and perfectly known models
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
     with split errors (or non symmetric errors)
 
     Parameters
@@ -296,12 +250,8 @@ def SN_logLikelihood(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None,
 
 
 def N_logLikelihood(flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
-<<<<<<< HEAD
-    """ Compute the log of the chi2 likelihood between data with uncertainties and perfectly known models
-=======
     """ Compute the log of the chi2 likelihood between data with 
     uncertainties and perfectly known models
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
 
     Parameters
     ----------
@@ -418,11 +368,7 @@ def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None,
 
 def N_covar_logLikelihood(flux, fluxmod, fluxbias,
                           q_norm, icov_diag, icov_offdiag,
-<<<<<<< HEAD
-                          mask=None, lnp_threshold=1000.):
-=======
                           lnp_threshold=1000.):
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
     """ Computes the log of the chi2 likelihood between data and model taking
     into account the noise model.
 
@@ -447,12 +393,6 @@ def N_covar_logLikelihood(flux, fluxmod, fluxbias,
     icov_offdiag: np.ndarray[float, ndim=2]
         array giving the off diagnonal terms of the covariance matrix inverse
 
-<<<<<<< HEAD
-    mask:    np.ndarray[bool, ndim=1]
-        mask array to apply during the calculations mask.shape = flux.shape
-
-=======
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
     lnp_threshold:  float
         cut the values outside -x, x in lnp
 
@@ -463,44 +403,17 @@ def N_covar_logLikelihood(flux, fluxmod, fluxbias,
             array of ln(P) values (Nmodels)
     chi2:    np.ndarray[float, ndim=1]
             array of chi-squared values (Nmodels)
-<<<<<<< HEAD
-
-    ..notes
-        In the case where the mask removes filters,
-        the q_norm is not correct as it includes the removed filters
-        not easy to correct as q_norm includes the determinate of the
-        covariance matrix
-
-        This may be solveable if the the covariance matrix work is
-        switched to a cholesky decomposition techinque, but this is not
-        clear.
-
-        Regardless, the error should be small and *constant* for each
-        source
-=======
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
     """
     n_models, n_filters = np.shape(fluxmod)
 
     #compute the pi normalization term
-<<<<<<< HEAD
-    if mask is None:
-        n_good_filters = n_filters
-    else:
-        n_good_filters = sum(mask)
-=======
     n_good_filters = n_filters
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
         
     pi_term = -0.5*n_good_filters*np.log(2.0*np.pi)
 
     # get the chi2 value
     _chi2 = N_covar_chi2(flux, fluxmod, fluxbias,
-<<<<<<< HEAD
-                         icov_diag, icov_offdiag, mask=mask)
-=======
                          icov_diag, icov_offdiag)
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
 
     # compute the lnp = pi_term + q_norm - 0.5*chi2
     lnP = pi_term + q_norm - (0.5*_chi2)

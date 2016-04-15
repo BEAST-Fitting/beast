@@ -39,8 +39,6 @@ class Reporter:
 
 
 def chunk_read(response, buf, chunk_size=8192, report_hook=None):
-<<<<<<< HEAD
-=======
     """ Read a piece of file from the server into a given buffer
 
     Parameters
@@ -56,7 +54,6 @@ def chunk_read(response, buf, chunk_size=8192, report_hook=None):
     bytes_so_far: int
         number of bytes read
     """
->>>>>>> 5d6570cc16d9505dfafa41c55b870984f76f5555
     total_size = response.info()
     if hasattr(total_size, 'getheader'):
         total_size = total_size.getheader('Content-Length').strip()
