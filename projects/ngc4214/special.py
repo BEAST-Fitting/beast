@@ -1,6 +1,6 @@
 import numpy as np
 from beast.core.phot import IntegrationFilter
-import pyfits
+import astropy.io.fits as pyfits
 
 
 
