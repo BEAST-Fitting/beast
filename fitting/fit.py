@@ -580,7 +580,7 @@ def IAU_names_and_extra_info(obsdata,extraInfo=False):
                             dec=obsdata.data[dec_str][i]*ap_units.degree,
                             frame='icrs')
             _tnames.append('PHAT J' + 
-                           c.ra.to_string(sep="",precision=2,
+                           c.ra.to_string(unit=ap_units.hourangle, sep="",precision=2,
                                           alwayssign=False,pad=True) + 
                            c.dec.to_string(sep="",precision=2,
                                            alwayssign=True,pad=True))

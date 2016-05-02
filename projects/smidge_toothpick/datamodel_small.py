@@ -13,6 +13,7 @@ from beast.core.observations import Observations
 from beast.core.vega import Vega
 from beast.core.noisemodel import absflux_covmat
 from beast.external.ezunits import unit
+from extra_filters import make_integration_filter, make_top_hat_filter
 
 #---------------------------------------------------------
 # User inputs                                   [sec:conf]
@@ -85,6 +86,21 @@ fbumps = [0.0,1.0, 0.10]
 
 ################
 
+### extra filters for specific projects
+
+qion_filter = make_integration_filter(90., 912., 1, 'F_QION')
+qion_filter.name = 'F_QION'  # getting rid of instrument etc
+maria_filter = make_top_hat_filter(912., 2066., 1, 'F_UV_6_13e')
+maria_filter.name = 'F_UV_6_13e'
+
+additional_filters = ['GALEX_FUV', 'GALEX_NUV']
+# note: remember to multiply by bandwidth to get the actual energy
+
+add_spectral_properties_kwargs = dict(filternames=filters + additional_filters,
+                                      filters=[qion_filter, maria_filter])
+
+################
+
 ## ..note::
 ##      in the above grid definitions the upper limit makes sure the last point of interest is
 ##      included
@@ -100,7 +116,7 @@ class SMIDGEFluxCatalog(Observations):
     """
     def __init__(self, inputFile, distanceModulus=distanceModulus, filters=filters):
         """ Construct the interface """
-        desc = 'HTTP star: %s' % inputFile
+        desc = 'SMIDGE star: %s' % inputFile
         Observations.__init__(self, inputFile, distanceModulus, desc=desc)
         self.setFilters( filters )
         #some bad values smaller than expected
