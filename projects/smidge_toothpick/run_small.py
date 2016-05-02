@@ -17,7 +17,7 @@ import string
 from pipeline_small import make_models
 import datamodel_small as datamodel
 import noisemodel 
-import fit_memory
+from beast.fitting import fit as fit_memory
 from beast.core import prior_weights
 from beast.core import trim_grid
 from beast.core.grid import FileSEDGrid  

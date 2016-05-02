@@ -21,6 +21,9 @@ import matplotlib
 from astropy.table import Table
 from astropy.io import fits
 
+from astropy import units as ap_units
+from astropy.coordinates import SkyCoord as ap_SkyCoord
+
 def disp_str(stars, k, keyname):
 
     dvals = [stats[keyname+'_p50'][k],
@@ -117,6 +120,16 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
     mod_flux_nd = np.empty((n_filters,3),dtype=np.float)
     mod_flux_wbias = np.empty((n_filters,3),dtype=np.float)
     k = starnum
+
+    c = ap_SkyCoord(ra=stats['RA'][k]*ap_units.degree,
+                    dec=stats['DEC'][k]*ap_units.degree,
+                    frame='icrs')
+    corname = ('PHAT J' + 
+               c.ra.to_string(unit=ap_units.hourangle, sep="",precision=2,
+                              alwayssign=False,pad=True) + 
+               c.dec.to_string(sep="",precision=2,
+                               alwayssign=True,pad=True))
+        
     for i, cfilter in enumerate(filters):
         obs_flux[i] = stats[cfilter][k]
         mod_flux[i,0] = np.power(10.0,stats['log'+cfilter+'_wd_p50'][k])
@@ -125,18 +138,20 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
         mod_flux_nd[i,0] = np.power(10.0,stats['log'+cfilter+'_nd_p50'][k])
         mod_flux_nd[i,1] = np.power(10.0,stats['log'+cfilter+'_nd_p16'][k])
         mod_flux_nd[i,2] = np.power(10.0,stats['log'+cfilter+'_nd_p84'][k])
-        mod_flux_wbias[i,0] = np.power(10.0,stats['log'+cfilter+
-                                                  '_wd_bias_p50'][k])
-        mod_flux_wbias[i,1] = np.power(10.0,stats['log'+cfilter+
-                                                  '_wd_bias_p16'][k])
-        mod_flux_wbias[i,2] = np.power(10.0,stats['log'+cfilter+
-                                                  '_wd_bias_p84'][k])
+        if 'log'+cfilter+'_wd_bias_p50' in stats.colnames:
+            mod_flux_wbias[i,0] = np.power(10.0,stats['log'+cfilter+
+                                                      '_wd_bias_p50'][k])
+            mod_flux_wbias[i,1] = np.power(10.0,stats['log'+cfilter+
+                                                      '_wd_bias_p16'][k])
+            mod_flux_wbias[i,2] = np.power(10.0,stats['log'+cfilter+
+                                                      '_wd_bias_p84'][k])
         
     ax[8].plot(waves, obs_flux, 'ko', label='observed')
 
-    ax[8].plot(waves, mod_flux_wbias[:,0], 'b-',label='stellar+dust+bias')
-    ax[8].fill_between(waves, mod_flux_wbias[:,1], mod_flux_wbias[:,2],
-                       color='b', alpha = 0.3)
+    if 'log'+filters[0]+'_wd_bias_p50' in stats.colnames:
+        ax[8].plot(waves, mod_flux_wbias[:,0], 'b-',label='stellar+dust+bias')
+        ax[8].fill_between(waves, mod_flux_wbias[:,1], mod_flux_wbias[:,2],
+                           color='b', alpha = 0.3)
 
     ax[8].plot(waves, mod_flux[:,0], 'r-',label='stellar+dust')
     ax[8].fill_between(waves, mod_flux[:,1], mod_flux[:,2],
@@ -158,6 +173,10 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
     ax[8].set_xlim(0.2,2.0)
     ax[8].set_xticks([0.2,0.3,0.4,0.5,0.8,0.9,1.0,2.0])
     ax[8].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+    ax[8].text(0.95, 0.95, corname, transform=ax[8].transAxes,
+               verticalalignment='top',horizontalalignment='right',
+               fontsize=fontsize)
 
     # add the text results
     keys = ['Av','M_ini','logA','Rv','f_A','Z','logT','logg','logL']
@@ -335,19 +354,26 @@ if __name__ == '__main__':
 
     # read in the stats
     stats = Table.read(filebase + '_stats.fits')
-    indxs, = np.where(stats['Av_p50'] > 2.0)
+    #print(stats.colnames)
+    #indxs, = np.where((stats['logT_p50'] > 4.0) &
+    #                  (stats['Av_p50'] > 1.0))
+    #print(indxs)
 
     # open 1D PDF file
     pdf1d_hdu = fits.open(filebase+'_pdf1d.fits')
 
     # filters for PHAT
+    #filters = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W', 
+    #           'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M', 
+    #           'HST_ACS_WFC_F658N', 'HST_ACS_WFC_F814W',
+    #           'HST_WFC3_F110W', 'HST_WFC3_F160W']
+    #waves = np.asarray([2250., 2750.0, 3360.0, 
+    #                    4750., 5500., 6580., 8140.,
+    #                    11000., 16000.])
     filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W',
                'HST_ACS_WFC_F814W','HST_WFC3_F110W','HST_WFC3_F160W']
-
-    # wavelengths in angstroms
     waves = np.asarray([2722.05531502, 3366.00507206,4763.04670013,
                         8087.36760191,11672.35909295,15432.7387546])
-
     
     fig, ax = pyplot.subplots(figsize=(12,12))
 
