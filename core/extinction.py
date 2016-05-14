@@ -4,15 +4,17 @@ Here are defined extinction functions that relies
 on given laws.
 """
 import numpy as np
-from scipy import interpolate
+from scipy import interpolate, interp
 
 from . import phot
 from ..tools.helpers import val_in_unit
 from ..external.ezunits import unit
+from ..config import __ROOT__
 
 __version__ = '1.0'
 __all__ = ['Calzetti', 'Cardelli', 'ExtinctionLaw', 'Fitzpatrick99', 'Gordon03_SMCBar']
 
+libdir = __ROOT__ + '/libs/'
 
 class ExtinctionLaw(object):
     """ Template class """
@@ -285,8 +287,8 @@ class Fitzpatrick99(ExtinctionLaw):
             yspluv = c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) / ( ((xspluv) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) * ((xspluv) ** 2 ))
 
             # FUV portion
-            fuvind = np.where(x >= 5.9)
-            k[fuvind] += c4 * (0.5392 * ((x[fuvind] - 5.9) ** 2) + 0.05644 * ((x[fuvind] - 5.9) ** 3))
+            #fuvind = np.where(x >= 5.9)
+            #k[fuvind] += c4 * (0.5392 * ((x[fuvind] - 5.9) ** 2) + 0.05644 * ((x[fuvind] - 5.9) ** 3))
 
             k[ind] += Rv
             yspluv += Rv
@@ -313,6 +315,25 @@ class Fitzpatrick99(ExtinctionLaw):
 
         # convert from A(lambda)/E(B-V) to A(lambda)/A(V)
         k /= Rv
+
+        # FUV portion from Draine curves
+        fuvind = np.where(x >= 5.9)
+        tmprvs = np.arange(2.,6.1,0.1)
+        diffRv = Rv - tmprvs
+        if min(abs(diffRv)) < 1e-8:
+            l_draine, k_draine = np.loadtxt(libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv)), usecols=(0,1), unpack=True)
+        else: 
+            add, = np.where(diffRv < 0.)
+            Rv1 = tmprvs[add[0]-1]
+            Rv2 = tmprvs[add[0]]
+            l_draine, k_draine1 = np.loadtxt(libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv1)), usecols=(0,1), unpack=True)
+            l_draine, k_draine2 = np.loadtxt(libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv2)), usecols=(0,1), unpack=True)
+            frac = diffRv[add[0]-1]/(Rv2-Rv1) 
+            k_draine = (1. - frac)*k_draine1 + frac*k_draine2
+            
+        dind = np.where((1./l_draine) >= 5.9)
+        k[fuvind] = interp(x[fuvind],1./l_draine[dind][::-1],k_draine[dind][::-1])
+
 
         if (Alambda):
             return(k * Av)
@@ -379,9 +400,13 @@ class Gordon03_SMCBar(ExtinctionLaw):
         if np.size(ind) > 0:
             k[ind] = 1.0 + c1 + (c2 * x[ind]) + c3 * ((x[ind]) ** 2) / ( ((x[ind]) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) * ((x[ind]) ** 2 ))
             yspluv = 1.0 + c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) / ( ((xspluv) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) * ((xspluv) ** 2 ))
-
+            
+            # FUV portion  
             ind = np.where(x >= 5.9)
-            k[ind] += c4 * (0.5392 * ((x[ind] - 5.9) ** 2) + 0.05644 * ((x[ind] - 5.9) ** 3))
+            l_draine, k_draine = np.loadtxt(libdir+'SMC_Rv2.74_norm.txt',usecols=(0,1),unpack=True)
+            dind = np.where((1./l_draine) >= 5.9)
+            k[ind] = interp(x[ind],1./l_draine[dind][::-1],k_draine[dind][::-1])
+            #k[ind] += c4 * (0.5392 * ((x[ind] - 5.9) ** 2) + 0.05644 * ((x[ind] - 5.9) ** 3))
 
         # Opt/NIR part
         ind = np.where(x < xcutuv)
