@@ -39,7 +39,7 @@ TODO: check read(field=) exists into all backends.grid, give direct access
 from __future__ import print_function
 import sys
 import numpy
-import pyfits
+import astropy.io.fits as pyfits
 import copy
 
 from ..external.eztables import Table

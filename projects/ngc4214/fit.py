@@ -697,7 +697,7 @@ def summary_table(lnpfname, obs, sedgrid, keys=None, method=None, outname=None, 
 #---------------------------------------------------------
 
 @task_decorator(logger=sys.stdout)
-def t_fit(project, obs, g, ast, threshold=-5, gridbackend='cache', outname=None):
+def t_fit(project, obs, g, ast, threshold=-10, gridbackend='cache', outname=None):
     """t_fit -- run the fitting part
 
     keywords

@@ -194,6 +194,7 @@ def compute_age_mass_metallicity_prior_weights(_tgrid):
 
         total_z_weight *= z_widths   # very simple integration
         z_weights = total_z_weight/np.sum(total_z_weight)
+
         for az, z_val in enumerate(uniq_Zs):
             zindxs, = np.where(_tgrid['Z'] == z_val)   # get the grid for a single metallicity
             _tgrid[zindxs]['weight'] *= z_weights[az]

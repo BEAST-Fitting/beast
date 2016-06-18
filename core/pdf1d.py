@@ -32,24 +32,30 @@ class pdf1d():
         
         self.bin_delta = (self.max_val - self.min_val)/(self.nbins-1)
         self.bin_vals = self.min_val + np.arange(self.nbins)*self.bin_delta
-        self.bin_edges = self.min_val + (np.arange(self.nbins+1) - 0.5)*self.bin_delta
+        self.bin_edges = self.min_val + \
+            (np.arange(self.nbins+1) - 0.5)*self.bin_delta
 
         # get in indices of the grid for each bin in the PDF
         _tpdf_indxs = np.digitize(tgridvals, self.bin_edges)
         
-        # generate the reverse indices (like the IDL version returned by the histogram function)
+        # generate the reverse indices 
+        # (like the IDL version returned by the histogram function)
         _tgrid_indxs = np.arange(self.n_indxs)
 
         self.bin_edges_indxs = np.zeros(self.nbins+1)
         for i in range(nbins):
-            _cur_indxs, = np.where(_tpdf_indxs == (i+1)) # find the indicies for the current bin
+            # find the indicies for the current bin
+            _cur_indxs, = np.where(_tpdf_indxs == (i+1)) 
             _cur_indxs = indxs[_cur_indxs]
 
-            self.bin_edges_indxs[i+1] = self.bin_edges_indxs[i] + len(_cur_indxs)
+            self.bin_edges_indxs[i+1] = self.bin_edges_indxs[i] + \
+                len(_cur_indxs)
             if len(_cur_indxs) > 0:
-                _tgrid_indxs[self.bin_edges_indxs[i]:self.bin_edges_indxs[i+1]] = _cur_indxs
+                _tgrid_indxs[self.bin_edges_indxs[i]:self.bin_edges_indxs[i+1]] = \
+                    _cur_indxs
 
-        # transform the bin edges back to linear spacing if log spacing was asked for
+        # transform the bin edges back to linear spacing if log spacing 
+        #  was asked for
         if logspacing:
             self.bin_vals = np.power(10.0,self.bin_vals)
             self.bin_edges = np.power(10.0,self.bin_edges)

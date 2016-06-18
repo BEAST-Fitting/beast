@@ -13,36 +13,19 @@ introduced by crowding and selection function.
 import numpy as np
 import tables
 
-from beast.core.noisemodel import toothpick
+from beast.core.noisemodel import trunchen
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
-
-class NGC4214_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
-
-    def set_data_mappings(self):
-        """ hard code mapping directly with the interface to ASTs format
-
-        .. note::
-
-            As noted in the class documentation, it is trivial to adapt the
-            class to specific formats
-        """
-        for k in self.filters:
-            try:
-                #self.data.set_alias(k, k.split('_')[-1].lower() + '_rate')
-                self.data.set_alias(k + '_out', k.split('_')[-1].upper() + '_VEGA')
-                self.data.set_alias(k + '_in', k.split('_')[-1].upper() + '_IN')
-            except Exception as e:
-                print(e)
-                print('Warning: Mapping failed. This could lead to wrong results')
+class NGC4214_Trunchen_Noisemodel(trunchen.MultiFilterASTs):
+    pass
 
 
-def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None, **kwargs):
-    """ toothpick noise model assumes that every filter is independent with
-    any other.
+def make_trunchen_noise_model(outname, astfile, basefilters, sedgrid, 
+                              generic_absflux_a_matrix=None, **kwargs):
+    """ trunchen noise model with full covariance information 
+    ----------
 
     Parameters
-    ----------
     outname: str
         path and filename into which save the noise model
 
@@ -51,10 +34,6 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
 
     sedgrid: SEDGrid instance
         sed model grid for everyone of which we will evaluate the model
-
-    absflux_a_matrix: ndarray
-        absolute calibration a matrix giving the fractional uncertainties including
-        correlated terms (off diagonals)
 
     returns
     -------
@@ -65,25 +44,19 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
     #outname = dir_project + 'noise_model_b%s_%s.hd5' % (brick,subdivision)
 
     # read mag_in, mag_out
-    model = NGC4214_ToothPick_Noisemodel(astfile, sedgrid.filters)
-    # compute k-NN statistics: bias, stddev, completeness
-    #model.fit(k=10, eps=0, completeness_mag_cut=80)
-    model.fit_bins(nbins=30, completeness_mag_cut=80)
+    model = NGC4214_Trunchen_Noisemodel(astfile, sedgrid.filters)
+    # compute the bias and covariance matricies for all the independent models
+    model.process_asts(basefilters)
     # evaluate the noise model for all the models in sedgrid
-    bias, sigma, compl = model(sedgrid)
-    # save to disk/mem
+    results = model(sedgrid, generic_absflux_a_matrix=generic_absflux_a_matrix)
 
-    # absolute flux calibration uncertainties
-    #  currently we are ignoring the off-diagnonal terms
-    if absflux_a_matrix is not None:
-        if absflux_a_matrix.ndim == 1:
-            abs_calib_2 = absflux_a_matrix[:] ** 2
-        else:   # assumes a cov matrix
-            abs_calib_2 = np.diag(absflux_a_matrix)
-
-        noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma ** 2)
-    else:
-        noise = sigma
+    #unpack the results
+    bias = results[0]
+    sigma = results[1]
+    compl = results[2]
+    q_norm = results[3]
+    icov_diag = results[4]
+    icov_offdiag = results[5]
 
     # check if the noise model has been extrapolated at the faint flux levels
     # if so, then set the noise to a negative value (later may be used to trim the model of "invalid" models)
@@ -91,15 +64,34 @@ def make_toothpick_noise_model(outname, astfile, sedgrid, absflux_a_matrix=None,
     for k in range(len(model.filters)):
         indxs, = np.where(sedgrid.seds[:,k] <= model._minmax_asts[0,k])
         if len(indxs) > 0:
-            noise[indxs,k] *= -1.0
+            sigma[indxs,k] *= -1.0
 
     print('Writting to disk into {0:s}'.format(outname))
     with tables.openFile(outname, 'w') as outfile:
         outfile.createArray(outfile.root,'bias', bias)
-        outfile.createArray(outfile.root,'error', noise)
+        outfile.createArray(outfile.root,'error', sigma)
         outfile.createArray(outfile.root,'completeness', compl)
+        outfile.createArray(outfile.root,'q_norm', q_norm)
+        outfile.createArray(outfile.root,'icov_diag', icov_diag)
+        outfile.createArray(outfile.root,'icov_offdiag', icov_offdiag)
 
     return outname
+
+def get_noisemodelcat(filename):
+    """
+    returns the noise model
+
+    Parameters
+    ----------
+    filename: str
+        file containing the outputs from OneD_ASTs_ModelGenerator
+
+    Returns
+    -------
+    table: pytables.Table
+        table containing the elements of the noise model
+    """
+    return tables.openFile(filename)
 
 
 @task_decorator()
@@ -145,22 +137,6 @@ def t_gen_noise_model(project, sedgrid, astfile, outname=None,
 
     return project, noise_source(), sedgrid
 
-
-def get_noisemodelcat(filename):
-    """
-    returns the noise model
-
-    Parameters
-    ----------
-    filename: str
-        file containing the outputs from OneD_ASTs_ModelGenerator
-
-    Returns
-    -------
-    table: pytables.Table
-        table containing the elements of the noise model
-    """
-    return tables.openFile(filename)
 
 
 if __name__ == '__main__':
