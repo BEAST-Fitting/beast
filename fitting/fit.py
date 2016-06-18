@@ -333,6 +333,10 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         else:
             nbins = n_uniq
 
+        # temp code for BEAST paper figure
+        if qname == 'Z':
+            nbins = nbins + 1
+
         # setup the fast 1d pdf
 
         # need to know so 'zeros' (defined at -100) are ignored

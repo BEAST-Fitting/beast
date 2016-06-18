@@ -28,6 +28,7 @@ libs = dict(
     #elodie31 = 'Elodie_v3.1.grid.fits',
     kurucz04 = 'kurucz2004.grid.fits',
     tlusty09 = 'tlusty.lowres.grid.fits'
+    #hstcovar = 'hst_whitedwarf_frac_covar.fits'
     #specgrid = 'basel_padova2010.spectralgrid.fits',
     #sedgrid  = 'PHATSEDs_basel_padovaiso.fits'
     #kuruczgrid = 'kurucz2004.grid.fits',

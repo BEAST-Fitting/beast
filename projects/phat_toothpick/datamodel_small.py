@@ -29,7 +29,7 @@ from extra_filters import make_integration_filter, make_top_hat_filter
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
-project = 'b15_jan16_small'
+project = 'b15_jun16_small'
 
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
@@ -68,6 +68,10 @@ distanceModulus = 24.47 * unit['mag']
 logt = [6.0, 10.13, 1.0]
 
 #note: Mass is not sampled, use the isochrone def instead.
+
+#Z
+#[ 0.004       0.01266667  0.02133333  0.03      ]
+#[ 0.50701688  0.          0.24147786  0.25150526]
 
 #Metallicity
 z = [0.03, 0.019, 0.008, 0.004]

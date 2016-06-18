@@ -54,7 +54,14 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
     xvals = pdf[n_objects,:]
     if logx:
         xvals = np.log10(xvals)
-    ax.plot(xvals,pdf[starnum,:]/max(pdf[starnum,:]),color='k')
+
+    if tagname == 'Z':
+        gindxs, = np.where(pdf[starnum,:] > 0.)
+        ax.plot(xvals[gindxs],pdf[starnum,gindxs]/max(pdf[starnum,gindxs]),
+                color='k')
+    else:
+        ax.plot(xvals,pdf[starnum,:]/max(pdf[starnum,:]),color='k')
+
     ax.yaxis.set_major_locator(MaxNLocator(6))
     ax.set_yticklabels([])
     ax.xaxis.set_major_locator(MaxNLocator(4))
@@ -174,9 +181,9 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
     ax[8].set_xticks([0.2,0.3,0.4,0.5,0.8,0.9,1.0,2.0])
     ax[8].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
-    ax[8].text(0.95, 0.95, corname, transform=ax[8].transAxes,
+    ax[8].text(0.15, 0.95, corname, transform=ax[8].transAxes,
                verticalalignment='top',horizontalalignment='right',
-               fontsize=fontsize)
+               fontsize=1.25*fontsize)
 
     # add the text results
     keys = ['Av','M_ini','logA','Rv','f_A','Z','logT','logg','logL']
