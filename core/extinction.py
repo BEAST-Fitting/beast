@@ -235,7 +235,7 @@ class Fitzpatrick99(ExtinctionLaw):
     def __init__(self):
         self.name = 'Fitzpatrick99'
 
-    def function(self, lamb, Av=1, Rv=3.1, Alambda=True, **kwargs):
+    def function(self, lamb, Av=1, Rv=3.1, Alambda=True, draine_extend=False, **kwargs):
         """
         Fitzpatrick99 extinction Law
         Lamb is input in Anstroms
@@ -287,8 +287,9 @@ class Fitzpatrick99(ExtinctionLaw):
             yspluv = c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) / ( ((xspluv) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) * ((xspluv) ** 2 ))
 
             # FUV portion
-            #fuvind = np.where(x >= 5.9)
-            #k[fuvind] += c4 * (0.5392 * ((x[fuvind] - 5.9) ** 2) + 0.05644 * ((x[fuvind] - 5.9) ** 3))
+            if not draine_extend:
+                fuvind = np.where(x >= 5.9)
+                k[fuvind] += c4 * (0.5392 * ((x[fuvind] - 5.9) ** 2) + 0.05644 * ((x[fuvind] - 5.9) ** 3))
 
             k[ind] += Rv
             yspluv += Rv
@@ -317,24 +318,25 @@ class Fitzpatrick99(ExtinctionLaw):
         k /= Rv
 
         # FUV portion from Draine curves
-        fuvind = np.where(x >= 5.9)
-        tmprvs = np.arange(2.,6.1,0.1)
-        diffRv = Rv - tmprvs
-        if min(abs(diffRv)) < 1e-8:
-            l_draine, k_draine = np.loadtxt(libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv)), usecols=(0,1), unpack=True)
-        else: 
-            add, = np.where(diffRv < 0.)
-            Rv1 = tmprvs[add[0]-1]
-            Rv2 = tmprvs[add[0]]
-            l_draine, k_draine1 = np.loadtxt(libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv1)), usecols=(0,1), unpack=True)
-            l_draine, k_draine2 = np.loadtxt(libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv2)), usecols=(0,1), unpack=True)
-            frac = diffRv[add[0]-1]/(Rv2-Rv1) 
-            k_draine = (1. - frac)*k_draine1 + frac*k_draine2
+        if draine_extend:
+            fuvind = np.where(x >= 5.9)
+            tmprvs = np.arange(2.,6.1,0.1)
+            diffRv = Rv - tmprvs
+            if min(abs(diffRv)) < 1e-8:
+                l_draine, k_draine = np.loadtxt(libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv)), usecols=(0,1), unpack=True)
+            else: 
+                add, = np.where(diffRv < 0.)
+                Rv1 = tmprvs[add[0]-1]
+                Rv2 = tmprvs[add[0]]
+                l_draine, k_draine1 = np.loadtxt(libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv1)), usecols=(0,1), unpack=True)
+                l_draine, k_draine2 = np.loadtxt(libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv2)), usecols=(0,1), unpack=True)
+                frac = diffRv[add[0]-1]/(Rv2-Rv1) 
+                k_draine = (1. - frac)*k_draine1 + frac*k_draine2
             
-        dind = np.where((1./l_draine) >= 5.9)
-        k[fuvind] = interp(x[fuvind],1./l_draine[dind][::-1],k_draine[dind][::-1])
+            dind = np.where((1./l_draine) >= 5.9)
+            k[fuvind] = interp(x[fuvind],1./l_draine[dind][::-1],k_draine[dind][::-1])
 
-
+        # setup the output
         if (Alambda):
             return(k * Av)
         else:
@@ -350,7 +352,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
         self.name = 'Gordon03_SMCBar'
         self.Rv = 2.74
 
-    def function(self, lamb, Av=1, Rv=2.74, Alambda=True,  **kwargs):
+    def function(self, lamb, Av=1, Rv=2.74, Alambda=True, draine_extend=False,  **kwargs):
         """
         Lamb is input in Anstroms
         Note that Rv is not given as a variable in the paper of reference
@@ -402,11 +404,13 @@ class Gordon03_SMCBar(ExtinctionLaw):
             yspluv = 1.0 + c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) / ( ((xspluv) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) * ((xspluv) ** 2 ))
             
             # FUV portion  
-            ind = np.where(x >= 5.9)
-            l_draine, k_draine = np.loadtxt(libdir+'SMC_Rv2.74_norm.txt',usecols=(0,1),unpack=True)
-            dind = np.where((1./l_draine) >= 5.9)
-            k[ind] = interp(x[ind],1./l_draine[dind][::-1],k_draine[dind][::-1])
-            #k[ind] += c4 * (0.5392 * ((x[ind] - 5.9) ** 2) + 0.05644 * ((x[ind] - 5.9) ** 3))
+            if draine_extend:
+                ind = np.where(x >= 5.9)
+                l_draine, k_draine = np.loadtxt(libdir+'SMC_Rv2.74_norm.txt',usecols=(0,1),unpack=True)
+                dind = np.where((1./l_draine) >= 5.9)
+                k[ind] = interp(x[ind],1./l_draine[dind][::-1],k_draine[dind][::-1])
+            else:
+                k[ind] += c4 * (0.5392 * ((x[ind] - 5.9) ** 2) + 0.05644 * ((x[ind] - 5.9) ** 3))
 
         # Opt/NIR part
         ind = np.where(x < xcutuv)
