@@ -5,7 +5,7 @@ from __future__ import absolute_import
 import os
 import inspect
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
-import pyfits
+import astropy.io.fits as pyfits
 import numpy as np
 from .basebackend import BaseBackend
 from ..core.tableheader import TableHeader

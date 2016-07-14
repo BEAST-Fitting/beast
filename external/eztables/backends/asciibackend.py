@@ -98,7 +98,7 @@ class csvBackend(BaseBackend):
 
     def readData(self, filename, skiprows, *args, **kwargs):
         """ returns the recarray of the data """
-        return np.recfromcsv(filename, skiprows=skiprows - 1, *args, **kwargs)
+        return np.recfromcsv(filename, skip_header=skiprows - 1, *args, **kwargs)
 
     def read(self, filename, delimiter=',', noheader=False, skiprows=0, comment='#', *args, **kwargs):
         """
@@ -323,7 +323,7 @@ class asciiBackend(BaseBackend):
 
     def readData(self, filename, skiprows, *args, **kwargs):
         """ returns the recarray of the data """
-        return np.recfromtxt(filename, skiprows=skiprows - 1, deletechars="[/().']", *args, **kwargs)
+        return np.recfromtxt(filename, skip_header=skiprows - 1, deletechars="[/().']", *args, **kwargs)
 
     def read(self, filename, delimiter=None, noheader=False, skiprows=0, comment='#', *args, **kwargs):
         """
