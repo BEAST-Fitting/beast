@@ -181,8 +181,8 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
     ax[8].set_xticks([0.2,0.3,0.4,0.5,0.8,0.9,1.0,2.0])
     ax[8].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
-    ax[8].text(0.15, 0.95, corname, transform=ax[8].transAxes,
-               verticalalignment='top',horizontalalignment='right',
+    ax[8].text(0.05, 0.95, corname, transform=ax[8].transAxes,
+               verticalalignment='top',horizontalalignment='left',
                fontsize=1.25*fontsize)
 
     # add the text results
