@@ -15,12 +15,12 @@ Gordon et al. (2016, ApJ, 826, 104).
 Authors
 -------
 
-Karl Gordon
-Morgan Fouesneau
-Heddy Arab
-Kirill Tchernyshyov
-Dan Weisz
-Yumi Choi
+Karl Gordon,
+Morgan Fouesneau,
+Heddy Arab,
+Kirill Tchernyshyov,
+Dan Weisz,
+Yumi Choi,
 and
 the BEAST Team
 
