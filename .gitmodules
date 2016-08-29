@@ -7,3 +7,6 @@
 [submodule "external/ezpipe"]
 	path = external/ezpipe
 	url = git@chex.astro.washington.edu:ezpipe.git
+[submodule "astropy_helpers"]
+	path = astropy_helpers
+	url = https://github.com/astropy/astropy-helpers.git
