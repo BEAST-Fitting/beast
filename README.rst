@@ -34,5 +34,5 @@ easier to improve.
 License
 -------
 
-imexam is licensed under a 3-clause BSD style license (see the
+The BEAST is licensed under a 3-clause BSD style license (see the
 ``licenses/LICENSE.rst`` file).
