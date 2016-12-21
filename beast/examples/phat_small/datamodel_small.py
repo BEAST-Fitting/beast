@@ -8,11 +8,11 @@ import numpy as np
 # BEAST imports
 from beast.core import stellib
 from beast.core import extinction
-from beast.core.observations import Observations
-from beast.core.vega import Vega
-from beast.core.noisemodel import absflux_covmat
+from beast.observationmodel.observations import Observations
+from beast.observationmodel.vega import Vega
+from beast.observationmodel.noisemodel import absflux_covmat
 from beast.external.ezunits import unit
-from extra_filters import make_integration_filter, make_top_hat_filter
+#from extra_filters import make_integration_filter, make_top_hat_filter
 
 #---------------------------------------------------------
 # User inputs                                   [sec:conf]
