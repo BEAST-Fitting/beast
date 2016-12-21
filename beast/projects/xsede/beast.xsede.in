@@ -1,6 +1,0 @@
- python run_parallel.py 0 >> mf_phat_july14_part0.log
- python run_parallel.py 1 >> mf_phat_july14_part1.log
- python run_parallel.py 2 >> mf_phat_july14_part2.log
- python run_parallel.py 3 >> mf_phat_july14_part3.log
- python run_parallel.py 4 >> mf_phat_july14_part4.log
- python run_parallel.py 5 >> mf_phat_july14_part5.log
