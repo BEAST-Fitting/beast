@@ -6,7 +6,7 @@ on given laws.
 import numpy as np
 from scipy import interpolate, interp
 
-from . import phot
+from ..observationmodel import phot
 from ..tools.helpers import val_in_unit
 from ..external.ezunits import unit
 from ..config import __ROOT__

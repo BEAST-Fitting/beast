@@ -14,7 +14,7 @@ introduced by crowding and selection function.
 import numpy as np
 import tables
 
-from beast.core.noisemodel import toothpick
+from beast.observationmodel.noisemodel import toothpick
 from beast.external.ezpipe.helpers import RequiredFile, task_decorator
 
 class PHAT_ToothPick_Noisemodel(toothpick.MultiFilterASTs):

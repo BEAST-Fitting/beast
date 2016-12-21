@@ -30,7 +30,7 @@ from ..tools.pbar import Pbar
 from ..tools.helpers import generator
 from ..tools import helpers
 
-from noisemodel import absflux_covmat
+from ..observationmodel.noisemodel import absflux_covmat
 
 @generator
 def gen_spectral_grid_from_stellib_given_points(osl, pts,

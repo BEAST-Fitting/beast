@@ -21,7 +21,7 @@ import sys
 import numpy as np
 from copy import deepcopy
 
-from . import phot
+from ..observationmodel import phot
 from . import extinction
 from .gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
 from .gridhelpers import pretty_size_print, isNestedInstance
