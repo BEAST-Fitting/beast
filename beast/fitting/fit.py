@@ -139,26 +139,26 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
     #                  should be fixed with the new code where the lnp
     #                  is saved every n stars instead)
     try:
-        outfile = tables.openFile(lnp_outname, 'a')
+        outfile = tables.open_file(lnp_outname, 'a')
     except Exception, error:
         print('partial run lnp file is corrupted - saving new lnp values in '
               + string.replace(lnp_outname,'lnp','lnp_partial'))
-        outfile = tables.openFile(string.replace(lnp_outname,'lnp',
+        outfile = tables.open_file(string.replace(lnp_outname,'lnp',
                                                  'lnp_partial'), 'a')
             
     for lnp_val in save_lnp_vals:
         e = lnp_val[0]
         try:
-            star_group = outfile.createGroup('/', 'star_%d'  % e,
+            star_group = outfile.create_group('/', 'star_%d'  % e,
                                              title="star %d" % e)
         except tables.exceptions.NodeError:
             #print('lnp for star ' + str(e) + ' already in file')
             pass
         else:
-            outfile.createArray(star_group, 'input', lnp_val[4])
-            outfile.createArray(star_group, 'idx', lnp_val[1])
-            outfile.createArray(star_group, 'lnp', lnp_val[2])
-            outfile.createArray(star_group, 'chi2', lnp_val[3])
+            outfile.create_array(star_group, 'input', lnp_val[4])
+            outfile.create_array(star_group, 'idx', lnp_val[1])
+            outfile.create_array(star_group, 'lnp', lnp_val[2])
+            outfile.create_array(star_group, 'chi2', lnp_val[3])
     outfile.close()
 
 def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
@@ -398,11 +398,11 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
         # setup a new lnp file
         if lnp_outname is not None:
-            outfile = tables.openFile(lnp_outname, 'w')
+            outfile = tables.open_file(lnp_outname, 'w')
             #Save wavelengths in root, remember #n_stars = root._v_nchildren -1
-            outfile.createArray(outfile.root, 'grid_waves', g0.lamb[:])
+            outfile.create_array(outfile.root, 'grid_waves', g0.lamb[:])
             filters = obs.getFilters()
-            outfile.createArray(outfile.root, 'obs_filters', filters[:])
+            outfile.create_array(outfile.root, 'obs_filters', filters[:])
             outfile.close()
 
     # loop over the objects and get all the requested quantities

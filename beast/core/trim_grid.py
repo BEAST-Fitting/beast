@@ -114,15 +114,15 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
     # save the trimmed noise model
     print('Writing trimmed noisemodel to disk into {0:s}'.\
           format(noisemodel_outname))
-    with tables.openFile(noisemodel_outname, 'w') as outfile:
-        outfile.createArray(outfile.root,'bias', model_bias[indxs])
-        outfile.createArray(outfile.root,'error', model_unc[indxs])
-        outfile.createArray(outfile.root,'completeness', model_compl[indxs])
+    with tables.open_file(noisemodel_outname, 'w') as outfile:
+        outfile.create_array(outfile.root,'bias', model_bias[indxs])
+        outfile.create_array(outfile.root,'error', model_unc[indxs])
+        outfile.create_array(outfile.root,'completeness', model_compl[indxs])
         if trunchen:
-            outfile.createArray(outfile.root,'q_norm', model_q_norm[indxs])
-            outfile.createArray(outfile.root,'icov_diag',
+            outfile.create_array(outfile.root,'q_norm', model_q_norm[indxs])
+            outfile.create_array(outfile.root,'icov_diag',
                                 model_icov_diag[indxs])
-            outfile.createArray(outfile.root,'icov_offdiag',
+            outfile.create_array(outfile.root,'icov_offdiag',
                                 model_icov_offdiag[indxs])
             
 

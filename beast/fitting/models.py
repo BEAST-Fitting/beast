@@ -210,7 +210,7 @@ def make_priors(outname, specgrid, **kwargs):
 
 def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
               fbump=None, extLaw=None, add_spectral_properties_kwargs=None,
-              absflux_cov=True,
+              absflux_cov=False,
               **kwargs):
     """make_seds -- Create SED model grid integrated into filters and
     extinguished using the rest of the parameters
