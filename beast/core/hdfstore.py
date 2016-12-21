@@ -19,7 +19,7 @@ Could work either as a (key, value) storage or as a classic tables.file.File obj
             print hd.keys()
             print hd['subdir/table']
             print hd['subdir1/array']
-            hd.removeNode('/subdir1', recursive=True)
+            hd.remove_node('/subdir1', recursive=True)
 
 """
 from __future__ import print_function
@@ -29,7 +29,7 @@ import numpy as np
 
 if int(tables.__version__[0]) < 3:
     _future = True
-    from future.tables_file import createEArray
+    from future.tables_file import create_earray
 else:
     _future = False
 
@@ -138,7 +138,7 @@ def __createTable__(hd5, tab, group, tablename):
     if group[-1] == '/':
         group = group[:-1]
 
-    t = hd5.createTable(group, tablename, desc, expectedrows=len(tab), createparents=True)
+    t = hd5.create_table(group, tablename, desc, expectedrows=len(tab), createparents=True)
     hd5.flush()
     return t
 
@@ -216,13 +216,13 @@ def __write__(data, hd5, group='/', tablename=None, append=False, silent=False, 
     if tab.dtype.names is None:
         if not append:
             if _future:
-                createEArray(hd5, group, tablename, obj=tab, createparents=True)
+                create_earray(hd5, group, tablename, obj=tab, createparents=True)
             else:
-                hd5.createEArray(group, tablename, obj=tab, createparents=True)
+                hd5.create_earray(group, tablename, obj=tab, createparents=True)
             hd5.flush()
-            t = hd5.getNode(group + '/' + tablename)
+            t = hd5.get_node(group + '/' + tablename)
         else:
-            t = hd5.getNode(group + '/' + tablename)
+            t = hd5.get_node(group + '/' + tablename)
             t.append(tab)
     else:
         #generate the empty table
@@ -230,7 +230,7 @@ def __write__(data, hd5, group='/', tablename=None, append=False, silent=False, 
             t = __createTable__(hd5, tab, group, tablename)
         else:
             try:
-                t = hd5.getNode(group + '/' + tablename)
+                t = hd5.get_node(group + '/' + tablename)
             except tables.NoSuchNodeError:
                 if not silent:
                     print("Warning: Table does not exists.  New table will be created")
@@ -240,7 +240,7 @@ def __write__(data, hd5, group='/', tablename=None, append=False, silent=False, 
                 except:
                     if not silent:
                         print("Warning: Table creation exception. Table may already exist.")
-                    t = hd5.getNode(group + '/' + tablename)
+                    t = hd5.get_node(group + '/' + tablename)
 
         t.append( tab.astype(t.description._v_dtype) )
         hd5.flush()
@@ -275,7 +275,7 @@ class HDFStore(object):
             The mode to open the file.
             (see set_mode)
 
-        **kwargs can be use to set options to tables.openFile
+        **kwargs can be use to set options to tables.open_file
         """
         self.lnpfile = lnpfile
         self.source = None
@@ -300,7 +300,7 @@ class HDFStore(object):
                     and if the file does not exist it is created.
             'r+' -- It is similar to 'a', but the file must already exist.
 
-        **kwargs is forwarded to tables.openFile
+        **kwargs is forwarded to tables.open_file
 
         returns
         -------
@@ -311,9 +311,9 @@ class HDFStore(object):
             return self._mode
         else:
             title = kwargs.get('title', None) or self._open_kwargs.get('title', '')
-            rootUEP = kwargs.get('rootUEP', None) or self._open_kwargs.get('rootUEP', '/')
+            root_uep = kwargs.get('root_uep', None) or self._open_kwargs.get('root_uep', '/')
             filters = kwargs.get('filters', None) or self._open_kwargs.get('filters', None)
-            self._open_kwargs.update(dict(title=title, rootUEP=rootUEP, filters=filters))
+            self._open_kwargs.update(dict(title=title, root_uep=root_uep, filters=filters))
             if (val != self._mode):
                 self._mode = str(val)
                 if self.source is not None:
@@ -350,7 +350,7 @@ class HDFStore(object):
         """
         if self.source is None:
             if type(self.lnpfile) == str:
-                self.source = tables.openFile(self.lnpfile, mode=self._mode, **self._open_kwargs)
+                self.source = tables.open_file(self.lnpfile, mode=self._mode, **self._open_kwargs)
             elif isinstance(self.lnpfile, tables.file.File):
                 self.source = self.lnpfile
             return True
@@ -376,7 +376,7 @@ class HDFStore(object):
         objects stored in the HDFStore. These are ABSOLUTE path-names (e.g. have the leading '/'
         """
         with self as s:
-            r = list(k._v_pathname for k in s.source.walkNodes())
+            r = list(k._v_pathname for k in s.source.walk_nodes())
         return r
 
     def items(self):
@@ -396,7 +396,7 @@ class HDFStore(object):
     def groups(self, where='/'):
         """ return a list of all the top-level nodes (that are not themselves a pandas storage object) """
         with self as s:
-            g = list(s.source.walkGroups(where=where))
+            g = list(s.source.walk_groups(where=where))
         return g
 
     def write(self, data, group='/', tablename=None, append=False, silent=False, header={}, **kwargs):
@@ -442,7 +442,7 @@ class HDFStore(object):
                 p = key
             if p not in s.keys():
                 raise KeyError('No object named {0} in this store'.format(p))
-            return s.source.getNode(p)
+            return s.source.get_node(p)
 
     def __setitem__(self, key, value):
         """__setitem__
@@ -539,20 +539,20 @@ class HDFStore(object):
                 the column values requested with type and shape defined in the table.
         """
         with self as storage:
-            node = storage.source.getNode(nodename)
+            node = storage.source.get_node(nodename)
             colnames = node.colnames
             if expr in colnames:
-                if hasattr(node, 'readCoordinates') & (coordinates is not None):
-                    q = node.readCoordinates(coordinates, field=expr)
+                if hasattr(node, 'read_coordinates') & (coordinates is not None):
+                    q = node.read_coordinates(coordinates, field=expr)
                 else:
                     q = node.read(field=expr)
             else:
                 #parse qname, using tables.Expr does not help with log10 etc
                 names = tables.expression.getExprNames(expr, {})[0]
-                if hasattr(node, 'readCoordinates') & (coordinates is not None):
+                if hasattr(node, 'read_coordinates') & (coordinates is not None):
                     for k in names:
                         if k in colnames:
-                            condvars[k] = node.readCoordinates(coordinates, field=k)
+                            condvars[k] = node.read_coordinates(coordinates, field=k)
                 elif (coordinates is not None):
                     _tmp = node[coordinates]
                     for k in names:
@@ -591,5 +591,5 @@ def unittest():
         print(hd.keys())
         print(hd['subdir/table'])
         print(hd['subdir1/array'])
-        hd.removeNode('/subdir1', recursive=True)
+        hd.remove_node('/subdir1', recursive=True)
         print(hd.keys())

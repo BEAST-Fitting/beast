@@ -245,7 +245,7 @@ def __load__(fname, ftab, interp=True, lamb=None, integrationFilter=False):
         return IntegrationFilter(lamb, ifT, name=fname)
 
     else:
-        fnode    = ftab.getNode('/filters/' + fname)
+        fnode    = ftab.get_node('/filters/' + fname)
         flamb    = fnode[:]['WAVELENGTH']
         transmit = fnode[:]['THROUGHPUT']
         if interp & (lamb is not None):
@@ -277,7 +277,7 @@ def load_all_filters(interp=True, lamb=None, filterLib=None):
     """
     if filterLib is None:
         filterLib = __default__
-    with tables.openFile(filterLib, 'r') as ftab:
+    with tables.open_file(filterLib, 'r') as ftab:
         filters = [ __load__(fname, ftab, interp=interp, lamb=lamb) for fname in ftab.root.content.cols.TABLENAME ]
     return(filters)
 
@@ -306,7 +306,7 @@ def load_filters(names, interp=True, lamb=None, filterLib=None):
     """
     if filterLib is None:
         filterLib = __default__
-    with tables.openFile(filterLib, 'r') as ftab:
+    with tables.open_file(filterLib, 'r') as ftab:
         filters = [ __load__(fname, ftab, interp=interp, lamb=lamb) for fname in names ]
     return(filters)
 
@@ -588,9 +588,9 @@ def append_filter(lamb, flux, tablename, observatory, instrument, name,
     updateVegaLib: bool
         if set calls the update function to the vega library
     """
-    ftab = tables.openFile(filterLib, 'a')
-    contentTab = ftab.getNode('/content')
-    if contentTab.readWhere('TABLENAME == "{0}"'.format(tablename)).size > 0:
+    ftab = tables.open_file(filterLib, 'a')
+    contentTab = ftab.get_node('/content')
+    if contentTab.read_where('TABLENAME == "{0}"'.format(tablename)).size > 0:
         print('% {0}: Filter {1} already exists. Returning'.format(sys.argv[0], tablename))
         return
 
@@ -610,7 +610,7 @@ def append_filter(lamb, flux, tablename, observatory, instrument, name,
     newRow.append()
     contentTab.flush()
     # Create Table
-    newTab = ftab.createTable('/filters', tablename, __newFilterTable__,
+    newTab = ftab.create_table('/filters', tablename, __newFilterTable__,
                               title=filtInst.name,
                               expectedrows=filtInst.wavelength.size)
     newRow = newTab.row
@@ -673,11 +673,11 @@ def appendVegaFilter(filtInst, VegaLib=__default_vega__):
         Vega Library
     """
 #    import tables
-    vtab = tables.openFile(VegaLib, 'a')
+    vtab = tables.open_file(VegaLib, 'a')
     vl = vtab.root.spectrum[:]['WAVELENGTH']
     vf = vtab.root.spectrum[:]['FLUX']
-    sedTab = vtab.getNode('/sed')
-    if sedTab.readWhere('FNAME == "{0}"'.format(filtInst.name)).size > 0:
+    sedTab = vtab.get_node('/sed')
+    if sedTab.read_where('FNAME == "{0}"'.format(filtInst.name)).size > 0:
         print('% {0}: Filter {1} already exists. Returning'.format(sys.argv[0], filtInst.name))
         return
 

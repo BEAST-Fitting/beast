@@ -94,7 +94,7 @@ class hdf5Backend(BaseBackend):
             if group[-1] == '/':
                 group = group[:-1]
 
-            t = hd5.createTable(group, tablename, desc,
+            t = hd5.create_table(group, tablename, desc,
                     expectedrows=tab.nrows, createparents=True)
             hd5.flush()
             return t
@@ -113,7 +113,7 @@ class hdf5Backend(BaseBackend):
         if append:
             mode = 'a'
 
-        hd5 = tables.openFile(output, mode=mode)
+        hd5 = tables.open_file(output, mode=mode)
 
         #generate the empty table
         if not append:
@@ -123,10 +123,10 @@ class hdf5Backend(BaseBackend):
             except:
                 if not silent:
                     print "Warning: Table creation exception. Table may already exist."
-                t = hd5.getNode(group + tablename)
+                t = hd5.get_node(group + tablename)
         else:
             try:
-                t = hd5.getNode(group + tablename)
+                t = hd5.get_node(group + tablename)
             except tables.NoSuchNodeError:
                 if not silent:
                     print "Warning: Table does not exists.  New table will be created"
@@ -175,17 +175,17 @@ class hdf5Backend(BaseBackend):
 
     def read(self, filename, tableName=None, silent=False, *args, **kwargs):
 
-        source = tables.openFile(filename, *args, **kwargs)
+        source = tables.open_file(filename, *args, **kwargs)
 
         if 'tablename' in kwargs:
             tableName = kwargs['tablename']
         if tableName is None:
-            node = source.listNodes('/')[0]
+            node = source.list_nodes('/')[0]
             tableName = node.name
         else:
             if tableName[0] != '/':
                 tableName = '/' + tableName
-            node = source.getNode(tableName)
+            node = source.get_node(tableName)
         if silent is True:
             print "\tLoading table: %s" % tableName
 
