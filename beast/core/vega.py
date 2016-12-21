@@ -31,7 +31,7 @@ class Vega(object):
     def __enter__(self):
         """ Enter context """
         if self.hdf is None:
-            self.hdf = tables.openFile(self.source)
+            self.hdf = tables.open_file(self.source)
         return self
 
     def __exit__(self,  *exc_info):

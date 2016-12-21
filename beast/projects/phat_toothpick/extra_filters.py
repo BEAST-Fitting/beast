@@ -2,7 +2,7 @@
 
 import numpy as np
 from beast.core.phot import IntegrationFilter, Filter
-import pyfits
+import astropy.io.fits as pyfits
 
 def make_integration_filter(startlam, endlam, dlamb, name,
                         observatory='SUDO',
