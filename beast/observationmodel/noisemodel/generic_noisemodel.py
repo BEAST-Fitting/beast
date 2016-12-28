@@ -1,23 +1,22 @@
-""" Script that generates the noise model for phat/m31 data,
-based on the BEAST noise model package
+""" 
+Generates a generic noise model from artifical star tests (ASTs) results
+using the toothpick method.  Using ASTs results in a noise model that 
+includes contributions from measurement (photon) noise *and* crownding 
+noise.
 
-Currently TOOTHPICK noise model version: assumes independent filters
-The idea is to use artificial star tests (ASTs) to characterize the noise
-introduced by crowding and selection function.
-
-.. history::
-    Based on code from the ngc4214 products directory (18oct14, KDG)
-       adapted for the PHAT AST files
-       updated to sync up with HA's work on the PHAT ASTs
+Toothpick assumes that all bands are independent - no covariance.
+This is a conservative assumption.  If there is true covariance
+  more accurate results with smaller uncertainties on fit parameters
+  can be achieved using the trunchen method.  The trunchen method
+  requires significantly more complicated ASTs and many more of them.
 """
 
 import numpy as np
 import tables
 
-from beast.observationmodel.noisemodel import toothpick
-from beast.external.ezpipe.helpers import RequiredFile, task_decorator
+import toothpick
 
-class PHAT_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
+class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
 
     def set_data_mappings(self):
         """
@@ -62,7 +61,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
     """
 
     # read mag_in, mag_out
-    model = PHAT_ToothPick_Noisemodel(astfile, sedgrid.filters)
+    model = Generic_ToothPick_Noisemodel(astfile, sedgrid.filters)
     # compute binned biases and uncertainties as a function of flux
     model.fit_bins(nbins=30, completeness_mag_cut=80)
     # evaluate the noise model for all the models in sedgrid
@@ -98,50 +97,6 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
 
     return outname
 
-@task_decorator()
-def t_gen_noise_model(project, sedgrid, astfile, outname=None,
-                      absflux_a_matrix=None, *args, **kwargs):
-    """
-    Parameters
-    ----------
-    project: str
-        token of the project this task belongs to
-
-    sedgrid: SEDGrid instance
-        sed model grid for everyone of which we will evaluate the model
-
-    outname: str
-        path and filename into which save the noise model
-
-    astfile: str
-        path to the file into which are ASTs results
-
-    absflux_a_matrix: ndarray
-        absolute calibration a matrix giving the fractional uncertainties
-        including correlated terms (off diagonals)
-
-    Returns
-    -------
-
-    project: str
-        token of the project this task belongs to
-
-    noisefile: str
-        noisemodel file name
-
-    sedgrid: grid.SEDGrid instance
-        SED model grid instance
-    """
-    if outname is None:
-        outname = '{0:s}_noisemodel.hd5'.format(project)
-
-    noise_source = RequiredFile(outname, make_toothpick_noise_model, outname,
-                                astfile, sedgrid,
-                                absflux_a_matrix=absflux_a_matrix,
-                                **kwargs)
-
-    return project, noise_source(), sedgrid
-
 def get_noisemodelcat(filename):
     """
     returns the noise model
@@ -160,18 +115,5 @@ def get_noisemodelcat(filename):
 
 
 if __name__ == '__main__':
-    from beast.core.grid import FileSEDGrid
 
-    # get the filters
-    project = 'b15_nov15_test'
-    
-    modelseds = FileSEDGrid(project+'/'+project+'_seds.grid.hd5')
-
-    uvastfile = 'data/fake_stars_b15_27_uv.fits'
-    optastfile = 'data/fake_stars_b15_27_opt.fits'
-    irastfile = 'data/fake_stars_b15_27_ir.fits'
-    astfile = 'data/fake_stars_b15_27_all.hd5'
-    Merge_PHAT_ASTs(uvastfile,optastfile,irastfile,astfile)
-
-    noisefile = project + '/b15_27_noisemodel.hd5'
-    make_toothpick_noise_model(noisemodel, astfile, modelseds)
+    pass

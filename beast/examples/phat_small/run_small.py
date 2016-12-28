@@ -14,7 +14,7 @@ import string
 # BEAST imports
 from pipeline_small import make_models
 import datamodel_small as datamodel
-import noisemodel 
+import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
 from beast.fitting import fit
 from beast.core import trim_grid
 from beast.core.grid import FileSEDGrid  
@@ -109,7 +109,8 @@ if __name__ == '__main__':
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')
 
-    else:
+    # print help if no arguments
+    if not any(vars(args).values()):
         parser.print_help()
 
 
