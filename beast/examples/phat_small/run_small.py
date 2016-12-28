@@ -5,7 +5,7 @@ KDG - 21 Dec 2016
 """
 
 # system imports
-from __future__ import print_function
+from __future__ import print_function, division
 import sys
 import argparse
 import time
@@ -15,8 +15,7 @@ import string
 from pipeline_small import make_models
 import datamodel_small as datamodel
 import noisemodel 
-from beast.fitting import fit as fit_memory
-from beast.core import prior_weights
+from beast.fitting import fit
 from beast.core import trim_grid
 from beast.core.grid import FileSEDGrid  
 
@@ -42,7 +41,9 @@ if __name__ == '__main__':
         print('Generating noise model from ASTs and absflux A matrix')
  
         # get the modesedgrid on which to generate the noisemodel  
-        modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))  
+        modelsedgridfile = datamodel.project + '/' + datamodel.project + \
+                       '_seds.grid.hd5'
+        modelsedgrid = FileSEDGrid(modelsedgridfile)  
             
         # generate the AST noise model  
         noisemodel.make_toothpick_noise_model( \
@@ -55,39 +56,61 @@ if __name__ == '__main__':
         print('Trimming the model and noise grids')
 
         # read in the observed data
-        obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
+        obsdata = datamodel.get_obscat(datamodel.obsfile,
+                                       datamodel.distanceModulus,
+                                       datamodel.filters)
 
         # get the modesedgrid on which to generate the noisemodel  
-        modelsedgrid = FileSEDGrid('{project:s}/{project:s}_seds.grid.hd5'.format(project=datamodel.project))  
-
+        modelsedgridfile = datamodel.project + '/' + datamodel.project + \
+                       '_seds.grid.hd5'
+        modelsedgrid = FileSEDGrid(modelsedgridfile)  
+        
         # read in the noise model just created
         noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
 
         # trim the model sedgrid
-        sed_trimname = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
-        noisemodel_trimname = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
+        sed_trimname = modelsedgridfile.replace('_seds','_seds_trim')
+        noisemodel_trimname = sed_trimname.replace('_seds','_noisemodel')
 
-        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata, sed_trimname, noisemodel_trimname, sigma_fac=3.)
+        trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata,
+                              sed_trimname, noisemodel_trimname, sigma_fac=3.)
 
     if args.fit:
         start_time = time.clock()
     
         # the files for the trimmed model grid and noisemodel grid
-        modelsedgrid = '{project:s}/{project:s}_seds_trim.grid.hd5'.format(project=datamodel.project)
-        noisemodelfile = '{project:s}/{project:s}_noisemodel_trim.grid.hd5'.format(project=datamodel.project)
-        statsfile = '{project:s}/{project:s}_stats.fits'.format(project=datamodel.project)
+        modelsedgrid = datamodel.project + '/' + datamodel.project + \
+                       '_seds_trim.grid.hd5'
+        noisemodelfile = string.replace(modelsedgrid,'_seds','_noisemodel')
 
         # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(noisemodelfile)
 
         # read in the observed data
-        obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.distanceModulus, datamodel.filters)
+        obsdata = datamodel.get_obscat(datamodel.obsfile, 
+                                       datamodel.distanceModulus,
+                                       datamodel.filters)
 
-        fit_memory.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid, resume=args.resume,
-                                        threshold=-10., save_every_npts=100, lnp_npts=60,
-                                        stats_outname=statsfile,
-                                        pdf1d_outname=string.replace(statsfile,'stats.fits','pdf1d.fits'),
-                                        lnp_outname=string.replace(statsfile,'stats.fits','lnp.hd5'))
+        # output files
+        print(datamodel.project)
+        statsfile = datamodel.project + '/' + datamodel.project + \
+                    '_stats.fits'
+        pdf1dfile = string.replace(statsfile,'stats.fits','pdf1d.fits')
+        lnpfile = string.replace(statsfile,'stats.fits','lnp.hd5')
+
+        fit.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid,
+                                 resume=args.resume,
+                                 threshold=-10., save_every_npts=100,
+                                 lnp_npts=60,
+                                 stats_outname=statsfile,
+                                 pdf1d_outname=pdf1dfile,
+                                 lnp_outname=lnpfile)
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')
+
+    else:
+        parser.print_help()
+
+
+        

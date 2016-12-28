@@ -1,9 +1,11 @@
+#!/usr/bin/env python
 """
 Code to test if the BEAST output files are the same between to runs
 KDG - 28 Dec 2016
 """
 
 from __future__ import print_function, division
+import os.path
 import h5py
 import numpy as np
 import astropy.io.fits as fits
@@ -70,22 +72,29 @@ if __name__ == '__main__':
     # check the FITS files
     fits_files = ['stats','pdf1d']
     for cfile in fits_files:
-        fd = fits.FITSDiff(basename+'/'+basename+'_'+cfile+'.fits',
-                           basename+'_good/'+basename+'_'+cfile+'.fits')
-        print(cfile, fd.identical)
+        file1 = basename+'/'+basename+'_'+cfile+'.fits'
+        if os.path.isfile(file1):
+            fd = fits.FITSDiff(file1,
+                               basename+'_good/'+basename+'_'+cfile+'.fits')
+            print(cfile, fd.identical)
+        else:
+            print(cfile, 'does not exist, not checking')
       
     # check the HDF5 files
     hdf5_files = ['lnp','seds.grid','seds_trim.grid',
                   'noisemodel','noisemodel_trim.grid']
     for cfile in hdf5_files:
-        hd = hdf5diff(basename+'/'+basename+'_'+cfile+'.hd5',
-                      basename+'_good/'+basename+'_'+cfile+'.hd5')
-        print(cfile, hd.identical)
-        if not hd.identical:
-            print('missing groups')
-            print(hd.missing_groups)
-            print('missing datasets')
-            print(hd.missing_datasets)
-            print('nonzero matchs')
-            print(hd.nonzero_matchs)
-        
+        file1 = basename+'/'+basename+'_'+cfile+'.hd5'
+        if os.path.isfile(file1):
+            hd = hdf5diff(file1,
+                          basename+'_good/'+basename+'_'+cfile+'.hd5')
+            print(cfile, hd.identical)
+            if not hd.identical:
+                print('missing groups')
+                print(hd.missing_groups)
+                print('missing datasets')
+                print(hd.missing_datasets)
+                print('nonzero matchs')
+                print(hd.nonzero_matchs)
+        else:
+            print(cfile, 'does not exist, not checking')
