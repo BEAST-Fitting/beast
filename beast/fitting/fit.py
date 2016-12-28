@@ -33,16 +33,15 @@ import numexpr
 from astropy import units as ap_units
 from astropy.coordinates import SkyCoord as ap_SkyCoord
 #from astropy.coordinates import ICRS as ap_ICRS
-#from astropy import units as ap_units
 
 from astropy.io import fits
 from astropy.table import Table
 
-from ..core import grid
+from ..physicsmodel import grid
 from ..proba.likelihood import *
 from ..proba import expectation, percentile, getNorm_lnP
 from ..tools.pbar import Pbar
-from ..core.pdf1d import pdf1d
+from pdf1d import pdf1d
 
 def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals,
                per_vals, chi2_vals, chi2_indx, 
@@ -107,7 +106,7 @@ def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
     """
 
     # write a small primary header
-    fits.writeto(pdf1d_outname, np.zeros((2,2)), clobber=True)
+    fits.writeto(pdf1d_outname, np.zeros((2,2)), overwrite=True)
 
     # write the 1D PDFs for all the objects, 1 set per extension
     for k, qname in enumerate(qnames):

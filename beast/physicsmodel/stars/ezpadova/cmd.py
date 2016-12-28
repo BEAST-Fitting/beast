@@ -36,7 +36,7 @@ import urllib
 import urllib2
 import zlib
 import re
-from ...external.eztables import Table
+from ....external.eztables import Table
 from StringIO import StringIO
 
 # internal parameters

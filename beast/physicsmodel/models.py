@@ -32,17 +32,19 @@ import sys
 import numpy as np
 
 # BEAST imports
-from ..core import grid
-from ..core import createbiggrid as creategrid
-from ..core import stellib
-from ..core import extinction
-from ..core import isochrone
-from ..core import prior_weights
-from ..core.isochrone import ezIsoch
+import grid
+import creategrid
+import prior_weights
+
+from stars import stellib
+from stars import isochrone
+from stars.isochrone import ezIsoch
+
+from dust import extinction
+
 from ..external.ezpipe.helpers import RequiredFile, task_decorator
 from ..external.ezpipe import Pipeline
 from ..tools.helpers import val_in_unit
-#from beast.external.eztables import Table
 
 __all__ = [ 't_isochrones',  't_spectra', 't_priors', 't_seds' ]
 

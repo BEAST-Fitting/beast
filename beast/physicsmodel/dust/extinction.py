@@ -6,10 +6,10 @@ on given laws.
 import numpy as np
 from scipy import interpolate, interp
 
-from ..observationmodel import phot
-from ..tools.helpers import val_in_unit
-from ..external.ezunits import unit
-from ..config import __ROOT__
+from ...observationmodel import phot
+from ...tools.helpers import val_in_unit
+from ...external.ezunits import unit
+from ...config import __ROOT__
 
 __version__ = '1.0'
 __all__ = ['Calzetti', 'Cardelli', 'ExtinctionLaw', 'Fitzpatrick99', 'Gordon03_SMCBar']

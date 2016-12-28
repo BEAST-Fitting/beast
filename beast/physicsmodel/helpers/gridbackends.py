@@ -42,9 +42,9 @@ import numpy
 import astropy.io.fits as pyfits
 import copy
 
-from ..external.eztables import Table
-from .hdfstore import HDFStore
-from .gridhelpers import isNestedInstance, pretty_size_print
+from ...external.eztables import Table
+from hdfstore import HDFStore
+from gridhelpers import isNestedInstance, pretty_size_print
 
 
 __all__ = ['GridBackend', 'MemoryBackend', 'CacheBackend', 'HDFBackend']

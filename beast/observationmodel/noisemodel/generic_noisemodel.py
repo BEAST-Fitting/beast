@@ -1,7 +1,7 @@
 """ 
 Generates a generic noise model from artifical star tests (ASTs) results
 using the toothpick method.  Using ASTs results in a noise model that 
-includes contributions from measurement (photon) noise *and* crownding 
+includes contributions from measurement (photon) noise *and* crowding 
 noise.
 
 Toothpick assumes that all bands are independent - no covariance.
