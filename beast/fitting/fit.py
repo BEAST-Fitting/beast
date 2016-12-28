@@ -38,9 +38,11 @@ from astropy.io import fits
 from astropy.table import Table
 
 from ..physicsmodel import grid
-from ..proba.likelihood import *
-from ..proba import expectation, percentile, getNorm_lnP
 from ..tools.pbar import Pbar
+
+from fit_metrics.likelihood import *
+from fit_metrics import expectation, percentile, getNorm_lnP
+
 from pdf1d import pdf1d
 
 def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals,

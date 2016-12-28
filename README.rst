@@ -12,8 +12,8 @@ The full details of the BEAST are provide by
 Gordon et al. (2016, ApJ, 826, 104).
 <http://adsabs.harvard.edu/abs/2016ApJ...826..104G>
 
-Authors
--------
+Contributors
+------------
 
 Karl Gordon,
 Morgan Fouesneau,
@@ -27,9 +27,7 @@ the BEAST Team
 In Development!
 ---------------
 
-This code is currently in active development.  It is undergoing
-a reorganization to make the code easier to use, more robust, and 
-easier to improve.
+This code is currently in active development.  
 
 License
 -------

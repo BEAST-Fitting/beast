@@ -21,7 +21,7 @@ HDF5 Storage optimized functions
 import numpy as np
 import tables
 
-from .progressbar import PBar
+#from .progressbar import PBar
 from .likelihood import getNorm_lnP
 from .common import percentile, expectation
 
