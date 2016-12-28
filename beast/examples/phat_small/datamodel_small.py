@@ -85,6 +85,12 @@ fbumps = [0.0,1.0, 0.25]
 
 ################
 
+# add in the standard filters to enable output of stats and pdf1d values
+# for the observed fitlers
+add_spectral_properties_kwargs = dict(filternames=filters)
+
+################
+
 class PHATFluxCatalog(Observations):
     """SMIDGE 8 filter photometry
     This class implements a direct access to the SMIDGE measured fluxes.
