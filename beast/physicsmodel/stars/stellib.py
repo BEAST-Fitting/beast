@@ -16,7 +16,7 @@ from ..helpers import Path
 
 from ...external.eztables import Table
 from ...config import __ROOT__, __NTHREADS__
-from ...include import __interp__
+from include import __interp__
 from ...tools.pbar import Pbar
 from ...tools.helpers import nbytes
 
