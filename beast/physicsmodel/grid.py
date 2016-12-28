@@ -22,9 +22,9 @@ import numpy as np
 from copy import deepcopy
 
 from ..observationmodel import phot
-from . import extinction
-from .gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
-from .gridhelpers import pretty_size_print, isNestedInstance
+from dust import extinction
+from helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
+from helpers.gridhelpers import pretty_size_print, isNestedInstance
 
 
 def find_backend(txt):

@@ -8,15 +8,17 @@ The interpolation is implemented from the pegase.2 fortran converted algorithm.
 (this may not be pythonic though)
 """
 import numpy as np
-from .grid import SpectralGrid
-from ..external.eztables import Table
-from ..config import __ROOT__, __NTHREADS__
-from ..include import __interp__
-from ..tools.pbar import Pbar
-from ..tools.helpers import nbytes
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
-from .future import Path
+
+from ..grid import SpectralGrid
+from ..helpers import Path
+
+from ...external.eztables import Table
+from ...config import __ROOT__, __NTHREADS__
+from ...include import __interp__
+from ...tools.pbar import Pbar
+from ...tools.helpers import nbytes
 
 lsun = 3.839e+26   # in W (Watts)
 sig_stefan = 5.67037321 * 1e-8  # W * m**-2 * K**-4

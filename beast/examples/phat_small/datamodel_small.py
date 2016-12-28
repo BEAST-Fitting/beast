@@ -6,8 +6,8 @@ KDG - 21 Dec 2016
 import numpy as np
 
 # BEAST imports
-from beast.core import stellib
-from beast.core import extinction
+from beast.physicsmodel.stars import stellib
+from beast.physicsmodel.dust import extinction
 from beast.observationmodel.observations import Observations
 from beast.observationmodel.vega import Vega
 from beast.observationmodel.noisemodel import absflux_covmat

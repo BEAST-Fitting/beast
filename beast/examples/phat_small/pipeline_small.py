@@ -13,6 +13,9 @@ each step outputs results that are stored into <project>_<...>.<csv|fits>
 TODO: make a function that takes user pars and return the pipeline instance
 """
 from __future__ import print_function
+
+import os
+
 from beast.external.ezpipe import Pipeline
 from beast.external.ezpipe.helpers import task_decorator
 from beast.external.eztables import Table
@@ -20,11 +23,8 @@ from beast.tools.helpers import val_in_unit
 from beast.tools.pbar import Pbar
 from beast.external.ezunits import unit
 
-import os
-
 import datamodel_small as datamodel
-import noisemodel
-from beast.fitting.models import t_isochrones, t_spectra, t_seds, t_priors
+from beast.physicsmodel.models import t_isochrones, t_spectra, t_seds, t_priors
 
 @task_decorator()
 def t_get_obscat(project, obsfile=datamodel.obsfile,

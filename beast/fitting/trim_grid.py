@@ -13,8 +13,8 @@ from __future__ import print_function
 import numpy as np
 import tables
 
-from .grid import FileSEDGrid
-from .grid import SpectralGrid
+from ..physicsmodel.grid import FileSEDGrid
+from ..physicsmodel.grid import SpectralGrid
 from ..external.eztables import Table
 
 def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,

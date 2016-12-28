@@ -1,6 +1,7 @@
 # class to generate 1D PDFs for many objects all with
 #  spare or full nD likelihoods on the same grid of models
 
+from __future__ import print_function, division
 import math
 import numpy as np
 
@@ -42,7 +43,7 @@ class pdf1d():
         # (like the IDL version returned by the histogram function)
         _tgrid_indxs = np.arange(self.n_indxs)
 
-        self.bin_edges_indxs = np.zeros(self.nbins+1)
+        self.bin_edges_indxs = np.zeros((self.nbins+1), dtype=np.uint64)
         for i in range(nbins):
             # find the indicies for the current bin
             _cur_indxs, = np.where(_tpdf_indxs == (i+1)) 
@@ -53,7 +54,7 @@ class pdf1d():
             if len(_cur_indxs) > 0:
                 _tgrid_indxs[self.bin_edges_indxs[i]:self.bin_edges_indxs[i+1]] = \
                     _cur_indxs
-
+                
         # transform the bin edges back to linear spacing if log spacing 
         #  was asked for
         if logspacing:

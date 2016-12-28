@@ -20,10 +20,10 @@ __version__ = '2.0dev'
 import numpy as np
 import copy
 
-from . import stellib
-from . import isochrone
-from . import extinction
-from .grid import SpectralGrid
+from stars import stellib
+from stars import isochrone
+from dust import extinction
+from grid import SpectralGrid
 from ..external import ezunits
 from ..external.eztables import Table
 from ..tools.pbar import Pbar

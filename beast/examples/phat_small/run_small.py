@@ -16,8 +16,8 @@ from pipeline_small import make_models
 import datamodel_small as datamodel
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
 from beast.fitting import fit
-from beast.core import trim_grid
-from beast.core.grid import FileSEDGrid  
+from beast.fitting import trim_grid
+from beast.physicsmodel.grid import FileSEDGrid  
 
 if __name__ == '__main__':
     # commandline parser
