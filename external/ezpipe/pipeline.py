@@ -8,6 +8,7 @@ TODO:
     This must be like a big task Maybe using operator + on Tasks to
     generate a group?
 """
+from __future__ import print_function, division
 import sys
 from .helpers import Task, Logger
 
@@ -227,10 +228,10 @@ class Pipeline(object):
                     break
             if k == len(self.tasks) - 1:
                 if verbose:
-                    print 'Job "{}" already completed.'.format(job_id)
+                    print('Job {} already completed'.format(job_id))
                 return
             if verbose:
-                print 'Restarting Job "{}" from Task "{}"'.format(job_id, self.task_names[k])
+                print('Restarting Job "{}" from Task "{}"'.format(job_id, self.task_names[k]))
                 # call the last memoized task and restart from there
                 self.start_job_from(k, job_id, val=None)
 

@@ -89,7 +89,7 @@ class fitsBackend(BaseBackend):
         names = [ k.name for k in colDef ]
         units = [ k.unit for k in colDef ]
         #comms = [ k.comment for k in colDef ]
-        comms = [ self._readColComments(k) for k in hdu.header.ascard['TTYPE*'] ]
+        comms = [ self._readColComments(k) for k in hdu.header.cards['TTYPE*'] ]
         data  = hdu.data.view(np.rec.recarray)
         return data, names, units, comms
 
