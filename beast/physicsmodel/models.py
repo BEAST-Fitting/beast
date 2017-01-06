@@ -46,8 +46,9 @@ from ..external.ezpipe.helpers import RequiredFile, task_decorator
 from ..external.ezpipe import Pipeline
 from ..tools.helpers import val_in_unit
 
-__all__ = [ 't_isochrones',  't_spectra', 't_priors', 't_seds' ]
-
+__all__ = ['make_iso_table','make_spectra', 'make_priors', 'make_seds']
+#,
+#           't_isochrones',  't_spectra', 't_priors', 't_seds' ]
 
 def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
                    z=[0.019], trackVersion=2.3):
@@ -86,9 +87,9 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
 
     # Isochrone filtering, check that no AGB stars are removed
     if trackVersion < 2.7:  
- 	cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'  
+        cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
     else:  
- 	cond = '~((M_ini < 12.) & (stage == 0))' # do not include Pre-MS  
+        cond = '~((M_ini < 12.) & (stage == 0))' # do not include Pre-MS  
     t = t.selectWhere('*', cond)
 
     t.write(outname)
