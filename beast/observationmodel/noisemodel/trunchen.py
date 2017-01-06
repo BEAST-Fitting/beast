@@ -18,6 +18,8 @@ from ..vega import Vega
 
 from ...tools.pbar import Pbar
 
+__all__ = ['MultiFilterASTs']
+
 class MultiFilterASTs(NoiseModel):
     """ Implement a noise model where the ASTs are provided as a single table
 

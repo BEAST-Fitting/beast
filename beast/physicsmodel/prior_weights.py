@@ -15,6 +15,9 @@ from grid import FileSEDGrid
 from grid import SpectralGrid
 from ..external.eztables import Table
 
+__all__ = ['compute_age_weights','compute_mass_weights',
+           'compute_age_mass_metallicity_prior_weights']
+
 # compute the bin edges
 # approximate the edge bins by adding 1/2 the adjacent bin width
 def compute_bin_boundaries(tab):

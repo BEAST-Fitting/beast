@@ -12,7 +12,8 @@ from ...external.ezunits import unit
 from ...config import __ROOT__
 
 __version__ = '1.0'
-__all__ = ['Calzetti', 'Cardelli', 'ExtinctionLaw', 'Fitzpatrick99', 'Gordon03_SMCBar']
+__all__ = ['ExtinctionLaw', 'Cardelli', 'Calzetti', 'Fitzpatrick99',
+           'Gordon03_SMCBar', 'RvFbumpLaw']
 
 libdir = __ROOT__ + '/libs/'
 
@@ -35,7 +36,8 @@ class ExtinctionLaw(object):
         Parameters
         ----------
         names: str or list(str) or list(filters)
-            filter names or filter instances to evaluate. a name can be a color such as 'U-B'
+            filter names or filter instances to evaluate. a name can be a
+            color such as 'U-B'
 
         filterLib: filepath
             path to the filter library hd5 file (default is the internal library)

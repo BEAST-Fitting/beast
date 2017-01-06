@@ -31,6 +31,10 @@ __default_vega__ = __ROOT__ + '/libs/vega.hd5'
 # object to 10parsecs -- abs mag.
 distc = 4. * numpy.pi * (3.0856775e19) ** 2
 
+__all__ = ['Filter', 'IntegrationFilter', 'load_all_filters', 'load_filters',
+           'load_Integrationfilters', 'extractPhotometry', 'extractSEDs',
+           'STmag_to_flux', 'STmag_from_flux', 'fluxToMag', 'fluxErrTomag',
+           'magToFlux','magErrToFlux', 'append_filter', 'appendVegaFilter']
 
 class Filter(object):
     """Class filter

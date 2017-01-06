@@ -18,6 +18,7 @@ from ...external.ezunits import unit, hasUnit
 from ...config import __ROOT__
 from ezpadova import cmd as _cmd
 
+__all__ = ['Isochrone', 'padova2010', 'pegase', 'ezIsoch', 'PadovaWeb']
 
 class Isochrone(object):
     def __init__(self, name='', *args, **kwargs):

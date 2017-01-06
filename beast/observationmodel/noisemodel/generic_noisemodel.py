@@ -16,6 +16,9 @@ import tables
 
 import toothpick
 
+__all__ = ['Generic_ToothPick_Noisemodel','make_toothpick_noise_model',
+           'get_noisemodelcat']
+
 class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
 
     def set_data_mappings(self):

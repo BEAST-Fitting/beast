@@ -35,6 +35,8 @@ from ..vega import Vega
 from .helpers import convert_dict_to_structured_ndarray
 from ...tools.pbar import Pbar
 
+__all__ = ['MultiFilterASTs']
+
 class MultiFilterASTs(NoiseModel):
     """ Implement a noise model for which input information of ASTs are
     provided as one single table

@@ -9,6 +9,7 @@ from scipy.interpolate import interp1d
 from ..external.ezunits import unit
 from ..tools.helpers import val_in_unit
 
+__all__ = ['Observations', 'FakeObs', 'PhotCharact']
 
 class Observations(object):
     """ A generic class that interfaces observation catalog in a standardized way

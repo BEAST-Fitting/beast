@@ -26,6 +26,8 @@ from dust import extinction
 from helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
 from helpers.gridhelpers import pretty_size_print, isNestedInstance
 
+__all__ = ['ModelGrid', 'SpectralGrid','StellibGrid',
+           'MemoryGrid','FileSEDGrid']
 
 def find_backend(txt):
     """find_backend
