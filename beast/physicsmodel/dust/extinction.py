@@ -1,6 +1,8 @@
 """
 Extinction Curves
 """
+from __future__ import print_function, division
+
 import numpy as np
 from scipy import interpolate, interp
 
@@ -145,7 +147,7 @@ class Cardelli89(ExtinctionLaw):
         b[ind] = -0.527 * x[ind] ** 1.61
         # Optical & Near IR
         # Eq 3a, 3b
-        ind = np.where((x >= 1.1) & (x <= 3.3))
+        ind = np.where((x >= 1.1) & (x < 3.3))
         y = x[ind] - 1.82
         a[ind] = 1. + 0.17699 * y - 0.50447 * y ** 2 - 0.02427 * y ** 3 + \
                  0.72085 * y ** 4 + 0.01979 * y ** 5 - 0.77530 * y ** 6 + \
@@ -160,20 +162,20 @@ class Cardelli89(ExtinctionLaw):
         b[ind] = -3.090 + 1.825 * x[ind] + 1.206 / ((x[ind] - 4.62) ** 2 + 0.263)
 
         ind = np.where((x >= 5.9) & (x <= 8.0))
-        Fa     = -0.04473 * (x[ind] - 5.9) ** 2 - 0.009779 * (x[ind] - 5.9) ** 3
-        Fb     =  0.21300 * (x[ind] - 5.9) ** 2 + 0.120700 * (x[ind] - 5.9) ** 3
+        y = x[ind] - 5.9
+        Fa     = -0.04473 * y ** 2 - 0.009779 * y ** 3
+        Fb     =  0.21300 * y ** 2 + 0.120700 * y ** 3
         a[ind] = a[ind] + Fa
         b[ind] = b[ind] + Fb
         # Far UV
         # Eq 5a, 5b
-        ind = np.where((x >= 8.0) & (x <= 10.0))
+        ind = np.where((x > 8.0) & (x <= 10.0))
         # Fa = Fb = 0
-        a[ind] = -1.073 - 0.628 * (x[ind] - 8.) + \
-                 0.137 * ((x[ind] - 8.) ** 2) - 0.070 * (x[ind] - 8.) ** 3
-        b[ind] = 13.670 + 4.257 * (x[ind] - 8.) + \
-                 0.420 * ((x[ind] - 8.) ** 2) + 0.374 * (x[ind] - 8.) ** 3
+        y = x[ind] - 8.
+        a[ind] = -1.073 - 0.628 * y + 0.137 * y ** 2 - 0.070 * y ** 3
+        b[ind] = 13.670 + 4.257 * y - 0.420 * y ** 2 + 0.374 * y ** 3
 
-        # Case of -values x out of range [0.3,10.0]
+        # Case of -values x out of range [0.289,10.0]
         ind = np.where((x > 10.0) | (x < 0.3))
         a[ind] = 0.0
         b[ind] = 0.0
@@ -602,4 +604,5 @@ def testunit():
     pylab.show()
 
 if __name__ == "__main__":
-    testunit()
+
+    pass
