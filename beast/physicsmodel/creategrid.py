@@ -630,7 +630,7 @@ def calc_absflux_cov_matrices(specgrid, sedgrid, filter_names):
 
 #=================== TESTUNITS ============================
 
-def test_gen_spectral_grid_from_stellib_given_points():
+def xxtest_gen_spectral_grid_from_stellib_given_points():
     """test_gen_spectral_grid_from_stellib_given_points
     Make sure it runs and returns a grid
     """
@@ -643,7 +643,7 @@ def test_gen_spectral_grid_from_stellib_given_points():
 
 
 @helpers.deprecated
-def test_gen_spectral_grid_from_stellib():
+def xxxtest_gen_spectral_grid_from_stellib():
     """test_gen_spectral_grid_from_stellib
     Make sure it runs and returns a grid
     """
@@ -652,7 +652,7 @@ def test_gen_spectral_grid_from_stellib():
     gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7, 1e8), masses = (3., 4.), Z=(0.02, 0.004))
 
 
-def test_make_extinguished_grid():
+def xxxtest_make_extinguished_grid():
     """Make a grid from isochrone points and run the extinction to extract SEDs
     A spectral grid will be generated (but not saved), using the stellar parameters
     by directly using points from the isochrones.

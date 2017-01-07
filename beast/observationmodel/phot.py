@@ -697,7 +697,7 @@ def appendVegaFilter(filtInst, VegaLib=__default_vega__):
     print('% {0}: Filter {1} added to {2}'.format(sys.argv[0], filtInst.name, VegaLib))
 
 
-def test(absFlux=True):
+def xxtest(absFlux=True):
     """ Test units """
     gridfile = 'libs/stellib_kurucz2004_padovaiso.spectralgrid.fits'
     filter_names = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
