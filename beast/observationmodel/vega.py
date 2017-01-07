@@ -60,7 +60,7 @@ class Vega(object):
         return numpy.ravel(FNAME[idx]), numpy.ravel(MAG[idx]), numpy.ravel(CWAVE[idx])
 
 
-def testUnit():
+def xxtestUnit():
     """ Unit test and example usage """
     filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_WFC3_F475W',
                'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
