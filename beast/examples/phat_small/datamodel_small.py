@@ -72,7 +72,7 @@ osl = stellib.Tlusty() + stellib.Kurucz()
 ################
 
 ### Dust extinction grid definition
-extLaw = extinction.RvFbumpLaw()
+extLaw = extinction.Gordon16_RvFALaw()
 
 # A(V): dust column
 avs = [0.0, 10.055, 1.0]
@@ -80,7 +80,8 @@ avs = [0.0, 10.055, 1.0]
 # R(V): dust average grain size
 rvs = [2.0,6.0,1.0]
 
-# fbump (should be f_A): mixture factor between "MW" and "SMCBar" extinction curves
+# fbump (should be f_A): mixture factor between
+#     "MW" and "SMCBar" extinction curves
 fbumps = [0.0,1.0, 0.25]
 
 ################

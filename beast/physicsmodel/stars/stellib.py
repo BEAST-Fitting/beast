@@ -713,6 +713,7 @@ class CompositeStellib(Stellib):
         res: ndarray(dtype=int)
             a ndarray, 0 meaning no library covers the point, and 1, ... n, for the n-th library
         """
+        
         xy = np.asarray(xypoints)
 
         # check that all points are in the full boundary area

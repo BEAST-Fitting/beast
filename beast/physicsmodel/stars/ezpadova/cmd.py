@@ -20,14 +20,14 @@ TODO list
 EXAMPLE USAGE
 -------------
 
-#Basic example of downloading a sequence of isochrones, plotting, saving
+Basic example of downloading a sequence of isochrones, plotting, saving
 >>> r = get_cmd.get_t_isochrones(6.0, 7.0, 0.05, 0.02)
 >>> import pylab as plt
 >>> plt.scatter(r['logTe'], r['logL/Lo'], c=r['log(age/yr)'], edgecolor='None')
 >>> plt.show()
 >>> r.write('myiso.fits')
 
-# getting only one isochrone
+ getting only one isochrone
 >>> r = get_cmd.get_one_isochrones(1e7, 0.02, phot='spitzer')
 
 """

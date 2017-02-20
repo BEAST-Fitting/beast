@@ -14,6 +14,8 @@ Dust
 
 .. automodapi:: beast.physicsmodel.dust.extinction      
 
+.. automodapi:: beast.physicsmodel.dust.attenuation 
+
 Grid
 ====
 
