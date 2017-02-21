@@ -19,11 +19,11 @@ import os
 from beast.external.ezpipe import Pipeline
 from beast.external.ezpipe.helpers import task_decorator
 from beast.external.eztables import Table
-from beast.tools.helpers import val_in_unit
+
 from beast.tools.pbar import Pbar
 from beast.external.ezunits import unit
 
-import datamodel_small as datamodel
+import datamodel
 from beast.physicsmodel.models import t_isochrones, t_spectra, t_seds, t_priors
 
 @task_decorator()
