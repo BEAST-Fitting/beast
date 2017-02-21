@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
-Script to run the BEAST on the example data from PHAT data.
-KDG - 21 Dec 2016
+Script to run the BEAST on the PHAT-like data.
+Assumes that the datamodel.py file exists in the directory where this 
+   script is run.
 """
 
 # system imports
@@ -12,12 +13,13 @@ import time
 import string
 
 # BEAST imports
-from pipeline_small import make_models
-import datamodel_small as datamodel
+from beast.physicsmodel.make_model import make_models
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
 from beast.fitting import fit
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid  
+
+import datamodel
 
 if __name__ == '__main__':
     # commandline parser
