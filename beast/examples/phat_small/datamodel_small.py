@@ -20,47 +20,65 @@ from beast.external.ezunits import unit
 # Parameters that are required to make models
 # and to fit the data
 #---------------------------------------------------------
+
+# project : string
+# the name of the output results directory
 project = 'beast_example_phat'
 
+# filters : list of strings
 # full filter names in BEAST filter database
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+# basefilters : list of strings
 # short names for filters
 basefilters = ['F275W','F336W','F475W',
                'F814W','F110W','F160W']
+# obs_colnames : list of strings
 # names of columns for filters in the observed catalog
+# need to match column names in the observed catalog,
+# input data MUST be in fluxes, NOT in magnitudes 
+# fluxes MUST be in normalized Vega units
 obs_colnames = [ f + '_rate' for f in basefilters ]
+# ast_colnames : list of strings
 # names of columns for filters in the AST catalog
 ast_colnames = np.array(basefilters)
 
+# bright_limits_mag, sens_limits_mag : lists of floats
 # sensitivity limits (used for AST input generation)
+# units are Vega magnitudes
 bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 14.]
 sens_limits_mag = [26., 26., 27., 29., 27.5, 28., 28.5, 27., 26.]
 
-# observations
+# obsfile : string 
+# pathname of the observed catalog
 obsfile = 'data/b15_4band_det_27_A.fits'
 
-# AST files (single camera ASTs)
+# astfile : string
+# pathname of the AST files (single camera ASTs)
 astfile = 'data/fake_stars_b15_27_all.hd5'
 
-# name for noise model
+# noisefile : string
+# create a name for the noise model
 noisefile = project + '/' + project + '_noisemodel.hd5'
 
 # absflux calibration covariance matrix for HST specific filters
-
+# authomatically created
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
-# distance to the SMC
+# distance modulus to the galaxy
 distanceModulus = 24.47 * unit['mag']
 
 ### Stellar grid definition
 
 # log10(Age) -- [min,max,step] to generate the isochrones
+# recommended [6.0, 10.13, 1.0]
 logt = [6.0, 10.13, 1.0]
 
 #note: Mass is not sampled, use the isochrone def instead.
 
-#Metallicity
+# Metallicity : list of floats
+# acceptable [min, max] = [0.003, 1.3] 
+# can they be set as [min, max, step]?
 z = [0.03, 0.019, 0.008, 0.004]
 
 # Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
@@ -74,7 +92,8 @@ osl = stellib.Tlusty() + stellib.Kurucz()
 ### Dust extinction grid definition
 extLaw = extinction.Gordon16_RvFALaw()
 
-# A(V): dust column
+# A(V): dust column in magnitudes
+# acceptable [min, max] = [0.0, 10.055]
 avs = [0.0, 10.055, 1.0]
 
 # R(V): dust average grain size
@@ -93,8 +112,8 @@ add_spectral_properties_kwargs = dict(filternames=filters)
 ################
 
 class PHATFluxCatalog(Observations):
-    """SMIDGE 8 filter photometry
-    This class implements a direct access to the SMIDGE measured fluxes.
+    """PHAT 6 filter photometry
+    This class implements a direct access to the PHAT measured fluxes.
 
     ..note::
         it does not implement uncertainties as in this model, the noise is
@@ -102,7 +121,7 @@ class PHATFluxCatalog(Observations):
     """
     def __init__(self, inputFile, distanceModulus=distanceModulus, filters=filters):
         """ Construct the interface """
-        desc = 'SMIDGE star: %s' % inputFile
+        desc = 'PHAT star: %s' % inputFile
         Observations.__init__(self, inputFile, distanceModulus, desc=desc)
         self.setFilters( filters )
         #some bad values smaller than expected
