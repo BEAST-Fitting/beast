@@ -22,6 +22,7 @@ from beast.external.eztables import Table
 
 from beast.tools.pbar import Pbar
 from beast.external.ezunits import unit
+from beast.tools.helpers import val_in_unit
 
 import datamodel
 from beast.physicsmodel.models import t_isochrones, t_spectra, t_seds, t_priors
