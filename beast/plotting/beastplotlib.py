@@ -6,25 +6,72 @@ Library of general functions for the BEAST plotting scripts
     Written 21 Feb 2017 by Meredith J. Durbin
 """
 import argparse
-import numpy as np
-import re
+import matplotlib.pyplot as plt
 
 def fancify_colname(name):
-    '''someone who knows regex pls rewrite
+    '''Formats column name for plotting axis labels.
+
+    Parameters
+    ----------
+    name : str
+        Name of column.
+
+    Returns
+    -------
+    fancyname : str
+        Texified version of name.
     '''
     ns = name.split('_')
-    if re.match(re.compile('log._*'), name) is not None:
-        fancyname = '$\log ({})$ ({})'.format(name[3], ns[-1])
-    elif re.match(re.compile('.v_*'), name) is not None:
-        fancyname = '${}_V$ ({})'.format(name[0], ns[-1])
-    elif re.match(re.compile('._._*'), name) is not None:
-        fancyname = '${}_'.format(ns[0]) + '{' + '{}'.format(ns[1]) + '}' +\
-                    '$ ({})'.format(ns[-1])
-    elif name == 'chi2min':
-        fancyname = '$\chi^2$'
+    if (len(ns) > 1) & (ns[-1] != 'indx'):
+        if not name.startswith('HST'):
+            newname = []
+            if ns[0] in ['Av', 'Rv']:
+                newname.append('${}_V$'.format(ns[0][0]))
+                if len(ns) == 3:
+                    newname.append(ns[1])
+            elif name.startswith('logHST'):
+                hstname = format_hstname(['HST'] + ns[1:-1])[1:]
+                newname.append('$\log (\mathrm{' + '\ '.join(hstname) + '})$')
+            elif ns[0].startswith('log'):
+                newname.append('$\log ({})$'.format(ns[0][-1]))
+            elif len(ns) == 3:
+                newname.append('${}'.format(ns[0]) + '_{\mathrm{' + ns[1] + r'}}$')
+            elif len(ns[0]) > 2:
+                if ns[0] == 'radius':
+                    newname.append('radius')
+                else:
+                    newname.append('${}'.format(ns[0][0]) + '_{\mathrm{' + ns[0][1:] + r'}}$')
+            else:
+                newname.append('${}$'.format(ns[0]))
+            newname.append('({})'.format(ns[-1]))
+        elif name.startswith('HST'):
+            newname = format_hstname(ns)
+    elif name[:4] == 'chi2':
+        newname = ['$\chi^2$', name[4:]]
     else:
-        fancyname = ' '.join(ns)
+        newname = ns
+    fancyname = ' '.join(newname)
     return r'{}'.format(fancyname)
+
+def format_hstname(ns):
+    ''' Formats HST filter names in style of 'HST/WFC3 F160W' or
+    'HST/ACS-WFC F475W'
+
+    Parameters
+    ----------
+    ns : list
+        Column name split by underscore, beginning with HST
+
+    Returns
+    -------
+    newname : list
+        Formatted version of HST filter name plus any other items
+    '''
+    if 'ACS' in ns:
+        newname = ['{}/{}-{}'.format(*ns[:3])] + ns[3:]
+    else:
+        newname = ['{}/{}'.format(*ns[:2])] + ns[2:]
+    return newname
 
 def initialize_parser():
     '''For running from command line, initialize argparse with common args
@@ -45,7 +92,8 @@ def initialize_parser():
 
 def plot_generic(xcol, ycol, fig=None, ax=None, plottype='hist', bins=51,
                  thresh_col=None, thresh=0, thresh_op='less', plot_kwargs={}):
-    '''Plot anything from the BEAST output against anything else.
+    '''Plot anything from the BEAST output against anything else as a 2D
+    histogram or scatterplot.
 
     Parameters
     ----------
