@@ -25,43 +25,43 @@ from beast.external.ezunits import unit
 #-----------------------------------------------------------------
 
 # project : string
-# the name of the output results directory
+#   the name of the output results directory
 project = 'beast_example_phat'
 
 # filters : list of strings
-# full filter names in BEAST filter database
+#   full filter names in BEAST filter database
 filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
 # basefilters : list of strings
-# short names for filters
+#   short names for filters
 basefilters = ['F275W','F336W','F475W',
                'F814W','F110W','F160W']
 # obs_colnames : list of strings
-# names of columns for filters in the observed catalog
-# need to match column names in the observed catalog,
-# input data MUST be in fluxes, NOT in magnitudes 
-# fluxes MUST be in normalized Vega units
+#   names of columns for filters in the observed catalog
+#   need to match column names in the observed catalog,
+#   input data MUST be in fluxes, NOT in magnitudes 
+#   fluxes MUST be in normalized Vega units
 obs_colnames = [ f + '_rate' for f in basefilters ]
 # ast_colnames : list of strings 
-# names of columns for filters in the AST catalog (AC)
+#   names of columns for filters in the AST catalog (AC)
 ast_colnames = np.array(basefilters)
 
 # bright_limits_mag, sens_limits_mag : lists of floats
-# sensitivity limits (used for AST input generation)
-# units are Vega magnitudes
+#   sensitivity limits (used for AST input generation)
+#   units are Vega magnitudes
 bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 14.]
 sens_limits_mag = [26., 26., 27., 29., 27.5, 28., 28.5, 27., 26.]
 
 # obsfile : string 
-# pathname of the observed catalog
+#   pathname of the observed catalog
 obsfile = 'data/b15_4band_det_27_A.fits'
 
 # astfile : string
-# pathname of the AST files (single camera ASTs)
+#   pathname of the AST files (single camera ASTs)
 astfile = 'data/fake_stars_b15_27_all.hd5'
 
 # noisefile : string
-# create a name for the noise model
+#   create a name for the noise model
 noisefile = project + '/' + project + '_noisemodel.hd5'
 
 # absflux calibration covariance matrix for HST specific filters (AC)
@@ -73,15 +73,15 @@ distanceModulus = 24.47 * unit['mag']
 ### Stellar grid definition
 
 # log10(Age) -- [min,max,step] to generate the isochrones in years
-# recommended [6.0, 10.13, 1.0]
+#   example [6.0, 10.13, 1.0]
 logt = [6.0, 10.13, 1.0]
 
 # note: Mass is not sampled, use the isochrone def instead.
 
 # Metallicity : list of floats
-# acceptable z > 0.0
-# reasonable [min, max] = [0.003, 1.3] 
-# can they be set as [min, max, step]?
+#   PARSECv1.2S accepts values 1.e-4 < Z < 0.06
+#   example z = [0.03, 0.019, 0.008, 0.004]
+#   can they be set as [min, max, step]?
 z = [0.03, 0.019, 0.008, 0.004]
 
 # Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
@@ -96,17 +96,17 @@ osl = stellib.Tlusty() + stellib.Kurucz()
 extLaw = extinction.Gordon16_RvFALaw()
 
 # A(V): dust column in magnitudes
-# acceptable avs > 0.0
-# reasonable [min, max, step] = [0.0, 10.055, 1.0]
+#   acceptable avs > 0.0
+#   example [min, max, step] = [0.0, 10.055, 1.0]
 avs = [0.0, 10.055, 1.0]
 
 # R(V): dust average grain size
-# rasonable [min, max, step] = [2.0,6.0,1.0]
+#   example [min, max, step] = [2.0,6.0,1.0]
 rvs = [2.0,6.0,1.0]
 
 # fbump (should be f_A): mixture factor between
-#     "MW" and "SMCBar" extinction curves
-# reasonable [min, max, step] = [0.0,1.0, 0.25]
+#   "MW" and "SMCBar" extinction curves
+#   example [min, max, step] = [0.0,1.0, 0.25]
 fbumps = [0.0,1.0, 0.25]
 
 ################
