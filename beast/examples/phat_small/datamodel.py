@@ -92,9 +92,9 @@ add_spectral_properties_kwargs = dict(filternames=filters)
 
 ################
 
-class PHATFluxCatalog(Observations):
-    """SMIDGE 8 filter photometry
-    This class implements a direct access to the SMIDGE measured fluxes.
+class GenFluxCatalog(Observations):
+    """Generic n band filter photometry
+    This class implements a direct access to the Generic HST measured fluxes.
 
     ..note::
         it does not implement uncertainties as in this model, the noise is
@@ -102,14 +102,14 @@ class PHATFluxCatalog(Observations):
     """
     def __init__(self, inputFile, distanceModulus=distanceModulus, filters=filters):
         """ Construct the interface """
-        desc = 'SMIDGE star: %s' % inputFile
+        desc = 'GENERIC star: %s' % inputFile
         Observations.__init__(self, inputFile, distanceModulus, desc=desc)
         self.setFilters( filters )
         #some bad values smaller than expected
         # in physical flux units
         self.setBadValue(6e-40)
 
-        #hard code mapping directly with the interface to HTTP
+        # rate column needed as this is the *flux* column
         for k in filters:
             self.data.set_alias(k, k.split('_')[-1].lower() + '_rate')
 
@@ -180,8 +180,8 @@ def get_obscat(obsfile=obsfile, distanceModulus=distanceModulus,
 
     returns
     -------
-    obs: PHATFluxCatalog
+    obs: GenFluxCatalog
         observation catalog
     """
-    obs = PHATFluxCatalog(obsfile, distanceModulus=distanceModulus, filters=filters)
+    obs = GenFluxCatalog(obsfile, distanceModulus=distanceModulus, filters=filters)
     return obs
