@@ -14,12 +14,15 @@ from beast.observationmodel.noisemodel import absflux_covmat
 from beast.external.ezunits import unit
 #from extra_filters import make_integration_filter, make_top_hat_filter
 
-#---------------------------------------------------------
+#-----------------------------------------------------------------
 # User inputs                                   [sec:conf]
-#---------------------------------------------------------
+#-----------------------------------------------------------------
 # Parameters that are required to make models
 # and to fit the data
-#---------------------------------------------------------
+#-----------------------------------------------------------------
+# AC == authomatically created
+# indicates where user's input change is NOT necessary/recommeded
+#-----------------------------------------------------------------
 
 # project : string
 # the name of the output results directory
@@ -39,8 +42,8 @@ basefilters = ['F275W','F336W','F475W',
 # input data MUST be in fluxes, NOT in magnitudes 
 # fluxes MUST be in normalized Vega units
 obs_colnames = [ f + '_rate' for f in basefilters ]
-# ast_colnames : list of strings
-# names of columns for filters in the AST catalog
+# ast_colnames : list of strings 
+# names of columns for filters in the AST catalog (AC)
 ast_colnames = np.array(basefilters)
 
 # bright_limits_mag, sens_limits_mag : lists of floats
@@ -61,8 +64,7 @@ astfile = 'data/fake_stars_b15_27_all.hd5'
 # create a name for the noise model
 noisefile = project + '/' + project + '_noisemodel.hd5'
 
-# absflux calibration covariance matrix for HST specific filters
-# authomatically created
+# absflux calibration covariance matrix for HST specific filters (AC)
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
 # distance modulus to the galaxy
@@ -70,14 +72,15 @@ distanceModulus = 24.47 * unit['mag']
 
 ### Stellar grid definition
 
-# log10(Age) -- [min,max,step] to generate the isochrones
+# log10(Age) -- [min,max,step] to generate the isochrones in years
 # recommended [6.0, 10.13, 1.0]
 logt = [6.0, 10.13, 1.0]
 
-#note: Mass is not sampled, use the isochrone def instead.
+# note: Mass is not sampled, use the isochrone def instead.
 
 # Metallicity : list of floats
-# acceptable [min, max] = [0.003, 1.3] 
+# acceptable z > 0.0
+# reasonable [min, max] = [0.003, 1.3] 
 # can they be set as [min, max, step]?
 z = [0.03, 0.019, 0.008, 0.004]
 
@@ -93,22 +96,27 @@ osl = stellib.Tlusty() + stellib.Kurucz()
 extLaw = extinction.Gordon16_RvFALaw()
 
 # A(V): dust column in magnitudes
-# acceptable [min, max] = [0.0, 10.055]
+# acceptable avs > 0.0
+# reasonable [min, max, step] = [0.0, 10.055, 1.0]
 avs = [0.0, 10.055, 1.0]
 
 # R(V): dust average grain size
+# rasonable [min, max, step] = [2.0,6.0,1.0]
 rvs = [2.0,6.0,1.0]
 
 # fbump (should be f_A): mixture factor between
 #     "MW" and "SMCBar" extinction curves
+# reasonable [min, max, step] = [0.0,1.0, 0.25]
 fbumps = [0.0,1.0, 0.25]
 
 ################
 
 # add in the standard filters to enable output of stats and pdf1d values
-# for the observed fitlers
+# for the observed fitlers (AC)
 add_spectral_properties_kwargs = dict(filternames=filters)
 
+################
+# The following code does not require user's attention (AC)
 ################
 
 class PHATFluxCatalog(Observations):
