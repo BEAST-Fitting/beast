@@ -26,22 +26,25 @@ import datamodel
 if __name__ == '__main__':
     # commandline parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--models", help="Generate the model grid",
+    parser.add_argument("-p", "--physicsmodel",
+                        help="Generate the physics model grid",
                         action="store_true")
-    parser.add_argument("-n", "--noise", help="Calculate the noise model",
+    parser.add_argument("-o", "--observationmodel",
+                        help="Calculate the observation model (bias and noise)",
                         action="store_true")
-    parser.add_argument("-t", "--trim", help="Trim the model and noise grids",
+    parser.add_argument("-t", "--trim",
+                        help="Trim the physics and observation model grids",
                         action="store_true")
     parser.add_argument("-f", "--fit", help="Fit the observed data",
                         action="store_true")
-    parser.add_argument("-r", "--resume", help="Resume a run",
+    parser.add_argument("-r", "--resume", help="Resume a fitting run",
                         action="store_true")
     args = parser.parse_args()
 
-    if args.models:
+    if args.physicsmodel:
         make_models()
 
-    if args.noise:
+    if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
  
         # get the modesedgrid on which to generate the noisemodel  
