@@ -46,11 +46,6 @@ obs_colnames = [ f + '_rate' for f in basefilters ]
 #   names of columns for filters in the AST catalog (AC)
 ast_colnames = np.array(basefilters)
 
-# bright_limits_mag, sens_limits_mag : lists of floats
-#   sensitivity limits (used for AST input generation)
-#   units are Vega magnitudes
-bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 14.]
-sens_limits_mag = [26., 26., 27., 29., 27.5, 28., 28.5, 27., 26.]
 
 # input parameters to generate input AST list 
 ast_models_selected_per_age = 70 # Number of models to pick per age (Default = 70). 
