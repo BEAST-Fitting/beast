@@ -34,7 +34,7 @@ import numpy as np
 # BEAST imports
 import grid
 import creategrid
-import prior_weights
+from prior_weights import compute_age_mass_metallicity_prior_weights
 
 from stars import stellib
 from stars import isochrone
@@ -201,7 +201,7 @@ def make_priors(outname, specgrid, **kwargs):
 
     print('Make Prior Weights')
 
-    prior_weights.compute_age_mass_metallicity_prior_weights(specgrid.grid)
+    compute_age_mass_metallicity_prior_weights(specgrid.grid)
 
     #write to disk
     if hasattr(specgrid, 'writeHDF'):
