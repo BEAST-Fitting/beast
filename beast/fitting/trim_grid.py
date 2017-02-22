@@ -21,6 +21,46 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
                 noisemodel_outname,
                 sigma_fac=3., n_detected=4, inFlux=True,
                 trunchen=False):
+    """
+
+    Keywords
+    ---------
+    sedgrid: str or grid.SEDgrid instance
+    	model grid
+
+    sedgrid_noisemodel: beast noisemodel instance
+    	noise model data
+
+    obsdata: Observation object instance
+    	observation catalog
+
+    sed_outname: str
+	name for output sed file
+
+    noisemodel_outname: str
+    	name for output noisemodel file
+
+    sigma_fac: float
+    	factor for trimming the upper and lower range of grid so that
+	the model range cuts off sigma_fac above and below the brightest
+	and faintest models, respectively (default: 3.)
+
+    n_detected: int
+    	minimum number of bands where ASTs yielded a detection for
+	a given model, if fewer detections than n_detected this model
+	gets eliminated (default: 4)
+    		
+    inFlux: boolean
+	if true data are in fluxes (default: True) 
+
+    trunchen: boolean
+    	if true use the trunchen noise model (default: False)
+
+
+    returns
+    --------
+    N/A
+    """
     
     # Store the brigtest and faintest fluxes in each band (for data and asts)
     n_filters = len(obsdata.filters)
