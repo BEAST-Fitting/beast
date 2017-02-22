@@ -95,5 +95,6 @@ def pick_models(sedgrid, mag_cuts, Nfilter=3, N_stars= 70, Nrealize = 20):
     index = np.repeat(idx[np.array(models).reshape((-1))],Nrealize)      
     sedsMags = Table(sedsMags[index,:], names=filters)
 
-    outfile = datamodel.project_dir + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
+    outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
+
     ascii.write(sedsMags, outfile, overwrite=True, formats={k:'%.5f' for k in sedsMags.colnames}) 
