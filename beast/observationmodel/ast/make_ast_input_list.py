@@ -101,8 +101,8 @@ def pick_models(sedgrid, mag_cuts, Nfilter=1, N_stars= 625):
 
          
     index = idx[np.array(models).reshape((-1))]       
- 
-    return index, sedsMags[index,:]
+    sedMags = sedsMags[index,:]
+
 
     
 
