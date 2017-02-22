@@ -13,6 +13,7 @@ import sys
 import argparse
 import time
 import string
+import numpy as np
 
 # BEAST imports
 from beast.physicsmodel.make_model import make_models
@@ -29,6 +30,8 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--physicsmodel",
                         help="Generate the physics model grid",
                         action="store_true")
+    parser.add_argument("-a", "--ast", help="Generate an input AST file",
+                        action="store_true")
     parser.add_argument("-o", "--observationmodel",
                         help="Calculate the observation model (bias and noise)",
                         action="store_true")
@@ -43,6 +46,35 @@ if __name__ == '__main__':
 
     if args.physicsmodel:
         make_models()
+
+    if args.ast:
+        # get the modesedgrid on which to grab input AST
+        modelsedgridfile = datamodel.project + '/' + datamodel.project + \
+                       '_seds.grid.hd5'
+        modelsedgrid = FileSEDGrid(modelsedgridfile)
+
+        N_models = datamodel.N_models_per_age
+        Nfilters = datamodel.Nfilters
+        Nrealize = datamodel.Nrealize
+        mag_cuts = datamodel.mag_cuts
+
+        if len(mag_cuts) == 1:
+            tmp_cuts = mag_cuts
+            obsdata = datamodel.get_obscat(datamodel.obsfile,
+                                           datamodel.distanceModulus,
+                                           datamodel.filters)
+
+            min_mags = np.zeros(len(datamodel.filters))
+            for k, filtername in enumerate(obsdata.filters):
+                sfiltername = obsdata.data.resolve_alias(filtername)
+                sfiltername = sfiltername.replace('rate','vega')
+                keep, = np.where(obsdata[sfiltername] < 99.)
+                min_mags[k] = np.percentile(obsdata[keep][sfiltername],90.)
+
+            mag_cuts = min_mags + tmp_cuts # max. mags from the gst observation cat. 
+
+        pick_models(modelsedgrid, mag_cuts, Nfilter=Nfilters, N_stars= N_models)
+
 
     if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
