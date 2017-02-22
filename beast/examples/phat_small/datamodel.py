@@ -27,7 +27,6 @@ from beast.external.ezunits import unit
 # project : string
 #   the name of the output results directory
 project = 'beast_example_phat'
-project_dir = '/Users/yumi/Research/BEAST/beast/beast/examples/phat_small/'
 
 # filters : list of strings
 #   full filter names in BEAST filter database
