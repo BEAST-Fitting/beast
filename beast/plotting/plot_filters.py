@@ -85,7 +85,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     filter_names = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W', 
-                    'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M',
+                    'HST_ACS_WFC_F475W', 'HST_ACS_WFC_F550M',
                     'HST_ACS_WFC_F814W',
                     'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
