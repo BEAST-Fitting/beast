@@ -27,6 +27,7 @@ from beast.external.ezunits import unit
 # project : string
 #   the name of the output results directory
 project = 'beast_example_phat'
+project_dir = '/Users/yumi/Research/BEAST/beast/beast/examples/phat_small/'
 
 # filters : list of strings
 #   full filter names in BEAST filter database
@@ -51,6 +52,12 @@ ast_colnames = np.array(basefilters)
 #   units are Vega magnitudes
 bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 14.]
 sens_limits_mag = [26., 26., 27., 29., 27.5, 28., 28.5, 27., 26.]
+
+# input parameters to generate input AST list 
+N_models_per_age = 70
+Nfilters = 3
+Nrealize = 20
+mag_cuts = [1.]
 
 # obsfile : string 
 #   pathname of the observed catalog
