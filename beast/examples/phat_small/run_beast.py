@@ -18,6 +18,7 @@ import numpy as np
 # BEAST imports
 from beast.physicsmodel.make_model import make_models
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
+from beast.observationmodel.ast.make_ast_input_list import pick_models
 from beast.fitting import fit
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid  
@@ -73,7 +74,7 @@ if __name__ == '__main__':
 
             mag_cuts = min_mags + tmp_cuts # max. mags from the gst observation cat. 
 
-        pick_models(modelsedgrid, mag_cuts, Nfilter=Nfilters, N_stars= N_models)
+        pick_models(modelsedgrid, mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize)
 
 
     if args.observationmodel:
