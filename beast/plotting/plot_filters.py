@@ -12,8 +12,11 @@ import matplotlib.pyplot as plt
 from ..observationmodel import phot
 from .beastplotlib import initialize_parser
 
-def plot_filters_core(ax, filter_names, out_names, 
-                      xlim=[0.19, 2.0], ylim=[1e-8, 2e1]):
+
+def plot_filters(args, filter_names, out_names, save_name='beast_filters',
+                 xlim=[0.19, 2.0], ylim=[1e-8, 2e1]):
+
+    fig, ax = plt.subplots(1, 1, figsize=(10,6))
 
     # wavelength grid for response functions
     waves = np.logspace(3, np.log10(3e4), 501)
@@ -45,13 +48,6 @@ def plot_filters_core(ax, filter_names, out_names,
 
     ax.set_xticks([0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,2.0])
     ax.get_xaxis().set_major_formatter(mpl.ticker.ScalarFormatter())
-
-def plot_filters(args, filter_names, out_names,
-                 save_name='beast_filters'):
-
-    fig, ax = plt.subplots(1, 1, figsize=(10,6))
-
-    plot_filters_core(ax, filter_names, out_names)
 
     fig.tight_layout()
 
