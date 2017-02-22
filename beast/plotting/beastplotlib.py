@@ -43,9 +43,8 @@ def initialize_parser():
                               Defaults to false.')
     return parser
 
-
-def plot_generic(xcol, ycol, fig, ax, plottype='hist', bins=51, chi_col=None, 
-                 chi_thresh=0, chi_op='less', plot_kwargs={}):
+def plot_generic(xcol, ycol, fig=None, ax=None, plottype='hist', bins=51,
+                 thresh_col=None, thresh=0, thresh_op='less', plot_kwargs={}):
     '''Plot anything from the BEAST output against anything else.
 
     Parameters
@@ -64,12 +63,15 @@ def plot_generic(xcol, ycol, fig, ax, plottype='hist', bins=51, chi_col=None,
     bins : int or array-like, optional
         Number of bins to pass to 2D histogram.
         Only used if plottype == 'hist'.
-    chi_col : astropy table column or pandas series
-        Column with chi^2 values if chi^2 cutoff is desired
-    chi_thresh : scalar
-        Threshold of chi^2 values to compare chi_col to
-    chi_op : string
-        Operator comparison to perform between chi_col and chi_thresh.
+    thresh_col : astropy table column or pandas series
+        Column with values to filter xcol and ycol by; for example, 
+        if you want to look at only stars with chi^2 greater than 20 
+        you would set thresh_col = table['chi2min'], thresh=20, and 
+        thresh_op = 'greater'
+    thresh : scalar
+        Threshold of values to compare thresh_col to
+    thresh_op : string
+        Operator comparison to perform between thresh_col and thresh.
         Must be one of Numpy logical operator functions: {'greater', 
         'greater_equal', 'less', 'less_equal', 'equal', 'not_equal'}
     plot_kwargs : dict
@@ -79,8 +81,12 @@ def plot_generic(xcol, ycol, fig, ax, plottype='hist', bins=51, chi_col=None,
     -------
     Nothing.
     '''
-    if chi_col is not None:
-        condition = getattr(np,chi_op)(chi_col,chi_thresh)
+    if fig is None:
+        fig = plt.gcf()
+    if ax is None:
+        ax = plt.gca()
+    if thresh_col is not None:
+        condition = getattr(np, thresh_op)(thresh_col, thresh)
         xcol = xcol[condition]
         ycol = ycol[condition]
     if plottype == 'hist':
