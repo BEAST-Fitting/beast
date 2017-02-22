@@ -10,7 +10,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from ..observationmodel import phot
-from beastplotlib import initialize_parser
+from .beastplotlib import initialize_parser
 
 def plot_filters_core(ax, filter_names, out_names, 
                       xlim=[0.19, 2.0], ylim=[1e-8, 2e1]):
