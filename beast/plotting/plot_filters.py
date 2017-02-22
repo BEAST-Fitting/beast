@@ -27,8 +27,10 @@ def plot_filters_core(ax, filter_names, out_names,
     color_indices = np.log10(np.array(sorted([f.lam_eff for f in flist])))
     color_indices -= color_indices.min()
     color_indices /= color_indices.max()
-    ax.set_color_cycle(mpl.cm.rainbow(i) for i in color_indices)
-    #help(mpl.cm.rainbow)
+    try:
+        ax.set_prop_cycle(color=[mpl.cm.rainbow(i) for i in color_indices])
+    except AttributeError: # for matplotlib version < 1.5
+        ax.set_color_cycle(mpl.cm.rainbow(i) for i in color_indices)
 
     for f in flist:
         ax.plot(f.wavelength[f.nonzero], f.transmit[f.nonzero])
