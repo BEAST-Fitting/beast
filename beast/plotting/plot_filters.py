@@ -49,9 +49,13 @@ def plot_filters(args, filter_names, save_name='beast_filters',
     color_indices -= color_indices.min()
     color_indices /= color_indices.max()
     try:
-        ax.set_prop_cycle(color=[mpl.cm.rainbow(i) for i in color_indices])
+        cmap = mpl.cm.plasma
     except AttributeError: # for matplotlib version < 1.5
-        ax.set_color_cycle(mpl.cm.rainbow(i) for i in color_indices)
+        cmap = mpl.cm.rainbow
+    try:
+        ax.set_prop_cycle(color=[cmap(i) for i in color_indices])
+    except AttributeError: # for matplotlib version < 1.5
+        ax.set_color_cycle(cmap(i) for i in color_indices)
 
     for f in flist:
         ax.plot(f.wavelength[f.nonzero], f.transmit[f.nonzero])
@@ -69,6 +73,8 @@ def plot_filters(args, filter_names, save_name='beast_filters',
 
     fig.tight_layout()
 
+    if args.tex:
+        plt.rc({'usetex':True})
     if args.savefig:
         fig.savefig('{}.{}'.format(save_name, args.savefig))
     else:
