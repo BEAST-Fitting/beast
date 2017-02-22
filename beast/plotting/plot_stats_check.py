@@ -15,7 +15,7 @@ from astropy.table import Table
 from matplotlib.colors import LogNorm
 
 # local imports
-from beastplotlib import fancify_colname, initialize_parser
+from .beastplotlib import fancify_colname, initialize_parser
 
 def plot_2dhist(xcol, ycol, fig, ax, bins=51):
     '''Updates a given figure/axis object in-place with a new 2D histogram.
