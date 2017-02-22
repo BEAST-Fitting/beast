@@ -53,10 +53,16 @@ bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 14.]
 sens_limits_mag = [26., 26., 27., 29., 27.5, 28., 28.5, 27., 26.]
 
 # input parameters to generate input AST list 
-N_models_per_age = 70
-Nfilters = 3
-Nrealize = 20
-mag_cuts = [1.]
+ast_models_selected_per_age = 70 # Number of models to pick per age (Default = 70). 
+ast_bands_above_maglimit = 3     # Number of filters that must be above the magnitude limit 
+                                 # for an AST to be included in the list (Default = 3)
+ast_realization_per_model = 20   # Number of Realizations of each included AST model 
+                                 # to be put into the list. (Default = 20)
+ast_maglimit = [1.] # (1) option 1: [number] to change the number of mags fainter than the 90th percentile 
+                    #               faintest star in the photometry catalog to be used for the mag cut. 
+                    #               (Default = 1)
+                    # (2) option 2: [space-separated list of numbers] to set custom faint end limits 
+                    #               (one value for each band).
 
 # obsfile : string 
 #   pathname of the observed catalog
