@@ -278,8 +278,15 @@ class StellibGrid(SpectralGrid):
 
     def __init__(self, osl, filters, header={}, aliases={}, *args, **kwargs):
         self.osl = osl
-        lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
-        super(StellibGrid, self).__init__(lamb, seds=seds, grid=self.osl.grid, header=header, aliases=aliases, backend=MemoryBackend)
+        lamb, seds = self.getSEDs(filters,
+                                  self.osl.wavelength,
+                                  self.osl.spectra)
+        super(StellibGrid, self).__init__(lamb,
+                                          seds=seds,
+                                          grid=self.osl.grid,
+                                          header=header,
+                                          aliases=aliases,
+                                          backend=MemoryBackend)
         self.filters = filters
 
     def copy(self):

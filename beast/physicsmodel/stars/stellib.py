@@ -59,10 +59,12 @@ def isNestedInstance(obj, cl):
 
 
 def __interpSingle__(args):
-    return np.asarray(interp(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9])).T
+    return np.asarray(interp(args[0], args[1], args[2], args[3], args[4],
+                             args[5], args[6], args[7], args[8], args[9])).T
 
 
-def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06, weights=None, pool=None, nthreads=__NTHREADS__):
+def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06,
+                   weights=None, pool=None, nthreads=__NTHREADS__):
     """ run interp on a list of inputs and returns reduced results
 
     Interpolation of the T,g grid at Z0 metallicity
@@ -114,9 +116,11 @@ def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06, weights=None
         pool = mp.Pool(nthreads)
 
     if weights is None:
-        seq = [ (logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg, oSL.Z, dT_max, eps, 1.) for k in range(len(logT)) ]
+        seq = [ (logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg,
+                 oSL.Z, dT_max, eps, 1.) for k in range(len(logT)) ]
     else:
-        seq = [ (logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg, oSL.Z, dT_max, eps, weights[k]) for k in range(len(logT)) ]
+        seq = [ (logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg,
+                 oSL.Z, dT_max, eps, weights[k]) for k in range(len(logT)) ]
 
     if (pool is not None):
         r = pool.map( __interpSingle__, seq )
