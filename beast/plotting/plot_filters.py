@@ -13,9 +13,27 @@ from ..observationmodel import phot
 from .beastplotlib import initialize_parser
 
 
-def plot_filters(args, filter_names, out_names, save_name='beast_filters',
+def plot_filters(args, filter_names, save_name='beast_filters',
                  xlim=[0.19, 2.0], ylim=[1e-8, 2e1]):
+    '''Plots transmission curves in log-log space.
 
+    Parameters
+    ----------
+    args : argparse parser object
+        Command line arguments
+    filter_names : list of str
+        List of full names of filters to plot
+    save_name : str, optional
+        Filename to save plot as
+    xlim : length 2 list
+        Values to set plot x-limits to
+    ylim : length 2 list
+        Values to set plot y-limits to
+
+    Returns
+    -------
+    Nothing.
+    '''
     fig, ax = plt.subplots(1, 1, figsize=(10,6))
 
     # wavelength grid for response functions
@@ -57,7 +75,6 @@ def plot_filters(args, filter_names, out_names, save_name='beast_filters',
         plt.show()
 
 if __name__ == '__main__':
-
     parser = initialize_parser()
     args = parser.parse_args()
 
@@ -65,8 +82,6 @@ if __name__ == '__main__':
                     'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M',
                     'HST_ACS_WFC_F814W',
                     'HST_WFC3_F110W', 'HST_WFC3_F160W']
-    out_names = ['F225W','F275W','F336W','F475W','F550M','F814W',
-                 'F110W','F160W']
 
-    plot_filters(args, filter_names, out_names)
+    plot_filters(args, filter_names)
 
