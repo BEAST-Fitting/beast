@@ -24,7 +24,7 @@ from astropy.io import fits
 from astropy import units as ap_units
 from astropy.coordinates import SkyCoord as ap_SkyCoord
 
-def disp_str(stars, k, keyname):
+def disp_str(stats, k, keyname):
 
     dvals = [stats[keyname+'_p50'][k],
              stats[keyname+'_p84'][k],
