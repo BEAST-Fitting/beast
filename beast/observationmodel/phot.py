@@ -121,6 +121,9 @@ Filter object information:
         self.lT         = trapz(wavelength * transmit, wavelength)
         self.lpivot     = numpy.sqrt( self.lT / trapz(transmit / wavelength, wavelength) )
         self.cl         = self.lT / self.norm
+        self.nonzero    = transmit > 0
+        self.lam_eff    = trapz((transmit * wavelength)[self.nonzero],
+                                wavelength[self.nonzero]/self.norm)
 
 
 class IntegrationFilter(object):
@@ -214,9 +217,9 @@ class IntegrationFilter(object):
         self.lT         = trapz(transmit * wavelength, wavelength)
         self.lpivot     = numpy.sqrt( self.lT / trapz(1. / wavelength, wavelength) )
         self.cl         = self.lT / self.norm
-
-
-
+        self.nonzero    = transmit > 0
+        self.lam_eff    = trapz((transmit * wavelength)[self.nonzero],
+                                wavelength[self.nonzero]/self.norm)
 
 def __load__(fname, ftab, interp=True, lamb=None, integrationFilter=False):
     """ Load a given filter from the library
