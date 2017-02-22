@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Show diagnostic plots from BEAST runs
-  Meant as a quick check that the results are reasonable
+Meant as a quick check that the results are reasonable
 
 .. history::
     Written 21 Dec 2015 by Karl D. Gordon
@@ -11,10 +11,10 @@ Show diagnostic plots from BEAST runs
 from __future__ import print_function
 
 import matplotlib.pyplot as plt
-
 from astropy.table import Table
 from matplotlib.colors import LogNorm
 
+# local imports
 from beastplotlib import fancify_colname, initialize_parser
 
 def plot_2dhist(xcol, ycol, fig, ax, bins=51):
@@ -31,7 +31,7 @@ def plot_2dhist(xcol, ycol, fig, ax, bins=51):
     fig : matplotlib figure object
         Figure to plot histogram on
     bins : int or array-like, optional
-       Bins to pass to 2D histogram.
+        Bins to pass to 2D histogram.
 
     Returns
     -------
@@ -52,14 +52,14 @@ def make_diagnostic_plots(statsfile, suffix='Exp'):
     Parameters
     ----------
     statsfile : str
-       Path to file with BEAST output.
+        Path to file with BEAST output.
     suffix : str, optional
-       Column type ('Exp', 'Best', 'p16', 'p50', 'p84')
+        Column type ('Exp', 'Best', 'p16', 'p50', 'p84')
 
     Returns
     -------
     fig : matplotlib figure object
-       Figure with diagnostic plots
+        Figure with diagnostic plots
     '''
     stats = Table.read(statsfile)
     base_cnames = ['logT', 'logL', 'Av', 'Rv', 'f_A']

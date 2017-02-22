@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Library of general plotting functions for the BEAST plotting scripts
+Library of general functions for the BEAST plotting scripts
 
 .. history::
     Written 21 Feb 2017 by Meredith J. Durbin
@@ -9,6 +9,8 @@ import argparse
 import re
 
 def fancify_colname(name):
+    '''someone who knows regex pls rewrite
+    '''
     ns = name.split('_')
     if re.match(re.compile('log._*'), name) is not None:
         fancyname = '$\log ({})$ ({})'.format(name[3], ns[-1])
@@ -23,6 +25,8 @@ def fancify_colname(name):
     return r'{}'.format(fancyname)
 
 def initialize_parser():
+    '''For running from command line, initialize argparse with common args
+    '''
     ftypes = ['png', 'jpg', 'jpeg', 'pdf', 'ps', 'eps', 'rgba',
               'svg', 'tiff', 'tif', 'pgf', 'svgz', 'raw']
     ftypestr = ', '.join(['"{}"'.format(f) for f in ftypes])
