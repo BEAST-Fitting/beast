@@ -6,7 +6,7 @@ Library of general functions for the BEAST plotting scripts
     Written 21 Feb 2017 by Meredith J. Durbin
 """
 import argparse
-import numpy as np
+import matplotlib.pyplot as plt
 
 def fancify_colname(name):
     '''Formats column name for plotting axis labels.
