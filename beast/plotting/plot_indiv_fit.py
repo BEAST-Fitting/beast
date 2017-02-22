@@ -12,7 +12,7 @@ from __future__ import print_function
 import argparse
 
 import numpy as np
-import matplotlib.pyplot as pyplot
+import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import MaxNLocator
 from matplotlib.patches import Rectangle
@@ -24,8 +24,9 @@ from astropy.io import fits
 from astropy import units as ap_units
 from astropy.coordinates import SkyCoord as ap_SkyCoord
 
-def disp_str(stats, k, keyname):
+from .beastplotlib import initialize_parser
 
+def disp_str(stats, k, keyname):
     dvals = [stats[keyname+'_p50'][k],
              stats[keyname+'_p84'][k],
              stats[keyname+'_p16'][k]]
@@ -43,8 +44,7 @@ def disp_str(stats, k, keyname):
 
 
 def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
-               stats=None,
-               logx=False, fontsize=None):
+               stats=None, logx=False):
 
     pdf = pdf1d_hdu[tagname].data
 
@@ -72,8 +72,7 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
     ax.set_ylim(0.0,1.1)
 
     ax.text(0.95, 0.95, xlabel, transform=ax.transAxes,
-            verticalalignment='top',horizontalalignment='right',
-            fontsize=fontsize)
+            va='top', ha='right')
 
     if stats is not None:
         ylim = ax.get_ylim()
@@ -101,7 +100,7 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
         ax.plot(np.full((2),pvals[2]),[y1,y2],'-', color='m')
         ax.plot(pvals[1:3],[ym,ym],'-', color='m')
 
-def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
+def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     # setup the plot grid
     gs = gridspec.GridSpec(4, 4,
@@ -111,9 +110,9 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
     # plots for the 1D PDFs
     for j in range(2):
         for i in range(4):
-            ax.append(pyplot.subplot(gs[j+2,i]))
+            ax.append(plt.subplot(gs[j+2,i]))
     # now for the big SED plot
-    ax.append(pyplot.subplot(gs[0:2,0:3]))
+    ax.append(plt.subplot(gs[0:2,0:3]))
 
     # plot the SED
     #print(np.sort(stats.colnames))
@@ -170,20 +169,18 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
 
     ax[8].legend(loc='upper right', bbox_to_anchor=(1.25, 1.025))
 
-    ax[8].set_ylabel(r'Flux [ergs s$^{-1}$ cm$^{-2}$ $\AA^{-1}$]',
-                     fontsize=1.25*fontsize)
+    ax[8].set_ylabel(r'Flux [ergs s$^{-1}$ cm$^{-2}$ $\AA^{-1}$]')
     ax[8].set_yscale('log')
 
     ax[8].set_xscale('log')
-    ax[8].text(0.5,-0.01,r'$\lambda$ [$\AA$]', fontsize=1.25*fontsize,
-               transform=ax[8].transAxes, verticalalignment='top')
+    ax[8].text(0.5,-0.01,r'$\lambda$ [$\AA$]', 
+               transform=ax[8].transAxes, va='top')
     ax[8].set_xlim(0.2,2.0)
     ax[8].set_xticks([0.2,0.3,0.4,0.5,0.8,0.9,1.0,2.0])
     ax[8].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
     ax[8].text(0.05, 0.95, corname, transform=ax[8].transAxes,
-               verticalalignment='top',horizontalalignment='left',
-               fontsize=1.25*fontsize)
+               va='top',ha='left')
 
     # add the text results
     keys = ['Av','M_ini','logA','Rv','f_A','Z','logT','logg','logL']
@@ -196,27 +193,27 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
     tx = [1.12, 1.2, 1.3]
     for i in range(len(keys)):
         ax[8].text(tx[0], ty[i], dispnames[i],
-                   horizontalalignment='right',
-                   transform=ax[8].transAxes, fontsize=1.25*fontsize)
+                   ha='right',
+                   transform=ax[8].transAxes)
         ax[8].text(tx[1], ty[i], disp_str(stats, starnum, keys[i]),
-                   horizontalalignment='center', color='m',
-                   transform=ax[8].transAxes, fontsize=1.25*fontsize)
+                   ha='center', color='m',
+                   transform=ax[8].transAxes)
         best_val = stats[keys[i]+'_Best'][k]
         if keys[i] == 'M_ini':
             best_val = np.log10(best_val)
         ax[8].text(tx[2], ty[i],
                    '$' + "{0:.2f}".format(best_val) + '$', 
-                   horizontalalignment='center', color='c', 
-                   transform=ax[8].transAxes, fontsize=1.25*fontsize)
+                   ha='center', color='c', 
+                   transform=ax[8].transAxes)
     ax[8].text(tx[0],laby, 'Param',
-               horizontalalignment='right',
-               transform=ax[8].transAxes, fontsize=1.25*fontsize)
+               ha='right',
+               transform=ax[8].transAxes)
     ax[8].text(tx[1],laby, '50%$\pm$33%',
-               horizontalalignment='center', color='k',
-               transform=ax[8].transAxes, fontsize=fontsize)
+               ha='center', color='k',
+               transform=ax[8].transAxes)
     ax[8].text(tx[2],laby, 'Best',color='k',
-               horizontalalignment='center',
-               transform=ax[8].transAxes, fontsize=1.25*fontsize)
+               ha='center',
+               transform=ax[8].transAxes)
 
     # now draw boxes around the different kinds of parameters
     tax = ax[8]
@@ -250,11 +247,11 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
 
     # plot the primary parameter 1D PDFs
     plot_1dpdf(ax[0], pdf1d_hdu, 'Av', 'A(V)', starnum,
-               stats=stats, fontsize=fontsize)
+               stats=stats)
     plot_1dpdf(ax[1], pdf1d_hdu, 'M_ini', 'log(M)', starnum, logx=True,
-               stats=stats, fontsize=fontsize)
+               stats=stats)
     plot_1dpdf(ax[2], pdf1d_hdu, 'logA', 'log(t)', starnum,
-               stats=stats, fontsize=fontsize)
+               stats=stats)
 
     # draw a box around them and label
     tax = ax[0]
@@ -268,21 +265,19 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
 
     tax.text(-2.*pad, 0.5, 'Primary', transform=tax.transAxes, 
              rotation='vertical', fontstyle='oblique',
-             verticalalignment='center', horizontalalignment='right',
-             fontsize=1.5*fontsize)
+             va='center', ha='right')
 
     tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes, 
              rotation='vertical', 
-             verticalalignment='center', horizontalalignment='right',
-             fontsize=1.25*fontsize)
+             va='center', ha='right')
 
     # plot the secondary parameter 1D PDFs
     plot_1dpdf(ax[4], pdf1d_hdu, 'Rv', 'R(V)', starnum,
-               stats=stats, fontsize=fontsize)
+               stats=stats)
     plot_1dpdf(ax[5], pdf1d_hdu, 'f_A', r'f$_\mathcal{A}$', starnum,
-               stats=stats, fontsize=fontsize)
+               stats=stats)
     plot_1dpdf(ax[6], pdf1d_hdu, 'Z', 'Z', starnum,
-               stats=stats, fontsize=fontsize)
+               stats=stats)
 
     # draw a box around them
     tax = ax[4]
@@ -296,19 +291,17 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
 
     tax.text(-2*pad, 0.5, 'Secondary', transform=tax.transAxes, 
              rotation='vertical', fontstyle='oblique',
-             verticalalignment='center', horizontalalignment='right',
-             fontsize=1.5*fontsize)
+             va='center', ha='right')
 
     tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes, 
              rotation='vertical', 
-             verticalalignment='center', horizontalalignment='right',
-             fontsize=1.25*fontsize)
+             va='center', ha='right')
 
     # plot the derived parameter 1D PDFs
     plot_1dpdf(ax[3], pdf1d_hdu, 'logT', r'log(T$_\mathrm{eff})$', starnum,
-               stats=stats, fontsize=fontsize)
+               stats=stats)
     plot_1dpdf(ax[7], pdf1d_hdu, 'logg', 'log(g)', starnum,
-               stats=stats, fontsize=fontsize)
+               stats=stats)
 
     # draw a box around them
     tax = ax[7]
@@ -322,39 +315,32 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize):
 
     tax.text(0.5, 2*(1.0+2*pad)-1.0*pad, 'Derived', transform=tax.transAxes, 
              rotation='horizontal', fontstyle='oblique',
-             verticalalignment='bottom', horizontalalignment='center',
-             fontsize=1.5*fontsize)
+             va='bottom', ha='center')
 
     # optimize the figure layout
-    pyplot.tight_layout(h_pad=2.0, w_pad=1.0)
+    plt.tight_layout(h_pad=2.0, w_pad=1.0)
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
+    parser = initialize_parser()
     parser.add_argument("filebase", type=str,
-                        help='base filenamae of output results')
-    parser.add_argument("-s", "--starnum", type=int, default=0,
+                        help='base filename of output results')
+    parser.add_argument("--starnum", type=int, default=0,
                         help="star number in observed file")
-    parser.add_argument("-p", "--png", help="save figure as a png file",
-                        action="store_true")
-    parser.add_argument("-e", "--eps", help="save figure as an eps file",
-                        action="store_true")
-    parser.add_argument("--pdf", help="save figure as a pdf file",
-                        action="store_true")
     args = parser.parse_args()
 
     starnum = args.starnum
 
-    # pretty plotting details
-    fontsize = 12
-    font = {'size'   : fontsize}
+    # # pretty plotting details
+    # fontsize = 12
+    # font = {'size'   : fontsize}
 
-    matplotlib.rc('font', **font)
+    # matplotlib.rc('font', **font)
 
-    matplotlib.rc('lines', linewidth=2)
-    matplotlib.rc('axes', linewidth=2)
-    matplotlib.rc('xtick.major', width=2)
-    matplotlib.rc('ytick.major', width=2)
+    # matplotlib.rc('lines', linewidth=2)
+    # matplotlib.rc('axes', linewidth=2)
+    # matplotlib.rc('xtick.major', width=2)
+    # matplotlib.rc('ytick.major', width=2)
 
     # base filename
     filebase = args.filebase
@@ -382,20 +368,17 @@ if __name__ == '__main__':
     waves = np.asarray([2722.05531502, 3366.00507206,4763.04670013,
                         8087.36760191,11672.35909295,15432.7387546])
     
-    fig, ax = pyplot.subplots(figsize=(12,12))
+    fig, ax = plt.subplots(figsize=(8,8))
 
     # make the plot!
-    plot_beast_ifit(filters, waves, stats, pdf1d_hdu, fontsize)
+    plot_beast_ifit(filters, waves, stats, pdf1d_hdu)
 
     # show or save
     basename = filebase + '_ifit_starnum_' + str(starnum)
     print(basename)
-    if args.png:
-        fig.savefig(basename+'.png')
-    elif args.eps:
-        fig.savefig(basename+'.eps')
-    elif args.pdf:
-        fig.savefig(basename+'.pdf')
+    if args.savefig:
+        fig.savefig('{}.{}'.format(basename, args.savefig))
     else:
-        pyplot.show()
+        plt.show()
+
     
