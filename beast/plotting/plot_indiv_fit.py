@@ -331,26 +331,11 @@ if __name__ == '__main__':
 
     starnum = args.starnum
 
-    # # pretty plotting details
-    # fontsize = 12
-    # font = {'size'   : fontsize}
-
-    # matplotlib.rc('font', **font)
-
-    # matplotlib.rc('lines', linewidth=2)
-    # matplotlib.rc('axes', linewidth=2)
-    # matplotlib.rc('xtick.major', width=2)
-    # matplotlib.rc('ytick.major', width=2)
-
     # base filename
     filebase = args.filebase
 
     # read in the stats
     stats = Table.read(filebase + '_stats.fits')
-    #print(stats.colnames)
-    #indxs, = np.where((stats['logT_p50'] > 4.0) &
-    #                  (stats['Av_p50'] > 1.0))
-    #print(indxs)
 
     # open 1D PDF file
     pdf1d_hdu = fits.open(filebase+'_pdf1d.fits')
