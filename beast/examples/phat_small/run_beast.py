@@ -44,7 +44,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # check input parameters
-    # verify_params.
+    # for list of params
+    # verify_params.verify_input_format()
 
 
     if args.physicsmodel:
