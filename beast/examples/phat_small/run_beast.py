@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 """
-Script to run the BEAST on the example data from PHAT data.
-KDG - 21 Dec 2016
+Script to run the BEAST on the PHAT-like data.
+Assumes that the datamodel.py file exists in the same directory as this script.
+  And it must be called datamodel.py 
+     used in make_model.py code in physicsmodel, more recoding needed to remove
+     this dependency
 """
 
 # system imports
@@ -12,32 +15,36 @@ import time
 import string
 
 # BEAST imports
-from pipeline_small import make_models
-import datamodel_small as datamodel
+from beast.physicsmodel.make_model import make_models
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
 from beast.fitting import fit
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid  
 
+import datamodel
+
 if __name__ == '__main__':
     # commandline parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--models", help="Generate the model grid",
+    parser.add_argument("-p", "--physicsmodel",
+                        help="Generate the physics model grid",
                         action="store_true")
-    parser.add_argument("-n", "--noise", help="Calculate the noise model",
+    parser.add_argument("-o", "--observationmodel",
+                        help="Calculate the observation model (bias and noise)",
                         action="store_true")
-    parser.add_argument("-t", "--trim", help="Trim the model and noise grids",
+    parser.add_argument("-t", "--trim",
+                        help="Trim the physics and observation model grids",
                         action="store_true")
     parser.add_argument("-f", "--fit", help="Fit the observed data",
                         action="store_true")
-    parser.add_argument("-r", "--resume", help="Resume a run",
+    parser.add_argument("-r", "--resume", help="Resume a fitting run",
                         action="store_true")
     args = parser.parse_args()
 
-    if args.models:
+    if args.physicsmodel:
         make_models()
 
-    if args.noise:
+    if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
  
         # get the modesedgrid on which to generate the noisemodel  
