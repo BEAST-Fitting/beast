@@ -18,7 +18,7 @@ Fork the BEAST distro
   The master branch of this repository is the version that is distributed.
 
 - Log in to your github account, and on the top right corner of the BEAST
-  repository page click on the 'Fork' button. This will create a copy of the
+  repository page click on the ``Fork`` button. This will create a copy of the
   repository in your github accout.
 
 - Clone a copy of your fork to your local computer. If you have a copy of
@@ -64,14 +64,14 @@ Adding Branches
     $ git branch beast-dev1
     $ git checkout beast-dev1
 
-- To see a list of all branches of the fork, with '*' indicating which branch you are
+- To see a list of all branches of the fork, with ``*`` indicating which branch you are
   currently working on:
 
   .. code:: shell
 
   $ git branch
 
-- To 'upload' this branch to your fork:
+- To ``upload`` this branch to your fork:
 
   .. code:: shell
 
@@ -89,9 +89,9 @@ Making Changes
 
 It is recommended that branches have a single purpose; for example, if you are working
 on adding a test suite and on improving the fitting algorithm, those should be in
-branches (e.g.) ``add-test-suite`` or ``improve-fitting-algorithm`` or 'beast-dev1'
+branches (e.g.) ``add-test-suite`` or ``improve-fitting-algorithm`` or ``beast-dev1``
 
-- Anywhere below 'beast-YourName', switch to the branch you wish to work off of:
+- Anywhere below ``beast-YourName``, switch to the branch you wish to work off of:
 
   .. code:: shell
 
@@ -117,11 +117,11 @@ branches (e.g.) ``add-test-suite`` or ``improve-fitting-algorithm`` or 'beast-de
 	    
   $ git add -A
 
-- To 'commit' all changes after adding desired files:
+- To ``commit`` all changes after adding desired files:
 
   .. code:: shell
 	    
-  $ git commit -m 'brief comments describing changes'
+  $ git commit -m ``brief comments describing changes``
 
 - Commit messages should be short but descriptive.
     
@@ -153,21 +153,21 @@ with collaborators, you can open a pull request. It is a good idea to check with
 the projects or your collaborators which branch of their BEAST repo you should
 send the pull requests. 
 
-Note: Generally in git-lingo, 'Pull' is to 'download' what 'Push' is
-to 'upload'. When you are making a 'pull request', you are requesting
-that your contributions are 'pulled' from the other side. So you are not
+Note: Generally in git-lingo, ``Pull`` is to ``download`` what ``Push`` is
+to ``upload``. When you are making a ``pull request``, you are requesting
+that your contributions are ``pulled`` from the other side. So you are not
 pushing it, but the other party is pulling it :-)
 
-- Use 'git add', 'git commit' and 'git push' as summarized earlier to
+- Use ``git add``, ``git commit`` and ``git push`` as summarized earlier to
   sync your local edits with your github repo
 
 - From the github page of your fork of BEAST, e.g.,
   <https://github.com/rubab1/beast/branches>
-  click on 'Branches'. Next to the name of the branch on which you
-  commited/pushed the changes, click on 'New pull request'. Verify that
-  names of the target repo ('base fork') and branch ('master') *to* which
-  you want to send the pull request, and those of your repo ('head fork')
-  and your branch ('compare') *from* which you are sending the pull request
+  click on ``Branches``. Next to the name of the branch on which you
+  commited/pushed the changes, click on ``New pull request``. Verify that
+  names of the target repo (``base fork``) and branch (``master``) *to* which
+  you want to send the pull request, and those of your repo (``head fork``)
+  and your branch (``compare``) *from* which you are sending the pull request
   match what you intend to do.
 
 - In the comments section briefly describe the changes/additions you made
@@ -225,12 +225,12 @@ Managing Conflicts via Re-basing
 
 Let's consider a situation where a fork's master has been updated. A local
 branch (e.g., beast-dev1) was created before the update and it has changes
-that hadn't been contributed back to the project. As a results, there may
+that hadn``t been contributed back to the project. As a results, there may
 be conflicting versions of some files. The following steps can resolve this.
 
 
-- Follow the instructions under 'Staying up-to-date' to update your fork's
-  master. *Do not* skip the 'push'.
+- Follow the instructions under 'staying up-to-date`` to update your fork's
+  master. *Do not* skip the ``push``.
 
 - Switch to the branch you wish to re-base:
 
@@ -251,7 +251,7 @@ be conflicting versions of some files. The following steps can resolve this.
 
   $ git fetch upstream
     
-- 'Re-base' the branch:
+- ``Re-base`` the branch:
 
   .. code:: shell
 
