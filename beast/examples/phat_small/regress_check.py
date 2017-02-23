@@ -16,6 +16,7 @@ class hdf5diff_results():
         self.missing_groups = []
         self.missing_datasets = []
         self.nonzero_matchs = []
+        self.missing_names = []
 
     def add_missing_group(self, mkey):
         self.missing_groups.append(mkey)
@@ -25,6 +26,9 @@ class hdf5diff_results():
 
     def add_nonzero_match(self, desc):
         self.nonzero_matchs.append(desc)
+
+    def add_missing_name(self, desc):
+        self.missing_names.append(desc)
         
 def hdf5diff(fname1, fname2):
 
@@ -41,14 +45,19 @@ def hdf5diff(fname1, fname2):
                 cvalue = hdfa[sname]
                 cvalueb = hdfb[sname]
                 all_names = hdfa[sname].dtype.names
+                all_namesb = hdfb[sname].dtype.names
                 if all_names == None:
                     if hdfa[sname].dtype.isbuiltin:
                         if np.sum(hdfa[sname].value - hdfb[sname].value) != 0:
                             hd.add_nonzero_match(sname)
                 else:
                     for cname in all_names:
-                        if np.sum(hdfa[sname][cname] - hdfb[sname][cname]) != 0:
-                            hd.add_nonzero_match(sname+'_'+cname)
+                        if cname in all_namesb:
+                            if np.sum(hdfa[sname][cname]
+                                      - hdfb[sname][cname]) != 0:
+                                hd.add_nonzero_match(sname+'/'+cname)
+                        else:
+                            hd.add_missing_name(sname+'/'+cname)
             else:
                 for cname, cvalue in hdfa[sname].items():
                     if cname not in hdfb[sname].keys():
@@ -60,7 +69,8 @@ def hdf5diff(fname1, fname2):
                     
     if (len(hd.missing_groups)
         + len(hd.missing_datasets)
-        + len(hd.nonzero_matchs)) > 0:
+        + len(hd.nonzero_matchs)
+        + len(hd.missing_names)) > 0:
         hd.identical = False
     else:
         hd.identical = True
@@ -92,11 +102,17 @@ if __name__ == '__main__':
                           basename+'_good/'+basename+'_'+cfile+'.hd5')
             print(cfile, hd.identical)
             if not hd.identical:
-                print('missing groups')
-                print(hd.missing_groups)
-                print('missing datasets')
-                print(hd.missing_datasets)
-                print('nonzero matchs')
-                print(hd.nonzero_matchs)
+                if len(hd.missing_groups) > 0:
+                    print('missing groups')
+                    print(hd.missing_groups)
+                if len(hd.missing_datasets) > 0:
+                    print('missing datasets')
+                    print(hd.missing_datasets)
+                if len(hd.nonzero_matchs) > 0:
+                    print('nonzero matchs')
+                    print(hd.nonzero_matchs)
+                if len(hd.missing_names) > 0:
+                    print('missing names')
+                    print(hd.missing_names)
         else:
             print(cfile, 'does not exist, not checking')
