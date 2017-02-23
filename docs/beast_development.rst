@@ -117,6 +117,7 @@ branches (e.g.) ``add-test-suite`` or ``improve-fitting-algorithm`` or ``beast-d
 
   .. code:: shell
   $ git status PathToFile/filename
+
   $ git commit PathToFile/filename
 	  
 - To undo all changes made to a file since last commit:
@@ -206,11 +207,11 @@ Managing Conflicts via Re-basing
 
 Let's consider a situation where a fork's master has been updated. A local
 branch (e.g., beast-dev1) was created before the update and it has changes
-that hadn``t been contributed back to the project. As a results, there may
+that hadn't been contributed back to the project. As a results, there may
 be conflicting versions of some files. The following steps can resolve this.
 
 
-- Follow the instructions under 'staying up-to-date`` to update your fork's
+- Follow the instructions under ``staying up-to-date`` to update your fork's
   master. *Do not* skip the ``push``.
 
 - Switch to the branch you wish to re-base:
@@ -222,6 +223,7 @@ be conflicting versions of some files. The following steps can resolve this.
 
   .. code:: shell
   $ git branch beast-dev1-backup beast-dev1
+
   $ git push origin beast-dev1-backup
 
 - Fetch the project's up-to-date distribution:
@@ -279,19 +281,28 @@ Here are the general steps to follow.
 
     .. code:: shell
     $ git checkout master
+
     $ git fetch upstream
+
     $ git merge upstream/master
+
     $ git push origin master
+
     $ git checkout -b beast-dev2
+
     $ git push origin beast-dev2
+
     $ git branch beast-dev1-backup beast-dev1
+
     $ git push origin beast-dev1-backup
+
     $ git diff beast-dev1 beast-dev2
      
   - Now you can either try to merge the branches:
 
     .. code:: shell
     $ git checkout beast-dev2
+
     $ git merge beast-dev1
 
   - Or manually edit files under beast-dev2 to resolve differences
@@ -302,4 +313,3 @@ Here are the general steps to follow.
 
     .. code:: shell
     $ git push origin beast-dev2
-    
