@@ -27,7 +27,7 @@ Fork the BEAST distro
 
 - Example of cloning your fork into ``beast-YourName`` while keeping the
   official distribution in ``beast``:
-``
+
   .. code:: shell
   $ mv beast beast-official
   
@@ -36,7 +36,7 @@ Fork the BEAST distro
   $ mv beast beast-YourName
 
   $ mv beast-official beast
-``
+
 - Set the value of the fork's ``upstream`` to the official distribution so you
   can incorporate changes made by others to your development fork. In the clone
   of your fork, run the following:
