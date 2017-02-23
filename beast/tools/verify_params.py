@@ -41,7 +41,7 @@ def check_grid(param, param_name, param_lim):
 
 
 
-def verify_input_format(param, param_name, param_format, param_lim=None):
+def verify_one_input_format(param, param_name, param_format, param_lim=None):
 	''' Test for an input parameter correctness of format and limits (if provided)
 	'''
 	# check input parameter's format
@@ -77,29 +77,46 @@ def verify_input_format(param, param_name, param_format, param_lim=None):
 
 
 
-if __name__ == "__main__":
 
- 	
- 	bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 14.]
- 	sens_limits_mag = [26., 26., 27., 29., 27.5, 28., 28.5, 27., 26.]
- 	z = [0.03, 0.019, 0.008, 0.004]
-	obsfile = '/Users/maria/Documents/data/beast/hack_week/todo_verify_params.txt'
-	astfile = 'data/fake_stars_b15_27_all.hd5'
-	#logt = [6.0, 10.13, 1.0]
-	logt = [6.0, 10.13, 1.]
-	avs = [0.0, 10.055, 1.0]
-	rvs = [2.0,6.0,1.0]
-	fbumps = [0.0,1.0, 0.25]
-	trackVersion = 2.7
-
-	parameters = [bright_limits_mag, sens_limits_mag, z, obsfile, astfile, logt, avs, rvs, fbumps, trackVersion]
+def verify_input_format(datamodel):
+	parameters = [datamodel.bright_limits_mag, datamodel.sens_limits_mag, datamodel.z, datamodel.obsfile, \
+	              datamodel.astfile, datamodel.logt, datamodel.avs, datamodel.rvs, datamodel.fbumps, datamodel.trackVersion]
 	parameters_names = ['bright_limits_mag', 'sens_limits_mag', 'z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs', 'fbumps', 'trackVersion']
 	param_format = ['list_float', 'list_float', 'list_float', 'str_file', 'str_file', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'version']
 	parameters_limits = [ [-inf, inf], [-inf, inf], [0., 0.1], None, None, [-inf, 10.15], [0., inf], [1., 7.], [0., 1.], [2.3, 2.7]]
 	
 	for i, param_ in enumerate(parameters):
-		verify_input_format(param_, parameters_names[i], param_format[i], parameters_limits[i])
+		verify_one_input_format(param_, parameters_names[i], param_format[i], parameters_limits[i])
 
+
+
+
+if __name__ == "__main__":
+
+	print('verify works')
+
+ 	'''
+ 	bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 14.]
+ 	sens_limits_mag = [26., 26., 27., 29., 27.5, 28., 28.5, 27., 26.]
+ 	z = [0.03, 0.019, 0.008, 0.004]
+	obsfile = '/Users/maria/Documents/data/beast/hack_week/todo_verify_params.txt'
+	astfile = 'data/fake_stars_b15_27_all.hd5'
+	logt = [6.0, 10.13, 1.]
+	avs = [0.0, 10.055, 1.0]
+	rvs = [2.0,6.0,1.0]
+	fbumps = [0.0,1.0, 0.25]
+	trackVersion = 2.7
+	'''
+	'''
+	parameters = [datamodel.bright_limits_mag, datamodel.sens_limits_mag, datamodel.z, datamodel.obsfile, \
+	              datamodel.astfile, datamodel.logt, datamodel.avs, datamodel.rvs, datamodel.fbumps, datamodel.trackVersion]
+	parameters_names = ['bright_limits_mag', 'sens_limits_mag', 'z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs', 'fbumps', 'trackVersion']
+	param_format = ['list_float', 'list_float', 'list_float', 'str_file', 'str_file', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'version']
+	parameters_limits = [ [-inf, inf], [-inf, inf], [0., 0.1], None, None, [-inf, 10.15], [0., inf], [1., 7.], [0., 1.], [2.3, 2.7]]
+	
+	for i, param_ in enumerate(parameters):
+		verify_one_input_format(param_, parameters_names[i], param_format[i], parameters_limits[i])
+	'''
     
 
 
