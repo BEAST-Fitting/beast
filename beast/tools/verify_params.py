@@ -13,11 +13,12 @@ from numpy import inf
 def verify_range(param, param_name, param_lim):
 	# check if input param limits make sense
 	# no constarins indicated by param_lim = [-np.inf, np.inf]
-	if any(param) < param_lim[0]:
-		warn(param_name + " min value not physical)")
+	
+	if any(p < param_lim[0] for p in param):
+		warn(param_name + " min value not physical.")
 
-	if any(param) > param_lim[1]:
-		warn(param_name + " max value not physical)")
+	if any(p > param_lim[1] for p in param):
+		warn(param_name + " max value not physical.")
 
 
 
@@ -27,10 +28,10 @@ def check_grid(param, param_name, param_lim):
 	# check if input param limits make sense
 	# no constarins indicated by param_lim = [-np.inf, np.inf]
 	if param_min < param_lim[0]:
-		warn(param_name + " min value not physical)")
+		warn(param_name + " min value not physical.")
 
 	if param_max > param_lim[1]:
-		warn(param_name + " max value not physical)")
+		warn(param_name + " max value not physical.")
 
 	if param_min > param_max:
 		warn(param_name + " min value greater than max")
@@ -57,6 +58,7 @@ def verify_input_format(param, param_name, param_format, param_lim=None):
 				check_grid(param, param_name, param_lim)
 			else:
 	  			verify_range(param, param_name, param_lim)
+	  			
 
 
 	if 'str' in param_format:
@@ -69,34 +71,18 @@ def verify_input_format(param, param_name, param_format, param_lim=None):
 
 	if 'version' in param_format:
 		if type(param) is not float:
-			print 'done'
 			warn(param_name + " is not in the right format - a float")
   		elif param not in param_lim:
   			warn(param_name + " is an invalid version of the isochrone.")
-  	'''
- 	if type(param) is list:
-	  	is_list_of_floats = all(type(item) is float for item in param)
-	  	if not is_list_of_floats:
-	  		warn(param_name + " is not in the right format - list of floats.")
-	  	elif len(param) == 3:
-		# when param is aranged from given [min, max, step],
-		# instead of a specific list of values
-		verify_range(param, param_name, param_lim)
-	elif type(param) is str:
-		if not exists(param):
-			warn(param_name + " does not exist. Please provide the file path.") 
-  	elif type(param) is float:
-  		if param not in param_lim:
-  			warn(param_name + " is an invalid version of the isochrone.") 
-  	'''
+
 
 
 if __name__ == "__main__":
 
  	
- 	bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 'gt']
+ 	bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 14.]
  	sens_limits_mag = [26., 26., 27., 29., 27.5, 28., 28.5, 27., 26.]
- 	z = [1., 0.019, 0.008, 0.004]
+ 	z = [0.03, 0.019, 0.008, 0.004]
 	obsfile = '/Users/maria/Documents/data/beast/hack_week/todo_verify_params.txt'
 	astfile = 'data/fake_stars_b15_27_all.hd5'
 	#logt = [6.0, 10.13, 1.0]
@@ -108,9 +94,9 @@ if __name__ == "__main__":
 
 	parameters = [bright_limits_mag, sens_limits_mag, z, obsfile, astfile, logt, avs, rvs, fbumps, trackVersion]
 	parameters_names = ['bright_limits_mag', 'sens_limits_mag', 'z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs', 'fbumps', 'trackVersion']
-	parameters_limits = [ [-inf, inf], [-inf, inf], [0., 0.1], None, None, [-inf, 10.15], [0., inf], [1., 7.], [0., 1.], [2.3, 2.7]]
 	param_format = ['list_float', 'list_float', 'list_float', 'str_file', 'str_file', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'version']
-
+	parameters_limits = [ [-inf, inf], [-inf, inf], [0., 0.1], None, None, [-inf, 10.15], [0., inf], [1., 7.], [0., 1.], [2.3, 2.7]]
+	
 	for i, param_ in enumerate(parameters):
 		verify_input_format(param_, parameters_names[i], param_format[i], parameters_limits[i])
 
