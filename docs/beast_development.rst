@@ -29,20 +29,20 @@ Fork the BEAST distro
   official distribution in ``beast``:
 
   .. code:: shell
-  `` $ mv beast beast-official``
+  $ mv beast beast-official
   
-  `` $ git clone https://github.com/YourName/beast.git``
+  $ git clone https://github.com/YourName/beast.git
 
-  `` $ mv beast beast-YourName``
+  $ mv beast beast-YourName
 
-  `` $ mv beast-official beast``
+  $ mv beast-official beast
 
 - Set the value of the fork's ``upstream`` to the official distribution so you
   can incorporate changes made by others to your development fork. In the clone
   of your fork, run the following:
 
   .. code:: shell
-  `` $ git remote set-url --add upstream https://github.com/karllark/beast.git``
+  $ git remote set-url --add upstream https://github.com/karllark/beast.git
  
    
 Adding Branches
@@ -55,30 +55,30 @@ Adding Branches
   practice to give branches names related to their purpose)
 
   .. code:: shell
-  `` $ git checkout -b beast-dev1``
+  $ git checkout -b beast-dev1
 	  
 - Instead, if you want to create first a branch and then switch to it:
 
   .. code:: shell
-  `` $ git branch beast-dev1``
+  $ git branch beast-dev1
 
-  `` $ git checkout beast-dev1``
+  $ git checkout beast-dev1
 
 - To see a list of all branches of the fork, with ``*`` indicating which branch you are
   currently working on:
 
   .. code:: shell
-  `` $ git branch``
+  $ git branch
 
 - To ``upload`` this branch to your fork:
 
   .. code:: shell
-  `` $ git push origin beast-dev1``
+  $ git push origin beast-dev1
 
 - To revert back to your fork's master branch:
 
   .. code:: shell
-  `` $ git checkout master``
+  $ git checkout master
 
     
 Making Changes
@@ -91,48 +91,48 @@ branches (e.g.) ``add-test-suite`` or ``improve-fitting-algorithm`` or ``beast-d
 - Anywhere below ``beast-YourName``, switch to the branch you wish to work off of:
 
   .. code:: shell
-  `` $ git checkout beast-dev1``
+  $ git checkout beast-dev1
 
 - Make changes to the existing files as you wish and/or create new files.
 
 - To see what changes have been made at any time:
 
   .. code:: shell
-  `` $ git status``
+  $ git status
 
 - To stage any new or edited file (e.g., ``newfile.py``) in preparation for committing:
 
   .. code:: shell
-  `` $ git add newfile.py``
+  $ git add newfile.py
 
 - To add all edited files (*not recommended* unless you are sure of all your changes):
 
   .. code:: shell
-  `` $ git add -A``
+  $ git add -A
 
 - To ``commit`` all changes after adding desired files:
 
   .. code:: shell
-  `` $ git commit -m 'brief comments describing changes'``
+  $ git commit -m ``brief comments describing changes``
 
 - Commit messages should be short but descriptive.
     
 - To see the status of or commit changes of a single file:
 
   .. code:: shell
-  `` $ git status PathToFile/filename``
+  $ git status PathToFile/filename
 
-  `` $ git commit PathToFile/filename``
+  $ git commit PathToFile/filename
 	  
 - To undo all changes made to a file since last commit:
 
   .. code:: shell
-  `` $ git checkout PathToFile/filename``
+  $ git checkout PathToFile/filename
 
 - To sync changes made to the branch locally with your GitHub repo:
 
   .. code:: shell
-  `` $ git push origin beast-dev1``
+  $ git push origin beast-dev1
 
 
 Collaborating and Contributing
@@ -182,22 +182,22 @@ efforts and other complications.
 - Switch to your fork's master branch:
 
   .. code:: shell
-  `` $ git checkout master``
+  $ git checkout master
 
 - Fetch the project's up-to-date distribution:
 
   .. code:: shell
-  `` $ git fetch upstream``
+  $ git fetch upstream
 
 - Merge the project-master (upstream) with your fork's master (master):
 
   .. code:: shell
-  `` $ git merge upstream/master``
+  $ git merge upstream/master
 
 - Sync this change with your GitHub repo:
 
   .. code:: shell
-  `` $ git push origin master``
+  $ git push origin master
 
 
 - Any branch created off of the fork's master now will start from the
@@ -221,24 +221,24 @@ be conflicting versions of some files. The following steps can resolve this.
 - Switch to the branch you wish to re-base:
 
   .. code:: shell
-  `` $ git checkout beast-dev1``
+  $ git checkout beast-dev1
 
 - *DO NOT SKIP THIS* Make a backup and push it to your gitHub repo:
 
   .. code:: shell
-  `` $ git branch beast-dev1-backup beast-dev1``
+  $ git branch beast-dev1-backup beast-dev1
 
-  `` $ git push origin beast-dev1-backup``
+  $ git push origin beast-dev1-backup
 
 - Fetch the project's up-to-date distribution:
 
   .. code:: shell
-  `` $ git fetch upstream``
+  $ git fetch upstream
     
 - ``Re-base`` the branch:
 
   .. code:: shell
-  `` $ git rebase upstream/master``
+  $ git rebase upstream/master
 
   - This step may continue to fail until you resolve all conflicts
 
@@ -246,23 +246,23 @@ be conflicting versions of some files. The following steps can resolve this.
     without any error message, push the changes to your gitHub repo:
 
   .. code:: shell
-  `` $ git push origin beast-dev1``
+  $ git push origin beast-dev1
     
   - If something goes wrong during re-base, you can start over:
 
     .. code:: shell
-    `` $ git rebase --abort``
+    $ git rebase --abort
 
   - If the re-base goes fine but later you wish to restore the backup:
 
     .. code:: shell
-    `` $ git reset --hard beast-dev1-backup``
+    $ git reset --hard beast-dev1-backup
     
 - Once all conflicts have been resolved and the re-base goes through,
   you can delete the backup branch:
 
   .. code:: shell
-  `` $ git branch -D beast-dev1-backup``
+  $ git branch -D beast-dev1-backup
 
 
 Managing Conflicts without Re-basing
@@ -289,30 +289,30 @@ Here are the general steps to follow.
   - Do the preparatory steps
 
     .. code:: shell
-    `` $ git checkout master``
+    $ git checkout master
 
-    `` $ git fetch upstream``
+    $ git fetch upstream
 
-    `` $ git merge upstream/master``
+    $ git merge upstream/master
 
-    `` $ git push origin master``
+    $ git push origin master
 
-    `` $ git checkout -b beast-dev2``
+    $ git checkout -b beast-dev2
 
-    `` $ git push origin beast-dev2``
+    $ git push origin beast-dev2
 
-    `` $ git branch beast-dev1-backup beast-dev1``
+    $ git branch beast-dev1-backup beast-dev1
 
-    `` $ git push origin beast-dev1-backup``
+    $ git push origin beast-dev1-backup
 
-    `` $ git diff beast-dev1 beast-dev2``
+    $ git diff beast-dev1 beast-dev2
      
   - Now you can either try to merge the branches:
 
     .. code:: shell
-    `` $ git checkout beast-dev2``
+    $ git checkout beast-dev2
 
-    `` $ git merge beast-dev1``
+    $ git merge beast-dev1
 
   - Or manually edit files under beast-dev2 to resolve differences
 
@@ -321,5 +321,4 @@ Here are the general steps to follow.
     resolved both locally and on the gitHub repo)
 
     .. code:: shell
-    `` $ git push origin beast-dev2``
-
+    $ git push origin beast-dev2
