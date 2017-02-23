@@ -43,11 +43,11 @@ def hdf5diff(fname1, fname2):
                 all_names = hdfa[sname].dtype.names
                 if all_names == None:
                     if hdfa[sname].dtype.isbuiltin:
-                        if np.sum(hdfa[sname].value - hdfb[sname].value) > 0:
+                        if np.sum(hdfa[sname].value - hdfb[sname].value) != 0:
                             hd.add_nonzero_match(sname)
                 else:
                     for cname in all_names:
-                        if np.sum(hdfa[sname][cname] - hdfb[sname][cname]) > 0:
+                        if np.sum(hdfa[sname][cname] - hdfb[sname][cname]) != 0:
                             hd.add_nonzero_match(sname+'_'+cname)
             else:
                 for cname, cvalue in hdfa[sname].items():
@@ -58,7 +58,9 @@ def hdf5diff(fname1, fname2):
                         if np.sum(cvalue.value - cvalueb.value) > 0:
                             hd.add_nonzero_match(sname+'_'+cname)
                     
-    if (len(hd.missing_groups) + len(hd.missing_datasets)) > 0:
+    if (len(hd.missing_groups)
+        + len(hd.missing_datasets)
+        + len(hd.nonzero_matchs)) > 0:
         hd.identical = False
     else:
         hd.identical = True

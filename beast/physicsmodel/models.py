@@ -34,6 +34,7 @@ import numpy as np
 # BEAST imports
 import grid
 import creategrid
+from grid_weights import compute_age_mass_metallicity_grid_weights
 from prior_weights import compute_age_mass_metallicity_prior_weights
 
 from stars import stellib
@@ -201,6 +202,7 @@ def make_priors(outname, specgrid, **kwargs):
 
     print('Make Prior Weights')
 
+    compute_age_mass_metallicity_grid_weights(specgrid.grid)
     compute_age_mass_metallicity_prior_weights(specgrid.grid)
 
     #write to disk

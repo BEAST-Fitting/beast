@@ -533,9 +533,19 @@ class Stellib(object):
         _grid['radius'] = np.empty(ndata, dtype=float )
         _grid['keep'] = np.empty(ndata, dtype=bool )
 
-        # weight stores the priors (initialize to 1)
+        # stores the grid+prior weights (initialize to 1)
         _grid['weight'] = np.full(ndata, 1.0, dtype=float)
 
+        # stores the prior weights separately (initialize to 1)
+        #   This will allow for adjustable priors and
+        #   visualization of the priors themselves as weights include
+        #   the grid weights to correct for the non-uniform grid spacing
+        _grid['prior_weight'] = np.full(ndata, 1.0, dtype=float)
+
+        # stores the grid weights separately (initialize to 1)
+        #   these weights alone provide flat priors on all fit parameters
+        _grid['grid_weight'] = np.full(ndata, 1.0, dtype=float)
+        
         # index to the grid
         # useful to setup here as it will then be cleanly propagated
         #    to the SED grid

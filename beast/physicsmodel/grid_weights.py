@@ -90,7 +90,6 @@ def compute_mass_weights(masses):
     -------
     mass_weights : numpy vector
        weights to provide a constant SFR in linear age
-
     """
     # sort the initial mass along this isochrone
     sindxs = np.argsort(masses)
@@ -180,14 +179,14 @@ def compute_age_mass_metallicity_grid_weights(_tgrid):
                 _tgrid[k]['grid_weight'] *= mass_weights[i]*age_weights[ak]
 
         # compute the current total weight at each metallicity
-        total_z_weight[az] = np.sum(_tgrid[zindxs]['weight'])
+        total_z_weight[az] = np.sum(_tgrid[zindxs]['grid_weight'])
         
     # ensure that the metallicity prior is uniform
     if len(uniq_Zs) > 1:
         # get the metallicity weights
         met_weights = compute_metallicity_weights(uniq_Zs)
 
-        total_z_weight *= met_widths   # very simple integration
+        total_z_weight *= met_weights   # very simple integration
         z_weights = total_z_weight/np.sum(total_z_weight)
 
         for az, z_val in enumerate(uniq_Zs):
@@ -195,7 +194,3 @@ def compute_age_mass_metallicity_grid_weights(_tgrid):
             zindxs, = np.where(_tgrid['Z'] == z_val)   
             _tgrid[zindxs]['grid_weight'] *= z_weights[az]
 
-    # Add index for use later with the SED grid
-    # =================================================
-    # useful for looking up the best fit spectrum from a SED fit
-    _tgrid[:]['specgrid_indx'] = np.arange(len(_tgrid), dtype=np.int64)
