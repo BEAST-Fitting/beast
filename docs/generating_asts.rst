@@ -14,6 +14,8 @@ mag_limits: Determines the magnitude limits for the models in each filter in the
 
 pick_models:  Samples the model grid and outputs models that fit within the mag limits.
 
+pick_positions: Uses the observed stellar catalog to distribution the artificial stars in a similar spatial pattern to the observed catalog
+
 Parameters
 ==========
    Input parameters in datamodel needed for creating AST lists:
