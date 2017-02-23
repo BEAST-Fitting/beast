@@ -5,16 +5,16 @@ You are encouraged to help maintain and improve the BEAST. Before doing so,
 please familiarize yourself with basic version control and Git workflow
 concepts using one or more of these guides:
 
-- < https://guides.github.com/introduction/flow/ >
-- < https://lifehacker.com/5983680/how-the-heck-do-i-use-github >
-- < https://homes.cs.washington.edu/~mernst/advice/version-control.html >
-- < https://www.youtube.com/watch?v=y_YKHXuJ-ak >
+- https://guides.github.com/introduction/flow/
+- https://lifehacker.com/5983680/how-the-heck-do-i-use-github
+- https://homes.cs.washington.edu/~mernst/advice/version-control.html
+- https://www.youtube.com/watch?v=y_YKHXuJ-ak
 
 
 Fork the BEAST distro
 =====================
 
-- The main BEAST repository lives at < https://github.com/karllark/beast >.
+- The main BEAST repository lives at https://github.com/karllark/beast .
   The master branch of this repository is the version that is distributed.
 
 - Log in to your github account, and on the top right corner of the BEAST
@@ -152,7 +152,7 @@ pushing it, but the other party is pulling it :-)
   sync your local edits with your github repo
 
 - From the github page of your fork of BEAST, e.g.,
-  <https://github.com/rubab1/beast/branches>
+  https://github.com/rubab1/beast/branches
   click on ``Branches``. Next to the name of the branch on which you
   commited/pushed the changes, click on ``New pull request``. Verify that
   names of the target repo (``base fork``) and branch (``master``) *to* which
