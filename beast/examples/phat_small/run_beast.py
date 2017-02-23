@@ -69,6 +69,7 @@ if __name__ == '__main__':
             for k, filtername in enumerate(obsdata.filters):
                 sfiltername = obsdata.data.resolve_alias(filtername)
                 sfiltername = sfiltername.replace('rate','vega')
+                sfiltername = sfiltername.replace('RATE','VEGA')
                 keep, = np.where(obsdata[sfiltername] < 99.)
                 min_mags[k] = np.percentile(obsdata[keep][sfiltername],90.)
 

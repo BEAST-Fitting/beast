@@ -1,7 +1,7 @@
 import sys, argparse
 import numpy as np
 from ..vega import Vega
-from ...examples.phat_small import datamodel as datamodel
+import datamodel as datamodel
 from ...physicsmodel.grid import FileSEDGrid
 from astropy.table import Table
 from astropy.io import ascii
