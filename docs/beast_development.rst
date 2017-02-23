@@ -286,8 +286,8 @@ be conflicting versions of some files. The following steps can resolve this.
   $ git branch -D beast-dev1-backup
 
 
-Managing Conflicts via Re-basing
-================================
+Managing Conflicts without Re-basing
+====================================
 
 If re-basing a branch on an upstream master keeps failing, an alternative  
 is that instead of re-basing a branch, you can resolve the conflicts
@@ -329,8 +329,4 @@ The general idea is to:
       .. code:: shell
 
       $ git push origin beast-dev2
-
       
-    
-
-
