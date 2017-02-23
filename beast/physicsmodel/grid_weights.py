@@ -21,8 +21,7 @@ from grid import FileSEDGrid
 from grid import SpectralGrid
 from ..external.eztables import Table
 
-__all__ = ['compute_age_weights','compute_mass_weights',
-           'compute_age_mass_metallicity_grid_weights']
+__all__ = ['compute_age_mass_metallicity_grid_weights']
 
 def compute_bin_boundaries(tab):
     """ Computes the bin boundaries.

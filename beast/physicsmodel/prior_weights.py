@@ -148,10 +148,6 @@ def compute_mass_weights(masses, full_imf_integral):
         # compute the integrated weight
         I1[index_isoc[ik]] = res[0]/full_imf_integral      
 
-    print(isoc2)    
-    print(mass_bin_size)
-    print(I1)
-    exit()
     return I1
 
 # compute age-mass-metallicity prior weights
@@ -219,7 +215,3 @@ def compute_age_mass_metallicity_prior_weights(_tgrid):
             zindxs, = np.where(_tgrid['Z'] == z_val)   
             _tgrid[zindxs]['weight'] *= z_weights[az]
 
-    # Add index for use later with the SED grid
-    # =================================================
-    # useful for looking up the best fit spectrum from a SED fit
-    _tgrid[:]['specgrid_indx'] = np.arange(len(_tgrid), dtype=np.int64)
