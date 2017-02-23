@@ -1,10 +1,8 @@
 """
-Priors as weights
-================
-
-The priors on age and mass are computed as weights to be used in the
-likelihood computation.  This code was created by Heddy Arab and
-integrated into the beast core by Karl Gordon.
+Prior Weights
+=============
+The priors on age, mass, and metallicty are compute as weights to use
+in the posterior calculations.
 """
 from __future__ import print_function
 
@@ -17,9 +15,11 @@ from ..external.eztables import Table
 
 from grid_weights import compute_bin_boundaries
 
-__all__ = ['compute_age_mass_metallicity_prior_weights']
+__all__ = ['compute_age_prior_weights',
+           'compute_mass_prior_weights',
+           'compute_metallicity_prior_weights']
 
-def compute_age_weights(logages):
+def compute_age_prior_weights(logages):
     """ Computes the age weights to provide constant star formation rate
     (in linear age)
 
@@ -84,7 +84,7 @@ def imf_salpeter(x):
     """
     return x**(-2.35)
 
-def compute_mass_weights(masses):
+def compute_mass_prior_weights(masses):
     """ Computes the mass weights for a kroupa IMF
 
     Keywords
@@ -115,67 +115,23 @@ def compute_mass_weights(masses):
 
     return mass_weights
 
-# compute age-mass-metallicity prior weights
-# age prior is a constant SFR in linear age
-# mass prior is a Kroupa IMF (need to update code to allow user to pick
-#   the function)
-# metallicity prior is flat
-def compute_age_mass_metallicity_prior_weights(_tgrid):
-    """ Computes the age-mass-metallicity weights on a BEAST model spectra grid.
+def compute_metallicity_prior_weights(mets):
+    """ Computes the metallicity weights to provide a default flat prior
 
     Keywords
     --------
-    _tgrid : BEAST model spectra grid.
+    mets : numpy vector
+        metallicities
 
     Returns
     -------
-    Weight column in the grid is updated by multiplying by the 
-    age-mass-metallicity weight.
+    metallicity_weights : numpy vector
+       weights to provide a flat metallicity
     """
+    # initialize the metalicity weights to one
+    #   for a flat prior, nothing else is needed
+    #   non-uniform grid spacing is handled in the grid_weights code
+    met_weights = np.full(len(mets),1.0)
 
-    # get the unique metallicities
-    uniq_Zs = np.unique(_tgrid['Z'])  
-    total_z_weight = np.zeros(len(uniq_Zs))
-    for az, z_val in enumerate(uniq_Zs):
-        print('working computing the age-mass prior for Z = ', z_val)
-        
-        # get the grid for a single metallicity
-        zindxs, = np.where(_tgrid['Z'] == z_val)   
-        # get the unique ages for this metallicity
-        uniq_ages = np.unique(_tgrid[zindxs]['logA']) 
-        # compute the age weights for a constant SFR in linear age
-        age_weights = compute_age_weights(uniq_ages)  
-
-        # assumes same mass range for all metallicities
-        imf_norm = [1.0]  
-
-        for ak, age_val in enumerate(uniq_ages):
-            # get the grid for a single age
-            aindxs, = np.where((_tgrid['logA'] == age_val) &
-                               (_tgrid['Z'] == z_val))   
-            _tgrid_single_age = _tgrid[aindxs]
-            if len(aindxs) > 1:
-                mass_weights = compute_mass_weights(_tgrid_single_age['M_ini'])
-            else:
-                # must be a single mass for this age,z combination
-                # set mass weight to zero to remove this point from the grid
-                mass_weights = np.zeros(1)
-
-            for i, k in enumerate(aindxs):
-                _tgrid[k]['weight'] *= mass_weights[i]*age_weights[ak]
-
-        total_z_weight[az] = np.sum(_tgrid[zindxs]['weight'])
-        
-    # ensure that the metallicity prior is uniform
-    if len(uniq_Zs) > 1:
-        z_boundaries = compute_bin_boundaries(uniq_Zs)
-        z_widths = np.diff(z_boundaries)
-
-        total_z_weight *= z_widths   # very simple integration
-        z_weights = total_z_weight/np.sum(total_z_weight)
-
-        for az, z_val in enumerate(uniq_Zs):
-            # get the grid for a single metallicity
-            zindxs, = np.where(_tgrid['Z'] == z_val)   
-            _tgrid[zindxs]['weight'] *= z_weights[az]
+    return met_weights
 
