@@ -58,8 +58,7 @@ Option 1
 ________
 
 This option installs the package on your local machine as a clone of the
-`BEAST GitHub repository <a href="https://github.com/karllark/beast" target="_blank"></a>`_ 
-.. <https://github.com/karllark/beast>`_
+`BEAST GitHub repository <https://github.com/karllark/beast>`_
 such that you can easily keep up with code updates. If you
 *do not plan to make code contributions*, this is the recommended installation 
 method. See Option 3 below if you if you would like to contribute 
@@ -103,24 +102,21 @@ Now make a clone of your own BEAST repository. To do this go to
 and click on the green `Clone or Download` button. When the small window opens, 
 copy the HTTPS 
 
-``https://github.com/YOURGITNAME/beast.git``
-
+``https://github.com/YOURGITNAME/beast.git`` 
 or SSH code 
-
 ``git@github.com:YOURGITNAME/beast.git``
 
 On the command line in a local 
 directory where you want to place the BEAST, type ``git clone`` and then paste 
-the copied code. This should look like
+the copied code:
 
 ``$ git clone https://github.com/YOURGITNAME/beast.git`` or
 ``$ git clone git@github.com:YOURGITNAME/beast.git``. 
    
 To confirm that your BEAST repository was placed in the local directory, type 
+``ls``.
 
-``ls`` 
-
-You should see a new folder called `BEAST` created in this directory.
+You should see a new folder called `'beast'` created in this directory.
 
 For additional instructions on how you can use the BEAST and eventually make
 code contributions, see the 
@@ -133,8 +129,8 @@ Obtaining BEAST Library Files
 -----------------------------
 
 For the BEAST to work properly, you need to place stellar and extinction 
-library files in the `beast/beast` directory. If you have the files, copy them 
-to this location. A resulting `beast/beast/libs` directory should contain the
+library files in the `'beast/beast'` directory. If you have the files, copy them 
+to this location. A resulting `'beast/beast/libs'` directory should contain the
 files. If you do not have the files you can place a soft link to them:
 [Rubab - confirm your instructions].
 
@@ -145,7 +141,8 @@ OR
 ``$ wget -r <www.TBD.edu/libs>``
 
 Here are instructions on how you can 
-`Obtain wget for Windows <http://gnuwin32.sourceforge.net/packages/wget.htm>`_.
+`obtain wget for Windows <http://gnuwin32.sourceforge.net/packages/wget.htm>`_.
+
 You can also use:
 
 ``$ cd beast/beast``
@@ -153,14 +150,14 @@ You can also use:
 ``$ ln -s /usr/local/bin/beast-libs libs``
 
 
-Confirm Proper Installation and Run Sample Code
+Confirming Proper Installation and Run Sample Code
 -----------------------------------------------
 
-There is a small sample script named `run_beast.py` located in
-`beast/beast/examples/phat_small` as a quick check to confirm the BEAST 
+There is a small sample script named `'run_beast.py'` located in
+`'beast/beast/examples/phat_small'` as a quick check to confirm the BEAST 
 installation is working. 
 
-In `beast/beast/examples/phat_small`, place a soft link named `beast` 
+In `'beast/beast/examples/phat_small'`, place a soft link named `'beast'` 
 pointing two levels up:  
 
 ``$ cd beast/beast/examples/phat_small``
@@ -180,10 +177,10 @@ Take a look at the basic help content of 'run_beast.py':
 
 ``$ ./run_beast.py -h``
 
-Now try out a sample BEAST run:
+Now try a sample BEAST run:
 
 ``$ ./run_beast.py -potf``
 
 
-If BEAST is running correctly the code should run without errors and the 
-output should be a plot which looks like this [insert plot here]:
+If BEAST is running correctly there should be no errors and the 
+output should be a plot which looks like this [insert plot here?]:
