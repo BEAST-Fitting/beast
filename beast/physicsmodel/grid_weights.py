@@ -12,16 +12,13 @@ Basically, we want the maginalization using these grid weights to provide
 flat priors on all the fit parameters.  Non-flat priors will be implemented 
 with prior weights.
 """
-from __future__ import print_function
+from __future__ import print_function, division
 
 import numpy as np
-from scipy.integrate import quad
 
-from grid import FileSEDGrid
-from grid import SpectralGrid
-from ..external.eztables import Table
-
-__all__ = ['compute_age_mass_metallicity_grid_weights']
+__all__ = ['compute_age_grid_weights',
+           'compute_mass_grid_weights',
+           'compute_metallicity_grid_weights']
 
 def compute_bin_boundaries(tab):
     """ Computes the bin boundaries.
@@ -49,7 +46,7 @@ def compute_bin_boundaries(tab):
     tab2[1:-1] = temp
     return tab2
 
-def compute_age_weights(logages):
+def compute_age_grid_weights(logages):
     """ Computes the age weights to provide constant star formation rate
     (in linear age)
 
@@ -78,7 +75,7 @@ def compute_age_weights(logages):
     # return in the order that logages was passed
     return age_weights    
 
-def compute_mass_weights(masses):
+def compute_mass_grid_weights(masses):
     """ Computes the mass weights to provide a uniform IMF
 
     Keywords
@@ -103,7 +100,7 @@ def compute_mass_weights(masses):
 
     return mass_weights
 
-def compute_metallicity_weights(mets):
+def compute_metallicity_grid_weights(mets):
     """ Computes the metallicity weights to provide a default flat prior
 
     Keywords
@@ -127,70 +124,4 @@ def compute_metallicity_weights(mets):
     mets_weights[sindxs] = np.diff(mets_bounds)
 
     return mets_weights
-
-def compute_age_mass_metallicity_grid_weights(_tgrid):
-    """ 
-    Computes the age-mass-metallicity grid weights the BEAST model spectra grid
-
-    Keywords
-    --------
-    _tgrid : BEAST model spectra grid.
-
-    Returns
-    -------
-    Grid weight column is updated by multiplying by the 
-       age-mass-metallicity weight.
-    """
-
-    # get the unique metallicities
-    uniq_Zs = np.unique(_tgrid['Z'])  
-
-    # setup the vector to hold the z weight vector
-    total_z_weight = np.zeros(len(uniq_Zs))
-
-    for az, z_val in enumerate(uniq_Zs):
-        print('computing the age-mass grid weight for Z = ', z_val)
-        
-        # get the grid for a single metallicity
-        zindxs, = np.where(_tgrid['Z'] == z_val)   
-
-        # get the unique ages for this metallicity
-        uniq_ages = np.unique(_tgrid[zindxs]['logA']) 
-
-        # compute the age weights
-        age_weights = compute_age_weights(uniq_ages)  
-
-        for ak, age_val in enumerate(uniq_ages):
-            # get the grid for a single age
-            aindxs, = np.where((_tgrid['logA'] == age_val) &
-                               (_tgrid['Z'] == z_val))   
-            _tgrid_single_age = _tgrid[aindxs]
-
-            # compute the mass weights
-            if len(aindxs) > 1:
-                mass_weights = compute_mass_weights(_tgrid_single_age['M_ini'])
-            else:
-                # must be a single mass for this age,z combination
-                # set mass weight to zero to remove this point from the grid
-                mass_weights = np.zeros(1)
-
-            # apply both the mass and age weights  
-            for i, k in enumerate(aindxs):
-                _tgrid[k]['grid_weight'] *= mass_weights[i]*age_weights[ak]
-
-        # compute the current total weight at each metallicity
-        total_z_weight[az] = np.sum(_tgrid[zindxs]['grid_weight'])
-        
-    # ensure that the metallicity prior is uniform
-    if len(uniq_Zs) > 1:
-        # get the metallicity weights
-        met_weights = compute_metallicity_weights(uniq_Zs)
-
-        total_z_weight *= met_weights   # very simple integration
-        z_weights = total_z_weight/np.sum(total_z_weight)
-
-        for az, z_val in enumerate(uniq_Zs):
-            # get the grid for this metallicity
-            zindxs, = np.where(_tgrid['Z'] == z_val)   
-            _tgrid[zindxs]['grid_weight'] *= z_weights[az]
 

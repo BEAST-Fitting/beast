@@ -56,6 +56,8 @@ def hdf5diff(fname1, fname2):
                             if np.sum(hdfa[sname][cname]
                                       - hdfb[sname][cname]) != 0:
                                 hd.add_nonzero_match(sname+'/'+cname)
+                                print(hdfa[sname][cname])
+                                print(hdfb[sname][cname])
                         else:
                             hd.add_missing_name(sname+'/'+cname)
             else:
