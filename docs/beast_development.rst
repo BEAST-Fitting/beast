@@ -322,9 +322,11 @@ The general idea is to:
       $ git checkout beast-dev2
       $ git merge beast-dev1
 
-    - Or edit files under beast-dev2 to resolve differences
+    - Or manually edit files under beast-dev2 to resolve differences
 
-    - Push the uodated new branch into your gitHub repo:
+    - Finally, push the uodated new branch into your gitHub repo:
+      (Note: an error free push confirms that all conflicts have been
+      resolved both locally and on the gitHub repo)
 
       .. code:: shell
 
