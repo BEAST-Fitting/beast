@@ -156,14 +156,14 @@ branch (e.g., beast-dev1) was created before the update and it has changes
 that hadn't been contributed back to the project. As a results, there may
 be conflicting versions of some files. The following steps can resolve this.
 
+- Make sure that you are on the correct branch
+  - $ git checkout beast-dev1
+
 - *DO NOT SKIP THIS* Make a backup.
   - $ git branch beast-dev1-backup beast-dev1
 
 - Fetch the project's up-to-date distribution
   - $ git fetch upstream
-
-- Make sure that you are on the correct branch
-  - $ git checkout beast-dev1
     
 - 'Re-base' the branch
   - $ git rebase upstream/master
@@ -177,8 +177,11 @@ be conflicting versions of some files. The following steps can resolve this.
   you can delete the backup branch (not recommended)
   - $ git branch -D beast-dev1-backup
 
+- Instead of re-basing a branch, you can do this instead. This is less
+  elegant but simpler / easier for beginners
+  - Backup your current branch
+  - Update and push your fork's master (see 'Staying up to date')
+  - Create a new branch from updated fork-master
+  - Resolve conflicts between the two branches
+  - Commit and push the newer branch
  
-
-
-
-
