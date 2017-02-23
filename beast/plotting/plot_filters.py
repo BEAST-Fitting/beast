@@ -36,14 +36,11 @@ def plot_filters(args, filter_names, save_name='beast_filters',
     '''
     fig, ax = plt.subplots(1, 1, figsize=(10,6))
 
-    # wavelength grid for response functions
+    # wavelength grid in angstroms for response functions
     waves = np.logspace(3, np.log10(3e4), 501)
 
     # read in the filter response functions
     flist = phot.load_filters(filter_names, interp=True, lamb=waves)
-
-    # change waves to microns for plotting
-    waves /= 1e4
 
     color_indices = np.log10(np.array(sorted([f.lam_eff for f in flist])))
     color_indices -= color_indices.min()

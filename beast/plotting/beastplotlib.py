@@ -8,6 +8,7 @@ Library of general functions for the BEAST plotting scripts
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import rc
 
 def fancify_colname(name):
     '''Formats column name for plotting axis labels.
@@ -172,3 +173,60 @@ def plot_generic(table, xcolname, ycolname, fig=None, ax=None, plottype='hist',
         ax.invert_yaxis()
     if len(return_vals) > 0:
         return return_vals
+
+def set_params(lw=1.5, universal_color='#262626', fontsize=12, helvetica=True, usetex=True):
+    '''Configure some matplotlib rcParams.
+
+    Parameters
+    ----------
+    lw : scalar
+        Linewidth of plot and axis lines. Default is 1.5.
+    universal_color : str, matplotlib named color, rgb tuple
+        Color of text and axis spines. Default is #262626, off-black
+    fontsize : scalar
+        Font size in points. Default is 12
+    helvetica : boolean
+        Whether to try and change font to Helvetica. Default is true.
+    usetex : boolean
+        Whether to set rc.text.usetex = True. Default is true.
+
+    Returns
+    -------
+    fig : matplotlib figure object
+        Figure
+    ax : matplotlib subplot object
+        Subplot
+    '''
+    rc('font', size=fontsize)
+    if usetex:
+        try:
+            rc('text', usetex=True)
+        except:
+            print("Couldn't configure usetex. Make sure you have a working TeX installation.")
+    if helvetica:
+        try:
+            rc('font', **{'family':'sans-serif','sans-serif':['Helvetica']})
+            preamble = [r'\usepackage{siunitx}',   # i need upright \micro symbols, but you need...
+                        r'\sisetup{detect-all}',   # ...this to force siunitx to actually use your fonts
+                        r'\usepackage{helvet}',    # set the normal font here
+                        r'\usepackage{sansmath}',  # load up the sansmath so that math -> helvet
+                        r'\sansmath'               # <- tricky! -- gotta actually tell tex to use!
+                       ]
+            rc('text.latex', preamble = preamble)
+        except:
+            print("Couldn't change font to Helvetica. Falling back to Matplotlib defaults.")
+    rc('lines', linewidth=lw, markeredgewidth=lw*0.5)
+    rc('patch', linewidth=lw, edgecolor='#FAFAFA')
+    rc('axes', linewidth=lw, edgecolor=universal_color, labelcolor=universal_color, 
+        axisbelow=True)
+    rc('image', origin='lower') # fits images
+    rc('xtick.major', width=lw*0.75)
+    rc('xtick.minor', width=lw*0.5)
+    rc('xtick', color=universal_color)
+    rc('ytick.major', width=lw*0.75)
+    rc('ytick.minor', width=lw*0.5)
+    rc('ytick', color=universal_color)
+    rc('grid', linewidth=lw)
+    rc('legend', loc='best', numpoints=1, scatterpoints=1, handlelength=1.5,
+        fontsize=fontsize, columnspacing=1, handletextpad=0.75)
+    
