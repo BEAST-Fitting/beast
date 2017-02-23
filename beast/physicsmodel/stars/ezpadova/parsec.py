@@ -29,7 +29,6 @@ import zlib
 import re
 import json
 from .simpletable import SimpleTable as Table
-#from ....external.eztables import Table
 
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 
@@ -279,7 +278,6 @@ def __convert_to_Table(resp, dic=None):
     _r = '\n'.join(_r.split('\n')[start:])[1:].encode('utf8')
     bf = BytesIO(_r)
     tab = Table(bf, dtype='tsv', names=True, comments='#')
-    #tab = Table(bf, type='tsv') #MB format of EZtables (orig cmd.py)
     if dic is not None:
         for k, v in dic.items():
             tab.header[k] = v

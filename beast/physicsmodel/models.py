@@ -80,18 +80,8 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
         can handle)
     """
     oiso = isochrone.PadovaWeb()
-    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax),
-                               dlogt, z, trackVersion)
-    t.header['NAME'] = '{0} Isochrones'.\
-                       format('_'.join(outname.split('_')[:-1]))
-
-    # Isochrone filtering, check that no AGB stars are removed
-    # Keep Pre-MS & cliff & martha can't figure out the other condition
-    #if trackVersion < 2.7:  
-    #    cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
-    #else:  
-    #    cond = '~((M_ini < 12.) & (stage == 0))' # do not include Pre-MS  
-    #t = t.selectWhere('*', cond)
+    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
+    t.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
     t.write(outname)
     return outname

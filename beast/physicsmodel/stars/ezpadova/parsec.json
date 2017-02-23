@@ -149,7 +149,7 @@
 		"output_evstage": 0,
 		"output_gzip": 0,
 		"output_kind": 0,
-		"photsys_file": "tab_mag_odfnew/tab_mag_bessell.dat",
+		"photsys_file": "tab_mag_odfnew/tab_mag_ubvrijhk.dat",
 		"photsys_version": "yang",
 		"submit_form": "Submit"}
 }
