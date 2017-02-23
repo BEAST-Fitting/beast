@@ -1,181 +1,74 @@
 #!/usr/bin/env python
 """
 Show diagnostic plots from BEAST runs
-  Meant as a quick check that the results are reasonable
+Meant as a quick check that the results are reasonable
 
 .. history::
     Written 21 Dec 2015 by Karl D. Gordon
+    Revised 21 Feb 2017 by Meredith J. Durbin
 """
 
 from __future__ import print_function
 
-import argparse
-
-import numpy as np
-import matplotlib.pyplot as pyplot
-import matplotlib.gridspec as gridspec
-import matplotlib
-
+import matplotlib.pyplot as plt
+from astropy.table import Table
 from matplotlib.colors import LogNorm
 
-from scipy.stats import binned_statistic_2d
+# local imports
+from .beastplotlib import fancify_colname, initialize_parser, plot_generic
 
-from astropy.table import Table
+def make_diagnostic_plots(statsfile, suffix='Exp', figsize=(10,5.5)):
+    '''Makes a set of 6 diagnostic 2D histograms for BEAST output.
+
+    Parameters
+    ----------
+    statsfile : str, file-like, list, pathlib.Path object
+        File with BEAST output; see astropy.io.ascii.read docs for full 
+        description of allowed input types.
+    suffix : str, optional
+        Column type ('Exp', 'Best', 'p16', 'p50', 'p84').
+        Defaults to 'Exp'.
+    figsize : tuple of ints, optional
+        Size of figure to return in inches (width, height).
+        Defaults to (10, 5.5).
+
+    Returns
+    -------
+    fig : matplotlib figure object
+        Figure with diagnostic plots
+    '''
+    stats = Table.read(statsfile)
+    base_cnames = ['logT', 'logL', 'Av', 'Rv', 'f_A']
+    cnames = ['{}_{}'.format(n, suffix) for n in base_cnames]
+    plot_pairs = [[cnames[0], cnames[1]], # logL vs logT
+                  [cnames[0], 'chi2min'], # chi2 vs logT
+                  [cnames[2], cnames[3]], # Rv vs Av
+                  [cnames[0], cnames[2]], # Av vs logT
+                  [cnames[1], cnames[2]], # Av vs logL
+                  [cnames[2], cnames[4]]] # f_A vs Av
+    fig, axes = plt.subplots(2, 3, figsize=figsize)
+    ax = axes.ravel()
+    for i, pair in enumerate(plot_pairs):
+        plot_generic(stats, pair[0], pair[1], fig, ax[i], 
+                     plot_kwargs={'norm':LogNorm()})
+    fig.tight_layout()
+    return fig
 
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("filename", type=str,
-                        help='FITS file with n band ASTs')
-    parser.add_argument("-p", "--png", help="save figure as a png file",
-                        action="store_true")
-    parser.add_argument("-e", "--eps", help="save figure as an eps file",
-                        action="store_true")
+    parser = initialize_parser()
+    parser.add_argument('filename', type=str,
+                        help='Path to FITS file with output stats')
+    suffixes = ['Exp', 'Best', 'p16', 'p50', 'p84']
+    parser.add_argument('--suffix', action='store', default='Exp', choices=suffixes,
+                        help='Choose column type to plot. \
+                              Must be one of: "{}"'.format('", "'.join(suffixes))
+                        )
     args = parser.parse_args()
-
-    # pretty plotting details
-    fontsize = 12
-    font = {'size'   : fontsize}
-
-    matplotlib.rc('font', **font)
-
-    matplotlib.rc('lines', linewidth=2)
-    matplotlib.rc('axes', linewidth=2)
-    matplotlib.rc('xtick.major', width=2)
-    matplotlib.rc('ytick.major', width=2)
-
-    # read in the results
-    stats = Table.read(args.filename)
-
-    print(np.sort(stats.colnames))
-
-    # make the nice plot
-    fig, ax = pyplot.subplots(nrows=2, ncols=3,
-                              figsize=(15,10))
-
-    # number of bins in x & y for 2d histrograms
-    n_bins = 50
-    dummy = 0
-
-    # plot the HR diagram
-    count_hr, xedges, yedges, binnum = \
-              binned_statistic_2d(stats['logT_Exp'].quantity,
-                                  stats['logL_Exp'].quantity,
-                                  dummy,
-                                  'count',
-                                  bins=n_bins)
-    cax1 = ax[0,0].imshow(count_hr.T, origin='lower',
-                          norm=LogNorm(vmin=0.01),
-                          extent=[xedges[0], xedges[-1], yedges[0],
-                                  yedges[-1]],
-                          aspect='auto', interpolation='nearest')
-
-    ax[0,0].set_xlabel(r'$logT(Exp)$')
-    ax[0,0].set_ylabel(r'$logL(Exp)$')
-
-    ax[0,0].set_xlim(xedges[-1], xedges[0])
-
-    # plot the chisqr values versus Teff
-    indxs, = np.where(stats['chi2min'].quantity > 0.0)
-    if len(indxs) > 0:
-        count_chi2, xedges, yedges, binnum = \
-                    binned_statistic_2d(stats['logT_Exp'].quantity[indxs],
-                                    np.log10(stats['chi2min'].quantity[indxs]),
-                                        dummy,
-                                        'count',
-                                        bins=n_bins)
-        cax1 = ax[0,1].imshow(count_chi2.T, origin='lower',
-                              norm=LogNorm(vmin=0.1),
-                              extent=[xedges[0], xedges[-1], yedges[0],
-                                      yedges[-1]],
-                              aspect='auto', interpolation='nearest')
-
-        ax[0,1].set_xlabel(r'$logT(Exp)$')
-        ax[0,1].set_ylabel(r'$log(\chi^2)$')
-
-        ax[0,1].set_xlim(xedges[-1], xedges[0])
-
-    # plot the A(V) values versus Teff
-    count_av, xedges, yedges, binnum = \
-              binned_statistic_2d(stats['logT_Exp'],
-                                  stats['Av_Exp'],
-                                  stats['Av_Exp'],
-                                  'count',
-                                  bins=n_bins)
-    cax1 = ax[1,0].imshow(count_av.T, origin='lower',
-                          norm=LogNorm(vmin=0.1),
-                          extent=[xedges[0], xedges[-1], yedges[0],
-                                  yedges[-1]],
-                          aspect='auto', interpolation='nearest')
-
-    ax[1,0].set_xlabel(r'$logT(Exp)$')
-    ax[1,0].set_ylabel(r'$A(V)$')
-
-    ax[1,0].set_xlim(xedges[-1], xedges[0])
-
-    # plot the A(V) values versus LogL
-    count_av, xedges, yedges, binnum = \
-              binned_statistic_2d(stats['logL_Exp'],
-                                  stats['Av_Exp'],
-                                  stats['Av_Exp'],
-                                  'count',
-                                  bins=n_bins)
-    cax1 = ax[1,1].imshow(count_av.T, origin='lower',
-                          norm=LogNorm(vmin=0.1),
-                          extent=[xedges[0], xedges[-1], yedges[0],
-                                  yedges[-1]],
-                          aspect='auto', interpolation='nearest')
-
-    ax[1,1].set_xlabel(r'$logL(Exp)$')
-    ax[1,1].set_ylabel(r'$A(V)$')
-
-    # plot the A(V) values versus R(V)
-    count_av_rv, xedges, yedges, binnum = \
-              binned_statistic_2d(stats['Av_Exp'],
-                                  stats['Rv_Exp'],
-                                  stats['Av_Exp'],
-                                  'count',
-                                  bins=n_bins)
-    cax1 = ax[0,2].imshow(count_av_rv.T, origin='lower',
-                          norm=LogNorm(vmin=0.1),
-                          extent=[xedges[0], xedges[-1], yedges[0],
-                                  yedges[-1]],
-                          aspect='auto', interpolation='nearest')
-
-    ax[0,2].set_xlabel(r'$A(V)$')
-    ax[0,2].set_ylabel(r'$R(V)$')
-
-    # plot the A(V) values versus f_A
-    count_av_fa, xedges, yedges, binnum = \
-              binned_statistic_2d(stats['Av_Exp'],
-                                  stats['f_A_Exp'],
-                                  stats['Av_Exp'],
-                                  'count',
-                                  bins=n_bins)
-    cax1 = ax[1,2].imshow(count_av_fa.T, origin='lower',
-                          norm=LogNorm(vmin=0.1),
-                          extent=[xedges[0], xedges[-1], yedges[0],
-                                  yedges[-1]],
-                          aspect='auto', interpolation='nearest')
-
-    ax[1,2].set_xlabel(r'$A(V)$')
-    ax[1,2].set_ylabel(r'$f_A$')
-
-    # colorbar 1
-    #fig.colorbar(cax1, cax=(pyplot.subplot(gs[1:n_filters,0])))
-
-    # colorbar 2
-    #fig.colorbar(cax2, cax=(pyplot.subplot(gs[0:n_filters-1,n_filters+1])))
-
-    # optimize the figure layout
-    pyplot.tight_layout()
-
-    # show or save
-    basename = args.filename.replace('.fits','') + '_diagnostics'
-    if args.png:
-        fig.savefig(basename+'.png')
-    elif args.eps:
-        fig.savefig(basename+'.eps')
+    if args.tex:
+        plt.rc({'usetex':True})
+    basename = args.filename.replace('.fits', '_diagnostics')
+    fig = make_diagnostic_plots(args.filename, suffix=args.suffix)
+    if args.savefig:
+        fig.savefig('{}.{}'.format(basename, args.savefig))
     else:
-        pyplot.show()
-    
+        plt.show()
