@@ -112,7 +112,7 @@ if __name__ == '__main__':
                     print('nonzero matchs')
                     print(hd.nonzero_matchs)
                 if len(hd.missing_names) > 0:
-                    print('missing names')
+                    print('missing names in a dataset')
                     print(hd.missing_names)
         else:
             print(cfile, 'does not exist, not checking')
