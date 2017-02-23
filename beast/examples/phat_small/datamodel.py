@@ -174,8 +174,6 @@ class GenFluxCatalog(Observations):
         self.setBadValue(6e-40)
 
         # rate column needed as this is the *flux* column
-        #for k in filters:
-        #    self.data.set_alias(k, k.split('_')[-1] + '_rate')
         for ik,k in enumerate(filters):
             self.data.set_alias(k, obs_colnames[ik])
 
