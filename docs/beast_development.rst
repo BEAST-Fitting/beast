@@ -5,16 +5,16 @@ You are encouraged to help maintain and improve the BEAST. Before doing so,
 please familiarize yourself with basic version control and Git workflow
 concepts using one or more of these guides:
 
-- <https://guides.github.com/introduction/flow/>
-- <https://lifehacker.com/5983680/how-the-heck-do-i-use-github>
-- <https://homes.cs.washington.edu/~mernst/advice/version-control.html>
-- <https://www.youtube.com/watch?v=y_YKHXuJ-ak>
+- < https://guides.github.com/introduction/flow/ >
+- < https://lifehacker.com/5983680/how-the-heck-do-i-use-github >
+- < https://homes.cs.washington.edu/~mernst/advice/version-control.html >
+- < https://www.youtube.com/watch?v=y_YKHXuJ-ak >
 
 
 Fork the BEAST distro
 =====================
 
-- The main BEAST repository lives at <https://github.com/karllark/beast>.
+- The main BEAST repository lives at < https://github.com/karllark/beast >.
   The master branch of this repository is the version that is distributed.
 
 - Log in to your github account, and on the top right corner of the BEAST
@@ -30,8 +30,11 @@ Fork the BEAST distro
 
   .. code:: shell
   $ mv beast beast-official
+  
   $ git clone https://github.com/YourName/beast.git
+
   $ mv beast beast-YourName
+
   $ mv beast-official beast
 
 - Set the value of the fork's ``upstream`` to the official distribution so you
@@ -58,6 +61,7 @@ Adding Branches
 
   .. code:: shell
   $ git branch beast-dev1
+
   $ git checkout beast-dev1
 
 - To see a list of all branches of the fork, with ``*`` indicating which branch you are
@@ -270,11 +274,16 @@ manually. This is less elegant but simpler / easier for beginners.
 Here are the general steps to follow.
 
 - Merge your fork's master with upstream/master, and push the master
+
 - Create a new branch from updated fork-master, and push the new branch
+  
 - Switch to and backup the older branch with conflicts, push the backup
+  
 - Check the differences between the two branches and merge the two branches,
-  or edit files on the newer branch to resolve differences    
+  or edit files on the newer branch to resolve differences
+  
 - Commit and push the newer branch
+  
 - Example:
 
   - Do the preparatory steps
