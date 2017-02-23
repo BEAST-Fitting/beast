@@ -396,13 +396,14 @@ class ezIsoch(Isochrone):
 
 
 class PadovaWeb(Isochrone):
-    def __init__(self, logtmin=6.0, logtmax=10.2, dlogt=0.2, Z=0.019, trackVersion=2.3, *args, **kwargs):
+    def __init__(self, logtmin=6.0, logtmax=10.2, dlogt=0.2, Z=0.0152, modeltype='parsec12s_r14', *args, **kwargs):
         self.name = 'Padova CMD isochrones'
         self.logtmin = logtmin
         self.logtmax = logtmax
         self.dlogt = dlogt
+        #LCJ Z = 0.019 # reverts to previous Zsun default
         self.Z = Z
-        self.trackVersion = trackVersion
+        self.modeltype = modeltype
 
     def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'],
                        *args, **kwargs):
@@ -423,37 +424,84 @@ class PadovaWeb(Isochrone):
             metal = self.FeHtometal(FeH)
 
         iso_table = _cmd.get_one_isochrone(_age, metal, ret_table=True)
-        self._clean_namings(iso_table)
-        #iso_table = self._filter_bad_points(iso_table)
+        self._clean_cols(iso_table)
+        #iso_table = self._filter_iso_points(iso_table)
         return iso_table
 
-    def _clean_namings(self, iso_table):
-        """clean painful naming"""
-        #MB print(iso_table)
-        #MB changed column names to match new padova
-        iso_table.add_column('logA', iso_table['Age'][:], description='log(age)', unit='yr')
-        #MB iso_table.add_column('logL', iso_table['logL'][:], description='log(luminosity)')
-        iso_table.set_comment('logL', 'log(luminosity)')
-        iso_table.add_column('logT', iso_table['logTe'][:], description='log(effective temperature)', unit='K')
-        #MB iso_table.add_column('logg', iso_table['logg'][:], description='log(surface gravity)', unit='cm/s^2')
-        iso_table.set_comment('logg', 'log(surface gravity)')
-        iso_table.set_unit('logg', unit='cm/s^2')
-        #MB iso_table.remove_columns(['Age', 'logL', 'logTe', 'logg'])
-        iso_table.add_column('M_ini', iso_table['Mini'][:], description='Initial Mass', unit='Msun')
-        iso_table.add_column('M_act', iso_table['Mass'][:], description='Current Mass', unit='Msun')
-        iso_table.add_column('stage', iso_table['label'][:], description='Evolutionary Stage')
+    def _clean_cols(self, iso_table):
+        """clean column names, remove unnecessary columns"""
+        # Rename Columns
+        if self.modeltype == 'parsec12s_r14':
+            # PARSEC+COLIBRI Column Names
+            iso_table.add_column('logA', iso_table['Age'][:])
+            iso_table.add_column('logT', iso_table['logTe'][:])
+            iso_table.add_column('M_ini', iso_table['Mini'][:])
+            iso_table.add_column('M_act', iso_table['Mass'][:])
+            iso_table.add_column('stage', iso_table['label'][:])
+            iso_table.remove_columns(['Age', 'logTe', 'Mini', 'Mass', 'label'])
+            # Remove age-specific Z, rename Zini as Z
+            iso_table.remove_columns(['Z'])
+            iso_table.add_column('Z', iso_table['Zini'][:]) 
+            iso_table.remove_columns(['Zini'])
 
-        iso_table.remove_columns(['Age', 'Mini', 'label', 'Mass'])
+        else:
+            # Girardi10, Old PARSEC Column Names
+            iso_table.add_column('logA', iso_table['log(age/yr)'][:])
+            iso_table.add_column('logL', iso_table['logL/Lo'][:])
+            iso_table.add_column('logT', iso_table['logTe'][:])
+            iso_table.add_column('logg', iso_table['logG'][:])
+            iso_table.remove_columns(['log(age/yr)', 'logL/Lo', 'logTe', 'logG'])
+            
+        # Remove phot columns and unnecessary properties
+        filternames = "U UX B BX V R I J H K L M".split()
+        theorycols = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode', 'C_O', 'period0', 'period1', 'McoreTP', 'tau1m']
+        theorycols += ['logMdot', 'Mloss'] # removing mass loss outputs
+        abundcols = "X Y Xc Xn Xo Cexcess".split()
+        drop = theorycols + abundcols + filternames + [s + "mag" for s in filternames]
+        iso_table.remove_columns(filter(lambda x: x in iso_table, drop)) # make sure columns exist
+
+        # polish the header
+        iso_table.setUnit('logA', 'yr')
+        iso_table.setComment('logA', 'Age')
+        iso_table.setUnit('logT', 'K')
+        iso_table.setComment('logT', 'Effective temperature')
+        iso_table.setUnit('logL', 'Lsun')
+        iso_table.setComment('logL', 'Luminosity')
+        iso_table.setUnit('M_ini', 'Msun')
+        iso_table.setComment('M_ini', 'Initial Mass')
+        iso_table.setUnit('M_act', 'Msun')
+        iso_table.setComment('M_act', 'Current Mass, M(t)')
+        iso_table.setUnit('logg', 'cm/s**2')
+        iso_table.setComment('logg', 'Surface gravity')
+        iso_table.setUnit('M_ini', 'Msun')
+        iso_table.setComment('M_ini', 'Initial Mass')
+        iso_table.setUnit('M_act', 'Msun')
+        iso_table.setComment('M_act', 'Current Mass')
+        iso_table.setComment('stage', 'Evolutionary Stage')
+        iso_table.setComment('Z', 'Metallicity')
+
+        #iso_table.setUnit('logMdot', 'Msun/yr')
+        #iso_table.setComment('logMdot', 'Mass loss')
+
+        return iso_table
+
+    def _filter_iso_points(self, iso_table, filterPMS=False, filterBad=False):
+        """ filter bad points and PMS points
+            yes that happens! The selection is an empirical definition.
+        """
+        # Filter pre-ms stars
+        if filterPMS:
+            cond = '~((M_ini < 12.) & (stage == 0))'
+            iso_table = iso_table.selectWhere('*', cond)
+
+        # Filter bad points for PadovaCMDVersion < 2.7
+        if filterBad:
+            cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
+            iso_table = iso_table.selectWhere('*', cond)
         
         return iso_table
 
-    def _filter_bad_points(self, iso_table):
-        """ filter bad points, yes that happens! The selection is an empirical definition
-        """
-        cond = '(logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1)'
-        return iso_table.selectWhere('*', cond)
-
-    def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.019, trackVersion=2.3):
+    def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.0152):
         """ Generate a proper table directly from the PADOVA website
 
         Parameters
@@ -470,61 +518,30 @@ class PadovaWeb(Isochrone):
         Z: float or sequence
             single value of list of values of metalicity Z
  
-        trackVersion: Padova CMD version
-            2.9 for PARSEC1.2S + COLIBRI (Rosenfield et al. 2016 / Marigo et al. 2017)
-            2.7 for PARSEC1.2S (Tang et al. 2014)
-            2.3 for Marigo et al. (2008) with the Girardi et al. (2010) before PARSEC
-
         returns
         -------
         tab: eztable.Table
             the table of isochrones
         """
+
         if not hasattr(Z, '__iter__'):
-            #MB commented out the trackversion here because trackversion is not an
-            #allowed option inside the new ezpadova            
-            #MB iso_table = _cmd.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z, trackVersion)
-            iso_table = _cmd.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z)
+            iso_table = _cmd.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z, model=self.modeltype)
             iso_table.header['NAME'] = 'Padova Isochrones'
-            #MB if trackVersion < 2.7:
-            #MB     iso_table.add_column('Z', np.ones(iso_table.nrows) * Z, description='metallicity')
+            if not iso_table.has_key('Z'):
+                iso_table.add_column('Z', np.ones(iso_table.nrows) * Z)
 
-            self._clean_namings(iso_table)
+            # rename cols, remove phot and other unnecessary cols
+            self._clean_cols(iso_table)
             
-            #remove phot columns and unnecessary properties
-            drop = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode'] + "U UX B BX V R I J H K L L' M".split()
+            # filter iso data: pre-ms and bad points
+            #iso_table = self._filter_iso_points(iso_table)
 
-            #make sure also that the column exist
-            iso_table.remove_columns(filter(lambda x: x in iso_table, drop))
-
-            #iso_table = self._filter_bad_points(iso_table)
         else:
-            # iterate over Z values and concatenate into one table
-            #MB iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0], trackVersion)
             iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
             iso_table.header['NAME'] = 'Padova Isochrones'            
-            
+
             if len(Z) > 1:
-                #MB more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk, trackVersion).data for Zk in Z[1:] ]
                 more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]
                 iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more, usemask=False, asrecarray=True)
-
-        # polish the header
-        iso_table.setUnit('logA', 'yr')
-        iso_table.setComment('logA', 'Age')
-        iso_table.setUnit('logT', 'K')
-        iso_table.setComment('logT', 'Effective temperature')
-        iso_table.setUnit('logL', 'Lsun')
-        iso_table.setComment('logL', 'Luminosity')
-        iso_table.setUnit('M_ini', 'Msun')
-        iso_table.setComment('M_ini', 'Initial Mass')
-        iso_table.setUnit('M_act', 'Msun')
-        iso_table.setComment('M_act', 'Current Mass, M(t)')
-        iso_table.setUnit('logg', 'cm/s**2')
-        iso_table.setComment('logg', 'Surface gravity')
-        iso_table.setComment('Z', 'Metallicity')
-        #MB if trackVersion < 2.7:
-            #MB iso_table.setUnit('logMdot', 'Msun/yr')
-            #MB iso_table.setComment('logMdot', 'Mass loss')
 
         return iso_table
