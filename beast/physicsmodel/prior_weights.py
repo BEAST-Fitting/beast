@@ -15,46 +15,46 @@ from grid import FileSEDGrid
 from grid import SpectralGrid
 from ..external.eztables import Table
 
-__all__ = ['compute_age_weights','compute_mass_weights',
-           'compute_age_mass_metallicity_prior_weights']
+from grid_weights import compute_bin_boundaries
 
-# compute the bin edges
-# approximate the edge bins by adding 1/2 the adjacent bin width
-def compute_bin_boundaries(tab):
-    """ Computes the bin boundaries.
+__all__ = ['compute_age_mass_metallicity_prior_weights']
+
+def compute_age_weights(logages):
+    """ Computes the age weights to provide constant star formation rate
+    (in linear age)
 
     Keywords
-    ----------
-    tab : table of float values
+    --------
+    logages : numpy vector
+       log(ages)
 
     Returns
     -------
-    table of bounardies to the input tab
-
-    Note
-    ----
-    The bin boundaries are defined as the midpoint between each value in tab.
-    At the two edges, 1/2 of the bin width is subtractted/added to the
-    min/max of tab.
+    age_weights : numpy vector
+       total masses at each age for a constant SFR in linear age
     """
-    temp = tab[1:]-np.diff(tab)/2.
-    tab2 = np.empty(len(tab)+1)
-    tab2[0] = tab[0]-np.diff(tab)[0]/2.
-    tab2[-1] = tab[-1]+np.diff(tab)[-1]/2.
-    tab2[1:-1] = temp
-    return tab2
+    # initialize the age weights to one
+    #   for a flat prior, nothing else is needed
+    #   non-uniform grid spacing is handled in the grid_weights code
+    age_weights = np.full(len(logages),1.0)
 
-# Kroupa IMF
+    # code will be needed here for non-flat priors
+    
+    # return in the order that logages was passed
+    return age_weights    
+
 def imf_kroupa(x):
     """ Computes a Kroupa IMF
 
     Keywords
     ----------
-    x : masses
+    x : numpy vector
+      masses
 
     Returns
     -------
-    Unnormalized IMF based on the input masses
+    imf : numpy vector
+      unformalized IMF
     """
     m0 = 0.01
     m1 = 0.08
@@ -69,86 +69,51 @@ def imf_kroupa(x):
     elif (x>=m2):
         return x**alpha2
     
-# Salpeter IMF
 def imf_salpeter(x):
     """ Computes a Salpeter IMF
 
     Keywords
     ----------
-    x : masses
+    x : numpy vector
+      masses
 
     Returns
     -------
-    Unnormalized IMF based on the input masses
+    imf : numpy vector
+      unformalized IMF
     """
-    return x**(-2.35) # Salpeter IMF
+    return x**(-2.35)
 
-# compute the age weights for a constant SFR in linear age
-def compute_age_weights(logages):
-    """ Computes the age weights assuming a constant star formation rate
-    (linear age)
+def compute_mass_weights(masses):
+    """ Computes the mass weights for a kroupa IMF
 
     Keywords
     --------
-    logages : vector of log(ages)
+    masses : numpy vector
+        masses
 
     Returns
     -------
-    Unnormalized total masses at each age assuming a constant SFR.
+    mass_weights : numpy vector
+      Unnormalized IMF integral for each input mass
+      integration is done between each bin's boundaries
     """
-    # ages need to be monotonically increasing
-    aindxs = np.argsort(logages)   
-
-    # Computes the bin boundaries in log
-    logages2 = compute_bin_boundaries(logages[aindxs])    
-    age_weights = np.full(len(aindxs),0.0)
-
-    # Returns the age weight as a numpy array
-    age_weights[aindxs] = np.diff(10**(logages2))           
-
-    # return in the order that logages was passed
-    return age_weights    
-
-# compute the mass weights at a constant age
-# uses an assumed IMF to generate the weights
-#  IMF norm is the integral of the assumed IMF over the full possible mass
-#  range must be precomputed as this information is not usual available for
-#  a specific isochrone age
-def compute_mass_weights(masses, full_imf_integral):
-    """ Computes the mass weights for a Kroupa IMF.
-
-    Keywords
-    --------
-    masses : vector of masses
-
-    Returns
-    -------
-    Unnormalized integral of the IMF for each input mass.  Integration is
-    done between the bin min/max boundary.
-
-    Notes
-    -----
-    Should make the IMF function used a passed variable.
-    """
-    d = np.zeros(len(masses))
-        
     # sort the initial mass along this isochrone
-    isoc = np.sort(masses)               
-    index_isoc = np.argsort(masses)
+    sindxs = np.argsort(masses)
     
-    # Compute the initial mass bin boundaries
-    isoc2 = compute_bin_boundaries(isoc)      
+    # Compute the mass bin boundaries
+    mass_bounds = compute_bin_boundaries(masses[sindxs])      
 
-    I1 = np.empty(len(isoc))
-    mass_bin_size = np.empty(len(isoc))
-    for ik, uk in enumerate(isoc2[:-1]):
-        mass_bin_size[index_isoc[ik]] = isoc2[ik+1] - isoc2[ik]
-        # integrate according to the prior on the mass bin
-        res = quad(imf_kroupa, isoc2[ik], isoc2[ik+1]) 
-        # compute the integrated weight
-        I1[index_isoc[ik]] = res[0]/full_imf_integral      
+    # compute the weights = mass bin widths
+    mass_weights = np.empty(len(masses))
+    
+    # integrate the IMF over each bin
+    for i in range(len(masses)):
+        mass_weights[sindxs[i]] = (quad(imf_kroupa,
+                                        mass_bounds[i],
+                                        mass_bounds[i+1]))[0]
 
-    return I1
+    return mass_weights
 
 # compute age-mass-metallicity prior weights
 # age prior is a constant SFR in linear age
@@ -190,8 +155,7 @@ def compute_age_mass_metallicity_prior_weights(_tgrid):
                                (_tgrid['Z'] == z_val))   
             _tgrid_single_age = _tgrid[aindxs]
             if len(aindxs) > 1:
-                mass_weights = compute_mass_weights(_tgrid_single_age['M_ini'],
-                                                    imf_norm[0])
+                mass_weights = compute_mass_weights(_tgrid_single_age['M_ini'])
             else:
                 # must be a single mass for this age,z combination
                 # set mass weight to zero to remove this point from the grid
