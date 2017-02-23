@@ -7,6 +7,7 @@ Library of general functions for the BEAST plotting scripts
 """
 import argparse
 import matplotlib.pyplot as plt
+import numpy as np
 
 def fancify_colname(name):
     '''Formats column name for plotting axis labels.
@@ -90,61 +91,84 @@ def initialize_parser():
                               Defaults to false.')
     return parser
 
-def plot_generic(xcol, ycol, fig=None, ax=None, plottype='hist', bins=51,
-                 thresh_col=None, thresh=0, thresh_op='less', plot_kwargs={}):
+def plot_generic(table, xcolname, ycolname, fig=None, ax=None, plottype='hist',
+                 bins=51, thresh_col=None, thresh=0, thresh_op='less',
+                 plot_kwargs={}):
     '''Plot anything from the BEAST output against anything else as a 2D
     histogram or scatterplot.
 
     Parameters
     ----------
-    xcol : astropy table column or pandas series
-        Column with x-values
-    ycol : astropy table column or pandas series
-        Column with y-values
-    fig : matplotlib figure object
+    table : astropy table or pandas dataframe
+        Table of BEAST output
+    xcolname : str
+        Name of table column with x values
+    ycolname : str
+        Name of table column with x values
+    fig : matplotlib figure object, optional
         Figure to plot histogram on
-    ax : matplotlib axes object
+    ax : matplotlib axes object, optional
         Subplot of figure to plot on
-    plottype : str
+    plottype : str, optional
         String indicating what type of plot to make.
-        Must be one of: {'hist', 'scatter'}
+        Must be one of: {'hist', 'scatter'}. Defaults to 'hist'
     bins : int or array-like, optional
         Number of bins to pass to 2D histogram.
         Only used if plottype == 'hist'.
-    thresh_col : astropy table column or pandas series
-        Column with values to filter xcol and ycol by; for example, 
+    thresh_col : str, optional
+        Name of column with values to filter xcol and ycol by; for example, 
         if you want to look at only stars with chi^2 greater than 20 
-        you would set thresh_col = table['chi2min'], thresh=20, and 
+        you would set thresh_col = 'chi2min', thresh=20, and 
         thresh_op = 'greater'
-    thresh : scalar
+    thresh : scalar, optional
         Threshold of values to compare thresh_col to
-    thresh_op : string
+    thresh_op : str, optional
         Operator comparison to perform between thresh_col and thresh.
         Must be one of Numpy logical operator functions: {'greater', 
         'greater_equal', 'less', 'less_equal', 'equal', 'not_equal'}
-    plot_kwargs : dict
+    plot_kwargs : dict, optional
         Additional keyword arguments to pass to plotting function.
 
     Returns
     -------
-    Nothing.
+    fig : matplotlib figure object
+        Figure
+    ax : matplotlib subplot object
+        Subplot
     '''
+    return_vals = []
     if fig is None:
         fig = plt.gcf()
+        return_vals.append(fig)
     if ax is None:
         ax = plt.gca()
+        return_vals.append(ax)
     if thresh_col is not None:
-        condition = getattr(np, thresh_op)(thresh_col, thresh)
-        xcol = xcol[condition]
-        ycol = ycol[condition]
+        condition = getattr(np, thresh_op)(table[thresh_col], thresh)
+        table = table[condition]
+    xcol = table[xcolname]
+    ycol = table[ycolname]
     if plottype == 'hist':
         hist = ax.hist2d(xcol, ycol, bins=bins, **plot_kwargs)
         cbar = fig.colorbar(hist[-1], label='Number of stars', ax=ax)
+        return_vals.append(cbar)
     elif plottype == 'scatter':
+        if ('c' in plot_kwargs):
+            if (thresh_col is not None):
+                if len(plot_kwargs['c']) == len(condition):
+                    plot_kwargs['c'] = plot_kwargs['c'][condition]
         sc = ax.scatter(xcol, ycol, **plot_kwargs)
-    ax.set_xlabel(fancify_colname(xcol.name))
-    ax.set_ylabel(fancify_colname(ycol.name))
-    if xcol.name.startswith('logT'):
+        if ('c' in plot_kwargs):
+            if (len(plot_kwargs['c']) == len(xcol)):
+                cbar = fig.colorbar(sc, label=fancify_colname(plot_kwargs['c'].name), ax=ax)
+                return_vals.append(cbar)
+    ax.set_xlabel(fancify_colname(xcolname))
+    ax.set_ylabel(fancify_colname(ycolname))
+    xmin, xmax = ax.get_xlim()
+    if (xmin < xmax) & xcolname.startswith('logT'):
         ax.invert_xaxis()
-    if ycol.name.startswith('logT'):
+    ymin, ymax = ax.get_ylim()
+    if (ymin < ymax) & (ycolname.startswith('logT') | ycolname.startswith('mbol')):
         ax.invert_yaxis()
+    if len(return_vals) > 0:
+        return return_vals
