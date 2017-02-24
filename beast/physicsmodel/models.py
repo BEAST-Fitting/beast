@@ -174,6 +174,13 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
                 gk = creategrid.add_spectral_properties(gk,
                                             nameformat=nameformat,
                                             **add_spectral_properties_kwargs)
+
+            # add in the index for the spectral grid
+            # will be passed to the SED grid allowing the original
+            # spectrum to be recovered 
+            gk.grid[:]['specgrid_indx'] = np.arange(len(gk.grid),
+                                                    dtype=np.int64)
+    
             gk.writeHDF(outname, append=True)
 
     return outname
