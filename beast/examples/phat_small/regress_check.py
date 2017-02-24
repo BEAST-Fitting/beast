@@ -56,8 +56,6 @@ def hdf5diff(fname1, fname2):
                             if np.sum(hdfa[sname][cname]
                                       - hdfb[sname][cname]) != 0:
                                 hd.add_nonzero_match(sname+'/'+cname)
-                                print(hdfa[sname][cname])
-                                print(hdfb[sname][cname])
                         else:
                             hd.add_missing_name(sname+'/'+cname)
             else:
@@ -66,9 +64,9 @@ def hdf5diff(fname1, fname2):
                         hd.add_missing_dataset(sname,cname)
                     else:
                         cvalueb = hdfb[sname][cname]
-                        if np.sum(cvalue.value - cvalueb.value) > 0:
+                        if np.sum(cvalue.value - cvalueb.value) != 0:
                             hd.add_nonzero_match(sname+'_'+cname)
-                    
+                            
     if (len(hd.missing_groups)
         + len(hd.missing_datasets)
         + len(hd.nonzero_matchs)
@@ -95,7 +93,9 @@ if __name__ == '__main__':
             print(cfile, 'does not exist, not checking')
       
     # check the HDF5 files
-    hdf5_files = ['lnp','seds.grid','seds_trim.grid',
+    #    lnp not checked as it changes everytime as the sparse sampling
+    #    of the likelihood is random
+    hdf5_files = ['seds.grid','seds_trim.grid',
                   'noisemodel','noisemodel_trim.grid']
     for cfile in hdf5_files:
         file1 = basename+'/'+basename+'_'+cfile+'.hd5'
