@@ -14,7 +14,7 @@ In turn, Astopy depends on
 optional features. From these you will need:
 
 - `hdf5 <http://h5py.org/>`_ to read/write `Table` objects from/to HDF5 files.
-- other astropy dependencies (list these here). 
+- other astropy dependencies [list these here].
 
 You will also need:
 
@@ -24,7 +24,7 @@ One easy way to obtain the above is through the AstroConda Python stack:
 
 - First install `Miniconda <https://conda.io/miniconda.html>`_ which 
   contains the conda package manager and Python. Once Miniconda is installed,
-  you can use the conda command to install any other packages and create 
+  you can use the `'conda'` command to install any other packages and create 
   environments, etc.
 
 - Setup the AstroConda Channel:
@@ -52,7 +52,7 @@ Here is a general introduction to `GitHub <https://help.github.com/>`_.
 There are three installation options listed below. In addition to 
 choosing one of these, you will also need to download files containing
 BEAST stellar and extinction libraries. 
-See `Obtaining BEAST libraries`_ below.
+See **Obtaining BEAST libraries** below.
 
 Option 1 
 ________
