@@ -23,8 +23,11 @@ from beast.observationmodel.ast.make_ast_xy_list import pick_positions
 from beast.fitting import fit
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid  
+from beast.tools import verify_params 
+
 
 import datamodel
+
 
 if __name__ == '__main__':
     # commandline parser
@@ -45,6 +48,13 @@ if __name__ == '__main__':
     parser.add_argument("-r", "--resume", help="Resume a fitting run",
                         action="store_true")
     args = parser.parse_args()
+
+    
+
+    # check input parameters, print what is the problem, stop run_beast
+    verify_params.verify_input_format(datamodel)
+    
+
 
     if args.physicsmodel:
         make_models()
