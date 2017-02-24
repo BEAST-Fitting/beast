@@ -19,6 +19,7 @@ import numpy as np
 from beast.physicsmodel.make_model import make_models
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
 from beast.observationmodel.ast.make_ast_input_list import pick_models
+from beast.observationmodel.ast.make_ast_xy_list import pick_positions
 from beast.fitting import fit
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid  
@@ -69,6 +70,7 @@ if __name__ == '__main__':
             for k, filtername in enumerate(obsdata.filters):
                 sfiltername = obsdata.data.resolve_alias(filtername)
                 sfiltername = sfiltername.replace('rate','vega')
+                sfiltername = sfiltername.replace('RATE','VEGA')
                 keep, = np.where(obsdata[sfiltername] < 99.)
                 min_mags[k] = np.percentile(obsdata[keep][sfiltername],90.)
 
@@ -76,6 +78,14 @@ if __name__ == '__main__':
 
         pick_models(modelsedgrid, mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize)
 
+        if datamodel.ast_with_positions == True:
+	    separation = datamodel.ast_pixel_distribution
+	    filename = datamodel.project+'/'+datamodel.project+'_inputAST.txt'
+
+            if datamodel.ast_reference_image is not None:
+	        pick_positions(filename,separation,refimage=datamodel.ast_reference_image)
+            else:
+	        pick_positions(filename,separation)
 
     if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
