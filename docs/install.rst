@@ -45,60 +45,53 @@ One easy way to obtain the above is through the AstroConda Python stack:
 Installing the BEAST
 --------------------
 
-
-For the BEAST to work properly, you need to place a "libs" directory containing
-files related to filters, photometry, stellar atmospheres, and in the future
-stellar evolution models
-
-In addition to obtaining BEAST using one of the options below, you will need to 
-download several additional files. See **Obtaining BEAST libraries** below. 
+For the BEAST to work properly, you need to place a 'libs' directory containing
+files related to filters, photometry, stellar atmospheres, and in the future,
+stellar evolution models. See **Obtaining BEAST libraries** below. 
 [Place an internal crossreference here].
 
 Option 1 
 ________
 
-The following is the recommended option so that you can easily keep up with code
-updates. If you would like to contribute to code enhancements, see Option 3 below.
+The following is the recommended option which will allow you to easily keep up 
+with code updates. If additionally you would like to contribute to code 
+enhancements, see Option 3 below.
 
 Places BEAST on your local computer as a clone of the
-`BEAST GitHub repository <https://github.com/karllark/beast>`_.
-
-Go to the directory where you want to place the BEAST and type the following 
-on the command line:
+`BEAST GitHub repository <https://github.com/karllark/beast>`_. To do this, go 
+to the directory where you want to place the BEAST and type the following:
 
 ``$ git clone https://github.com/karllark/beast.git``
 
-This will create a directory named 'beast' containing the package contents.
+This will create a directory named 'beast' containing the BEAST.
 
 Option 2
 ________
 
-This option places BEAST in its current version on your local computer. You will
-have to manually obtain BEAST updates from the GitHub repository.
+This option places BEAST in its current version on your local computer. One 
+disadvantage is that you will have to manually obtain BEAST updates from the 
+GitHub repository if you use this option.
 
 On the `BEAST GitHub homepage <https://github.com/karllark/beast>`_ click on 
-the green 'Clone or Download' button, then select 'Download ZIP'. Unzip the 
-file and place the resulting 'beast-master' folder in the directory from which 
-you would like to work on it.
+the 'Clone or Download' button, then select 'Download ZIP'. Unzip the 
+file in the desired directory.
    
 Option 3
 ________
 
-The third option is suitable if you *plan to make code contributions* to the
-BEAST.
-   
+This option is suitable if you *plan to make code contributions* to the BEAST.
 See the `BEAST Development Documentation <http://beast.readthedocs.io/en/latest/beast_development.rst>`_
-for this option. [Update link]
+for details. [Update link]
 
 
 .. _`Obtaining BEAST libraries`
 Obtaining BEAST Library Files
 -----------------------------
 
-For the BEAST to work properly, you need to place a "libs" directory containing
+For the BEAST to work properly, you need to place a 'libs' directory containing
 files related to filters, photometry, stellar atmospheres, and in the future
 stellar evolution models in the 'beast/beast' directory. Follow this link to 
-download the "libs" directory with files. [Update link]
+download the 'libs' files. [Update link]
 
 
 Confirming Proper Installation and Running Sample Code
@@ -128,7 +121,7 @@ Now try a sample BEAST run:
 
 ``$ ./run_beast.py`` or ``$ python run_beast.py``
 
-Optionally, you can run BEAST with one, or a combination, of the arguments
+Optionally, you can run BEAST with one, or a combination, of these arguments
 
   -h, --help    show this help message and exit
   -m, --models  Generate the model grid
@@ -139,5 +132,5 @@ Optionally, you can run BEAST with one, or a combination, of the arguments
 
 ``$ ./run_beast.py -h`` or ``$ ./run_beast.py -mntf``
 
-[Optional]: If BEAST is running correctly there should be no errors and the 
+[Optional]: If the BEAST is running correctly there should be no errors and the 
 output should be a plot which looks like this [insert plot here?]:
