@@ -13,7 +13,7 @@ In turn, Astopy depends on
 `other packages <http://docs.astropy.org/en/latest/install.html>`_ for 
 optional features. From these you will need:
 
-- `hdf5 <http://h5py.org/>`_ to read/write `Table` objects from/to HDF5 files.
+- `hdf5 <http://h5py.org/>`_ to read/write ``Table`` objects from/to HDF5 files.
 - other astropy dependencies [list these here].
 
 You will also need:
@@ -52,7 +52,8 @@ Here is a general introduction to `GitHub <https://help.github.com/>`_.
 There are three installation options listed below. In addition to 
 choosing one of these, you will also need to download files containing
 BEAST stellar and extinction libraries. 
-See **Obtaining BEAST libraries** below.
+See **Obtaining BEAST libraries** below. [Need to figure out how to place an
+internat crossreference here].
 
 Option 1 
 ________
@@ -135,8 +136,8 @@ files. If you do not have the files you can place a soft link to them:
 [Rubab - confirm your instructions].
 
 ``$ cd beast/beast`` 
-OR
-``$ cd beast-master/beast`` if you used install option 2
+or
+``$ cd beast-master/beast`` if you used install Option 2
 
 ``$ wget -r <www.TBD.edu/libs>``
 
