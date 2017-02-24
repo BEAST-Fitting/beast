@@ -16,9 +16,10 @@ from ...external.eztables import Table
 from ...external.eztables.table import recfunctions
 from ...external.ezunits import unit, hasUnit
 from ...config import __ROOT__
-from ezpadova import parsec as _cmd
+from ezpadova import parsec
+from ezmist import mist
 
-__all__ = ['Isochrone', 'padova2010', 'pegase', 'ezIsoch', 'PadovaWeb']
+__all__ = ['Isochrone', 'padova2010', 'pegase', 'ezIsoch', 'PadovaWeb', 'MISTWeb']
 
 class Isochrone(object):
     def __init__(self, name='', *args, **kwargs):
@@ -396,13 +397,19 @@ class ezIsoch(Isochrone):
 
 
 class PadovaWeb(Isochrone):
-    def __init__(self, logtmin=6.0, logtmax=10.2, dlogt=0.2, Z=0.0152, modeltype='parsec12s_r14', *args, **kwargs):
+    def __init__(self, logtmin=6.0, logtmax=10.2, dlogt=0.2, Z=0.0152, Zref=None, modeltype='parsec12s_r14', *args, **kwargs):
         self.name = 'Padova CMD isochrones'
-        self.logtmin = logtmin
-        self.logtmax = logtmax
-        self.dlogt = dlogt
-        #LCJ Z = 0.019 # reverts to previous Zsun default
-        self.Z = Z
+        #LCJ WIP: remove unnecessary object variables?
+        #self.logtmin = logtmin
+        #self.logtmax = logtmax
+        #self.dlogt = dlogt
+        #self.Z = Z
+        if Zref is None:
+            if modeltype.startswith('parsec'):
+                Zref = 0.0152
+            else:
+                Zref = 0.019
+        self.Zref = Zref
         self.modeltype = modeltype
 
     def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'],
@@ -423,7 +430,7 @@ class PadovaWeb(Isochrone):
         if metal is None:
             metal = self.FeHtometal(FeH)
 
-        iso_table = _cmd.get_one_isochrone(_age, metal, ret_table=True)
+        iso_table = parsec.get_one_isochrone(_age, metal, ret_table=True, model=self.modeltype)
         self._clean_cols(iso_table)
         #iso_table = self._filter_iso_points(iso_table)
         return iso_table
@@ -445,16 +452,16 @@ class PadovaWeb(Isochrone):
             iso_table.remove_columns(['Zini'])
 
         else:
-            # Girardi10, Old PARSEC Column Names
-            iso_table.add_column('logA', iso_table['log(age/yr)'][:])
-            iso_table.add_column('logL', iso_table['logL/Lo'][:])
+            # Padova (Girardi10, Marigo08, etc), Old PARSEC Column Names
+            iso_table.add_column('logA', iso_table['logageyr'][:])
+            iso_table.add_column('logL', iso_table['logLLo'][:])
             iso_table.add_column('logT', iso_table['logTe'][:])
             iso_table.add_column('logg', iso_table['logG'][:])
-            iso_table.remove_columns(['log(age/yr)', 'logL/Lo', 'logTe', 'logG'])
+            iso_table.remove_columns(['logageyr', 'logLLo', 'logTe', 'logG'])
             
         # Remove phot columns and unnecessary properties
         filternames = "U UX B BX V R I J H K L M".split()
-        theorycols = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode', 'C_O', 'period0', 'period1', 'McoreTP', 'tau1m']
+        theorycols = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode', 'CO', 'C_O', 'period0', 'period1', 'McoreTP', 'tau1m']
         theorycols += ['logMdot', 'Mloss'] # removing mass loss outputs
         abundcols = "X Y Xc Xn Xo Cexcess".split()
         drop = theorycols + abundcols + filternames + [s + "mag" for s in filternames]
@@ -473,13 +480,8 @@ class PadovaWeb(Isochrone):
         iso_table.setComment('M_act', 'Current Mass, M(t)')
         iso_table.setUnit('logg', 'cm/s**2')
         iso_table.setComment('logg', 'Surface gravity')
-        iso_table.setUnit('M_ini', 'Msun')
-        iso_table.setComment('M_ini', 'Initial Mass')
-        iso_table.setUnit('M_act', 'Msun')
-        iso_table.setComment('M_act', 'Current Mass')
         iso_table.setComment('stage', 'Evolutionary Stage')
         iso_table.setComment('Z', 'Metallicity')
-
         #iso_table.setUnit('logMdot', 'Msun/yr')
         #iso_table.setComment('logMdot', 'Mass loss')
 
@@ -525,9 +527,9 @@ class PadovaWeb(Isochrone):
         """
 
         if not hasattr(Z, '__iter__'):
-            iso_table = _cmd.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z, model=self.modeltype)
+            iso_table = parsec.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z, model=self.modeltype)
             iso_table.header['NAME'] = 'Padova Isochrones'
-            if not iso_table.has_key('Z'):
+            if not 'Z' in iso_table:
                 iso_table.add_column('Z', np.ones(iso_table.nrows) * Z)
 
             # rename cols, remove phot and other unnecessary cols
@@ -539,6 +541,121 @@ class PadovaWeb(Isochrone):
         else:
             iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
             iso_table.header['NAME'] = 'Padova Isochrones'            
+
+            if len(Z) > 1:
+                more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]
+                iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more, usemask=False, asrecarray=True)
+
+        return iso_table
+
+class MISTWeb(Isochrone):
+    def __init__(self, logtmin=6.0, logtmax=10.2, dlogt=0.2, Z=0.0142, rotation='vvcrit0.0', *args, **kwargs):
+        self.name = 'MESA/MIST isochrones'
+        self.logtmin = logtmin
+        self.logtmax = logtmax
+        self.dlogt = dlogt
+        self.Z = Z
+        self.rotation = rotation
+
+    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], 
+                       *args, **kwargs):
+        """ Retrieve isochrone from the original source
+            internal use to adapt any library
+        """
+        if hasUnit(age):
+            _age = int(age.to('yr').magnitude)
+        else:
+            _age = int(age * inputUnit.to('yr').magnitude)
+
+        assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
+
+        if (metal is not None) & (FeH is not None):
+            print "Warning: both Z & [Fe/H] provided, ignoring [Fe/H]."
+
+        if metal is None:
+            metal = self.FeHtometal(FeH)
+
+        iso_table = mist.get_one_isochrone(_age, FeH, v_div_vcrit=self.rotation, age_scale='log10', ret_table=True)
+        self._clean_cols(iso_table)
+
+        return iso_table
+
+    def _clean_cols(self, iso_table):
+        """clean column names, remove unnecessary columns"""
+        # Rename Columns
+        iso_table.add_column('logA', iso_table['log10_isochrone_age_yr'][:])
+        iso_table.add_column('logT', iso_table['log_Teff'][:])
+        iso_table.add_column('logL', iso_table['log_L'][:])
+        iso_table.add_column('M_ini', iso_table['initial_mass'][:])
+        iso_table.add_column('M_act', iso_table['star_mass'][:])
+        iso_table.add_column('logg', iso_table['log_g'][:])
+        iso_table.add_column('stage', iso_table['phase'][:])
+        iso_table.remove_columns(['log10_isochrone_age_yr', 'log_Teff', 'log_L', 'log_g',
+                                  'initial_mass', 'star_mass', 'stage'])
+        
+        # Remove phot columns and unnecessary properties
+        extracol1="star_mdot he_core_mass c_core_mass log_LH log_LHe log_R".split()
+        extracol2="log_center_T log_center_Rho center_gamma center_h1 center_he4 center_c12".split()
+        extracol3="surface_h1 surface_he3 surface_he4 surface_c12 surface_o16".split()
+        drop = extracol1 + extracol2 + extracol3
+        iso_table.remove_columns(filter(lambda x: x in iso_table, drop)) # make sure columns exist
+
+        # polish the header
+        iso_table.setUnit('logA', 'yr')
+        iso_table.setComment('logA', 'Age')
+        iso_table.setUnit('logT', 'K')
+        iso_table.setComment('logT', 'Effective temperature')
+        iso_table.setUnit('logL', 'Lsun')
+        iso_table.setComment('logL', 'Luminosity')
+        iso_table.setUnit('M_ini', 'Msun')
+        iso_table.setComment('M_ini', 'Initial Mass')
+        iso_table.setUnit('M_act', 'Msun')
+        iso_table.setComment('M_act', 'Current Mass, M(t)')
+        iso_table.setUnit('logg', 'cm/s**2')
+        iso_table.setComment('logg', 'Surface gravity')
+        iso_table.setComment('stage', 'Evolutionary Stage')
+        iso_table.setComment('Z', 'Metallicity')
+        #iso_table.setUnit('logMdot', 'Msun/yr')
+        #iso_table.setComment('logMdot', 'Mass loss')
+
+        return iso_table
+
+    def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.0142):
+        """ Generate a proper table directly from the PADOVA website
+
+        Parameters
+        ----------
+        logtmin: float
+            log-age min (age in yr)
+
+        logtmax: float
+            log-age max (age in yr)
+
+        dlogt: float
+            log-age step to request
+
+        Z: float or sequence
+            single value of list of values of metalicity Z
+ 
+        returns
+        -------
+        tab: eztable.Table
+            the table of isochrones
+        """
+
+        if not hasattr(Z, '__iter__'):
+            iso_table = mist.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt,
+                                              v_div_vcrit=self.rotation, FeH_value=np.log10(Z/0.0142))
+            iso_table.header['NAME'] = 'MESA/MIST Isochrones'
+            if not 'Z' in iso_table:
+                iso_table.add_column('Z', np.ones(iso_table.nrows) * Z)
+
+            # rename cols, remove phot and other unnecessary cols
+            self._clean_cols(iso_table)
+            
+        else:
+            iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
+            iso_table.header['NAME'] = 'MESA/MIST Isochrones'            
 
             if len(Z) > 1:
                 more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]

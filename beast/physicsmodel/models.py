@@ -51,7 +51,7 @@ __all__ = ['make_iso_table','make_spectra', 'make_priors', 'make_seds']
 #           't_isochrones',  't_spectra', 't_priors', 't_seds' ]
 
 def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
-                   z=[0.019], trackVersion=2.3):
+                   z=[0.0152], trackVersion=2.3, oiso=None):
     """ Generate a proper table directly from the PADOVA website
 
     Parameters
@@ -79,7 +79,10 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
         file into which save the table of isochrones (any format eztables
         can handle)
     """
-    oiso = isochrone.PadovaWeb()
+    #LCJ WIP: starting to enable
+    oiso = oiso or isochrone.PadovaWeb()
+    #oiso = isochrone.PadovaWeb()
+    #oiso = isochrone.MISTWeb()
     t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
     t.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
