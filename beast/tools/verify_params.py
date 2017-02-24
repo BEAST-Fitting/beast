@@ -2,10 +2,9 @@
 """
 	Script to verify and warn about wrong format of the BEAST input parameters.
 	It must be called run_beast.py 
-
+	Created by Maria Kapala on Feb 24th 2017
 """
 
-from warnings import warn
 from os.path import exists
 from numpy import inf
 from sys import exit
@@ -17,7 +16,6 @@ class CustomError(Exception):
 
 def verify_range(param, param_name, param_lim):
 	# check if input param limits make sense
-	# no constarins indicated by param_lim = [-np.inf, np.inf]
 	
 	if any(p < param_lim[0] for p in param):
 		print(param_name + " min value not physical.")
@@ -29,10 +27,10 @@ def verify_range(param, param_name, param_lim):
 
 
 def check_grid(param, param_name, param_lim):
-	param_min, param_max, param_step = param
+	# check if input param limits and grid initialisation make sense
 
-	# check if input param limits make sense
-	# no constarins indicated by param_lim = [-np.inf, np.inf]
+	param_min, param_max, param_step = param
+	
 	if param_min < param_lim[0]:
 		print(param_name + " min value not physical.")
 		exit()
@@ -50,9 +48,27 @@ def check_grid(param, param_name, param_lim):
 		exit()
 
 
-def verify_one_input_format(param, param_name, param_format, param_lim=None):
-	''' Test for an input parameter correctness of format and limits (if provided)
+def verify_one_input_format(param, param_name, param_format, param_lim):
+	''' 
+	Test for an input parameter correctness of format and limits.
+
+	Parameters
+	----------
+	param: str, float, or list(float)
+		Input parameter for run_beast.py, defined in datamodel.py
+
+	param_name: str
+		Extact name of the param, used for printing purposes.
+
+	param_format: str
+
+	param_lim: list(float) or None
+		pass information about any physical limitations of the param;
+		[-inf, inf] when param is not constraint at all;
+		None when concerns a str parameter
+
 	'''
+
 	# check input parameter's format
 	if 'list' in param_format:
 	  	if type(param) is not list:
@@ -90,7 +106,6 @@ def verify_one_input_format(param, param_name, param_format, param_lim=None):
   			exit()
 
 	'''
-
 	if 'version' in param_format:
 		if type(param) is not float:
 			raise CustomError(param_name + " is not in the right format - a float")		
@@ -100,6 +115,19 @@ def verify_one_input_format(param, param_name, param_format, param_lim=None):
 
 
 def verify_input_format(datamodel):
+
+	''' 
+	Import BAEST input parameters from datamodel.
+	Define relevant parameters, their correct names, format and limits.
+	Call verify_one_input_format to test for correctness of format and limits.
+
+	Parameters
+	----------
+	datamodel: module
+		Input parameters are initialized in datamodel
+
+	'''
+
 	parameters = [datamodel.bright_limits_mag, datamodel.sens_limits_mag, datamodel.z, datamodel.obsfile, \
 	              datamodel.astfile, datamodel.logt, datamodel.avs, datamodel.rvs, datamodel.fbumps, datamodel.trackVersion]
 	parameters_names = ['bright_limits_mag', 'sens_limits_mag', 'z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs', 'fbumps', 'trackVersion']
