@@ -180,7 +180,7 @@ pushing it, but the other party is pulling it :-)
   sync your local edits with your github repo
 
 - From the github page of your fork of BEAST, e.g.,
-  https://github.com/rubab1/beast/branches
+  https://github.com/YourName/beast/branches
   click on 'Branches'. Next to the name of the branch on which you
   commited/pushed the changes, click on 'New pull request'. Verify that
   names of the target repo ('base fork') and branch ('master') *to* which
