@@ -51,8 +51,11 @@ __all__ = ['make_iso_table','make_spectra', 'make_priors', 'make_seds']
 #           't_isochrones',  't_spectra', 't_priors', 't_seds' ]
 
 def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
-                   z=[0.019], trackVersion=2.3):
-    """ Generate a proper table directly from the PADOVA website
+                   z=[0.0152], trackVersion=2.3, oiso=None):
+    """
+     a spectral grid will be generated using the stellar parameters by
+     interpolation of the isochrones and the generation of spectra into the
+     physical units
 
     Parameters
     ----------
@@ -71,7 +74,8 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
         log-age step to request
 
     z: float or sequence
-        list of metalicity values
+        list of metalicity values, where default (Z=0.152) is adopted Z_sun
+        for PARSEC/COLIBRI models
 
     Returns
     -------
@@ -79,18 +83,13 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
         file into which save the table of isochrones (any format eztables
         can handle)
     """
-    oiso = isochrone.PadovaWeb()
-    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax),
-                               dlogt, z, trackVersion)
-    t.header['NAME'] = '{0} Isochrones'.\
-                       format('_'.join(outname.split('_')[:-1]))
-
-    # Isochrone filtering, check that no AGB stars are removed
-    if trackVersion < 2.7:  
-        cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
-    else:  
-        cond = '~((M_ini < 12.) & (stage == 0))' # do not include Pre-MS  
-    t = t.selectWhere('*', cond)
+    if oiso is None: 
+        oiso = isochrone.PadovaWeb()
+        #oiso = isochrone.PadovaWeb(modeltype='parsec12s')
+        #oiso = isochrone.MISTWeb()
+        
+    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
+    t.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
     t.write(outname)
     return outname
