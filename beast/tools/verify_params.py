@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-	Script to verify and warn about wrong format of the BEAST input parameters.
+	Script to verify wrong format of the BEAST input parameters and terminate run_beast
 	It must be called run_beast.py 
 	Created by Maria Kapala on Feb 24th 2017
 """
@@ -10,19 +10,16 @@ from numpy import inf
 from sys import exit
 
 
-class CustomError(Exception):
-	pass
-
 
 def verify_range(param, param_name, param_lim):
 	# check if input param limits make sense
 	
 	if any(p < param_lim[0] for p in param):
-		print(param_name + " min value not physical.")
+		print(param_name + ' min value not physical.')
 		exit()
 
 	if any(p > param_lim[1] for p in param):
-		print(param_name + " max value not physical.")
+		print(param_name + ' max value not physical.')
 		exit()
 
 
@@ -32,24 +29,24 @@ def check_grid(param, param_name, param_lim):
 	param_min, param_max, param_step = param
 	
 	if param_min < param_lim[0]:
-		print(param_name + " min value not physical.")
+		print(param_name + ' min value not physical.')
 		exit()
 
 	if param_max > param_lim[1]:
-		print(param_name + " max value not physical.")
+		print(param_name + ' max value not physical.')
 		exit()
 
 	if param_min > param_max:
-		print(param_name + " min value greater than max")
+		print(param_name + ' min value greater than max')
 		exit()
 
 	if (param_max-param_min) < param_step:
-		print(param_name + " step value greater than (max-min)")
+		print(param_name + ' step value greater than (max-min)')
 		exit()
 
 
 def verify_one_input_format(param, param_name, param_format, param_lim):
-	''' 
+	"""
 	Test for an input parameter correctness of format and limits.
 
 	Parameters
@@ -67,17 +64,16 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
 		[-inf, inf] when param is not constraint at all;
 		None when concerns a str parameter
 
-	'''
-
-	# check input parameter's format
+	"""
+	
 	if 'list' in param_format:
 	  	if type(param) is not list:
-	  		print(param_name + " is not in the right format - a list.")
+	  		print(param_name + ' is not in the right format - a list.')
 	  		exit()
 	  	elif 'float' in param_format:
 	  		is_list_of_floats = all(type(item) is float for item in param)
 	  		if not is_list_of_floats:
-	  			print(param_name + " is not in the right format - list of floats.")
+	  			print(param_name + ' is not in the right format - list of floats.')
 	  			exit()
 	  		elif 'grid' in param_format:
 	  			# when param is aranged from given [min, max, step],
@@ -89,34 +85,27 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
 
 	if 'str' in param_format:
 		if type(param) is not str:
-			print(param_name + " is not in the right format - a string.") 
+			print(param_name + ' is not in the right format - a string.') 
 			exit()
 		elif 'file' in param_format:
 			if not exists(param):
-				print(param_name + " does not exist. Please provide the file path.") 
+				print(param_name + ' does not exist. Please provide the file path.') 
 				exit()
 
 	
 	if 'version' in param_format:
 		if type(param) is not float:
-			print(param_name + " is not in the right format - a float")
+			print(param_name + ' is not in the right format - a float')
 			exit()
   		elif param not in param_lim:
-  			print(param_name + " is an invalid number, leading to version of the isochrone.")
+  			print(param_name + ' is an invalid number, leading to version of the isochrone.')
   			exit()
 
-	'''
-	if 'version' in param_format:
-		if type(param) is not float:
-			raise CustomError(param_name + " is not in the right format - a float")		
-  		elif param not in param_lim:
-  			raise CustomError(param_name + " is an invalid version of the isochrone.")
-	'''
 
 
 def verify_input_format(datamodel):
 
-	''' 
+	"""
 	Import BAEST input parameters from datamodel.
 	Define relevant parameters, their correct names, format and limits.
 	Call verify_one_input_format to test for correctness of format and limits.
@@ -126,7 +115,7 @@ def verify_input_format(datamodel):
 	datamodel: module
 		Input parameters are initialized in datamodel
 
-	'''
+	"""
 
 	parameters = [datamodel.bright_limits_mag, datamodel.sens_limits_mag, datamodel.z, datamodel.obsfile, \
 	              datamodel.astfile, datamodel.logt, datamodel.avs, datamodel.rvs, datamodel.fbumps, datamodel.trackVersion]
@@ -139,33 +128,10 @@ def verify_input_format(datamodel):
 
 
 
+if __name__ == '__main__':
 
-if __name__ == "__main__":
+    pass
 
-
- 	
- 	bright_limits_mag = [14., 14.5, 16., 15., 16., 14., 14.5, 14., 14.]
- 	sens_limits_mag = [26., 26., 27., 29., 27.5, 28., 28.5, 27., 26.]
- 	z = [0.03, 0.019, 0.008, 0.004]
-	obsfile = '/Users/maria/Documents/data/beast/hack_week/todo_verify_params.txt'
-	astfile = 'data/fake_stars_b15_27_all.hd5'
-	astfile = '/Users/maria/Documents/data/beast/hack_week/todo_verify_params.txt'
-	logt = [6.0, 10.13, 1.]
-	avs = [0.0, 10.055, 1.0]
-	rvs = [2.0,6.0,1.0]
-	fbumps = [0.0,1.0, 0.25]
-	trackVersion = 2.7
-	'''
-	'''
-	parameters = [bright_limits_mag, sens_limits_mag, z, obsfile, astfile, logt, avs, rvs, fbumps, trackVersion]
-
-	parameters_names = ['bright_limits_mag', 'sens_limits_mag', 'z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs', 'fbumps', 'trackVersion']
-	param_format = ['list_float', 'list_float', 'list_float', 'str_file', 'str_file', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'version']
-	parameters_limits = [ [-inf, inf], [-inf, inf], [0., 0.1], None, None, [-inf, 10.15], [0., inf], [1., 7.], [0., 1.], [2.3, 2.7]]
-	
-	for i, param_ in enumerate(parameters):
-		verify_one_input_format(param_, parameters_names[i], param_format[i], parameters_limits[i])
-	
     
 
 
