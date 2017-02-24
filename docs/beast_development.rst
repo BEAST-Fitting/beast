@@ -1,4 +1,4 @@
-BEAST DevelopmentA
+BEAST Development
 =================
 
 You are encouraged to help maintain and improve the BEAST. Before doing so,
