@@ -102,8 +102,9 @@ Making Changes
 ==============
 
 It is recommended that branches have a single purpose; for example, if you are working
-on adding a test suite and on improving the fitting algorithm, those should be in
-branches (e.g.) ``add-test-suite`` or ``improve-fitting-algorithm`` or ``beast-dev1``
+on adding a test suite, on improving the fitting algorithm and on speeding up some task,
+those should be in separate branches (e.g.) ``add-test-suite``, ``improve-fitting-algorithm``
+and ``beast-dev1``.
 
 - Anywhere below ``beast-YourName``, switch to the branch you wish to work off of:
 
@@ -223,57 +224,63 @@ efforts and other complications.
   distro via an accepted pull request and merge
 
 
-Managing Conflicts via Re-basing
-================================
+Managing Conflicts
+==================
 
 Let's consider a situation where a fork's master has been updated. A local
 branch (e.g., beast-dev1) was created before the update and it has changes
 that hadn't been contributed back to the project. As a results, there may
 be conflicting versions of some files. The following steps can resolve this.
 
+- Merge your fork's master with upstream/master, and push the master
 
-- Follow the instructions under ``staying up-to-date`` to update your fork's
-  master. *Do not* skip the ``push``.
+  .. code:: shell
+  $ git checkout master
 
-- Switch to the branch you wish to re-base:
+  $ git fetch upstream
+
+  $ git merge upstream/master
+
+  $ git push origin master
+
+- Create a new branch from the updated fork-master, and push the new branch
+
+  .. code:: shell
+  $ git checkout -b beast-dev2
+
+  $ git push origin beast-dev2
+
+- Switch to the branch where your made changes, make a backup and push it
 
   .. code:: shell
   $ git checkout beast-dev1
 
-- *DO NOT SKIP THIS* Make a backup and push it to your gitHub repo:
-
-  .. code:: shell
   $ git branch beast-dev1-backup beast-dev1
 
   $ git push origin beast-dev1-backup
 
-- Fetch the project's up-to-date distribution:
+- Check the differences between the two branches and merge the two branches.
+  (Edit files on the newer branch to resolve differences manually if needed.)
 
   .. code:: shell
-  $ git fetch upstream
-    
-- ``Re-base`` the branch:
+  $ git diff beast-dev1 beast-dev2
+
+  $ git checkout beast-dev2
+
+  $ git merge beast-dev1
+
+- Finally, push the updated new branch into your gitHub repo
+  (Note: an error free push confirms that all conflicts have been
+  resolved both locally and on the gitHub repo.)
 
   .. code:: shell
-  $ git rebase upstream/master
+  $ git push origin beast-dev2
 
-  - This step may continue to fail until you resolve all conflicts
 
-  - Once all conflicts have been resolved and the re-base goes through
-    without any error message, push the changes to your gitHub repo:
+- If later you wish to restore the backup:
 
   .. code:: shell
-  $ git push origin beast-dev1
-    
-  - If something goes wrong during re-base, you can start over:
-
-    .. code:: shell
-    $ git rebase --abort
-
-  - If the re-base goes fine but later you wish to restore the backup:
-
-    .. code:: shell
-    $ git reset --hard beast-dev1-backup
+  $ git reset --hard beast-dev1-backup
     
 - Once all conflicts have been resolved and the re-base goes through,
   you can delete the backup branch:
@@ -282,24 +289,20 @@ be conflicting versions of some files. The following steps can resolve this.
   $ git branch -D beast-dev1-backup
 
 
-Managing Conflicts without Re-basing
-====================================
+Managing Conflicts via Re-basing
+================================
 
-If re-basing a branch on an upstream master keeps failing, an alternative  
-is that instead of re-basing a branch, you can resolve the conflicts
-manually. This is less elegant but simpler / easier for beginners.
-Here are the general steps to follow.
+In some unusual situations, conflicts may seem unresolvable or 
+version conflicts between branches/master/upstream may get messy.
+One last ditch solution can be re-basing, but this not recommended 
+and certainly is not the preferred way to resolve conflicts. Here 
+are the general steps to do this.
 
 - Merge your fork's master with upstream/master, and push the master
+  
+- Switch to and backup the branch with conflicts, and push the backup
 
-- Create a new branch from updated fork-master, and push the new branch
-  
-- Switch to and backup the older branch with conflicts, push the backup
-  
-- Check the differences between the two branches and merge the two branches,
-  or edit files on the newer branch to resolve differences
-  
-- Commit and push the newer branch
+- Re-base the branch on upstream/master, and push it
   
 - Example:
 
@@ -314,28 +317,29 @@ Here are the general steps to follow.
 
     $ git push origin master
 
-    $ git checkout -b beast-dev2
-
-    $ git push origin beast-dev2
+    $ git checkout beast-dev1
 
     $ git branch beast-dev1-backup beast-dev1
 
     $ git push origin beast-dev1-backup
 
-    $ git diff beast-dev1 beast-dev2
-     
-  - Now you can either try to merge the branches:
+  - Now re-base the branch:
 
     .. code:: shell
-    $ git checkout beast-dev2
+    $ git rebase upstream/master
 
-    $ git merge beast-dev1
-
-  - Or manually edit files under beast-dev2 to resolve differences
-
-  - Finally, push the updated new branch into your gitHub repo:
-    (Note: an error free push confirms that all conflicts have been
-    resolved both locally and on the gitHub repo)
+  - Once all conflicts have been resolved and the re-base goes through
+    without any error message, push the changes to your gitHub repo:
 
     .. code:: shell
-    $ git push origin beast-dev2
+    $ git push origin beast-dev1
+
+  - If something goes wrong during re-base, you can start over:
+
+    .. code:: shell
+    $ git rebase --abort
+
+  - If you wish to restore the backup:
+
+    .. code:: shell
+    $ git reset --hard beast-dev1-backup
