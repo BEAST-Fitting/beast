@@ -78,13 +78,20 @@ ast_maglimit = [1.]
 # ast_with_positions :  (bool,optional)
 # If True, the ast list is produced with X,Y positions.
 # If False, the ast list is produced with only magnitudes.
-ast_with_positions = True 
+ast_with_positions = True
                          
-#ast_pixel_distribution : float (optional)
+# ast_pixel_distribution : float (optional)
 # (Used if ast_with_positions is True), minimum pixel separation between AST
 # position and catalog star used to determine the AST spatial distribution
 ast_pixel_distribution = 10.0 
-		            
+
+# ast_reference_image : string (optional, but required if ast_with_positions
+# is True and no X and Y information  is present in the photometry catalog)	
+# Name of the reference image used by DOLPHOT when running the measured 
+# photometry.	            
+ast_reference_image = None
+
+
 #-------------------------------------------
 #Noise Model Artificial Star Test Parameters
 #-------------------------------------------
