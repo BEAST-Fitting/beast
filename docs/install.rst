@@ -23,7 +23,7 @@ You will also need:
 One easy way to obtain the above is through the AstroConda Python stack:
 
 - First install `Miniconda <https://conda.io/miniconda.html>`_ which 
-  contains the conda package manager and Python. Once Miniconda is installed,
+  contains the conda package manager. Once Miniconda is installed,
   you can use the `conda` command to install any other packages and create 
   environments, etc.
 
@@ -58,9 +58,9 @@ internat crossreference here].
 Option 1 
 ________
 
-This option installs the package on your local machine as a clone of the
+This option fetches the BEAST on your local machine as a clone of the
 `BEAST GitHub repository <https://github.com/karllark/beast>`_
-such that you can easily keep up with code updates. If you
+so that you can easily keep up with code updates. If you
 *do not plan to make code contributions*, this is the recommended installation 
 method. See Option 3 below if you if you would like to contribute 
 to code enhancements.
@@ -77,9 +77,8 @@ Type ``ls`` to confirm the BEAST has been downloaded.
 Option 2
 ________
 
-The second option installs the package in its current version on your local 
-computer. To obtain package updates you will have to again manually install the 
-package:
+The second option downloads the BEAST's current version. To obtain package 
+updates, you will need to again manually download the BEAST.
 
 Go to the `BEAST GitHub homepage <https://github.com/karllark/beast>`_ and 
 click on the green 'Clone or Download' button, then select 'Download ZIP'. 
@@ -154,25 +153,27 @@ You can also use:
 Confirming Proper Installation and Run Sample Code
 -----------------------------------------------
 
-There is a small sample script named 'run_beast.py' located in
-'beast/beast/examples/phat_small' as a quick check to confirm the BEAST 
+There is a small sample script named ``run_beast.py`` located in
+``beast/beast/examples/phat_small`` as a quick check to confirm that the BEAST 
 installation is working. 
 
-In 'beast/beast/examples/phat_small', place a soft link named 'beast' 
+In ``beast/beast/examples/phat_small``, place a soft link named ``beast`` 
 pointing two levels up:  
 
 ``$ cd beast/beast/examples/phat_small``
 
 ``$ ln -s ../../ beast``
 
-Verify that the default Python installation is version 2.7:
-
-``$ python --version``
-
 If you installed Python through AstroConda, first activate the correct 
 AstroConda environment:
 
 ``$ source activate astroconda2``
+
+
+Verify that the current default Python is version 2.7:
+
+``$ python --version``
+
 
 Take a look at the basic help content of 'run_beast.py':
 
