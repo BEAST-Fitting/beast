@@ -71,7 +71,7 @@ to place the BEAST:
 
 ``$ git clone https://github.com/karllark/beast.git``
 
-This will create a directory named `beast` containing the package contents.
+This will create a directory named 'beast' containing the package contents.
 Type ``ls`` to confirm the BEAST has been downloaded.
 
 Option 2
@@ -82,7 +82,7 @@ computer. To obtain package updates you will have to again manually install the
 package:
 
 Go to the `BEAST GitHub homepage <https://github.com/karllark/beast>`_ and 
-click on the green `Clone or download` button, then select `Download ZIP`. 
+click on the green 'Clone or Download' button, then select 'Download ZIP'. 
 Unzip the file and place the resulting 'beast-master' folder in the directory 
 from which you would like to work on it.
    
@@ -94,13 +94,13 @@ BEAST.
    
 Go to the `BEAST GitHub homepage <https://github.com/karllark/beast>`_.
 Create your own copy of the BEAST repository by forking the BEAST repo
-(click on the `Fork` button in the upper right of the repository page). This 
+(click on the 'Fork' button in the upper right of the repository page). This 
 will allow you to use and edit the code according to your needs.
 Now make a clone of your own BEAST repository. To do this go to
 
 ``github.com/YOURGITNAME/beast`` 
 
-and click on the green `Clone or Download` button. When the small window opens, 
+and click on the green 'Clone or Download' button. When the small window opens, 
 copy the HTTPS 
 
 ``https://github.com/YOURGITNAME/beast.git`` 
@@ -117,7 +117,7 @@ the copied code:
 To confirm that your BEAST repository was placed in the local directory, type 
 ``ls``.
 
-You should see a new folder called `beast` created in this directory.
+You should see a new folder called 'beast' created in this directory.
 
 For additional instructions on how you can use the BEAST and eventually make
 code contributions, see the 
@@ -130,8 +130,8 @@ Obtaining BEAST Library Files
 -----------------------------
 
 For the BEAST to work properly, you need to place stellar and extinction 
-library files in the `beast/beast` directory. If you have the files, copy them 
-to this location. A resulting `beast/beast/libs` directory should contain the
+library files in the 'beast/beast' directory. If you have the files, copy them 
+to this location. A resulting 'beast/beast/libs' directory should contain the
 files. If you do not have the files you can place a soft link to them:
 [Rubab - confirm your instructions].
 
@@ -154,11 +154,11 @@ You can also use:
 Confirming Proper Installation and Run Sample Code
 -----------------------------------------------
 
-There is a small sample script named `run_beast.py` located in
-`beast/beast/examples/phat_small` as a quick check to confirm the BEAST 
+There is a small sample script named 'run_beast.py' located in
+'beast/beast/examples/phat_small' as a quick check to confirm the BEAST 
 installation is working. 
 
-In `beast/beast/examples/phat_small`, place a soft link named `beast` 
+In 'beast/beast/examples/phat_small', place a soft link named 'beast' 
 pointing two levels up:  
 
 ``$ cd beast/beast/examples/phat_small``
