@@ -48,6 +48,10 @@ ast_pixel_distribution : float (optional)
 (Used if ast_with_positions is True), minimum pixel separation between AST
 position and catalog star used to determine the AST spatial distribution.
 
+ast_reference_image : string (optional, but required if ast_with_positions
+is True and no X and Y information  is present in the photometry catalog)	
+Name of the reference image used by DOLPHOT when running the measured 
+photometry.	       
 
 Returns
 =======
