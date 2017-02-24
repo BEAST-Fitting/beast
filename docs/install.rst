@@ -13,7 +13,7 @@ In turn, Astopy depends on
 `other packages <http://docs.astropy.org/en/latest/install.html>`_ for 
 optional features. From these you will need:
 
-- `hdf5 <http://h5py.org/>`_ to read/write ``Table`` objects from/to HDF5 files.
+- `hdf5 <http://h5py.org/>`_ to read/write `Table` objects from/to HDF5 files.
 - other astropy dependencies [list these here].
 
 You will also need:
@@ -24,7 +24,7 @@ One easy way to obtain the above is through the AstroConda Python stack:
 
 - First install `Miniconda <https://conda.io/miniconda.html>`_ which 
   contains the conda package manager and Python. Once Miniconda is installed,
-  you can use the `'conda'` command to install any other packages and create 
+  you can use the `conda` command to install any other packages and create 
   environments, etc.
 
 - Setup the AstroConda Channel:
@@ -117,7 +117,7 @@ the copied code:
 To confirm that your BEAST repository was placed in the local directory, type 
 ``ls``.
 
-You should see a new folder called `'beast'` created in this directory.
+You should see a new folder called `beast` created in this directory.
 
 For additional instructions on how you can use the BEAST and eventually make
 code contributions, see the 
@@ -130,8 +130,8 @@ Obtaining BEAST Library Files
 -----------------------------
 
 For the BEAST to work properly, you need to place stellar and extinction 
-library files in the `'beast/beast'` directory. If you have the files, copy them 
-to this location. A resulting `'beast/beast/libs'` directory should contain the
+library files in the `beast/beast` directory. If you have the files, copy them 
+to this location. A resulting `beast/beast/libs` directory should contain the
 files. If you do not have the files you can place a soft link to them:
 [Rubab - confirm your instructions].
 
@@ -154,11 +154,11 @@ You can also use:
 Confirming Proper Installation and Run Sample Code
 -----------------------------------------------
 
-There is a small sample script named `'run_beast.py'` located in
-`'beast/beast/examples/phat_small'` as a quick check to confirm the BEAST 
+There is a small sample script named `run_beast.py` located in
+`beast/beast/examples/phat_small` as a quick check to confirm the BEAST 
 installation is working. 
 
-In `'beast/beast/examples/phat_small'`, place a soft link named `'beast'` 
+In `beast/beast/examples/phat_small`, place a soft link named `beast` 
 pointing two levels up:  
 
 ``$ cd beast/beast/examples/phat_small``
