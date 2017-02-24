@@ -10,6 +10,23 @@ concepts using one or more of these guides:
 - https://homes.cs.washington.edu/~mernst/advice/version-control.html
 - https://www.youtube.com/watch?v=y_YKHXuJ-ak
 
+Here is the recommended work-flow for contributing to the BEAST project.
+Details follow.
+
+- Create your own ``fork`` of the official BEAST release
+
+- Create purpose-specific ``branches`` off your ``fork``
+
+- Make changes or additions within the branches
+
+- Contribute your modified codes to the BEAST project or share them with
+  your collaborators via ``pull requests``
+
+- Keep your fork updated to benefit from continued development of the
+  official version and to minimize version conflicts
+
+- Resolve version conflicts as much as possible before sending pull requests
+  
 
 Fork the BEAST distro
 =====================
