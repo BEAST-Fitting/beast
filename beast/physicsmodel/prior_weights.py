@@ -134,4 +134,3 @@ def compute_metallicity_prior_weights(mets):
     met_weights = np.full(len(mets),1.0)
 
     return met_weights
-

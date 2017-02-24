@@ -16,8 +16,8 @@ from ...external.eztables import Table
 from ...external.eztables.table import recfunctions
 from ...external.ezunits import unit, hasUnit
 from ...config import __ROOT__
-from ezpadova import parsec
-from ezmist import mist
+from .ezpadova import parsec
+from .ezmist import mist
 
 __all__ = ['Isochrone', 'padova2010', 'pegase', 'ezIsoch', 'PadovaWeb', 'MISTWeb']
 
@@ -397,13 +397,8 @@ class ezIsoch(Isochrone):
 
 
 class PadovaWeb(Isochrone):
-    def __init__(self, logtmin=6.0, logtmax=10.2, dlogt=0.2, Z=0.0152, Zref=None, modeltype='parsec12s_r14', *args, **kwargs):
+    def __init__(self, Zref=None, modeltype='parsec12s_r14', *args, **kwargs):
         self.name = 'Padova CMD isochrones'
-        #LCJ WIP: remove unnecessary object variables?
-        #self.logtmin = logtmin
-        #self.logtmax = logtmax
-        #self.dlogt = dlogt
-        #self.Z = Z
         if Zref is None:
             if modeltype.startswith('parsec'):
                 Zref = 0.0152
@@ -440,7 +435,7 @@ class PadovaWeb(Isochrone):
         # Rename Columns
         if self.modeltype == 'parsec12s_r14':
             # PARSEC+COLIBRI Column Names
-            iso_table.add_column('logA', iso_table['Age'][:])
+            iso_table.add_column('logA', np.log10(iso_table['Age'][:]))
             iso_table.add_column('logT', iso_table['logTe'][:])
             iso_table.add_column('M_ini', iso_table['Mini'][:])
             iso_table.add_column('M_act', iso_table['Mass'][:])
@@ -549,12 +544,9 @@ class PadovaWeb(Isochrone):
         return iso_table
 
 class MISTWeb(Isochrone):
-    def __init__(self, logtmin=6.0, logtmax=10.2, dlogt=0.2, Z=0.0142, rotation='vvcrit0.0', *args, **kwargs):
+    def __init__(self, Zref=0.0142, rotation='vvcrit0.0', *args, **kwargs):
         self.name = 'MESA/MIST isochrones'
-        self.logtmin = logtmin
-        self.logtmax = logtmax
-        self.dlogt = dlogt
-        self.Z = Z
+        self.Zref = Zref
         self.rotation = rotation
 
     def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], 
