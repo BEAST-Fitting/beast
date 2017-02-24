@@ -183,5 +183,5 @@ Now try a sample BEAST run:
 ``$ ./run_beast.py -potf``
 
 
-If BEAST is running correctly there should be no errors and the 
+[Optional]: If BEAST is running correctly there should be no errors and the 
 output should be a plot which looks like this [insert plot here?]:
