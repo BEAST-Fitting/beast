@@ -16,7 +16,7 @@ from ...external.eztables import Table
 from ...external.eztables.table import recfunctions
 from ...external.ezunits import unit, hasUnit
 from ...config import __ROOT__
-from ezpadova import cmd as _cmd
+from ezpadova import parsec as _cmd
 
 __all__ = ['Isochrone', 'padova2010', 'pegase', 'ezIsoch', 'PadovaWeb']
 
@@ -429,11 +429,22 @@ class PadovaWeb(Isochrone):
 
     def _clean_namings(self, iso_table):
         """clean painful naming"""
-        iso_table.add_column('logA', iso_table['log(age/yr)'][:], description='log(age)', unit='yr')
-        iso_table.add_column('logL', iso_table['logL/Lo'][:], description='log(luminosity)')
+        #MB print(iso_table)
+        #MB changed column names to match new padova
+        iso_table.add_column('logA', iso_table['Age'][:], description='log(age)', unit='yr')
+        #MB iso_table.add_column('logL', iso_table['logL'][:], description='log(luminosity)')
+        iso_table.set_comment('logL', 'log(luminosity)')
         iso_table.add_column('logT', iso_table['logTe'][:], description='log(effective temperature)', unit='K')
-        iso_table.add_column('logg', iso_table['logG'][:], description='log(surface gravity)', unit='cm/s^2')
-        iso_table.remove_columns(['log(age/yr)', 'logL/Lo', 'logTe', 'logG'])
+        #MB iso_table.add_column('logg', iso_table['logg'][:], description='log(surface gravity)', unit='cm/s^2')
+        iso_table.set_comment('logg', 'log(surface gravity)')
+        iso_table.set_unit('logg', unit='cm/s^2')
+        #MB iso_table.remove_columns(['Age', 'logL', 'logTe', 'logg'])
+        iso_table.add_column('M_ini', iso_table['Mini'][:], description='Initial Mass', unit='Msun')
+        iso_table.add_column('M_act', iso_table['Mass'][:], description='Current Mass', unit='Msun')
+        iso_table.add_column('stage', iso_table['label'][:], description='Evolutionary Stage')
+
+        iso_table.remove_columns(['Age', 'Mini', 'label', 'Mass'])
+        
         return iso_table
 
     def _filter_bad_points(self, iso_table):
@@ -460,6 +471,7 @@ class PadovaWeb(Isochrone):
             single value of list of values of metalicity Z
  
         trackVersion: Padova CMD version
+            2.9 for PARSEC1.2S + COLIBRI (Rosenfield et al. 2016 / Marigo et al. 2017)
             2.7 for PARSEC1.2S (Tang et al. 2014)
             2.3 for Marigo et al. (2008) with the Girardi et al. (2010) before PARSEC
 
@@ -469,13 +481,16 @@ class PadovaWeb(Isochrone):
             the table of isochrones
         """
         if not hasattr(Z, '__iter__'):
-            iso_table = _cmd.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z, trackVersion)
+            #MB commented out the trackversion here because trackversion is not an
+            #allowed option inside the new ezpadova            
+            #MB iso_table = _cmd.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z, trackVersion)
+            iso_table = _cmd.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z)
             iso_table.header['NAME'] = 'Padova Isochrones'
-            if trackVersion < 2.7:
-                iso_table.add_column('Z', np.ones(iso_table.nrows) * Z, description='metallicity')
+            #MB if trackVersion < 2.7:
+            #MB     iso_table.add_column('Z', np.ones(iso_table.nrows) * Z, description='metallicity')
 
             self._clean_namings(iso_table)
-
+            
             #remove phot columns and unnecessary properties
             drop = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode'] + "U UX B BX V R I J H K L L' M".split()
 
@@ -485,10 +500,13 @@ class PadovaWeb(Isochrone):
             #iso_table = self._filter_bad_points(iso_table)
         else:
             # iterate over Z values and concatenate into one table
-            iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0], trackVersion)
-            iso_table.header['NAME'] = 'Padova Isochrones'
+            #MB iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0], trackVersion)
+            iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
+            iso_table.header['NAME'] = 'Padova Isochrones'            
+            
             if len(Z) > 1:
-                more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk, trackVersion).data for Zk in Z[1:] ]
+                #MB more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk, trackVersion).data for Zk in Z[1:] ]
+                more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]
                 iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more, usemask=False, asrecarray=True)
 
         # polish the header
@@ -505,8 +523,8 @@ class PadovaWeb(Isochrone):
         iso_table.setUnit('logg', 'cm/s**2')
         iso_table.setComment('logg', 'Surface gravity')
         iso_table.setComment('Z', 'Metallicity')
-        if trackVersion < 2.7:
-            iso_table.setUnit('logMdot', 'Msun/yr')
-            iso_table.setComment('logMdot', 'Mass loss')
+        #MB if trackVersion < 2.7:
+            #MB iso_table.setUnit('logMdot', 'Msun/yr')
+            #MB iso_table.setComment('logMdot', 'Mass loss')
 
         return iso_table

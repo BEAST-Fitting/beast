@@ -86,11 +86,12 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
                        format('_'.join(outname.split('_')[:-1]))
 
     # Isochrone filtering, check that no AGB stars are removed
-    if trackVersion < 2.7:  
-        cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
-    else:  
-        cond = '~((M_ini < 12.) & (stage == 0))' # do not include Pre-MS  
-    t = t.selectWhere('*', cond)
+    # Keep Pre-MS & cliff & martha can't figure out the other condition
+    #if trackVersion < 2.7:  
+    #    cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
+    #else:  
+    #    cond = '~((M_ini < 12.) & (stage == 0))' # do not include Pre-MS  
+    #t = t.selectWhere('*', cond)
 
     t.write(outname)
     return outname
