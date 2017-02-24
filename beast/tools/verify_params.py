@@ -117,11 +117,11 @@ def verify_input_format(datamodel):
 
 	"""
 
-	parameters = [datamodel.bright_limits_mag, datamodel.sens_limits_mag, datamodel.z, datamodel.obsfile, \
+	parameters = [datamodel.z, datamodel.obsfile, \
 	              datamodel.astfile, datamodel.logt, datamodel.avs, datamodel.rvs, datamodel.fbumps, datamodel.trackVersion]
-	parameters_names = ['bright_limits_mag', 'sens_limits_mag', 'z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs', 'fbumps', 'trackVersion']
-	param_format = ['list_float', 'list_float', 'list_float', 'str_file', 'str_file', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'version']
-	parameters_limits = [ [-inf, inf], [-inf, inf], [0., 0.1], None, None, [-inf, 10.15], [0., inf], [1., 7.], [0., 1.], [2.3, 2.7]]
+	parameters_names = ['z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs', 'fbumps', 'trackVersion']
+	param_format = ['list_float', 'str_file', 'str_file', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'version']
+	parameters_limits = [ [0., 0.1], None, None, [-inf, 10.15], [0., inf], [1., 7.], [0., 1.], [2.3, 2.7]]
 	
 	for i, param_ in enumerate(parameters):
 		verify_one_input_format(param_, parameters_names[i], param_format[i], parameters_limits[i])
