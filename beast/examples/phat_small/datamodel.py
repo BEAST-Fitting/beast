@@ -30,8 +30,8 @@ project = 'beast_example_phat'
 
 # filters : list of strings
 #   full filter names in BEAST filter database
-filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
-           'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W',
+           'HST_ACS_WFC_F814W', 'HST_WFC3_F110W','HST_WFC3_F160W']
 # basefilters : list of strings
 #   short names for filters
 basefilters = ['F275W','F336W','F475W',
@@ -41,31 +41,68 @@ basefilters = ['F275W','F336W','F475W',
 #   need to match column names in the observed catalog,
 #   input data MUST be in fluxes, NOT in magnitudes 
 #   fluxes MUST be in normalized Vega units
-obs_colnames = [ f + '_rate' for f in basefilters ]
-# ast_colnames : list of strings 
-#   names of columns for filters in the AST catalog (AC)
-ast_colnames = np.array(basefilters)
-
-
-# input parameters to generate input AST list 
-ast_models_selected_per_age = 70 # Number of models to pick per age (Default = 70). 
-ast_bands_above_maglimit = 3     # Number of filters that must be above the magnitude limit 
-                                 # for an AST to be included in the list (Default = 3)
-ast_realization_per_model = 20   # Number of Realizations of each included AST model 
-                                 # to be put into the list. (Default = 20)
-ast_maglimit = [1.] # (1) option 1: [number] to change the number of mags fainter than the 90th percentile 
-                    #               faintest star in the photometry catalog to be used for the mag cut. 
-                    #               (Default = 1)
-                    # (2) option 2: [space-separated list of numbers] to set custom faint end limits 
-                    #               (one value for each band).
+obs_colnames = [ f.lower() + '_rate' for f in basefilters ]
 
 # obsfile : string 
 #   pathname of the observed catalog
 obsfile = 'data/b15_4band_det_27_A.fits'
 
+#------------------------------------------------------
+# Artificial Star Test Input File Generation Parameters
+#------------------------------------------------------
+
+# ast_models_selected_per_age : integer
+# Number of models to pick per age (Default = 70).
+ast_models_selected_per_age = 70  
+
+# ast_bands_above_maglimit : integer 
+# Number of filters that must be above the magnitude limit
+# for an AST to be included in the list (Default = 3)
+ast_bands_above_maglimit = 3  
+                             
+
+# ast_realization_per_model : integer
+# Number of Realizations of each included AST model
+# to be put into the list. (Default = 20)
+ast_realization_per_model = 20
+                             
+
+# ast_maglimit : float (single value or array with one value per filter)
+# (1) option 1: [number] to change the number of mags fainter than the 90th percentile
+#               faintest star in the photometry catalog to be used for the mag cut.
+#               (Default = 1)
+# (2) option 2: [space-separated list of numbers] to set custom faint end limits
+#               (one value for each band).
+ast_maglimit = [1.] 
+
+# ast_with_positions :  (bool,optional)
+# If True, the ast list is produced with X,Y positions.
+# If False, the ast list is produced with only magnitudes.
+ast_with_positions = True
+                         
+# ast_pixel_distribution : float (optional)
+# (Used if ast_with_positions is True), minimum pixel separation between AST
+# position and catalog star used to determine the AST spatial distribution
+ast_pixel_distribution = 10.0 
+
+# ast_reference_image : string (optional, but required if ast_with_positions
+# is True and no X and Y information  is present in the photometry catalog)	
+# Name of the reference image used by DOLPHOT when running the measured 
+# photometry.	            
+ast_reference_image = None
+
+
+#-------------------------------------------
+#Noise Model Artificial Star Test Parameters
+#-------------------------------------------
+
 # astfile : string
 #   pathname of the AST files (single camera ASTs)
 astfile = 'data/fake_stars_b15_27_all.hd5'
+
+# ast_colnames : list of strings 
+#   names of columns for filters in the AST catalog (AC)
+ast_colnames = np.array(basefilters)
 
 # noisefile : string
 #   create a name for the noise model
@@ -144,8 +181,8 @@ class GenFluxCatalog(Observations):
         self.setBadValue(6e-40)
 
         # rate column needed as this is the *flux* column
-        for k in filters:
-            self.data.set_alias(k, k.split('_')[-1].lower() + '_rate')
+        for ik,k in enumerate(filters):
+            self.data.set_alias(k, obs_colnames[ik])
 
     def getFlux(self, num, units=False):
         """returns the absolute flux of an observation 
@@ -166,11 +203,12 @@ class GenFluxCatalog(Observations):
 
         # case for using '_flux' result
         d = self.data[num]
+        
         flux = np.array([ d[self.data.resolve_alias(ok)] 
                           for ok in self.filters ]) * self.vega_flux
         
         if units is True:
-            return flux * unit['erg/s/cm**2']
+            return flux * unit['erg/s/cm**2/Angstrom']
         else:
             return flux
 
