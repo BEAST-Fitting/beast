@@ -38,6 +38,7 @@ One easy way to obtain the above is through the AstroConda Python stack:
 - Make sure that the ``PyTables`` and ``hdf5`` packages are installed:
 
 ``$ sudo conda install -n astroconda2 pytables``
+
 ``$ sudo conda install -n astroconda2 hdf5``
 
 
@@ -100,17 +101,22 @@ Now make a clone of your own BEAST repository. To do this go to
 ``github.com/YOURGITNAME/beast`` 
 
 and click on the green 'Clone or Download' button. When the small window opens, 
-copy the HTTPS 
+copy the HTTPS address
 
 ``https://github.com/YOURGITNAME/beast.git`` 
-or SSH code 
+
+or the SSH one
+
 ``git@github.com:YOURGITNAME/beast.git``
 
 On the command line in a local 
 directory where you want to place the BEAST, type ``git clone`` and then paste 
-the copied code:
+the copied address:
 
-``$ git clone https://github.com/YOURGITNAME/beast.git`` or
+``$ git clone https://github.com/YOURGITNAME/beast.git`` 
+
+or
+
 ``$ git clone git@github.com:YOURGITNAME/beast.git``. 
    
 To confirm that your BEAST repository was placed in the local directory, type 
@@ -135,8 +141,12 @@ files. If you do not have the files you can place a soft link to them:
 [Rubab - confirm your instructions].
 
 ``$ cd beast/beast`` 
-or
-``$ cd beast-master/beast`` if you used install Option 2
+
+or if you used install Option 2.
+
+``$ cd beast-master/beast`` 
+
+Then
 
 ``$ wget -r <www.TBD.edu/libs>``
 
