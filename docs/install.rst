@@ -14,7 +14,6 @@ In turn, Astropy depends on
 optional features. From these you will need:
 
 - `hdf5 <http://h5py.org/>`_ to read/write `Table` objects from/to HDF5 files.
-- other Astropy dependencies [list these here].
 
 You will also need:
 
@@ -132,5 +131,7 @@ Optionally, you can run BEAST with one, or a combination, of these arguments
 
 ``$ ./run_beast.py -h`` or ``$ ./run_beast.py -mntf``
 
-[Optional]: If the BEAST is running correctly there should be no errors and the 
-output should be a plot which looks like this [insert plot here?]:
+If the BEAST is running correctly there should be no errors and the 
+output should be a plot which looks like this:
+
+.. image:: beast_example_phat_ifit_starnum_0.png
