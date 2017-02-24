@@ -72,7 +72,7 @@ def compute_age_mass_metallicity_weights(_tgrid):
             # get the grid for a single age
             aindxs, = np.where((_tgrid['logA'] == age_val) &
                                (_tgrid['Z'] == z_val))   
-            _tgrid_single_age = _tgrid[aindxs]  # remove - not used
+            _tgrid_single_age = _tgrid[aindxs]
 
             # compute the mass weights
             if len(aindxs) > 1:
