@@ -59,10 +59,12 @@ def isNestedInstance(obj, cl):
 
 
 def __interpSingle__(args):
-    return np.asarray(interp(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9])).T
+    return np.asarray(interp(args[0], args[1], args[2], args[3], args[4],
+                             args[5], args[6], args[7], args[8], args[9])).T
 
 
-def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06, weights=None, pool=None, nthreads=__NTHREADS__):
+def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06,
+                   weights=None, pool=None, nthreads=__NTHREADS__):
     """ run interp on a list of inputs and returns reduced results
 
     Interpolation of the T,g grid at Z0 metallicity
@@ -114,9 +116,11 @@ def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06, weights=None
         pool = mp.Pool(nthreads)
 
     if weights is None:
-        seq = [ (logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg, oSL.Z, dT_max, eps, 1.) for k in range(len(logT)) ]
+        seq = [ (logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg,
+                 oSL.Z, dT_max, eps, 1.) for k in range(len(logT)) ]
     else:
-        seq = [ (logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg, oSL.Z, dT_max, eps, weights[k]) for k in range(len(logT)) ]
+        seq = [ (logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg,
+                 oSL.Z, dT_max, eps, weights[k]) for k in range(len(logT)) ]
 
     if (pool is not None):
         r = pool.map( __interpSingle__, seq )
@@ -529,12 +533,23 @@ class Stellib(object):
         _grid['radius'] = np.empty(ndata, dtype=float )
         _grid['keep'] = np.empty(ndata, dtype=bool )
 
-        # weight stores the priors (initialize to 1)
+        # stores the grid+prior weights (initialize to 1)
         _grid['weight'] = np.full(ndata, 1.0, dtype=float)
 
+        # stores the prior weights separately (initialize to 1)
+        #   This will allow for adjustable priors and
+        #   visualization of the priors themselves as weights include
+        #   the grid weights to correct for the non-uniform grid spacing
+        _grid['prior_weight'] = np.full(ndata, 1.0, dtype=float)
+
+        # stores the grid weights separately (initialize to 1)
+        #   these weights alone provide flat priors on all fit parameters
+        _grid['grid_weight'] = np.full(ndata, 1.0, dtype=float)
+        
         # index to the grid
         # initialize to zero now, later assign the index value
-        # useful to setup here as it will then be cleanly propagated to the SED grid
+        # useful to setup here as it will then be cleanly propagated
+        #   to the SED grid
         _grid['specgrid_indx'] = np.zeros(ndata, dtype=np.int64)
 
         specs = np.empty( (ndata, len(self.wavelength)), dtype=float )

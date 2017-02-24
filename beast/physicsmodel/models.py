@@ -34,7 +34,7 @@ import numpy as np
 # BEAST imports
 import grid
 import creategrid
-import prior_weights
+from grid_and_prior_weights import compute_age_mass_metallicity_weights
 
 from stars import stellib
 from stars import isochrone
@@ -174,6 +174,13 @@ def make_spectra(outname, oiso, osl=None, bounds={}, distance=None,
                 gk = creategrid.add_spectral_properties(gk,
                                             nameformat=nameformat,
                                             **add_spectral_properties_kwargs)
+
+            # add in the index for the spectral grid
+            # will be passed to the SED grid allowing the original
+            # spectrum to be recovered 
+            gk.grid[:]['specgrid_indx'] = np.arange(len(gk.grid),
+                                                    dtype=np.int64)
+    
             gk.writeHDF(outname, append=True)
 
     return outname
@@ -201,7 +208,7 @@ def make_priors(outname, specgrid, **kwargs):
 
     print('Make Prior Weights')
 
-    prior_weights.compute_age_mass_metallicity_prior_weights(specgrid.grid)
+    compute_age_mass_metallicity_weights(specgrid.grid)
 
     #write to disk
     if hasattr(specgrid, 'writeHDF'):
