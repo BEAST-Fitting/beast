@@ -52,6 +52,7 @@ def hdf5diff(fname1, fname2):
                             hd.add_nonzero_match(sname)
                 else:
                     for cname in all_names:
+                        print(cname)
                         if cname in all_namesb:
                             if np.sum(hdfa[sname][cname]
                                       - hdfb[sname][cname]) != 0:
@@ -89,6 +90,8 @@ if __name__ == '__main__':
             fd = fits.FITSDiff(file1,
                                basename+'_good/'+basename+'_'+cfile+'.fits')
             print(cfile, fd.identical)
+            if not fd.identical:
+                print(fd.report())
         else:
             print(cfile, 'does not exist, not checking')
       
