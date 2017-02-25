@@ -680,7 +680,7 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
         keys = g0.keys()
 
     #make sure keys are real keys
-    skip_keys = 'osl keep weight fullgrid_idx stage specgrid_indx'.split()
+    skip_keys = 'osl keep weight grid_weight prior_weight fullgrid_idx stage specgrid_indx'.split()
     keys = [k for k in keys if k not in skip_keys]
 
     for key in keys:
