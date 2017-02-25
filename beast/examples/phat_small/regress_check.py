@@ -52,7 +52,6 @@ def hdf5diff(fname1, fname2):
                             hd.add_nonzero_match(sname)
                 else:
                     for cname in all_names:
-                        print(cname)
                         if cname in all_namesb:
                             if np.sum(hdfa[sname][cname]
                                       - hdfb[sname][cname]) != 0:
