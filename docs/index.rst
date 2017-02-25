@@ -22,6 +22,8 @@ Installing the BEAST
 
 install.rst
 
+
+
 Setup the BEAST
 ===============
 
@@ -42,9 +44,9 @@ Reference API
 .. toctree::
    :maxdepth: 1
 
-   physicsmodel_api.rst
+	      physicsmodel_api.rst
 
-   observationmodel_api.rst
+
 	      
 Indices and tables
 ==================
