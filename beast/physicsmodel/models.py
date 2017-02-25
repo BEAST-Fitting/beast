@@ -85,11 +85,8 @@ def make_iso_table(outname, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
     """
     if oiso is None: 
         oiso = isochrone.PadovaWeb()
-        #oiso = isochrone.PadovaWeb(modeltype='parsec12s')
-        #oiso = isochrone.MISTWeb()
         
-    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z,
-                               filterPMS=oiso.filterPMS, filterBad=oiso.filterBad)
+    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
     t.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
     t.write(outname)

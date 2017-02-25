@@ -488,8 +488,10 @@ class PadovaWeb(Isochrone):
         """ filter bad points and PMS points
             yes that happens! The selection is an empirical definition.
         """
+        print "IN THE FUNCTION"
         # Filter pre-ms stars
         if filterPMS:
+            print "IN THE BLOCK"
             cond = '~((M_ini < 12.) & (stage == 0))'
             iso_table = iso_table.selectWhere('*', cond)
 
@@ -503,7 +505,7 @@ class PadovaWeb(Isochrone):
         
         return iso_table
 
-    def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.0152, filterPMS=False, filterBad=False):
+    def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.0152):
         """ Generate a proper table directly from the PADOVA website
 
         Parameters
@@ -528,7 +530,7 @@ class PadovaWeb(Isochrone):
 
         if not hasattr(Z, '__iter__'):
             iso_table = parsec.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z, model=self.modeltype)
-            iso_table.header['NAME'] = 'Padova Isochrones'
+            iso_table.header['NAME'] = 'PadovaCMD Isochrones: '+self.modeltype
             if not 'Z' in iso_table:
                 iso_table.add_column('Z', np.ones(iso_table.nrows) * Z)
 
@@ -536,11 +538,11 @@ class PadovaWeb(Isochrone):
             iso_table = self._clean_cols(iso_table)
             
             # filter iso data: pre-ms and bad points
-            iso_table = self._filter_iso_points(iso_table, filterPMS=filterPMS, filterBad=filterBad)
+            iso_table = self._filter_iso_points(iso_table, filterPMS=self.filterPMS, filterBad=self.filterBad)
 
         else:
             iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
-            iso_table.header['NAME'] = 'Padova Isochrones'            
+            iso_table.header['NAME'] = 'PadovaCMD Isochrones: '+self.modeltype
 
             if len(Z) > 1:
                 more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]
