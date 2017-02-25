@@ -122,14 +122,14 @@ Now try a sample BEAST run:
 
 Optionally, you can run BEAST with one, or a combination, of these arguments
 
-  -h, --help    show this help message and exit
-  -m, --models  Generate the model grid
-  -n, --noise   Calculate the noise model
-  -t, --trim    Trim the model and noise grids
-  -f, --fit     Fit the observed data
-  -r, --resume  Resume a run
+  -h, --help              show this help message and exit
+  -p, --physicsmodel      Generate the model grid
+  -o, --observationmodel  Calculate the noise model
+  -t, --trim              Trim the model and noise grids
+  -f, --fit               Fit the observed data
+  -r, --resume            Resume a run
 
-``$ ./run_beast.py -h`` or ``$ ./run_beast.py -mntf``
+``$ ./run_beast.py -h`` or ``$ ./run_beast.py -potf``
 
 If the BEAST is running correctly there should be no errors and the 
 output should be a plot which looks like this:

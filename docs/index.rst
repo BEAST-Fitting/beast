@@ -20,12 +20,22 @@ Github: <https://github.com/karllark/beast>
 Installing the BEAST
 ====================
 
-link to install instructions
+install.rst
 
-Running the BEAST
-=================
+Setup the BEAST
+===============
 
-link to run instructions
+Need documention on setting up the datamodel.py file for BEAST runs
+
+Generating AST Inputs
+=====================
+
+generating_asts.rst
+
+Contribute to Development
+=========================
+
+beast_development.rst
 
 Reference API
 =============
