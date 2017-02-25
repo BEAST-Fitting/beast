@@ -397,7 +397,7 @@ class ezIsoch(Isochrone):
 
 
 class PadovaWeb(Isochrone):
-    def __init__(self, Zref=None, modeltype='parsec12s_r14', *args, **kwargs):
+    def __init__(self, Zref=None, modeltype='parsec12s_r14', filterPMS=False, filterBad=False, *args, **kwargs):
         self.name = 'Padova CMD isochrones'
         if Zref is None:
             if modeltype.startswith('parsec'):
@@ -406,6 +406,8 @@ class PadovaWeb(Isochrone):
                 Zref = 0.019
         self.Zref = Zref
         self.modeltype = modeltype
+        self.filterPMS = filterPMS
+        self.filterBad = filterBad
 
     def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'],
                        *args, **kwargs):
@@ -493,12 +495,15 @@ class PadovaWeb(Isochrone):
 
         # Filter bad points for PadovaCMDVersion < 2.7
         if filterBad:
-            cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
-            iso_table = iso_table.selectWhere('*', cond)
+            if not self.modeltype.startswith('parsec'):
+                cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
+                iso_table = iso_table.selectWhere('*', cond)
+            else:
+                print "No bad point filtering for PARSEC models."
         
         return iso_table
 
-    def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.0152):
+    def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.0152, filterPMS=False, filterBad=False):
         """ Generate a proper table directly from the PADOVA website
 
         Parameters
@@ -528,10 +533,10 @@ class PadovaWeb(Isochrone):
                 iso_table.add_column('Z', np.ones(iso_table.nrows) * Z)
 
             # rename cols, remove phot and other unnecessary cols
-            self._clean_cols(iso_table)
+            iso_table = self._clean_cols(iso_table)
             
             # filter iso data: pre-ms and bad points
-            #iso_table = self._filter_iso_points(iso_table)
+            iso_table = self._filter_iso_points(iso_table, filterPMS=filterPMS, filterBad=filterBad)
 
         else:
             iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
