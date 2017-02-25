@@ -441,6 +441,9 @@ def unittest():
     # define the sampling in log(age): min, max, step
     logt = [6.0, 10.13, 0.05]
 
+    # set the isochrone library
+    oiso = isochrone.PadovaWeb()
+    
     # set the stellar library
     osl = stellib.Kurucz()
 
@@ -451,7 +454,7 @@ def unittest():
     fbumps = None  # cardelli = fixed bump (no variations)
 
     # generate task respective dictionaries
-    iso_kwargs = dict(logtmin=logt[0], logtmax=logt[1], dlogt=0.05, z=0.019)
+    iso_kwargs = dict(oiso, logtmin=logt[0], logtmax=logt[1], dlogt=logt[2], z=0.019)
     spec_kwargs = dict(osl=osl)
     seds_kwargs = dict(extLaw=extLaw, av=avs, rv=rvs, fbump=fbumps)
 

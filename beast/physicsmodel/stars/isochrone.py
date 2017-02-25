@@ -138,7 +138,8 @@ class padova2010(Isochrone):
 
         self.data = Table(data, name='Isochrone from %s' % self.name)
 
-    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None, *args, **kwargs):
+    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None,
+                       *args, **kwargs):
         """ Retrieve isochrone from the original source
             internal use to adapt any library
         """
@@ -221,7 +222,8 @@ class pegase(Isochrone):
         if self.data is not None:
             self.data.close()
 
-    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None, *args, **kwargs):
+    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None,
+                       *args, **kwargs):
         """ Retrieve isochrone from the original source
             internal use to adapt any library
         """
@@ -314,7 +316,8 @@ class ezIsoch(Isochrone):
     def __getitem__(self, key):
         return self.data[key]
 
-    def _get_t_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None, *args, **kwargs):
+    def _get_t_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None,
+                         *args, **kwargs):
         """ Retrieve isochrone from the original source
             internal use to adapt any library
         """
@@ -397,7 +400,8 @@ class ezIsoch(Isochrone):
 
 
 class PadovaWeb(Isochrone):
-    def __init__(self, Zref=None, modeltype='parsec12s_r14', filterPMS=False, filterBad=False, *args, **kwargs):
+    def __init__(self, Zref=None, modeltype='parsec12s_r14', filterPMS=False, filterBad=False,
+                 *args, **kwargs):
         self.name = 'Padova CMD isochrones'
         if Zref is None:
             if modeltype.startswith('parsec'):
@@ -428,8 +432,10 @@ class PadovaWeb(Isochrone):
             metal = self.FeHtometal(FeH)
 
         iso_table = parsec.get_one_isochrone(_age, metal, ret_table=True, model=self.modeltype)
-        self._clean_cols(iso_table)
-        #iso_table = self._filter_iso_points(iso_table)
+        iso_table = self._clean_cols(iso_table)
+        iso_table = self._filter_iso_points(iso_table,
+                                            filterPMS=self.filterPMS, filterBad=self.filterBad)
+
         return iso_table
 
     def _clean_cols(self, iso_table):
@@ -458,7 +464,8 @@ class PadovaWeb(Isochrone):
             
         # Remove phot columns and unnecessary properties
         filternames = "U UX B BX V R I J H K L M".split()
-        theorycols = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode', 'CO', 'C_O', 'period0', 'period1', 'McoreTP', 'tau1m']
+        theorycols = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode',
+                      'CO', 'C_O', 'period0', 'period1', 'McoreTP', 'tau1m']
         theorycols += ['logMdot', 'Mloss'] # removing mass loss outputs
         abundcols = "X Y Xc Xn Xo Cexcess".split()
         drop = theorycols + abundcols + filternames + [s + "mag" for s in filternames]
@@ -485,17 +492,15 @@ class PadovaWeb(Isochrone):
         return iso_table
 
     def _filter_iso_points(self, iso_table, filterPMS=False, filterBad=False):
-        """ filter bad points and PMS points
-            yes that happens! The selection is an empirical definition.
+        """ Filter bad points and PMS points
+            Bad points known to affect pre-PARSEC isochrones. Selection is an empirical definition.
         """
-        print "IN THE FUNCTION"
         # Filter pre-ms stars
         if filterPMS:
-            print "IN THE BLOCK"
             cond = '~((M_ini < 12.) & (stage == 0))'
             iso_table = iso_table.selectWhere('*', cond)
 
-        # Filter bad points for PadovaCMDVersion < 2.7
+        # Filter bad points for pre-PARSEC, PadovaCMDVersion < 2.7 isochrones
         if filterBad:
             if not self.modeltype.startswith('parsec'):
                 cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
@@ -529,7 +534,8 @@ class PadovaWeb(Isochrone):
         """
 
         if not hasattr(Z, '__iter__'):
-            iso_table = parsec.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z, model=self.modeltype)
+            iso_table = parsec.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z,
+                                                model=self.modeltype)
             iso_table.header['NAME'] = 'PadovaCMD Isochrones: '+self.modeltype
             if not 'Z' in iso_table:
                 iso_table.add_column('Z', np.ones(iso_table.nrows) * Z)
@@ -538,7 +544,8 @@ class PadovaWeb(Isochrone):
             iso_table = self._clean_cols(iso_table)
             
             # filter iso data: pre-ms and bad points
-            iso_table = self._filter_iso_points(iso_table, filterPMS=self.filterPMS, filterBad=self.filterBad)
+            iso_table = self._filter_iso_points(iso_table,
+                                                filterPMS=self.filterPMS, filterBad=self.filterBad)
 
         else:
             iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
@@ -546,7 +553,8 @@ class PadovaWeb(Isochrone):
 
             if len(Z) > 1:
                 more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]
-                iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more, usemask=False, asrecarray=True)
+                iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more,
+                                                            usemask=False, asrecarray=True)
 
         return iso_table
 
@@ -574,8 +582,9 @@ class MISTWeb(Isochrone):
         if metal is None:
             metal = self.FeHtometal(FeH)
 
-        iso_table = mist.get_one_isochrone(_age, FeH, v_div_vcrit=self.rotation, age_scale='log10', ret_table=True)
-        self._clean_cols(iso_table)
+        iso_table = mist.get_one_isochrone(_age, FeH, v_div_vcrit=self.rotation, age_scale='log10',
+                                           ret_table=True)
+        iso_table = self._clean_cols(iso_table)
 
         return iso_table
 
@@ -644,13 +653,14 @@ class MISTWeb(Isochrone):
 
         if not hasattr(Z, '__iter__'):
             iso_table = mist.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt,
-                                              v_div_vcrit=self.rotation, FeH_value=np.log10(Z/0.0142))
+                                              v_div_vcrit=self.rotation,
+                                              FeH_value=np.log10(Z/self.Zref))
             iso_table.header['NAME'] = 'MESA/MIST Isochrones'
             if not 'Z' in iso_table:
                 iso_table.add_column('Z', np.ones(iso_table.nrows) * Z)
 
             # rename cols, remove phot and other unnecessary cols
-            self._clean_cols(iso_table)
+            iso_table = self._clean_cols(iso_table)
             
         else:
             iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
@@ -658,6 +668,7 @@ class MISTWeb(Isochrone):
 
             if len(Z) > 1:
                 more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]
-                iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more, usemask=False, asrecarray=True)
+                iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more,
+                                                            usemask=False, asrecarray=True)
 
         return iso_table
