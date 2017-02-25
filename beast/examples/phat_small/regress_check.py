@@ -89,6 +89,8 @@ if __name__ == '__main__':
             fd = fits.FITSDiff(file1,
                                basename+'_good/'+basename+'_'+cfile+'.fits')
             print(cfile, fd.identical)
+            if not fd.identical:
+                print(fd.report())
         else:
             print(cfile, 'does not exist, not checking')
       
