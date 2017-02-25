@@ -50,8 +50,8 @@ __all__ = ['make_iso_table','make_spectra', 'make_priors', 'make_seds']
 #,
 #           't_isochrones',  't_spectra', 't_priors', 't_seds' ]
 
-def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
-                   z=[0.0152], trackVersion=2.3, oiso=None):
+def make_iso_table(outname, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
+                   z=[0.0152]):
     """
      a spectral grid will be generated using the stellar parameters by
      interpolation of the isochrones and the generation of spectra into the
@@ -88,7 +88,8 @@ def make_iso_table(outname, logtmin=6.0, logtmax=10.13, dlogt=0.05,
         #oiso = isochrone.PadovaWeb(modeltype='parsec12s')
         #oiso = isochrone.MISTWeb()
         
-    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z)
+    t = oiso._get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, z,
+                               filterPMS=oiso.filterPMS, filterBad=oiso.filterBad)
     t.header['NAME'] = '{0} Isochrones'.format('_'.join(outname.split('_')[:-1]))
 
     t.write(outname)
