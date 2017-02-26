@@ -1,6 +1,6 @@
 """
 Trim the grid of models
-================
+=======================
 
 For a given set of observations, there will be models that are so
 bright or faint that they will always have ~0 probability of fitting
@@ -16,6 +16,8 @@ import tables
 from ..physicsmodel.grid import FileSEDGrid
 from ..physicsmodel.grid import SpectralGrid
 from ..external.eztables import Table
+
+__all__ = ['trim_models']
 
 def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
                 noisemodel_outname,

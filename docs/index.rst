@@ -52,9 +52,9 @@ Reference API
    :maxdepth: 1
 
    physicsmodel_api.rst
-
    observationmodel_api.rst
-   
+   fitting_api.rst
+	      
 Indices and tables
 ==================
 
