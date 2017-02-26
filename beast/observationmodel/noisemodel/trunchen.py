@@ -1,9 +1,6 @@
 """
 Trunchen version of noisemodel
 Goal is to compute the full 6-band covariance matrix for each model
-
-.. history::
-    Started 18 Dec 2015 by Karl D. Gordon
 """
 from __future__ import print_function
 
