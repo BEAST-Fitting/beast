@@ -9,10 +9,6 @@ from __future__ import print_function
 import numpy as np
 from scipy.integrate import quad
 
-from grid import FileSEDGrid
-from grid import SpectralGrid
-from ..external.eztables import Table
-
 from grid_weights import compute_bin_boundaries
 
 __all__ = ['compute_age_prior_weights',

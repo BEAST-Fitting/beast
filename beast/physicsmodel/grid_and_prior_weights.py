@@ -16,10 +16,6 @@ from __future__ import print_function
 
 import numpy as np
 
-from grid import FileSEDGrid
-from grid import SpectralGrid
-from ..external.eztables import Table
-
 from grid_weights import compute_age_grid_weights
 from grid_weights import compute_mass_grid_weights
 from grid_weights import compute_metallicity_grid_weights

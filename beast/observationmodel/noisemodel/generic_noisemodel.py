@@ -6,9 +6,9 @@ noise.
 
 Toothpick assumes that all bands are independent - no covariance.
 This is a conservative assumption.  If there is true covariance
-  more accurate results with smaller uncertainties on fit parameters
-  can be achieved using the trunchen method.  The trunchen method
-  requires significantly more complicated ASTs and many more of them.
+more accurate results with smaller uncertainties on fit parameters
+can be achieved using the trunchen method.  The trunchen method
+requires significantly more complicated ASTs and many more of them.
 """
 
 import numpy as np

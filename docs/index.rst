@@ -51,6 +51,10 @@ Reference API
 .. toctree::
    :maxdepth: 1
 
+   physicsmodel_api.rst
+
+   observationmodel_api.rst
+   
 Indices and tables
 ==================
 
