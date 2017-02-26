@@ -20,9 +20,10 @@ Github: <https://github.com/karllark/beast>
 Installing the BEAST
 ====================
 
-install.rst
+.. toctree::
+   :maxdepth: 2
 
-
+   Description <install.rst>
 
 Setup the BEAST
 ===============
@@ -32,22 +33,24 @@ Need documention on setting up the datamodel.py file for BEAST runs
 Generating AST Inputs
 =====================
 
-generating_asts.rst
+.. toctree::
+   :maxdepth: 2
+
+   Description <generating_asts.rst>
 
 Contribute to Development
 =========================
 
-beast_development.rst
+.. toctree::
+   :maxdepth: 2
+
+   Description <beast_development.rst>
 
 Reference API
 =============
 .. toctree::
    :maxdepth: 1
 
-	      physicsmodel_api.rst
-
-
-	      
 Indices and tables
 ==================
 
