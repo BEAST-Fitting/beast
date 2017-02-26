@@ -23,7 +23,7 @@ Installing the BEAST
 .. toctree::
    :maxdepth: 2
 
-   Description <install.rst>
+   install.rst
 
 Setup the BEAST
 ===============
