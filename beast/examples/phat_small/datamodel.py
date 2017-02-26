@@ -1,6 +1,5 @@
 """ Data Model interface v2.0
-BEAST datamodel for the example based on PHAT data
-KDG - 21 Dec 2016
+BEAST datamodel for the example based on M31 PHAT data
 """
 
 import numpy as np
@@ -32,10 +31,12 @@ project = 'beast_example_phat'
 #   full filter names in BEAST filter database
 filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W',
            'HST_ACS_WFC_F814W', 'HST_WFC3_F110W','HST_WFC3_F160W']
+
 # basefilters : list of strings
 #   short names for filters
 basefilters = ['F275W','F336W','F475W',
                'F814W','F110W','F160W']
+
 # obs_colnames : list of strings
 #   names of columns for filters in the observed catalog
 #   need to match column names in the observed catalog,
@@ -68,8 +69,10 @@ ast_realization_per_model = 20
                              
 
 # ast_maglimit : float (single value or array with one value per filter)
-# (1) option 1: [number] to change the number of mags fainter than the 90th percentile
-#               faintest star in the photometry catalog to be used for the mag cut.
+# (1) option 1: [number] to change the number of mags fainter than
+#                  the 90th percentile
+#               faintest star in the photometry catalog to be used for
+#                  the mag cut.
 #               (Default = 1)
 # (2) option 2: [space-separated list of numbers] to set custom faint end limits
 #               (one value for each band).
@@ -120,7 +123,8 @@ distanceModulus = 24.47 * unit['mag']
 #   example [6.0, 10.13, 1.0]
 logt = [6.0, 10.13, 1.0]
 
-# note: Mass is not sampled, use the isochrone def instead.
+# note: Mass is not sampled, instead the isochrone supplied
+#       mass spacing is used instead
 
 # Metallicity : list of floats
 #   PARSECv1.2S accepts values 1.e-4 < Z < 0.06
@@ -148,10 +152,9 @@ avs = [0.0, 10.055, 1.0]
 #   example [min, max, step] = [2.0,6.0,1.0]
 rvs = [2.0,6.0,1.0]
 
-# fbump (should be f_A): mixture factor between
-#   "MW" and "SMCBar" extinction curves
+# fA: mixture factor between "MW" and "SMCBar" extinction curves
 #   example [min, max, step] = [0.0,1.0, 0.25]
-fbumps = [0.0,1.0, 0.25]
+fAs = [0.0,1.0, 0.25]
 
 ################
 
@@ -171,7 +174,8 @@ class GenFluxCatalog(Observations):
         it does not implement uncertainties as in this model, the noise is
         given through artificial star tests
     """
-    def __init__(self, inputFile, distanceModulus=distanceModulus, filters=filters):
+    def __init__(self, inputFile, distanceModulus=distanceModulus,
+                 filters=filters):
         """ Construct the interface """
         desc = 'GENERIC star: %s' % inputFile
         Observations.__init__(self, inputFile, distanceModulus, desc=desc)
@@ -198,7 +202,8 @@ class GenFluxCatalog(Observations):
         Returns
         -------
         flux: ndarray[dtype=float, ndim=1]
-            Measured integrated flux values throughout the filters in erg/s/cm^2
+            Measured integrated flux values throughout the filters 
+            in erg/s/cm^2/A
         """
 
         # case for using '_flux' result
@@ -226,8 +231,8 @@ class GenFluxCatalog(Observations):
 
         # for optimization purpose: pre-compute
         #   getting vega mags, require to open and read the content of one file.
-        #   since getObs, calls getFlux, for each star you need to do this expensive
-        #   op.
+        #   since getObs, calls getFlux, for each star you need to do this
+        #   expensive operation
         with Vega() as v:
             _, vega_flux, _ = v.getFlux(filters)
 
@@ -255,5 +260,6 @@ def get_obscat(obsfile=obsfile, distanceModulus=distanceModulus,
     obs: GenFluxCatalog
         observation catalog
     """
-    obs = GenFluxCatalog(obsfile, distanceModulus=distanceModulus, filters=filters)
+    obs = GenFluxCatalog(obsfile, distanceModulus=distanceModulus,
+                         filters=filters)
     return obs

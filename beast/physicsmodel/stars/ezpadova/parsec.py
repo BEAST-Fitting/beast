@@ -472,4 +472,7 @@ def get_t_isochrones(logt0, logt1, dlogt, metal, ret_table=True, **kwargs):
     else:
         return r
 
+# This command requires the run to be done online
+# but not needed if isochrones already cached on disk
+# would be nice to run offline with cached isochrones - is this possible?
 get_photometry_list()
