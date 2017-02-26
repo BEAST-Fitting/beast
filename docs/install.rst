@@ -79,11 +79,8 @@ Option 3
 ________
 
 This option is suitable if you *plan to make code contributions* to the BEAST.
-See the `BEAST Development Documentation <http://beast.readthedocs.io/en/latest/beast_development.rst>`_
-for details. [Update link]
+See the :ref:'beast_development' for details. 
 
-
-.. _`Obtaining BEAST libraries`
 Obtaining BEAST Library Files
 -----------------------------
 
