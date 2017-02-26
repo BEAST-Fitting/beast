@@ -15,14 +15,7 @@ Gordon et al. (2016, ApJ, 826, 104).
 Contributors
 ------------
 
-Karl Gordon,
-Morgan Fouesneau,
-Heddy Arab,
-Kirill Tchernyshyov,
-Dan Weisz,
-Yumi Choi,
-and
-the BEAST Team
+<https://github.com/karllark/beast/graphs/contributors>
 
 In Development!
 ---------------
