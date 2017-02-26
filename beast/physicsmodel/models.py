@@ -216,7 +216,7 @@ def make_priors(outname, specgrid, **kwargs):
     return outname
 
 def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
-              fbump=None, extLaw=None, add_spectral_properties_kwargs=None,
+              fA=None, extLaw=None, add_spectral_properties_kwargs=None,
               absflux_cov=False,
               **kwargs):
     """make_seds -- Create SED model grid integrated into filters and
@@ -243,8 +243,8 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
     rv: sequence
         sequence of Rv values to sample
 
-    fbump: sequence (optional)
-        sequence of fbump values to sample (depending on extLaw definition)
+    fA: sequence (optional)
+        sequence of fA values to sample (depending on extLaw definition)
 
     extLaw: extinction.ExtLaw
         extinction law to use during the process
@@ -271,10 +271,10 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
 
     print('Make SEDS')
 
-    if fbump is not None:
-        fbumps = np.arange(fbump[0], fbump[1] + 0.5 * fbump[2], fbump[2])
+    if fA is not None:
+        fAs = np.arange(fA[0], fA[1] + 0.5 * fA[2], fA[2])
         g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
-                                              avs, rvs, fbumps,
+                                              avs, rvs, fAs,
                 add_spectral_properties_kwargs=add_spectral_properties_kwargs,
                                               absflux_cov=absflux_cov)
     else:
@@ -429,6 +429,8 @@ def unittest():
     Global parameters
     =================
 
+    ****not tested in quite sometime (KDG 25 Feb 2017)***
+
     """
     #project token name, every task will use it as id
     project = 'unittest'
@@ -451,12 +453,12 @@ def unittest():
     extLaw = extinction.Cardelli()
     avs = [0., 5., 0.2]
     rvs = [3.1, 3.1, 0.1]
-    fbumps = None  # cardelli = fixed bump (no variations)
+    fAs = None  # cardelli = MW only (no SMC type variations)
 
     # generate task respective dictionaries
     iso_kwargs = dict(oiso, logtmin=logt[0], logtmax=logt[1], dlogt=logt[2], z=0.019)
     spec_kwargs = dict(osl=osl)
-    seds_kwargs = dict(extLaw=extLaw, av=avs, rv=rvs, fbump=fbumps)
+    seds_kwargs = dict(extLaw=extLaw, av=avs, rv=rvs, fA=fAs)
 
     # ======================= Pipeline ==============================
     # actual pipeline making models
