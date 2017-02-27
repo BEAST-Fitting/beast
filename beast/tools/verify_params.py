@@ -106,7 +106,7 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
 def verify_input_format(datamodel):
 
 	"""
-	Import BAEST input parameters from datamodel.
+	Import BEAST input parameters from datamodel.
 	Define relevant parameters, their correct names, format and limits.
 	Call verify_one_input_format to test for correctness of format and limits.
 
@@ -117,11 +117,12 @@ def verify_input_format(datamodel):
 
 	"""
 
-	parameters = [datamodel.z, datamodel.obsfile, \
-	              datamodel.astfile, datamodel.logt, datamodel.avs, datamodel.rvs, datamodel.fbumps, datamodel.trackVersion]
-	parameters_names = ['z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs', 'fbumps', 'trackVersion']
-	param_format = ['list_float', 'str_file', 'str_file', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'list_float_grid', 'version']
-	parameters_limits = [ [0., 0.1], None, None, [-inf, 10.15], [0., inf], [1., 7.], [0., 1.], [2.3, 2.7]]
+	parameters = [datamodel.z, datamodel.obsfile, datamodel.astfile, datamodel.logt,
+                      datamodel.avs, datamodel.rvs, datamodel.fbumps]
+	parameters_names = ['z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs', 'fbumps']
+	param_format = ['list_float', 'str_file', 'str_file', 'list_float_grid', 'list_float_grid',
+                        'list_float_grid', 'list_float_grid']
+	parameters_limits = [ [0., 0.1], None, None, [-inf, 10.15], [0., inf], [1., 7.], [0., 1.]]
 	
 	for i, param_ in enumerate(parameters):
 		verify_one_input_format(param_, parameters_names[i], param_format[i], parameters_limits[i])

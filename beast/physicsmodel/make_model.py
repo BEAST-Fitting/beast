@@ -111,11 +111,11 @@ def make_models(*args, **kwargs):
         Modelgrid instance constaining the collection of SEDs
     """
     # calling sequences
-    iso_kwargs = dict(logtmin=datamodel.logt[0],
+    iso_kwargs = dict(oiso=datamodel.oiso,
+                      logtmin=datamodel.logt[0],
                       logtmax=datamodel.logt[1],
                       dlogt=datamodel.logt[2],
-                      z=datamodel.z,
-                      trackVersion=datamodel.trackVersion)
+                      z=datamodel.z)
 
     dmod = val_in_unit('distance Modulus', datamodel.distanceModulus, 'mag').magnitude
     distance = 10 ** ( (dmod / 5.) + 1 ) * unit['pc']
@@ -125,8 +125,7 @@ def make_models(*args, **kwargs):
     seds_kwargs = dict(extLaw=datamodel.extLaw,
                        av=datamodel.avs,
                        rv=datamodel.rvs,
-                       fbump=datamodel.fbumps
-                       )
+                       fbump=datamodel.fbumps)
 
     if hasattr(datamodel, 'add_spectral_properties_kwargs'):
         seds_kwargs['add_spectral_properties_kwargs'] = datamodel.add_spectral_properties_kwargs
@@ -143,5 +142,3 @@ def make_models(*args, **kwargs):
     job, (p, g) = models(datamodel.project)
 
     return job, (p, g)
-
-
