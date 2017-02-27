@@ -38,9 +38,3 @@ prune astropy_helpers/astropy_helpers/tests
 
 global-exclude *.pyc *.o
 
-# specific includes for BEAST
-# not working!!!!!
-
-include beast/external/ezunits/default_en.txt
-include beast/physicsmodel/stars/ezpadova/parsec.json
-include beast/physicsmodel/stars/ezmist/mist.json
