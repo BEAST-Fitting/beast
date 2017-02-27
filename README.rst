@@ -15,6 +15,14 @@ Gordon et al. (2016, ApJ, 826, 104).
 Contributors
 ------------
 
+BEAST contributors 2016 and before (BEAST paper authorship):
+Karl D. Gordon, Morgan Fouesneau, Heddy Arab, Kirill Tchernyshyov,
+Daniel R. Weisz, Julianne J. Dalcanton, Benjamin F. Williams,
+Eric F. Bell, Lucianna Bianchi, Martha Boyer, Yumi Choi, Andrew Dolphin,
+Leo Girardi, David W. Hogg, Jason S. Kalirai, Maria Kapala,
+Alexia R. Lewis, Hans-Walter Rix, Karin Sandstrom, and Evan D. Skillman
+
+Direct code contributors (including new contributors since 2016):
 <https://github.com/karllark/beast/graphs/contributors>
 
 In Development!
