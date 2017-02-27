@@ -472,4 +472,7 @@ def get_t_isochrones(logt0, logt1, dlogt, metal, ret_table=True, **kwargs):
     else:
         return r
 
-get_photometry_list()
+# Auto-update photometry list
+# Commented out here for BEAST: we don't use photometry, so no need
+# to run the live update.
+#get_photometry_list()
