@@ -6,6 +6,7 @@ KDG - 21 Dec 2016
 import numpy as np
 
 # BEAST imports
+from beast.physicsmodel.stars import isochrone
 from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.dust import extinction
 from beast.observationmodel.observations import Observations
@@ -114,6 +115,8 @@ absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 # distance modulus to the galaxy
 distanceModulus = 24.47 * unit['mag']
 
+################
+
 ### Stellar grid definition
 
 # log10(Age) -- [min,max,step] to generate the isochrones in years
@@ -123,13 +126,24 @@ logt = [6.0, 10.13, 1.0]
 # note: Mass is not sampled, use the isochrone def instead.
 
 # Metallicity : list of floats
+#   Here: Z == Z_initial, NOT Z(t) surface abundance
 #   PARSECv1.2S accepts values 1.e-4 < Z < 0.06
 #   example z = [0.03, 0.019, 0.008, 0.004]
 #   can they be set as [min, max, step]?
 z = [0.03, 0.019, 0.008, 0.004]
 
-# Isochrone CMD version (2.3 for Girardi et al. (2010) or 2.7 for PARSECv1.2S)
-trackVersion = 2.7
+# Isochrone Model Grid
+#   Current Choices: Padova or MIST
+#   PadovaWeb() -- `modeltype` param for iso sets from ezpadova
+#      (choices: parsec12s_r14, parsec12s, 2010, 2008, 2002)
+#   MISTWeb() -- `rotation` param (choices: vvcrit0.0=default, vvcrit0.4)
+#
+# Default: PARSEC+CALIBRI
+oiso = isochrone.PadovaWeb()
+# Alternative: PARSEC1.2S -- old grid parameters
+#oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)
+# Alternative: MIST -- v1, no rotation
+#oiso = isochrone.MISTWeb()
 
 # Stellar Atmospheres library definition
 osl = stellib.Tlusty() + stellib.Kurucz()
