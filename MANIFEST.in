@@ -15,10 +15,6 @@ prune build
 prune docs/_build
 prune docs/api
 
-# specific includes for BEAST
-
-include external/ezunits/default_en.txt
-
 # the next few stanzas are for astropy_helpers.  It's derived from the
 # astropy_helpers/MANIFEST.in, but requires additional includes for the actual
 # package directory and egg-info.
@@ -41,3 +37,4 @@ prune astropy_helpers/astropy_helpers/tests
 
 
 global-exclude *.pyc *.o
+

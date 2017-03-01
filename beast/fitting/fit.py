@@ -45,6 +45,13 @@ from fit_metrics import expectation, percentile, getNorm_lnP
 
 from pdf1d import pdf1d
 
+__all__ = ['summary_table_memory',
+           'Q_all_memory',
+           'IAU_names_and_extra_info',
+           'save_stats',
+           'save_pdf1d',
+           'save_lnp']
+
 def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals,
                per_vals, chi2_vals, chi2_indx, 
                lnp_vals, lnp_indx, best_specgrid_indx, qnames, p):

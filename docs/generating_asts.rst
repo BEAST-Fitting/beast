@@ -34,11 +34,13 @@ Number of Realizations of each included AST model
 to be put into the list. (Default = 20)
 
 ast_maglimit : float (single value or array with one value per filter)
-(1) option 1: [number] to change the number of mags fainter than the 90th percentile
-              faintest star in the photometry catalog to be used for the mag cut.
-              (Default = 1)
-(2) option 2: [space-separated list of numbers] to set custom faint end limits
-              (one value for each band).
+
+1. option 1: [number] to change the number of mags fainter than the 90th percentile
+   faintest star in the photometry catalog to be used for the mag cut.
+   (Default = 1)
+   
+2. option 2: [space-separated list of numbers] to set custom faint end limits
+   (one value for each band).
 
 ast_with_positions :  (bool,optional)
 If True, the ast list is produced with X,Y positions.

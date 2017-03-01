@@ -23,7 +23,4 @@ Grid
 
 .. automodapi:: beast.physicsmodel.creategrid
 
-.. automodapi:: beast.physicsmodel.prior_weights
-		
-... automodapi:: beast.physicsmodel.models
    
