@@ -125,7 +125,7 @@ def make_models(*args, **kwargs):
     seds_kwargs = dict(extLaw=datamodel.extLaw,
                        av=datamodel.avs,
                        rv=datamodel.rvs,
-                       fbump=datamodel.fbumps)
+                       fA=datamodel.fAs)
 
     if hasattr(datamodel, 'add_spectral_properties_kwargs'):
         seds_kwargs['add_spectral_properties_kwargs'] = datamodel.add_spectral_properties_kwargs

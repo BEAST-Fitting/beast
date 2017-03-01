@@ -241,15 +241,15 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
 
     return g
 
-def _make_dust_fbump_valid_points_generator(it, min_Rv, max_Rv):
+def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
     """
-    compute the allowed points based on the R(V) versus f_bump plane
+    compute the allowed points based on the R(V) versus f_A plane
     duplicates effort for all A(V) values, but it is quick compared to
     other steps
 
     .. note::
 
-        on 2.74: Bumpless extinction implies f_bump = 0. and Rv = 2.74
+        on 2.74: SMC extinction implies f_A = 0. and Rv = 2.74
 
     Parameters
     ----------
@@ -292,7 +292,7 @@ def _make_dust_fbump_valid_points_generator(it, min_Rv, max_Rv):
 
 @generator
 def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
-                           fbumps=None, chunksize=0,
+                           fAs=None, chunksize=0,
                            add_spectral_properties_kwargs=None,
                            absflux_cov=False):
     """
@@ -321,9 +321,9 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
     Rvs: sequence
         Rv values to iterate over
 
-    fbumps: sequence (optional)
-        f_bump values to iterate over
-        f_bump can be omitted if the extinction Law does not use it or allow
+    fAs: sequence (optional)
+        f_A values to iterate over
+        f_A can be omitted if the extinction Law does not use it or allow
             fixed values
 
     chunksize: int, optional (default=0)
@@ -360,11 +360,11 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
         helpers.type_checker('spec_grid', spec_grid, SpectralGrid)
         g0 = spec_grid
 
-    # Tag fbump usage
-    if fbumps is None:
-        with_fb = False
+    # Tag fA usage
+    if fAs is None:
+        with_fA = False
     else:
-        with_fb = True
+        with_fA = True
 
     # get the min/max R(V) values necessary for the grid point definition
     min_Rv = min(rvs)
@@ -374,10 +374,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
     # ========================
     # basically the dot product from all input 1d vectors
     # setup interation over the full dust parameter grid
-    if with_fb:
-        it = np.nditer(np.ix_(avs, rvs, fbumps))
-        niter = np.size(avs) * np.size(rvs) * np.size(fbumps)
-        npts, pts = _make_dust_fbump_valid_points_generator(it, min_Rv, max_Rv)
+    if with_fA:
+        it = np.nditer(np.ix_(avs, rvs, fAs))
+        niter = np.size(avs) * np.size(rvs) * np.size(fAs)
+        npts, pts = _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv)
 
         # Pet the user
         print("""number of initially requested points = {0:d}
@@ -418,7 +418,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                 'Rv': np.empty(N, dtype=float)
                 }
 
-        if with_fb:
+        if with_fA:
             cols['Rv_A'] = np.empty(N, dtype=float)
             cols['f_A'] = np.empty(N, dtype=float)
 
@@ -436,10 +436,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
         for count, pt in \
                 Pbar(npts, desc='SED grid').iterover(enumerate(chunk_pts)):
 
-            if with_fb:
-                Av, Rv, f_bump = pt
-                Rv_MW = extLaw.get_Rv_A(Rv, f_bump)
-                r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_bump,
+            if with_fA:
+                Av, Rv, f_A = pt
+                Rv_MW = extLaw.get_Rv_A(Rv, f_A)
+                r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_A,
                                           inplace=False)
                 # add extra "spectral bands" if requested
                 if add_spectral_properties_kwargs is not None:
@@ -449,7 +449,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                 # adding the dust parameters to the models
                 cols['Av'][N0 * count: N0 * (count + 1)] = Av
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
-                cols['f_A'][N0 * count:N0 * (count + 1)] = f_bump
+                cols['f_A'][N0 * count:N0 * (count + 1)] = f_A
                 cols['Rv_A'][N0 * count: N0 * (count + 1)] = Rv_MW
 
             else:
@@ -664,7 +664,7 @@ def xxxtest_make_extinguished_grid():
     osl = stellib.Kurucz()
     oiso = isochrone.PadovaWeb()
     oiso.data = oiso.get_t_isochrones(6.5, 8.0, 0.1, 0.02)
-    oext = extinction.RvFbumpLaw()
+    oext = extinction.Gordon16_RvFALaw()
     chunksize = 1e3
 
     # a spectral grid will be generated but not saved
@@ -677,9 +677,9 @@ def xxxtest_make_extinguished_grid():
     # variable to ensure that range is fully covered in using np.arange
     __tiny_delta__ = 0.001
     # grid spacing for dust
-    avs            = np.arange(0.0, 5.0 + __tiny_delta__, 0.5)
-    rvs            = np.arange(1.0, 6.0 + __tiny_delta__, 1.0)
-    fbumps         = np.asarray([1.0])
+    avs   = np.arange(0.0, 5.0 + __tiny_delta__, 0.5)
+    rvs   = np.arange(1.0, 6.0 + __tiny_delta__, 1.0)
+    fAs  = np.asarray([1.0])
 
     #make the spectral grid
     g = gen_spectral_grid_from_stellib_given_points(osl, oiso.data, chunksize=chunksize)
@@ -687,7 +687,7 @@ def xxxtest_make_extinguished_grid():
     part = 0
     for gk in g:
         # make the grid
-        gen_extgrid = make_extinguished_grid(gk, filter_names, oext, avs, rvs, fbumps, chunksize=chunksize)
+        gen_extgrid = make_extinguished_grid(gk, filter_names, oext, avs, rvs, fAs, chunksize=chunksize)
 
         print('Calling make_extinguished_grid')
         for extgrid in gen_extgrid:
