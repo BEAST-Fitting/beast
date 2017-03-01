@@ -154,6 +154,10 @@ def plot_generic(table, xcolname, ycolname, fig=None, ax=None, plottype='hist',
         table = table[condition]
     xcol = table[xcolname]
     ycol = table[ycolname]
+
+    if len(xcol) <= 0:
+        return
+    
     if xlog:
         xcol = np.log10(xcol)
         xcolname = 'log10(' + xcolname + ')'
