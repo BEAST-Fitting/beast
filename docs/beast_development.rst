@@ -60,7 +60,7 @@ Fork the BEAST distro
 
   .. code:: shell
 	    
-     $ git remote set-url --add upstream https://github.com/karllark/beast.git
+     $ git remote add upstream https://github.com/karllark/beast.git
  
    
 Adding Branches
