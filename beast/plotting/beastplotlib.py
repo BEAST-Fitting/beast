@@ -81,9 +81,11 @@ def initialize_parser():
     ftypes = ['png', 'jpg', 'jpeg', 'pdf', 'ps', 'eps', 'rgba',
               'svg', 'tiff', 'tif', 'pgf', 'svgz', 'raw']
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--savefig', action='store', default=False, choices=ftypes,
-                        help='Save figure to a file of specified type rather than show it. \
-                              Must be one of: "{}"'.format('", "'.join(ftypes))
+    parser.add_argument('-s', '--savefig', action='store',
+                        default=False, choices=ftypes,
+                        help='Save figure to a file of specified type \
+                            rather than show it. \
+                            Must be one of: "{}"'.format('", "'.join(ftypes))
                         )
     parser.add_argument('-t', '--tex', action='store_true', 
                         help='Configure Matplotlib to use LaTeX; \

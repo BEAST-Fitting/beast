@@ -15,14 +15,13 @@ from matplotlib import rc
 from beastplotlib import (fancify_colname, initialize_parser,
                           plot_generic, set_params)
 
-def make_param_vs_chi2min_plots(statsfile, suffix='Exp', figsize=(20,10)):
+def make_param_vs_chi2min_plots(stats, suffix='Exp', figsize=(20,10)):
     '''Makes a set of 6 diagnostic 2D histograms for BEAST output.
 
     Parameters
     ----------
-    statsfile : str, file-like, list, pathlib.Path object
-        File with BEAST output; see astropy.io.ascii.read docs for full 
-        description of allowed input types.
+    stats : astropy Table
+        stats table from BEAST run
     suffix : str, optional
         Column type ('Exp', 'Best', 'p16', 'p50', 'p84').
         Defaults to 'Exp'.
@@ -35,7 +34,6 @@ def make_param_vs_chi2min_plots(statsfile, suffix='Exp', figsize=(20,10)):
     fig : matplotlib figure object
         Figure with diagnostic plots
     '''
-    stats = Table.read(statsfile)
 
     base_cnames = ['Av', 'logA', 'M_ini', 'Rv', 'f_A', 'Z']
     cnames = ['{}_{}'.format(n, suffix) for n in base_cnames]
@@ -72,7 +70,9 @@ if __name__ == '__main__':
     basename = args.filename.replace('.fits', '_diagnostics')
 
     set_params(lw=2, fontsize=16, usetex=False)
-    fig = make_param_vs_chi2min_plots(args.filename, suffix=args.suffix)
+
+    stats = Table.read(args.filename)
+    fig = make_param_vs_chi2min_plots(stats, suffix=args.suffix)
 
     if args.savefig:
         fig.savefig('{}.{}'.format(basename, args.savefig))

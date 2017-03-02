@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Show good/bad visualizations for BEAST results
+Show diagnostic plots for a square region in two parameters
 """
 
 from __future__ import print_function
@@ -9,13 +9,15 @@ import matplotlib.pyplot as plt
 from astropy.table import Table
 from matplotlib.colors import LogNorm
 from matplotlib import rc
+import numpy as np
 
 # local imports
 from beastplotlib import (fancify_colname, initialize_parser,
                           plot_generic, set_params)
 
-def make_good_bad_plots(stats, xparam='logT', yparam='logL',
-                        suffix='Exp', chi2min=10., figsize=(15,10)):
+def make_region_diag_plots(stats, xparam='logT', yparam='logL',
+                           suffix='Exp', xrange=[3.8,4.0], yrange=[1.0,6.0],
+                           figsize=(15,10)):
     '''Makes a set of 4 diagnostic 2D histograms for BEAST output.
 
     Parameters
@@ -28,12 +30,15 @@ def make_good_bad_plots(stats, xparam='logT', yparam='logL',
     yparam: str, optional
         Parameter (column) name
         Default to 'logL'
+    xrange: float, float, optional
+        x range for region
+        default to [0.0, 1.0]
+    yrange: float, float, optional
+        y range for region
+        default to [0.0, 1.0]
     suffix : str, optional
         Column type ('Exp', 'Best', 'p16', 'p50', 'p84').
         Defaults to 'Exp'.
-    chi2min : float, optional
-        chi2min theshold value for splitting the plots
-        Defaults to 10.
     figsize : tuple of ints, optional
         Size of figure to return in inches (width, height).
         Defaults to (10, 5.5).
@@ -45,18 +50,29 @@ def make_good_bad_plots(stats, xparam='logT', yparam='logL',
     '''
     base_cnames = [xparam, yparam]
     cnames = ['{}_{}'.format(n, suffix) for n in base_cnames]
-    plot_pairs = [[cnames[0], cnames[1]],
+
+    # cut out the data in the region defined
+    indxs, = np.where(np.logical_and(xrange[0] <= stats[cnames[0]],
+                                     stats[cnames[0]] <= xrange[1]))
+    indxs2, = np.where(np.logical_and(yrange[0] <= stats[cnames[1]][indxs],
+                                      stats[cnames[1]][indxs] <= yrange[1]))
+    if len(indxs2) <= 0:
+        print('no data in selection window')
+        exit()
+    else:
+        stats_region = stats[indxs[indxs2]]
+
+    base_pnames = ['logT','logL', 'Av', 'Rv']
+    pnames = ['{}_{}'.format(n, suffix) for n in base_pnames]
+    plot_pairs = [[pnames[0], pnames[1]],
+                  [pnames[0], pnames[2]],
+                  [pnames[2], pnames[3]],
                   ['RA', 'DEC']]
-    chicut = chi2min
+
     fig, axes = plt.subplots(2, 2, figsize=figsize)
     ax = axes.ravel()
     for i, pair in enumerate(plot_pairs):
-        j = 2*i
-        plot_generic(stats, pair[0], pair[1], fig, ax[j],
-                     thresh_col='chi2min', thresh=chicut, thresh_op='less',
-                     plot_kwargs={'norm':LogNorm()})
-        plot_generic(stats, pair[0], pair[1], fig, ax[j+1], 
-                     thresh_col='chi2min', thresh=chicut, thresh_op='greater',
+        plot_generic(stats_region, pair[0], pair[1], fig, ax[i],
                      plot_kwargs={'norm':LogNorm()})
     fig.tight_layout()
     return fig
@@ -77,14 +93,15 @@ if __name__ == '__main__':
                         help='Choose column for xaxis \
                         Must be one of: "{}"'.format('", "'.join(params))
                         )
+    parser.add_argument('--xrange', type=float, nargs=2, default=[0.0,1.0],
+                        help='x range for selection')
     parser.add_argument('--yparam', action='store', default='logL',
                         choices=params,
                         help='Choose column for yaxis \
                         Must be one of: "{}"'.format('", "'.join(params))
                         )
-    parser.add_argument('--chi2min', type=float, default=20.,
-                        help='chi2min threshold for splitting plots'
-                        )
+    parser.add_argument('--yrange', type=float, nargs=2, default=[0.0,1.0],
+                        help='y range for selection')
     args = parser.parse_args()
     if args.tex:
         plt.rc({'usetex':True})
@@ -92,9 +109,9 @@ if __name__ == '__main__':
 
     set_params(lw=2, fontsize=16, usetex=False)
     stats = Table.read(args.filename)
-    fig = make_good_bad_plots(stats, suffix=args.suffix,
+    fig = make_region_diag_plots(stats, suffix=args.suffix,
                               xparam=args.xparam, yparam=args.yparam,
-                              chi2min=args.chi2min)
+                              xrange=args.xrange, yrange=args.yrange)
 
     if args.savefig:
         fig.savefig('{}.{}'.format(basename, args.savefig))
