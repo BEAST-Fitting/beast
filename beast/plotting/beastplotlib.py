@@ -81,9 +81,11 @@ def initialize_parser():
     ftypes = ['png', 'jpg', 'jpeg', 'pdf', 'ps', 'eps', 'rgba',
               'svg', 'tiff', 'tif', 'pgf', 'svgz', 'raw']
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--savefig', action='store', default=False, choices=ftypes,
-                        help='Save figure to a file of specified type rather than show it. \
-                              Must be one of: "{}"'.format('", "'.join(ftypes))
+    parser.add_argument('-s', '--savefig', action='store',
+                        default=False, choices=ftypes,
+                        help='Save figure to a file of specified type \
+                            rather than show it. \
+                            Must be one of: "{}"'.format('", "'.join(ftypes))
                         )
     parser.add_argument('-t', '--tex', action='store_true', 
                         help='Configure Matplotlib to use LaTeX; \
@@ -94,6 +96,7 @@ def initialize_parser():
 
 def plot_generic(table, xcolname, ycolname, fig=None, ax=None, plottype='hist',
                  bins=51, thresh_col=None, thresh=0, thresh_op='less',
+                 xlog=False, ylog=False,
                  plot_kwargs={}):
     '''Plot anything from the BEAST output against anything else as a 2D
     histogram or scatterplot.
@@ -127,6 +130,10 @@ def plot_generic(table, xcolname, ycolname, fig=None, ax=None, plottype='hist',
         Operator comparison to perform between thresh_col and thresh.
         Must be one of Numpy logical operator functions: {'greater', 
         'greater_equal', 'less', 'less_equal', 'equal', 'not_equal'}
+    xlog : boolean, optional
+        plot the x axis in log units
+    ylog : boolean, optional
+        plot the y axis in log units
     plot_kwargs : dict, optional
         Additional keyword arguments to pass to plotting function.
 
@@ -149,6 +156,16 @@ def plot_generic(table, xcolname, ycolname, fig=None, ax=None, plottype='hist',
         table = table[condition]
     xcol = table[xcolname]
     ycol = table[ycolname]
+
+    if len(xcol) <= 0:
+        return
+    
+    if xlog:
+        xcol = np.log10(xcol)
+        xcolname = 'log10(' + xcolname + ')'
+    if ylog:
+        ycol = np.log10(ycol)
+        ycolname = 'log10(' + ycolname + ')'
     if plottype == 'hist':
         hist = ax.hist2d(xcol, ycol, bins=bins, **plot_kwargs)
         cbar = fig.colorbar(hist[-1], label='Number of stars', ax=ax)
