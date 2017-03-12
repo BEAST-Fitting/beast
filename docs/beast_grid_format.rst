@@ -6,9 +6,9 @@ Three datasets are present:
 * grid: parameters of the seds (see below)
         table N parameters x M models
 * lamb: wavelengths of bands
-        vector O bands
+        vector X bands
 * seds: fluxes in the requested bands [ergs/cm^2/s/A]
-        table O bands x M models
+        table X bands x M models
 
 Grid Parameters
 ---------------
