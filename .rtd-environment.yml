@@ -8,5 +8,7 @@ dependencies:
     - Cython
     - matplotlib
     - numpy
+    - scipy
+    - pytables
 #   - pip:
 #       - dependency_from_pip
