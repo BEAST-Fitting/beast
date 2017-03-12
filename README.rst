@@ -1,6 +1,14 @@
 BEAST
 =====
 
+.. image:: http://readthedocs.org/projects/beast/badge/?version=latest
+   :target: http://beast.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
+.. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
+    :target: http://www.astropy.org
+    :alt: Powered by Astropy Badge
+
 The Bayesian Extinction and Stellar Tool (BEAST) fits the ultraviolet to
 near-infrared photometric SEDs of stars to extract stellar and
 dust extinction parameters.  
