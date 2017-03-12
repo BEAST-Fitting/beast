@@ -38,12 +38,7 @@ def make_param_vs_chi2min_plots(stats, suffix='Exp', figsize=(20,10)):
     base_cnames = ['Av', 'logA', 'M_ini', 'Rv', 'f_A', 'Z']
     cnames = ['{}_{}'.format(n, suffix) for n in base_cnames]
     ycol = 'chi2min'
-    plot_pairs = [[cnames[0], ycol],
-                  [cnames[1], ycol],
-                  [cnames[2], ycol],
-                  [cnames[3], ycol],
-                  [cnames[4], ycol],
-                  [cnames[5], ycol]]
+    plot_pairs = [[name, ycol] for name in cnames]
     xlog_decide = [False, False, True, False, False, False]
     fig, axes = plt.subplots(2, 3, figsize=figsize)
     ax = axes.ravel()

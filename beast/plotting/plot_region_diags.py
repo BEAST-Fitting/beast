@@ -16,7 +16,7 @@ from beastplotlib import (fancify_colname, initialize_parser,
                           plot_generic, set_params)
 
 def make_region_diag_plots(stats, xparam='logT', yparam='logL',
-                           suffix='Exp', xrange=[3.8,4.0], yrange=[1.0,6.0],
+                           suffix='Exp', pxrange=[3.8,4.0], pyrange=[1.0,6.0],
                            figsize=(15,10)):
     '''Makes a set of 4 diagnostic 2D histograms for BEAST output.
 
@@ -30,10 +30,10 @@ def make_region_diag_plots(stats, xparam='logT', yparam='logL',
     yparam: str, optional
         Parameter (column) name
         Default to 'logL'
-    xrange: float, float, optional
+    pxrange: float, float, optional
         x range for region
         default to [0.0, 1.0]
-    yrange: float, float, optional
+    pyrange: float, float, optional
         y range for region
         default to [0.0, 1.0]
     suffix : str, optional
@@ -52,10 +52,10 @@ def make_region_diag_plots(stats, xparam='logT', yparam='logL',
     cnames = ['{}_{}'.format(n, suffix) for n in base_cnames]
 
     # cut out the data in the region defined
-    indxs, = np.where(np.logical_and(xrange[0] <= stats[cnames[0]],
-                                     stats[cnames[0]] <= xrange[1]))
-    indxs2, = np.where(np.logical_and(yrange[0] <= stats[cnames[1]][indxs],
-                                      stats[cnames[1]][indxs] <= yrange[1]))
+    indxs, = np.where(np.logical_and(pxrange[0] <= stats[cnames[0]],
+                                     stats[cnames[0]] <= pxrange[1]))
+    indxs2, = np.where(np.logical_and(pyrange[0] <= stats[cnames[1]][indxs],
+                                      stats[cnames[1]][indxs] <= pyrange[1]))
     if len(indxs2) <= 0:
         print('no data in selection window')
         exit()
