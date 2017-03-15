@@ -30,6 +30,14 @@ Setup the BEAST
 
 Need documention on setting up the datamodel.py file for BEAST runs
 
+Format of BEAST Files
+=====================
+
+.. toctree::
+   :maxdepth: 2
+
+   beast_grid_format.rst
+
 Generating AST Inputs
 =====================
 
