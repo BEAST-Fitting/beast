@@ -369,8 +369,6 @@ class Stellib(object):
         """ Returns the radius of a star given its luminosity and temperature
 
         Assuming a black body, it comes:
-        .. math::
-
                 R ^ 2 = L / ( 4 \pi \sigma T ^ 4 ),
 
         with:
@@ -705,12 +703,15 @@ class CompositeStellib(Stellib):
     def which_osl(self, xypoints, dlogT=0., dlogg=0.):
         """
         Returns the library indice that contains each point in xypoints
+
         The decision is made from a two step search:
             * first, each point is checked against the strict boundary of each
               library (i.e., dlogT = 0, dlogg = 0).
             * second, if points are not found in strict mode, the boundary is
               relaxed and a new search is made.
-        Each point is associated to the first library matching the above conditions.
+
+        Each point is associated to the first library matching the above 
+            conditions.
 
         Parameters
         ----------
@@ -726,9 +727,9 @@ class CompositeStellib(Stellib):
         returns
         -------
         res: ndarray(dtype=int)
-            a ndarray, 0 meaning no library covers the point, and 1, ... n, for the n-th library
+            a ndarray, 0 meaning no library covers the point, and 1, ... n, 
+               for the n-th library
         """
-        
         xy = np.asarray(xypoints)
 
         # check that all points are in the full boundary area

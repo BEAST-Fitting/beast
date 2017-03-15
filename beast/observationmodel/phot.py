@@ -429,7 +429,6 @@ def STmag_to_flux( v ):
     """
     Convert an ST magnitude to erg/s/cm2/AA (Flambda)
 
-    .. .. math::
         mag = -2.5 \log_{10}(F) - 21.10
 
         M0 = 21.10
@@ -453,7 +452,6 @@ def STmag_from_flux( v ):
     """
     Convert to ST magnitude from erg/s/cm2/AA (Flambda)
 
-    .. .. math::
         mag = -2.5 \log_{10}(F) - 21.10
 
         M0 = 21.10

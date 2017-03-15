@@ -19,7 +19,8 @@ from ...config import __ROOT__
 from .ezpadova import parsec
 from .ezmist import mist
 
-__all__ = ['Isochrone', 'padova2010', 'pegase', 'ezIsoch', 'PadovaWeb', 'MISTWeb']
+__all__ = ['Isochrone', 'padova2010', 'pegase', 'ezIsoch', 'PadovaWeb',
+           'MISTWeb']
 
 class Isochrone(object):
     def __init__(self, name='', *args, **kwargs):
