@@ -45,9 +45,10 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
                                                 chunksize=0):
     """ 
     Generator that reinterpolates a given stellar spectral library on to
-    an Isochrone grid
-    it will iterate over a list of `pts` points and generate `chunksize` models
-    until all the list of points is processed.
+       an Isochrone grid
+
+    It will iterate over a list of `pts` points and generate 
+       `chunksize` models until all the list of points is processed
 
     Parameters
     ----------
@@ -74,7 +75,9 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
     g: SpectralGrid
         Spectral grid (in memory) containing the requested list of stars
         and associated spectra
+
     """
+    
     helpers.type_checker('osl', osl, stellib.Stellib)
 
     if chunksize <= 0:
