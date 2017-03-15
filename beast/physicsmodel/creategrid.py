@@ -56,12 +56,8 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
         a stellar library
 
     pts: dict like structure of points
-        dictionary like or named data structure of points to interpolate at.
-        must contain:
-            * logg  surface gravity in log-scale
-            * logT  log of effective temperatures (in Kelvins)
-            * logL  log of luminosity in Lsun units
-            * Z     metallicity
+        dictionary like or named data structure of points to interpolate at
+        must contain logg, logT, logL, and Z
 
     bounds:  dict, optional (default={dlogT:0.1, dlogg:0.3})
         sensitivity to extrapolation (see grid.get_stellib_boundaries)
@@ -75,7 +71,6 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
     g: SpectralGrid
         Spectral grid (in memory) containing the requested list of stars
         and associated spectra
-
     """
     
     helpers.type_checker('osl', osl, stellib.Stellib)
@@ -102,7 +97,8 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
 def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
                                    Z=(0.02,),
                                    bounds=dict(dlogT=0.1, dlogg=0.3)):
-    """ Reinterpolate a given stellar spectral library on to an Isochrone grid
+    """ 
+    Reinterpolate a given stellar spectral library on to an Isochrone grid
 
     DEPRECATED: use gen_spectral_grid_from_stellib_given_points instead
 

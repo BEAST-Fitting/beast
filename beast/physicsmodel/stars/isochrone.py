@@ -27,18 +27,21 @@ class Isochrone(object):
         self.name = name
 
     def metalToFeH(self, metal):
-        """ Convert Z to [Fe/H] values
-            Zsun = 0.02 <-> [Fe/H]sun = -4.33
-            Z = [ 0.0004, 0.004, 0.008, 0.02, 0.05 ]
+        """
+        Convert Z to [Fe/H] values
+
+        For example:
+           Zsun = 0.02 will give [Fe/H]sun = -4.33
+
+        For reference:
+           Z = [ 0.0004, 0.004, 0.008, 0.02, 0.05 ]
            [Fe/H] = [ -1.7  , -0.7 , -0.4 , 0   , 0.4  ]
         """
         return numpy.log10(metal / 0.02)
 
     def FeHtometal(self, feh):
-        """ Convert Z to [Fe/H] values
-            Zsun = 0.02 <-> [Fe/H]sun = -4.33
-            Z = [ 0.0004, 0.004, 0.008, 0.02, 0.05 ]
-           [Fe/H] = [ -1.7  , -0.7 , -0.4 , 0   , 0.4  ]
+        """ 
+        Convert Z to [Fe/H] values
         """
         return 10 ** feh * 0.02
 
