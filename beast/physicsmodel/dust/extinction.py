@@ -456,9 +456,6 @@ class Gordon16_RvFALaw(ExtinctionLaw):
 
     Implemented as a mixture between Fitzpatrick99 and Gordon03_SMCBar
     classes
-
-    returns f_A * Fitzpatrick99(*args, **kwargs) + 
-            (1. - f_A) * Gordon03_SMCBar(*args, **kwargs)
     """
     def __init__(self):
         self.ALaw = Fitzpatrick99()
