@@ -5,7 +5,7 @@ Physics Model
 Stars
 =====
 
-beast.physicsmodel.stars.stellib (removed as causing latex errors)
+.. automodapi:: beast.physicsmodel.stars.stellib
 
 .. automodapi:: beast.physicsmodel.stars.isochrone
 		
