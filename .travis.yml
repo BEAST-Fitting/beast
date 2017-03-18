@@ -19,7 +19,8 @@ addons:
             - graphviz
             - texlive-latex-extra
             - dvipng
-            - libhdf5-serial-dev
+#            - libhdf5-dev
+#            - liblzo2-2
 
 env:
     global:
@@ -36,6 +37,8 @@ env:
         # so Cython is required for testing. If your package does not include
         # Cython code, you can set CONDA_DEPENDENCIES=''
         - CONDA_DEPENDENCIES='Cython'
+        - CONDA_ALL_DEPENDENCIES='Cython scipy h5py matplotlib'
+        
 
         # Conda packages for affiliated packages are hosted in channel
         # "astropy" while builds for astropy LTS with recent numpy versions
@@ -52,27 +55,32 @@ env:
         # Make sure that egg_info works without dependencies
         - SETUP_CMD='egg_info'
         # Try all python versions with the latest numpy
-        - SETUP_CMD='test'
+        #- SETUP_CMD='test'
 
 matrix:
     include:
 
-        # Do a coverage test in Python 2.
+        # Do a test with the latest numpy
         - python: 2.7
-          env: SETUP_CMD='test --coverage'
+          env: SETUP_CMD='test'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+
+        # Do a coverage test in Python 2.
+        #- python: 2.7
+        #  env: SETUP_CMD='test --coverage'
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
-        - python: 2.7
-          env: SETUP_CMD='build_sphinx -w'
+        #- python: 2.7
+        #  env: SETUP_CMD='build_sphinx -w'
 
         # Try Astropy development version
-        - python: 2.7
-          env: ASTROPY_VERSION=development
+        #- python: 2.7
+        #  env: ASTROPY_VERSION=development
         #- python: 3.5
         #  env: ASTROPY_VERSION=development
-        - python: 2.7
-          env: ASTROPY_VERSION=lts
+        #- python: 2.7
+        #  env: ASTROPY_VERSION=lts
         #- python: 3.5
         #  env: ASTROPY_VERSION=lts
 
@@ -87,14 +95,14 @@ matrix:
         #  env: SETUP_CMD='test' NUMPY_VERSION=1.9
 
         # Try older numpy versions
-        - python: 2.7
-          env: NUMPY_VERSION=1.10
-        - python: 2.7
-          env: NUMPY_VERSION=1.9
-        - python: 2.7
-          env: NUMPY_VERSION=1.8
-        - python: 2.7
-          env: NUMPY_VERSION=1.7
+        #- python: 2.7
+        #  env: NUMPY_VERSION=1.10
+        #- python: 2.7
+        #  env: NUMPY_VERSION=1.9
+        #- python: 2.7
+        #  env: NUMPY_VERSION=1.8
+        #- python: 2.7
+        #  env: NUMPY_VERSION=1.7
 
         # Try numpy pre-release
         #- python: 3.5
