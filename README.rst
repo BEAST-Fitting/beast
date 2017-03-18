@@ -5,6 +5,12 @@ BEAST
    :target: http://beast.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
+.. image:: https://travis-ci.org/BEAST-Fitting/beast.svg?branch=master
+    :target: https://travis-ci.org/BEAST-Fitting/beast
+
+.. image:: https://coveralls.io/repos/github/BEAST-Fitting/beast/badge.svg?branch=master
+:target: https://coveralls.io/github/BEAST-Fitting/beast?branch=master
+
 .. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
     :target: http://www.astropy.org
     :alt: Powered by Astropy Badge
