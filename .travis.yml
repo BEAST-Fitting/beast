@@ -66,21 +66,25 @@ matrix:
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
         # Do a coverage test in Python 2.
-        #- python: 2.7
-        #  env: SETUP_CMD='test --coverage'
+        - python: 2.7
+          env: SETUP_CMD='test --coverage'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
-        #- python: 2.7
-        #  env: SETUP_CMD='build_sphinx -w'
+        - python: 2.7
+          env: SETUP_CMD='build_sphinx -w'
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
         # Try Astropy development version
-        #- python: 2.7
-        #  env: ASTROPY_VERSION=development
+        - python: 2.7
+          env: ASTROPY_VERSION=development
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
         #- python: 3.5
         #  env: ASTROPY_VERSION=development
-        #- python: 2.7
-        #  env: ASTROPY_VERSION=lts
+        - python: 2.7
+          env: ASTROPY_VERSION=lts
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
         #- python: 3.5
         #  env: ASTROPY_VERSION=lts
 
@@ -95,14 +99,18 @@ matrix:
         #  env: SETUP_CMD='test' NUMPY_VERSION=1.9
 
         # Try older numpy versions
-        #- python: 2.7
-        #  env: NUMPY_VERSION=1.10
-        #- python: 2.7
-        #  env: NUMPY_VERSION=1.9
-        #- python: 2.7
-        #  env: NUMPY_VERSION=1.8
-        #- python: 2.7
-        #  env: NUMPY_VERSION=1.7
+        - python: 2.7
+          env: NUMPY_VERSION=1.10
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+        - python: 2.7
+          env: NUMPY_VERSION=1.9
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+        - python: 2.7
+          env: NUMPY_VERSION=1.8
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+        - python: 2.7
+          env: NUMPY_VERSION=1.7
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
         # Try numpy pre-release
         #- python: 3.5
