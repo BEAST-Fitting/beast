@@ -19,7 +19,7 @@ addons:
             - graphviz
             - texlive-latex-extra
             - dvipng
-	    - libhdf5-serial-dev
+            - libhdf5-serial-dev
 
 env:
     global:
