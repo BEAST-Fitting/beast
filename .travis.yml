@@ -2,8 +2,8 @@ language: python
 
 python:
     - 2.7
-    - 3.4
-    - 3.5
+#    - 3.4
+#    - 3.5
 
 # Setting sudo to false opts in to Travis-CI container-based builds.
 sudo: false
@@ -131,4 +131,4 @@ after_success:
     # If coveralls.io is set up for this package, uncomment the line
     # below and replace "packagename" with the name of your package.
     # The coveragerc file may be customized as needed for your package.
-    # - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='packagename/tests/coveragerc'; fi
+    # - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='beast/tests/coveragerc'; fi
