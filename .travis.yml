@@ -37,7 +37,7 @@ env:
         # so Cython is required for testing. If your package does not include
         # Cython code, you can set CONDA_DEPENDENCIES=''
         - CONDA_DEPENDENCIES='Cython'
-        - CONDA_ALL_DEPENDENCIES='Cython scipy h5py matplotlib'
+        - CONDA_ALL_DEPENDENCIES='Cython scipy h5py matplotlib tables hdf5'
         
 
         # Conda packages for affiliated packages are hosted in channel
