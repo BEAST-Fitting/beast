@@ -16,7 +16,8 @@ try:
 except:
     sqlite3_installed = False
 
-
+import numpy as np
+    
 # Type conversion dictionary
 type_dict = {}
 type_dict[np.bool_] = "BOOL"

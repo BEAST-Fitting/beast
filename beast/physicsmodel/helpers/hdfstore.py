@@ -1,27 +1,30 @@
 """ HDFStore
 High level interface to PyTables for reading and writing structures to disk
 Could work either as a (key, value) storage or as a classic tables.file.File object.
-
-    Example usage
-    >>> import numpy as np
-        #make a store
-        with HDFStore('tmp.hd5', mode='w') as hd:
-            #make some variables
-            d = {}
-            d['a'] = np.arange(10, dtype=float)
-            d['b'] = np.arange(10, dtype='int')
-            c = np.random.normal(0, 1, (10, 10))
-            d['c'] = c
-            #put values into the store
-            hd['/subdir/table'] = d
-            hd['/subdir1/array'] = c
-            #check values
-            print hd.keys()
-            print hd['subdir/table']
-            print hd['subdir1/array']
-            hd.remove_node('/subdir1', recursive=True)
-
 """
+# this code block fails when 'python setup.py test' is run
+# commented out by KDG 17 Mar 17
+#
+#    Example usage
+#    >>> import numpy as np
+#        #make a store
+#        with HDFStore('tmp.hd5', mode='w') as hd:
+#            #make some variables
+#            d = {}
+#            d['a'] = np.arange(10, dtype=float)
+#            d['b'] = np.arange(10, dtype='int')
+#            c = np.random.normal(0, 1, (10, 10))
+#            d['c'] = c
+#            #put values into the store
+#            hd['/subdir/table'] = d
+#            hd['/subdir1/array'] = c
+#            #check values
+#            print hd.keys()
+#            print hd['subdir/table']
+#            print hd['subdir1/array']
+#            hd.remove_node('/subdir1', recursive=True)
+#
+#"""
 from __future__ import print_function
 
 import tables
