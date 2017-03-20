@@ -5,9 +5,21 @@ BEAST
    :target: http://beast.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
+.. image:: https://travis-ci.org/BEAST-Fitting/beast.svg?branch=master
+    :target: https://travis-ci.org/BEAST-Fitting/beast
+    :alt: Build Status
+	     
+.. image:: https://coveralls.io/repos/github/BEAST-Fitting/beast/badge.svg?branch=master
+    :target: https://coveralls.io/github/BEAST-Fitting/beast?branch=master
+    :alt: Coverage Status
+	     
 .. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
     :target: http://www.astropy.org
-    :alt: Powered by Astropy Badge
+    :alt: Powered by Astropy
+
+.. image:: http://img.shields.io/badge/arXiv-1606.06182-orange.svg?style=flat
+    :target: https://arxiv.org/abs/1606.06182
+    :alt: arXiv paper
 
 The Bayesian Extinction and Stellar Tool (BEAST) fits the ultraviolet to
 near-infrared photometric SEDs of stars to extract stellar and

@@ -65,10 +65,12 @@ class Pipeable(object):
     This decorator allows you to use the decorated function normally and uses
     the provided values when using in pipes.
 
-    >>> import pylab as plt
-    >>> _p = Pipeable(plt.plot, color='red', linestyle='--')
-    >>> _p(range(10), 'o-')  #  works
-    >>> range(10) | _p      #  will plot a red dashed line
+    Example::
+
+        import pylab as plt
+        _p = Pipeable(plt.plot, color='red', linestyle='--')
+        _p(range(10), 'o-')  #  works
+        range(10) | _p      #  will plot a red dashed line
 
     """
     def __init__(self, func, *args, **kwargs):

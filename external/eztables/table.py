@@ -386,8 +386,10 @@ class Table(object):
             col_hdr     [ ColumnHeader ] The metadata from an existing column to copy over.
             Metadata includes the unit, null value, description,
             format, and dtype.  For example, to create a column 'b'
-            with identical metadata to column 'a' in table 't', use:
-                >>> t.add_column('b', column_header=t.columns[a])
+            with identical metadata to column 'a' in table 't', use::
+        
+                t.add_column('b', column_header=t.columns[a])
+
         '''
         if shape:
             data = np.empty(shape, dtype=name2dtype(dtype))
@@ -426,8 +428,10 @@ class Table(object):
             col_hdr     [ ColumnHeader ] The metadata from an existing column to copy over.
             Metadata includes the unit, null value, description,
             format, and dtype.  For example, to create a column 'b'
-            with identical metadata to column 'a' in table 't', use:
-                >>> t.add_column('b', column_header=t.columns[a])
+            with identical metadata to column 'a' in table 't', use::
+
+                t.add_column('b', column_header=t.columns[a])
+
         """
 
         _data = np.asarray(data)

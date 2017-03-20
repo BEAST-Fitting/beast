@@ -11,11 +11,10 @@ c_ext = [
 	 ]
 
 
-setup(
-        name="astropy-example",
-        cmdclass={"build_ext": build_ext},
-        ext_modules=c_ext,
-        include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
-    )
+#setup(
+#        name="astropy-example",
+#        cmdclass={"build_ext": build_ext},
+#        ext_modules=c_ext,
+#        include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
+#    )
 
-# python setup.py build_ext --inplace

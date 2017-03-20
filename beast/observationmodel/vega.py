@@ -13,14 +13,15 @@ class Vega(object):
     """ Class that handles vega spectrum and references.
     This class know where to find the Vega synthetic spectrum (Bohlin 2007) in
     order to compute fluxes and magnitudes in given filters
+    
+    An instance can be used as a context manager as::
 
-    An instance can be used as a context manager as:
-
-    >>> filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_WFC3_F475W',\
+        filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_WFC3_F475W', \
                    'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
         with Vega() as v:
             vega_f, vega_mag, flamb = v.getSed(filters)
         print vega_f, vega_mag, flamb
+
     """
 
     def __init__(self, source='{0}/libs/vega.hd5'.format(__ROOT__)):

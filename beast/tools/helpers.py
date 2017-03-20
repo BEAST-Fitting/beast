@@ -161,12 +161,15 @@ class Pipeable(object):
     This decorator allows you to use the decorated function normally and uses
     the provided values when using in pipes.
 
-    >>> import pylab as plt
-    >>> _p = Pipeable(plt.plot, color='red', linestyle='--')
-    >>> _p(range(10), 'o-')  #  works
-    >>> range(10) | _p      #  will plot a red dashed line
+    Example::
+
+        import pylab as plt
+        _p = Pipeable(plt.plot, color='red', linestyle='--')
+        _p(range(10), 'o-')  #  works
+        range(10) | _p      #  will plot a red dashed line
 
     """
+
     def __init__(self, func, *args, **kwargs):
         self.func = func
         self.args = args
@@ -355,12 +358,11 @@ def val_in_unit(varname, value, defaultunit):
     -------
     >>> r = 0.5
     >>> print(val_in_unit('r', r, 'degree'))
-    # UserWarning: Variable r does not have explicit units. Assuming `degree`
-    <Quantity(0.5, 'degree')>
+    0.5 degree
 
     >>> r = 0.5 * unit['degree']
     >>> print(val_in_unit('r', r, 'degree'))
-    <Quantity(0.5, 'degree')>
+    0.5 degree
     """
     if not hasUnit(value):
         missing_units_warning(varname, defaultunit)

@@ -15,22 +15,22 @@ Requirements
 RuntimeError will be raised when writing to a format associated with missing
 package.
 
+Examples::
 
-.. code-block::python
-
-    >>> t = SimpleTable('path/mytable.csv')
+    t = SimpleTable('path/mytable.csv')
     # get a subset of columns only
-    >>> s = t.get('M_* logTe logLo U B V I J K')
+    s = t.get('M_* logTe logLo U B V I J K')
     # set some aliases
-    >>> t.set_alias('logT', 'logTe')
-    >>> t.set_alias('logL', 'logLLo')
+    t.set_alias('logT', 'logTe')
+    t.set_alias('logL', 'logLLo')
     # make a query on one or multiple column
-    >>> q = s.selectWhere('logT logL', '(J > 2) & (10 ** logT > 5000)')
+    q = s.selectWhere('logT logL', '(J > 2) & (10 ** logT > 5000)')
     # q is also a table object
-    >>> q.plot('logT', 'logL', ',')
+    q.plot('logT', 'logL', ',')
     # makes a simple plot
-    >>> s.write('newtable.fits')
+    s.write('newtable.fits')
     # export the initial subtable to a new file
+
 """
 from __future__ import (absolute_import, division, print_function)
 
