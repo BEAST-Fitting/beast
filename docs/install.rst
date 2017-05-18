@@ -56,7 +56,7 @@ with code updates. If additionally you would like to contribute to code
 enhancements, see Option 3 below.
 
 Places BEAST on your local computer as a clone of the
-`BEAST GitHub repository <https://github.com/BEAST-Fitting/beast.git>`_. To do this, go 
+`BEAST GitHub repository <https://github.com/BEAST-Fitting/beast>`_. To do this, go 
 to the directory where you want to place the BEAST and type the following:
 
 ``$ git clone https://github.com/BEAST-Fitting/beast.git``
