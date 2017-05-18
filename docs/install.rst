@@ -47,7 +47,6 @@ Installing the BEAST
 For the BEAST to work properly, you need to place a 'libs' directory containing
 files related to filters, photometry, stellar atmospheres, and in the future,
 stellar evolution models. See **Obtaining BEAST libraries** below. 
-[Place an internal crossreference here].
 
 Option 1 
 ________
@@ -57,10 +56,10 @@ with code updates. If additionally you would like to contribute to code
 enhancements, see Option 3 below.
 
 Places BEAST on your local computer as a clone of the
-`BEAST GitHub repository <https://github.com/karllark/beast>`_. To do this, go 
+`BEAST GitHub repository <https://github.com/BEAST-Fitting/beast.git>`_. To do this, go 
 to the directory where you want to place the BEAST and type the following:
 
-``$ git clone https://github.com/karllark/beast.git``
+``$ git clone https://github.com/BEAST-Fitting/beast.git``
 
 This will create a directory named 'beast' containing the BEAST.
 
@@ -71,7 +70,7 @@ This option places BEAST in its current version on your local computer. One
 disadvantage is that you will have to manually obtain BEAST updates from the 
 GitHub repository if you use this option.
 
-On the `BEAST GitHub homepage <https://github.com/karllark/beast>`_ click on 
+On the `BEAST GitHub homepage <https://github.com/BEAST-Fitting/beast>`_ click on 
 the 'Clone or Download' button, then select 'Download ZIP'. Unzip the 
 file in the desired directory.
    
@@ -87,7 +86,9 @@ Obtaining BEAST Library Files
 For the BEAST to work properly, you need to place a 'libs' directory containing
 files related to filters, photometry, stellar atmospheres, and in the future
 stellar evolution models in the 'beast/beast' directory. Follow this link to 
-download the 'libs' files. [Update link]
+download the 'libs' files.
+
+<https://stsci.box.com/v/beastlibs>
 
 
 Confirming Proper Installation and Running Sample Code

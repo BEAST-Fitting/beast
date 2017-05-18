@@ -33,7 +33,7 @@ Details follow.
 Fork the BEAST distro
 =====================
 
-- The main BEAST repository lives at https://github.com/karllark/beast .
+- The main BEAST repository lives at <https://github.com/BEAST-Fitting/beast.git>.
   The master branch of this repository is the version that is distributed.
 
 - Log in to your github account, and on the top right corner of the BEAST
@@ -60,7 +60,7 @@ Fork the BEAST distro
 
   .. code:: shell
 	    
-     $ git remote add upstream https://github.com/karllark/beast.git
+     $ git remote add upstream https://github.com/BEAST-Fitting/beast.git
  
    
 Adding Branches
