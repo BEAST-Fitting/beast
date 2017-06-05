@@ -143,9 +143,9 @@ z = [0.03, 0.019, 0.008, 0.004]
 #   MISTWeb() -- `rotation` param (choices: vvcrit0.0=default, vvcrit0.4)
 #
 # Default: PARSEC+CALIBRI
-oiso = isochrone.PadovaWeb()
+#oiso = isochrone.PadovaWeb()
 # Alternative: PARSEC1.2S -- old grid parameters
-#oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)
+oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)
 # Alternative: MIST -- v1, no rotation
 #oiso = isochrone.MISTWeb()
 
@@ -161,14 +161,21 @@ extLaw = extinction.Gordon16_RvFALaw()
 #   acceptable avs > 0.0
 #   example [min, max, step] = [0.0, 10.055, 1.0]
 avs = [0.0, 10.055, 1.0]
+#av_prior_model = {'name': 'flat'}
+av_prior_model = {'name': 'lognormal',
+                  'max_pos': 2.0,
+                  'sigma': 1.0,
+                  'N': 10.}
 
 # R(V): dust average grain size
 #   example [min, max, step] = [2.0,6.0,1.0]
 rvs = [2.0,6.0,1.0]
+rv_prior_model = {'name': 'flat'}
 
 # fA: mixture factor between "MW" and "SMCBar" extinction curves
 #   example [min, max, step] = [0.0,1.0, 0.25]
 fAs = [0.0,1.0, 0.25]
+fA_prior_model = {'name': 'flat'}
 
 ################
 

@@ -14,16 +14,18 @@ possibility to generate grids that cannot fit in memory.
     * likelihood computations need to be updated to allow computations even if
       the full grid does not fit in memory
 """
+from __future__ import (absolute_import, print_function, division)
 
 __version__ = '2.0dev'
 
 import numpy as np
 import copy
 
-from stars import stellib
-from stars import isochrone
-from dust import extinction
-from grid import SpectralGrid
+from .stars import stellib
+from .stars import isochrone
+from .dust import extinction
+from .grid import SpectralGrid
+from .prior_weights_dust import PriorWeightsDust
 from ..external import ezunits
 from ..external.eztables import Table
 from ..tools.pbar import Pbar
@@ -290,8 +292,12 @@ def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
 
 
 @generator
-def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
-                           fAs=None, chunksize=0,
+def make_extinguished_grid(spec_grid, filter_names, extLaw, 
+                           avs, rvs, fAs=None, 
+                           av_prior_model=['flat'],
+                           rv_prior_model=['flat'],
+                           fA_prior_model=['flat'],
+                           chunksize=0,
                            add_spectral_properties_kwargs=None,
                            absflux_cov=False):
     """
@@ -317,13 +323,22 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
     Avs: sequence
         Av values to iterate over
 
+    av_prior_model: list
+        list including prior model name and parameters
+
     Rvs: sequence
         Rv values to iterate over
+
+    rv_prior_model: list
+        list including prior model name and parameters
 
     fAs: sequence (optional)
         f_A values to iterate over
         f_A can be omitted if the extinction Law does not use it or allow
             fixed values
+
+    fA_prior_model: list
+        list including prior model name and parameters
 
     chunksize: int, optional (default=0)
         number of extinction model variations to generate at each cycle.
@@ -374,6 +389,11 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
     # basically the dot product from all input 1d vectors
     # setup interation over the full dust parameter grid
     if with_fA:
+        dustpriors = PriorWeightsDust(avs, av_prior_model,
+                                      rvs, rv_prior_model,
+                                      fAs, fA_prior_model)
+        print(avs, rvs, fAs)
+
         it = np.nditer(np.ix_(avs, rvs, fAs))
         niter = np.size(avs) * np.size(rvs) * np.size(fAs)
         npts, pts = _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv)
@@ -437,6 +457,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
 
             if with_fA:
                 Av, Rv, f_A = pt
+                print('**', Av, Rv, f_A)
+                dust_prior_weight = dustpriors.get_weight(Av, Rv, f_A)
+                print('****',dustpriors.get_av_weight(Av),
+                      dust_prior_weight)
                 Rv_MW = extLaw.get_Rv_A(Rv, f_A)
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_A,
                                           inplace=False)
@@ -450,6 +474,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw, avs, rvs,
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
                 cols['f_A'][N0 * count:N0 * (count + 1)] = f_A
                 cols['Rv_A'][N0 * count: N0 * (count + 1)] = Rv_MW
+                cols['prior_weight'][N0 * count: N0 * (count + 1)] \
+                    *= dust_prior_weight
+                cols['weight'][N0 * count: N0 * (count + 1)] \
+                    *= dust_prior_weight
 
             else:
                 Av, Rv = pt

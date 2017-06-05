@@ -1,7 +1,7 @@
 """
 Prior Weights
 =============
-The priors on age, mass, and metallicty are compute as weights to use
+The priors on age, mass, and metallicty are computed as weights to use
 in the posterior calculations.
 """
 from __future__ import print_function
