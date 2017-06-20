@@ -93,26 +93,17 @@ class MultiFilterASTs(NoiseModel):
             print(e)
             print('Warning: Mapping failed. This could lead to wrong results')
 
-    def _compute_stddev_bins(self, magflux_in, magflux_out, nbins=30,
-                             min_per_bin=5,
-                             completeness_mag_cut=80, name_prefix=None,
-                             asarray=False):
-        """
-        Alias of _compute_stddev_bins
-        """
-        return self._compute_stddev_bins(magflux_in, magflux_out,
-                                    nbins=nbins, min_per_bin=min_per_bin,
-                                    completeness_mag_cut=completeness_mag_cut,
-                                    name_prefix=name_prefix,
-                                    asarray=asarray)
 
-    def _compute_stddev_bins(self, magflux_in, magflux_out, nbins=30,
-                             min_per_bin=5,
-                             completeness_mag_cut=80, name_prefix=None,
-                             asarray=False):
+    def _compute_sigma_bins(self, magflux_in, magflux_out, nbins=30,
+                            min_per_bin=5, completeness_mag_cut=80,
+                            name_prefix=None, asarray=False,
+                            compute_stddev=False):
         """
-        Computes standard deviation and store the result in a dictionary
-
+        Computes sigma estimate for each bin, store the result in a
+        dictionary. Estimation performed using percentile-based method
+        (by default) where sigma = (84th-16th)/2 and avg bias = 50th.
+        Alternate method: use mean and stddev.
+        
         Parameters
         ----------
         magflux_in: ndarray
@@ -138,19 +129,14 @@ class MultiFilterASTs(NoiseModel):
         asarray: bool
             if set returns a structured ndarray instead of a dictionary
 
+        compute_stddev: bool
+            if True, uses np.mean()+np.std() to estimate avg bias+sigma;
+            if False (default), uses np.percentiles
+
         Returns
         -------
         d: dict or np.recarray
             dictionary or named array containing the statistics
-
-
-        Method
-        ------
-        For each band, the 
-
-        Statistics are computed for each input artificial star.
-        For each input star, we find the k-NN in input flux space and compute
-        their mean and variance in flux only.
 
         """
         if name_prefix is None:
@@ -220,18 +206,25 @@ class MultiFilterASTs(NoiseModel):
             if n_bindxs > 0:
                 bin_flux_in = flux_in[bindxs]
                 bin_flux_out = flux_out[bindxs]
-                # compute completenss
+                # compute completeness
                 g_bindxs, = np.where(bin_flux_out != 0.0)
-
                 n_g_bindxs = len(g_bindxs)
                 completeness[i] = n_g_bindxs/float(n_bindxs)
                 if n_g_bindxs > min_per_bin:
+                    good_bins[i] = 1
                     ave_flux_in[i] = np.mean(bin_flux_in)
                     bin_bias_flux = bin_flux_out[g_bindxs] - \
                                     bin_flux_in[g_bindxs]
-                    ave_bias[i] = np.mean(bin_bias_flux)
-                    std_bias[i] = np.std(bin_bias_flux)
-                    good_bins[i] = 1
+                    if compute_stddev:
+                        # compute sigma via mean/stddev
+                        ave_bias[i] = np.mean(bin_bias_flux)
+                        std_bias[i] = np.std(bin_bias_flux)
+                    else:
+                        # compute sigma via percentiles
+                        # ave = 50th; std = (84th-16th)/2
+                        flux_percent_out = np.percentile(bin_bias_flux, [16.,50.,84.])
+                        ave_bias[i] = flux_percent_out[1]
+                        std_bias[i] = (flux_percent_out[2]-flux_percent_out[0])/2.
                     
         # only pass back the bins with non-zero results
         gindxs, = np.where(good_bins == 1)
@@ -290,9 +283,8 @@ class MultiFilterASTs(NoiseModel):
             mag_in = self.data[filterk + '_in']
             magflux_out = self.data[filterk + '_out']
 
-            d = self._compute_stddev_bins( \
-                mag_in, magflux_out, nbins=nbins,
-                completeness_mag_cut=completeness_mag_cut)
+            d = self._compute_sigma_bins(mag_in, magflux_out, nbins=nbins,
+                                         completeness_mag_cut=completeness_mag_cut)
 
             ncurasts = len(d['FLUX_IN'])
             self._fluxes[0:ncurasts, e] = d['FLUX_IN'] * self.vega_flux[e]
