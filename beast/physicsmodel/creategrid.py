@@ -460,10 +460,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
 
             if with_fA:
                 Av, Rv, f_A = pt
-                #print('**', Av, Rv, f_A)
                 dust_prior_weight = dustpriors.get_weight(Av, Rv, f_A)
-                #print('****',dustpriors.get_av_weight(Av),
-                #      dust_prior_weight)
                 Rv_MW = extLaw.get_Rv_A(Rv, f_A)
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_A,
                                           inplace=False)

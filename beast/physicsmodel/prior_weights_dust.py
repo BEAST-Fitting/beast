@@ -15,8 +15,23 @@ def _lognorm(x, max_pos, sigma=0.5, N=1.):
     """
     Lognormal distribution
 
-    Ripped from Heddy's megabeast prototype
-    documenation needed
+    Parameters
+    ----------
+    xs: vector
+       x values
+
+    max_pos: float
+       Position of the lognormal function's maximum
+
+    sigma: float
+       Sigma of the lognormal function
+
+    N: floats
+       Multiplicative factor
+
+    Returns
+    -------
+    lognormal computed on the x grid
     """
     sqrt_2pi = 1. / np.sqrt(2 * np.pi)
     mu = np.log(max_pos) + sigma**2
@@ -64,8 +79,8 @@ def _two_lognorm(xs,
     -------
     Mixture model: (LOGNORM1 + LOGNORM2) / INTEGRAL(LOGNORM1 + LOGNORM2)
     """
-    pointwise = (lognorm(xs, max_pos1, sigma=sigma1, N=N1)
-                 + lognorm(xs, max_pos2, sigma=sigma2, N=N2))
+    pointwise = (_lognorm(xs, max_pos1, sigma=sigma1, N=N1)
+                 + _lognorm(xs, max_pos2, sigma=sigma2, N=N2))
     normalization = np.trapz(pointwise, x=xs)
     return pointwise / normalization
 
