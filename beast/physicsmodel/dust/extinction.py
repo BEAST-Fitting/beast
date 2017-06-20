@@ -406,9 +406,10 @@ class Gordon03_SMCBar(ExtinctionLaw):
                      ( ((xspluv) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) *
                        ((xspluv) ** 2 ))
             
-            # FUV portion  
+        # FUV portion  
+        ind = np.where(x >= 5.9)
+        if np.size(ind) > 0:
             if draine_extend:
-                ind = np.where(x >= 5.9)
                 dfname = libdir+'SMC_Rv2.74_norm.txt'
                 l_draine, k_draine = np.loadtxt(dfname,usecols=(0,1),unpack=True)
                 dind = np.where((1./l_draine) >= 5.9)

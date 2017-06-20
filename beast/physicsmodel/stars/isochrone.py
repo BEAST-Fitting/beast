@@ -656,7 +656,7 @@ class MISTWeb(Isochrone):
         """
 
         if not hasattr(Z, '__iter__'):
-            iso_table = mist.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt,
+            iso_table = mist.get_t_isochrones(max(5.0, logtmin), min(10.13, logtmax), dlogt,
                                               v_div_vcrit=self.rotation,
                                               FeH_value=np.log10(Z/self.Zref))
             iso_table.header['NAME'] = 'MESA/MIST Isochrones'
