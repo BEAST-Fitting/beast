@@ -294,9 +294,9 @@ def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
 @generator
 def make_extinguished_grid(spec_grid, filter_names, extLaw, 
                            avs, rvs, fAs=None, 
-                           av_prior_model=['flat'],
-                           rv_prior_model=['flat'],
-                           fA_prior_model=['flat'],
+                           av_prior_model={'name': 'flat'},
+                           rv_prior_model={'name': 'flat'},
+                           fA_prior_model={'name': 'flat'},
                            chunksize=0,
                            add_spectral_properties_kwargs=None,
                            absflux_cov=False):
@@ -392,7 +392,6 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
         dustpriors = PriorWeightsDust(avs, av_prior_model,
                                       rvs, rv_prior_model,
                                       fAs, fA_prior_model)
-        print(avs, rvs, fAs)
 
         it = np.nditer(np.ix_(avs, rvs, fAs))
         niter = np.size(avs) * np.size(rvs) * np.size(fAs)
@@ -407,6 +406,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
         if npts == 0:
             raise AttributeError('No valid points')
     else:
+        dustpriors = PriorWeightsDust(avs, av_prior_model,
+                                      rvs, rv_prior_model,
+                                      [1.0], {'name': 'flat'})
+
         it = np.nditer(np.ix_(avs, rvs))
         npts = np.size(avs) * np.size(rvs)
         pts = ( (float(ak), float(rk)) for ak, rk in it)
@@ -457,10 +460,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
 
             if with_fA:
                 Av, Rv, f_A = pt
-                print('**', Av, Rv, f_A)
+                #print('**', Av, Rv, f_A)
                 dust_prior_weight = dustpriors.get_weight(Av, Rv, f_A)
-                print('****',dustpriors.get_av_weight(Av),
-                      dust_prior_weight)
+                #print('****',dustpriors.get_av_weight(Av),
+                #      dust_prior_weight)
                 Rv_MW = extLaw.get_Rv_A(Rv, f_A)
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_A,
                                           inplace=False)
@@ -474,13 +477,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
                 cols['f_A'][N0 * count:N0 * (count + 1)] = f_A
                 cols['Rv_A'][N0 * count: N0 * (count + 1)] = Rv_MW
-                cols['prior_weight'][N0 * count: N0 * (count + 1)] \
-                    *= dust_prior_weight
-                cols['weight'][N0 * count: N0 * (count + 1)] \
-                    *= dust_prior_weight
 
             else:
                 Av, Rv = pt
+                dust_prior_weight = dustpriors.get_weight(Av, Rv, 1.0)
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
                 
                 if add_spectral_properties_kwargs is not None:
@@ -490,6 +490,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
                 # adding the dust parameters to the models
                 cols['Av'][N0 * count: N0 * (count + 1)] = Av
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
+
 
             # get new attributes if exist
             for key in temp_results.grid.keys():
@@ -511,6 +512,12 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
             # copy the rest of the parameters
             for key in keys:
                 cols[key][N0 * count: N0 * (count + 1)] = g0.grid[key]
+            
+            # multiply existing prior weights by the dust prior weight
+            cols['weight'][N0 * count: N0 * (count + 1)] \
+                *= dust_prior_weight
+            cols['prior_weight'][N0 * count: N0 * (count + 1)] \
+                *= dust_prior_weight
 
             if count == 0:
                 cols['lamb'] = temp_results.lamb[:]

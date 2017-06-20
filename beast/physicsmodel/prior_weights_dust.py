@@ -90,8 +90,8 @@ class PriorWeightsDust():
         #   will use these variables to save the prior weights
         #   for use in adjusting priors in the megabeast
         self.set_av_weights(av_model)
-        self.rv_priors = np.full(len(self.rv_vals),1.0)
-        self.fA_priors = np.full(len(self.fA_vals),1.0)
+        self.set_rv_weights(rv_model)
+        self.set_fA_weights(fA_model)
 
     def get_av_weight(self, av):
         """
@@ -178,6 +178,7 @@ class PriorWeightsDust():
           Choice of model type [default=flat]
           flat = flat prior on linear A(V)
           lognormal = lognormal prior on linear A(V)
+          two_lognormal = two lognormal prior on linear A(V)
         """
         if model['name'] == 'flat':
             self.av_priors = np.full(len(self.av_vals),1.0)
@@ -186,9 +187,80 @@ class PriorWeightsDust():
                                       model['max_pos'],
                                       sigma=model['sigma'],
                                       N=model['N'])
-            print(self.av_priors)
+        elif model['name'] == 'two_lognormal':
+            self.av_priors = +two_lognorm(self.av_vals,
+                                          model['max_pos1'],
+                                          model['max_pos2'],
+                                          sigma1=model['sigma1'],
+                                          sigma2=model['sigma2'],
+                                          N1=model['N1'],
+                                          N2=model['N2'])
         else:
             print('**error in setting the A(V) dust prior weights!**')
+            print('**model ' + model['name'] + ' not supported**')
+            exit()
+    
+    def set_rv_weights(self, model={'name': 'flat'}):
+        """
+        Weights on R(V) based on input model choice
+
+        Parameters
+        ----------
+        model: string
+          Choice of model type [default=flat]
+          flat = flat prior on linear R(V)
+          lognormal = lognormal prior on linear R(V)
+          two_lognormal = two lognormal prior on linear R(V)
+        """
+        if model['name'] == 'flat':
+            self.rv_priors = np.full(len(self.rv_vals),1.0)
+        elif model['name'] == 'lognormal':
+            self.rv_priors = _lognorm(self.rv_vals,
+                                      model['max_pos'],
+                                      sigma=model['sigma'],
+                                      N=model['N'])
+        elif model['name'] == 'two_lognormal':
+            self.rv_priors = +two_lognorm(self.rv_vals,
+                                          model['max_pos1'],
+                                          model['max_pos2'],
+                                          sigma1=model['sigma1'],
+                                          sigma2=model['sigma2'],
+                                          N1=model['N1'],
+                                          N2=model['N2'])
+        else:
+            print('**error in setting the R(V) dust prior weights!**')
+            print('**model ' + model['name'] + ' not supported**')
+            exit()
+    
+    def set_fA_weights(self, model={'name': 'flat'}):
+        """
+        Weights on f_A based on input model choice
+
+        Parameters
+        ----------
+        model: string
+          Choice of model type [default=flat]
+          flat = flat prior on linear f_A
+          lognormal = lognormal prior on linear f_A
+          two_lognormal = two lognormal prior on linear f_A
+        """
+        if model['name'] == 'flat':
+            self.fA_priors = np.full(len(self.fA_vals),1.0)
+        elif model['name'] == 'lognormal':
+            self.fA_priors = _lognorm(self.fA_vals,
+                                      model['max_pos'],
+                                      sigma=model['sigma'],
+                                      N=model['N'])
+        elif model['name'] == 'two_lognormal':
+            self.fA_priors = +two_lognorm(self.fA_vals,
+                                          model['max_pos1'],
+                                          model['max_pos2'],
+                                          sigma1=model['sigma1'],
+                                          sigma2=model['sigma2'],
+                                          N1=model['N1'],
+                                          N2=model['N2'])
+        else:
+            print('**error in setting the f_A dust prior weights!**')
             print('**model ' + model['name'] + ' not supported**')
             exit()
     
