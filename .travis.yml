@@ -74,9 +74,9 @@ matrix:
           env: SETUP_CMD='build_sphinx -w'
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
 
-        # Try Astropy development version
+        # Try Astropy current version
         - python: 2.7
-          env: ASTROPY_VERSION=development
+          env: ASTROPY_VERSION=stable
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
         #- python: 3.5
         #  env: ASTROPY_VERSION=development
@@ -97,6 +97,15 @@ matrix:
         #  env: SETUP_CMD='test' NUMPY_VERSION=1.9
 
         # Try older numpy versions
+        - python: 2.7
+          env: NUMPY_VERSION=1.13
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+        - python: 2.7
+          env: NUMPY_VERSION=1.12
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
+        - python: 2.7
+          env: NUMPY_VERSION=1.11
+               CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
         - python: 2.7
           env: NUMPY_VERSION=1.10
                CONDA_DEPENDENCIES=$CONDA_ALL_DEPENDENCIES
