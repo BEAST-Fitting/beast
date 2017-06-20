@@ -161,29 +161,29 @@ extLaw = extinction.Gordon16_RvFALaw()
 #   acceptable avs > 0.0
 #   example [min, max, step] = [0.0, 10.055, 1.0]
 avs = [0.0, 10.055, 1.0]
-#av_prior_model = {'name': 'flat'}
-av_prior_model = {'name': 'lognormal',
-                  'max_pos': 2.0,
-                  'sigma': 1.0,
-                  'N': 10.}
+av_prior_model = {'name': 'flat'}
+#av_prior_model = {'name': 'lognormal',
+#                  'max_pos': 2.0,
+#                  'sigma': 1.0,
+#                  'N': 10.}
 
 # R(V): dust average grain size
 #   example [min, max, step] = [2.0,6.0,1.0]
 rvs = [2.0,6.0,1.0]
-#rv_prior_model = {'name': 'flat'}
-rv_prior_model = {'name': 'lognormal',
-                  'max_pos': 2.0,
-                  'sigma': 1.0,
-                  'N': 10.}
+rv_prior_model = {'name': 'flat'}
+#rv_prior_model = {'name': 'lognormal',
+#                  'max_pos': 2.0,
+#                  'sigma': 1.0,
+#                  'N': 10.}
 
 # fA: mixture factor between "MW" and "SMCBar" extinction curves
 #   example [min, max, step] = [0.0,1.0, 0.25]
 fAs = [0.0,1.0, 0.25]
-#fA_prior_model = {'name': 'flat'}
-fA_prior_model = {'name': 'lognormal',
-                  'max_pos': 0.5,
-                  'sigma': 0.2,
-                  'N': 10.}
+fA_prior_model = {'name': 'flat'}
+#fA_prior_model = {'name': 'lognormal',
+#                  'max_pos': 0.5,
+#                  'sigma': 0.2,
+#                  'N': 10.}
 
 ################
 
