@@ -293,17 +293,17 @@ def make_seds(outname, specgrid, filters,
                                               avs, 
                                               rvs, 
                                               fAs, 
-                                              av_prior_model,
-                                              rv_prior_model,
-                                              fA_prior_model,
+                                              av_prior_model=av_prior_model,
+                                              rv_prior_model=rv_prior_model,
+                                              fA_prior_model=fA_prior_model,
                 add_spectral_properties_kwargs=add_spectral_properties_kwargs,
                                               absflux_cov=absflux_cov)
     else:
         g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
                                               avs, 
-                                              rvs, 
-                                              av_prior_model,
-                                              rv_prior_model,
+                                              rvs,   
+                                              av_prior_model=av_prior_model,
+                                              rv_prior_model=rv_prior_model,
                 add_spectral_properties_kwargs=add_spectral_properties_kwargs,
                                               absflux_cov=absflux_cov)
 

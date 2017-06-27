@@ -408,7 +408,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
     else:
         dustpriors = PriorWeightsDust(avs, av_prior_model,
                                       rvs, rv_prior_model,
-                                      [1.0], {'name': 'flat'})
+                                      [1.0], fA_prior_model)
 
         it = np.nditer(np.ix_(avs, rvs))
         npts = np.size(avs) * np.size(rvs)
