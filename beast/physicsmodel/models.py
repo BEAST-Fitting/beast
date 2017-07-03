@@ -215,8 +215,15 @@ def make_priors(outname, specgrid, **kwargs):
             gk.writeHDF(outname, append=True)
     return outname
 
-def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
-              fA=None, extLaw=None, add_spectral_properties_kwargs=None,
+def make_seds(outname, specgrid, filters, 
+              av=[0., 5, 0.1], 
+              rv=[0., 5, 0.2], 
+              fA=None, 
+              av_prior_model={'name': 'flat'},
+              rv_prior_model={'name': 'flat'},
+              fA_prior_model={'name': 'flat'},
+              extLaw=None, 
+              add_spectral_properties_kwargs=None,
               absflux_cov=False,
               **kwargs):
     """make_seds -- Create SED model grid integrated into filters and
@@ -240,11 +247,20 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
     av: sequence
         sequence of Av values to sample
 
+    av_prior_model: list
+        list including prior model name and parameters
+
     rv: sequence
         sequence of Rv values to sample
 
+    rv_prior_model: list
+        list including prior model name and parameters
+
     fA: sequence (optional)
         sequence of fA values to sample (depending on extLaw definition)
+
+    fA_prior_model: list
+        list including prior model name and parameters
 
     extLaw: extinction.ExtLaw
         extinction law to use during the process
@@ -274,12 +290,20 @@ def make_seds(outname, specgrid, filters, av=[0., 5, 0.1], rv=[0., 5, 0.2],
     if fA is not None:
         fAs = np.arange(fA[0], fA[1] + 0.5 * fA[2], fA[2])
         g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
-                                              avs, rvs, fAs,
+                                              avs, 
+                                              rvs, 
+                                              fAs, 
+                                              av_prior_model=av_prior_model,
+                                              rv_prior_model=rv_prior_model,
+                                              fA_prior_model=fA_prior_model,
                 add_spectral_properties_kwargs=add_spectral_properties_kwargs,
                                               absflux_cov=absflux_cov)
     else:
         g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
-                                              avs, rvs,
+                                              avs, 
+                                              rvs,   
+                                              av_prior_model=av_prior_model,
+                                              rv_prior_model=rv_prior_model,
                 add_spectral_properties_kwargs=add_spectral_properties_kwargs,
                                               absflux_cov=absflux_cov)
 
