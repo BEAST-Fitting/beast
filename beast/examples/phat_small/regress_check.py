@@ -3,8 +3,9 @@
 Code to test if the BEAST output files are the same between to runs
 KDG - 28 Dec 2016
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from __future__ import print_function, division
 import os.path
 import h5py
 import numpy as np
@@ -36,8 +37,8 @@ def hdf5diff(fname1, fname2):
     hdfb = h5py.File(fname2, 'r')
 
     hd = hdf5diff_results()
-    for sname in hdfa.keys():
-        if sname not in hdfb.keys():
+    for sname in list(hdfa.keys()):
+        if sname not in list(hdfb.keys()):
             hd.add_missing_group(sname)
         else:
             is_dataset = isinstance(hdfa[sname], h5py.Dataset)
@@ -59,8 +60,8 @@ def hdf5diff(fname1, fname2):
                         else:
                             hd.add_missing_name(sname+'/'+cname)
             else:
-                for cname, cvalue in hdfa[sname].items():
-                    if cname not in hdfb[sname].keys():
+                for cname, cvalue in list(hdfa[sname].items()):
+                    if cname not in list(hdfb[sname].keys()):
                         hd.add_missing_dataset(sname,cname)
                     else:
                         cvalueb = hdfb[sname][cname]

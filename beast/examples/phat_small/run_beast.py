@@ -8,7 +8,7 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 """
 
 # system imports
-from __future__ import print_function, division
+from __future__ import (absolute_import, division, print_function)
 import sys
 import argparse
 import time
