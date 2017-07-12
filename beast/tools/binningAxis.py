@@ -1,3 +1,6 @@
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from beast.core import grid
 import numpy as np
 from matplotlib.ticker import MaxNLocator
@@ -49,7 +52,7 @@ class binningAxis():
             assert fixed_key != None, "No fixed axis passed for rectangular case, axis not properly initialized."
             self.rect_edges(g, fixed_key)
         else:
-            print "Not a recognized spacing, axis not properly initialized."
+            print("Not a recognized spacing, axis not properly initialized.")
 
         flat_proj = self.project(np.ones(self.ngridrows))
         self.flattening_weights = np.where(flat_proj != 0., 1./flat_proj, 0.)
@@ -57,7 +60,7 @@ class binningAxis():
             self.flattening_weights /= self.flattening_weights.sum()
         except:
             self.flattening_weights = 0
-            print "Warning! No overlap between parameter grid and binningAxis!"
+            print("Warning! No overlap between parameter grid and binningAxis!")
 
 
     def rect_edges(self, g, fixed_param):
@@ -96,7 +99,7 @@ class binningAxis():
         try:
             interval = params[1]-params[0]
         except:
-            print "Parameter single-valued, binningAxis not properly initialized."
+            print("Parameter single-valued, binningAxis not properly initialized.")
             return False
         
         i_params = np.zeros(len(params),dtype=object)
@@ -148,7 +151,7 @@ class binningAxis():
         elif (to_return == 'total'):
             return pdf.sum()
         else:
-            print "to_return not recognized, returning nothing"
+            print("to_return not recognized, returning nothing")
             return None
 
 

@@ -17,6 +17,9 @@ TODO: finish the doc
         * usage as function decoration
         * usage as standalone
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import time as _time
 import sys
 import signal

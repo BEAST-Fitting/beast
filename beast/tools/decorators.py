@@ -13,7 +13,9 @@ Requires dependencies:
     memtrace        This decorator uses <memory_profiler> to trace line by line the memory
 
 """
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import functools
 from functools import wraps
 import time
@@ -66,7 +68,7 @@ class timeit(object):
         print(self.time)
 
     def __pretty_print(self, t):
-        units = [u"s", u"ms", u'us', "ns"]
+        units = ["s", "ms", 'us', "ns"]
         scaling = [1, 1e3, 1e6, 1e9]
         if t > 0.0 and t < 1000.0:
             order = min(-int(math.floor(math.log10(t)) // 3), 3)
@@ -282,7 +284,7 @@ if __name__ == '__main__':
     @persistent_locals
     def test_locals(*args, **kwargs):
         a = 2
-        b = range(10)
+        b = list(range(10))
         c = 'hello'
         return a + a
 

@@ -1,6 +1,9 @@
 """
 This is a first collection of tools making the design easier
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import sys
 from functools import partial, wraps, update_wrapper
 from inspect import getargspec, ismethod
@@ -485,7 +488,7 @@ def nbytes(obj, pprint=False):
     num_bytes: int or str
         total number of bytes or human readable corresponding string
     """
-    num_bytes = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in obj.__dict__.values())
+    num_bytes = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in list(obj.__dict__.values()))
     if pprint:
         return pretty_size_print(num_bytes)
     else:

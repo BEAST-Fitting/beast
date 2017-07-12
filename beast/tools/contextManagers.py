@@ -1,4 +1,6 @@
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import time
 import math
 
@@ -21,7 +23,7 @@ class timeit(object):
         self.__pretty_print(time.time() - self.start)
 
     def __pretty_print(self, t):
-        units = [u"s", u"ms", u'us', "ns"]
+        units = ["s", "ms", 'us', "ns"]
         scaling = [1, 1e3, 1e6, 1e9]
         if t > 0.0 and t < 1000.0:
             order = min(-int(math.floor(math.log10(t)) // 3), 3)

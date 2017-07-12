@@ -5,6 +5,8 @@
 	It must be called run_beast.py 
 	Created by Maria Kapala on Feb 24th 2017
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from os.path import exists
 from numpy import inf
@@ -15,11 +17,11 @@ def verify_range(param, param_name, param_lim):
     # check if input param limits make sense
 	
     if any(p < param_lim[0] for p in param):
-        print(param_name + ' min value not physical.')
+        print((param_name + ' min value not physical.'))
         exit()
 
     if any(p > param_lim[1] for p in param):
-        print(param_name + ' max value not physical.')
+        print((param_name + ' max value not physical.'))
         exit()
 
 def check_grid(param, param_name, param_lim):
@@ -28,19 +30,19 @@ def check_grid(param, param_name, param_lim):
     param_min, param_max, param_step = param
 	
     if param_min < param_lim[0]:
-        print(param_name + ' min value not physical.')
+        print((param_name + ' min value not physical.'))
         exit()
 
     if param_max > param_lim[1]:
-        print(param_name + ' max value not physical.')
+        print((param_name + ' max value not physical.'))
         exit()
 
     if param_min > param_max:
-        print(param_name + ' min value greater than max')
+        print((param_name + ' min value greater than max'))
         exit()
 
     if (param_max-param_min) < param_step:
-        print(param_name + ' step value greater than (max-min)')
+        print((param_name + ' step value greater than (max-min)'))
         exit()
 
 def verify_one_input_format(param, param_name, param_format, param_lim):
@@ -66,15 +68,15 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
 	
     if 'list' in param_format:
         if type(param) is not list:
-            print(param_name + ' is not in the right format - a list.')
+            print((param_name + ' is not in the right format - a list.'))
             exit()
         elif 'float' in param_format:
             is_list_of_floats = all(type(item) is float for item in param)
-	    if not is_list_of_floats:
-                print(param_name +
-                      ' is not in the right format - list of floats.')
+            if not is_list_of_floats:
+                print((param_name +
+                      ' is not in the right format - list of floats.'))
                 exit()
-	    elif 'grid' in param_format:
+            elif 'grid' in param_format:
                 # when param is aranged from given [min, max, step],
                 # instead of a specific list of values
                 check_grid(param, param_name, param_lim)
@@ -83,21 +85,21 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
 	  			
         if 'str' in param_format:
             if type(param) is not str:
-                print(param_name + ' is not in the right format - a string.') 
+                print((param_name + ' is not in the right format - a string.')) 
                 exit()
             elif 'file' in param_format:
                 if not exists(param):
-                    print(param_name +
-                          ' does not exist. Please provide the file path.') 
+                    print((param_name +
+                          ' does not exist. Please provide the file path.')) 
                     exit()
 
         if 'version' in param_format:
             if type(param) is not float:
-                print(param_name + ' is not in the right format - a float')
+                print((param_name + ' is not in the right format - a float'))
                 exit()
             elif param not in param_lim:
-                print(param_name +
-                    ' is an invalid number, leading to version of the isochrone.')
+                print((param_name +
+                    ' is an invalid number, leading to version of the isochrone.'))
                 exit()
 
 def verify_input_format(datamodel):

@@ -1,7 +1,8 @@
 # class to generate 1D PDFs for many objects all with
 #  spare or full nD likelihoods on the same grid of models
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from __future__ import print_function, division
 import math
 import numpy as np
 
