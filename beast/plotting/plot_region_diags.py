@@ -2,8 +2,8 @@
 """
 Show diagnostic plots for a square region in two parameters
 """
-
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import matplotlib.pyplot as plt
 from astropy.table import Table
@@ -12,7 +12,7 @@ from matplotlib import rc
 import numpy as np
 
 # local imports
-from beastplotlib import (fancify_colname, initialize_parser,
+from .beastplotlib import (fancify_colname, initialize_parser,
                           plot_generic, set_params)
 
 def make_region_diag_plots(stats, xparam='logT', yparam='logL',

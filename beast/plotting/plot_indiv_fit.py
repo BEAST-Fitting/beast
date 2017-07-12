@@ -6,8 +6,8 @@ Plot the individual fit for a single observed star
     Written 12 Jan 2016 by Karl D. Gordon
       based on code written by Heddy Arab for the BEAST techniques paper figure
 """
-
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import argparse
 
@@ -24,7 +24,7 @@ from astropy.io import fits
 from astropy import units as ap_units
 from astropy.coordinates import SkyCoord as ap_SkyCoord
 
-from beastplotlib import initialize_parser
+from .beastplotlib import initialize_parser
 
 def disp_str(stats, k, keyname):
     dvals = [stats[keyname+'_p50'][k],

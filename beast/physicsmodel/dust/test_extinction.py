@@ -1,7 +1,10 @@
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 import pytest
 
-import extinction
+from . import extinction
 
 def test_extinction_Cardelli89_initialize():
     tlaw = extinction.Cardelli89()

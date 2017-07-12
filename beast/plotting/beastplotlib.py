@@ -5,6 +5,9 @@ Library of general functions for the BEAST plotting scripts
 .. history::
     Written 21 Feb 2017 by Meredith J. Durbin
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np

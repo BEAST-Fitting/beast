@@ -1,6 +1,9 @@
 """
 Attenuation Curves
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 from scipy import interpolate, interp
 
@@ -8,7 +11,7 @@ from ...observationmodel import phot
 from ...tools.helpers import val_in_unit
 from ...external.ezunits import unit
 
-from extinction import ExtinctionLaw
+from .extinction import ExtinctionLaw
 
 __all__ = ['Calzetti00']
 

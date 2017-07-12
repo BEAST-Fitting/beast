@@ -5,7 +5,8 @@ directly from their website
 :version: 1.1
 :author: MF
 """
-from __future__ import print_function, unicode_literals, division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import sys
 import os
@@ -100,26 +101,26 @@ def get_photometry_list():
 # -------------
 
 def help_phot():
-    for k, v in map_phot.items():
+    for k, v in list(map_phot.items()):
         print('phot "{0}":\n   {1}\n'.format(k, v))
 
 
 def help_models():
-    for k, v in map_models.items():
+    for k, v in list(map_models.items()):
         print('model "{0}":\n   {1}\n'.format(k, v[1]))
 
 
 def help_carbon_stars():
-    for k, v in map_carbon_stars.items():
+    for k, v in list(map_carbon_stars.items()):
         print('model "{0}":\n   {1}\n'.format(k, v[1]))
 
 
 def help_circumdust():
     print('M stars')
-    for k, v in map_circum_Mstars.items():
+    for k, v in list(map_circum_Mstars.items()):
         print('model "{0}":\n   {1}\n'.format(k, v[1]))
     print('C stars')
-    for k, v in map_circum_Cstars.items():
+    for k, v in list(map_circum_Cstars.items()):
         print('model "{0}":\n   {1}\n'.format(k, v[1]))
 
 
@@ -133,11 +134,11 @@ def file_type(filename, stream=False):
     if not stream:
         with open(filename) as f:
             file_start = f.read(max_len)
-        for magic, filetype in magic_dict.items():
+        for magic, filetype in list(magic_dict.items()):
             if file_start.startswith(magic):
                 return filetype
     else:
-        for magic, filetype in magic_dict.items():
+        for magic, filetype in list(magic_dict.items()):
             if filename[:len(magic)] == magic:
                 return filetype
 
@@ -208,7 +209,7 @@ def __get_url_args(model=None, carbon=None, interp=None, Mstars=None,
     if phot is not None:
         d['photsys_file'] = 'tab_mag_odfnew/tab_mag_{0}.dat'.format(phot)
 
-    for k, v in kwargs.items():
+    for k, v in list(kwargs.items()):
         if k in d:
             d[k] = v
 
@@ -279,7 +280,7 @@ def __convert_to_Table(resp, dic=None):
     bf = BytesIO(_r)
     tab = Table(bf, dtype='tsv', names=True, comments='#')
     if dic is not None:
-        for k, v in dic.items():
+        for k, v in list(dic.items()):
             tab.header[k] = v
 
     # make some aliases

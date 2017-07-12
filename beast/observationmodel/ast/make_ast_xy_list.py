@@ -1,3 +1,6 @@
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 import pylab as plt
 from astropy.io import ascii
@@ -53,10 +56,10 @@ def pick_positions(filename,separation,refimage=None):
                     ra_positions = catalog.data[:]['ra']
                     dec_positions = catalog.data[:]['dec']
             else:
-                raise "Your catalog does not supply X, Y or RA, DEC information for spatial AST distribution"
+                raise RuntimeError("Your catalog does not supply X, Y or RA, DEC information for spatial AST distribution")
 
         else:
-            raise "You must supply a Reference Image to determine spatial AST distribution."
+            raise RuntimeError("You must supply a Reference Image to determine spatial AST distribution.")
         wcs = WCS(refimage)
         x_positions,y_positions = wcs.all_world2pix(ra_positions,dec_positions,0)
  

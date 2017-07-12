@@ -7,7 +7,8 @@ based on EZPADOVA
 :version: 1.0
 :author: MF
 """
-from __future__ import print_function, unicode_literals, division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import sys
 import os
@@ -56,11 +57,11 @@ def file_type(filename, stream=False):
     if not stream:
         with open(filename) as f:
             file_start = f.read(max_len)
-        for magic, filetype in magic_dict.items():
+        for magic, filetype in list(magic_dict.items()):
             if file_start.startswith(magic):
                 return filetype
     else:
-        for magic, filetype in magic_dict.items():
+        for magic, filetype in list(magic_dict.items()):
             if filename[:len(magic)] == magic:
                 return filetype
 
