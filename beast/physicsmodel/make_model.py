@@ -12,7 +12,8 @@ each step outputs results that are stored into <project>_<...>.<csv|fits>
 
 TODO: make a function that takes user pars and return the pipeline instance
 """
-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import os
 
@@ -77,13 +78,13 @@ def t_project_dir(project, *args, **kwargs):
     Exception
         if already exists a file that is not a directory
     """
-    outdir = project
+    outdir = project[0]
     if os.path.exists(outdir):
         if not os.path.isdir(outdir):
             raise Exception('Output directory "{0}" already exists but is not a directory'.format(outdir))
     else:
         os.mkdir(outdir)
-    return '{0:s}/{1:s}'.format(outdir, project)
+    return '{0:s}/{1:s}'.format(outdir, project[0])
 
 
 def make_models(*args, **kwargs):

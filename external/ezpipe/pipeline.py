@@ -8,6 +8,8 @@ TODO:
     This must be like a big task Maybe using operator + on Tasks to
     generate a group?
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import sys
 from .helpers import Task, Logger
@@ -179,6 +181,8 @@ class Pipeline(object):
     def __call__(self, *args, **kwargs):
         """ Starts the pipeline from the first task with the 'arg' arguments"""
         job_id = self.__get_next_jobid__()
+        print(args)
+        exit()
         return self.start_job_from(0, job_id, val=args)
 
     def __repr__(self):

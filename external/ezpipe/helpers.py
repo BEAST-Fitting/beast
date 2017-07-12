@@ -1,6 +1,9 @@
 """ This is a first collection of tools making the design of a pipeline easy.
 Pipeline being a succesion of  entities that produce and consume data.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os
 import sys
 from time import ctime
@@ -264,7 +267,7 @@ class Task(object):
             self._cache = PickleShareDB(self.memoized)
 
     def run(self, key, val, *args, **kwargs):
-        if hasattr(val, '__iter__'):
+        if hasattr(val, '__iter__') and type(val) not in ['string']:
             _args = tuple(val) + args + self.args
         else:
             _args = (val, ) + args + self.args
@@ -272,7 +275,7 @@ class Task(object):
         _kwargs.update(kwargs)
         if self.memoized is False:
             self.logger.write('Job {} -- started\n'.format(key))
-            ret = self.func(*_args, **_kwargs)
+            ret = self.func(_args, **_kwargs)
             self.logger.write('Job {} -- ended\n'.format(key))
             return ret
         else:
