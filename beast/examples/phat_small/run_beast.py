@@ -89,13 +89,13 @@ if __name__ == '__main__':
         pick_models(modelsedgrid, mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize)
 
         if datamodel.ast_with_positions == True:
-	    separation = datamodel.ast_pixel_distribution
-	    filename = datamodel.project+'/'+datamodel.project+'_inputAST.txt'
+            separation = datamodel.ast_pixel_distribution
+            filename = datamodel.project+'/'+datamodel.project+'_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
-	        pick_positions(filename,separation,refimage=datamodel.ast_reference_image)
+                pick_positions(filename,separation,refimage=datamodel.ast_reference_image)
             else:
-	        pick_positions(filename,separation)
+                pick_positions(filename,separation)
 
     if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')

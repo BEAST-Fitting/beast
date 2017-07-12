@@ -1,11 +1,11 @@
-from helpers import Pipe
+from .helpers import Pipe
 import itertools
 import sys
 
 try:
     import builtins
 except ImportError:
-    import __builtin__ as builtins
+    import builtins as builtins
 
 
 @Pipe

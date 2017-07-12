@@ -195,7 +195,7 @@ def conesearch(ra0, dec0, ra, dec, r, outtype=0):
         """ get spherical distance between 2 points """
         return sphdist(pk[0], pk[1], ra, dec)
 
-    dist = numpy.array(getDist(zip(ra0, dec0)))
+    dist = numpy.array(getDist(list(zip(ra0, dec0))))
     v = (dist <= r)
 
     if outtype == 0:

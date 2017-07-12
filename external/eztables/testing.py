@@ -1,6 +1,6 @@
 from . import table
 import numpy as np
-from StringIO import StringIO
+from io import StringIO
 
 t = table.Table()
 t.add_column('a', np.arange(10, dtype=float))
@@ -16,5 +16,5 @@ t.write(f, 'txt')
 
 f.seek(0)
 
-print f.read()
+print(f.read())
 del f

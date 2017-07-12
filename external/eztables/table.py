@@ -1,19 +1,22 @@
 """
 This module contains the base of any table regardless of their storage
 """
-from __future__ import absolute_import
+
+from __future__ import (absolute_import, division, print_function)
+
 import numpy as np
 from .core.odict import odict
 from .core.helpers import *
 from .core.tableheader import TableHeader
 from .core.columnheader import ColumnHeader
 import operator
-import cStringIO
+import io
 from numpy.lib import recfunctions
 from .registered_backends import *
 from copy import deepcopy
 from .core.decorators import warning
 import sys
+from functools import reduce
 
 """
 Notes
@@ -173,7 +176,7 @@ class Table(object):
         """
         Set defaults from another Table obj
         """
-        for k, v in t.__dict__.iteritems():
+        for k, v in t.__dict__.items():
             self.__setattr__(k, v)
 
     def __set_defaults__(self):
@@ -198,7 +201,7 @@ class Table(object):
 
     @property
     def colnames(self):
-        return self.columns.keys()
+        return list(self.columns.keys())
 
     @property
     def ncols(self):
@@ -218,7 +221,7 @@ class Table(object):
     @property
     def nbytes(self):
         """ return the number of bytes of the object """
-        n = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in self.__dict__.values())
+        n = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in list(self.__dict__.values()))
         return n
 
     def __len__(self):
@@ -341,7 +344,7 @@ class Table(object):
         # User aliases
         assert _colname in self.colnames
 
-        return tuple([ k for k, v in self._aliases.iteritems() if (v == _colname) ])
+        return tuple([ k for k, v in self._aliases.items() if (v == _colname) ])
 
     def resolve_alias(self, colname):
         """
@@ -357,8 +360,8 @@ class Table(object):
             return [ self.resolve_alias(k) for k in colname ]
         else:
             if self.caseless is True:
-                maps = dict( [ (k.lower(), v) for k, v in self._aliases.items() ] )
-                maps.update( (k.lower(), k) for k in self.keys() )
+                maps = dict( [ (k.lower(), v) for k, v in list(self._aliases.items()) ] )
+                maps.update( (k.lower(), k) for k in list(self.keys()) )
                 return maps.get(colname.lower(), colname)
             else:
                 return self._aliases.get(colname, colname)
@@ -584,7 +587,7 @@ class Table(object):
             if (_k in self._aliases):
                 self._aliases.pop(_k)
             else:
-                map(self._aliases.pop, self.reverse_alias(_k))
+                list(map(self._aliases.pop, self.reverse_alias(_k)))
                 _names.append(_k)
 
         p = [self.columns.pop(name) for name in _names]
@@ -613,7 +616,7 @@ class Table(object):
         elif values_only:
             return dup
         else:
-            return zip(idd, dup)
+            return list(zip(idd, dup))
 
     def __getitem__(self, v):
         return np.asarray(self.data.__getitem__(self.resolve_alias(v)))
@@ -643,19 +646,19 @@ class Table(object):
             (ret is only for insternal use)"""
 
         if fields is None:
-            fields = self.keys()
-        if isinstance(fields, basestring):
+            fields = list(self.keys())
+        if isinstance(fields, str):
             fields = fields.split(',')
 
         nfields = len(fields)
 
-        fields = map( self.resolve_alias, fields )
+        fields = list(map( self.resolve_alias, fields ))
 
         if idx is None:
             if self.nrows < 10:
                 rows = [ [ str(self[k][rk]) for k in fields ] for rk in range(self.nrows)]
             else:
-                _idx = range(6)
+                _idx = list(range(6))
                 rows = [ [ str(self[k][rk]) for k in fields ] for rk in range(5) ]
                 if nfields > 1:
                     rows += [ ['...' for k in range(len(fields)) ] ]
@@ -663,7 +666,7 @@ class Table(object):
                     rows += [ ['...' for k in range(len(fields)) ] ]
                 rows += [ [ str(self[k][rk]) for k in fields ] for rk in range(-5, 0)]
         elif isinstance(idx, slice):
-            _idx = range(idx.start, idx.stop, idx.step or 1)
+            _idx = list(range(idx.start, idx.stop, idx.step or 1))
             rows = [ [ str(self[k][rk]) for k in fields ] for rk in _idx]
         else:
             rows = [ [ str(self[k][rk]) for k in fields ] for rk in idx]
@@ -679,7 +682,7 @@ class Table(object):
         if ret is True:
             return out
         else:
-            print out
+            print(out)
 
     def __str__(self):
         return self.__pretty_print__(ret=True)
@@ -693,42 +696,42 @@ class Table(object):
         return self.data.__getslice__(i, j)
 
     def __contains__(self, k):
-        return (k in self.keys()) or (k in self._aliases)
+        return (k in list(self.keys())) or (k in self._aliases)
 
     def __iter__(self):
         return self.data.__iter__()
 
     def iterkeys(self):
-        return self.columns.iterkeys()
+        return iter(self.columns.keys())
 
     def itervalues(self):
-        return self.data.itervalues()
+        return iter(self.data.values())
 
     def info(self):
-        print self.header
-        print "Table contains: %i row(s) in %i column(s)\n" % (self.nrows, self.ncols)
+        print(self.header)
+        print("Table contains: %i row(s) in %i column(s)\n" % (self.nrows, self.ncols))
         if self._aliases is not None:
             if len(self._aliases) > 0:
-                print "Table contains alias(es):"
-                for k, v in self._aliases.iteritems():
-                    print '\t %s --> %s' % (k, v)
-                print ''
+                print("Table contains alias(es):")
+                for k, v in self._aliases.items():
+                    print('\t %s --> %s' % (k, v))
+                print('')
         fields = 'columns unit format description'.split()
-        row    = [ (k, self.columns[k].unit, self.columns[k].format, self.columns[k].description) for k in self.keys() ]
+        row    = [ (k, self.columns[k].unit, self.columns[k].format, self.columns[k].description) for k in list(self.keys()) ]
         out    = __indent__([fields] + row, hasHeader=True, hasUnits=False, delim=' ')
-        print out
+        print(out)
 
     def evalexpr(self, expr, exprvars=None, start=None, stop=None, step=None, dtype=float):
         """ evaluate expression based on the data and external variables
             all np function can be used (log, exp, pi...)
         """
         _globals = {}
-        for k in ( self.keys() + self._aliases.keys() ):
+        for k in ( list(self.keys()) + list(self._aliases.keys()) ):
             _globals[k] = self[k]
 
         if exprvars is not None:
             assert(hasattr(exprvars, 'keys') & hasattr(exprvars, '__getitem__' )), "Expecting a dictionary-like as condvars"
-            for k, v in ( exprvars.items() ):
+            for k, v in ( list(exprvars.items()) ):
                 _globals[k] = v
 
         # evaluate expression, to obtain the final filter
@@ -757,7 +760,7 @@ class Table(object):
         """
         # make a copy without the data itself (memory gentle)
         tab = self.__class__()
-        for k in self.__dict__.keys():
+        for k in list(self.__dict__.keys()):
             if k != 'data':
                 setattr(tab, k, deepcopy(self.__dict__[k]))
 
@@ -785,12 +788,12 @@ class Table(object):
                 tab.data = self.data[tab.resolve_alias(_fields)]
             names = tab.data.dtype.names
             #cleanup aliases and columns
-            for k in self.keys():
+            for k in list(self.keys()):
                 if k not in names:
                     al = self.reverse_alias(k)
                     for alk in al:
                         tab.delCol(alk)
-                    if k in tab.keys():
+                    if k in list(tab.keys()):
                         tab.delCol(k)
 
         tab.header['COMMENT'] = 'SELECT %s FROM %s WHERE %s' % (','.join(_fields), self.header['NAME'], condition)
@@ -848,21 +851,20 @@ def __indent__(rows, hasHeader=False, hasUnits=False, headerChar='-', delim=' | 
 
     # select the appropriate justify method
     justify = {'center': str.center, 'right': str.rjust, 'left': str.ljust}[justify.lower()]
-    output = cStringIO.StringIO()
+    output = io.StringIO()
     if separateRows:
-        print >> output, rowSeparator
+        print(rowSeparator, file=output)
     for physicalRows in logicalRows:
         for row in physicalRows:
-            print >> output, \
-                prefix \
+            print(prefix \
                 + delim.join([justify(str(item), width) for (item, width) in zip(row, maxWidths)]) \
-                + postfix
+                + postfix, file=output)
         if separateRows:
-            print >> output, rowSeparator
+            print(rowSeparator, file=output)
         elif hasHeader & (not hasUnits):
-            print >> output, rowSeparator
+            print(rowSeparator, file=output)
         elif (not hasHeader) & hasUnits:
-            print >> output, rowSeparator
+            print(rowSeparator, file=output)
             hasUnits = False
         hasHeader = False
 
@@ -876,7 +878,7 @@ def from_dict(obj, **kwargs):
     assert( hasattr(obj, 'iteritems') ), "expecting obj has iteritem attribute (dict-like)"
 
     tab = Table()
-    for k, v in obj.iteritems():
+    for k, v in obj.items():
             _v = np.asarray(v)
             tab.add_column( k, _v, dtype=_v.dtype )
     return tab
@@ -913,7 +915,7 @@ def copyTable(obj, **kwargs):
     """ Copy a Table """
 #==============================================================================
     t = obj.__class__()
-    for k in obj.__dict__.keys():
+    for k in list(obj.__dict__.keys()):
         setattr(t, k, deepcopy(obj.__dict__[k]))
     return (t)
 

@@ -10,7 +10,7 @@ class TableHeader(object):
         for k, v in kwargs:
             self.__setattr__(k, v)
         if (isinstance(dic, dict)) or (isinstance(dic, TableHeader)):
-            for k, v in dic.iteritems():
+            for k, v in dic.items():
                 self.__setattr__(k, v)
         if not 'NAME' in kwargs:
             self.__setattr__('NAME', 'Noname')
@@ -39,7 +39,7 @@ class TableHeader(object):
         if len(self.__dict__) == 0:
             s += "(Empty)"
         else:
-            keys = np.sort(self.keys())
+            keys = np.sort(list(self.keys()))
             for k in keys:
                 if self[k] is not None:
                     vals = str(self[k]).split('\n')
@@ -55,14 +55,14 @@ class TableHeader(object):
         return s
 
     def get(self, k, default=None):
-        if k in self.keys():
+        if k in list(self.keys()):
             return self[k]
         else:
             return default
 
     def keys(self):
         """return registered keywords list"""
-        return self.__dict__.keys()
+        return list(self.__dict__.keys())
 
     def copy(self):
         """return a copy of the header"""
@@ -72,16 +72,16 @@ class TableHeader(object):
         return self.__dict__.__iter__()
 
     def iterkeys(self):
-        return self.__dict__.iterkeys()
+        return iter(self.__dict__.keys())
 
     def itervalues(self):
-        return self.__dict__.itervalues()
+        return iter(self.__dict__.values())
 
     def iteritems(self):
-        return self.__dict__.iteritems()
+        return iter(self.__dict__.items())
 
     def items(self):
-        return self.__dict__.items()
+        return list(self.__dict__.items())
 
     def pop(self, name):
         return self.__dict__.pop(name)

@@ -6,7 +6,7 @@ import sys
 from time import ctime
 from functools import partial, wraps, update_wrapper
 from inspect import getargspec, ismethod
-from pickleshare import PickleShareDB
+from .pickleshare import PickleShareDB
 
 
 class RequiredFile(object):
@@ -40,7 +40,7 @@ class RequiredFile(object):
     def __call__(self, *args, **kwargs):
         if not (os.path.isfile(self.fname) | os.path.islink(self.fname)):
             if self.producer is not None:
-                print "File {} is missing.\n Running {})".format(self.fname, self.producer)
+                print(("File {} is missing.\n Running {})".format(self.fname, self.producer)))
                 return self._producer(*(self.args), **(self.kwargs))
             else:
                 raise Exception('File {} is required but no producer is referenced'.format(self.fname))
@@ -276,7 +276,7 @@ class Task(object):
             self.logger.write('Job {} -- ended\n'.format(key))
             return ret
         else:
-            if (key not in self._cache.keys()):
+            if (key not in list(self._cache.keys())):
                 self.logger.write('Job {} -- started\n'.format(key))
                 self._cache[key] = self.func(*_args, **_kwargs)
                 self.logger.write('Job {} -- ended\n'.format(key))

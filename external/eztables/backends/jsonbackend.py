@@ -1,7 +1,7 @@
 """ JSON Backend
 	read/write handles: units, column comments, aliases, header keywords
 """
-from __future__ import absolute_import
+
 import os, inspect, sys
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 import numpy as np
@@ -163,7 +163,7 @@ class jsonBackend(BaseBackend):
 					format = colfmt[i],
 					dtype = data.dtype[colName] )
 		#set aliases
-		for k,v in d['aliases'].iteritems():
+		for k,v in d['aliases'].items():
 			tab.set_alias(k, v)
 
 
@@ -189,7 +189,7 @@ class jsonBackend(BaseBackend):
 
 		d = OrderedDict()
 		d['tablemeta']  = tab.header.__dict__
-		d['columnmeta'] = [ self.writeColMeta(tab, k) for k in tab.keys() ]
+		d['columnmeta'] = [ self.writeColMeta(tab, k) for k in list(tab.keys()) ]
 		d['aliases']    = tab._aliases
 		d['data']       = tab.data.tolist()
 

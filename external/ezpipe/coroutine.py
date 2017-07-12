@@ -17,7 +17,7 @@ In the parallel case, the implementation transparently handles thread
 shutdown when the processing is complete and when a stage raises an
 exception.
 """
-from Queue import Queue
+from queue import Queue
 from threading import Thread, Lock
 
 BUBBLE = '__PIPELINE_BUBBLE__'
@@ -58,10 +58,10 @@ class FirstPipelineThread(Thread):
 
             # Get the value from the generator.
             try:
-                msg = self.coro.next()
+                msg = next(self.coro)
             except StopIteration:
                 break
-            except Exception, exc:
+            except Exception as exc:
                 self.out_queue.put(PipelineError(exc))
                 return
 
@@ -93,7 +93,7 @@ class MiddlePipelineThread(Thread):
 
     def run(self):
         # Prime the coroutine.
-        self.coro.next()
+        next(self.coro)
 
         while True:
             # Get the message from the previous stage.
@@ -107,7 +107,7 @@ class MiddlePipelineThread(Thread):
             # Invoke the current stage.
             try:
                 out = self.coro.send(msg)
-            except Exception, exc:
+            except Exception as exc:
                 self.out_queue.put(PipelineError(exc))
                 return
 
@@ -131,7 +131,7 @@ class LastPipelineThread(Thread):
 
     def run(self):
         # Prime the coroutine.
-        self.coro.next()
+        next(self.coro)
 
         while True:
             # Get the message from the previous stage.
@@ -145,7 +145,7 @@ class LastPipelineThread(Thread):
             # Send to consumer.
             try:
                 self.coro.send(msg)
-            except Exception, exc:
+            except Exception as exc:
                 self.exc = exc
                 return
 
@@ -172,7 +172,7 @@ class Pipeline(object):
         """
         # "Prime" the coroutines.
         for coro in self.stages[1:]:
-            coro.next()
+            next(coro)
 
         # Begin the pipeline.
         for msg in self.stages[0]:
@@ -221,24 +221,24 @@ def xxtest_case():
 
     def produce(pid=0):
         for i in range(5):
-            print pid, 'generating', i
+            print(pid, 'generating', i)
             time.sleep(0.1)
             yield i
 
     def work(pid):
         num = yield
         while True:
-            print pid, 'waiting...'
+            print(pid, 'waiting...')
             time.sleep(2)
             num = yield num * 2
-            print pid, 'sent', num
+            print(pid, 'sent', num)
 
     def consume(pid=-1):
         while True:
-            print pid, 'waiting...'
+            print(pid, 'waiting...')
             num = yield
             time.sleep(1)
-            print pid, 'received', num
+            print(pid, 'received', num)
 
     ts_start = time.time()
     Pipeline([produce(0), work(1), work(2), consume(3)]).run_sequential()
@@ -246,8 +246,8 @@ def xxtest_case():
     Pipeline([produce(0), work(1), work(2), consume(3)]).run_parallel()
     ts_end = time.time()
 
-    print 'Sequential time:', ts_middle - ts_start
-    print 'Parallel time:', ts_end - ts_middle
+    print('Sequential time:', ts_middle - ts_start)
+    print('Parallel time:', ts_end - ts_middle)
 
 
 if __name__ == '__main__':

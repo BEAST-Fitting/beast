@@ -71,7 +71,7 @@ def determine_type(string, verbose=True):
     if extension in __extensions__:
         tableType = __extensions__[extension]
         if verbose:
-            print "Auto-detected type: %s" % extension
+            print("Auto-detected type: %s" % extension)
     else:
             raise Exception('Could not determine input type for extension %s' % extension)
     return tableType

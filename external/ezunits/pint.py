@@ -12,7 +12,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from __future__ import division, print_function, absolute_import
+from __future__ import (absolute_import, division, print_function)
+
 
 __version__ = '0.1'
 
@@ -177,13 +178,13 @@ def _solve_dependencies(dependencies):
     r = []
     while d:
         # values not in keys (items without dep)
-        t = set(i for v in d.values() for i in v) - set(d.keys())
+        t = set(i for v in list(d.values()) for i in v) - set(d.keys())
         # and keys without value (items without dep)
-        t.update(k for k, v in d.items() if not v)
+        t.update(k for k, v in list(d.items()) if not v)
         # can be done right away
         r.append(t)
         # and cleaned up
-        d = dict(((k, v - t) for k, v in d.items() if v))
+        d = dict(((k, v - t) for k, v in list(d.items()) if v))
     return r
 
 
@@ -261,7 +262,7 @@ class UnitsContainer(dict):
 
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
-        for key, value in self.items():
+        for key, value in list(self.items()):
             if not isinstance(key, string_types):
                 raise TypeError('key must be a str, not {}'.format(type(key)))
             if not isinstance(value, NUMERIC_TYPES):
@@ -359,9 +360,9 @@ class UnitsContainer(dict):
     def __imul__(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError('Cannot multiply UnitsContainer by {}'.format(type(other)))
-        for key, value in other.items():
+        for key, value in list(other.items()):
             self[key] += value
-        keys = [key for key, value in self.items() if value == 0]
+        keys = [key for key, value in list(self.items()) if value == 0]
         for key in keys:
             del self[key]
 
@@ -379,7 +380,7 @@ class UnitsContainer(dict):
     def __ipow__(self, other):
         if not isinstance(other, NUMERIC_TYPES):
             raise TypeError('Cannot power UnitsContainer by {}'.format(type(other)))
-        for key, value in self.items():
+        for key, value in list(self.items()):
             self[key] *= other
         return self
 
@@ -394,10 +395,10 @@ class UnitsContainer(dict):
         if not isinstance(other, self.__class__):
             raise TypeError('Cannot divide UnitsContainer by {}'.format(type(other)))
 
-        for key, value in other.items():
+        for key, value in list(other.items()):
             self[key] -= value
 
-        keys = [key for key, value in self.items() if value == 0]
+        keys = [key for key, value in list(self.items()) if value == 0]
         for key in keys:
             del self[key]
 
@@ -529,7 +530,7 @@ class UnitRegistry(object):
                 logger.error("Exception: Cannot add '{}' {}".format(name, ex))
 
         dep2 = {}
-        for unit_name, deps in dependencies.items():
+        for unit_name, deps in list(dependencies.items()):
             dep2[unit_name] = set(conv[dep_name] for dep_name in deps)
 
         for unit_names in _solve_dependencies(dep2):
@@ -588,7 +589,7 @@ class UnitRegistry(object):
         by walking the list of prefix and suffix.
         """
 
-        for suffix, prefix in itertools.product(self._SUFFIXES.keys(), self._PREFIXES.keys()):
+        for suffix, prefix in itertools.product(list(self._SUFFIXES.keys()), list(self._PREFIXES.keys())):
             if candidate.startswith(prefix) and candidate.endswith(suffix):
                 unit_name = candidate[len(prefix):]
                 if suffix:
@@ -738,7 +739,7 @@ def _build_quantity_class(registry, force_ndarray):
 
             if conv.endswith('~'):
                 _d = {}
-                for key, value in self.units.items():
+                for key, value in list(self.units.items()):
                     _d[self._REGISTRY.get_alias(key)] = value
                 units = UnitsContainer(_d)
                 conv = conv[:-1]
@@ -786,7 +787,7 @@ def _build_quantity_class(registry, force_ndarray):
                     return UnitsContainer(self.units)
 
                 tmp = UnitsContainer()
-                for key, value in self.units.items():
+                for key, value in list(self.units.items()):
                     reg = self._REGISTRY._UNITS[key]
                     tmp = tmp * reg.dimensionality ** value
 
@@ -831,7 +832,7 @@ def _build_quantity_class(registry, force_ndarray):
 
             factor = 1
             units = UnitsContainer()
-            for key, value in input_units.items():
+            for key, value in list(input_units.items()):
                 reg = self._REGISTRY._UNITS[key]
                 if reg._magnitude is None:
                     units.add(key, value)
@@ -856,7 +857,7 @@ def _build_quantity_class(registry, force_ndarray):
 
             tmp = self.__class__(self.magnitude)
 
-            for key, value in self.units.items():
+            for key, value in list(self.units.items()):
                 reg = self._REGISTRY._UNITS[key]
                 if reg._magnitude is None:
                     factor = self.__class__(1, key) ** value

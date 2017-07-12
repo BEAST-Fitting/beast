@@ -33,15 +33,20 @@ License: MIT open source license.
 
 """
 __version__ = '0.3.1'
-from pickleshare_path import path as Path
+from .pickleshare_path import path as Path
 import stat
 import time
-import cPickle as pickle
-import UserDict
+import pickle as pickle
+try:
+    from collections import UserDict as TDict
+except ImportError:
+    from UserDict import DictMixin as TDict
+
+#import UserDict
+import collections
 import glob
 
-
-class PickleShareDB(UserDict.DictMixin):
+class PickleShareDB(TDict):
     """ The main 'connection' object for PickleShare database """
     def __init__(self, root, protocol=1):
         """ Return a db object that will manage the specied directory"""
@@ -72,7 +77,7 @@ class PickleShareDB(UserDict.DictMixin):
         return obj
 
     def __missing__(self, k):
-        print 'missing key', k
+        print('missing key', k)
 
     def __setitem__(self, key, value):
         """ db['key'] = 5 """
@@ -83,7 +88,7 @@ class PickleShareDB(UserDict.DictMixin):
         pickle.dump(value, fil.open('w'), protocol=self.protocol)
         try:
             self.cache[fil] = (value, fil.mtime)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 2:
                 raise
 
@@ -194,17 +199,17 @@ class PickleShareLink:
 def test():
     db = PickleShareDB('~/testpickleshare')
     db.clear()
-    print "Should be empty:", db.items()
+    print("Should be empty:", list(db.items()))
     db['hello'] = 15
     db['aku ankka'] = [1, 2, 313]
     db['paths/nest/ok/keyname'] = [1, (5, 46)]
-    print db.keys()
-    print db.keys('paths/nest/ok/k*')
-    print dict(db)  # snapsot of whole db
+    print(list(db.keys()))
+    print(db.keys('paths/nest/ok/k*'))
+    print(dict(db))  # snapsot of whole db
     db.uncache()  # frees memory, causes re-reads later
 
     # shorthand for accessing deeply nested files
     lnk = db.getlink('myobjects/test')
     lnk.foo = 2
     lnk.bar = lnk.foo + 5
-    print lnk.bar  # 7
+    print(lnk.bar)  # 7

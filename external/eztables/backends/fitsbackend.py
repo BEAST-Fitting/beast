@@ -1,7 +1,7 @@
 """ FITS Backend
     read/write handles: units, column comments, aliases, header keywords
 """
-from __future__ import absolute_import
+
 import os
 import inspect
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
@@ -100,7 +100,7 @@ class fitsBackend(BaseBackend):
         data, names, units, comm = self.readData(hdu[extension])
         hdu.close()
         tab = Table()
-        for k, v in header.iteritems():
+        for k, v in header.items():
             tab.header[k] = v
         for i, k in enumerate(names):
             tab.add_column(k, data[k], description=comm[i], dtype=data.dtype[i])
@@ -151,7 +151,7 @@ class fitsBackend(BaseBackend):
         #            print "         Creating a new file."
         #        append = False
 
-        keys = tab.keys()
+        keys = list(tab.keys())
 
         #get formats, units, descriptions
         fmt = [ __getFitsFmt__(tab[k]) for k in keys ]
@@ -176,7 +176,7 @@ class fitsBackend(BaseBackend):
         if not hasattr(output, 'write'):
             hdr.header.update( 'FILENAME', output.split('/')[-1] )
 
-        for k, v in tab.header.iteritems():
+        for k, v in tab.header.items():
             if v not in ['', 'None', None]:
                 if (k != 'COMMENT') & (k != 'HISTORY'):
                     hdr.header.update(k, v)
@@ -202,7 +202,7 @@ class fitsBackend(BaseBackend):
         elif not append:
             hdr.writeto(output, clobber=clobber)
             if not silent:
-                print "Data exported into %s" % output
+                print("Data exported into %s" % output)
         else:
             if not hasattr(output, 'write'):
                 if (hdr0 is None):
@@ -219,7 +219,7 @@ class fitsBackend(BaseBackend):
                     if retHdr:
                         return hdr0
                 if not silent:
-                    print "Data added into %s" % output
+                    print("Data added into %s" % output)
         if not hasattr(output, 'write'):
             if global_attrs is not None:
                 if hdr0 is None:
@@ -229,4 +229,4 @@ class fitsBackend(BaseBackend):
                 hdr0.flush()
                 hdr0.close()
                 if not silent:
-                    print "Keywords added to main table into %s" % output
+                    print("Keywords added to main table into %s" % output)

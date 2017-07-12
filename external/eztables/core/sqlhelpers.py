@@ -1,5 +1,5 @@
 """ Some helpers for sql related operations """
-from decorators import memoize
+from .decorators import memoize
 try:
     from collections import OrderedDict
 except ImportError:
@@ -43,20 +43,20 @@ class remotePsqlConfig(object):
                 self.db_user     = db_user
                 self.db_host     = db_host
                 self.db_cmd      = db_cmd
-		for k,v in kwargs.iteritems():
+		for k,v in kwargs.items():
 			self.__setattr__(k,v)
 
 	def __repr__(self):
 		return self.__dict__.__repr__()
 
 	def iteritems(self):
-		return self.__dict__.iteritems()
+		return iter(self.__dict__.items())
 
 	def items(self):
-		return self.__dict__.items()
+		return list(self.__dict__.items())
 
 	def values(self):
-		return self.__dict__.values()
+		return list(self.__dict__.values())
 
 	def __getitem__(self, k):
 		return self.__dict__[k]
@@ -67,7 +67,7 @@ class remotePsql(object):
 		Motivated by GreenPlum remote usage through ssh
 	"""
 	def __init__(self, config):
-		for k,v in config.iteritems():
+		for k,v in config.items():
 			self.__dict__[k] = v
 		self.__res__ = memoize(self.__runQuery__)
 
@@ -92,7 +92,7 @@ class remotePsql(object):
 
 	@property
 	def log(self):
-		return self.__res__.keys()
+		return list(self.__res__.keys())
 
 	def clearlog(self):
 		""" Clear memoized results """

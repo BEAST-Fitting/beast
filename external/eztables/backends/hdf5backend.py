@@ -1,6 +1,6 @@
 """ Backend for HDF5 format based on (py)tables """
 
-from __future__ import absolute_import
+
 import os
 import inspect
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
@@ -57,7 +57,7 @@ class hdf5Backend(BaseBackend):
         """
         fields = {}
         fbyteorder = '|'
-        for (name, (dtype, pos)) in dtype_.fields.items():
+        for (name, (dtype, pos)) in list(dtype_.fields.items()):
             kind = dtype.base.kind
             shape = shape_.get(name, ())
             byteorder = dtype.base.byteorder
@@ -122,21 +122,21 @@ class hdf5Backend(BaseBackend):
                 t = self.__createTable__(hd5, tab, group, tablename)
             except:
                 if not silent:
-                    print "Warning: Table creation exception. Table may already exist."
+                    print("Warning: Table creation exception. Table may already exist.")
                 t = hd5.get_node(group + tablename)
         else:
             try:
                 t = hd5.get_node(group + tablename)
             except tables.NoSuchNodeError:
                 if not silent:
-                    print "Warning: Table does not exists.  New table will be created"
+                    print("Warning: Table does not exists.  New table will be created")
                 t = self.__createTable__(hd5, tab, group, tablename)
         #fill the table
         t.append( tab.data.astype(t.description._v_dtype) )
         hd5.flush()
 
         #update the header
-        for k, v in tab.header.iteritems():
+        for k, v in tab.header.items():
             if k == 'FILTERS' and float(t.attrs['VERSION']) >= 2.0:
                 t.attrs['filters'] = v
             else:
@@ -145,7 +145,7 @@ class hdf5Backend(BaseBackend):
             t.attrs['TITLE'] = tablename
 
         #add Column descriptions
-        for colname, col in tab.columns.iteritems():
+        for colname, col in tab.columns.items():
             key = [ k for k in t.attrs._v_attrnames if t.attrs[k] == colname ]
 
             key = key[0].replace('NAME', '')
@@ -158,7 +158,7 @@ class hdf5Backend(BaseBackend):
         for i, (k, v) in enumerate(tab._aliases.items()):
             t.attrs['ALIAS%d' % i ] = '%s=%s' % (k, v)
 
-        print hd5
+        print(hd5)
         hd5.close()
 
     def readColDesc(self, tab, name):
@@ -187,7 +187,7 @@ class hdf5Backend(BaseBackend):
                 tableName = '/' + tableName
             node = source.get_node(tableName)
         if silent is True:
-            print "\tLoading table: %s" % tableName
+            print("\tLoading table: %s" % tableName)
 
         #read data
         data = node[:]
@@ -196,9 +196,9 @@ class hdf5Backend(BaseBackend):
         tab = Table(data)
 
         #update column meta
-        for colname, colhdr in tab.columns.iteritems():
+        for colname, colhdr in tab.columns.items():
             meta = self.readColDesc(node, colname)
-            for mk, mv in meta.iteritems():
+            for mk, mv in meta.items():
                 if mk != 'null':
                     if (mk == 'format') & (mv in ['', None, 'None']):
                         mv = helpers.default_format.get(tab.dtype[colname], '')
