@@ -1,3 +1,6 @@
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from .backends.basebackend import BaseBackend
 
 __all__ = ['register_extension', 'determine_type']
@@ -38,6 +41,7 @@ def register_extension(extensions, backend=None, readerFunction=None,
         assert((readerFunction is not None) & (writerFunction is not None)), "read/write functions required"
         backend = BaseBackend(extensions[0], readerFunction, writerFunction  )
 
+    if isinstance(extensions, str): extensions = [extensions]
     for k in extensions:
         if (not k in __extensions__) or override:
             __extensions__[k] = backend
@@ -50,7 +54,7 @@ def determine_type(string, verbose=True):
     Determine the type of a table from its extension and try to give the
     point to the appropriate registered extension
     """
-    if type(string) != str:
+    if type(string) != str and type(string) != unicode:
         raise Exception('Could not determine input type (non-string input)')
 
     if len(__extensions__) == 0:

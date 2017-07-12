@@ -4,12 +4,13 @@ Prior Weights
 The priors on age, mass, and metallicty are computed as weights to use
 in the posterior calculations.
 """
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 from scipy.integrate import quad
 
-from grid_weights import compute_bin_boundaries
+from .grid_weights import compute_bin_boundaries
 
 __all__ = ['compute_age_prior_weights',
            'compute_mass_prior_weights',

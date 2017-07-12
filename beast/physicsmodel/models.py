@@ -27,20 +27,20 @@ grid = project | t_isochrones(**iso_kwargs) | t_spectra(**spec_kwargs) |
 """
 
 # system imports
-from __future__ import print_function
+
 import sys
 import numpy as np
 
 # BEAST imports
-import grid
-import creategrid
-from grid_and_prior_weights import compute_age_mass_metallicity_weights
+from . import grid
+from . import creategrid
+from .grid_and_prior_weights import compute_age_mass_metallicity_weights
 
-from stars import stellib
-from stars import isochrone
-from stars.isochrone import ezIsoch
+from .stars import stellib
+from .stars import isochrone
+from .stars.isochrone import ezIsoch
 
-from dust import extinction
+from .dust import extinction
 
 from ..external.ezpipe.helpers import RequiredFile, task_decorator
 from ..external.ezpipe import Pipeline

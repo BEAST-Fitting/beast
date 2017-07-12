@@ -12,17 +12,18 @@ Basically, we want the maginalization using these grid weights to provide
 flat priors on all the fit parameters.  Non-flat priors will be implemented 
 with prior weights.
 """
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 
-from grid_weights import compute_age_grid_weights
-from grid_weights import compute_mass_grid_weights
-from grid_weights import compute_metallicity_grid_weights
+from .grid_weights import compute_age_grid_weights
+from .grid_weights import compute_mass_grid_weights
+from .grid_weights import compute_metallicity_grid_weights
 
-from prior_weights import compute_age_prior_weights
-from prior_weights import compute_mass_prior_weights
-from prior_weights import compute_metallicity_prior_weights
+from .prior_weights import compute_age_prior_weights
+from .prior_weights import compute_mass_prior_weights
+from .prior_weights import compute_metallicity_prior_weights
 
 __all__ = ['compute_age_mass_metallicity_weights',
            'compute_bin_boundaries']

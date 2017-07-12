@@ -1,4 +1,7 @@
 """ Handle vega spec/mags/fluxes manipulations """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from functools import wraps
 import numpy
 
@@ -67,7 +70,7 @@ def xxtestUnit():
                'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
     with Vega() as v:
         vega_f, vega_mag, flamb = v.getSed(filters)
-    print vega_f, vega_mag, flamb
+    print(vega_f, vega_mag, flamb)
 
 
 def from_Vegamag_to_Flux(lamb, vega_mag):

@@ -12,7 +12,7 @@ each step outputs results that are stored into <project>_<...>.<csv|fits>
 
 TODO: make a function that takes user pars and return the pipeline instance
 """
-from __future__ import print_function
+
 
 import os
 

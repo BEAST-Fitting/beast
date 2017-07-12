@@ -2,7 +2,8 @@
 Trunchen version of noisemodel
 Goal is to compute the full 6-band covariance matrix for each model
 """
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import math
 import numpy as np
@@ -216,9 +217,9 @@ class MultiFilterASTs(NoiseModel):
         good_asts = np.full((n_models),True)
         if progress is True:
             it = Pbar(desc='Calculating AST Covariance ' + \
-                      'Matrices').iterover(range(n_models))
+                      'Matrices').iterover(list(range(n_models)))
         else:
-            it = range(n_models)
+            it = list(range(n_models))
         for i in it:
             # find all the ASTs for this model
             indxs, = np.where(self.data[filtername] == uvals[i])
@@ -322,9 +323,9 @@ class MultiFilterASTs(NoiseModel):
         compls = np.empty((n_models), dtype=float)
 
         if progress is True:
-            it = Pbar(desc='Evaluating model').iterover(range(n_models))
+            it = Pbar(desc='Evaluating model').iterover(list(range(n_models)))
         else:
-            it = range(n_models)
+            it = list(range(n_models))
 
         for i in it:
             # AST results are in vega fluxes

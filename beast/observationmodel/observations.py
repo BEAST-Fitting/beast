@@ -4,6 +4,9 @@
 
     Data model v2 with limited quantity units handling
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 from scipy.interpolate import interp1d
 from ..external.ezunits import unit
@@ -67,14 +70,14 @@ class Observations(object):
         txt += "Number of records: {s.nObs:d}\n\n"
         txt += "Dataset contains:"
 
-        print "Data read from %s " % self.inputFile
+        print("Data read from %s " % self.inputFile)
         if self.desc is not None:
-            print "Description: %s" % self.desc
-            print "Number of records: %d" % self.nObs
-            print ""
-            print "Dataset contains:"
+            print("Description: %s" % self.desc)
+            print("Number of records: %d" % self.nObs)
+            print("")
+            print("Dataset contains:")
 
-        for k in self.data.keys():
+        for k in list(self.data.keys()):
             txt += "\t {0:s}\n".format(k)
 
         if self.filters is None:
@@ -82,7 +85,7 @@ class Observations(object):
         else:
             txt += '\n Using Filters: {s.filters}\n'
 
-        print(txt.format(s=self))
+        print((txt.format(s=self)))
 
     def __getitem__(self, *args, **kwargs):
         """ get item will generate a subsample """
@@ -90,7 +93,7 @@ class Observations(object):
 
     def keys(self):
         """ Returns dataset content names """
-        return self.data.keys()
+        return list(self.data.keys())
 
     def setDescription(self, txt):
         self.desc = txt
@@ -226,7 +229,7 @@ def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, distanceModulus=0., filte
         errs = np.random.normal(loc=0., scale=err, size=nrows)
         obsTab.addCol(filt, (1. + errs) * sedgrid.seds[inds, e])
         obsTab.addCol(filt + 'err', err * sedgrid.seds[inds, e])
-    for key in sedgrid.grid.keys():
+    for key in list(sedgrid.grid.keys()):
         obsTab.addCol(key, sedgrid.grid[key][inds])
 
     if save is True:

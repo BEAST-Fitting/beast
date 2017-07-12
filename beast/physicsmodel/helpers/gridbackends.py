@@ -36,15 +36,17 @@ TODO: add readCoordinates into all backends
 
 TODO: check read(field=) exists into all backends.grid, give direct access
 """
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import sys
 import numpy
 import astropy.io.fits as pyfits
 import copy
 
 from ...external.eztables import Table
-from hdfstore import HDFStore
-from gridhelpers import isNestedInstance, pretty_size_print
+from .hdfstore import HDFStore
+from .gridhelpers import isNestedInstance, pretty_size_print
 
 
 __all__ = ['GridBackend', 'MemoryBackend', 'CacheBackend', 'HDFBackend']
@@ -68,7 +70,7 @@ class GridBackend(object):
     def nbytes(self):
         """ return the number of bytes of the object """
         n = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) \
-                for k in self.__dict__.values())
+                for k in list(self.__dict__.values()))
         return n
 
     @property
@@ -87,7 +89,7 @@ class GridBackend(object):
     def keys(self):
         """ returns the grid dimension names """
         if hasattr(self.grid, 'keys'):
-            return self.grid.keys()
+            return list(self.grid.keys())
         else:
             return []
 
@@ -189,7 +191,7 @@ class MemoryBackend(GridBackend):
             self._fromHDFBackend(lamb)
         elif isNestedInstance(lamb, GridBackend):
             self._from_GridBackend(lamb)
-        elif type(lamb) == str:
+        elif type(lamb) == str or type(lamb) == unicode:
             self._from_File(lamb)
         else:
             if ((seds is None) | (grid is None)):
@@ -209,7 +211,7 @@ class MemoryBackend(GridBackend):
         if self._header is None:
             self._header = header
         else:
-            for k, v in header.items():
+            for k, v in list(header.items()):
                 self.grid.header[k] = v
 
         #update aliases
@@ -278,7 +280,7 @@ class MemoryBackend(GridBackend):
             r = numpy.vstack( [ self.seds, self.lamb ])
             pyfits.writeto(fname, r, **kwargs)
             if getattr(self, 'filters', None) is not None:
-                if ('FILTERS' not in self.grid.header.keys()):
+                if ('FILTERS' not in list(self.grid.header.keys())):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
             self.grid.write(fname, append=True)
 
@@ -318,7 +320,7 @@ class MemoryBackend(GridBackend):
                         if self.cov_offdiag is not None:
                             hd['/covoffdiag'] = self.cov_offdiag[:]
             if getattr(self, 'filters', None) is not None:
-                if ('FILTERS' not in self.grid.header.keys()):
+                if ('FILTERS' not in list(self.grid.header.keys())):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
             self.grid.write(fname, tablename='grid', append=True)
 
@@ -480,11 +482,11 @@ class CacheBackend(GridBackend):
     def keys(self):
         """ return column names when possible, avoid loading when possible """
         if hasattr(self._grid, 'coldescrs'):
-            return self._grid.coldescrs.keys()
+            return list(self._grid.coldescrs.keys())
         elif hasattr(self._grid, 'keys'):
-            return self._grid.keys()
+            return list(self._grid.keys())
         elif hasattr(self.grid, 'keys'):
-            return self.grid.keys()
+            return list(self.grid.keys())
         else:
             return []
 
@@ -503,7 +505,7 @@ class CacheBackend(GridBackend):
             pyfits.writeto(fname, r, **kwargs)
             del r
             if getattr(self, 'filters', None) is not None:
-                if ('FILTERS' not in self.grid.header.keys()):
+                if ('FILTERS' not in list(self.grid.header.keys())):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
             self.grid.write(fname, append=True)
 
@@ -533,7 +535,7 @@ class CacheBackend(GridBackend):
                         hd['/seds'] = self.seds[:]
                         hd['/lamb'] = self.lamb[:]
             if getattr(self, 'filters', None) is not None:
-                if ('FILTERS' not in self.grid.header.keys()):
+                if ('FILTERS' not in list(self.grid.header.keys())):
                     self.grid.header['FILTERS'] = ' '.join(self.filters)
             self.grid.write(fname, tablename='grid', append=True)
 
@@ -605,7 +607,7 @@ class HDFBackend(GridBackend):
     def keys(self):
         """ return column names when possible """
         if hasattr(self._grid, 'coldescrs'):
-            return self._grid.coldescrs.keys()
+            return list(self._grid.coldescrs.keys())
         else:
             return []
 

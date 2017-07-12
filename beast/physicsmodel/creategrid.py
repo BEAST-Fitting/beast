@@ -83,7 +83,7 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
         try:
             # Yield successive n-sized chunks from l, assuming we can take
             # slices of the iterator
-            for chunk_slice in helpers.chunks(range(len(pts)), chunksize):
+            for chunk_slice in helpers.chunks(list(range(len(pts))), chunksize):
                 chunk_pts = pts[chunk_slice]
                 yield osl.gen_spectral_grid_from_given_points(chunk_pts,
                                                               bounds=bounds)
@@ -159,7 +159,7 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
     # SEDs are kept into a ndarray
 
     _grid  = {}
-    for k in oiso.data.keys():
+    for k in list(oiso.data.keys()):
         _grid[k] = np.empty(ndata, dtype=float )
 
     _grid['radius'] = np.empty(ndata, dtype=float )
@@ -191,7 +191,7 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
         # ===========================
         # check boundary conditions, keep the data but do not compute the
         #    sed if not needed
-        bound_cond = osl.points_inside(zip(r['logg'], r['logT']))
+        bound_cond = osl.points_inside(list(zip(r['logg'], r['logT'])))
         _grid['keep'][start_idx: end_idx] = bound_cond[:]
 
         # Step 3: radii
@@ -218,7 +218,7 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
 
         # Step 4: Store properties
         # ========================
-        for key in r.keys():
+        for key in list(r.keys()):
             _grid[key][start_idx: end_idx] = r[key]
 
     # Step 5: filter points without spectrum
@@ -227,7 +227,7 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
     idx = np.array(_grid.pop('keep'))
 
     specs = specs.compress(idx, axis=0)
-    for k in _grid.keys():
+    for k in list(_grid.keys()):
             _grid[k] = _grid[k].compress(idx, axis=0)
 
     # Step 6: Ship
@@ -444,7 +444,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
             cols['Rv_A'] = np.empty(N, dtype=float)
             cols['f_A'] = np.empty(N, dtype=float)
 
-        keys = g0.keys()
+        keys = list(g0.keys())
         for key in keys:
             cols[key] = np.empty(N, dtype=float)
 
@@ -490,7 +490,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
 
 
             # get new attributes if exist
-            for key in temp_results.grid.keys():
+            for key in list(temp_results.grid.keys()):
                 if key not in keys:
                     cols.setdefault(key, np.empty(N, dtype=float))\
                                          [N0 * count: N0 * (count + 1)] = \
