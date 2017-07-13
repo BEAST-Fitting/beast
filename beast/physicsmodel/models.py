@@ -338,6 +338,11 @@ def t_isochrones(project, **iso_kwargs):
     oiso: isochrone.Isochrone object
         Isochrone object instance
     """
+    print(type(project))
+    if len(project) > 1:
+        project = ''.join(project)
+    print(type(project))
+    print(project)
     iso_fname = '{0}_iso.csv'.format(project)
     iso_source = RequiredFile(iso_fname, make_iso_table, iso_fname,
                               **iso_kwargs)

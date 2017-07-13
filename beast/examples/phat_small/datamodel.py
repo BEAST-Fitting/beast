@@ -1,6 +1,8 @@
 """ Data Model interface v2.0
 BEAST datamodel for the example based on M31 PHAT data
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 
@@ -26,7 +28,7 @@ from beast.external.ezunits import unit
 
 # project : string
 #   the name of the output results directory
-project = 'beast_example_phat'
+project = u'beast_example_phat'
 
 # filters : list of strings
 #   full filter names in BEAST filter database
