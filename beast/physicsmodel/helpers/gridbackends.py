@@ -36,8 +36,7 @@ TODO: add readCoordinates into all backends
 
 TODO: check read(field=) exists into all backends.grid, give direct access
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function)
 
 import sys
 import numpy
@@ -48,6 +47,20 @@ from ...external.eztables import Table
 from .hdfstore import HDFStore
 from .gridhelpers import isNestedInstance, pretty_size_print
 
+try:
+    unicode = unicode
+except NameError:
+    # 'unicode' is undefined, must be Python 3
+    str = str
+    unicode = str
+    bytes = bytes
+    basestring = (str,bytes)
+else:
+    # 'unicode' exists, must be Python 2
+    str = str
+    unicode = unicode
+    bytes = str
+    basestring = (str, str)
 
 __all__ = ['GridBackend', 'MemoryBackend', 'CacheBackend', 'HDFBackend']
 
@@ -191,7 +204,7 @@ class MemoryBackend(GridBackend):
             self._fromHDFBackend(lamb)
         elif isNestedInstance(lamb, GridBackend):
             self._from_GridBackend(lamb)
-        elif type(lamb) == str or type(lamb) == unicode:
+        elif type(lamb) in basestring:
             self._from_File(lamb)
         else:
             if ((seds is None) | (grid is None)):

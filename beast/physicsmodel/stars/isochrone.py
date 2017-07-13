@@ -314,7 +314,6 @@ class ezIsoch(Isochrone):
             self.interp = bool(b)
         else:
             return self.interp
-
     def _load_table_(self, source):
         self.data = Table(self.source).selectWhere('*', 'isfinite(logA)')
 

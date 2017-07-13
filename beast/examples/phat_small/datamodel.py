@@ -1,8 +1,7 @@
 """ Data Model interface v2.0
 BEAST datamodel for the example based on M31 PHAT data
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function)
 
 import numpy as np
 

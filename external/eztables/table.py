@@ -18,6 +18,21 @@ from .core.decorators import warning
 import sys
 from functools import reduce
 
+try:
+    unicode = unicode
+except NameError:
+    # 'unicode' is undefined, must be Python 3
+    str = str
+    unicode = str
+    bytes = bytes
+    basestring = (str,bytes)
+else:
+    # 'unicode' exists, must be Python 2
+    str = str
+    unicode = unicode
+    bytes = str
+    basestring = basestring
+
 """
 Notes
 
@@ -111,7 +126,7 @@ class Table(object):
                 self.__set_from_table__(from_Table(*args, **kwargs))
             elif (type(args[0]) in [ np.core.records.recarray, np.ndarray]):
                 self.__set_from_table__(from_ndArray(*args, **kwargs))
-            elif hasattr(args[0], 'iteritems'):
+            elif hasattr(args[0], 'iteritems') or isinstance(args[0], dict):
                 self.__set_from_table__(from_dict(*args, **kwargs))
             else:
                 self.read(*args, **kwargs)
@@ -356,7 +371,7 @@ class Table(object):
         Aliases are defined by using .define_alias()
         """
         # User aliases
-        if hasattr(colname, '__iter__'):
+        if hasattr(colname, '__iter__') and not isinstance(colname, basestring):
             return [ self.resolve_alias(k) for k in colname ]
         else:
             if self.caseless is True:
@@ -619,6 +634,7 @@ class Table(object):
             return list(zip(idd, dup))
 
     def __getitem__(self, v):
+        print(v)
         return np.asarray(self.data.__getitem__(self.resolve_alias(v)))
 
     def __setitem__(self, v):
@@ -875,7 +891,7 @@ def __indent__(rows, hasHeader=False, hasUnits=False, headerChar='-', delim=' | 
 def from_dict(obj, **kwargs):
     """ Generate a table from a recArray or numpy array """
 #==============================================================================
-    assert( hasattr(obj, 'iteritems') ), "expecting obj has iteritem attribute (dict-like)"
+    assert( hasattr(obj, 'iteritems') or hasattr(obj, 'items') ), "expecting obj has iteritem attribute (dict-like)"
 
     tab = Table()
     for k, v in obj.items():

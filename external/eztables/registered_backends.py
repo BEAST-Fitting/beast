@@ -3,6 +3,21 @@ from __future__ import (absolute_import, division, print_function,
 
 from .backends.basebackend import BaseBackend
 
+try:
+    unicode = unicode
+except NameError:
+    # 'unicode' is undefined, must be Python 3
+    str = str
+    unicode = str
+    bytes = bytes
+    basestring = (str,bytes)
+else:
+    # 'unicode' exists, must be Python 2
+    str = str
+    unicode = unicode
+    bytes = str
+    basestring = basestring
+
 __all__ = ['register_extension', 'determine_type']
 
 global __extensions__
@@ -49,18 +64,18 @@ def register_extension(extensions, backend=None, readerFunction=None,
             raise Exception("Type %s is already defined" % k)
 
 
-def determine_type(string, verbose=True):
+def determine_type(mystring, verbose=True):
     """
     Determine the type of a table from its extension and try to give the
     point to the appropriate registered extension
     """
-    if type(string) != str and type(string) != unicode:
+    if type(mystring) != str and type(mystring) != unicode:
         raise Exception('Could not determine input type (non-string input)')
 
     if len(__extensions__) == 0:
         set_defaults()
 
-    s = string.lower()
+    s = mystring.lower()
     if not '.' in s:
         extension = s
     else:

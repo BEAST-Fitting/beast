@@ -17,7 +17,10 @@ import numpy as np
 
 # BEAST imports
 from beast.physicsmodel.create_project_dir import create_project_dir
-from beast.physicsmodel.model_grid import make_iso_table
+from beast.physicsmodel.model_grid import (make_iso_table,
+                                           make_spectral_grid)
+from beast.external.ezunits import unit
+from beast.tools.helpers import val_in_unit
 
 from beast.physicsmodel.make_model import make_models
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
@@ -63,17 +66,26 @@ if __name__ == '__main__':
         pdir = create_project_dir(datamodel.project)
 
         # download and load the isochrones
-        iso_fname = make_iso_table(datamodel.project,
-                                   oiso=datamodel.oiso,
-                                   logtmin=datamodel.logt[0],
-                                   logtmax=datamodel.logt[1],
-                                   dlogt=datamodel.logt[2],
-                                   z=datamodel.z)
+        (iso_fname, oiso) = make_iso_table(datamodel.project,
+                                           oiso=datamodel.oiso,
+                                           logtmin=datamodel.logt[0],
+                                           logtmax=datamodel.logt[1],
+                                           dlogt=datamodel.logt[2],
+                                           z=datamodel.z)
+
+        # calculate the distance in pc
+        dmod = val_in_unit('distance Modulus',
+                           datamodel.distanceModulus, 'mag').magnitude
+        distance = 10 ** ( (dmod / 5.) + 1 ) * unit['pc']
+
+        # generate the spectral library (no dust extinction)
+        (spec_fname, g) = make_spectral_grid(datamodel.project,
+                                             oiso,
+                                             osl=datamodel.osl,
+                                             distance=distance)
         exit()
-            
 
-    
-
+        
         make_models()
 
     if args.ast:

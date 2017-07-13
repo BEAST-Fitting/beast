@@ -76,7 +76,7 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
     """
     
     helpers.type_checker('osl', osl, stellib.Stellib)
-
+    
     if chunksize <= 0:
         yield osl.gen_spectral_grid_from_given_points(pts, bounds=bounds)
     else:

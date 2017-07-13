@@ -7,8 +7,7 @@ sources.
 The interpolation is implemented from the pegase.2 fortran converted algorithm.
 (this may not be pythonic though)
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function)
 
 import numpy as np
 from scipy.interpolate import interp1d
