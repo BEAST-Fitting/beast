@@ -16,6 +16,9 @@ import string
 import numpy as np
 
 # BEAST imports
+from beast.physicsmodel.create_project_dir import create_project_dir
+from beast.physicsmodel.model_grid import make_iso_table
+
 from beast.physicsmodel.make_model import make_models
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
 from beast.observationmodel.ast.make_ast_input_list import pick_models
@@ -53,10 +56,24 @@ if __name__ == '__main__':
 
     # check input parameters, print what is the problem, stop run_beast
     verify_params.verify_input_format(datamodel)
-    
-
 
     if args.physicsmodel:
+
+        # make sure the project directory exists
+        pdir = create_project_dir(datamodel.project)
+
+        # download and load the isochrones
+        iso_fname = make_iso_table(datamodel.project,
+                                   oiso=datamodel.oiso,
+                                   logtmin=datamodel.logt[0],
+                                   logtmax=datamodel.logt[1],
+                                   dlogt=datamodel.logt[2],
+                                   z=datamodel.z)
+        exit()
+            
+
+    
+
         make_models()
 
     if args.ast:

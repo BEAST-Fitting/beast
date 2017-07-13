@@ -28,7 +28,7 @@ from beast.external.ezunits import unit
 
 # project : string
 #   the name of the output results directory
-project = u'beast_example_phat'
+project = 'beast_example_phat'
 
 # filters : list of strings
 #   full filter names in BEAST filter database

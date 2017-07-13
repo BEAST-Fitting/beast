@@ -32,8 +32,7 @@ Examples::
     # export the initial subtable to a new file
 
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (absolute_import, division, print_function)
 
 __version__ = '3.0'
 __all__ = ['AstroHelpers', 'AstroTable', 'SimpleTable', 'stats']
@@ -72,13 +71,13 @@ PY3 = sys.version_info[0] > 2
 if PY3:
     iteritems = operator.methodcaller('items')
     itervalues = operator.methodcaller('values')
-    str = (str, bytes)
+    strtype = (str, bytes)
 else:
     range = xrange
     
     iteritems = operator.methodcaller('iteritems')
     itervalues = operator.methodcaller('itervalues')
-    str = (str, str)
+    strtype = (str, str)
 
 
 # ==============================================================================
@@ -893,7 +892,7 @@ def pprint_rec_entry(data, num=0, keys=None):
         """
         if (keys is None) or (keys == '*'):
             _keys = data.dtype.names
-        elif type(keys) in str:
+        elif type(keys) in strtype:
             _keys = [k for k in data.dtype.names if (re.match(keys, k) is not None)]
         else:
             _keys = keys
@@ -939,7 +938,7 @@ def pprint_rec_array(data, idx=None, fields=None, ret=False, all=False,
         """
         if (fields is None) or (fields == '*'):
             _keys = data.dtype.names
-        elif type(fields) in str:
+        elif type(fields) in strtype:
             if ',' in fields:
                 _fields = fields.split(',')
             elif ' ' in fields:
@@ -992,7 +991,7 @@ def elementwise(func):
     """
     @wraps(func)
     def wrapper(it, **kwargs):
-        if hasattr(it, '__iter__') & (type(it) not in str):
+        if hasattr(it, '__iter__') & (type(it) not in strtype):
             _f = partial(func, **kwargs)
             return list(map(_f, it))
         else:
@@ -1351,8 +1350,8 @@ class SimpleTable(object):
         if (type(fname) == dict) or (dtype in [dict, 'dict']):
             self.header = fname.pop('header', {})
             self.data = _convert_dict_to_structured_ndarray(fname)
-        elif (type(fname) in str) or (dtype is not None):
-            if (type(fname) in str):
+        elif (type(fname) in strtype) or (dtype is not None):
+            if (type(fname) in strtype):
                 extension = fname.split('.')[-1]
             else:
                 extension = None
@@ -1429,7 +1428,7 @@ class SimpleTable(object):
         else:
             raise Exception('Type {0!s:s} not handled'.format(type(fname)))
         if 'NAME' not in self.header:
-            if type(fname) not in str:
+            if type(fname) not in strtype:
                 self.header['NAME'] = 'No Name'
             else:
                 self.header['NAME'] = fname
@@ -1448,7 +1447,7 @@ class SimpleTable(object):
         """
         if (keys is None) or (keys == '*'):
             _keys = list(self.keys())
-        elif type(keys) in str:
+        elif type(keys) in strtype:
             _keys = [k for k in (list(self.keys()) + tuple(self._aliases.keys()))
                      if (re.match(keys, k) is not None)]
         else:
@@ -1498,7 +1497,7 @@ class SimpleTable(object):
 
         if (fields is None) or (fields == '*'):
             _keys = list(self.keys())
-        elif type(fields) in str:
+        elif type(fields) in strtype:
             if ',' in fields:
                 _fields = fields.split(',')
             elif ' ' in fields:
@@ -1623,7 +1622,7 @@ class SimpleTable(object):
         if (_colname not in list(self.keys())):
             raise KeyError("Column {0:s} does not exist".format(colname))
 
-        return tuple([ k for (k, v) in list(self._aliases.items()) if (v == _colname) ])
+        return tuple([ k for (k, v) in self._aliases.items() if (v == _colname) ])
 
     def resolve_alias(self, colname):
         """
@@ -1635,7 +1634,7 @@ class SimpleTable(object):
         Aliases are defined by using .define_alias()
         """
         # User aliases
-        if hasattr(colname, '__iter__') & (type(colname) not in str):
+        if hasattr(colname, '__iter__') & (type(colname) not in strtype):
             return [ self.resolve_alias(k) for k in colname ]
         else:
             if self.caseless is True:
@@ -1701,7 +1700,7 @@ class SimpleTable(object):
         """
         if (regexp is None) or (regexp == '*'):
             return self.colnames
-        elif type(regexp) in str:
+        elif type(regexp) in strtype:
             if full_match is True:
                 fn = re.fullmatch
             else:
@@ -2102,7 +2101,6 @@ class SimpleTable(object):
 
         if len(self.data.dtype) > 0:
             # existing data in the table
-            print(dtype, type(dtype))
             self.data = recfunctions.append_fields(self.data, name, _data,
                                                    dtypes=dtype, usemask=False,
                                                    asrecarray=True)
@@ -2165,7 +2163,7 @@ class SimpleTable(object):
             list of columns
         """
 
-        if not hasattr(names, '__iter__') or type(names) in str:
+        if not hasattr(names, '__iter__') or type(names) in strtype:
             names = [names]
 
         p = [self[k] for k in names]
@@ -2786,7 +2784,7 @@ try:
             _fn = fn
 
         onlywhere = kwargs.pop('onlywhere', None)
-        if type(onlywhere) in str:
+        if type(onlywhere) in strtype:
             select = tab.where(onlywhere)
         else:
             select = onlywhere
