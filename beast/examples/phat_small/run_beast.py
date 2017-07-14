@@ -78,11 +78,18 @@ if __name__ == '__main__':
                            datamodel.distanceModulus, 'mag').magnitude
         distance = 10 ** ( (dmod / 5.) + 1 ) * unit['pc']
 
+        if hasattr(datamodel, 'add_spectral_properties_kwargs'):
+            extra_kwargs = datamodel.add_spectral_properties_kwargs
+        else:
+            extra_kwargs = None
+
         # generate the spectral library (no dust extinction)
-        (spec_fname, g_spec) = make_spectral_grid(datamodel.project,
-                                                  oiso,
-                                                  osl=datamodel.osl,
-                                                  distance=distance)
+        (spec_fname, g_spec) = make_spectral_grid(
+            datamodel.project,
+            oiso,
+            osl=datamodel.osl,
+            distance=distance,
+            add_spectral_properties_kwargs=extra_kwargs)
 
         # add the stellar priors as weights
         #   also computes the grid weights for the stellar part
@@ -102,7 +109,8 @@ if __name__ == '__main__':
             fA=datamodel.fAs,
             rv_prior_model=datamodel.rv_prior_model,
             av_prior_model=datamodel.av_prior_model,
-            fA_prior_model=datamodel.fA_prior_model)
+            fA_prior_model=datamodel.fA_prior_model,
+            add_spectral_properties_kwargs=extra_kwargs)
 
     if args.ast:
         # get the modesedgrid on which to grab input AST
@@ -189,7 +197,7 @@ if __name__ == '__main__':
         # the files for the trimmed model grid and noisemodel grid
         modelsedgrid = datamodel.project + '/' + datamodel.project + \
                        '_seds_trim.grid.hd5'
-        noisemodelfile = string.replace(modelsedgrid,'_seds','_noisemodel')
+        noisemodelfile = modelsedgrid.replace('_seds','_noisemodel')
 
         # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(noisemodelfile)
@@ -203,8 +211,8 @@ if __name__ == '__main__':
         print(datamodel.project)
         statsfile = datamodel.project + '/' + datamodel.project + \
                     '_stats.fits'
-        pdf1dfile = string.replace(statsfile,'stats.fits','pdf1d.fits')
-        lnpfile = string.replace(statsfile,'stats.fits','lnp.hd5')
+        pdf1dfile = statsfile.replace('stats.fits','pdf1d.fits')
+        lnpfile = statsfile.replace('stats.fits','lnp.hd5')
 
         fit.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid,
                                  resume=args.resume,
