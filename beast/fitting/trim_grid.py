@@ -74,14 +74,14 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
     for k, filtername in enumerate(obsdata.filters):
         sfiltname = obsdata.data.resolve_alias(filtername)
         if inFlux:
-            min_data[k] = np.amin(obsdata.data[:][sfiltname]*
+            min_data[k] = np.amin(obsdata.data[sfiltname]*
                                   obsdata.vega_flux[k])
-            max_data[k] = np.amax(obsdata.data[:][sfiltname]*
+            max_data[k] = np.amax(obsdata.data[sfiltname]*
                                   obsdata.vega_flux[k])
         else:
-            min_data[k] = np.amin(10 **(-0.4*obsdata.data[:][sfiltname])
+            min_data[k] = np.amin(10 **(-0.4*obsdata.data[sfiltname])
                                   *obsdata.vega_flux[k])
-            max_data[k] = np.amax(10 **(-0.4*obsdata.data[:][sfiltname])
+            max_data[k] = np.amax(10 **(-0.4*obsdata.data[sfiltname])
                                   *obsdata.vega_flux[k])
 
         min_models[k] = np.amin(sedgrid.seds[:,k])
@@ -118,7 +118,7 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
 
     # Find models with fluxes (with margin) between faintest and brightest data
     for k in range(n_filters):
-        print(('working on filter # = ', k))
+        print('working on filter # = ', k)
 
         # Get upper and lower values for the models given the noise model 
         #  sigma_fac defaults to 3.
@@ -135,12 +135,12 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
         print('no models that are within the data range')
         exit()
 
-    print(('number of original models = ', len(sedgrid.seds[:,0])))
-    print(('number of ast trimmed models = ', n_ast_indxs))
-    print((' number of trimmed models = ', len(indxs)))
+    print('number of original models = ', len(sedgrid.seds[:,0]))
+    print('number of ast trimmed models = ', n_ast_indxs)
+    print(' number of trimmed models = ', len(indxs))
 
     #Save the grid
-    print(('Writing trimmed sedgrid to disk into {0:s}'.format(sed_outname)))
+    print('Writing trimmed sedgrid to disk into {0:s}'.format(sed_outname))
     cols = {}
     for key in list(sedgrid.grid.keys()):
         cols[key] = sedgrid.grid[key][indxs]
@@ -155,8 +155,8 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
     g.writeHDF(sed_outname) # trimmed grid name
 
     # save the trimmed noise model
-    print(('Writing trimmed noisemodel to disk into {0:s}'.\
-          format(noisemodel_outname)))
+    print('Writing trimmed noisemodel to disk into {0:s}'.\
+          format(noisemodel_outname))
     with tables.open_file(noisemodel_outname, 'w') as outfile:
         outfile.create_array(outfile.root,'bias', model_bias[indxs])
         outfile.create_array(outfile.root,'error', model_unc[indxs])

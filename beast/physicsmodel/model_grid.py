@@ -154,8 +154,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
                                               **add_spectral_properties_kwargs)
     
                 gk.writeHDF(spec_fname, append=True)
-    else:
-        g = grid.FileSpectralGrid(spec_fname, backend='memory')
+
+    g = grid.FileSpectralGrid(spec_fname, backend='memory')
         
     return (spec_fname, g)
 

@@ -6,7 +6,22 @@ __author__ = 'MF'
 __version__ = '1.0'
 
 
-__strtypes__ = [str, str]
+try:
+    unicode = unicode
+except NameError:
+    # 'unicode' is undefined, must be Python 3
+    str = str
+    unicode = str
+    bytes = bytes
+    basestring = (str,bytes)
+    __strtypes__ = [str, unicode]
+else:
+    # 'unicode' exists, must be Python 2
+    str = str
+    unicode = unicode
+    bytes = str
+    basestring = basestring
+    __strtypes__ = [str, unicode]
 
 # Add Numpy str type if possible
 try:
@@ -46,6 +61,8 @@ class odict(object):
                 self.__keys__.append(key)
                 self.__values__.append(value)
         else:
+            print(type(key))
+            print(__strtypes__)
             raise Exception("Wrong type for key: %s" % type(key))
 
     def __getitem__(self, key):
