@@ -42,7 +42,7 @@ else:
     str = str
     unicode = unicode
     bytes = str
-    basestring = (str, str)
+    basestring = (str, unicode)
 
 __all__ = ['ModelGrid', 'SpectralGrid','StellibGrid',
            'MemoryGrid','FileSEDGrid']

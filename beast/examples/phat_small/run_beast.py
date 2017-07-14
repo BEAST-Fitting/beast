@@ -129,16 +129,19 @@ if __name__ == '__main__':
                 keep, = np.where(obsdata[sfiltername] < 99.)
                 min_mags[k] = np.percentile(obsdata[keep][sfiltername],90.)
 
-            mag_cuts = min_mags + tmp_cuts # max. mags from the gst observation cat. 
+            # max. mags from the gst observation cat. 
+            mag_cuts = min_mags + tmp_cuts 
 
-        pick_models(modelsedgrid, mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize)
+        pick_models(modelsedgrid, mag_cuts, Nfilter=Nfilters,
+                    N_stars=N_models, Nrealize=Nrealize)
 
         if datamodel.ast_with_positions == True:
             separation = datamodel.ast_pixel_distribution
             filename = datamodel.project+'/'+datamodel.project+'_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
-                pick_positions(filename,separation,refimage=datamodel.ast_reference_image)
+                pick_positions(filename,separation,
+                               refimage=datamodel.ast_reference_image)
             else:
                 pick_positions(filename,separation)
 

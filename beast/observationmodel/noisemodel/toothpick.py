@@ -72,7 +72,7 @@ class MultiFilterASTs(NoiseModel):
             list of filters using the internally normalized namings
         """
         self.filters = filters
-
+        
         # ASTs inputs are in vega mag whereas models are in flux units
         #     for optimization purpose: pre-compute
         with Vega() as v:
@@ -286,8 +286,9 @@ class MultiFilterASTs(NoiseModel):
             mag_in = self.data[filterk + '_in']
             magflux_out = self.data[filterk + '_out']
 
-            d = self._compute_sigma_bins(mag_in, magflux_out, nbins=nbins,
-                                         completeness_mag_cut=completeness_mag_cut)
+            d = self._compute_sigma_bins(
+                mag_in, magflux_out, nbins=nbins,
+                completeness_mag_cut=completeness_mag_cut)
 
             ncurasts = len(d['FLUX_IN'])
             self._fluxes[0:ncurasts, e] = d['FLUX_IN'] * self.vega_flux[e]
