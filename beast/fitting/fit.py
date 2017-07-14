@@ -350,8 +350,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         # setup the fast 1d pdf
 
         # need to know so 'zeros' (defined at -100) are ignored
-        #   why are both wd?  one probaly should be nd??
-        if '_wd' in qname or '_wd' in qname:
+        if '_bias' in qname:
             ignorebelow = -99.99
         else:
             ignorebelow = None
