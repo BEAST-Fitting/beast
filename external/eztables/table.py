@@ -634,7 +634,6 @@ class Table(object):
             return list(zip(idd, dup))
 
     def __getitem__(self, v):
-        print(v)
         return np.asarray(self.data.__getitem__(self.resolve_alias(v)))
 
     def __setitem__(self, v):

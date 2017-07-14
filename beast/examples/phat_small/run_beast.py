@@ -18,7 +18,8 @@ import numpy as np
 # BEAST imports
 from beast.physicsmodel.create_project_dir import create_project_dir
 from beast.physicsmodel.model_grid import (make_iso_table,
-                                           make_spectral_grid)
+                                           make_spectral_grid,
+                                           add_stellar_priors)
 from beast.external.ezunits import unit
 from beast.tools.helpers import val_in_unit
 
@@ -55,8 +56,6 @@ if __name__ == '__main__':
                         action="store_true")
     args = parser.parse_args()
 
-    
-
     # check input parameters, print what is the problem, stop run_beast
     verify_params.verify_input_format(datamodel)
 
@@ -79,10 +78,15 @@ if __name__ == '__main__':
         distance = 10 ** ( (dmod / 5.) + 1 ) * unit['pc']
 
         # generate the spectral library (no dust extinction)
-        (spec_fname, g) = make_spectral_grid(datamodel.project,
-                                             oiso,
-                                             osl=datamodel.osl,
-                                             distance=distance)
+        (spec_fname, g_spec) = make_spectral_grid(datamodel.project,
+                                                  oiso,
+                                                  osl=datamodel.osl,
+                                                  distance=distance)
+
+        # add the stellar priors as weights
+        (pspec_fname, g_pspec) = add_stellar_priors(datamodel.project,
+                                                    g_spec)
+                                                    
         exit()
 
         

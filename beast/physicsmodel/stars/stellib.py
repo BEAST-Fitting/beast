@@ -502,8 +502,10 @@ class Stellib(object):
             _r = T0
         return ( ( (self.spectra[_r[:, 0].astype(int)].T) * _r[:, 1]) ).sum(1)
 
-    def gen_spectral_grid_from_given_points(self, pts, bounds=dict(dlogT=0.1, dlogg=0.3)):
-        """ Reinterpolate a given stellar spectral library on to an Isochrone grid
+    def gen_spectral_grid_from_given_points(self, pts, bounds=dict(dlogT=0.1,
+                                                                   dlogg=0.3)):
+        """ 
+        Reinterpolate a given stellar spectral library on to an Isochrone grid
 
         Parameters
         ----------
@@ -522,7 +524,8 @@ class Stellib(object):
         Returns
         -------
         g: SpectralGrid
-            Spectral grid (in memory) containing the requested list of stars and associated spectra
+            Spectral grid (in memory) containing the requested list of 
+            stars and associated spectra
         """
         # Step 0: prepare outputs
         # =======================
@@ -547,11 +550,10 @@ class Stellib(object):
         _grid['grid_weight'] = np.full(ndata, 1.0, dtype=float)
         
         # index to the grid
-        # initialize to zero now, later assign the index value
         # useful to setup here as it will then be cleanly propagated
         #   to the SED grid
-        _grid['specgrid_indx'] = np.zeros(ndata, dtype=np.int64)
-
+        _grid['specgrid_indx'] = np.full(ndata, 0.0, dtype=float)
+                    
         specs = np.empty( (ndata, len(self.wavelength)), dtype=float )
 
         # copy meta data of pts into the resulting structure
@@ -604,6 +606,11 @@ class Stellib(object):
                   'comment': 'radius in Rsun',
                   'name': 'Reinterpolated stellib grid'}
 
+        # populate the specgrid index
+        _grid['specgrid_indx'] = np.arange(len(_grid['specgrid_indx']),
+                                           dtype=np.int64)
+        
+        # ship
         g = SpectralGrid(lamb, seds=specs, grid=Table(_grid), header=header, backend='memory')
 
         return g
@@ -1070,6 +1077,10 @@ class CompositeStellib(Stellib):
                   'name': 'Reinterpolated stellib grid'}
 
         _grid = recfunctions.stack_arrays( grid, defaults=None, usemask=False, asrecarray=True)
+
+        # populate the specgrid index
+        _grid['specgrid_indx'] = np.arange(len(_grid['specgrid_indx']),
+                                           dtype=np.int64)
 
         g = SpectralGrid(l0, seds=np.vstack(seds), grid=Table(_grid), header=header, backend='memory')
 
