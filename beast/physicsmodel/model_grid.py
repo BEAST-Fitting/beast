@@ -11,7 +11,8 @@ from .grid_and_prior_weights import compute_age_mass_metallicity_weights
 
 from ..tools.helpers import val_in_unit
 
-__all__ = ['make_iso_table', 'make_spectral_grid', 'add_stellar_priors']
+__all__ = ['make_iso_table', 'make_spectral_grid', 'add_stellar_priors',
+           'make_extinguished_sed_grid']
 
 def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
                    z=[0.0152]):
@@ -41,9 +42,11 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
 
     Returns
     -------
-    outname: str
-        file into which save the table of isochrones (any format eztables
-        can handle)
+    fname: str
+       name of saved file
+
+    oiso: isochrone.Isochrone object
+        contains the full isochrones information
     """
     iso_fname = '%s/%s_iso.csv' % (project, project)
     if not os.path.isfile(iso_fname):
@@ -93,9 +96,11 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
 
     Returns
     -------
+    fname: str
+       name of saved file
 
-    outname: str
-        file into which save the spectral grid
+    g: grid.SpectralGrid object
+        spectral grid to transform
     """
     spec_fname = '%s/%s_spec_grid.hd5' % (project, project)
 
@@ -165,13 +170,14 @@ def add_stellar_priors(project, specgrid, verbose=True, **kwargs):
 
     specgrid: grid.SpectralGrid object
         spectral grid to transform
-        result from the make_spectra function
 
     returns
     -------
+    fname: str
+       name of saved file
 
-    outname: str
-        file into which save the SED grid
+    g: grid.SpectralGrid object
+        spectral grid to transform
     """
     priors_fname = '%s/%s_spec_w_priors.grid.hd5' % (project, project)
     if not os.path.isfile(priors_fname):
@@ -191,3 +197,111 @@ def add_stellar_priors(project, specgrid, verbose=True, **kwargs):
     g = grid.FileSpectralGrid(priors_fname, backend='memory')
 
     return (priors_fname, g)
+
+def make_extinguished_sed_grid(project,
+                               specgrid,
+                               filters, 
+                               av=[0., 5, 0.1], 
+                               rv=[0., 5, 0.2], 
+                               fA=None, 
+                               av_prior_model={'name': 'flat'},
+                               rv_prior_model={'name': 'flat'},
+                               fA_prior_model={'name': 'flat'},
+                               extLaw=None, 
+                               add_spectral_properties_kwargs=None,
+                               absflux_cov=False,
+                               verbose=True,
+                               **kwargs):
+    """
+    Create SED model grid integrated with filters and dust extinguished
+
+    Parameters
+    ----------
+    project: str
+        project name
+
+    specgrid: grid.SpectralGrid object
+        spectral grid to transform
+
+    filters: sequence
+        ordered sequence of filters to use to extract the photometry
+        filter names are the full names in core.filters
+
+    av: sequence
+        sequence of Av values to sample
+
+    av_prior_model: list
+        list including prior model name and parameters
+
+    rv: sequence
+        sequence of Rv values to sample
+
+    rv_prior_model: list
+        list including prior model name and parameters
+
+    fA: sequence (optional)
+        sequence of fA values to sample (depending on extLaw definition)
+
+    fA_prior_model: list
+        list including prior model name and parameters
+
+    extLaw: extinction.ExtLaw
+        extinction law to use during the process
+
+    add_spectral_properties_kwargs: dict
+        keyword arguments to call :func:`add_spectral_properties`
+        to add model properties from the spectra into the grid property table
+
+    asbflux_cov: boolean
+        set to calculate the absflux covariance matrices for each model
+        (can be very slow!!!  But it is the right thing to do)
+
+    returns
+    -------
+    fname: str
+       name of saved file
+
+    g: grid.SpectralGrid object
+        spectral grid to transform
+    """
+    seds_fname = '%s/%s_seds.grid.hd5' % (project, project)
+    if not os.path.isfile(seds_fname):
+
+        extLaw = extLaw or extinction.Cardelli()
+
+        avs = np.arange(av[0], av[1] + 0.5 * av[2], av[2])
+        rvs = np.arange(rv[0], rv[1] + 0.5 * rv[2], rv[2])
+
+        if verbose:
+            print('Make SEDS')
+
+        if fA is not None:
+            fAs = np.arange(fA[0], fA[1] + 0.5 * fA[2], fA[2])
+            g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
+                                                  avs, 
+                                                  rvs, 
+                                                  fAs, 
+                                                  av_prior_model=av_prior_model,
+                                                  rv_prior_model=rv_prior_model,
+                                                  fA_prior_model=fA_prior_model,
+                add_spectral_properties_kwargs=add_spectral_properties_kwargs,
+                                                  absflux_cov=absflux_cov)
+        else:
+            g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
+                                                  avs, 
+                                                  rvs,   
+                                                  av_prior_model=av_prior_model,
+                                                  rv_prior_model=rv_prior_model,
+                  add_spectral_properties_kwargs=add_spectral_properties_kwargs,
+                                                  absflux_cov=absflux_cov)
+
+        #write to disk
+        if hasattr(g, 'writeHDF'):
+            g.writeHDF(seds_fname)
+        else:
+            for gk in g:
+                gk.writeHDF(seds_fname, append=True)
+
+    g = grid.FileSEDGrid(seds_fname, backend='hdf')
+        
+    return (seds_fname, g)

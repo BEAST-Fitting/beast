@@ -29,6 +29,21 @@ from .dust import extinction
 from .helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
 from .helpers.gridhelpers import pretty_size_print, isNestedInstance
 
+try:
+    unicode = unicode
+except NameError:
+    # 'unicode' is undefined, must be Python 3
+    str = str
+    unicode = str
+    bytes = bytes
+    basestring = (str,bytes)
+else:
+    # 'unicode' exists, must be Python 2
+    str = str
+    unicode = unicode
+    bytes = str
+    basestring = (str, str)
+
 __all__ = ['ModelGrid', 'SpectralGrid','StellibGrid',
            'MemoryGrid','FileSEDGrid']
 
@@ -93,7 +108,7 @@ class ModelGrid(object):
         backend = kwargs.pop('backend', None)
         if backend is None:
             self._backend = GridBackend(*args, **kwargs)
-        elif type(backend) == str or type(backend) == unicode:
+        elif type(backend) in basestring:
             self._backend = find_backend(backend)(*args, **kwargs)
         elif isNestedInstance(backend, GridBackend):
             self._backend = backend

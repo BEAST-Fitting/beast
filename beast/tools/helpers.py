@@ -334,8 +334,8 @@ def missing_units_warning(name, defaultunit):
     warning: warnings.warn
         warn if units are assumed
     """
-    warnings.formatwarning = warning_on_one_line
-    warnings.warn('Variable {0:s} does not have explicit units. Assuming `{1:s}`\n'.format(name, defaultunit), stacklevel=4)
+    #warnings.formatwarning = warning_on_one_line
+    warnings.warn('Variable %s does not have explicit units. Assuming %s' % (name, defaultunit))
 
 
 def val_in_unit(varname, value, defaultunit):
@@ -368,7 +368,7 @@ def val_in_unit(varname, value, defaultunit):
     0.5 degree
     """
     if not hasUnit(value):
-        missing_units_warning(varname, defaultunit)
+        #missing_units_warning(varname, defaultunit)
         return value * unit[defaultunit]
     else:
         return value.to(defaultunit)

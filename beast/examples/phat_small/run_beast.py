@@ -19,11 +19,12 @@ import numpy as np
 from beast.physicsmodel.create_project_dir import create_project_dir
 from beast.physicsmodel.model_grid import (make_iso_table,
                                            make_spectral_grid,
-                                           add_stellar_priors)
+                                           add_stellar_priors,
+                                           make_extinguished_sed_grid)
 from beast.external.ezunits import unit
 from beast.tools.helpers import val_in_unit
+#from beast.physicsmodel.make_model import make_models
 
-from beast.physicsmodel.make_model import make_models
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
 from beast.observationmodel.ast.make_ast_input_list import pick_models
 from beast.observationmodel.ast.make_ast_xy_list import pick_positions
@@ -84,13 +85,24 @@ if __name__ == '__main__':
                                                   distance=distance)
 
         # add the stellar priors as weights
+        #   also computes the grid weights for the stellar part
         (pspec_fname, g_pspec) = add_stellar_priors(datamodel.project,
                                                     g_spec)
                                                     
-        exit()
-
-        
-        make_models()
+        # generate the SED grid by integrating the filter response functions
+        #   effect of dust extinction applied before filter integration
+        #   also computes the dust priors as weights
+        (seds_fname, g_seds) = make_extinguished_sed_grid(
+            datamodel.project,
+            g_pspec,
+            datamodel.filters,
+            extLaw=datamodel.extLaw,
+            av=datamodel.avs,
+            rv=datamodel.rvs,
+            fA=datamodel.fAs,
+            rv_prior_model=datamodel.rv_prior_model,
+            av_prior_model=datamodel.av_prior_model,
+            fA_prior_model=datamodel.fA_prior_model)
 
     if args.ast:
         # get the modesedgrid on which to grab input AST
