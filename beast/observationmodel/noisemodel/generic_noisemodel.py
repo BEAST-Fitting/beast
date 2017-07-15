@@ -35,8 +35,8 @@ class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
                                     k.split('_')[-1].upper() + '_IN')
             except Exception as e:
                 print(e)
-                print(('Warning: Mapping failed. This could lead to ' +
-                      'wrong results'))
+                print('Warning: Mapping failed. This could lead to ' +
+                      'wrong results')
 
 
 def make_toothpick_noise_model(outname, astfile, sedgrid,
@@ -94,7 +94,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
         if len(indxs) > 0:
             noise[indxs,k] *= -1.0
 
-    print(('Writting to disk into {0:s}'.format(outname)))
+    print('Writting to disk into {0:s}'.format(outname))
     with tables.open_file(outname, 'w') as outfile:
         outfile.create_array(outfile.root,'bias', bias)
         outfile.create_array(outfile.root,'error', noise)

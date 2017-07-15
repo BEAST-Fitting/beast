@@ -151,8 +151,8 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
     try:
         outfile = tables.open_file(lnp_outname, 'a')
     except Exception as error:
-        print(('partial run lnp file is corrupted - saving new lnp values in '
-              + string.replace(lnp_outname,'lnp','lnp_partial')))
+        print('partial run lnp file is corrupted - saving new lnp values in '
+              + string.replace(lnp_outname,'lnp','lnp_partial'))
         outfile = tables.open_file(string.replace(lnp_outname,'lnp',
                                                  'lnp_partial'), 'a')
             
@@ -254,7 +254,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
     if len(g0['weight']) != len(g0_indxs):
         print('some zero weight models exist')
-        print(('orig/g0_indxs', len(g0['weight']),len(g0_indxs)))
+        print('orig/g0_indxs', len(g0['weight']),len(g0_indxs))
 
     # get the model SEDs
     if hasattr(g0.seds, 'read'):
@@ -392,13 +392,13 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
         indxs, = np.where(stats_table['Pmax'] != 0.0)
         start_pos = max(indxs) + 1
-        print(('resuming run with start indx = ' + str(start_pos) +
-              ' out of ' + str(len(stats_table['Pmax']))))
+        print('resuming run with start indx = ' + str(start_pos) +
+              ' out of ' + str(len(stats_table['Pmax'])))
 
         # read in the already computed 1D PDFs
         if pdf1d_outname != None:
-            print(('restoring the already computed 1D PDFs from ' +
-                  pdf1d_outname))
+            print('restoring the already computed 1D PDFs from ' +
+                  pdf1d_outname)
             hdulist = fits.open(pdf1d_outname)
             for k in range(len(qnames)):
                 save_pdf1d_vals[k] = hdulist[k+1].data

@@ -85,7 +85,7 @@ class Observations(object):
         else:
             txt += '\n Using Filters: {s.filters}\n'
 
-        print((txt.format(s=self)))
+        print(txt.format(s=self))
 
     def __getitem__(self, *args, **kwargs):
         """ get item will generate a subsample """
