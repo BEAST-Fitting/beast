@@ -23,9 +23,6 @@ from beast.physicsmodel.model_grid import (make_iso_table,
                                            make_spectral_grid,
                                            add_stellar_priors,
                                            make_extinguished_sed_grid)
-#from beast.external.ezunits import unit
-#from beast.tools.helpers import val_in_unit
-#from beast.physicsmodel.make_model import make_models
 
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
 from beast.observationmodel.ast.make_ast_input_list import pick_models

@@ -28,7 +28,6 @@ from .stars import isochrone
 from .dust import extinction
 from .grid import SpectralGrid
 from .prior_weights_dust import PriorWeightsDust
-#from ..external import ezunits
 from ..external.eztables import Table
 from ..tools.pbar import Pbar
 from ..tools.helpers import generator

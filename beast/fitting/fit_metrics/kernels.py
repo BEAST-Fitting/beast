@@ -24,6 +24,7 @@ import math
 import numpy as np
 import scipy.integrate
 from numpy import exp, multiply, square, divide, subtract, inf
+import collections
 
 
 class NdKernel(object):
@@ -123,7 +124,7 @@ class CustomKernel(object):
             norm = 1.0
         self._normconst = norm
         self.domain = domain
-        if callable(shape):
+        if isinstance(shape, collections.Callable):
             self._shape = shape
         else:
             raise TypeError("shape must be a callable object/function")
@@ -153,9 +154,9 @@ class CustomKernel(object):
         if self.domain is None:
             return (xs, ys)
         else:
-            filtered = filter(isInDomain, zip(xs, ys))
+            filtered = list(filter(isInDomain, list(zip(xs, ys))))
             if len(filtered) > 0:
-                xs, ys = zip(*filtered)
+                xs, ys = list(zip(*filtered))
                 return (xs, ys)
             else:
                 return ([], [])

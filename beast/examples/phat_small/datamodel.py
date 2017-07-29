@@ -14,7 +14,7 @@ from beast.physicsmodel.dust import extinction
 from beast.observationmodel.observations import Observations
 from beast.observationmodel.vega import Vega
 from beast.observationmodel.noisemodel import absflux_covmat
-#from beast.external.ezunits import unit
+
 #from extra_filters import make_integration_filter, make_top_hat_filter
 
 #-----------------------------------------------------------------

@@ -17,7 +17,6 @@ from astropy import units
 import tables
 from ...external.eztables import Table
 from ...external.eztables.table import recfunctions
-#from ...external.ezunits import unit, hasUnit
 from ...config import __ROOT__
 from .ezpadova import parsec
 from .ezmist import mist

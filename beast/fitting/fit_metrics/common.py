@@ -137,7 +137,7 @@ def percentile(data, percentiles, weights=None):
         w = (aw - 0.5 * sw) / aw[-1]
 
         spots = np.searchsorted(w, _p)
-        for (pk, s, p) in zip(range(len_p), spots, _p):
+        for (pk, s, p) in zip(list(range(len_p)), spots, _p):
             if s == 0:
                 o[pk] = sd[0]
             elif s == n:

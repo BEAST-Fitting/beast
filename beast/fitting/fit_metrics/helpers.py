@@ -358,7 +358,7 @@ def Q_expect(lnpfile, qname, cllist=None, prior=None):
 
     if cllist is None:
         nobs = get_nclusters(f)
-        cllist = range(nobs)
+        cllist = list(range(nobs))
     else:
         nobs = len(cllist)
 
@@ -432,7 +432,7 @@ def Q_percentile(lnpfile, qname, p=[16., 50., 84.], cllist=None, prior=None):
 
     if cllist is None:
         nobs = get_nclusters(f)
-        cllist = range(nobs)
+        cllist = list(range(nobs))
     else:
         nobs = len(cllist)
 
@@ -509,7 +509,7 @@ def sed_expect(lnpfile, cllist=None, prior=None):
 
     if cllist is None:
         nobs = get_nclusters(f)
-        cllist = range(nobs)
+        cllist = list(range(nobs))
     else:
         nobs = len(cllist)
 
@@ -577,7 +577,7 @@ def sed_percentile(lnpfile, p=[16., 50., 84.], cllist=None, prior=None):
 
     if cllist is None:
         nobs = get_nclusters(f)
-        cllist = range(nobs)
+        cllist = list(range(nobs))
     else:
         nobs = len(cllist)
 
@@ -652,7 +652,7 @@ def Q_best(lnpfile, qname, cllist=None, prior=None):
 
     if cllist is None:
         nobs = get_nclusters(f)
-        cllist = range(nobs)
+        cllist = list(range(nobs))
     else:
         nobs = len(cllist)
 

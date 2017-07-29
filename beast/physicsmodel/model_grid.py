@@ -11,8 +11,6 @@ from .stars import isochrone
 from .stars.isochrone import ezIsoch
 from .grid_and_prior_weights import compute_age_mass_metallicity_weights
 
-#from ..tools.helpers import val_in_unit
-
 __all__ = ['make_iso_table', 'make_spectral_grid', 'add_stellar_priors',
            'make_extinguished_sed_grid']
 

@@ -10,8 +10,6 @@ from scipy import interpolate, interp
 from astropy import units
 
 from ...observationmodel import phot
-#from ...tools.helpers import val_in_unit
-#from ...external.ezunits import unit
 
 from .extinction import ExtinctionLaw
 

@@ -104,6 +104,9 @@ package_info['package_data'][PACKAGENAME].extend(c_files)
 #print(package_info['package_data'][PACKAGENAME])
 #exit()
 
+print(package_info)
+exit()
+
 # Note that requires and provides should not be included in the call to
 # ``setup``, since these are now deprecated. See this link for more details:
 # https://groups.google.com/forum/#!topic/astropy-dev/urYO8ckB2uM
@@ -120,7 +123,7 @@ setup(name=PACKAGENAME,
       long_description=LONG_DESCRIPTION,
       cmdclass=cmdclassd,
       zip_safe=False,
-      use_2to3=True,
+      use_2to3=False,
       entry_points=entry_points,
       **package_info
 )

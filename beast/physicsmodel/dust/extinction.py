@@ -10,8 +10,6 @@ from scipy import interpolate, interp
 from astropy import units
 
 from ...observationmodel import phot
-#from ...tools.helpers import val_in_unit
-#from ...external.ezunits import unit
 from ...config import __ROOT__
 
 __all__ = ['ExtinctionLaw', 'Cardelli89', 'Fitzpatrick99',
