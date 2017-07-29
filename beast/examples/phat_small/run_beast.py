@@ -15,14 +15,16 @@ import time
 import string
 import numpy as np
 
+from astropy import units
+
 # BEAST imports
 from beast.physicsmodel.create_project_dir import create_project_dir
 from beast.physicsmodel.model_grid import (make_iso_table,
                                            make_spectral_grid,
                                            add_stellar_priors,
                                            make_extinguished_sed_grid)
-from beast.external.ezunits import unit
-from beast.tools.helpers import val_in_unit
+#from beast.external.ezunits import unit
+#from beast.tools.helpers import val_in_unit
 #from beast.physicsmodel.make_model import make_models
 
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
@@ -74,9 +76,11 @@ if __name__ == '__main__':
                                            z=datamodel.z)
 
         # calculate the distance in pc
-        dmod = val_in_unit('distance Modulus',
-                           datamodel.distanceModulus, 'mag').magnitude
-        distance = 10 ** ( (dmod / 5.) + 1 ) * unit['pc']
+        if datamodel.distanceModulus.unit == units.mag:
+            dmod = datamodel.distanceModulus.value
+            distance = 10 ** ( (dmod / 5.) + 1 ) * units.pc
+        else:
+            raise ValueError("distance modulus does not have mag units")
 
         if hasattr(datamodel, 'add_spectral_properties_kwargs'):
             extra_kwargs = datamodel.add_spectral_properties_kwargs
@@ -173,7 +177,6 @@ if __name__ == '__main__':
 
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile,
-                                       datamodel.distanceModulus,
                                        datamodel.filters)
 
         # get the modesedgrid on which to generate the noisemodel  
@@ -204,7 +207,6 @@ if __name__ == '__main__':
 
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, 
-                                       datamodel.distanceModulus,
                                        datamodel.filters)
 
         # output files

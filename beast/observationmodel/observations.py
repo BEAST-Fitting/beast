@@ -9,7 +9,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from scipy.interpolate import interp1d
-from ..external.ezunits import unit
 from ..tools.helpers import val_in_unit
 
 __all__ = ['Observations', 'FakeObs', 'PhotCharact']
@@ -28,13 +27,6 @@ class Observations(object):
     desc: str, optional
         description of the observations
 
-    distanceModulus: float, optional (default=0)
-        global distance modulus of the observations
-
-    distance: float
-        physical global distance to the observed sources. Linked to
-        `distanceModulus`.
-
     badvalue: float, optional
         value that tags a bad measurement that should not be used in the
         fitting.
@@ -42,12 +34,11 @@ class Observations(object):
     nObs: int
         number of observations in the catalog
     """
-    def __init__(self, inputFile, distanceModulus=None, desc=None):
+    def __init__(self, inputFile, desc=None):
         """ Generate a data interface object """
         self.inputFile = inputFile
         self.filters   = None
         self.desc      = desc
-        self.setDistanceModulus(distanceModulus)
         self.readData()
         self.badvalue  = None
 
@@ -98,25 +89,6 @@ class Observations(object):
     def setDescription(self, txt):
         self.desc = txt
 
-    def setDistanceModulus(self, val):
-        """ Set the distance modulus to consider the dataset """
-
-        if val is None:
-            val = 0. * unit['mag']
-
-        _val = val_in_unit('distance Modulus', val, 'mag')
-
-        self.distanceModulus = _val
-        self.distance = (10 ** (_val.magnitude / 5. + 1. )) * unit['pc']
-
-    def setDistance(self, val):
-        """ Set observed object distance to X Megaparsecs
-            this will update also the distance Modulus
-        """
-        _val = val_in_unit('Distance', val, 'pc')
-        self.distance = _val
-        self.distanceModulus = 5. * np.log10( 0.1 * _val.magnitude) * unit['mag']
-
     def setBadValue(self, val):
         self.badvalue = val
 
@@ -128,7 +100,7 @@ class Observations(object):
 
     def getMags(self, num, filters):
         raise Exception('Do not use as magnitudes')
-        return np.array([ self.data[tt][num] - self.distanceModulus for tt in filters])
+        return np.array([ self.data[tt][num] for tt in filters])
 
     def getErrors(self, num, filters):
         raise Exception('Do not use as magnitudes')
@@ -138,9 +110,8 @@ class Observations(object):
         """returns the absolute flux of an observation from the number of counts"""
 
         flux = np.empty(len(self.filters), dtype=float)
-        distance = self.distance.to('pc').magnitude
         for ek, ok in enumerate(self.filters):
-            flux[ek] = self.data[ok][num] * (0.1 * distance) ** 2
+            flux[ek] = self.data[ok][num]
 
         return flux
 
@@ -148,10 +119,9 @@ class Observations(object):
         """returns the error on the absolute flux of an observation from the number of counts (not used in the analysis)"""
 
         fluxerr = np.empty(len(self.filters), dtype=float)
-        distance = self.distance.to('pc').magnitude
 
         for ek, ok in enumerate(self.filters):
-            fluxerr[ek] = self.data[ok + '_err'][num] * (0.1 * distance) ** 2
+            fluxerr[ek] = self.data[ok + '_err'][num]
 
         return fluxerr
 
@@ -194,7 +164,11 @@ class Observations(object):
         for k in range(self.nObs):
             yield k, self.getObs(k)
 
-
+#******************
+# Code below is not tested/used for sometime (KDG - Jul 2017)
+# Not clear if any of this code is needed any longer.
+#******************
+            
 class FakeObs(Observations):
 
     def getObs(self, num=0, err=0.05):

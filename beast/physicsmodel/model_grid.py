@@ -3,13 +3,15 @@ import os
 
 import numpy as np
 
+from astropy import units
+
 from . import grid
 from . import creategrid
 from .stars import isochrone
 from .stars.isochrone import ezIsoch
 from .grid_and_prior_weights import compute_age_mass_metallicity_weights
 
-from ..tools.helpers import val_in_unit
+#from ..tools.helpers import val_in_unit
 
 __all__ = ['make_iso_table', 'make_spectral_grid', 'add_stellar_priors',
            'make_extinguished_sed_grid']
@@ -123,8 +125,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
 
         # get the distance
         if distance is not None:
-            _distance = val_in_unit('distance', distance, 'pc').magnitude
-
+            _distance = distance.to(units.pc).value
+            
         if verbose:    
             print('Adding spectral properties:', add_spectral_properties_kwargs
                   is not None)

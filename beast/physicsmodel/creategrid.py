@@ -21,12 +21,14 @@ __version__ = '2.0dev'
 import numpy as np
 import copy
 
+from astropy import constants
+
 from .stars import stellib
 from .stars import isochrone
 from .dust import extinction
 from .grid import SpectralGrid
 from .prior_weights_dust import PriorWeightsDust
-from ..external import ezunits
+#from ..external import ezunits
 from ..external.eztables import Table
 from ..tools.pbar import Pbar
 from ..tools.helpers import generator
@@ -173,8 +175,10 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
 
     # some constants
     kdata = 0
-    rsun = ezunits.unit['Rsun'].to('m').magnitude  # 6.955e8 m
-
+    rsun = 6.955e8  # in meters
+    # uncomment for lastest version of Rsun
+    #rsun = constants.Rsun.to(units.m).value
+    
     for k, (_ak, _Zk) in \
             Pbar(niter, desc='spectral grid').iterover(enumerate(it)):
 

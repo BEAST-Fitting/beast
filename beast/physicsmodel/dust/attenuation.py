@@ -7,9 +7,11 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from scipy import interpolate, interp
 
+from astropy import units
+
 from ...observationmodel import phot
-from ...tools.helpers import val_in_unit
-from ...external.ezunits import unit
+#from ...tools.helpers import val_in_unit
+#from ...external.ezunits import unit
 
 from .extinction import ExtinctionLaw
 
@@ -59,7 +61,9 @@ class Calzetti00(ExtinctionLaw):
             depending on Alambda option +2.5*1./log(10.)*tau,  or tau
         """
         # handle units
-        _lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
+        # ensure the units are in angstrom
+        _lamb = units.Quantity(lamb, units.angstrom).value
+        #_lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
 
         if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])

@@ -38,11 +38,11 @@ class remotePsqlConfig(object):
 	""" Impose the conditions for the remote sql configuration """
 	def __init__(self, gate, gate_user, db_name, db_user, db_host, db_cmd, **kwargs):
 		self.gate        = gate
-                self.gate_user   = gate_user
-                self.db_name     = db_name
-                self.db_user     = db_user
-                self.db_host     = db_host
-                self.db_cmd      = db_cmd
+		self.gate_user   = gate_user
+		self.db_name     = db_name
+		self.db_user     = db_user
+		self.db_host     = db_host
+		self.db_cmd      = db_cmd
 		for k,v in kwargs.items():
 			self.__setattr__(k,v)
 
