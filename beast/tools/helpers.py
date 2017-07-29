@@ -11,7 +11,7 @@ import warnings
 import numpy as np
 import itertools
 
-from ..external.ezunits import unit, hasUnit
+#from ..external.ezunits import unit, hasUnit
 
 #replace the common range by the generator
 try:
@@ -318,60 +318,60 @@ def warning_on_one_line(message, category, filename, lineno, file=None, line=Non
     return " {0:s}:{1:d} {2:s}:{3:s}".format(filename, lineno, category.__name__, message)
 
 
-def missing_units_warning(name, defaultunit):
-    """ Warn if any unit is missing
+#def missing_units_warning(name, defaultunit):
+#    """ Warn if any unit is missing
+#
+#    Parameters
+#    ----------
+#    name: str
+#        name of the variable
+#
+#    defaultunit: str
+#        default unit definition
+#
+#    Raises
+#    ------
+#    warning: warnings.warn
+#        warn if units are assumed
+#    """
+#    #warnings.formatwarning = warning_on_one_line
+#    warnings.warn('Variable %s does not have explicit units. Assuming %s' % (name, defaultunit))
 
-    Parameters
-    ----------
-    name: str
-        name of the variable
 
-    defaultunit: str
-        default unit definition
-
-    Raises
-    ------
-    warning: warnings.warn
-        warn if units are assumed
-    """
-    #warnings.formatwarning = warning_on_one_line
-    warnings.warn('Variable %s does not have explicit units. Assuming %s' % (name, defaultunit))
-
-
-def val_in_unit(varname, value, defaultunit):
-    """ check units and convert to defaultunit or create the unit information
-
-    Parameters
-    ----------
-    varname: str
-        name of the variable
-
-    value: value
-        value of the variable, which may be unitless
-
-    defaultunit: str
-        default units is unitless
-
-    Returns
-    -------
-    quantity: ezunits.Quantity
-        value with units
-
-    Example
-    -------
-    >>> r = 0.5
-    >>> print(val_in_unit('r', r, 'degree'))
-    0.5 degree
-
-    >>> r = 0.5 * unit['degree']
-    >>> print(val_in_unit('r', r, 'degree'))
-    0.5 degree
-    """
-    if not hasUnit(value):
-        #missing_units_warning(varname, defaultunit)
-        return value * unit[defaultunit]
-    else:
-        return value.to(defaultunit)
+#def val_in_unit(varname, value, defaultunit):
+#    """ check units and convert to defaultunit or create the unit information
+#
+#    Parameters
+#    ----------
+#    varname: str
+#        name of the variable
+#
+#    value: value
+#        value of the variable, which may be unitless
+#
+#    defaultunit: str
+#        default units is unitless
+#
+#    Returns
+#    -------
+#    quantity: ezunits.Quantity
+#        value with units
+#
+#    Example
+#    -------
+#    >>> r = 0.5
+#    >>> print(val_in_unit('r', r, 'degree'))
+#    0.5 degree
+#
+#    >>> r = 0.5 * unit['degree']
+#    >>> print(val_in_unit('r', r, 'degree'))
+#    0.5 degree
+#    """
+#    if not hasUnit(value):
+#        #missing_units_warning(varname, defaultunit)
+#        return value * unit[defaultunit]
+#    else:
+#        return value.to(defaultunit)
 
 
 def merge_records(lst):

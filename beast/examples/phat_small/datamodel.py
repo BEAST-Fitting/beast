@@ -244,7 +244,7 @@ class GenFluxCatalog(Observations):
                           for ok in self.filters ]) * self.vega_flux
         
         if units is True:
-            return flux * unit['erg/s/cm**2/Angstrom']
+            return flux * units.erg / (units.s*units.cm*units.cm*units.angstrom)
         else:
             return flux
 

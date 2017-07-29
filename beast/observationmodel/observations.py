@@ -9,7 +9,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 from scipy.interpolate import interp1d
-from ..tools.helpers import val_in_unit
+#from ..tools.helpers import val_in_unit
 
 __all__ = ['Observations', 'FakeObs', 'PhotCharact']
 
