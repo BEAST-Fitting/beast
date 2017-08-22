@@ -94,8 +94,8 @@ def make_source_dens_map(catfile,
     pix_x = pixcrd[:,0]
     pix_y = pixcrd[:,1]
 
-    npts_map = np.empty([n_x,n_y])
-    source_dens = np.empty(N_stars)
+    npts_map = np.empty([n_x,n_y], dtype=float)
+    source_dens = np.empty(N_stars, dtype=float)
 
     for i in range(n_x):
         print('x = %s out of %s' % (str(i+1), str(n_x)))
@@ -107,10 +107,10 @@ def make_source_dens_map(catfile,
                                     & (cat[mag_name][indxs] <= mag_cut[1]))
             n_indxs = len(indxs_for_SD)
             if n_indxs > 0:
-                npts_map[i,j] = n_indxs
+                npts_map[i,j] = n_indxs/(pix_size**2)
             else:
                 npts_map[i,j] = 0
-            source_dens[indxs] = npts_map[i,j]/(pix_size**2)
+            source_dens[indxs] = npts_map[i,j]
 
     header = w.to_header()
     hdu = fits.PrimaryHDU(npts_map.T, header=header)
@@ -132,7 +132,5 @@ if __name__ == '__main__':
     parser.add_argument("--pixsize", type=float, default=10.,
                         help='pixel size')
     args = parser.parse_args()
-    catfile = args.catfile
-    print(catfile)
 
     make_source_dens_map(args.catfile, pix_size=args.pixsize)
