@@ -127,7 +127,6 @@ if __name__ == '__main__':
         if len(mag_cuts) == 1:
             tmp_cuts = mag_cuts
             obsdata = datamodel.get_obscat(datamodel.obsfile,
-                                           datamodel.distanceModulus,
                                            datamodel.filters)
 
             min_mags = np.zeros(len(datamodel.filters))
