@@ -106,7 +106,7 @@ class Observations(object):
         return np.array([ self.data[tt + 'err'][num] for tt in filters])
 
     def getFlux(self, num):
-        """returns the absolute flux of an observation from the number of counts"""
+        """returns the flux of an observation from the number of counts"""
 
         flux = np.empty(len(self.filters), dtype=float)
         for ek, ok in enumerate(self.filters):
@@ -115,7 +115,7 @@ class Observations(object):
         return flux
 
     def getFluxerr(self, num):
-        """returns the error on the absolute flux of an observation from the number of counts (not used in the analysis)"""
+        """returns the error on the flux of an observation from the number of counts (not used in the analysis)"""
 
         fluxerr = np.empty(len(self.filters), dtype=float)
 
@@ -125,7 +125,7 @@ class Observations(object):
         return fluxerr
 
     def getObs(self, num=0):
-        """ returns the flux corrected for distance """
+        """ returns the flux"""
         if self.filters is None:
             raise AttributeError('No filter set provided.')
 
@@ -134,7 +134,7 @@ class Observations(object):
         return flux
 
     def getObsWithUncertainties(self, num=0):
-        """ returns the flux and uncertainties corrected for distance and the mask of bad values"""
+        """ returns the flux and uncertainties and the mask of bad values"""
         assert ( not self.filters is None), "No filter set."
         mags = self.getMags(num, self.filters)
         errs = self.getErrors(num, self.filters)
@@ -188,7 +188,8 @@ class FakeObs(Observations):
         self.data = Table(self.inputFile)
 
 
-def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, distanceModulus=0., filters=None, save=False):
+def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, 
+                             filters=None, save=False):
     from ..external.eztables import Table
     from . import grid
     if type(sedgrid) == str:

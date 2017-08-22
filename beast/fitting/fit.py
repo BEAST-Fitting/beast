@@ -557,16 +557,18 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     if lnp_outname is not None:
         save_lnp(lnp_outname, save_lnp_vals, resume)
 
-def IAU_names_and_extra_info(obsdata,extraInfo=False):
+def IAU_names_and_extra_info(obsdata, surveyname='PHAT',extraInfo=False):
     """
-    generates IAU approved names for the PHAT data using RA & DEC
+    generates IAU approved names for the data using RA & DEC
       and extra information about the sources (ra, dec, photometry, etc.)
 
     keywords
     --------
     obsdata: Observations
+    surveyname: string
+          name of survey [default = 'PHAT']
     extraInfo: bool
-          set to get the PHAT survey information
+          set to get the HST specific PHAT software reduced survey information
 
     returns
     -------
@@ -593,8 +595,9 @@ def IAU_names_and_extra_info(obsdata,extraInfo=False):
             c = ap_SkyCoord(ra=obsdata.data[ra_str][i]*ap_units.degree,
                             dec=obsdata.data[dec_str][i]*ap_units.degree,
                             frame='icrs')
-            _tnames.append('PHAT J' + 
-                           c.ra.to_string(unit=ap_units.hourangle, sep="",precision=2,
+            _tnames.append(surveyname + ' J' + 
+                           c.ra.to_string(unit=ap_units.hourangle, 
+                                          sep="",precision=2,
                                           alwayssign=False,pad=True) + 
                            c.dec.to_string(sep="",precision=2,
                                            alwayssign=True,pad=True))
@@ -623,7 +626,8 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                          lnp_npts=None, resume=False,
                          stats_outname=None, pdf1d_outname=None,
                          lnp_outname=None,
-                         use_full_cov_matrix=True, extraInfo=False):
+                         use_full_cov_matrix=True, 
+                         surveyname='PHAT', extraInfo=False):
     """
     keywords
     --------
@@ -672,6 +676,9 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
               lnp points above the threshold
               otherwise, the full sparse likelihood is output
 
+    surveyname: string
+          name of survey [default = 'PHAT']
+
     extraInfo: bool
         set to get extra information, such as IAU name, brick, field, etc.
 
@@ -697,7 +704,9 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
             raise KeyError('Key "{0}" not recognized'.format(key))
 
     # generate an IAU complient name for each source and add other inform
-    res = IAU_names_and_extra_info(obs,extraInfo=False)
+    res = IAU_names_and_extra_info(obs, 
+                                   surveyname=surveyname,
+                                   extraInfo=False)
 
     Q_all_memory(res, obs, g0, noisemodel, keys, p=[16., 50., 84.],
                  resume=resume,
