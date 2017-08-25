@@ -3,13 +3,8 @@
 Creates a source density map based on an input catalog
 Used to split the observed catalog and ASTs into source density bins 
    for the BEAST
-
-Based on code by Heddy Arab (2015)
-
-Modified by Karl Gordon Sep 2015
-   to be more general (e.g. can be used for other surveys like HTTP)
-Updated to be even more general (KDG - Aug 2017)
 """
+
 from __future__ import print_function
 
 import argparse
@@ -41,14 +36,30 @@ def make_source_dens_map(catfile,
 
     OUTPUT:
     -------
-    hdu: astropy header data unit
-         source density map
-
-    written by HA 01/21/15
-    modified by KDG 09/10/15
+    FITS files written to disk.
     """
 
     cat = Table.read(catfile)
+
+    # get the columns with fluxes
+    rate_cols = [s for s in cat.colnames if s[-4:] == 'RATE']
+    n_filters = len(rate_cols)
+    
+    # create the indexs where any of the rates are zero
+    #   missing data, etc. -> bad for fitting
+    initialize_zero = False
+    band_zero_indxs = {}
+    for cur_rate in rate_cols:
+        cur_indxs, = np.where(cat[cur_rate] == 0.0)
+        print(cur_rate, len(cur_indxs))
+        if not initialize_zero:
+            initialize_zero = True
+            zero_indxs = cur_indxs
+        else:
+            zero_indxs = np.union1d(zero_indxs, cur_indxs)
+
+        # save the zero indexs for each band
+        band_zero_indxs[cur_rate] = zero_indxs
 
     # Setting map fame
     min_ra = cat['RA'].min()
@@ -56,8 +67,6 @@ def make_source_dens_map(catfile,
     min_dec = cat['DEC'].min()
     max_dec = cat['DEC'].max()
     
-    print(min_ra, max_ra, min_dec, max_dec)
-
     #Compute number of pixel alog each axis pix_size in arcsec
     dec_delt = pix_size/3600.
     n_y = np.fix(np.round((max_dec - min_dec)/dec_delt))
@@ -94,7 +103,9 @@ def make_source_dens_map(catfile,
     pix_x = pixcrd[:,0]
     pix_y = pixcrd[:,1]
 
-    npts_map = np.empty([n_x,n_y], dtype=float)
+    npts_map = np.zeros([n_x,n_y], dtype=float)
+    npts_zero_map = np.zeros([n_x,n_y], dtype=float)
+    npts_band_zero_map = np.zeros([n_x,n_y,n_filters], dtype=float)
     source_dens = np.empty(N_stars, dtype=float)
 
     for i in range(n_x):
@@ -108,16 +119,48 @@ def make_source_dens_map(catfile,
             n_indxs = len(indxs_for_SD)
             if n_indxs > 0:
                 npts_map[i,j] = n_indxs/(pix_size**2)
-            else:
-                npts_map[i,j] = 0
+
+                # now make a map of the sources with zero fluxes in 
+                #   at least one band
+                zindxs, = np.where((pix_x[zero_indxs] > i) 
+                                   & (pix_x[zero_indxs] <= i+1) 
+                                   & (pix_y[zero_indxs] > j) 
+                                   & (pix_y[zero_indxs] <= j+1))
+                if len(zindxs) > 0:
+                    npts_zero_map[i,j] = len(zindxs)
+
+                # do the same for each band
+                for k, cur_rate in enumerate(rate_cols):
+                    tindxs = band_zero_indxs[cur_rate]
+                    zindxs, = np.where((pix_x[tindxs] > i) 
+                                       & (pix_x[tindxs] <= i+1) 
+                                       & (pix_y[tindxs] > j) 
+                                       & (pix_y[tindxs] <= j+1))
+                    if len(zindxs) > 0:
+                        npts_band_zero_map[i,j,k] = len(zindxs)
+
+            # save the source density as an entry for each source
             source_dens[indxs] = npts_map[i,j]
 
+    # Save to FITS file
     header = w.to_header()
     hdu = fits.PrimaryHDU(npts_map.T, header=header)
-
-    # Save to FITS file
     hdu.writeto(catfile.replace('.fits','_source_den_image.fits'),
                 overwrite=True)
+
+    # Save to FITS file (zero flux sources)
+    header = w.to_header()
+    hdu = fits.PrimaryHDU(npts_zero_map.T, header=header)
+    hdu.writeto(catfile.replace('.fits','_npts_zero_fluxes_image.fits'),
+                overwrite=True)
+
+    for k, cur_rate in enumerate(rate_cols):
+        # Save to FITS file (zero flux sources)
+        header = w.to_header()
+        hdu = fits.PrimaryHDU(npts_band_zero_map[:,:,k].T, header=header)
+        hdu.writeto(catfile.replace('.fits','_npts_zero_fluxes_'
+                                    + cur_rate + '_image.fits'),
+                    overwrite=True)
 
     # Save the source density for individual stars in a new catalog file
     cat['SourceDensity'] = source_dens
