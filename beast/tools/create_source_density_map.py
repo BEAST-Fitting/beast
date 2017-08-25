@@ -45,21 +45,28 @@ def make_source_dens_map(catfile,
     rate_cols = [s for s in cat.colnames if s[-4:] == 'RATE']
     n_filters = len(rate_cols)
     
-    # create the indexs where any of the rates are zero
-    #   missing data, etc. -> bad for fitting
+    # create the indexs where any of the rates are zero and non-zero
+    #   zero = missing data, etc. -> bad for fitting
+    #   non-zero = good data, etc. -> great for fitting
     initialize_zero = False
     band_zero_indxs = {}
+    print('band, good, zero')
     for cur_rate in rate_cols:
+        cur_good_indxs, = np.where(cat[cur_rate] != 0.0)
         cur_indxs, = np.where(cat[cur_rate] == 0.0)
-        print(cur_rate, len(cur_indxs))
+        print(cur_rate, len(cur_good_indxs), len(cur_indxs))
         if not initialize_zero:
             initialize_zero = True
             zero_indxs = cur_indxs
+            nonzero_indxs = cur_good_indxs
         else:
             zero_indxs = np.union1d(zero_indxs, cur_indxs)
+            nonzero_indxs = np.intersect1d(nonzero_indxs, cur_good_indxs)
 
         # save the zero indexs for each band
         band_zero_indxs[cur_rate] = zero_indxs
+
+    print('all bands', len(nonzero_indxs), len(zero_indxs))
 
     # Setting map fame
     min_ra = cat['RA'].min()
@@ -164,8 +171,14 @@ def make_source_dens_map(catfile,
 
     # Save the source density for individual stars in a new catalog file
     cat['SourceDensity'] = source_dens
-    cat.write(catfile.replace('.fits','_with_source_density.fits'),
+    cat.write(catfile.replace('.fits','_with_sourceden.fits'),
               overwrite=True)
+
+    # Save the source density for individual stars in a new catalog file
+    #   only those that have non-zero fluxes in all bands
+    cat[nonzero_indxs].write(catfile.replace('.fits',
+                                             '_with_sourceden_goodbands.fits'),
+                             overwrite=True)
 
 if __name__ == '__main__':
 

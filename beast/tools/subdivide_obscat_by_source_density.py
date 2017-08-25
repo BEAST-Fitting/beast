@@ -40,7 +40,7 @@ def split_obs_by_source_density(catfile, bin_width=1, sort_col='F475W_RATE',
     obs = Table.read(catfile)
      
     SD_cut = obs['SourceDensity']
-    SD_max = int(round(np.max(SD_cut)))
+    SD_max = int(np.max(SD_cut)) + 1
     SD_min = int(np.min(SD_cut))
     print('Source density min/max = ', SD_min, SD_max)
 
