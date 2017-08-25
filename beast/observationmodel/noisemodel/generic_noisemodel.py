@@ -31,8 +31,8 @@ class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
             try:
                 self.data.set_alias(k + '_out',
                                     k.split('_')[-1].upper() + '_VEGA')
-                self.data.set_alias(k + '_rate',
-                                    k.split('_')[-1].upper() + '_RATE')
+                #self.data.set_alias(k + '_rate',
+                #                    k.split('_')[-1].upper() + '_RATE')
                 self.data.set_alias(k + '_in',
                                     k.split('_')[-1].upper() + '_IN')
             except Exception as e:
