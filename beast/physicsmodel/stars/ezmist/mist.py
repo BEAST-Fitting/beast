@@ -29,7 +29,7 @@ from io import StringIO, BytesIO
 import zlib
 import re
 import json
-from .simpletable import SimpleTable as Table
+from ..simpletable import SimpleTable as Table
 
 
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])

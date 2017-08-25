@@ -41,8 +41,8 @@ def hdf5diff(fname1, fname2):
     hdfb = h5py.File(fname2, 'r')
 
     hd = hdf5diff_results()
-    for sname in list(hdfa.keys()):
-        if sname not in list(hdfb.keys()):
+    for sname in hdfa.keys():
+        if sname not in hdfb.keys():
             hd.add_missing_group(sname)
         else:
             is_dataset = isinstance(hdfa[sname], h5py.Dataset)
@@ -71,17 +71,19 @@ def hdf5diff(fname1, fname2):
                                           - hdfb[sname][cname]) != 0:
                                     hd.add_nonzero_match(sname+'/'+cname)
 
-                                    print(np.sort(hdfa[sname][cname]
-                                                  - hdfb[sname][cname]))
-                                    tindxs, = np.where((hdfa[sname][cname]
-                                                        - hdfb[sname][cname])
-                                                       > 0.0)
-                                    print(len(tindxs))
+                                    #print(np.sort(hdfa[sname][cname]
+                                    #              - hdfb[sname][cname]))
+                                    #tindxs, = np.where((hdfa[sname][cname]
+                                    #                    - hdfb[sname][cname])
+                                    #                   > 0.0)
+                                    #print(len(tindxs))
                         else:
                             hd.add_missing_name(sname+'/'+cname)
             else:
-                for cname, cvalue in list(hdfa[sname].items()):
-                    if cname not in list(hdfb[sname].keys()):
+                hdfa_items = list(hdfa[sname].items())
+                hdfb_keys = list(hdfb[sname].keys())
+                for cname, cvalue in hdfa_items:
+                    if cname not in hdfa_keys:
                         hd.add_missing_dataset(sname,cname)
                     else:
                         cvalueb = hdfb[sname][cname]

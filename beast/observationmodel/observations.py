@@ -83,7 +83,7 @@ class Observations(object):
 
     def keys(self):
         """ Returns dataset content names """
-        return list(self.data.keys())
+        return self.data.keys()
 
     def setDescription(self, txt):
         self.desc = txt
