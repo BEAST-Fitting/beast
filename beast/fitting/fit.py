@@ -363,7 +363,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
             logspacing = False
 
         # generate the fast 1d pdf mapping
-        print(qname)
         _tpdf1d = pdf1d(q, nbins, ignorebelow=ignorebelow,
                         logspacing=logspacing)
         fast_pdf1d_objs.append(_tpdf1d)
