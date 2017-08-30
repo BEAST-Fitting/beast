@@ -1,4 +1,22 @@
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from .backends.basebackend import BaseBackend
+
+try:
+    unicode = unicode
+except NameError:
+    # 'unicode' is undefined, must be Python 3
+    str = str
+    unicode = str
+    bytes = bytes
+    basestring = (str,bytes)
+else:
+    # 'unicode' exists, must be Python 2
+    str = str
+    unicode = unicode
+    bytes = str
+    basestring = basestring
 
 __all__ = ['register_extension', 'determine_type']
 
@@ -38,6 +56,7 @@ def register_extension(extensions, backend=None, readerFunction=None,
         assert((readerFunction is not None) & (writerFunction is not None)), "read/write functions required"
         backend = BaseBackend(extensions[0], readerFunction, writerFunction  )
 
+    if isinstance(extensions, str): extensions = [extensions]
     for k in extensions:
         if (not k in __extensions__) or override:
             __extensions__[k] = backend
@@ -45,18 +64,18 @@ def register_extension(extensions, backend=None, readerFunction=None,
             raise Exception("Type %s is already defined" % k)
 
 
-def determine_type(string, verbose=True):
+def determine_type(mystring, verbose=True):
     """
     Determine the type of a table from its extension and try to give the
     point to the appropriate registered extension
     """
-    if type(string) != str:
+    if type(mystring) != str and type(mystring) != unicode:
         raise Exception('Could not determine input type (non-string input)')
 
     if len(__extensions__) == 0:
         set_defaults()
 
-    s = string.lower()
+    s = mystring.lower()
     if not '.' in s:
         extension = s
     else:
@@ -71,7 +90,7 @@ def determine_type(string, verbose=True):
     if extension in __extensions__:
         tableType = __extensions__[extension]
         if verbose:
-            print "Auto-detected type: %s" % extension
+            print("Auto-detected type: %s" % extension)
     else:
             raise Exception('Could not determine input type for extension %s' % extension)
     return tableType

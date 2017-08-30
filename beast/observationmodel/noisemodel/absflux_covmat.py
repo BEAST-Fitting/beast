@@ -2,6 +2,8 @@
 Function to generate fractional absolute flux covariance matrix for
 HST and (potentially other) photometric filters
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 from astropy.io.fits import getdata    
@@ -76,9 +78,9 @@ def hst_frac_matrix(filters, spectrum=None, progress=True):
     # setup the progress bar
     if progress is True:
         it = Pbar(desc='Calculating AbsFlux Covariance ' + \
-                  'Matrices').iterover(range(n_models))
+                  'Matrices').iterover(list(range(n_models)))
     else:
-        it = range(n_models)
+        it = list(range(n_models))
 
     frac_covar_bands = np.empty((n_filters,n_filters))
     for k in it:

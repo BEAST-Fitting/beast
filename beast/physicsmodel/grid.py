@@ -17,14 +17,32 @@ TODO: Check where any beast code uses eztable.Table's specific methods and
          * selectWhere
          * readCoordinates (although should work already)
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import sys
 import numpy as np
 from copy import deepcopy
 
 from ..observationmodel import phot
-from dust import extinction
-from helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
-from helpers.gridhelpers import pretty_size_print, isNestedInstance
+from .dust import extinction
+from .helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
+from .helpers.gridhelpers import pretty_size_print, isNestedInstance
+
+try:
+    unicode = unicode
+except NameError:
+    # 'unicode' is undefined, must be Python 3
+    str = str
+    unicode = str
+    bytes = bytes
+    basestring = (str,bytes)
+else:
+    # 'unicode' exists, must be Python 2
+    str = str
+    unicode = unicode
+    bytes = str
+    basestring = (str, unicode)
 
 __all__ = ['ModelGrid', 'SpectralGrid','StellibGrid',
            'MemoryGrid','FileSEDGrid']
@@ -90,7 +108,7 @@ class ModelGrid(object):
         backend = kwargs.pop('backend', None)
         if backend is None:
             self._backend = GridBackend(*args, **kwargs)
-        elif type(backend) == str:
+        elif type(backend) in basestring:
             self._backend = find_backend(backend)(*args, **kwargs)
         elif isNestedInstance(backend, GridBackend):
             self._backend = backend
@@ -141,13 +159,13 @@ class ModelGrid(object):
     def nbytes(self):
         """ return the number of bytes of the object """
         n = sum(k.nbytes if hasattr(k, 'nbytes') else \
-                sys.getsizeof(k) for k in self.__dict__.values())
+                sys.getsizeof(k) for k in list(self.__dict__.values()))
         return n
 
     def keys(self):
         """ returns the grid dimension names """
         if hasattr(self.grid, 'keys'):
-            return self.grid.keys()
+            return list(self.grid.keys())
         elif hasattr(self.grid, 'colnames'):
             return self.grid.colnames
         else:
@@ -263,12 +281,12 @@ class SpectralGrid(ModelGrid):
             g = self.copy()
             g.seds = g.seds[:] * extCurve[None, :]
             g.header['ExtLaw'] = extLaw.name
-            for k, v in kwargs.iteritems():
+            for k, v in kwargs.items():
                 g.header[k] = v
             return g
         else:
             self.header['ExtLaw'] = extLaw.name
-            for k, v in kwargs.iteritems():
+            for k, v in kwargs.items():
                 self.header[k] = v
             self.seds = self.seds[:] * extCurve[None, :]
 

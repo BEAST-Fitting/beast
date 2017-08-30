@@ -18,6 +18,8 @@ major modifications by Karl Gordon (Feb-Mar 2015)
     bus/memory errors
 updated to allow for trunchen noise model by Karl Gordon (Dec 2015/Jan 2016)
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import os
 
@@ -40,10 +42,10 @@ from astropy.table import Table
 from ..physicsmodel import grid
 from ..tools.pbar import Pbar
 
-from fit_metrics.likelihood import *
-from fit_metrics import expectation, percentile, getNorm_lnP
+from .fit_metrics.likelihood import *
+from .fit_metrics import expectation, percentile, getNorm_lnP
 
-from pdf1d import pdf1d
+from .pdf1d import pdf1d
 
 __all__ = ['summary_table_memory',
            'Q_all_memory',
@@ -148,7 +150,7 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
     #                  is saved every n stars instead)
     try:
         outfile = tables.open_file(lnp_outname, 'a')
-    except Exception, error:
+    except Exception as error:
         print('partial run lnp file is corrupted - saving new lnp values in '
               + string.replace(lnp_outname,'lnp','lnp_partial'))
         outfile = tables.open_file(string.replace(lnp_outname,'lnp',
@@ -262,7 +264,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
     # get the names of all the children in the ast structure
     ast_children = []
-    for label, node in ast.root._v_children.items(): 
+    for label, node in list(ast.root._v_children.items()): 
         ast_children.append(label)
 
     # links to errors and biases
@@ -348,7 +350,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         # setup the fast 1d pdf
 
         # need to know so 'zeros' (defined at -100) are ignored
-        if (string.find(qname,'_wd') > 0) | (string.find(qname,'_wd') > 0):
+        if '_bias' in qname:
             ignorebelow = -99.99
         else:
             ignorebelow = None
@@ -555,16 +557,18 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     if lnp_outname is not None:
         save_lnp(lnp_outname, save_lnp_vals, resume)
 
-def IAU_names_and_extra_info(obsdata,extraInfo=False):
+def IAU_names_and_extra_info(obsdata, surveyname='PHAT',extraInfo=False):
     """
-    generates IAU approved names for the PHAT data using RA & DEC
+    generates IAU approved names for the data using RA & DEC
       and extra information about the sources (ra, dec, photometry, etc.)
 
     keywords
     --------
     obsdata: Observations
+    surveyname: string
+          name of survey [default = 'PHAT']
     extraInfo: bool
-          set to get the PHAT survey information
+          set to get the HST specific PHAT software reduced survey information
 
     returns
     -------
@@ -574,12 +578,12 @@ def IAU_names_and_extra_info(obsdata,extraInfo=False):
     r = {}
 
     go_name = False
-    if 'ra' in obsdata.data.keys():
+    if 'ra' in list(obsdata.data.keys()):
         go_name = True
         ra_str = 'ra'
         dec_str = 'dec'
 
-    if 'RA' in obsdata.data.keys():
+    if 'RA' in list(obsdata.data.keys()):
         go_name = True
         ra_str = 'RA'
         dec_str = 'DEC'
@@ -591,8 +595,9 @@ def IAU_names_and_extra_info(obsdata,extraInfo=False):
             c = ap_SkyCoord(ra=obsdata.data[ra_str][i]*ap_units.degree,
                             dec=obsdata.data[dec_str][i]*ap_units.degree,
                             frame='icrs')
-            _tnames.append('PHAT J' + 
-                           c.ra.to_string(unit=ap_units.hourangle, sep="",precision=2,
+            _tnames.append(surveyname + ' J' + 
+                           c.ra.to_string(unit=ap_units.hourangle, 
+                                          sep="",precision=2,
                                           alwayssign=False,pad=True) + 
                            c.dec.to_string(sep="",precision=2,
                                            alwayssign=True,pad=True))
@@ -621,7 +626,8 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                          lnp_npts=None, resume=False,
                          stats_outname=None, pdf1d_outname=None,
                          lnp_outname=None,
-                         use_full_cov_matrix=True, extraInfo=False):
+                         use_full_cov_matrix=True, 
+                         surveyname='PHAT', extraInfo=False):
     """
     keywords
     --------
@@ -670,6 +676,9 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
               lnp points above the threshold
               otherwise, the full sparse likelihood is output
 
+    surveyname: string
+          name of survey [default = 'PHAT']
+
     extraInfo: bool
         set to get extra information, such as IAU name, brick, field, etc.
 
@@ -684,18 +693,20 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
         g0 = sedgrid
 
     if keys is None:
-        keys = g0.keys()
+        keys = list(g0.keys())
 
     #make sure keys are real keys
     skip_keys = 'osl keep weight grid_weight prior_weight fullgrid_idx stage specgrid_indx'.split()
     keys = [k for k in keys if k not in skip_keys]
 
     for key in keys:
-        if not (key in g0.keys()):
+        if not (key in list(g0.keys())):
             raise KeyError('Key "{0}" not recognized'.format(key))
 
     # generate an IAU complient name for each source and add other inform
-    res = IAU_names_and_extra_info(obs,extraInfo=False)
+    res = IAU_names_and_extra_info(obs, 
+                                   surveyname=surveyname,
+                                   extraInfo=False)
 
     Q_all_memory(res, obs, g0, noisemodel, keys, p=[16., 50., 84.],
                  resume=resume,

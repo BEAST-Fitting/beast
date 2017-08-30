@@ -71,13 +71,13 @@ PY3 = sys.version_info[0] > 2
 if PY3:
     iteritems = operator.methodcaller('items')
     itervalues = operator.methodcaller('values')
-    basestring = (str, bytes)
+    strtype = (str, bytes)
 else:
     range = xrange
-    from itertools import izip as zip
+    
     iteritems = operator.methodcaller('iteritems')
     itervalues = operator.methodcaller('itervalues')
-    basestring = (str, unicode)
+    strtype = (str, str)
 
 
 # ==============================================================================
@@ -181,7 +181,7 @@ def _fits_read_header(hdr):
     # other specific keywords: COMMENT, HISTORY
     header_comments = []
     header_history = []
-    for k, v in hdr.items():
+    for k, v in list(hdr.items()):
         if (k not in genTerms) and (k[:5] not in fieldTerms):
             if (k == 'COMMENT'):
                 header_comments.append(v)
@@ -237,7 +237,7 @@ def _fits_generate_header(tab):
 
     hdr = pyfits.Header(cards)
 
-    for k, v in tab.header.items():
+    for k, v in list(tab.header.items()):
         if (v not in ['', 'None', None]) & (k != 'NAME'):
             if (k != 'COMMENT') & (k != 'HISTORY'):
                 hdr.update(k, v)
@@ -570,7 +570,7 @@ def _hdf5_write_data(filename, data, tablename=None, mode='w', append=False,
         t = hd5.createTable(where, name, data, **kwargs)
 
         # update header
-        for k, v in header.items():
+        for k, v in list(header.items()):
             if (k == 'FILTERS') & (float(t.attrs['VERSION']) >= 2.0):
                 t.attrs[k.lower()] = v
             else:
@@ -699,9 +699,9 @@ def _ascii_generate_header(tab, comments='#', delimiter=' ',
         comments = ''
 
     # table header
-    length = max(map(len, tab.header.keys()))
+    length = max(list(map(len, list(tab.header.keys()))))
     fmt = '{{0:s}} {{1:{0:d}s}}\t{{2:s}}'.format(length)
-    for k, v in tab.header.items():
+    for k, v in list(tab.header.items()):
         #MB added str() to v b/c otherwise it's not a string and can't be split.
         for vk in str(v).split('\n'):
             if len(vk) > 0:
@@ -709,9 +709,9 @@ def _ascii_generate_header(tab, comments='#', delimiter=' ',
 
     # column metadata
     #MB hdr.append(comments)  # add empty line
-    length = max(map(len, tab.keys()))
+    length = max(list(map(len, list(tab.keys()))))
     fmt = '{{0:s}}{{0:s}} {{1:{0:d}s}}\t{{2:s}}\t{{3:s}}'.format(length)
-    for colname in tab.keys():
+    for colname in list(tab.keys()):
         unit = tab._units.get(colname, 'None')
         desc = tab._desc.get(colname, 'None')
         hdr.append(fmt.format(comments, colname, unit, desc))
@@ -719,15 +719,15 @@ def _ascii_generate_header(tab, comments='#', delimiter=' ',
     # aliases
     if len(tab._aliases) > 0:
         #MB hdr.append(comments)  # add empty line
-        for k, v in tab._aliases.items():
+        for k, v in list(tab._aliases.items()):
             hdr.append('{0:s} alias\t{1:s}={2:s}'.format(comments, k, v))
     
     # column names
     #MB hdr.append(comments)
     if commentedHeader:
-        hdr.append('{0:s} {1:s}'.format(comments, delimiter.join(tab.keys())))
+        hdr.append('{0:s} {1:s}'.format(comments, delimiter.join(list(tab.keys()))))
     else:
-        hdr.append('{0:s}'.format(delimiter.join(tab.keys())))
+        hdr.append('{0:s}'.format(delimiter.join(list(tab.keys()))))
 
     return '\n'.join(hdr)
 
@@ -842,16 +842,16 @@ def __indent__(rows, header=None, units=None, headerChar='-',
     txt: str
         string represation of rows
     """
-    length_data = list(map(max, zip(*[list(map(len, k)) for k in rows])))
+    length_data = list(map(max, list(zip(*[list(map(len, k)) for k in rows]))))
     length = length_data[:]
 
     if (header is not None):
         length_header = list(map(len, header))
-        length = list(map(max, zip(length_data, length_header)))
+        length = list(map(max, list(zip(length_data, length_header))))
 
     if (units is not None):
         length_units = list(map(len, units))
-        length = list(map(max, zip(length_data, length_units)))
+        length = list(map(max, list(zip(length_data, length_units))))
 
     if headerChar not in (None, '', ' '):
         rowSeparator = headerChar * (sum(length) + len(delim) * (len(length) - 1)) + endline
@@ -892,12 +892,12 @@ def pprint_rec_entry(data, num=0, keys=None):
         """
         if (keys is None) or (keys == '*'):
             _keys = data.dtype.names
-        elif type(keys) in basestring:
+        elif type(keys) in strtype:
             _keys = [k for k in data.dtype.names if (re.match(keys, k) is not None)]
         else:
             _keys = keys
 
-        length = max(map(len, _keys))
+        length = max(list(map(len, _keys)))
         fmt = '{{0:{0:d}s}}: {{1}}'.format(length)
         data = data[num]
 
@@ -938,7 +938,7 @@ def pprint_rec_array(data, idx=None, fields=None, ret=False, all=False,
         """
         if (fields is None) or (fields == '*'):
             _keys = data.dtype.names
-        elif type(fields) in basestring:
+        elif type(fields) in strtype:
             if ',' in fields:
                 _fields = fields.split(',')
             elif ' ' in fields:
@@ -963,7 +963,7 @@ def pprint_rec_array(data, idx=None, fields=None, ret=False, all=False,
             if (nrows < 10) or (all is True):
                 rows = [ [ str(data[k][rk]) for k in _keys ] for rk in range(nrows)]
             else:
-                _idx = range(6)
+                _idx = list(range(6))
                 rows = [ [ str(data[k][rk]) for k in _keys ] for rk in range(5) ]
                 if nfields > 1:
                     rows += [ ['...' for k in range(nfields) ] ]
@@ -971,7 +971,7 @@ def pprint_rec_array(data, idx=None, fields=None, ret=False, all=False,
                     rows += [ ['...' for k in range(nfields) ] ]
                 rows += [ [ str(data[k][rk]) for k in fields ] for rk in range(-5, 0)]
         elif isinstance(idx, slice):
-            _idx = range(idx.start, idx.stop, idx.step or 1)
+            _idx = list(range(idx.start, idx.stop, idx.step or 1))
             rows = [ [ str(data[k][rk]) for k in fields ] for rk in _idx]
         else:
             rows = [ [ str(data[k][rk]) for k in fields ] for rk in idx]
@@ -991,9 +991,9 @@ def elementwise(func):
     """
     @wraps(func)
     def wrapper(it, **kwargs):
-        if hasattr(it, '__iter__') & (type(it) not in basestring):
+        if hasattr(it, '__iter__') & (type(it) not in strtype):
             _f = partial(func, **kwargs)
-            return map(_f, it)
+            return list(map(_f, it))
         else:
             return func(it, **kwargs)
     return wrapper
@@ -1294,7 +1294,7 @@ class AstroHelpers(object):
             """ get spherical distance between 2 points """
             return AstroHelpers.sphdist(pk[0], pk[1], ra, dec)
 
-        dist = np.array(list(getDist(zip(ra0, dec0))))
+        dist = np.array(list(getDist(list(zip(ra0, dec0)))))
         v = (dist <= r)
 
         if outtype == 0:
@@ -1350,8 +1350,8 @@ class SimpleTable(object):
         if (type(fname) == dict) or (dtype in [dict, 'dict']):
             self.header = fname.pop('header', {})
             self.data = _convert_dict_to_structured_ndarray(fname)
-        elif (type(fname) in basestring) or (dtype is not None):
-            if (type(fname) in basestring):
+        elif (type(fname) in strtype) or (dtype is not None):
+            if (type(fname) in strtype):
                 extension = fname.split('.')[-1]
             else:
                 extension = None
@@ -1428,7 +1428,7 @@ class SimpleTable(object):
         else:
             raise Exception('Type {0!s:s} not handled'.format(type(fname)))
         if 'NAME' not in self.header:
-            if type(fname) not in basestring:
+            if type(fname) not in strtype:
                 self.header['NAME'] = 'No Name'
             else:
                 self.header['NAME'] = fname
@@ -1446,14 +1446,14 @@ class SimpleTable(object):
             if sequence, the sequence of keys to print
         """
         if (keys is None) or (keys == '*'):
-            _keys = self.keys()
-        elif type(keys) in basestring:
-            _keys = [k for k in (self.keys() + tuple(self._aliases.keys()))
+            _keys = list(self.keys())
+        elif type(keys) in strtype:
+            _keys = [k for k in (list(self.keys()) + tuple(self._aliases.keys()))
                      if (re.match(keys, k) is not None)]
         else:
             _keys = keys
 
-        length = max(map(len, _keys))
+        length = max(list(map(len, _keys)))
         fmt = '{{0:{0:d}s}}: {{1}}'.format(length)
         data = self[num]
 
@@ -1496,20 +1496,20 @@ class SimpleTable(object):
             fn = re.match
 
         if (fields is None) or (fields == '*'):
-            _keys = self.keys()
-        elif type(fields) in basestring:
+            _keys = list(self.keys())
+        elif type(fields) in strtype:
             if ',' in fields:
                 _fields = fields.split(',')
             elif ' ' in fields:
                 _fields = fields.split()
             else:
                 _fields = [fields]
-            lbls = self.keys() + tuple(self._aliases.keys())
+            lbls = list(self.keys()) + tuple(self._aliases.keys())
             _keys = []
             for _fk in _fields:
                 _keys += [k for k in lbls if (fn(_fk, k) is not None)]
         else:
-            lbls = self.keys() + tuple(self._aliases.keys())
+            lbls = list(self.keys()) + tuple(self._aliases.keys())
             _keys = []
             for _fk in _fields:
                 _keys += [k for k in lbls if (fn(_fk, k) is not None)]
@@ -1522,7 +1522,7 @@ class SimpleTable(object):
             if (self.nrows < 10) or all:
                 rows = [ [ str(self[k][rk]) for k in _keys ] for rk in range(self.nrows)]
             else:
-                _idx = range(6)
+                _idx = list(range(6))
                 rows = [ [ str(self[k][rk]) for k in _keys ] for rk in range(5) ]
                 if nfields > 1:
                     rows += [ ['...' for k in range(nfields) ] ]
@@ -1530,7 +1530,7 @@ class SimpleTable(object):
                     rows += [ ['...' for k in range(nfields) ] ]
                 rows += [ [ str(self[k][rk]) for k in fields ] for rk in range(-5, 0)]
         elif isinstance(idx, slice):
-            _idx = range(idx.start, idx.stop, idx.step or 1)
+            _idx = list(range(idx.start, idx.stop, idx.step or 1))
             rows = [ [ str(self[k][rk]) for k in fields ] for rk in _idx]
         else:
             rows = [ [ str(self[k][rk]) for k in fields ] for rk in idx]
@@ -1607,7 +1607,7 @@ class SimpleTable(object):
         colname: str
             The column being aliased
         """
-        if (colname not in self.keys()):
+        if (colname not in list(self.keys())):
             raise KeyError("Column {0:s} does not exist".format(colname))
         self._aliases[alias] = colname
 
@@ -1619,10 +1619,10 @@ class SimpleTable(object):
         Aliases are defined by using .define_alias()
         """
         _colname = self.resolve_alias(colname)
-        if (_colname not in self.keys()):
+        if (_colname not in list(self.keys())):
             raise KeyError("Column {0:s} does not exist".format(colname))
 
-        return tuple([ k for (k, v) in self._aliases.iteritems() if (v == _colname) ])
+        return tuple([ k for (k, v) in self._aliases.items() if (v == _colname) ])
 
     def resolve_alias(self, colname):
         """
@@ -1634,12 +1634,12 @@ class SimpleTable(object):
         Aliases are defined by using .define_alias()
         """
         # User aliases
-        if hasattr(colname, '__iter__') & (type(colname) not in basestring):
+        if hasattr(colname, '__iter__') & (type(colname) not in strtype):
             return [ self.resolve_alias(k) for k in colname ]
         else:
             if self.caseless is True:
-                maps = dict( [ (k.lower(), v) for k, v in self._aliases.items() ] )
-                maps.update( (k.lower(), k) for k in self.keys() )
+                maps = dict( [ (k.lower(), v) for k, v in list(self._aliases.items()) ] )
+                maps.update( (k.lower(), k) for k in list(self.keys()) )
                 return maps.get(colname.lower(), colname)
             else:
                 return self._aliases.get(colname, colname)
@@ -1655,7 +1655,7 @@ class SimpleTable(object):
         unit: str
             unit description
         """
-        if isinstance(unit, basestring) and isinstance(colname, basestring):
+        if isinstance(unit, str) and isinstance(colname, str):
             self._units[self.resolve_alias(colname)] = str(unit)
         else:
             for k, v in zip(colname, unit):
@@ -1672,7 +1672,7 @@ class SimpleTable(object):
         comment: str
             column description
         """
-        if isinstance(comment, basestring) and isinstance(colname, basestring):
+        if isinstance(comment, str) and isinstance(colname, str):
             self._desc[self.resolve_alias(colname)] = str(comment)
         else:
             for k, v in zip(colname, comment):
@@ -1700,7 +1700,7 @@ class SimpleTable(object):
         """
         if (regexp is None) or (regexp == '*'):
             return self.colnames
-        elif type(regexp) in basestring:
+        elif type(regexp) in strtype:
             if full_match is True:
                 fn = re.fullmatch
             else:
@@ -1751,7 +1751,7 @@ class SimpleTable(object):
     def nbytes(self):
         """ number of bytes of the object """
         n = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k)
-                for k in self.__dict__.values())
+                for k in list(self.__dict__.values()))
         return n
 
     def __len__(self):
@@ -1860,9 +1860,9 @@ class SimpleTable(object):
         new_keys = self.keys(v)
         t = self.__class__(self[new_keys])
         t.header.update(**self.header)
-        t._aliases.update((k, v) for (k, v) in self._aliases.items() if v in new_keys)
-        t._units.update((k, v) for (k, v) in self._units.items() if v in new_keys)
-        t._desc.update((k, v) for (k, v) in self._desc.items() if v in new_keys)
+        t._aliases.update((k, v) for (k, v) in list(self._aliases.items()) if v in new_keys)
+        t._units.update((k, v) for (k, v) in list(self._units.items()) if v in new_keys)
+        t._desc.update((k, v) for (k, v) in list(self._desc.items()) if v in new_keys)
         return t
 
     def __setitem__(self, k, v):
@@ -1897,7 +1897,7 @@ class SimpleTable(object):
 
         s += '\n\nHeader:\n'
         vals = list(self.header.items())
-        length = max(map(len, self.header.keys()))
+        length = max(list(map(len, list(self.header.keys()))))
         fmt = '\t{{0:{0:d}s}} {{1}}\n'.format(length)
         for k, v in vals:
             s += fmt.format(k, v)
@@ -1906,7 +1906,7 @@ class SimpleTable(object):
                 for k in self.colnames]
         lengths = [(len(k), len(self._units.get(k, '')), len(self._desc.get(k, '')))
                    for k in self.colnames]
-        lengths = list(map(max, (zip(*lengths))))
+        lengths = list(map(max, (list(zip(*lengths)))))
 
         s += '\nColumns:\n'
 
@@ -1918,7 +1918,7 @@ class SimpleTable(object):
 
         if len(self._aliases) > 0:
             print("\nTable contains alias(es):")
-            for k, v in self._aliases.items():
+            for k, v in list(self._aliases.items()):
                 print('\t{0:s} --> {1:s}'.format(k, v))
 
     def __repr__(self):
@@ -2163,7 +2163,7 @@ class SimpleTable(object):
             list of columns
         """
 
-        if not hasattr(names, '__iter__') or type(names) in basestring:
+        if not hasattr(names, '__iter__') or type(names) in strtype:
             names = [names]
 
         p = [self[k] for k in names]
@@ -2194,7 +2194,7 @@ class SimpleTable(object):
         elif values_only:
             return dup
         else:
-            return zip(idd, dup)
+            return list(zip(idd, dup))
 
     def evalexpr(self, expr, exprvars=None, dtype=float):
         """ evaluate expression based on the data and external variables
@@ -2225,7 +2225,7 @@ class SimpleTable(object):
         if exprvars is not None:
             if (not (hasattr(exprvars, 'keys') & hasattr(exprvars, '__getitem__' ))):
                 raise AttributeError("Expecting a dictionary-like as condvars")
-            for k, v in ( exprvars.items() ):
+            for k, v in ( list(exprvars.items()) ):
                 _globals[k] = v
 
         # evaluate expression, to obtain the final filter
@@ -2280,7 +2280,7 @@ class SimpleTable(object):
                 return self
             else:
                 tab = self.__class__(self.take(indices))
-                for k in self.__dict__.keys():
+                for k in list(self.__dict__.keys()):
                     if k not in ('data', ):
                         setattr(tab, k, deepcopy(self.__dict__[k]))
                 return tab
@@ -2294,7 +2294,7 @@ class SimpleTable(object):
                     d[k] = self[_k]
             d['header'] = deepcopy(self.header)
             tab = self.__class__(d)
-            for k in self.__dict__.keys():
+            for k in list(self.__dict__.keys()):
                 if k not in ('data', ):
                     setattr(tab, k, deepcopy(self.__dict__[k]))
             return tab
@@ -2504,7 +2504,7 @@ class AstroTable(SimpleTable):
 
         s += '\n\nHeader:\n'
         vals = list(self.header.items())
-        length = max(map(len, self.header.keys()))
+        length = max(list(map(len, list(self.header.keys()))))
         fmt = '\t{{0:{0:d}s}} {{1}}\n'.format(length)
         for k, v in vals:
             s += fmt.format(k, v)
@@ -2513,7 +2513,7 @@ class AstroTable(SimpleTable):
                 for k in self.colnames]
         lengths = [(len(k), len(self._units.get(k, '')), len(self._desc.get(k, '')))
                    for k in self.colnames]
-        lengths = list(map(max, (zip(*lengths))))
+        lengths = list(map(max, (list(zip(*lengths)))))
 
         if (self._ra_name is not None) & (self._dec_name is not None):
             s += "\nPosition coordinate columns: {0}, {1}\n".format(self._ra_name,
@@ -2529,7 +2529,7 @@ class AstroTable(SimpleTable):
 
         if len(self._aliases) > 0:
             print("\nTable contains alias(es):")
-            for k, v in self._aliases.items():
+            for k, v in list(self._aliases.items()):
                 print('\t{0:s} --> {1:s}'.format(k, v))
 
     def coneSearch(self, ra, dec, r, outtype=0):
@@ -2784,7 +2784,7 @@ try:
             _fn = fn
 
         onlywhere = kwargs.pop('onlywhere', None)
-        if type(onlywhere) in basestring:
+        if type(onlywhere) in strtype:
             select = tab.where(onlywhere)
         else:
             select = onlywhere

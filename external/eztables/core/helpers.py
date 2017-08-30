@@ -10,7 +10,7 @@ def isNestedInstance(obj, cl):
 	for k in cl.__subclasses__():
 		tree+=k.__subclasses__()
 	tree += cl.__subclasses__() + [ cl ]
-	print tree
+	print(tree)
 	return  issubclass(obj.__class__, tuple(tree))
 
 def name2dtype(name):

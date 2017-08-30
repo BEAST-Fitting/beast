@@ -1,14 +1,15 @@
 """
 Extinction Curves
 """
-from __future__ import print_function, division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 from scipy import interpolate, interp
 
+from astropy import units
+
 from ...observationmodel import phot
-from ...tools.helpers import val_in_unit
-from ...external.ezunits import unit
 from ...config import __ROOT__
 
 __all__ = ['ExtinctionLaw', 'Cardelli89', 'Fitzpatrick99',
@@ -130,7 +131,9 @@ class Cardelli89(ExtinctionLaw):
             attenuation as a function of wavelength
             depending on Alambda option +2.5*1./log(10.)*tau,  or tau
         """
-        _lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
+        # ensure the units are in angstrom
+        _lamb = units.Quantity(lamb, units.angstrom).value
+        #_lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
 
         if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])
@@ -232,7 +235,9 @@ class Fitzpatrick99(ExtinctionLaw):
             attenuation as a function of wavelength
             depending on Alambda option +2.5*1./log(10.)*tau,  or tau
         """
-        _lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
+        # ensure the units are in angstrom
+        _lamb = units.Quantity(lamb, units.angstrom).value
+        #_lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
 
         if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])
@@ -373,7 +378,9 @@ class Gordon03_SMCBar(ExtinctionLaw):
             attenuation as a function of wavelength
             depending on Alambda option +2.5*1./log(10.)*tau,  or tau
         """
-        _lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
+        # ensure the units are in angstrom
+        _lamb = units.Quantity(lamb, units.angstrom).value
+        #_lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
 
         if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])
@@ -490,7 +497,9 @@ class Gordon16_RvFALaw(ExtinctionLaw):
             attenuation as a function of wavelength
             depending on Alambda option +2.5*1./log(10.)*tau,  or tau
         """
-        _lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
+        # ensure the units are in angstrom
+        _lamb = units.Quantity(lamb, units.angstrom).value
+        #_lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
 
         # get the R(V) value for the A component
         Rv_A = self.get_Rv_A(Rv, f_A)

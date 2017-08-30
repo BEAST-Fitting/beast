@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 import os, inspect, sys
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 from .basebackend import BaseBackend
@@ -56,7 +56,7 @@ def determine_type(string, verbose=True):
 	Determine the type of a table from its extension and try to give the
 	point to the appropriate registered extension
 	"""
-	if type(string) <> str:
+	if type(string) != str:
 		raise Exception('Could not determine input type (non-string input)')
 
 	if len(__extensions__) == 0:
@@ -77,7 +77,7 @@ def determine_type(string, verbose=True):
 	if extension in __extensions__:
 		tableType = __extensions__[extension]
 		if verbose:
-			print "Auto-detected type: %s" % extension
+			print("Auto-detected type: %s" % extension)
 	else:
         	raise Exception('Could not determine input type for extension %s' % extension)
 	return tableType

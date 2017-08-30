@@ -4,7 +4,8 @@ Dust Prior Weights
 The priors on A(V), R(V), and f_A computed as weights to use
 in the posterior calculations.
 """
-from __future__ import (absolute_import, print_function, division)
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 #from scipy.integrate import quad

@@ -6,8 +6,8 @@ Plot the individual fit for a single observed star
     Written 12 Jan 2016 by Karl D. Gordon
       based on code written by Heddy Arab for the BEAST techniques paper figure
 """
-
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import argparse
 

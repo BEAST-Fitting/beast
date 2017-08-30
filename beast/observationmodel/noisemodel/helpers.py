@@ -1,3 +1,6 @@
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 from scipy.spatial import cKDTree
 
@@ -17,7 +20,7 @@ def convert_dict_to_structured_ndarray(data):
         structured numpy array
     """
     newdtype = []
-    for key, dk in data.iteritems():
+    for key, dk in data.items():
         _dk = np.asarray(dk)
         dtype = _dk.dtype
         # unknown type is converted to text
@@ -31,7 +34,7 @@ def convert_dict_to_structured_ndarray(data):
             newdtype.append((str(key), _dk.dtype, (_dk.shape[1],)))
         else:
             newdtype.append((str(key), _dk.dtype))
-    tab = np.rec.fromarrays(data.itervalues(), dtype=newdtype)
+    tab = np.rec.fromarrays(iter(data.values()), dtype=newdtype)
     return tab
 
 

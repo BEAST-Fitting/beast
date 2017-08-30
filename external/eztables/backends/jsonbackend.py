@@ -1,7 +1,9 @@
 """ JSON Backend
 	read/write handles: units, column comments, aliases, header keywords
 """
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import os, inspect, sys
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 import numpy as np
@@ -38,12 +40,12 @@ class Encoder(json.JSONEncoder):
    float_specials = dict( nan = 'NaN', inf = 'Infinity', neginf = '-Infinity')
 
    def set_float_specials(self, nan = None, inf = None):
-	""" Set how to parse special values """
-	if not (nan is None):
-		self.float_specials['nan'] = str(nan)
-	if not (inf is None):
-		self.float_specials['inf'] = str(inf)
-		self.float_specials['neginf'] = '-'+str(inf)
+       """ Set how to parse special values """
+       if not (nan is None):
+           self.float_specials['nan'] = str(nan)
+       if not (inf is None):
+           self.float_specials['inf'] = str(inf)
+           self.float_specials['neginf'] = '-'+str(inf)
 
    def iterencode(self, o, _one_shot=False):
         """Encode the given object and yield each string
@@ -55,7 +57,7 @@ class Encoder(json.JSONEncoder):
                 mysocket.write(chunk)
 
         """
-	_one_shot = False
+        _one_shot = False
         if self.check_circular:
             markers = {}
         else:
@@ -163,7 +165,7 @@ class jsonBackend(BaseBackend):
 					format = colfmt[i],
 					dtype = data.dtype[colName] )
 		#set aliases
-		for k,v in d['aliases'].iteritems():
+		for k,v in d['aliases'].items():
 			tab.set_alias(k, v)
 
 
@@ -189,7 +191,7 @@ class jsonBackend(BaseBackend):
 
 		d = OrderedDict()
 		d['tablemeta']  = tab.header.__dict__
-		d['columnmeta'] = [ self.writeColMeta(tab, k) for k in tab.keys() ]
+		d['columnmeta'] = [ self.writeColMeta(tab, k) for k in list(tab.keys()) ]
 		d['aliases']    = tab._aliases
 		d['data']       = tab.data.tolist()
 

@@ -10,11 +10,13 @@ more accurate results with smaller uncertainties on fit parameters
 can be achieved using the trunchen method.  The trunchen method
 requires significantly more complicated ASTs and many more of them.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 import tables
 
-import toothpick
+from . import toothpick
 
 __all__ = ['Generic_ToothPick_Noisemodel','make_toothpick_noise_model',
            'get_noisemodelcat']
@@ -29,6 +31,8 @@ class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
             try:
                 self.data.set_alias(k + '_out',
                                     k.split('_')[-1].upper() + '_VEGA')
+                #self.data.set_alias(k + '_rate',
+                #                    k.split('_')[-1].upper() + '_RATE')
                 self.data.set_alias(k + '_in',
                                     k.split('_')[-1].upper() + '_IN')
             except Exception as e:

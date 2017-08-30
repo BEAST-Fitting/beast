@@ -47,7 +47,7 @@ LONG_DESCRIPTION = package.__doc__
 builtins._ASTROPY_PACKAGE_NAME_ = PACKAGENAME
 
 # VERSION should be PEP386 compatible (http://www.python.org/dev/peps/pep-0386)
-VERSION = '0.0.dev'
+VERSION = '1.0.dev'
 
 # Indicates if this version is a release version
 RELEASE = 'dev' not in VERSION
@@ -77,7 +77,7 @@ package_info = get_package_info()
 # Add the project-global data
 package_info['package_data'].setdefault(PACKAGENAME, [])
 #package_info['package_data'][PACKAGENAME].append('data/*')
-package_info['package_data'][PACKAGENAME].append('external/ezunits/default_en.txt')
+#package_info['package_data'][PACKAGENAME].append('external/ezunits/default_en.txt')
 package_info['package_data'][PACKAGENAME].append('physicsmodel/stars/ezpadova/parsec.json')
 package_info['package_data'][PACKAGENAME].append('physicsmodel/stars/ezmist/mist.json')
 
@@ -101,9 +101,6 @@ for root, dirs, files in os.walk(PACKAGENAME):
                     os.path.relpath(root, PACKAGENAME), filename))
 package_info['package_data'][PACKAGENAME].extend(c_files)
 
-#print(package_info['package_data'][PACKAGENAME])
-#exit()
-
 # Note that requires and provides should not be included in the call to
 # ``setup``, since these are now deprecated. See this link for more details:
 # https://groups.google.com/forum/#!topic/astropy-dev/urYO8ckB2uM
@@ -120,7 +117,7 @@ setup(name=PACKAGENAME,
       long_description=LONG_DESCRIPTION,
       cmdclass=cmdclassd,
       zip_safe=False,
-      use_2to3=True,
+      use_2to3=False,
       entry_points=entry_points,
       **package_info
 )

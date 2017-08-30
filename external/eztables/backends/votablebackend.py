@@ -41,7 +41,7 @@ class Node(object):
         self.value = node.nodeValue
         if node.attributes is not None:
             self.attributes = {}
-            for k, v in node.attributes.items():
+            for k, v in list(node.attributes.items()):
                 self.attributes[k] = v
         else:
             self.attributes = None
@@ -56,7 +56,7 @@ class Node(object):
             if nk.nodeName not in ['#text']:
                 suf = 1
                 key = '%s' % (nk.nodeName)
-                while key in self.__dict__.keys():
+                while key in list(self.__dict__.keys()):
                     key = '%s_%d' % (nk.nodeName, suf)
                     suf += 1
                 setattr( self, key, Node(nk) )
@@ -67,14 +67,14 @@ class Node(object):
 
     @property
     def childrenNames(self):
-        return [ k for k, v in self.__dict__.items() if isinstance(v, Node) ]
+        return [ k for k, v in list(self.__dict__.items()) if isinstance(v, Node) ]
 
     @property
     def children(self):
-        return [ v for k, v in self.__dict__.items() if isinstance(v, Node) ]
+        return [ v for k, v in list(self.__dict__.items()) if isinstance(v, Node) ]
 
     def items(self):
-        return [ (k, v) for k, v in self.__dict__.items() if isinstance(v, Node) ]
+        return [ (k, v) for k, v in list(self.__dict__.items()) if isinstance(v, Node) ]
 
     def __repr__(self):
         txt = 'XML Node: %s \n' % object.__repr__(self)
@@ -82,7 +82,7 @@ class Node(object):
         if (self.attributes is not None):
             if (len(self.attributes) > 0):
                 txt += 'attributes:\n'
-                for k, v in self.attributes.items():
+                for k, v in list(self.attributes.items()):
                     txt += '   %s: %s\n' % (k, v)
         if self.value is not None:
             txt += 'value:\n  %s' % str(self.value)
@@ -98,7 +98,7 @@ class Node(object):
             indent = ' ' * 3 * ( level - 1 ) + ' +--'
         else:
             indent = ' ' * 2 * (level)
-        for name, node in self.items():
+        for name, node in list(self.items()):
             txt += '{}{}\n'.format(indent, name)
             txt += '{}'.format(node.tree(level + 1))
         return txt
@@ -174,25 +174,25 @@ def votable(obj):
         header  dict    dictionary containing votable descriptions
         meta    tuple   (ucds, units, description) of individual columns
     """
-    if type(obj) in [unicode, np.unicode, np.unicode0, np.unicode_, str, np.string_, np.str_, np.string0]:
+    if type(obj) in [str, np.str, np.unicode0, np.unicode_, str, np.string_, np.str_, np.string0]:
         node = parse(obj)
     else:
         node = obj
     assert('VOTABLE' in node.childrenNames), 'Expected XML tree root named VOTABLE'
 
     header = {}
-    for k, v in node.VOTABLE.attributes.items():
+    for k, v in list(node.VOTABLE.attributes.items()):
         header[k] = v
 
-    for k, v in node.VOTABLE.RESOURCE.attributes.items():
+    for k, v in list(node.VOTABLE.RESOURCE.attributes.items()):
         header[k] = v
 
     if 'DESCRIPTION' in node.VOTABLE.RESOURCE.TABLE.childrenNames:
         header['DESCRIPTION'] = node.VOTABLE.RESOURCE.TABLE.DESCRIPTION.text
 
     cols = [ k for k in node.VOTABLE.RESOURCE.TABLE.childrenNames if k[:5] == 'FIELD' ]
-    idx  = range(len(cols))
-    for k, v in node.VOTABLE.RESOURCE.TABLE.items():
+    idx  = list(range(len(cols)))
+    for k, v in list(node.VOTABLE.RESOURCE.TABLE.items()):
         if len(k.split('_')) > 1:
             idx = int(k.split('_')[-1])
         else:
@@ -216,13 +216,13 @@ def votable(obj):
     dtype = np.dtype( [ (colnames[e], ktype) for e, ktype in enumerate(coltypes) ])
     rtab = np.zeros( len(data.childrenNames), dtype=dtype )
 
-    for nk, line in data.items():
+    for nk, line in list(data.items()):
         if nk[:2] == 'TR':
             lidx = 0
             if len(nk.split('_')) > 1:
                 lidx = int(nk.split('_')[-1])
 
-            for lk, v in line.items():
+            for lk, v in list(line.items()):
                 if lk[:2] == 'TD':
                     cidx = 0
                     if len(lk.split('_')) > 1:

@@ -1,5 +1,7 @@
 """ This module gives tools to generate Kurucz grid from original downloads """
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 #from anased import grid
 from ..core import grid
 from ..core import stellib, isochrone
@@ -120,7 +122,7 @@ def gen_spectral_grid_from_kurucz(outfile, osl, oiso, Z=0.02):
 
     #copy pars
     data = {}
-    for k in oiso.data.keys():
+    for k in list(oiso.data.keys()):
         data[k] = oiso.data[k][bound_cond]
     data['radius'] = radii[bound_cond] / 6.955e8  # Rsun
     pars  = Table(data, name='Reinterpolated stellib grid')

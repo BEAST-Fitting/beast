@@ -1,6 +1,9 @@
 """
 Contains a class for managing paths (polylines).
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 from matplotlib.path import Path
 from matplotlib.nxutils import points_inside_poly

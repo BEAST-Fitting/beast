@@ -1,8 +1,11 @@
 """ Data Model interface v2.0
 BEAST datamodel for the example based on M31 PHAT data
 """
+from __future__ import (absolute_import, division, print_function)
 
 import numpy as np
+
+from astropy import units
 
 # BEAST imports
 from beast.physicsmodel.stars import isochrone
@@ -11,7 +14,7 @@ from beast.physicsmodel.dust import extinction
 from beast.observationmodel.observations import Observations
 from beast.observationmodel.vega import Vega
 from beast.observationmodel.noisemodel import absflux_covmat
-from beast.external.ezunits import unit
+
 #from extra_filters import make_integration_filter, make_top_hat_filter
 
 #-----------------------------------------------------------------
@@ -116,7 +119,7 @@ noisefile = project + '/' + project + '_noisemodel.hd5'
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
 # distance modulus to the galaxy
-distanceModulus = 24.47 * unit['mag']
+distanceModulus = 24.47 * units.mag
 
 ################
 
@@ -203,11 +206,10 @@ class GenFluxCatalog(Observations):
         it does not implement uncertainties as in this model, the noise is
         given through artificial star tests
     """
-    def __init__(self, inputFile, distanceModulus=distanceModulus,
-                 filters=filters):
+    def __init__(self, inputFile, filters=filters):
         """ Construct the interface """
         desc = 'GENERIC star: %s' % inputFile
-        Observations.__init__(self, inputFile, distanceModulus, desc=desc)
+        Observations.__init__(self, inputFile, desc=desc)
         self.setFilters( filters )
         #some bad values smaller than expected
         # in physical flux units
@@ -242,7 +244,7 @@ class GenFluxCatalog(Observations):
                           for ok in self.filters ]) * self.vega_flux
         
         if units is True:
-            return flux * unit['erg/s/cm**2/Angstrom']
+            return flux * units.erg / (units.s*units.cm*units.cm*units.angstrom)
         else:
             return flux
 
@@ -268,8 +270,7 @@ class GenFluxCatalog(Observations):
         self.vega_flux = vega_flux
 
 
-def get_obscat(obsfile=obsfile, distanceModulus=distanceModulus,
-               filters=filters, *args, **kwargs):
+def get_obscat(obsfile=obsfile, filters=filters, *args, **kwargs):
     """ Function that generates a data catalog object with the correct
     arguments
 
@@ -277,9 +278,6 @@ def get_obscat(obsfile=obsfile, distanceModulus=distanceModulus,
     ----------
     obsfile: str, optional (default datamodel.obsfile)
         observation file
-
-    distanceModulus: float, optional (default datamodel.distanceModulus)
-        distance modulus to correct the data from (in magitude)
 
     filters: sequence(str), optional, datamodel.filters
         seaquence of filters of the data
@@ -289,6 +287,5 @@ def get_obscat(obsfile=obsfile, distanceModulus=distanceModulus,
     obs: GenFluxCatalog
         observation catalog
     """
-    obs = GenFluxCatalog(obsfile, distanceModulus=distanceModulus,
-                         filters=filters)
+    obs = GenFluxCatalog(obsfile, filters=filters)
     return obs

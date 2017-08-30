@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 import os
 import inspect
 import re
@@ -92,7 +92,7 @@ class csvBackend(BaseBackend):
         if not hasattr(filename, 'read'):
             stream.close()
 
-        if not 'NAME' in description.keys():
+        if not 'NAME' in list(description.keys()):
             description['NAME'] = filename.split('/')[-1]
         return nHeadLines, description, colInfo, header, aliases
 
@@ -129,7 +129,7 @@ class csvBackend(BaseBackend):
             else:
                 colUnit, colComm, colNull, colfmt = (None, None, None, None)
 
-            if colName in tab.keys():
+            if colName in list(tab.keys()):
                 i = 1
                 while '%s_%d' % (colName, i) in d.dtype.names:
                     i += 1
@@ -153,7 +153,7 @@ class csvBackend(BaseBackend):
             # NAME    tablename
             # KEY     Value
         """
-        keys = np.sort(header.keys())
+        keys = np.sort(list(header.keys()))
         for key in keys:
             val = header[key]
             for kval in str(val).split('\n'):
@@ -164,7 +164,7 @@ class csvBackend(BaseBackend):
         e.g. >>> self.writeColHeader(unit, cols, comment='#')
             ## Column     Unit    Comment   Null    Fmt
         """
-        keys = cols.keys()
+        keys = list(cols.keys())
         unit.write('%s%s %20s\t%10s\t%s\t%s\t%5s\n' % (comment, comment, 'Column', 'Unit', 'Comment', 'Null', 'Fmt') )
         for k in keys:
             hdr = cols[k]
@@ -176,7 +176,7 @@ class csvBackend(BaseBackend):
         e.g. >>> self.writeAliasesDef(unit, aliases, comment='#')
             # alias   col_alias=col1
         """
-        for k, v in aliases.iteritems():
+        for k, v in aliases.items():
             unit.write('%s alias\t%s=%s\n' % (comment, k, v) )
 
     def writeColDef(self, unit, cols, delimiter=',', comment=''):
@@ -186,7 +186,7 @@ class csvBackend(BaseBackend):
         e.g. >>> self.writeColDef(unit, cols, comment='#')
             #col1,col2,col3,col4,...,coln
         """
-        unit.write( comment + delimiter.join( cols.keys() ) + '\n' )
+        unit.write( comment + delimiter.join( list(cols.keys()) ) + '\n' )
 
     def writeData(self, unit, data, fmt, delimiter=','):
         """ Write data part into the opened unit """
@@ -225,7 +225,7 @@ class csvBackend(BaseBackend):
             self.writeColDef(unit, tab.columns, comment='', delimiter=delimiter)
 
         fmt  = delimiter.join(['%' + tab.columns[k].format for k in tab.columns])
-        self.writeData( unit, tab.data[tab.keys()], fmt, delimiter=delimiter)
+        self.writeData( unit, tab.data[list(tab.keys())], fmt, delimiter=delimiter)
 
         if hasattr(output, 'write') or keep:
             return unit
@@ -317,7 +317,7 @@ class asciiBackend(BaseBackend):
         if not hasattr(filename, 'read'):
             stream.close()
 
-        if not 'NAME' in description.keys():
+        if not 'NAME' in list(description.keys()):
             description['NAME'] = filename.split('/')[-1]
         return nHeadLines, description, colInfo, header, aliases
 
@@ -354,7 +354,7 @@ class asciiBackend(BaseBackend):
             else:
                 colUnit, colComm, colNull, colfmt = (None, None, None, None)
 
-            if colName in tab.keys():
+            if colName in list(tab.keys()):
                 i = 1
                 while '%s_%d' % (colName, i) in d.dtype.names:
                     i += 1
@@ -386,7 +386,7 @@ class asciiBackend(BaseBackend):
             # NAME    tablename
             # KEY     Value
         """
-        keys = np.sort(header.keys())
+        keys = np.sort(list(header.keys()))
         for key in keys:
             val = header[key]
             for kval in str(val).split('\n'):
@@ -397,7 +397,7 @@ class asciiBackend(BaseBackend):
         e.g. >>> self.writeColHeader(unit, cols, comment='#')
             ## Column     Unit    Comment   Null    Fmt
         """
-        keys = cols.keys()
+        keys = list(cols.keys())
         unit.write('%s%s %20s\t%10s\t%s\t%s\t%5s\n' % (comment, comment, 'Column', 'Unit', 'Comment', 'Null', 'Fmt') )
         for k in keys:
             hdr = cols[k]
@@ -409,7 +409,7 @@ class asciiBackend(BaseBackend):
         e.g. >>> self.writeAliasesDef(unit, aliases, comment='#')
             # alias   col_alias=col1
         """
-        for k, v in aliases.iteritems():
+        for k, v in aliases.items():
             unit.write('%s alias\t%s=%s\n' % (comment, k, v) )
 
     def writeColDef(self, unit, cols, delimiter=',', comment=''):
@@ -419,7 +419,7 @@ class asciiBackend(BaseBackend):
         e.g. >>> self.writeColDef(unit, cols, comment='#')
             #col1,col2,col3,col4,...,coln
         """
-        unit.write( comment + delimiter.join( cols.keys() ) + '\n' )
+        unit.write( comment + delimiter.join( list(cols.keys()) ) + '\n' )
 
     def writeData(self, unit, data, fmt, delimiter=None):
         """ Write data part into the opened unit """
@@ -460,7 +460,7 @@ class asciiBackend(BaseBackend):
             self.writeColDef( unit, tab.columns, comment='#', delimiter=delimiter)
 
         fmt  = delimiter.join(['%' + tab.columns[k].format for k in tab.columns])
-        self.writeData( unit, tab.data[tab.keys()], fmt, delimiter=delimiter)
+        self.writeData( unit, tab.data[list(tab.keys())], fmt, delimiter=delimiter)
 
         if hasattr(output, 'write') or keep:
             return unit

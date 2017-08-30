@@ -1,14 +1,15 @@
 """
 This is a first collection of tools making the design easier
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import sys
 from functools import partial, wraps, update_wrapper
 from inspect import getargspec, ismethod
 import warnings
 import numpy as np
 import itertools
-
-from ..external.ezunits import unit, hasUnit
 
 #replace the common range by the generator
 try:
@@ -20,8 +21,7 @@ except NameError:
 __all__ = ['NameSpace', 'Pipe', 'Pipeable', 'Pipegroup', 'chunks',
            'deprecated', 'generator', 'isNestedInstance', 'keywords_first',
            'kfpartial', 'merge_records', 'missing_units_warning', 'nbytes',
-           'path_of_module', 'pretty_size_print', 'type_checker',
-           'val_in_unit']
+           'path_of_module', 'pretty_size_print', 'type_checker']
 
 
 class NameSpace(dict):
@@ -315,62 +315,6 @@ def warning_on_one_line(message, category, filename, lineno, file=None, line=Non
     return " {0:s}:{1:d} {2:s}:{3:s}".format(filename, lineno, category.__name__, message)
 
 
-def missing_units_warning(name, defaultunit):
-    """ Warn if any unit is missing
-
-    Parameters
-    ----------
-    name: str
-        name of the variable
-
-    defaultunit: str
-        default unit definition
-
-    Raises
-    ------
-    warning: warnings.warn
-        warn if units are assumed
-    """
-    warnings.formatwarning = warning_on_one_line
-    warnings.warn('Variable {0:s} does not have explicit units. Assuming `{1:s}`\n'.format(name, defaultunit), stacklevel=4)
-
-
-def val_in_unit(varname, value, defaultunit):
-    """ check units and convert to defaultunit or create the unit information
-
-    Parameters
-    ----------
-    varname: str
-        name of the variable
-
-    value: value
-        value of the variable, which may be unitless
-
-    defaultunit: str
-        default units is unitless
-
-    Returns
-    -------
-    quantity: ezunits.Quantity
-        value with units
-
-    Example
-    -------
-    >>> r = 0.5
-    >>> print(val_in_unit('r', r, 'degree'))
-    0.5 degree
-
-    >>> r = 0.5 * unit['degree']
-    >>> print(val_in_unit('r', r, 'degree'))
-    0.5 degree
-    """
-    if not hasUnit(value):
-        missing_units_warning(varname, defaultunit)
-        return value * unit[defaultunit]
-    else:
-        return value.to(defaultunit)
-
-
 def merge_records(lst):
     """ generates a stack of records even with slightly different but compatible dtypes
 
@@ -485,7 +429,7 @@ def nbytes(obj, pprint=False):
     num_bytes: int or str
         total number of bytes or human readable corresponding string
     """
-    num_bytes = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in obj.__dict__.values())
+    num_bytes = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in list(obj.__dict__.values()))
     if pprint:
         return pretty_size_print(num_bytes)
     else:

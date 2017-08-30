@@ -44,15 +44,15 @@ class timeit(object):
         self.verbose = verbose
 
     def __enter__(self):
-        print "Timing %s" % (self.text)
+        print("Timing %s" % (self.text))
         self.start = time.time()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop = time.time()
-        print self.time
+        print(self.time)
 
     def __pretty_print(self, t):
-        units = [u"s", u"ms", u'us', "ns"]
+        units = ["s", "ms", 'us', "ns"]
         scaling = [1, 1e3, 1e6, 1e9]
         if t > 0.0 and t < 1000.0:
             order = min(-int(math.floor(math.log10(t)) // 3), 3)
@@ -72,7 +72,7 @@ class timeit(object):
         r = self.f(*args, **kwargs)
         self.stop = time.time()
         if self.verbose:
-            print self.time
+            print(self.time)
         return r
 
 
@@ -155,7 +155,7 @@ def elementwise(func):
     def wrapper(it, **kwargs):
         if hasattr(it, '__iter__'):  # is a Sequence
             _f = partial(func, **kwargs)
-            return map(_f, it)
+            return list(map(_f, it))
         else:
             return func(it, **kwargs)
     return wrapper

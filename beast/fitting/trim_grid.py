@@ -8,7 +8,8 @@ the data.  This program trims those models out of the SED grid
 so that time is not spent calculating model points that are always 
 zero probability.
 """
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 import tables
@@ -73,14 +74,14 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
     for k, filtername in enumerate(obsdata.filters):
         sfiltname = obsdata.data.resolve_alias(filtername)
         if inFlux:
-            min_data[k] = np.amin(obsdata.data[:][sfiltname]*
+            min_data[k] = np.amin(obsdata.data[sfiltname]*
                                   obsdata.vega_flux[k])
-            max_data[k] = np.amax(obsdata.data[:][sfiltname]*
+            max_data[k] = np.amax(obsdata.data[sfiltname]*
                                   obsdata.vega_flux[k])
         else:
-            min_data[k] = np.amin(10 **(-0.4*obsdata.data[:][sfiltname])
+            min_data[k] = np.amin(10 **(-0.4*obsdata.data[sfiltname])
                                   *obsdata.vega_flux[k])
-            max_data[k] = np.amax(10 **(-0.4*obsdata.data[:][sfiltname])
+            max_data[k] = np.amax(10 **(-0.4*obsdata.data[sfiltname])
                                   *obsdata.vega_flux[k])
 
         min_models[k] = np.amin(sedgrid.seds[:,k])
@@ -141,7 +142,7 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
     #Save the grid
     print('Writing trimmed sedgrid to disk into {0:s}'.format(sed_outname))
     cols = {}
-    for key in sedgrid.grid.keys():
+    for key in list(sedgrid.grid.keys()):
         cols[key] = sedgrid.grid[key][indxs]
 
     # New column to save the index of the model in the full grid

@@ -21,7 +21,7 @@ Example Usage::
         print hd['subdir1/array']
         hd.remove_node('/subdir1', recursive=True)
 """
-from __future__ import print_function
+
 
 import tables
 import numpy as np
@@ -76,7 +76,7 @@ def __descr_from_dtype__(dtype_, shape_={}):
     """
     fields = {}
     fbyteorder = '|'
-    for (name, (dtype, pos)) in dtype_.fields.items():
+    for (name, (dtype, pos)) in list(dtype_.fields.items()):
         kind = dtype.base.kind
         shape = shape_.get(name, ())
         byteorder = dtype.base.byteorder
@@ -157,7 +157,7 @@ def convert_dict_to_structured_ndarray(data):
         structured numpy array
     """
     newdtype = []
-    for key, dk in data.iteritems():
+    for key, dk in data.items():
         _dk = np.asarray(dk)
         dtype = _dk.dtype
         # unknown type is converted to text
@@ -171,7 +171,7 @@ def convert_dict_to_structured_ndarray(data):
             newdtype.append((str(key), _dk.dtype, (_dk.shape[1],)))
         else:
             newdtype.append((str(key), _dk.dtype))
-    tab = np.rec.fromarrays(data.itervalues(), dtype=newdtype)
+    tab = np.rec.fromarrays(iter(data.values()), dtype=newdtype)
     return tab
 
 
@@ -245,7 +245,7 @@ def __write__(data, hd5, group='/', tablename=None, append=False, silent=False, 
         hd5.flush()
 
     #update the header
-    for k, v in header.iteritems():
+    for k, v in header.items():
         if k == 'FILTERS' and float(t.attrs['VERSION']) >= 2.0:
             t.attrs['filters'] = v
         else:
@@ -382,7 +382,7 @@ class HDFStore(object):
         """
         key->group
         """
-        return list(self.iteritems())
+        return list(self.items())
 
     def iteritems(self):
         """
@@ -439,7 +439,7 @@ class HDFStore(object):
                 p = '/' + key
             else:
                 p = key
-            if p not in s.keys():
+            if p not in list(s.keys()):
                 raise KeyError('No object named {0} in this store'.format(p))
             return s.source.get_node(p)
 
@@ -448,7 +448,7 @@ class HDFStore(object):
         create a node with the key path/name and set value as its content
         """
         with self as s:
-            if key in s.keys():
+            if key in list(s.keys()):
                 raise KeyError('Object named {0} already exists in this store'.format(key))
             p = key.split('/')
             name = p[-1]
@@ -494,7 +494,7 @@ class HDFStore(object):
         """ check for existance of this key
         can match the exact pathname or the pathnm w/o the leading '/'
         """
-        return key in self.keys()
+        return key in list(self.keys())
 
     def __len__(self):
         return len(self.groups())
@@ -587,8 +587,8 @@ def unittest():
         hd.write(c2, '/subdir1', 'array', append=True)
 
         #check values
-        print(hd.keys())
+        print(list(hd.keys()))
         print(hd['subdir/table'])
         print(hd['subdir1/array'])
         hd.remove_node('/subdir1', recursive=True)
-        print(hd.keys())
+        print(list(hd.keys()))

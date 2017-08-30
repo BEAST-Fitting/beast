@@ -8,15 +8,22 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 """
 
 # system imports
-from __future__ import print_function, division
+from __future__ import (absolute_import, division, print_function)
 import sys
 import argparse
 import time
 import string
 import numpy as np
 
+from astropy import units
+
 # BEAST imports
-from beast.physicsmodel.make_model import make_models
+from beast.physicsmodel.create_project_dir import create_project_dir
+from beast.physicsmodel.model_grid import (make_iso_table,
+                                           make_spectral_grid,
+                                           add_stellar_priors,
+                                           make_extinguished_sed_grid)
+
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
 from beast.observationmodel.ast.make_ast_input_list import pick_models
 from beast.observationmodel.ast.make_ast_xy_list import pick_positions
@@ -49,15 +56,62 @@ if __name__ == '__main__':
                         action="store_true")
     args = parser.parse_args()
 
-    
-
     # check input parameters, print what is the problem, stop run_beast
     verify_params.verify_input_format(datamodel)
-    
-
 
     if args.physicsmodel:
-        make_models()
+
+        # make sure the project directory exists
+        pdir = create_project_dir(datamodel.project)
+
+        # download and load the isochrones
+        (iso_fname, oiso) = make_iso_table(datamodel.project,
+                                           oiso=datamodel.oiso,
+                                           logtmin=datamodel.logt[0],
+                                           logtmax=datamodel.logt[1],
+                                           dlogt=datamodel.logt[2],
+                                           z=datamodel.z)
+
+        # calculate the distance in pc
+        if datamodel.distanceModulus.unit == units.mag:
+            dmod = datamodel.distanceModulus.value
+            distance = 10 ** ( (dmod / 5.) + 1 ) * units.pc
+        else:
+            raise ValueError("distance modulus does not have mag units")
+
+        if hasattr(datamodel, 'add_spectral_properties_kwargs'):
+            extra_kwargs = datamodel.add_spectral_properties_kwargs
+        else:
+            extra_kwargs = None
+
+        # generate the spectral library (no dust extinction)
+        (spec_fname, g_spec) = make_spectral_grid(
+            datamodel.project,
+            oiso,
+            osl=datamodel.osl,
+            distance=distance,
+            add_spectral_properties_kwargs=extra_kwargs)
+
+        # add the stellar priors as weights
+        #   also computes the grid weights for the stellar part
+        (pspec_fname, g_pspec) = add_stellar_priors(datamodel.project,
+                                                    g_spec)
+                                                    
+        # generate the SED grid by integrating the filter response functions
+        #   effect of dust extinction applied before filter integration
+        #   also computes the dust priors as weights
+        (seds_fname, g_seds) = make_extinguished_sed_grid(
+            datamodel.project,
+            g_pspec,
+            datamodel.filters,
+            extLaw=datamodel.extLaw,
+            av=datamodel.avs,
+            rv=datamodel.rvs,
+            fA=datamodel.fAs,
+            rv_prior_model=datamodel.rv_prior_model,
+            av_prior_model=datamodel.av_prior_model,
+            fA_prior_model=datamodel.fA_prior_model,
+            add_spectral_properties_kwargs=extra_kwargs)
 
     if args.ast:
         # get the modesedgrid on which to grab input AST
@@ -73,7 +127,6 @@ if __name__ == '__main__':
         if len(mag_cuts) == 1:
             tmp_cuts = mag_cuts
             obsdata = datamodel.get_obscat(datamodel.obsfile,
-                                           datamodel.distanceModulus,
                                            datamodel.filters)
 
             min_mags = np.zeros(len(datamodel.filters))
@@ -84,18 +137,21 @@ if __name__ == '__main__':
                 keep, = np.where(obsdata[sfiltername] < 99.)
                 min_mags[k] = np.percentile(obsdata[keep][sfiltername],90.)
 
-            mag_cuts = min_mags + tmp_cuts # max. mags from the gst observation cat. 
+            # max. mags from the gst observation cat. 
+            mag_cuts = min_mags + tmp_cuts 
 
-        pick_models(modelsedgrid, mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize)
+        pick_models(modelsedgrid, mag_cuts, Nfilter=Nfilters,
+                    N_stars=N_models, Nrealize=Nrealize)
 
         if datamodel.ast_with_positions == True:
-	    separation = datamodel.ast_pixel_distribution
-	    filename = datamodel.project+'/'+datamodel.project+'_inputAST.txt'
+            separation = datamodel.ast_pixel_distribution
+            filename = datamodel.project+'/'+datamodel.project+'_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
-	        pick_positions(filename,separation,refimage=datamodel.ast_reference_image)
+                pick_positions(filename,separation,
+                               refimage=datamodel.ast_reference_image)
             else:
-	        pick_positions(filename,separation)
+                pick_positions(filename,separation)
 
     if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
@@ -117,7 +173,6 @@ if __name__ == '__main__':
 
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile,
-                                       datamodel.distanceModulus,
                                        datamodel.filters)
 
         # get the modesedgrid on which to generate the noisemodel  
@@ -141,22 +196,21 @@ if __name__ == '__main__':
         # the files for the trimmed model grid and noisemodel grid
         modelsedgrid = datamodel.project + '/' + datamodel.project + \
                        '_seds_trim.grid.hd5'
-        noisemodelfile = string.replace(modelsedgrid,'_seds','_noisemodel')
+        noisemodelfile = modelsedgrid.replace('_seds','_noisemodel')
 
         # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(noisemodelfile)
 
         # read in the observed data
         obsdata = datamodel.get_obscat(datamodel.obsfile, 
-                                       datamodel.distanceModulus,
                                        datamodel.filters)
 
         # output files
         print(datamodel.project)
         statsfile = datamodel.project + '/' + datamodel.project + \
                     '_stats.fits'
-        pdf1dfile = string.replace(statsfile,'stats.fits','pdf1d.fits')
-        lnpfile = string.replace(statsfile,'stats.fits','lnp.hd5')
+        pdf1dfile = statsfile.replace('stats.fits','pdf1d.fits')
+        lnpfile = statsfile.replace('stats.fits','lnp.hd5')
 
         fit.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid,
                                  resume=args.resume,

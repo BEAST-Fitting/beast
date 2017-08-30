@@ -7,6 +7,8 @@ sources.
 The interpolation is implemented from the pegase.2 fortran converted algorithm.
 (this may not be pythonic though)
 """
+from __future__ import (absolute_import, division, print_function)
+
 import numpy as np
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
@@ -16,7 +18,7 @@ from ..helpers import Path
 
 from ...external.eztables import Table
 from ...config import __ROOT__, __NTHREADS__
-from include import __interp__
+from .include import __interp__
 from ...tools.pbar import Pbar
 from ...tools.helpers import nbytes
 
@@ -125,7 +127,7 @@ def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06,
     if (pool is not None):
         r = pool.map( __interpSingle__, seq )
     else:
-        r = map( __interpSingle__, seq )
+        r = list(map( __interpSingle__, seq ))
 
     return np.vstack(r)
 
@@ -336,10 +338,10 @@ class Stellib(object):
         d = {}
         for idxk in idx:
             d[idxk] = 0.
-        for k in xrange(len(r)):
+        for k in range(len(r)):
             d[ r[k, 0] ] += r[k, 1]
         del r, idx
-        return np.asarray(d.items())
+        return np.asarray(list(d.items()))
 
     def points_inside(self, xypoints, dlogT=0.1, dlogg=0.3):
         """
@@ -500,8 +502,10 @@ class Stellib(object):
             _r = T0
         return ( ( (self.spectra[_r[:, 0].astype(int)].T) * _r[:, 1]) ).sum(1)
 
-    def gen_spectral_grid_from_given_points(self, pts, bounds=dict(dlogT=0.1, dlogg=0.3)):
-        """ Reinterpolate a given stellar spectral library on to an Isochrone grid
+    def gen_spectral_grid_from_given_points(self, pts, bounds=dict(dlogT=0.1,
+                                                                   dlogg=0.3)):
+        """ 
+        Reinterpolate a given stellar spectral library on to an Isochrone grid
 
         Parameters
         ----------
@@ -520,7 +524,8 @@ class Stellib(object):
         Returns
         -------
         g: SpectralGrid
-            Spectral grid (in memory) containing the requested list of stars and associated spectra
+            Spectral grid (in memory) containing the requested list of 
+            stars and associated spectra
         """
         # Step 0: prepare outputs
         # =======================
@@ -545,16 +550,15 @@ class Stellib(object):
         _grid['grid_weight'] = np.full(ndata, 1.0, dtype=float)
         
         # index to the grid
-        # initialize to zero now, later assign the index value
         # useful to setup here as it will then be cleanly propagated
         #   to the SED grid
-        _grid['specgrid_indx'] = np.zeros(ndata, dtype=np.int64)
-
+        _grid['specgrid_indx'] = np.full(ndata, 0.0, dtype=float)
+                    
         specs = np.empty( (ndata, len(self.wavelength)), dtype=float )
 
         # copy meta data of pts into the resulting structure
         if hasattr(pts, 'keys'):
-            for key in pts.keys():
+            for key in list(pts.keys()):
                 _grid[key] = np.asarray(pts[key])
         elif hasattr(pts, 'dtype'):
             if pts.dtype.names is not None:
@@ -566,7 +570,7 @@ class Stellib(object):
         # Step 1: Avoid Extrapolation
         # ===========================
         # check boundary conditions, keep the data but do not compute the sed if not needed
-        bound_cond = self.points_inside(zip(pts['logT'], pts['logg']))
+        bound_cond = self.points_inside(list(zip(pts['logT'], pts['logg'])))
 
         # Step 2: radii
         # =============
@@ -593,7 +597,7 @@ class Stellib(object):
 
         lamb = self.wavelength[:]
         specs = specs.compress(idx, axis=0)
-        for k in _grid.keys():
+        for k in list(_grid.keys()):
                 _grid[k] = _grid[k].compress(idx, axis=0)
 
         # Step 5: Ship
@@ -602,6 +606,11 @@ class Stellib(object):
                   'comment': 'radius in Rsun',
                   'name': 'Reinterpolated stellib grid'}
 
+        # populate the specgrid index
+        _grid['specgrid_indx'] = np.arange(len(_grid['specgrid_indx']),
+                                           dtype=np.int64)
+        
+        # ship
         g = SpectralGrid(lamb, seds=specs, grid=Table(_grid), header=header, backend='memory')
 
         return g
@@ -925,7 +934,7 @@ class CompositeStellib(Stellib):
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
 
-        osl_index = self.which_osl(zip(T0, g0), dlogT=dlogT, dlogg=dlogg)
+        osl_index = self.which_osl(list(zip(T0, g0)), dlogT=dlogT, dlogg=dlogg)
 
         g = []
         for oslk, osl in enumerate(self._olist):
@@ -1034,7 +1043,7 @@ class CompositeStellib(Stellib):
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
 
-        osl_index = self.which_osl(zip(pts['logT'], pts['logg']), dlogT=dlogT, dlogg=dlogg)
+        osl_index = self.which_osl(list(zip(pts['logT'], pts['logg'])), dlogT=dlogT, dlogg=dlogg)
 
         seds = []
         grid = []
@@ -1047,7 +1056,7 @@ class CompositeStellib(Stellib):
             #print sum(ind)
             if np.sum(ind) > 0:
                 if hasattr(pts, 'keys'):
-                    keys = pts.keys()
+                    keys = list(pts.keys())
                 elif hasattr(pts, 'dtype'):
                     keys = pts.dtypes.names
                 else:
@@ -1068,6 +1077,10 @@ class CompositeStellib(Stellib):
                   'name': 'Reinterpolated stellib grid'}
 
         _grid = recfunctions.stack_arrays( grid, defaults=None, usemask=False, asrecarray=True)
+
+        # populate the specgrid index
+        _grid['specgrid_indx'] = np.arange(len(_grid['specgrid_indx']),
+                                           dtype=np.int64)
 
         g = SpectralGrid(l0, seds=np.vstack(seds), grid=Table(_grid), header=header, backend='memory')
 

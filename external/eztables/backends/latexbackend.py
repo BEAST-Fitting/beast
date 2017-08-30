@@ -1,5 +1,5 @@
 """ Latex export """
-from __future__ import absolute_import
+
 import os, inspect, sys
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 import numpy as np
@@ -68,7 +68,7 @@ class LatexBackend(BaseBackend):
 		colDefTxt = colDefTxt[2:]
 		unit.write('%s\\\\ \n' % colDefTxt )
 
-		units = [ tab.columns[k].unit for k in tab.keys() ]
+		units = [ tab.columns[k].unit for k in list(tab.keys()) ]
 
 		#Add units if present
 		if ''.join(units).replace('None','') != '':
@@ -94,5 +94,5 @@ class LatexBackend(BaseBackend):
 		else:
 			unit.close()
 
-		if verbose: print "Data exported into %s" % output
+		if verbose: print("Data exported into %s" % output)
 

@@ -14,7 +14,9 @@ This also include functions to keep libraries up to date
     edges, the error due to this "interpolation" are extremely large in
     comparison to the uncertainties induced by trapeze integration.
 """
-from __future__ import print_function, division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import sys
 import numpy
 
@@ -597,7 +599,7 @@ def append_filter(lamb, flux, tablename, observatory, instrument, name,
         return
 
     # Gen Filter object including relevant details
-    filtInst = filter(lamb, flux, name=name)
+    filtInst = list(filter(lamb, flux, name=name))
     # Add a new line in the content table
     newRow = contentTab.row
     newRow['TABLENAME'] = tablename
@@ -616,7 +618,7 @@ def append_filter(lamb, flux, tablename, observatory, instrument, name,
                               title=filtInst.name,
                               expectedrows=filtInst.wavelength.size)
     newRow = newTab.row
-    for i in xrange(filtInst.wavelength.size):
+    for i in range(filtInst.wavelength.size):
         newRow["WAVELENGTH"] = filtInst.wavelength[i]
         newRow["THROUGHPUT"] = filtInst.transmit[i]
         newRow.append()
@@ -654,7 +656,7 @@ def __analyseVegaSpectrum__(w, f, filters):
     cwave    = numpy.zeros((nFilters))
     fname    = []
     mag      = numpy.zeros((nFilters))
-    for j in xrange(0, nFilters):
+    for j in range(0, nFilters):
         fname.append(filters[j].name)
         cwave[j] = filters[j].cl
         phot[j] = filters[j].getFlux( w, f )

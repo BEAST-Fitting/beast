@@ -4,10 +4,11 @@
 
     Data model v2 with limited quantity units handling
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import numpy as np
 from scipy.interpolate import interp1d
-from ..external.ezunits import unit
-from ..tools.helpers import val_in_unit
 
 __all__ = ['Observations', 'FakeObs', 'PhotCharact']
 
@@ -25,13 +26,6 @@ class Observations(object):
     desc: str, optional
         description of the observations
 
-    distanceModulus: float, optional (default=0)
-        global distance modulus of the observations
-
-    distance: float
-        physical global distance to the observed sources. Linked to
-        `distanceModulus`.
-
     badvalue: float, optional
         value that tags a bad measurement that should not be used in the
         fitting.
@@ -39,12 +33,11 @@ class Observations(object):
     nObs: int
         number of observations in the catalog
     """
-    def __init__(self, inputFile, distanceModulus=None, desc=None):
+    def __init__(self, inputFile, desc=None):
         """ Generate a data interface object """
         self.inputFile = inputFile
         self.filters   = None
         self.desc      = desc
-        self.setDistanceModulus(distanceModulus)
         self.readData()
         self.badvalue  = None
 
@@ -67,14 +60,14 @@ class Observations(object):
         txt += "Number of records: {s.nObs:d}\n\n"
         txt += "Dataset contains:"
 
-        print "Data read from %s " % self.inputFile
+        print("Data read from %s " % self.inputFile)
         if self.desc is not None:
-            print "Description: %s" % self.desc
-            print "Number of records: %d" % self.nObs
-            print ""
-            print "Dataset contains:"
+            print("Description: %s" % self.desc)
+            print("Number of records: %d" % self.nObs)
+            print("")
+            print("Dataset contains:")
 
-        for k in self.data.keys():
+        for k in list(self.data.keys()):
             txt += "\t {0:s}\n".format(k)
 
         if self.filters is None:
@@ -95,25 +88,6 @@ class Observations(object):
     def setDescription(self, txt):
         self.desc = txt
 
-    def setDistanceModulus(self, val):
-        """ Set the distance modulus to consider the dataset """
-
-        if val is None:
-            val = 0. * unit['mag']
-
-        _val = val_in_unit('distance Modulus', val, 'mag')
-
-        self.distanceModulus = _val
-        self.distance = (10 ** (_val.magnitude / 5. + 1. )) * unit['pc']
-
-    def setDistance(self, val):
-        """ Set observed object distance to X Megaparsecs
-            this will update also the distance Modulus
-        """
-        _val = val_in_unit('Distance', val, 'pc')
-        self.distance = _val
-        self.distanceModulus = 5. * np.log10( 0.1 * _val.magnitude) * unit['mag']
-
     def setBadValue(self, val):
         self.badvalue = val
 
@@ -125,35 +99,33 @@ class Observations(object):
 
     def getMags(self, num, filters):
         raise Exception('Do not use as magnitudes')
-        return np.array([ self.data[tt][num] - self.distanceModulus for tt in filters])
+        return np.array([ self.data[tt][num] for tt in filters])
 
     def getErrors(self, num, filters):
         raise Exception('Do not use as magnitudes')
         return np.array([ self.data[tt + 'err'][num] for tt in filters])
 
     def getFlux(self, num):
-        """returns the absolute flux of an observation from the number of counts"""
+        """returns the flux of an observation from the number of counts"""
 
         flux = np.empty(len(self.filters), dtype=float)
-        distance = self.distance.to('pc').magnitude
         for ek, ok in enumerate(self.filters):
-            flux[ek] = self.data[ok][num] * (0.1 * distance) ** 2
+            flux[ek] = self.data[ok][num]
 
         return flux
 
     def getFluxerr(self, num):
-        """returns the error on the absolute flux of an observation from the number of counts (not used in the analysis)"""
+        """returns the error on the flux of an observation from the number of counts (not used in the analysis)"""
 
         fluxerr = np.empty(len(self.filters), dtype=float)
-        distance = self.distance.to('pc').magnitude
 
         for ek, ok in enumerate(self.filters):
-            fluxerr[ek] = self.data[ok + '_err'][num] * (0.1 * distance) ** 2
+            fluxerr[ek] = self.data[ok + '_err'][num]
 
         return fluxerr
 
     def getObs(self, num=0):
-        """ returns the flux corrected for distance """
+        """ returns the flux"""
         if self.filters is None:
             raise AttributeError('No filter set provided.')
 
@@ -162,7 +134,7 @@ class Observations(object):
         return flux
 
     def getObsWithUncertainties(self, num=0):
-        """ returns the flux and uncertainties corrected for distance and the mask of bad values"""
+        """ returns the flux and uncertainties and the mask of bad values"""
         assert ( not self.filters is None), "No filter set."
         mags = self.getMags(num, self.filters)
         errs = self.getErrors(num, self.filters)
@@ -191,7 +163,11 @@ class Observations(object):
         for k in range(self.nObs):
             yield k, self.getObs(k)
 
-
+#******************
+# Code below is not tested/used for sometime (KDG - Jul 2017)
+# Not clear if any of this code is needed any longer.
+#******************
+            
 class FakeObs(Observations):
 
     def getObs(self, num=0, err=0.05):
@@ -212,7 +188,8 @@ class FakeObs(Observations):
         self.data = Table(self.inputFile)
 
 
-def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, distanceModulus=0., filters=None, save=False):
+def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, 
+                             filters=None, save=False):
     from ..external.eztables import Table
     from . import grid
     if type(sedgrid) == str:
@@ -226,7 +203,7 @@ def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, distanceModulus=0., filte
         errs = np.random.normal(loc=0., scale=err, size=nrows)
         obsTab.addCol(filt, (1. + errs) * sedgrid.seds[inds, e])
         obsTab.addCol(filt + 'err', err * sedgrid.seds[inds, e])
-    for key in sedgrid.grid.keys():
+    for key in list(sedgrid.grid.keys()):
         obsTab.addCol(key, sedgrid.grid[key][inds])
 
     if save is True:

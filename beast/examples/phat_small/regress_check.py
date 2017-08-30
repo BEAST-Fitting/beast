@@ -3,8 +3,9 @@
 Code to test if the BEAST output files are the same between to runs
 KDG - 28 Dec 2016
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from __future__ import print_function, division
 import os.path
 import h5py
 import numpy as np
@@ -15,6 +16,7 @@ class hdf5diff_results():
         self.identical = None
         self.missing_groups = []
         self.missing_datasets = []
+        self.diff_lengths = []
         self.nonzero_matchs = []
         self.missing_names = []
 
@@ -23,6 +25,9 @@ class hdf5diff_results():
 
     def add_missing_dataset(self, mkey, mdataset):
         self.missing_datasets.append(mkey+'_'+mdataset)
+
+    def add_diff_lengths(self, desc):
+        self.diff_lengths.append(desc)
 
     def add_nonzero_match(self, desc):
         self.nonzero_matchs.append(desc)
@@ -48,19 +53,37 @@ def hdf5diff(fname1, fname2):
                 all_namesb = hdfb[sname].dtype.names
                 if all_names == None:
                     if hdfa[sname].dtype.isbuiltin:
-                        if np.sum(hdfa[sname].value - hdfb[sname].value) != 0:
-                            hd.add_nonzero_match(sname)
+                        if (len(hdfa[sname].value) 
+                            != len(hdfb[sname].value)):
+                            hd.add_diff_lengths(sname)
+                        else:
+                            if np.sum(hdfa[sname].value 
+                                      - hdfb[sname].value) != 0:
+                                hd.add_nonzero_match(sname)
                 else:
                     for cname in all_names:
                         if cname in all_namesb:
-                            if np.sum(hdfa[sname][cname]
-                                      - hdfb[sname][cname]) != 0:
-                                hd.add_nonzero_match(sname+'/'+cname)
+                            if (len(hdfa[sname][cname]) 
+                                != len(hdfb[sname][cname])):
+                                hd.add_diff_lengths(sname+'/'+cname)
+                            else:
+                                if np.sum(hdfa[sname][cname]
+                                          - hdfb[sname][cname]) != 0:
+                                    hd.add_nonzero_match(sname+'/'+cname)
+
+                                    #print(np.sort(hdfa[sname][cname]
+                                    #              - hdfb[sname][cname]))
+                                    #tindxs, = np.where((hdfa[sname][cname]
+                                    #                    - hdfb[sname][cname])
+                                    #                   > 0.0)
+                                    #print(len(tindxs))
                         else:
                             hd.add_missing_name(sname+'/'+cname)
             else:
-                for cname, cvalue in hdfa[sname].items():
-                    if cname not in hdfb[sname].keys():
+                hdfa_items = list(hdfa[sname].items())
+                hdfb_keys = list(hdfb[sname].keys())
+                for cname, cvalue in hdfa_items:
+                    if cname not in hdfa_keys:
                         hd.add_missing_dataset(sname,cname)
                     else:
                         cvalueb = hdfb[sname][cname]
@@ -69,6 +92,7 @@ def hdf5diff(fname1, fname2):
                             
     if (len(hd.missing_groups)
         + len(hd.missing_datasets)
+        + len(hd.diff_lengths)
         + len(hd.nonzero_matchs)
         + len(hd.missing_names)) > 0:
         hd.identical = False
@@ -112,6 +136,9 @@ if __name__ == '__main__':
                 if len(hd.missing_datasets) > 0:
                     print('missing datasets')
                     print(hd.missing_datasets)
+                if len(hd.diff_lengths) > 0:
+                    print('different lengths')
+                    print(hd.diff_lengths)
                 if len(hd.nonzero_matchs) > 0:
                     print('nonzero matchs')
                     print(hd.nonzero_matchs)

@@ -1,5 +1,5 @@
 """ sqllite, mysql, psql """
-from __future__ import absolute_import
+
 import os, inspect, sys
 localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
 

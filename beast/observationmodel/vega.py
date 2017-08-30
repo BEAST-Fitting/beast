@@ -1,4 +1,7 @@
 """ Handle vega spec/mags/fluxes manipulations """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 from functools import wraps
 import numpy
 
@@ -48,7 +51,8 @@ class Vega(object):
             FNAME  = s.hdf.root.sed.cols.FNAME[:]
             LUM    = s.hdf.root.sed.cols.LUM[:]
             CWAVE  = s.hdf.root.sed.cols.CWAVE[:]
-        idx = numpy.asarray([ numpy.where( FNAME == k) for k in filters ])
+        idx = numpy.asarray([ numpy.where( FNAME == k.encode('utf-8') )
+                              for k in filters ])
         return numpy.ravel(FNAME[idx]), numpy.ravel(LUM[idx]), numpy.ravel(CWAVE[idx])
 
     def getMag(self, filters):
@@ -67,7 +71,7 @@ def xxtestUnit():
                'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
     with Vega() as v:
         vega_f, vega_mag, flamb = v.getSed(filters)
-    print vega_f, vega_mag, flamb
+    print(vega_f, vega_mag, flamb)
 
 
 def from_Vegamag_to_Flux(lamb, vega_mag):

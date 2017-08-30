@@ -71,20 +71,20 @@ class AstroTable(Table):
                 raise Exception('RA Format not understood')
 
     def info(self):
-        print self.header
-        print "Table contains: %i row(s) in %i column(s)\n" % (self.nrows, self.ncols)
+        print(self.header)
+        print("Table contains: %i row(s) in %i column(s)\n" % (self.nrows, self.ncols))
         if (self.ra_name is not None) & (self.dec_name is not None):
-            print "Position coordinate columns: {}, {}\n".format(self.ra_name, self.dec_name)
+            print("Position coordinate columns: {}, {}\n".format(self.ra_name, self.dec_name))
         if self._aliases is not None:
                 if len(self._aliases) > 0:
-                        print "Table contains alias(es):"
-                        for k, v in self._aliases.iteritems():
-                                print '\t %s --> %s' % (k, v)
-                        print ''
+                        print("Table contains alias(es):")
+                        for k, v in self._aliases.items():
+                                print('\t %s --> %s' % (k, v))
+                        print('')
         fields = 'columns unit format description'.split()
-        row    = [ (k, self.columns[k].unit, self.columns[k].format, self.columns[k].description) for k in self.keys() ]
+        row    = [ (k, self.columns[k].unit, self.columns[k].format, self.columns[k].description) for k in list(self.keys()) ]
         out    = __indent__([fields] + row, hasHeader=True, hasUnits=False, delim=' ')
-        print out
+        print(out)
 
     def coneSearch(self, ra, dec, r, outtype=0):
         """ Perform a cone search on a table
@@ -148,7 +148,7 @@ class AstroTable(Table):
         # only a cone search
         # make a copy without the data itself (memory gentle)
         tab = self.__class__()
-        for k in self.__dict__.keys():
+        for k in list(self.__dict__.keys()):
             if k != 'data':
                 setattr(tab, k, deepcopy(self.__dict__[k]))
         if (condition is None) & (cone is None):
@@ -203,12 +203,12 @@ class AstroTable(Table):
                 tab.data = self.data[tab.resolve_alias(_fields)]
             names = tab.data.dtype.names
             #cleanup aliases and columns
-            for k in self.keys():
+            for k in list(self.keys()):
                 if k not in names:
                     al = self.reverse_alias(k)
                     for alk in al:
                         tab.delCol(alk)
-                    if k in tab.keys():
+                    if k in list(tab.keys()):
                         tab.delCol(k)
         if cone is not None:
             tab.add_column('separation', np.asarray(d), unit='degree')

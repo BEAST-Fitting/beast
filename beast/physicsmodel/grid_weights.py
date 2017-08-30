@@ -12,7 +12,8 @@ Basically, we want the maginalization using these grid weights to provide
 flat priors on all the fit parameters.  Non-flat priors will be implemented 
 with prior weights.
 """
-from __future__ import print_function, division
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy as np
 

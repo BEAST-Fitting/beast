@@ -6,7 +6,22 @@ __author__ = 'MF'
 __version__ = '1.0'
 
 
-__strtypes__ = [str, unicode]
+try:
+    unicode = unicode
+except NameError:
+    # 'unicode' is undefined, must be Python 3
+    str = str
+    unicode = str
+    bytes = bytes
+    basestring = (str,bytes)
+    __strtypes__ = [str, unicode]
+else:
+    # 'unicode' exists, must be Python 2
+    str = str
+    unicode = unicode
+    bytes = str
+    basestring = basestring
+    __strtypes__ = [str, unicode]
 
 # Add Numpy str type if possible
 try:
@@ -26,7 +41,7 @@ class odict(object):
         self.__values__ = []
 
         if ( len( kwargs) > 0 ):
-            for k, v in kwargs.iteritems():
+            for k, v in list(kwargs.items()):
                 self[k] = v
 
     def keys(self):
@@ -46,6 +61,8 @@ class odict(object):
                 self.__keys__.append(key)
                 self.__values__.append(value)
         else:
+            print(type(key))
+            print(__strtypes__)
             raise Exception("Wrong type for key: %s" % type(key))
 
     def __getitem__(self, key):
@@ -111,7 +128,7 @@ class odict(object):
 
     def items(self):
         """ (key, values) of D """
-        return zip(self.__keys__, self.__values__)
+        return list(zip(self.__keys__, self.__values__))
 
     def iterkeys(self):
         """an iterator over the keys of D"""
@@ -122,14 +139,14 @@ class odict(object):
         return iter(self.__values__)
 
     def get(self, key, default=None):
-        if key in self.keys():
+        if key in list(self.keys()):
             return self[key]
         else:
             return default
 
     def update(self, other):
         if hasattr(other, 'keys'):
-            for e, v in other.iteritems():
+            for e, v in list(other.items()):
                 self[e] = v
         elif hasattr(other, '__iter__'):
             for e, v in other:

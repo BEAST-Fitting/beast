@@ -4,6 +4,7 @@ Isochrone class
 Intent to implement a generic module to manage isochrone mining from various
 sources.
 """
+from __future__ import (absolute_import, division, print_function)
 
 import numpy
 import numpy as np
@@ -11,10 +12,11 @@ from numpy import interp
 from numpy import log10
 from scipy import interpolate
 
+from astropy import units
+
 import tables
 from ...external.eztables import Table
 from ...external.eztables.table import recfunctions
-from ...external.ezunits import unit, hasUnit
 from ...config import __ROOT__
 from .ezpadova import parsec
 from .ezmist import mist
@@ -102,7 +104,7 @@ class Isochrone(object):
 
         table = Table( dict(logM=newm, logT=newt, logg=newg, logL=newl, dlogm=newdm) )
 
-        for k in iso.header.keys():
+        for k in list(iso.header.keys()):
             table.header[k] = iso.header[k]
 
         table.header['NAME'] = 'Resampled ' + table.header['NAME']
@@ -125,7 +127,7 @@ class padova2010(Isochrone):
     def _load_table_(self, source):
         t = Table(self.source)
         data = {}
-        for k in t.keys():
+        for k in list(t.keys()):
             data[k] = t[k]
         #Alias columns
         data['logM'] = log10(numpy.asarray(data['M_ini']))
@@ -142,20 +144,23 @@ class padova2010(Isochrone):
 
         self.data = Table(data, name='Isochrone from %s' % self.name)
 
-    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None,
+    def _get_isochrone(self, age, metal=None, FeH=None, masses=None,
                        *args, **kwargs):
         """ Retrieve isochrone from the original source
             internal use to adapt any library
         """
-        if hasUnit(age):
-            _age = int(age.to('yr').magnitude)
-        else:
-            _age = int(age * inputUnit.to('yr').magnitude)
+        # make sure unit is in years and then only give the value (no units)
+        _age = int(units.Quantity(age, units.year).value)
 
+        #if hasUnit(age):
+        #    _age = int(age.to('yr').magnitude)
+        #else:
+        #    _age = int(age * inputUnit.to('yr').magnitude)
+            
         assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
 
         if (metal is not None) & (FeH is not None):
-            print "Warning: both Z & [Fe/H] provided, ignoring [Fe/H]."
+            print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
 
         if metal is None:
             metal = self.FeHtometal(FeH)
@@ -167,7 +172,7 @@ class padova2010(Isochrone):
         if _age in self.ages:
             #no interpolation, isochrone already in the file
             t = t.selectWhere('*', '(logA == _age)', condvars={'_age': log10(_age)} )
-            for kn in t.keys():
+            for kn in list(t.keys()):
                 data[kn] = numpy.asarray(t[kn])
         else:
             #interpolate between isochrones
@@ -181,7 +186,7 @@ class padova2010(Isochrone):
 
             stop = min(t1.nrows, t2.nrows)
 
-            for kn in t1.keys():
+            for kn in list(t1.keys()):
                 y2 = t2[kn][:stop]
                 y1 = t1[kn][:stop]
                 data[kn] = y2 * r + y1 * (1. - r)
@@ -226,21 +231,23 @@ class pegase(Isochrone):
         if self.data is not None:
             self.data.close()
 
-    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None,
+    def _get_isochrone(self, age, metal=None, FeH=None, masses=None,
                        *args, **kwargs):
         """ Retrieve isochrone from the original source
             internal use to adapt any library
         """
+        # make sure unit is in years and then only give the value (no units)
+        _age = int(units.Quantity(age, units.year).value)
 
-        if hasUnit(age):
-            _age = int(age.to('Myr').magnitude)
-        else:
-            _age = int(age * inputUnit.to('Myr').magnitude)
+#        if hasUnit(age):
+#            _age = int(age.to('Myr').magnitude)
+#        else:
+#            _age = int(age * inputUnit.to('Myr').magnitude)
 
         assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
 
         if (metal is not None) & (FeH is not None):
-            print "Warning: both Z & [Fe/H] provided, ignoring [Fe/H]."
+            print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
 
         if metal is None:
             metal = self.FeHtometal(FeH)
@@ -309,33 +316,35 @@ class ezIsoch(Isochrone):
     def interpolation(self, b=None):
         if b is not None:
             if hasattr(self, 'interp'):
-                print "Do not use interpolation yet, at your own risks!!"
+                print("Do not use interpolation yet, at your own risks!!")
             self.interp = bool(b)
         else:
             return self.interp
-
     def _load_table_(self, source):
         self.data = Table(self.source).selectWhere('*', 'isfinite(logA)')
 
     def __getitem__(self, key):
         return self.data[key]
 
-    def _get_t_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], masses=None,
+    def _get_t_isochrone(self, age, metal=None, FeH=None, masses=None,
                          *args, **kwargs):
         """ Retrieve isochrone from the original source
             internal use to adapt any library
         """
-        if hasUnit(age):
-            _age = int(age.to('yr').magnitude)
-        else:
-            _age = int(age * inputUnit.to('yr').magnitude)
+        # make sure unit is in years and then only give the value (no units)
+        _age = int(units.Quantity(age, units.year).value)
+
+#        if hasUnit(age):
+#            _age = int(age.to('yr').magnitude)
+#        else:
+#            _age = int(age * inputUnit.to('yr').magnitude)
 
         _logA = np.log10(_age)
 
         assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
 
         if (metal is not None) & (FeH is not None):
-            print "Warning: both Z & [Fe/H] provided, ignoring [Fe/H]."
+            print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
 
         if metal is None:
             metal = self.FeHtometal(FeH)
@@ -369,7 +378,7 @@ class ezIsoch(Isochrone):
 
                     #define interpolator
                     points = np.array([self[k] for k in 'logA logM Z'.split()]).T
-                    values = np.array([ self[k] for k in self.data.keys() ]).T
+                    values = np.array([ self[k] for k in list(self.data.keys()) ]).T
                     _ifunc = interpolate.LinearNDInterpolator(points, values)
 
                     pts = np.array([ (_logA, logMk, metal) for logMk in _logM ])
@@ -398,7 +407,7 @@ class ezIsoch(Isochrone):
                 # refuse extrapolation!
                 #ind = np.where(_m <= max(data_logM))
                 data = {}
-                for kn in tab.keys():
+                for kn in list(tab.keys()):
                     data[kn] = interp(_m, data_logM, tab[kn], left=np.nan, right=np.nan)
                 return Table(data)
 
@@ -417,20 +426,23 @@ class PadovaWeb(Isochrone):
         self.filterPMS = filterPMS
         self.filterBad = filterBad
 
-    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'],
+    def _get_isochrone(self, age, metal=None, FeH=None,
                        *args, **kwargs):
         """ Retrieve isochrone from the original source
             internal use to adapt any library
         """
-        if hasUnit(age):
-            _age = int(age.to('yr').magnitude)
-        else:
-            _age = int(age * inputUnit.to('yr').magnitude)
+        # make sure unit is in years and then only give the value (no units)
+        _age = int(units.Quantity(age, units.year).value)
 
+#        if hasUnit(age):
+#            _age = int(age.to('yr').magnitude)
+#        else:
+#            _age = int(age * inputUnit.to('yr').magnitude)
+            
         assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
 
         if (metal is not None) & (FeH is not None):
-            print "Warning: both Z & [Fe/H] provided, ignoring [Fe/H]."
+            print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
 
         if metal is None:
             metal = self.FeHtometal(FeH)
@@ -473,7 +485,7 @@ class PadovaWeb(Isochrone):
         theorycols += ['logMdot', 'Mloss'] # removing mass loss outputs
         abundcols = "X Y Xc Xn Xo Cexcess".split()
         drop = theorycols + abundcols + filternames + [s + "mag" for s in filternames]
-        iso_table.remove_columns(filter(lambda x: x in iso_table, drop)) # make sure columns exist
+        iso_table.remove_columns([x for x in drop if x in iso_table]) # make sure columns exist
 
         # polish the header
         iso_table.setUnit('logA', 'yr')
@@ -510,7 +522,7 @@ class PadovaWeb(Isochrone):
                 cond = '~((logL > 3.) & (M_act < 1.) & (log10(M_ini / M_act) > 0.1))'
                 iso_table = iso_table.selectWhere('*', cond)
             else:
-                print "No bad point filtering for PARSEC models."
+                print("No bad point filtering for PARSEC models.")
         
         return iso_table
 
@@ -536,7 +548,6 @@ class PadovaWeb(Isochrone):
         tab: eztable.Table
             the table of isochrones
         """
-
         if not hasattr(Z, '__iter__'):
             iso_table = parsec.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z,
                                                 model=self.modeltype)
@@ -568,20 +579,23 @@ class MISTWeb(Isochrone):
         self.Zref = Zref
         self.rotation = rotation
 
-    def _get_isochrone(self, age, metal=None, FeH=None, inputUnit=unit['yr'], 
+    def _get_isochrone(self, age, metal=None, FeH=None, 
                        *args, **kwargs):
         """ Retrieve isochrone from the original source
             internal use to adapt any library
         """
-        if hasUnit(age):
-            _age = int(age.to('yr').magnitude)
-        else:
-            _age = int(age * inputUnit.to('yr').magnitude)
+        # make sure unit is in years and then only give the value (no units)
+        _age = int(units.Quantity(age, units.year).value)
+
+#        if hasUnit(age):
+#            _age = int(age.to('yr').magnitude)
+#        else:
+#            _age = int(age * inputUnit.to('yr').magnitude)
 
         assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
 
         if (metal is not None) & (FeH is not None):
-            print "Warning: both Z & [Fe/H] provided, ignoring [Fe/H]."
+            print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
 
         if metal is None:
             metal = self.FeHtometal(FeH)
@@ -610,7 +624,7 @@ class MISTWeb(Isochrone):
         extracol2="log_center_T log_center_Rho center_gamma center_h1 center_he4 center_c12".split()
         extracol3="surface_h1 surface_he3 surface_he4 surface_c12 surface_o16".split()
         drop = extracol1 + extracol2 + extracol3
-        iso_table.remove_columns(filter(lambda x: x in iso_table, drop)) # make sure columns exist
+        iso_table.remove_columns([x for x in drop if x in iso_table]) # make sure columns exist
 
         # polish the header
         iso_table.setUnit('logA', 'yr')

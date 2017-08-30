@@ -24,6 +24,9 @@ TODO:
   +++ perCameraASTs has not been updated - delete?  Does not work with
   PHAT single camera ASTs - column names duplicated
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import math
 
 import numpy as np
@@ -69,7 +72,7 @@ class MultiFilterASTs(NoiseModel):
             list of filters using the internally normalized namings
         """
         self.filters = filters
-
+        
         # ASTs inputs are in vega mag whereas models are in flux units
         #     for optimization purpose: pre-compute
         with Vega() as v:
@@ -270,7 +273,7 @@ class MultiFilterASTs(NoiseModel):
         self._biases = np.empty( shape, dtype=float)
         self._sigmas = np.empty( shape, dtype=float)
         self._compls = np.empty( shape, dtype=float)
-        self._nasts = np.empty(shape[1], dtype=long)
+        self._nasts = np.empty(shape[1], dtype=int)
         self._minmax_asts = np.empty((2,shape[1]), dtype=float)
 
         if progress is True:
@@ -283,8 +286,9 @@ class MultiFilterASTs(NoiseModel):
             mag_in = self.data[filterk + '_in']
             magflux_out = self.data[filterk + '_out']
 
-            d = self._compute_sigma_bins(mag_in, magflux_out, nbins=nbins,
-                                         completeness_mag_cut=completeness_mag_cut)
+            d = self._compute_sigma_bins(
+                mag_in, magflux_out, nbins=nbins,
+                completeness_mag_cut=completeness_mag_cut)
 
             ncurasts = len(d['FLUX_IN'])
             self._fluxes[0:ncurasts, e] = d['FLUX_IN'] * self.vega_flux[e]
@@ -331,9 +335,9 @@ class MultiFilterASTs(NoiseModel):
         compl = np.empty((N, M), dtype=float)
 
         if progress is True:
-            it = Pbar(desc='Evaluating model').iterover(range(M))
+            it = Pbar(desc='Evaluating model').iterover(list(range(M)))
         else:
-            it = range(M)
+            it = list(range(M))
 
         for i in it:
 

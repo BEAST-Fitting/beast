@@ -7,8 +7,8 @@ Meant as a quick check that the results are reasonable
     Written 21 Dec 2015 by Karl D. Gordon
     Revised 21 Feb 2017 by Meredith J. Durbin
 """
-
-from __future__ import print_function
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import matplotlib.pyplot as plt
 from astropy.table import Table
