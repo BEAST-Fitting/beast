@@ -1,6 +1,6 @@
 
-BEAST Workflow
-==============
+Standard Workflow
+=================
 
 (assumes that the ASTs already run)
 

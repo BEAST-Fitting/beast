@@ -25,6 +25,14 @@ Installing the BEAST
 
    install.rst
 
+BEAST Example Workflow
+======================
+
+.. toctree::
+   :maxdepth 1
+
+   workflow.rst
+
 Setup the BEAST
 ===============
 
