@@ -35,6 +35,9 @@ Standard Workflow
   * TBD
 
 - Trim the full model grid for each source density split file
+
+  * use tools/setup_batch_beast_trim.py
+  * creates a set of batch files for submission (use 'at -f filename' to submit)
   
   * trimming done such that models are are much too bright or faint are removed
     as they will always give "zero" likelihood
