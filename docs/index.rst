@@ -29,7 +29,7 @@ BEAST Example Workflow
 ======================
 
 .. toctree::
-   :maxdepth 1
+   :maxdepth: 1
 
    workflow.rst
 
