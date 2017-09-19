@@ -22,7 +22,7 @@ if __name__ == '__main__':
                         help="file with the observed data (FITS file)")
     parser.add_argument("astfile",
                         help="file with ASTs")
-    parser.add_argument("num_subtrim", default=5, type=int,
+    parser.add_argument("--num_subtrim", default=5, type=int,
                         help="number of overall trim runs")
     args = parser.parse_args()
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     
     full_model_filename = "%s/%s_seds.grid.hd5"%(project,project)
 
-    cat_files = np.array(datafile.replace('.fits','*_sub*.fits')
+    cat_files = np.array(glob.glob(datafile.replace('.fits','*_sub*.fits')))
 
     n_cat_files = len(cat_files)
     n_subtrim_files = args.num_subtrim
@@ -40,8 +40,8 @@ if __name__ == '__main__':
 
     print('# trim files per process = ',n_per_subtrim)
 
-    # setup the subdirectory for the xsede slurm and log files
-    job_path = basepath+'/trim_batch_jobs/'
+    # setup the subdirectory for the batch and log files
+    job_path = project+'/trim_batch_jobs/'
     if not os.path.isdir(job_path):
         os.mkdir(job_path)
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     sindxs = np.argsort(sd_nums)
     cat_files = cat_files[sindxs]
 
-    joblist_file = job_path+'beast_xsede_trim.joblist'
+    joblist_file = job_path+'beast_batch_trim.joblist'
     pf = open(joblist_file,'w')
 
     bt_f = []
@@ -69,7 +69,7 @@ if __name__ == '__main__':
         bt_f.append(open(trimfile,'w'))
         bt_f[-1].write(project + '\n')
         #bt_f[-1].write(full_model_filename + '\n')
-        pf.write('./trim_many_via_obsdata.py '+trimfile+' > '
+        pf.write('./beast/tools/trim_many_via_obsdata.py '+trimfile+' > '
                  +log_path+'beast_trim_tr'+str(i+1)+'.log\n')
     pf.close()
     
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         bt_f[k].write(sd_num + ' ' + sub_num)
         bt_f[k].write(' ' + cat_file)
         bt_f[k].write(' ' + ast_file)
-        bt_f[k].('\n')
+        bt_f[k].write('\n')
         n_cur += 1
         if n_cur >= n_per_subtrim:
             n_cur = 0

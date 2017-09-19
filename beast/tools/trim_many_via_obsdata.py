@@ -17,6 +17,10 @@ import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid  
 
+# datamodel only needed for the get_obscat function
+# would be good to remove this dependence
+import datamodel
+
 if __name__ == '__main__':
     # commandline parser
     parser = argparse.ArgumentParser()
