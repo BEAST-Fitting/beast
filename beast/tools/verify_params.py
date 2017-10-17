@@ -42,8 +42,11 @@ def check_grid(param, param_name, param_lim, noexit=False):
         if not noexit: exit()
 
     if (param_max-param_min) < param_step:
-        print((param_name + ' step value greater than (max-min)'))
-        if not noexit: exit()
+        if param_max-param_min == 0.:
+            print('Warning: '+param_name+' grid is single-valued.')
+        else:
+            print((param_name + ' step value greater than (max-min)'))
+            if not noexit: exit()
 
 def verify_one_input_format(param, param_name, param_format, param_lim,
                             noexit=False):
@@ -72,8 +75,11 @@ def verify_one_input_format(param, param_name, param_format, param_lim,
 	
     if 'list' in param_format:
         if type(param) is not list:
-            print((param_name + ' is not in the right format - a list.'))
-            if not noexit: exit()
+            if param is None:
+                print('Warning: '+ param_name + ' is not defined.')
+            else:
+                print((param_name + ' is not in the right format - a list.'))
+                if not noexit: exit()
         elif 'float' in param_format:
             is_list_of_floats = all(type(item) is float for item in param)
             if not is_list_of_floats:
