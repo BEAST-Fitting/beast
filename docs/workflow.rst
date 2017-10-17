@@ -65,27 +65,42 @@ Source density map
 ------------------
   
 Create a new version of the observations that includes a column with the
-source density.  This also creates a source density image.
+source density.  The new observation file includes only sources that have
+measurements in all bands (columns that match 'X_RATE').  In theory, sources
+without measurments in all bands is the result of non-overlapping observations.
+The BEAST is based on fitting sources with the same selection function,
+in this case measurements in all bands.
 
-Code to create this source density map with a pixel scale of 5 arcsec using
-the 'obscat.fits' file of observations.
+A number of source density images are also created.  These include images
+that map the source density of objects with zero fluxes in different bands
+(or any band).
+
+Command to create the observed catalog with source density column with 
+a pixel scale of 5 arcsec using the 'obscat.fits' catalog.
 
   .. code:: shell
 
-     $ ./beast/tools/create_source_density_map.py --pixsize 5 obscat.fits
+     $ ./beast/tools/create_source_density_map.py --pixsize 5. obscat.fits
     
 Split up observations by source density
 ---------------------------------------
 
+The observed catalog should be split into separate files for each source 
+density.  In addition, each source density catalog is split into a set of
+sub files to have at most 'n_per_file' sources.  The sources are sorted by
+the 'sort_col' flux before splitting to put sources with similar brightness
+together.  This splitting into sub files sorted by flux allows for trimming 
+the BEAST physics+observation model removing objects that are too bright 
+or too faint to fit any of the sources in the file.  In addition, this 
+allows for running the BEAST fitting in parallel with each sub file 
+on a different core.
 
-
-  * use tools/subdivide_obscat_by_source_density.py
-  * creates smaller files allowing for the fitting grid to be smaller (trimmed)
+Command to create the the source density split files 
 
  .. code:: shell
 
-    $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 \
-             -sort_col 
+    $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 
+             --sort_col F475W_RATE obscat_with_sourceden.fits
     
 Split up the ASTs by source density
 -----------------------------------

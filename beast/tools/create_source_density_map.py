@@ -152,7 +152,8 @@ def make_source_dens_map(catfile,
     # Save to FITS file
     header = w.to_header()
     hdu = fits.PrimaryHDU(npts_map.T, header=header)
-    hdu.writeto(catfile.replace('.fits','_source_den_image.fits'),
+    hdu.writeto(catfile.replace('.fits',
+                                '_source_den_image.fits'),
                 overwrite=True)
 
     # Save to FITS file (zero flux sources)
@@ -171,13 +172,13 @@ def make_source_dens_map(catfile,
 
     # Save the source density for individual stars in a new catalog file
     cat['SourceDensity'] = source_dens
-    cat.write(catfile.replace('.fits','_with_sourceden.fits'),
+    cat.write(catfile.replace('.fits','_with_sourceden_inc_zerofluxes.fits'),
               overwrite=True)
 
     # Save the source density for individual stars in a new catalog file
     #   only those that have non-zero fluxes in all bands
     cat[nonzero_indxs].write(catfile.replace('.fits',
-                                             '_with_sourceden_goodbands.fits'),
+                                             '_with_sourceden.fits'),
                              overwrite=True)
 
 if __name__ == '__main__':

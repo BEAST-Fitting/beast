@@ -85,7 +85,7 @@ if __name__ == '__main__':
     parser.add_argument("--n_per_file", type=int, default=6250,
                         help='Number of sources per subfile')
     parser.add_argument("--sort_col", type=str, default='F475W_RATE',
-                        help='Number of sources per subfile')
+                        help='Column in catalog file for sorting')
     args = parser.parse_args()
 
     split_obs_by_source_density(args.catfile, 
