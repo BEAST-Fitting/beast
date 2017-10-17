@@ -16,13 +16,30 @@ for the refitting, fixing issues, etc without rerunning everything.  This
 workflow has been tested on large (e.g., PHAT) and small (e.g. METAL)
 datasets.
 
+Setup working location
+----------------------
+
+Setup a working location, usually a subdirectory
+
+Use the example in the beast repository as a template.
+
+In this location, at a minimum you will need the following files:
+
+  * datamodel.py
+  * run_beast.py
+  * symbolic link to the beast directory in the beast repository
+
+  .. code:: shell
+
+     $ ln -s /location/beast/beast/ beast
+
 Setup datamodel.py
 ------------------
 
   * set the name for the project
   * set the survey name
   * update the 3 lists of filters
-  * set the physics model grid
+  * set the physics model grid parameters
 
 Full physics model grid
 -----------------------
@@ -47,16 +64,29 @@ Done separately with whatever code was used to extract the source photometry.
 Source density map
 ------------------
   
-  * use tools/create_source_density_map.py
-  * also creates an updated observation file that includes source density as a
-    seperate entry
+Create a new version of the observations that includes a column with the
+source density.  This also creates a source density image.
 
+Code to create this source density map with a pixel scale of 5 arcsec using
+the 'obscat.fits' file of observations.
+
+  .. code:: shell
+
+     $ ./beast/tools/create_source_density_map.py --pixsize 5 obscat.fits
+    
 Split up observations by source density
 ---------------------------------------
-  
+
+
+
   * use tools/subdivide_obscat_by_source_density.py
   * creates smaller files allowing for the fitting grid to be smaller (trimmed)
 
+ .. code:: shell
+
+    $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 \
+             -sort_col 
+    
 Split up the ASTs by source density
 -----------------------------------
   
