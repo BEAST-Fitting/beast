@@ -58,7 +58,7 @@ Add ``prior_kwargs`` to datamodel.py:
 
 Add kwargs defining code block before ``add_stellar_priors()`` call in run_beast.py:
 
-.. codeblock:: python
+.. code-block:: python
 
   if hasattr(datamodel, 'prior_kwargs'):
     prior_kwargs = datamodel.prior_kwargs
