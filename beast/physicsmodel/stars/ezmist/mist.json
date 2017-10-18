@@ -19,7 +19,7 @@
 	"theory_output": ["basic", "full"],
 	"output": [
 			["UBVRIJHKsKp", "UBVRI + 2MASS JHKs + Kepler"],
-			["WashDDOuvby", "Washington + Strömgren + DDO51"],
+			["WashDDOuvby", "Washington + Stromgren + DDO51"],
 			["HST_WFC3", "HST WFC3/UVIS+IR"],
 			["HST_ACS_HR", "HST ACS/HRC"],
 			["HST_ACS_WF", "HST ACS/WFC"],
