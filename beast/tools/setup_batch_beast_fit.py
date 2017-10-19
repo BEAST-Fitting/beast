@@ -23,6 +23,8 @@ if __name__ == '__main__':
                         help="project name to use (basename for files)")
     parser.add_argument("datafile",
                         help="file with the observed data (FITS file)")
+    parser.add_argument("--num_percore", default=5, type=int,
+                        help="number of fitting runs per core")
     args = parser.parse_args()
 
     project = args.projectname
@@ -31,7 +33,7 @@ if __name__ == '__main__':
     cat_files = np.array(glob.glob(datafile.replace('.fits','*_sub*.fits')))
 
     n_cat_files = len(cat_files)
-    n_pernode_files = 1
+    n_pernode_files = args.num_percore
 
     # setup the subdirectory for the batch and log files
     job_path = project+'/fit_batch_jobs/'
@@ -135,7 +137,7 @@ if __name__ == '__main__':
 
                 # open the slurm and param files
                 pf_open = True
-                joblist_file = job_path+'beast_batch_refit_'+str(cur_f) \
+                joblist_file = job_path+'beast_batch_fit_'+str(cur_f) \
                                +'.joblist'
                 pf = open(joblist_file,'w')
                 
@@ -153,7 +155,7 @@ if __name__ == '__main__':
 
             job_command = './run_beast_production.py -f ' + ext_str + ' ' + \
                           sd_num + ' '+sub_num+' > ' \
-                          + log_path+'beast_fit_resume_http' + \
+                          + log_path+'beast_fit' + \
                           '_sd'+sd_num+'_sub'+sub_num+'.log'
 
             pf.write(job_command+'\n')

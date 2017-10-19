@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument("astfile",
                         help="file with ASTs")
     parser.add_argument("--num_subtrim", default=5, type=int,
-                        help="number of trim runs per batch file")
+                        help="number of trim batch jobs")
     args = parser.parse_args()
 
     project = args.projectname
