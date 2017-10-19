@@ -26,7 +26,8 @@ Use the example in the beast repository as a template.
 In this location, at a minimum you will need the following files:
 
   * datamodel.py
-  * run_beast.py
+  * run_beast_production.py: "production" version of run_beast.py
+        provides commandline options for sub region files
   * symbolic link to the beast directory in the beast repository
 
   .. code:: shell
@@ -45,21 +46,22 @@ Full physics model grid
 -----------------------
 
 Generate the full model grid.  Needed for the fitting and generation of
-the artifical star test (AST) inputs.
+the artifical star test (AST) inputs.  The '0 0' arguements are dummy values.
 
   .. code:: shell
 
-     $ ./run_beast.py -p
+     $ ./run_beast_production.py -p 0 0
 
 Create the AST input list
 -------------------------
 
-TBA
+To be added.
 
 Compute the ASTs
 ----------------
 
-Done separately with whatever code was used to extract the source photometry.
+Done separately with the same code that was used to extract the source
+photometry. 
      
 Source density map
 ------------------
@@ -99,44 +101,110 @@ Command to create the the source density split files
 
  .. code:: shell
 
-    $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 
+    $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 \
              --sort_col F475W_RATE obscat_with_sourceden.fits
     
 Split up the ASTs by source density
 -----------------------------------
   
-  * TBD
+To be added.
+
+Currently the workflow assumes a single AST file for all the source densities.
 
 Create the observation models for each source density
 -----------------------------------------------------
   
-  * TBD
+To be added.
+
+Create a single observation model
+---------------------------------
+
+This assumes that the ASTs do not have a strong dependence on source
+density.  This could be a good approximation if the source density does
+not change much over the observation area or is low everywhere.
+The '0 0' arguements are dummy values.
 
   .. code:: shell
 
-     ./run_beast.py -
+     $ ./run_beast_production.py -o 0 0
     
 Trim the full model grid for each source density split file
 -----------------------------------------------------------
 
-  * use tools/setup_batch_beast_trim.py
-  * creates a set of batch files for submission (use 'at -f filename' to submit)
-  
-  * trimming done such that models are are much too bright or faint are removed
-    as they will always give "zero" likelihood
-  * files are sorted by brightness and this allows for more trimming of grid
-  * smaller grids mean faster fits
+The physics+observation model can be trimmed of sources that are so bright or
+so faint (compared to min/max flux in the observation file) that they will
+by definition produce effectively zero likelihood fits.  Such trimming will
+speed up the fitting.
+
+The source density split sub files are organized such that the range of
+fluxes is minimized in each sub file.  This allows for trimming and faster
+fitting.
+
+The trimming can take significant time to run.  In addition, reading in the
+full physics+observation model can be slow and such reading can be minimized
+by producing multiple trimmed models with a single read.  A specific tools is
+provided to setup batch files for this trimming and to do the actual
+trimming.
+
+This code sets up batch files for submission to the 'at' queue on linux
+(or similar) systems.  The projectname (e.g., 'PHAT') provides a portion
+of the batch file names.  The datafile and astfile are the observed photometry
+file (not sub files) and file with the ASTs in them.  A subdirection in the
+project directory is created with a joblist file for submission to the batch
+queue and smaller files used by the trimming code.
+
+The joblist file can be split into smaller files if submission to multiple
+cores is desired.  Use the 'split' commandline tool.
+
+  .. code:: shell
+
+     $ ./beast/tools/setup_batch_beast_trim.py projectname datafile astfile \
+       --num_subtrim 5
+
+Once the batch files are created, then the joblist can be submitted to the
+queue.  The beast/tools/trim_many_via_obsdata.py code is called and trimmed
+versions of the pysics and observation models are created in the project
+directory.
+
+  .. code:: shell
+
+     $ at -f project/trim_batch_jobs/XX_joblist now
 
 Do the fitting
 --------------
-  
-  * each source density split file run with specific trimmed physics and 
-    observation model files
+
+The fitting is done for each sub file separately.  Code in the tools directory
+can be used to create the needed set of batch files for submission to a queue.
+In addition, this code will check and see if the fitting has already been done
+or was interuppted for the sub files.  Only sub files that have not been fit or
+where the fitting was interuppted will be added to the batch files.  The number
+of sub files to be run on each core is a command line arguement (the runs will
+are serial on the core).
+
+  .. code:: shell
+
+     $ ./beast/tools/setup_batch_beast_fit.py projectname datafile \
+       --num_percore 2
+
+The jobs can be submitted to the batch queue via:
+
+  .. code:: shell
+
+     $ at -f projectname/fit_batch_jobs/beast_batch_fit_X.joblist now
 
 Create the merged stats file
 ----------------------------
 
-  * use tools/merge_stats_file.py
+The stats (catalog of fit parameters) files can then be merged into a single
+file for the region.  This only merges the stats output files, but not the
+pdf1d or lnp files (see the next section).
+
+  .. code:: shell
+
+     $ beast/tools/merge_stats_file.py filebase
+
+where the filebase where it is the first portion of the output stats filenames
+(e.g., filebase_sdx-x_subx_stats.fits).
     
 Reorganize the results into spatial region files
 ------------------------------------------------
