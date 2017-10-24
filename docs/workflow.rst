@@ -1,13 +1,7 @@
 
-*****************
+#################
 Standard Workflow
-*****************
-
-Describe the assumptions about the data, etc.
-
-inc. location of datamodel.py and link to beast source code
-
-Mention example code location
+#################
 
 Workflow is setup to run the fitting on many sources efficiently by
 splitting the full catalog into a number of smaller files.  This allows
@@ -16,12 +10,17 @@ for the refitting, fixing issues, etc without rerunning everything.  This
 workflow has been tested on large (e.g., PHAT) and small (e.g. METAL)
 datasets.
 
-Setup working location
-----------------------
+*****
+Setup
+*****
+
+Working location
+================
 
 Setup a working location, usually a subdirectory
 
-Use the example in the beast repository as a template.
+Can use the 'metal_production' example in the beast/examples directory as a 
+template.   
 
 In this location, at a minimum you will need the following files:
 
@@ -34,38 +33,25 @@ In this location, at a minimum you will need the following files:
 
      $ ln -s /location/beast/beast/ beast
 
-Setup datamodel.py
-------------------
+Datamodel.py
+============
 
   * set the name for the project
   * set the survey name
   * update the 3 lists of filters
   * set the physics model grid parameters
 
-Full physics model grid
------------------------
+****
+Data
+****
 
-Generate the full model grid.  Needed for the fitting and generation of
-the artifical star test (AST) inputs.  The '0 0' arguements are dummy values.
+The data need to have source density information added as it is common
+for the observation model (scatter and bias) to be strongly dependent
+on source density due to crowding/confusion noise.
 
-  .. code:: shell
+Adding source density to observations
+=====================================
 
-     $ ./run_beast_production.py -p 0 0
-
-Create the AST input list
--------------------------
-
-To be added.
-
-Compute the ASTs
-----------------
-
-Done separately with the same code that was used to extract the source
-photometry. 
-     
-Source density map
-------------------
-  
 Create a new version of the observations that includes a column with the
 source density.  The new observation file includes only sources that have
 measurements in all bands (columns that match 'X_RATE').  In theory, sources
@@ -103,6 +89,41 @@ Command to create the the source density split files
 
     $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 \
              --sort_col F475W_RATE obscat_with_sourceden.fits
+
+*****
+Model
+*****
+
+Physics model
+=============
+
+Generate the full physics model grid.  Needed for the fitting and generation of
+the artifical star test (AST) inputs.  The '0 0' arguements are dummy values.
+
+  .. code:: shell
+
+     $ ./run_beast_production.py -p 0 0
+
+Observation model
+=================
+
+The observation model is based on artifical star tests (ASTs).  ASTs are 
+artifical sources inserted into the observations and extracted with
+the same software that was used for the observed photometry catalog.
+This ensures that the observation model has the same selection
+function as the data. 
+
+Create the AST input list
+-------------------------
+
+To be added.
+
+Compute the ASTs
+----------------
+
+Done separately with the same code that was used to extract the source
+photometry. 
+     
     
 Split up the ASTs by source density
 -----------------------------------
@@ -128,8 +149,12 @@ The '0 0' arguements are dummy values.
 
      $ ./run_beast_production.py -o 0 0
     
+******************
+Trimming for speed
+******************
+
 Trim the full model grid for each source density split file
------------------------------------------------------------
+===========================================================
 
 The physics+observation model can be trimmed of sources that are so bright or
 so faint (compared to min/max flux in the observation file) that they will
@@ -170,8 +195,9 @@ directory.
 
      $ at -f project/trim_batch_jobs/XX_joblist now
 
-Do the fitting
---------------
+*******
+Fitting
+*******
 
 The fitting is done for each sub file separately.  Code in the tools directory
 can be used to create the needed set of batch files for submission to a queue.
@@ -192,8 +218,12 @@ The jobs can be submitted to the batch queue via:
 
      $ at -f projectname/fit_batch_jobs/beast_batch_fit_X.joblist now
 
+***************
+Post-processing
+***************
+
 Create the merged stats file
-----------------------------
+============================
 
 The stats (catalog of fit parameters) files can then be merged into a single
 file for the region.  This only merges the stats output files, but not the
@@ -207,7 +237,8 @@ where the filebase where it is the first portion of the output stats filenames
 (e.g., filebase_sdx-x_subx_stats.fits).
     
 Reorganize the results into spatial region files
-------------------------------------------------
+================================================
   
-  * TBD (files need to move from megabeast to beast repository)
-  * needed for megabeast as well as most other BEAST work
+TBD (files need to move from megabeast to beast repository)
+ 
+needed for megabeast as well as most other BEAST work
