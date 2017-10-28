@@ -1,5 +1,6 @@
+#####
 BEAST
-=====
+#####
 
 The Bayesian Extinction and Stellar Tool (BEAST) fits the ultraviolet to
 near-infrared photometric SEDs of stars to extract stellar and
@@ -12,26 +13,34 @@ The full details of the BEAST are provide by
 Gordon et al. (2016, ApJ, 826, 104).
 <http://adsabs.harvard.edu/abs/2016ApJ...826..104G>
 
-BEAST Repository
-================
+Repository
+==========
 
-Github: <https://github.com/karllark/beast>
+Github: <https://github.com/BEAST-Fitting/beast>
 
-Installing the BEAST
-====================
+Installation
+============
 
 .. toctree::
    :maxdepth: 2
 
    install.rst
 
-Setup the BEAST
-===============
+Example Workflow
+================
+
+.. toctree::
+   :maxdepth: 2
+
+   workflow.rst
+
+Setup
+=====
 
 Need documention on setting up the datamodel.py file for BEAST runs
 
-Format of BEAST Files
-=====================
+Format of Files
+===============
 
 .. toctree::
    :maxdepth: 2
