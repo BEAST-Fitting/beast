@@ -2,7 +2,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-import pylab as plt
 from astropy.io import ascii
 from astropy.table import Column
 from astropy.wcs import WCS
@@ -36,25 +35,25 @@ def pick_positions(filename,separation,refimage=None):
     noise = 3.0 #Spreads the ASTs in a circular annulus of 3 pixel width instead of all being 
                 #precisely [separation] from an observed star.
 
-    catalog = datamodel.get_obscat(datamodel.obsfile,datamodel.distanceModulus,datamodel.filters)
+    catalog = datamodel.get_obscat(datamodel.obsfile, datamodel.filters)
     colnames = catalog.data.columns    
 
     if 'X' or 'x' in colnames:
         if 'X' in colnames:
-           x_positions = catalog.data[:]['X']
-           y_positions = catalog.data[:]['Y']
+           x_positions = catalog.data['X'][:]
+           y_positions = catalog.data['Y'][:]
         if 'x' in colnames:
-           x_positions = catalog.data[:]['x']
-           y_positions = catalog.data[:]['y']
+           x_positions = catalog.data['x'][:]
+           y_positions = catalog.data['y'][:]
     else:
         if refimage:
             if 'RA' or 'ra' in colnames:
                 if 'RA' in colnames:
-                    ra_positions = catalog.data[:]['RA']
-                    dec_positions = catalog.data[:]['DEC']
+                    ra_positions = catalog.data['RA'][:]
+                    dec_positions = catalog.data['DEC'][:]
                 if 'ra' in colnames:
-                    ra_positions = catalog.data[:]['ra']
-                    dec_positions = catalog.data[:]['dec']
+                    ra_positions = catalog.data['ra'][:]
+                    dec_positions = catalog.data['dec'][:]
             else:
                 raise RuntimeError("Your catalog does not supply X, Y or RA, DEC information for spatial AST distribution")
 
