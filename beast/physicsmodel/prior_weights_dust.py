@@ -93,8 +93,9 @@ def _exponential(x, a=2.0, N=1.):
     x: vector
        x values
     a: float
-       Single parameter in exp: a*e^-ax
-    N: floats
+       Decay Rate parameter in exp: N*e^-ax
+       Distribution Mean = 1/a
+    N: float
        Multiplicative factor
     Returns
     -------

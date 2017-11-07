@@ -43,7 +43,7 @@ def check_grid(param, param_name, param_lim, noexit=False):
 
     if (param_max-param_min) < param_step:
         if param_max-param_min == 0.:
-            print('Warning: '+param_name+' grid is single-valued.')
+            print('Note: '+param_name+' grid is single-valued.')
         else:
             print((param_name + ' step value greater than (max-min)'))
             if not noexit: exit()
