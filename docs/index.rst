@@ -28,7 +28,10 @@ Installing the BEAST
 Setup the BEAST
 ===============
 
-Need documention on setting up the datamodel.py file for BEAST runs
+.. toctree::
+   :maxdepth: 1
+
+   beast_setup.rst
 
 Format of BEAST Files
 =====================

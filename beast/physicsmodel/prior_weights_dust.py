@@ -85,6 +85,24 @@ def _two_lognorm(xs,
     normalization = np.trapz(pointwise, x=xs)
     return pointwise / normalization
 
+def _exponential(x, a=2.0, N=1.):
+    """
+    Exponential distribution
+    Parameters
+    ----------
+    x: vector
+       x values
+    a: float
+       Decay Rate parameter in exp: N*e^-ax
+       Distribution Mean = 1/a
+    N: float
+       Multiplicative factor
+    Returns
+    -------
+    exponential computed on the x grid
+    """
+    return N * np.exp(-1. * a * x)
+
 class PriorWeightsDust():
     """
     Compute the priors as weights given the input grid
@@ -195,6 +213,7 @@ class PriorWeightsDust():
           flat = flat prior on linear A(V)
           lognormal = lognormal prior on linear A(V)
           two_lognormal = two lognormal prior on linear A(V)
+          exponential = exponential prior on linear A(V)
         """
         if model['name'] == 'flat':
             self.av_priors = np.full(len(self.av_vals),1.0)
@@ -211,6 +230,10 @@ class PriorWeightsDust():
                                           sigma2=model['sigma2'],
                                           N1=model['N1'],
                                           N2=model['N2'])
+        elif model['name'] == 'exponential':
+            self.av_priors = _exponential(self.av_vals,
+                                          a=model['a'],
+                                          N=model['N'])
         else:
             print('**error in setting the A(V) dust prior weights!**')
             print('**model ' + model['name'] + ' not supported**')

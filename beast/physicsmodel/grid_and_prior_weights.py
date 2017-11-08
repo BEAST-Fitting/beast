@@ -28,7 +28,7 @@ from .prior_weights import compute_metallicity_prior_weights
 __all__ = ['compute_age_mass_metallicity_weights',
            'compute_bin_boundaries']
 
-def compute_age_mass_metallicity_weights(_tgrid):
+def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
     """ 
     Computes the age-mass-metallicity grid and prior weights 
     on the BEAST model spectra grid
@@ -62,7 +62,7 @@ def compute_age_mass_metallicity_weights(_tgrid):
         uniq_ages = np.unique(_tgrid[zindxs]['logA']) 
 
         # compute the age weights
-        age_grid_weights = compute_age_grid_weights(uniq_ages)  
+        age_grid_weights = compute_age_grid_weights(uniq_ages, **kwargs)  
         age_prior_weights = compute_age_prior_weights(uniq_ages)  
 
         for ak, age_val in enumerate(uniq_ages):
