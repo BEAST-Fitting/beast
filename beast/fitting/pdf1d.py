@@ -24,6 +24,9 @@ class pdf1d():
         tgridvals = np.array(gridvals[indxs])
 
         if len(tgridvals) <= 0:
+            # this is a hack to just get the code to work when
+            # all the possible values are negative and the requested
+            # pdf is for log x values
             self.bad = True
             self.bin_vals = np.linspace(0.0,1.0, num=self.nbins)
         else:
