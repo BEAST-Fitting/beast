@@ -30,10 +30,14 @@ config = {
     'basel_2.2_pegase': __ROOT__ + '/libs/BaSeL_v2.2.pegase.grid.fits',
     'elodie_3.1': __ROOT__ + '/libs/Elodie_v3.1.grid.fits',
     'kurucz': __ROOT__ + '/libs/kurucz2004.grid.fits',
-    'tlusty': __ROOT__ + '/libs/tlusty.lowres.grid.fits'
+    'tlusty': __ROOT__ + '/libs/tlusty.lowres.grid.fits',
+    'btsettl': __ROOT__ + '/libs/bt-settl.lowres.grid.fits',
+    'btsettl_medres': __ROOT__ + '/libs/bt-settl.medres.grid.fits',
+    'munari': __ROOT__ + '/libs/atlas9-munari.hires.grid.fits'
 }
 
-__all__ = ['Stellib', 'CompositeStellib', 'Kurucz', 'Tlusty', 'Elodie', 'BaSeL']
+__all__ = ['Stellib', 'CompositeStellib', 'Kurucz', 'Tlusty',
+           'BTSettl', 'Munari', 'Elodie', 'BaSeL']
 
 
 def isNestedInstance(obj, cl):
@@ -1440,6 +1444,174 @@ class Tlusty(Stellib):
                 (4.740 + dlogT, 4.749 + dlogg),
                 (4.176 - dlogT, 4.749 + dlogg) ]
 
+        return np.array(bbox)
+
+    @property
+    def logT(self):
+        return self.grid['logT']
+
+    @property
+    def logg(self):
+        return self.grid['logg']
+
+    @property
+    def Teff(self):
+        return self.grid['Teff']
+
+    @property
+    def Z(self):
+        return self.grid['Z']
+
+    @property
+    def logZ(self):
+        return self.grid['logZ']
+
+
+class BTSettl(Stellib):
+    """
+    BT-Settl Library
+
+    References
+    ----------
+
+    Paper: Few refereed publications
+      Older Ref = http://adsabs.harvard.edu/abs/2000ApJ...539..366A
+
+    Conference Proceedings:
+      http://adsabs.harvard.edu/abs/2016sf2a.conf..223A
+      http://adsabs.harvard.edu/abs/2012RSPTA.370.2765A
+
+    Files available at: https://phoenix.ens-lyon.fr/Grids/BT-Settl/
+
+    Current Library: AGSS2009 Abundances (due to grid availability)
+    Spectra rebinned to match Kurucz, and custom 2 Ang medium resolution
+    """
+    def __init__(self, medres=True, *args, **kwargs):
+        self.name = 'BTSettl'
+        if medres:
+            self.source = config['btsettl_medres']
+        else:
+            self.source = config['btsettl']
+        self._load_()
+
+    def _load_(self):
+        g = SpectralGrid(self.source, backend='memory')
+        self.wavelength = g.lamb
+        self.grid = g.grid
+        self.grid.header['NAME'] = self.name
+        self.spectra = g.seds
+
+    def bbox(self, dlogT=0.05, dlogg=0.25):
+        """ Boundary of BT-Settl library
+
+        Parameters
+        ----------
+        dlogT: float
+            log-temperature tolerance before extrapolation limit
+
+        dlogg: float
+            log-g tolerance before extrapolation limit
+
+        Returns
+        -------
+        bbox: ndarray
+            (logT, logg) edges of the bounding polygon
+        """
+        bbox = [(3.41497 - dlogT, 6.0 + dlogg),
+                (3.41497 - dlogT,-0.5 - dlogg),
+                (3.84510 + dlogT,-0.5 - dlogg),
+                (4.07918 + dlogT, 0.0 - dlogg),
+                (4.17609 + dlogT, 0.5 - dlogg),
+                (4.30103 + dlogT, 1.0 - dlogg),
+                (4.39794 + dlogT, 1.5 - dlogg),
+                (4.47712 + dlogT, 2.0 - dlogg),
+                (4.60206 + dlogT, 2.5 - dlogg),
+                (4.60206 + dlogT, 3.0 - dlogg),
+                (4.69897 + dlogT, 3.5 - dlogg),
+                (4.84510 + dlogT, 4.0 - dlogg),
+                (4.84510 + dlogT, 4.5 + dlogg),
+                (4.00000 + dlogT, 4.5 + dlogg),
+                (4.00000 + dlogT, 5.0 + dlogg),
+                (3.69897 + dlogT, 5.0 + dlogg),
+                (3.69897 + dlogT, 5.5 + dlogg),
+                (3.60206 + dlogT, 5.5 + dlogg),
+                (3.60206 + dlogT, 6.0 + dlogg),
+                (3.41497 - dlogT, 6.0 + dlogg)]
+            
+        return np.array(bbox)
+
+    @property
+    def logT(self):
+        return self.grid['logT']
+
+    @property
+    def logg(self):
+        return self.grid['logg']
+
+    @property
+    def Teff(self):
+        return self.grid['Teff']
+
+    @property
+    def Z(self):
+        return self.grid['Z']
+
+    @property
+    def logZ(self):
+        return self.grid['logZ']
+
+
+class Munari(Stellib):
+    """
+    ATLAS9 stellar atmospheres providing higher res than Kurucz
+    medium resolution (1 Ang/pix) in optical (2500-10500 Ang)
+
+    References
+    ----------
+
+    Paper: Munari et al. 2005 A&A 442 1127
+    http://adsabs.harvard.edu/abs/2005A%26A...442.1127M
+
+    Files available at: http://archives.pd.astro.it/2500-10500/
+    """
+    def __init__(self, *args, **kwargs):
+        self.name = 'Munari'
+        self.source = config['munari']
+        self._load_()
+
+    def _load_(self):
+        g = SpectralGrid(self.source, backend='memory')
+        self.wavelength = g.lamb
+        self.grid = g.grid
+        self.grid.header['NAME'] = self.name
+        self.spectra = g.seds
+
+    def bbox(self, dlogT=0.05, dlogg=0.25):
+        """ Boundary of Munari library
+
+        Parameters
+        ----------
+        dlogT: float
+            log-temperature tolerance before extrapolation limit
+
+        dlogg: float
+            log-g tolerance before extrapolation limit
+
+        Returns
+        -------
+        bbox: ndarray
+            (logT, logg) edges of the bounding polygon
+        """
+        bbox = [(3.54407 - dlogT, 5.0 + dlogg),
+                (3.54407 - dlogT, 0.0 - dlogg),
+                (3.77815 + dlogT, 0.0 - dlogg),
+                (3.87506 + dlogT, 0.5 - dlogg),
+                (3.91645 + dlogT, 1.0 - dlogg),
+                (3.95424 + dlogT, 1.5 - dlogg),
+                (3.98900 + dlogT, 2.0 - dlogg),
+                (3.98900 + dlogT, 5.0 + dlogg),
+                (3.54407 - dlogT, 5.0 + dlogg)]
+            
         return np.array(bbox)
 
     @property
