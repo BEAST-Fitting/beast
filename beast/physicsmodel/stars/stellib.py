@@ -30,7 +30,7 @@ config = {
     'basel_2.2_pegase': __ROOT__ + '/libs/BaSeL_v2.2.pegase.grid.fits',
     'elodie_3.1': __ROOT__ + '/libs/Elodie_v3.1.grid.fits',
     'kurucz': __ROOT__ + '/libs/kurucz2004.grid.fits',
-    'tlusty': __ROOT__ + '/libs/tlusty.lowres.grid.fits'
+    'tlusty': __ROOT__ + '/libs/tlusty.lowres.grid.fits',
     'btsettl': __ROOT__ + '/libs/bt-settl.lowres.grid.fits',
     'btsettl_medres': __ROOT__ + '/libs/bt-settl.medres.grid.fits',
     'munari': __ROOT__ + '/libs/atlas9-munari.hires.grid.fits'
