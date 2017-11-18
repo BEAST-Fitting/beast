@@ -185,7 +185,8 @@ if __name__ == '__main__':
     for cur_dir in tqdm(pix_dirs, desc='spatial regions'):
 
         # get the base name
-        bname = cur_dir[cur_dir.find('spatial/')+8:-1]
+        spos = cur_dir.rfind('/',0,len(cur_dir)-1)
+        bname = cur_dir[spos+1:-1]
 
         # process that catalog (stats) files
         n_sources = condense_stats_files(bname, cur_dir, out_dir)
