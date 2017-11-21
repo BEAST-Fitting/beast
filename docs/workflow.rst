@@ -239,6 +239,30 @@ where the filebase where it is the first portion of the output stats filenames
 Reorganize the results into spatial region files
 ================================================
   
-TBD (files need to move from megabeast to beast repository)
- 
-needed for megabeast as well as most other BEAST work
+The output files from the BEAST with this workflow are organized by source
+density and brightness.  This is not ideal for finding sources of interest 
+or performing ensemble processing.  A more useful organization is by spatial
+region.  The large amount of BEAST output information makes it best to have
+individual files for each spatial region.  Code to do this spatial reordering 
+is provided in two parts.  The 1st spatially reorders the results for each
+source density/brightness BEAST run into files for each spatial region.  The
+2nd condenses the multiple individual files for each spatial region into the
+minimal set (stats, pdf1d, and lnp).
+
+Divide each source density/brightness file into files of spatial regions 
+with 10"x10" pixels.
+
+  .. code:: shell
+
+     $ beast/tools/reorder_beast_results_spatial.py 
+        --stats_filename filebase_stats.fits
+        --region_filebase filebase_
+        --output_filebase spatial/filebase
+        --reg_size 10.0
+
+Condense the multiple files for each spatial region into the minimal set.
+Each spatial region will have files containing the stats, pdf1d, and lnp
+results for the stars in that region.
+
+     $ beast/tools/condense_beast_results_spatial.py 
+        --filedir spatial
