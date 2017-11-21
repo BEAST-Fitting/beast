@@ -66,17 +66,13 @@ matrix:
     fast_finish: true
 
     include:
-        # Try MacOS X
+        # Try MacOS X including the remote data tests
         - os: osx
-          env: SETUP_CMD='test'
-
-        # Test with remote-data (regression tests)
-        - os: linux
           env: SETUP_CMD='test --remote-data'
 
         # Do a coverage test.
         - os: linux
-          env: SETUP_CMD='test --coverage'
+          env: SETUP_CMD='test --remote-data --coverage'
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
