@@ -176,7 +176,7 @@ if __name__ == '__main__':
     wcs_info, n_x, n_y = setup_spatial_regions(cat_filename,
                                                pix_size=reg_size)
 
-    # setup arrary to store number of stars per pixel
+    # setup array to store number of stars per pixel
     wcs_nstars = np.zeros((n_y, n_x), dtype=int)
 
     # find all the subdivided BEAST files for this brick

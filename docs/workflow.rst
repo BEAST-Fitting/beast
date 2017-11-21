@@ -249,7 +249,7 @@ source density/brightness BEAST run into files for each spatial region.  The
 2nd condenses the multiple individual files for each spatial region into the
 minimal set (stats, pdf1d, and lnp).
 
-Divide each source density/brightness file into files of spaital regions 
+Divide each source density/brightness file into files of spatial regions 
 with 10"x10" pixels.
 
   .. code:: shell
