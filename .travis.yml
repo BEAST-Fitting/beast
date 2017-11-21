@@ -70,6 +70,10 @@ matrix:
         - os: osx
           env: SETUP_CMD='test'
 
+        # Test with remote-data (regression tests)
+        - os: linux
+          env: SETUP_CMD='test --remote-data'
+
         # Do a coverage test.
         - os: linux
           env: SETUP_CMD='test --coverage'
