@@ -75,7 +75,7 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
         Spectral grid (in memory) containing the requested list of stars
         and associated spectra
     """
-    
+
     helpers.type_checker('osl', osl, stellib.Stellib)
     
     if chunksize <= 0:
@@ -232,6 +232,10 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
     specs = specs.compress(idx, axis=0)
     for k in list(_grid.keys()):
             _grid[k] = _grid[k].compress(idx, axis=0)
+
+    # remove 'keep' column as not used further
+    #   and it makes the hdf file incompatible with h5py
+    del _grid['keep']
 
     # Step 6: Ship
     # ============
@@ -543,7 +547,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
 
 
 def add_spectral_properties(specgrid, filternames=None, filters=None,
-                            callables=None, nameformat=None):
+                            callables=None, nameformat=None, filterLib=None):
     """ Addon spectral calculations to spectral grids to extract in the fitting
     routines
 
@@ -566,6 +570,9 @@ def add_spectral_properties(specgrid, filternames=None, filters=None,
         naming format to adopt for filternames and filters
         default value is '{0:s}_0' where the value will be the filter name
 
+    filterLib:  str
+        full filename to the filter library hd5 file
+
     Returns
     -------
     specgrid: SpectralGrid instance
@@ -575,7 +582,7 @@ def add_spectral_properties(specgrid, filternames=None, filters=None,
         nameformat = '{0:s}_0'
 
     if filternames is not None:
-        temp = specgrid.getSEDs(filternames, extLaw=None)
+        temp = specgrid.getSEDs(filternames, extLaw=None, filterLib=filterLib)
 
         logtempseds = np.array(temp.seds)
         indxs = np.where(temp.seds > 0)

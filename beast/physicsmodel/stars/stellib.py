@@ -538,7 +538,6 @@ class Stellib(object):
         ndata = len(pts)
         _grid  = {}
         _grid['radius'] = np.empty(ndata, dtype=float )
-        _grid['keep'] = np.empty(ndata, dtype=bool )
 
         # stores the grid+prior weights (initialize to 1)
         _grid['weight'] = np.full(ndata, 1.0, dtype=float)
@@ -679,7 +678,9 @@ class Stellib(object):
         return CompositeStellib([self, other])
 
     def __repr__(self):
-        return "{0:s}, ({1:s})\n{2:s}".format(self.name, nbytes(self, pprint=True), object.__repr__(self))
+        return "{0:s}, ({1:s})\n{2:s}".format(self.name,
+                                              nbytes(self, pprint=True),
+                                              object.__repr__(self))
 
 
 class CompositeStellib(Stellib):
@@ -706,7 +707,8 @@ class CompositeStellib(Stellib):
         """ return a common wavelength sampling to all libraries. This can be
         used to reinterpolate any spectrum onto a common definition """
 
-        lambs = np.unique(np.asarray([ osl.wavelength[:] for osl in self._olist ]))
+        lambs = np.unique(np.asarray([ osl.wavelength[:]
+                                       for osl in self._olist ]))
         return lambs
 
     @property
@@ -752,10 +754,12 @@ class CompositeStellib(Stellib):
 
         #res_temp = np.zeros((len(xy),len(self._olist)))
         #for ek,ok in enumerate(self._olist):
-        #    res_temp[:, ek] = ok.points_inside(xy, dlogT=dlogT, dlogg=dlogg).astype(int)
+        #    res_temp[:, ek] = ok.points_inside(xy, dlogT=dlogT,
+        #                                       dlogg=dlogg).astype(int)
         res_temp = np.zeros(len(xy), dtype=int)
         for ek, ok in enumerate(self._olist):
-            res_temp += ok.points_inside(xy, dlogT=dlogT, dlogg=dlogg).astype(int)
+            res_temp += ok.points_inside(xy, dlogT=dlogT,
+                                         dlogg=dlogg).astype(int)
 
         ind = res_temp > 0
         res = np.zeros(len(xy), dtype=int)
@@ -797,7 +801,8 @@ class CompositeStellib(Stellib):
         return res
 
     def __repr__(self):
-        return "CompositeStellib, {0}\n{1}".format(object.__repr__(self), [k.name for k in self._olist])
+        return "CompositeStellib, {0}\n{1}".format(object.__repr__(self),
+                                                [k.name for k in self._olist])
 
     def get_boundaries(self, dlogT=0.1, dlogg=0.3, **kwargs):
         """ Returns the closed boundary polygon around the stellar library with
@@ -817,17 +822,20 @@ class CompositeStellib(Stellib):
         returns
         -------
         b: ndarray[float, ndim=2]
-            (closed) boundary points: [logg, Teff] (or [Teff, logg] is swap is True)
+            (closed) boundary points: [logg, Teff] (or [Teff, logg] is swap 
+            is True)
 
         .. note::
             as computing the boundary could take time, it is saved in the object
             and only recomputed when parameters are updated
         """
         if getattr(self, '_bound', None) is not None:
-            if ((self._bound[1] - dlogT) < 1e-3) and (abs(self._bound[2] - dlogg) < 1e-3):
+            if (((self._bound[1] - dlogT) < 1e-3) and
+                (abs(self._bound[2] - dlogg) < 1e-3)):
                 return self._bound[0]
 
-        b = [osl.get_boundaries(dlogT=dlogT, dlogg=dlogg, **kwargs) for osl in self._olist]
+        b = [osl.get_boundaries(dlogT=dlogT, dlogg=dlogg, **kwargs)
+             for osl in self._olist]
         self._bound = (Path.make_compound_path(*b), dlogT, dlogg)
         return self._bound[0]
 
@@ -870,15 +878,19 @@ class CompositeStellib(Stellib):
         -------
         (osl, r): tuple
             osl: is the library index starting from 1. 0 means no coverage.
-            r: is the result from interp call on the corresponding library. a 3 to 12 star indexes and associated weights
+            r: is the result from interp call on the corresponding library. 
+               a 3 to 12 star indexes and associated weights
         """
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
 
-        osl_index = self.which_osl(np.atleast_2d([T0, g0]), dlogT=dlogT, dlogg=dlogg)[0]
+        osl_index = self.which_osl(np.atleast_2d([T0, g0]),
+                                   dlogT=dlogT, dlogg=dlogg)[0]
 
         if osl_index > 0:
-            return (osl_index, self._olist[osl_index - 1].interp(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6))
+            return (osl_index,
+                    self._olist[osl_index - 1].interp(self, T0, g0, Z0, L0,
+                                                      dT_max=0.1, eps=1e-6))
         else:
             return [(0, None)]
 
@@ -933,7 +945,8 @@ class CompositeStellib(Stellib):
         -------
         (osl, r): tuple
             osl: is the library index starting from 1. 0 means no coverage.
-            r: is the result from interp call on the corresponding library. A 3 to 12 star indexes and associated weights
+            r: is the result from interp call on the corresponding library. 
+               A 3 to 12 star indexes and associated weights
         """
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
@@ -945,7 +958,12 @@ class CompositeStellib(Stellib):
             # make a generator to avoid keeping all in memory
             ind = np.where(osl_index - 1 == oslk)
             if np.squeeze(ind).size is not 0:
-                g.append( [oslk + 1, osl.interpMany(T0[ind], g0[ind], Z0[ind], L0[ind], dT_max=dT_max, eps=eps, weights=weights, pool=pool, nthreads=nthreads)] )
+                g.append( [oslk + 1, osl.interpMany(T0[ind], g0[ind],
+                                                    Z0[ind], L0[ind],
+                                                    dT_max=dT_max, eps=eps,
+                                                    weights=weights,
+                                                    pool=pool,
+                                                    nthreads=nthreads)] )
 
         return g
 
@@ -999,7 +1017,8 @@ class CompositeStellib(Stellib):
         returns
         -------
         s: ndarray
-            an array containing the composite spectrum reinterpolated onto self.wavelength
+            an array containing the composite spectrum reinterpolated onto 
+            self.wavelength
 
         .. note::
 
@@ -1009,7 +1028,8 @@ class CompositeStellib(Stellib):
             if hasattr(T0, '__iter__'):
                 _r = self.interpMany(T0, g0, Z0, weights=weights, **kwargs)
             else:
-                _r = np.asarray(self.interp(T0, g0, Z0, weight=weights, **kwargs))
+                _r = np.asarray(self.interp(T0, g0, Z0, weight=weights,
+                                            **kwargs))
         else:
             _r = T0
 
@@ -1017,13 +1037,16 @@ class CompositeStellib(Stellib):
         s = np.zeros(len(l0), dtype=float)
         for osl, _rk in _r:
             if osl > 0:
-                sp = (((self._olist[osl - 1].spectra[_r[:, 0].astype(int)].T) * _r[:, 1]) ).sum(1)
+                sp = (((self._olist[osl - 1].spectra[_r[:, 0].astype(int)].T)
+                       * _r[:, 1]) ).sum(1)
                 lamb = self._olist[osl - 1].wavelength
                 s += np.interp(l0, lamb, sp)
         return s
 
-    def gen_spectral_grid_from_given_points(self, pts, bounds=dict(dlogT=0.1, dlogg=0.3)):
-        """ Reinterpolate a given stellar spectral library on to an Isochrone grid
+    def gen_spectral_grid_from_given_points(self, pts,
+                                            bounds=dict(dlogT=0.1, dlogg=0.3)):
+        """ 
+        Reinterpolate a given stellar spectral library on to an Isochrone grid
 
         Parameters
         ----------
@@ -1042,12 +1065,14 @@ class CompositeStellib(Stellib):
         Returns
         -------
         g: SpectralGrid
-            Spectral grid (in memory) containing the requested list of stars and associated spectra
+            Spectral grid (in memory) containing the requested list of stars 
+            and associated spectra
         """
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
 
-        osl_index = self.which_osl(list(zip(pts['logT'], pts['logg'])), dlogT=dlogT, dlogg=dlogg)
+        osl_index = self.which_osl(list(zip(pts['logT'], pts['logg'])),
+                                   dlogT=dlogT, dlogg=dlogg)
 
         seds = []
         grid = []
@@ -1313,9 +1338,12 @@ class Kurucz(Stellib):
     * PP
     * line blanketing
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, filename=None, *args, **kwargs):
         self.name = 'Kurucz 2004'
-        self.source = config['kurucz']
+        if filename is None:
+            self.source = config['kurucz']
+        else:
+            self.source = filename
         self._load_()
 
     def _load_(self):
@@ -1405,9 +1433,12 @@ class Tlusty(Stellib):
     O and B stars rebinned to nearly 20,000 frequency points (for CLOUDY usage)
     http://nova.astro.umd.edu/Tlusty2002/database/obstar_merged_3d.ascii.gz
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, filename=None, *args, **kwargs):
         self.name = 'Tlusty'
-        self.source = config['tlusty']
+        if filename is None:
+            self.source = config['tlusty']
+        else:
+            self.source = filename
         self._load_()
 
     def _load_(self):

@@ -203,7 +203,7 @@ class SpectralGrid(ModelGrid):
     It provides an access to integrated photometry function getSEDs """
 
     def getSEDs(self, filter_names, absFlux=True, extLaw=None, inplace=False,
-                **kwargs):
+                filterLib=None, **kwargs):
         """
         Extract integrated fluxes through filters
 
@@ -223,6 +223,9 @@ class SpectralGrid(ModelGrid):
         inplace:bool
             if set, do not copy the grid and apply extinction on it
 
+        filterLib:  str
+            full filename to the filter library hd5 file
+
         **kwargs extra keywords will be forwrded to extLaw
 
         Returns
@@ -232,7 +235,7 @@ class SpectralGrid(ModelGrid):
         """
         if type(filter_names[0]) == str:
             flist = phot.load_filters(filter_names, interp=True,
-                                      lamb=self.lamb)
+                                      lamb=self.lamb, filterLib=filterLib)
             _fnames = filter_names
         else:
             flist = phot.load_Integrationfilters(filter_names, interp=True,

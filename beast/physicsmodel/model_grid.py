@@ -67,7 +67,7 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
     return (iso_fname, oiso)
 
 def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
-                       verbose=True,
+                       verbose=True, spec_fname=None, filterLib=None,
                        add_spectral_properties_kwargs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
@@ -90,6 +90,12 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
         0 means absolute magnitude.
         Expecting pc units
 
+    spec_fname: str
+        full filename to save the spectral grid into
+
+    filterLib:  str
+        full filename to the filter library hd5 file
+
     add_spectral_properties_kwargs: dict
         keyword arguments to call :func:`add_spectral_properties`
         to add model properties from the spectra into the grid property table
@@ -102,7 +108,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
     g: grid.SpectralGrid object
         spectral grid to transform
     """
-    spec_fname = '%s/%s_spec_grid.hd5' % (project, project)
+    if spec_fname is None:
+        spec_fname = '%s/%s_spec_grid.hd5' % (project, project)
 
     if not os.path.isfile(spec_fname):
         osl = osl or stellib.Kurucz()
@@ -142,6 +149,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
             if add_spectral_properties_kwargs is not None:
                 g = creategrid.add_spectral_properties(g,
                                                        nameformat=nameformat,
+                                                       filterLib=filterLib,
                                             **add_spectral_properties_kwargs)
             g.writeHDF(spec_fname)
         else:
@@ -150,8 +158,9 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
                     gk.seds = gk.seds / (0.1 * _distance) ** 2
                 if add_spectral_properties_kwargs is not None:
                     gk = creategrid.add_spectral_properties(gk,
-                                              nameformat=nameformat,
-                                              **add_spectral_properties_kwargs)
+                                            nameformat=nameformat,
+                                            filterLib=filterLib,
+                                            **add_spectral_properties_kwargs)
     
                 gk.writeHDF(spec_fname, append=True)
 

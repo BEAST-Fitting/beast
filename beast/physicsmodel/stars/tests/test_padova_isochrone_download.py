@@ -2,6 +2,7 @@ import os.path
 import filecmp
 
 import numpy as np
+import pytest
 
 from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
@@ -10,12 +11,12 @@ from astropy.table import Table
 from beast.physicsmodel.stars import isochrone
 
 @remote_data
+#@pytest.mark.skip(reason="temporarily disable")
 def test_padova_isochrone_download():
     # download the cached version
     filename = download_file('http://www.stsci.edu/~kgordon/beast/beast_example_phat_iso_new.csv', cache=True)
     table_cache = Table.read(filename, format='ascii.csv', comment='#',
                              delimiter=',')
-    #table_cache = Table.read(filename)
     
     # initialize isochrone
     oiso = isochrone.PadovaWeb()
