@@ -18,29 +18,37 @@ def test_make_kurucz_tlusty_spectral_grid():
 
     # download the needed files
     url_loc = 'http://www.stsci.edu/~kgordon/beast/'
-    kurucz_fname = download_file('%s%s'%(url_loc,'kurucz2004.grid.fits'),
-                                 cache=True)
-    tlusty_fname = download_file('%s%s'%(url_loc,'tlusty.lowres.grid.fits'),
-                                 cache=True)
-    filter_fname = download_file('%s%s'%(url_loc,'filters.hd5'),
-                                 cache=True)
-    #kurucz_fname = '/tmp/kurucz2004.grid.fits'
-    #tlusty_fname = '/tmp/tlusty.lowres.grid.fits'
-    #filter_fname = '/tmp/filters.hd5'
+    kurucz_fname_dld = download_file('%s%s'%(url_loc,'kurucz2004.grid.fits'))
+    tlusty_fname_dld = download_file('%s%s'%(url_loc,'tlusty.lowres.grid.fits'))
+    filter_fname_dld = download_file('%s%s'%(url_loc,'filters.hd5'))
+    iso_fname_dld = download_file('%s%s'%(url_loc,
+                                          'beast_example_phat_iso_new.csv'))
+    #kurucz_fname_dld = '/tmp/kurucz2004.grid.fits.tmp'
+    #tlusty_fname_dld = '/tmp/tlusty.lowres.grid.fits.tmp'
+    #filter_fname_dld = '/tmp/filters.hd5.tmp'
+
+    # rename files to have the correct extensions
+    kurucz_fname = '%s.fits'%(kurucz_fname_dld)
+    os.rename(kurucz_fname_dld, kurucz_fname)
+    tlusty_fname = '%s.fits'%(tlusty_fname_dld)
+    os.rename(tlusty_fname_dld, tlusty_fname)
+    filter_fname = '%s.hd5'%(filter_fname_dld)
+    os.rename(filter_fname_dld, filter_fname)
+    iso_fname = '%s.csv'%(iso_fname_dld)
+    os.rename(iso_fname_dld, iso_fname)
     
     # download cached version of spectral grid
     filename = download_file('%s%s'%(url_loc,
-                                     'beast_example_phat_spec_grid.hd5'),
-                             cache=True)
-    #filename = '/tmp/beast_example_phat_spec_grid_cache.hd5'
+                                     'beast_example_phat_spec_grid.hd5'))
+    #filename = '/tmp/beast_example_phat_spec_grid_cache.hd5.tmp'
     
     hdf_cache = h5py.File(filename, 'r')
-
+    
     ################
     # generate a the same spectral grid from the code
     
     # read in the cached isochrones
-    oiso = ezIsoch('/tmp/padova_iso.csv')
+    oiso = ezIsoch(iso_fname)
 
     # define the distance
     distanceModulus = 24.47 * units.mag
@@ -48,8 +56,8 @@ def test_make_kurucz_tlusty_spectral_grid():
     distance = 10 ** ( (dmod / 5.) + 1 ) * units.pc
 
     # define the spectral libraries to use
-    osl = stellib.Tlusty(filename='/tmp/tlusty.lowres.grid.fits') \
-        + stellib.Kurucz(filename='/tmp/kurucz2004.grid.fits')
+    osl = stellib.Tlusty(filename=tlusty_fname) \
+        + stellib.Kurucz(filename=kurucz_fname)
     
     # Add in he 
     filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W',

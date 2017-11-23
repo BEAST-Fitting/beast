@@ -871,7 +871,7 @@ class CompositeStellib(Stellib):
             have the same temperature
 
         bounds: dict
-        sensitivity to extrapolation (see `:func: Stellib.get_boundaries`)
+            sensitivity to extrapolation (see `:func: Stellib.get_boundaries`)
             default: {dlogT:0.1, dlogg:0.3}
 
         returns
@@ -879,7 +879,7 @@ class CompositeStellib(Stellib):
         (osl, r): tuple
             osl: is the library index starting from 1. 0 means no coverage.
             r: is the result from interp call on the corresponding library. 
-               a 3 to 12 star indexes and associated weights
+            a 3 to 12 star indexes and associated weights
         """
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
@@ -932,7 +932,7 @@ class CompositeStellib(Stellib):
             luminosity weigths to apply after interpolation
 
         bounds: dict
-        sensitivity to extrapolation (see `:func: Stellib.get_boundaries`)
+            sensitivity to extrapolation (see `:func: Stellib.get_boundaries`)
             default: {dlogT:0.1, dlogg:0.3}
 
         pool: Pool-like object
@@ -944,9 +944,9 @@ class CompositeStellib(Stellib):
         returns
         -------
         (osl, r): tuple
-            osl: is the library index starting from 1. 0 means no coverage.
-            r: is the result from interp call on the corresponding library. 
-               A 3 to 12 star indexes and associated weights
+            osl is the library index starting from 1. 0 means no coverage.
+            r is the result from interp call on the corresponding library. 
+            a 3 to 12 star indexes and associated weights
         """
         dlogT = bounds.get('dlogT', 0.1)
         dlogg = bounds.get('dlogg', 0.3)
@@ -1346,7 +1346,7 @@ class Kurucz(Stellib):
             self.source = filename
         self._load_()
 
-    def _load_(self):
+    def _load_(self,):
         g = SpectralGrid(self.source, backend='memory')
         self.wavelength = g.lamb
         self.grid = g.grid

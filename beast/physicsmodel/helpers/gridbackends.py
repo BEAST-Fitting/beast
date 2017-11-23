@@ -114,7 +114,16 @@ class GridBackend(object):
                  'hd5': 'hdf',
                  'hdf5': 'hdf5'
                  }
-        return types[fname.split('.')[-1]]
+        #if fname.split('.')[-1] not in types:
+        #    print(fname)
+        #    try:
+        #        hdulist = pyfits.open(fname)
+        #        rtype = 'fits'
+        #    except:
+        #        print('An error occured trying to read the file.')            
+        #else:
+        rtype = types[fname.split('.')[-1]]
+        return rtype
 
     def __repr__(self):
         """__repr__"""

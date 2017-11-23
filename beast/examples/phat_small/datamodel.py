@@ -146,9 +146,9 @@ z = [0.03, 0.019, 0.008, 0.004]
 #   MISTWeb() -- `rotation` param (choices: vvcrit0.0=default, vvcrit0.4)
 #
 # Default: PARSEC+CALIBRI
-#oiso = isochrone.PadovaWeb()
+oiso = isochrone.PadovaWeb()
 # Alternative: PARSEC1.2S -- old grid parameters
-oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)
+#oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)
 # Alternative: MIST -- v1, no rotation
 #oiso = isochrone.MISTWeb()
 

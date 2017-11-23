@@ -109,6 +109,8 @@ class ModelGrid(object):
         if backend is None:
             self._backend = GridBackend(*args, **kwargs)
         elif type(backend) in basestring:
+            #print('test')
+            #exit()
             self._backend = find_backend(backend)(*args, **kwargs)
         elif isNestedInstance(backend, GridBackend):
             self._backend = backend
