@@ -84,7 +84,8 @@ def test_make_kurucz_tlusty_spectral_grid():
                                         'testing %s'%(sname))
             else:
                 for ckey in cvalue.dtype.fields.keys():
-                    np.testing.assert_equal(cvalue.value, cvalue_new.value,
+                    np.testing.assert_equal(cvalue.value[ckey],
+                                            cvalue_new.value[ckey],
                                             'testing %s/%s'%(sname, ckey))
                     
         
