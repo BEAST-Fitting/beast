@@ -47,9 +47,8 @@ These parameters include:
   * filters
       - Full filter names in the BEAST filter database (list of strings).
       
-      .. code:: python
-          filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W',
-           'HST_ACS_WFC_F814W', 'HST_WFC3_F110W','HST_WFC3_F160W']
+.. code:: python
+   filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W', 'HST_ACS_WFC_F814W', 'HST_WFC3_F110W','HST_WFC3_F160W']
       
   * basefilters
       - Short versions of filters names (list of strings)
@@ -58,9 +57,7 @@ These parameters include:
           basefilters = ['F275W','F336W','F475W', 'F814W','F110W','F160W']
                
   * obs_colnames 
-      - Names of columns for filters in the observed catalog. These names 
-      need to match column names in the observed catalog, the input data MUST 
-      be in fluxes, NOT in magnitudes and the fluxes MUST be in normalized Vega units.
+      - Names of columns for filters in the observed catalog. These names need to match column names in the observed catalog, the input data MUST be in fluxes, NOT in magnitudes and the fluxes MUST be in normalized Vega units.
            
       .. code:: python
           obs_colnames = [ f.lower() + '_rate' for f in basefilters ]
