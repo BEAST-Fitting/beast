@@ -71,7 +71,7 @@ the astropy `contributing`_ and `developer`_ documentation.
 
 Feedback and feature requests?   Is there something missing you would like
 to see?  Please open an issue or send an email to  `@karllark`.
-dust_extinction follows the `Astropy Code of Conduct`_ and strives to provide a
+BEAST follows the `Astropy Code of Conduct`_ and strives to provide a
 welcoming community to all of our users and contributors.
 
 
