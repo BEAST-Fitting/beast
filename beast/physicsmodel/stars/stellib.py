@@ -24,11 +24,11 @@ from ...tools.pbar import Pbar
 from ...tools.helpers import nbytes
 
 #lsun = 3.839e+26   # in W (Watts)
-lsun = constants.L_sun
+lsun = constants.L_sun.to(units.m).value
 #sig_stefan = 5.67037321 * 1e-8  # W * m**-2 * K**-4
-sig_stefan = constants.sigma_sb
+sig_stefan = constants.sigma_sb.value
 #rsun = 6.955e8  # in meters
-rsun = constants.R_sun
+rsun = constants.R_sun.value
 
 config = {
     'basel_2.2_pegase': __ROOT__ + '/libs/BaSeL_v2.2.pegase.grid.fits',
