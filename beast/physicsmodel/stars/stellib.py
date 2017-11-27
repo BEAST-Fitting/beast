@@ -25,7 +25,8 @@ from ...tools.helpers import nbytes
 
 #lsun = 3.839e+26   # in W (Watts)
 lsun = constants.L_sun
-sig_stefan = 5.67037321 * 1e-8  # W * m**-2 * K**-4
+#sig_stefan = 5.67037321 * 1e-8  # W * m**-2 * K**-4
+sig_stefan = constants.sigma_sb
 #rsun = 6.955e8  # in meters
 rsun = constants.R_sun
 
