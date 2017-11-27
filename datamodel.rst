@@ -5,9 +5,9 @@
 Specifying Parameters in datamodel.py
 #####################################
 
+Before running the BEAST, you will need to modify datamodel.py to specify the required parameters for generating models and fitting data. These parameters (and example values) are described below.
 
-
-* project : string
+  * project : string
       The name of the output results directory.
       ::
   
