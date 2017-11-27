@@ -3,9 +3,9 @@ Grid Weights
 ============
 The use of a non-uniformly spaced grid complicates the marginalization 
 step as the trick of summation instead of integration is used.  But this 
-trick only works when the grid is uniformaly spaced in all dimensions.
+trick only works when the grid is uniformly spaced in all dimensions.
 
-If the grid is not uniformally spaced, weights can be used to correct
+If the grid is not uniformly spaced, weights can be used to correct
 for the non-uniform spacing.  
 
 Basically, we want the maginalization using these grid weights to provide
