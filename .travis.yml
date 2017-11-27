@@ -66,6 +66,10 @@ matrix:
     fast_finish: true
 
     include:
+        # Try MacOS X
+        - os: 
+          env: SETUP_CMD='test'
+
         # Try MacOS X including the remote data tests
         - os: osx
           env: SETUP_CMD='test --remote-data'
@@ -112,6 +116,10 @@ matrix:
           env: MAIN_CMD='pycodestyle beast --count' SETUP_CMD=''
 
     allow_failures:
+        # Try MacOS X including the remote data tests
+        - os: osx
+          env: SETUP_CMD='test --remote-data'
+
         - os: linux
           env: ASTROPY_VERSION=development
                EVENT_TYPE='pull_request push cron'

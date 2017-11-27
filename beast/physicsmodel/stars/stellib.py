@@ -396,7 +396,9 @@ class Stellib(object):
         radii: ndarray[float, ndim=1]
             array of radii in m (SI units)
         """
-        return np.sqrt( (10 ** logl) * lsun / (4.0 * np.pi * sig_stefan * ((10 ** logt) ** 4)) )
+        return np.sqrt( np.power(10.,logl) * lsun
+                        / (4.0 * np.pi * sig_stefan
+                           * np.power(np.power(10.,logt), 4.) ) )
 
     def get_boundaries(self, dlogT=0.1, dlogg=0.3, **kwargs):
         """ Returns the closed boundary polygon around the stellar library with
