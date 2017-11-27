@@ -40,9 +40,9 @@ One easy way to obtain the above is through the AstroConda Python stack:
 
 - Make sure that the ``PyTables`` and ``hdf5`` packages are installed:
 
-``$ sudo conda install -n astroconda (or iraf27) pytables``
+``$ conda install -n astroconda (or iraf27) pytables``
 
-``$ sudo conda install -n astroconda (or iraf27) hdf5``
+``$ conda install -n astroconda (or iraf27) hdf5``
 
 
 Installing the BEAST
