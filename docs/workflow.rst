@@ -23,8 +23,8 @@ template is the 'metal_production' subdirectory in beast/examples.
 In this location, at a minimum you will need the following files:
 
   * datamodel.py
-  * run_beast_production.py: a "production" version of run_beast.py
-        provides commandline options for sub region files
+  * run_beast_production.py : a "production" version of run_beast.py
+        - Provides commandline options for sub region files
   * symbolic link to the beast directory in the beast repository
 
   .. code:: shell
@@ -36,37 +36,8 @@ Datamodel.py
 
 Before running the BEAST, you will need to modify this file to specify 
 the required parameters for generating models and fitting data.
-These parameters include:
+These parameters are described in detail in :ref:`datamodel`_. 
 
-  * project
-      - The name of the output results directory (string)
-      
-      .. code:: python
-          project = 'beast_example_phat'
-          
-  * filters
-      - Full filter names in the BEAST filter database (list of strings).
-      
-.. code:: python
-   filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W', 'HST_ACS_WFC_F814W', 'HST_WFC3_F110W','HST_WFC3_F160W']
-      
-  * basefilters
-      - Short versions of filters names (list of strings)
-      
-      .. code:: python
-          basefilters = ['F275W','F336W','F475W', 'F814W','F110W','F160W']
-               
-  * obs_colnames 
-      - Names of columns for filters in the observed catalog. These names need to match column names in the observed catalog, the input data MUST be in fluxes, NOT in magnitudes and the fluxes MUST be in normalized Vega units.
-           
-      .. code:: python
-          obs_colnames = [ f.lower() + '_rate' for f in basefilters ]
-          
-  * obsfile
-      - Pathname to the observed catalog
-      
-      .. code:: python
-          obs_colnames = [ f.lower() + '_rate' for f in basefilters ]
 
 ****
 Data
@@ -269,3 +240,8 @@ Reorganize the results into spatial region files
 TBD (files need to move from megabeast to beast repository)
  
 needed for megabeast as well as most other BEAST work
+
+.. _BTSettl:  https://phoenix.ens-lyon.fr/Grids/BT-Settl/
+.. _TLusty:  http://nova.astro.umd.edu/Tlusty2002/database/
+.. _Munari:  http://archives.pd.astro.it/2500-10500/
+.. _BaSel:  http://www.astro.unibas.ch/BaSeL_files/BaSeL2_2.tar.gz
