@@ -80,3 +80,9 @@ License
 
 The BEAST is licensed under a 3-clause BSD style license (see the
 ``licenses/LICENSE.rst`` file).
+
+
+.. _AstroPy: http://www.astropy.org/
+.. _contributing: http://docs.astropy.org/en/stable/index.html#contributing
+.. _developer: http://docs.astropy.org/en/stable/index.html#developer-documentation
+.. _Astropy Code of Conduct:  http://www.astropy.org/about.html#codeofconduct
