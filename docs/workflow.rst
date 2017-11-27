@@ -3,7 +3,7 @@
 Standard Workflow
 #################
 
-Workflow is setup to run the fitting on many sources efficiently by
+The workflow is setup to run the fitting on many sources efficiently by
 splitting the full catalog into a number of smaller files.  This allows
 distributing the fitting across cores.  There are manual steps to allow
 for the refitting, fixing issues, etc without rerunning everything.  This
@@ -17,16 +17,14 @@ Setup
 Working location
 ================
 
-Setup a working location, usually a subdirectory
-
-Can use the 'metal_production' example in the beast/examples directory as a 
-template.   
+Setup a working location, usually a subdirectory. For reference, a 
+template is the 'metal_production' subdirectory in beast/examples.
 
 In this location, at a minimum you will need the following files:
 
   * datamodel.py
-  * run_beast_production.py: "production" version of run_beast.py
-        provides commandline options for sub region files
+  * run_beast_production.py : a "production" version of run_beast.py
+        - Provides commandline options for sub region files
   * symbolic link to the beast directory in the beast repository
 
   .. code:: shell
@@ -36,10 +34,10 @@ In this location, at a minimum you will need the following files:
 Datamodel.py
 ============
 
-  * set the name for the project
-  * set the survey name
-  * update the 3 lists of filters
-  * set the physics model grid parameters
+Before running the BEAST, you will need to modify this file to specify 
+the required parameters for generating models and fitting data.
+These parameters are described in detail in the :ref:`datamodel <Datamodel>` page. 
+
 
 ****
 Data
@@ -239,6 +237,7 @@ where the filebase where it is the first portion of the output stats filenames
 Reorganize the results into spatial region files
 ================================================
   
+<<<<<<< HEAD
 The output files from the BEAST with this workflow are organized by source
 density and brightness.  This is not ideal for finding sources of interest 
 or performing ensemble processing.  A more useful organization is by spatial
@@ -266,3 +265,13 @@ results for the stars in that region.
 
      $ beast/tools/condense_beast_results_spatial.py 
         --filedir spatial
+=======
+TBD (files need to move from megabeast to beast repository)
+ 
+needed for megabeast as well as most other BEAST work
+
+.. _BTSettl:  https://phoenix.ens-lyon.fr/Grids/BT-Settl/
+.. _TLusty:  http://nova.astro.umd.edu/Tlusty2002/database/
+.. _Munari:  http://archives.pd.astro.it/2500-10500/
+.. _BaSel:  http://www.astro.unibas.ch/BaSeL_files/BaSeL2_2.tar.gz
+>>>>>>> origin/master
