@@ -36,7 +36,7 @@ Datamodel.py
 
 Before running the BEAST, you will need to modify this file to specify 
 the required parameters for generating models and fitting data.
-These parameters are described in detail in :ref:`datamodel`. 
+These parameters are described in detail in the :ref:`datamodel <Datamodel>` page. 
 
 
 ****
