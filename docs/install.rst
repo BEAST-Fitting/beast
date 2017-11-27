@@ -114,7 +114,7 @@ AstroConda environment:
 
 ``$ source activate astroconda``
 
-Verify that the current default Python is version 2.7:
+Verify that the current default Python is version 3:
 
 ``$ python --version``
 
@@ -131,9 +131,15 @@ Optionally, you can run BEAST with one, or a combination, of these arguments
   -f, --fit               Fit the observed data
   -r, --resume            Resume a run
 
-``$ ./run_beast.py -h`` or ``$ ./run_beast.py -potf``
+For example: ``$ ./run_beast.py -h`` or ``$ ./run_beast.py -potf``
 
-If the BEAST is running correctly there should be no errors and the 
-output should be a plot which looks like this:
+If the BEAST is running correctly the second command should run without errors
+and should have written the output files into 'beast_example_phat/'. The result
+can be plotted using
+
+``$ python beast/plotting/plot_indiv_fit.py beast_example_phat/beast_example_phat``
+
+The argument for this script is the prefix of the output files. The output
+should look like this:
 
 .. image:: beast_example_phat_ifit_starnum_0.png
