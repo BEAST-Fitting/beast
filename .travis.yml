@@ -6,6 +6,11 @@ language: c
 os:
     - linux
 
+# safelist
+branches:
+  only:
+  - docs
+
 # Setting sudo to false opts in to Travis-CI container-based builds.
 sudo: false
 
