@@ -237,7 +237,6 @@ where the filebase where it is the first portion of the output stats filenames
 Reorganize the results into spatial region files
 ================================================
   
-<<<<<<< HEAD
 The output files from the BEAST with this workflow are organized by source
 density and brightness.  This is not ideal for finding sources of interest 
 or performing ensemble processing.  A more useful organization is by spatial
@@ -269,12 +268,4 @@ results for the stars in that region.
 TBD (files need to move from megabeast to beast repository)
  
 needed for megabeast as well as most other BEAST work
-<<<<<<< HEAD
 
-.. _BTSettl:  https://phoenix.ens-lyon.fr/Grids/BT-Settl/
-.. _TLusty:  http://nova.astro.umd.edu/Tlusty2002/database/
-.. _Munari:  http://archives.pd.astro.it/2500-10500/
-.. _BaSel:  http://www.astro.unibas.ch/BaSeL_files/BaSeL2_2.tar.gz
->>>>>>> origin/master
-=======
->>>>>>> 995fdef29bc334c6746cacab9b1f5e18cc3ed703
