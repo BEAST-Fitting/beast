@@ -264,9 +264,3 @@ results for the stars in that region.
 
      $ beast/tools/condense_beast_results_spatial.py 
         --filedir spatial
-
-
-TBD (files need to move from megabeast to beast repository)
- 
-needed for megabeast as well as most other BEAST work
-
