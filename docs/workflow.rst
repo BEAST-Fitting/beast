@@ -23,7 +23,7 @@ template is the 'metal_production' subdirectory in beast/examples.
 In this location, at a minimum you will need the following files:
 
   * datamodel.py
-  * run_beast_production.py : a "production" version of run_beast.py
+  * run_beast_production.py: a "production" version of run_beast.py
         - Provides commandline options for sub region files
   * symbolic link to the beast directory in the beast repository
 
