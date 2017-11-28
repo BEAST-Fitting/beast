@@ -36,7 +36,7 @@ Datamodel.py
 
 Before running the BEAST, you will need to modify this file to specify 
 the required parameters for generating models and fitting data.
-These parameters are described in detail in the :ref:`datamodel <Datamodel>` page. 
+These parameters are described in detail in the :ref:`beast_setup <Beast Setup>` page. 
 
 
 ****
@@ -237,6 +237,44 @@ where the filebase where it is the first portion of the output stats filenames
 Reorganize the results into spatial region files
 ================================================
   
+<<<<<<< HEAD
+The output files from the BEAST with this workflow are organized by source
+density and brightness.  This is not ideal for finding sources of interest 
+or performing ensemble processing.  A more useful organization is by spatial
+region.  The large amount of BEAST output information makes it best to have
+individual files for each spatial region.  Code to do this spatial reordering 
+is provided in two parts.  The 1st spatially reorders the results for each
+source density/brightness BEAST run into files for each spatial region.  The
+2nd condenses the multiple individual files for each spatial region into the
+minimal set (stats, pdf1d, and lnp).
+
+Divide each source density/brightness file into files of spatial regions 
+with 10"x10" pixels.
+
+  .. code:: shell
+
+     $ beast/tools/reorder_beast_results_spatial.py 
+        --stats_filename filebase_stats.fits
+        --region_filebase filebase_
+        --output_filebase spatial/filebase
+        --reg_size 10.0
+
+Condense the multiple files for each spatial region into the minimal set.
+Each spatial region will have files containing the stats, pdf1d, and lnp
+results for the stars in that region.
+
+     $ beast/tools/condense_beast_results_spatial.py 
+        --filedir spatial
+=======
 TBD (files need to move from megabeast to beast repository)
  
 needed for megabeast as well as most other BEAST work
+<<<<<<< HEAD
+
+.. _BTSettl:  https://phoenix.ens-lyon.fr/Grids/BT-Settl/
+.. _TLusty:  http://nova.astro.umd.edu/Tlusty2002/database/
+.. _Munari:  http://archives.pd.astro.it/2500-10500/
+.. _BaSel:  http://www.astro.unibas.ch/BaSeL_files/BaSeL2_2.tar.gz
+>>>>>>> origin/master
+=======
+>>>>>>> 995fdef29bc334c6746cacab9b1f5e18cc3ed703
