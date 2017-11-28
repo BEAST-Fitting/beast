@@ -8,29 +8,25 @@ from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 from astropy.table import Table
 
-from beast.physicsmodel.stars import isochrone
+from beast.physicsmodel.model_grid import make_iso_table
 
 @remote_data
 #@pytest.mark.skip(reason="temporarily disable")
 def test_padova_isochrone_download():
     # download the cached version
-    filename = download_file('http://www.stsci.edu/~kgordon/beast/beast_example_phat_iso_new.csv', cache=True)
+    url_loc = 'http://www.stsci.edu/~kgordon/beast/'
+    filename = download_file('%s%s'%(url_loc,
+                                     'beast_example_phat_iso_new.csv'))
     table_cache = Table.read(filename, format='ascii.csv', comment='#',
                              delimiter=',')
-    
-    # initialize isochrone
-    oiso = isochrone.PadovaWeb()
 
-    # download from the padova website
-    t = oiso._get_t_isochrones(6.0, 10.13, 1.0, [0.03, 0.019, 0.008, 0.004])
-    t.header['NAME'] = 'Test of Cached Isochrones'
-
-    # save
     savename = '/tmp/padova_iso.csv'
-    t.write(savename)
+    iso_fname, oiso = make_iso_table('test', iso_fname=savename,
+                                     logtmin=6.0, logtmax=10.13, dlogt=1.0,
+                                     z=[0.03, 0.019, 0.008, 0.004])
 
     # get the new table
-    table_new = Table.read(savename, format='ascii.csv', comment='#',
+    table_new = Table.read(iso_fname, format='ascii.csv', comment='#',
                              delimiter=',')
     
     # compare

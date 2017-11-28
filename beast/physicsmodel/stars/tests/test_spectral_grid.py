@@ -91,6 +91,7 @@ def test_make_kurucz_tlusty_spectral_grid():
                                             'testing %s/%s'%(sname, ckey))
 
 
+@remote_data
 def test_add_stellar_priors_to_spectral_grid():
 
     # download the needed files

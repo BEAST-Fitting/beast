@@ -15,7 +15,7 @@ __all__ = ['make_iso_table', 'make_spectral_grid', 'add_stellar_priors',
            'make_extinguished_sed_grid']
 
 def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
-                   z=[0.0152]):
+                   z=[0.0152], iso_fname=None):
     """
     The isochrone tables are loaded (downloading if necessary)
 
@@ -48,7 +48,8 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
     oiso: isochrone.Isochrone object
         contains the full isochrones information
     """
-    iso_fname = '%s/%s_iso.csv' % (project, project)
+    if iso_fname is None:
+        iso_fname = '%s/%s_iso.csv' % (project, project)
     if not os.path.isfile(iso_fname):
         if oiso is None: 
             oiso = isochrone.PadovaWeb()
