@@ -1103,7 +1103,6 @@ class Elodie(Stellib):
     def __init__(self, *args, **kwargs):
         self.name = 'ELODIE v3.1'
         self.source = config['elodie_3.1']
-        self.name = 'Kurucz 2004'
         self._load_()
 
     def _load_(self):
