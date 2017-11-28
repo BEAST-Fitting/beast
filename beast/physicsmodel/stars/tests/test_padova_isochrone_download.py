@@ -8,7 +8,7 @@ from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 from astropy.table import Table
 
-from beast.physicsmodel.model_grid import make_iso_table
+from ...model_grid import make_iso_table
 
 @remote_data
 #@pytest.mark.skip(reason="temporarily disable")

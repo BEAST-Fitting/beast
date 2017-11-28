@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 import pytest
 
-from beast.physicsmodel.dust import extinction
+from .. import extinction
 
 def test_extinction_Cardelli89_initialize():
     tlaw = extinction.Cardelli89()

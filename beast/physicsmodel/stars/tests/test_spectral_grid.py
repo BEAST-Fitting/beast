@@ -8,12 +8,12 @@ from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 from astropy import units
 
-from beast.physicsmodel.stars import isochrone
-from beast.physicsmodel.stars import stellib
-from beast.physicsmodel.stars.isochrone import ezIsoch
-from beast.physicsmodel import grid
-from beast.physicsmodel.model_grid import (make_spectral_grid,
-                                           add_stellar_priors)
+from ...stars import isochrone
+from ...stars import stellib
+from ...stars.isochrone import ezIsoch
+from ... import grid
+from ...model_grid import (make_spectral_grid,
+                           add_stellar_priors)
 
 @remote_data
 def test_make_kurucz_tlusty_spectral_grid():
