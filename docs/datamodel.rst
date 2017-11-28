@@ -181,3 +181,9 @@ These parameters (and example values) include:
       
           fAs = [0.0,1.0, 0.25]
           fA_prior_model = {'name': 'flat'}
+          
+          
+.. _BTSettl:  https://phoenix.ens-lyon.fr/Grids/BT-Settl/
+.. _TLusty:  http://nova.astro.umd.edu/Tlusty2002/database/
+.. _Munari:  http://archives.pd.astro.it/2500-10500/
+.. _BaSel:  http://www.astro.unibas.ch/BaSeL_files/BaSeL2_2.tar.gz

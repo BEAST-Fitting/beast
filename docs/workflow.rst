@@ -269,9 +269,12 @@ results for the stars in that region.
 TBD (files need to move from megabeast to beast repository)
  
 needed for megabeast as well as most other BEAST work
+<<<<<<< HEAD
 
 .. _BTSettl:  https://phoenix.ens-lyon.fr/Grids/BT-Settl/
 .. _TLusty:  http://nova.astro.umd.edu/Tlusty2002/database/
 .. _Munari:  http://archives.pd.astro.it/2500-10500/
 .. _BaSel:  http://www.astro.unibas.ch/BaSeL_files/BaSeL2_2.tar.gz
 >>>>>>> origin/master
+=======
+>>>>>>> 995fdef29bc334c6746cacab9b1f5e18cc3ed703
