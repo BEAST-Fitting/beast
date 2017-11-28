@@ -1,5 +1,5 @@
 
-..  _beast_setup:
+..  _beast-setup:
 
 Setting Up the BEAST
 ====================
