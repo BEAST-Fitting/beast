@@ -65,7 +65,7 @@ matrix:
 
     include:
         # Try MacOS X
-        - os: 
+        - os: osx
           env: SETUP_CMD='test'
 
         # Try MacOS X including the remote data tests
