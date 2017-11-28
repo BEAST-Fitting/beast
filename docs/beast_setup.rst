@@ -1,9 +1,17 @@
 
 ..  _beast_setup:
 
-#####################################
-Specifying Parameters in datamodel.py
-#####################################
+Setting Up the BEAST
+====================
+
+1) Define project and grid input parameters in datamodel.py
+
+2) Execute BEAST Run using ``python run_beast.py`` with appropriate task flags
+
+   * Default Full Stack Run: ``python run_beast.py -p -o -t -f``
+
+BEAST Data Model
+================
 
 Before running the BEAST, you will need to modify datamodel.py to specify the required parameters for generating models and fitting data. These parameters (and example values) are described below.
 
