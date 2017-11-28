@@ -333,6 +333,7 @@ if __name__ == '__main__':
 
     # base filename
     filebase = args.filebase
+
     # read in the stats
     stats = Table.read(filebase + '_stats.fits')
 
