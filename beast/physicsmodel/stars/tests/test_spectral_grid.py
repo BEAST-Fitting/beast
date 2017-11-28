@@ -11,7 +11,9 @@ from astropy import units
 from beast.physicsmodel.stars import isochrone
 from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.stars.isochrone import ezIsoch
-from beast.physicsmodel.model_grid import make_spectral_grid
+from beast.physicsmodel import grid
+from beast.physicsmodel.model_grid import (make_spectral_grid,
+                                           add_stellar_priors)
 
 @remote_data
 def test_make_kurucz_tlusty_spectral_grid():
@@ -45,7 +47,7 @@ def test_make_kurucz_tlusty_spectral_grid():
     hdf_cache = h5py.File(filename, 'r')
     
     ################
-    # generate a the same spectral grid from the code
+    # generate the same spectral grid from the code
     
     # read in the cached isochrones
     oiso = ezIsoch(iso_fname)
@@ -87,9 +89,51 @@ def test_make_kurucz_tlusty_spectral_grid():
                     np.testing.assert_equal(cvalue.value[ckey],
                                             cvalue_new.value[ckey],
                                             'testing %s/%s'%(sname, ckey))
-                    
-        
+
+
+def test_add_stellar_priors_to_spectral_grid():
+
+    # download the needed files
+    url_loc = 'http://www.stsci.edu/~kgordon/beast/'
+    gspec_fname_dld = download_file('%s%s'%(url_loc,
+                                            'beast_example_phat_spec_grid.hd5'))
+    # rename files to have the correct extensions
+    gspec_fname = '%s.hd5'%(gspec_fname_dld)
+    os.rename(gspec_fname_dld, gspec_fname)
+
+    filename = download_file('%s%s'%(url_loc,
+                                'beast_example_phat_spec_w_priors.grid.hd5'))
+    #filename = '/tmp/beast_example_phat_spec_w_priors.grid_cache.hd5'
+    hdf_cache = h5py.File(filename, 'r')
+    
+    ###############
+    # generate the spectral grid with stellar priors from the code
+
+    gspec_fname = '/tmp/beast_example_phat_spec_grid.hd5'
+    specgrid = grid.FileSpectralGrid(gspec_fname, backend='memory')
+    
+    priors_fname = '/tmp/beast_example_phat_spec_w_priors.grid.hd5'
+    priors_fname, g = add_stellar_priors('test', specgrid,
+                                         priors_fname=priors_fname)
+
+    # open the hdf file with the specral grid with priors
+    hdf_new = h5py.File(priors_fname, 'r')
+
+    # go through the file and check if it is exactly the same
+    for sname in hdf_cache.keys():
+        if isinstance(hdf_cache[sname], h5py.Dataset):
+            cvalue = hdf_cache[sname]
+            cvalue_new = hdf_new[sname]
+            if cvalue.dtype.isbuiltin:
+                np.testing.assert_equal(cvalue.value, cvalue_new.value,
+                                        'testing %s'%(sname))
+            else:
+                for ckey in cvalue.dtype.fields.keys():
+                    np.testing.assert_equal(cvalue.value[ckey],
+                                            cvalue_new.value[ckey],
+                                            'testing %s/%s'%(sname, ckey))
+    
 if __name__ == '__main__':
 
-    test_make_kurucz_tlusty_spectral_grid()
+    test_add_stellar_priors_to_spectral_grid()
                        

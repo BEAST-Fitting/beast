@@ -168,7 +168,9 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
         
     return (spec_fname, g)
 
-def add_stellar_priors(project, specgrid, verbose=True, **kwargs):
+def add_stellar_priors(project, specgrid, verbose=True,
+                       priors_fname=None,
+                       **kwargs):
     """
     make_priors -- compute the weights for the stellar priors
 
@@ -188,7 +190,8 @@ def add_stellar_priors(project, specgrid, verbose=True, **kwargs):
     g: grid.SpectralGrid object
         spectral grid to transform
     """
-    priors_fname = '%s/%s_spec_w_priors.grid.hd5' % (project, project)
+    if priors_fname is None:
+        priors_fname = '%s/%s_spec_w_priors.grid.hd5' % (project, project)
     if not os.path.isfile(priors_fname):
 
         if verbose:
