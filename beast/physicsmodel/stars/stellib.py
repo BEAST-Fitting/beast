@@ -12,7 +12,7 @@ from __future__ import (absolute_import, division, print_function)
 import numpy as np
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
-from astropy import constants
+from astropy import constants, units
 
 from ..grid import SpectralGrid
 from ..helpers import Path
