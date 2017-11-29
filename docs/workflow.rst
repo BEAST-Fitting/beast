@@ -3,7 +3,7 @@
 Standard Workflow
 #################
 
-Workflow is setup to run the fitting on many sources efficiently by
+The workflow is setup to run the fitting on many sources efficiently by
 splitting the full catalog into a number of smaller files.  This allows
 distributing the fitting across cores.  There are manual steps to allow
 for the refitting, fixing issues, etc without rerunning everything.  This
@@ -17,16 +17,14 @@ Setup
 Working location
 ================
 
-Setup a working location, usually a subdirectory
-
-Can use the 'metal_production' example in the beast/examples directory as a 
-template.   
+Setup a working location, usually a subdirectory. For reference, a 
+template is the 'metal_production' subdirectory in beast/examples.
 
 In this location, at a minimum you will need the following files:
 
   * datamodel.py
-  * run_beast_production.py: "production" version of run_beast.py
-        provides commandline options for sub region files
+  * run_beast_production.py: a "production" version of run_beast.py
+        - Provides commandline options for sub region files
   * symbolic link to the beast directory in the beast repository
 
   .. code:: shell
@@ -36,10 +34,10 @@ In this location, at a minimum you will need the following files:
 Datamodel.py
 ============
 
-  * set the name for the project
-  * set the survey name
-  * update the 3 lists of filters
-  * set the physics model grid parameters
+Before running the BEAST, you will need to modify this file to specify 
+the required parameters for generating models and fitting data.
+These parameters are described in :ref:`beast-setup`
+
 
 ****
 Data
