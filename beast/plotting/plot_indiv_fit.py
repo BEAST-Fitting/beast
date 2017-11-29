@@ -332,8 +332,7 @@ if __name__ == '__main__':
     starnum = args.starnum
 
     # base filename
-    #filebase = args.filebase
-    filebase = '/Users/clairemurray/beast/beast/examples/phat_small/beast_example_phat/beast_example_phat'
+    filebase = args.filebase
 
     # read in the stats
     stats = Table.read(filebase + '_stats.fits')
