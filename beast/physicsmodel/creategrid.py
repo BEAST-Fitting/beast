@@ -21,7 +21,7 @@ __version__ = '2.0dev'
 import numpy as np
 import copy
 
-from astropy import constants
+from astropy import constants, units
 
 from .stars import stellib
 from .stars import isochrone
