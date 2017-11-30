@@ -30,6 +30,7 @@ env:
         - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
+        - PYTEST_VERSION=3.2
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
         - PIP_DEPENDENCIES=''
