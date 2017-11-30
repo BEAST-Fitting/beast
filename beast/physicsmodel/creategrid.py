@@ -306,7 +306,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
                            fA_prior_model={'name': 'flat'},
                            chunksize=0,
                            add_spectral_properties_kwargs=None,
-                           absflux_cov=False):
+                           absflux_cov=False,
+                           filterLib=None):
     """
     Extinguish spectra and extract an SEDGrid through given series of filters
     (all wavelengths in stellar SEDs and filter response functions are assumed
@@ -326,6 +327,9 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
 
     filter_names: list
         list of filter names according to the filter lib
+
+    filterLib:  str
+        full filename to the filter library hd5 file
 
     Avs: sequence
         Av values to iterate over
@@ -474,8 +478,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
                 # add extra "spectral bands" if requested
                 if add_spectral_properties_kwargs is not None:
                     r = add_spectral_properties(r, nameformat=nameformat,
+                                                filterLib=filterLib,
                                             **add_spectral_properties_kwargs)
-                temp_results = r.getSEDs(filter_names)
+                temp_results = r.getSEDs(filter_names,
+                                         filterLib=filterLib)
                 # adding the dust parameters to the models
                 cols['Av'][N0 * count: N0 * (count + 1)] = Av
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
@@ -489,8 +495,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
                 
                 if add_spectral_properties_kwargs is not None:
                     r = add_spectral_properties(r, nameformat=nameformat,
+                                                filterLib=filterLib,
                                             **add_spectral_properties_kwargs)
-                temp_results = r.getSEDs(filter_names)
+                temp_results = r.getSEDs(filter_names,
+                                         filterLib=filterLib)
                 # adding the dust parameters to the models
                 cols['Av'][N0 * count: N0 * (count + 1)] = Av
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv

@@ -1,5 +1,6 @@
 import os.path
 import filecmp
+import pytest
 
 import numpy as np
 import h5py
@@ -16,6 +17,7 @@ from ...model_grid import (make_spectral_grid,
                            add_stellar_priors)
 
 @remote_data
+#@pytest.mark.skip(reason="temporarily disable")
 def test_make_kurucz_tlusty_spectral_grid():
 
     # download the needed files
@@ -25,9 +27,6 @@ def test_make_kurucz_tlusty_spectral_grid():
     filter_fname_dld = download_file('%s%s'%(url_loc,'filters.hd5'))
     iso_fname_dld = download_file('%s%s'%(url_loc,
                                           'beast_example_phat_iso_new.csv'))
-    #kurucz_fname_dld = '/tmp/kurucz2004.grid.fits.tmp'
-    #tlusty_fname_dld = '/tmp/tlusty.lowres.grid.fits.tmp'
-    #filter_fname_dld = '/tmp/filters.hd5.tmp'
 
     # rename files to have the correct extensions
     kurucz_fname = '%s.fits'%(kurucz_fname_dld)
@@ -92,6 +91,7 @@ def test_make_kurucz_tlusty_spectral_grid():
 
 
 @remote_data
+#@pytest.mark.skip(reason="temporarily disable")
 def test_add_stellar_priors_to_spectral_grid():
 
     # download the needed files

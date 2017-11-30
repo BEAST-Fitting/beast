@@ -183,6 +183,9 @@ def add_stellar_priors(project, specgrid, verbose=True,
     specgrid: grid.SpectralGrid object
         spectral grid to transform
 
+    priors_fname: str
+        full filename to which to save the spectral grid with priors
+
     returns
     -------
     fname: str
@@ -224,6 +227,8 @@ def make_extinguished_sed_grid(project,
                                add_spectral_properties_kwargs=None,
                                absflux_cov=False,
                                verbose=True,
+                               seds_fname=None,
+                               filterLib=None,
                                **kwargs):
     """
     Create SED model grid integrated with filters and dust extinguished
@@ -269,6 +274,12 @@ def make_extinguished_sed_grid(project,
         set to calculate the absflux covariance matrices for each model
         (can be very slow!!!  But it is the right thing to do)
 
+    seds_fname: str
+        full filename to save the sed grid into
+
+    filterLib:  str
+        full filename to the filter library hd5 file
+
     returns
     -------
     fname: str
@@ -277,7 +288,8 @@ def make_extinguished_sed_grid(project,
     g: grid.SpectralGrid object
         spectral grid to transform
     """
-    seds_fname = '%s/%s_seds.grid.hd5' % (project, project)
+    if seds_fname is None:
+        seds_fname = '%s/%s_seds.grid.hd5' % (project, project)
     if not os.path.isfile(seds_fname):
 
         extLaw = extLaw or extinction.Cardelli()
@@ -290,7 +302,9 @@ def make_extinguished_sed_grid(project,
 
         if fA is not None:
             fAs = np.arange(fA[0], fA[1] + 0.5 * fA[2], fA[2])
-            g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
+            g = creategrid.make_extinguished_grid(specgrid,
+                                                  filters,
+                                                  extLaw,
                                                   avs, 
                                                   rvs, 
                                                   fAs, 
@@ -298,7 +312,8 @@ def make_extinguished_sed_grid(project,
                                                   rv_prior_model=rv_prior_model,
                                                   fA_prior_model=fA_prior_model,
                 add_spectral_properties_kwargs=add_spectral_properties_kwargs,
-                                                  absflux_cov=absflux_cov)
+                                                  absflux_cov=absflux_cov,
+                                                  filterLib=filterLib)
         else:
             g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
                                                   avs, 
