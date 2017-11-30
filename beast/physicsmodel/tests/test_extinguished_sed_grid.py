@@ -14,6 +14,7 @@ from ..model_grid import make_extinguished_sed_grid
 from ..dust import extinction
 
 @remote_data
+#@pytest.mark.skip(reason="temporarily disable")
 def test_make_extinguished_sed_grid():
 
     # download the needed files

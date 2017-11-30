@@ -328,9 +328,6 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
     filter_names: list
         list of filter names according to the filter lib
 
-    filterLib:  str
-        full filename to the filter library hd5 file
-
     Avs: sequence
         Av values to iterate over
 
@@ -355,6 +352,9 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
         number of extinction model variations to generate at each cycle.
         Note that this means len(spec_grid * chunksize)
         If default <= 0, all models will be returned at once.
+
+    filterLib:  str
+        full filename to the filter library hd5 file
 
     add_spectral_properties_kwargs: dict
         keyword arguments to call :func:`add_spectral_properties` at each
