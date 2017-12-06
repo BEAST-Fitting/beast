@@ -21,7 +21,7 @@ __version__ = '2.0dev'
 import numpy as np
 import copy
 
-from astropy import constants
+from astropy import constants, units
 
 from .stars import stellib
 from .stars import isochrone
@@ -174,9 +174,9 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
 
     # some constants
     kdata = 0
-    rsun = 6.955e8  # in meters
+    #rsun = 6.955e8  # in meters
     # uncomment for lastest version of Rsun
-    #rsun = constants.Rsun.to(units.m).value
+    rsun = constants.R_sun.to(units.m).value
     
     for k, (_ak, _Zk) in \
             Pbar(niter, desc='spectral grid').iterover(enumerate(it)):
