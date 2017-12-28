@@ -9,12 +9,6 @@ from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 from astropy import units
 
-#from beast.physicsmodel.grid import FileSEDGrid
-#from beast.observationmodel.observations import Observations
-#from beast.observationmodel.vega import Vega
-#import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
-#from beast.fitting.trim_grid import trim_models
-
 from ...physicsmodel.grid import FileSEDGrid
 from ...observationmodel.observations import Observations
 from ...observationmodel.vega import Vega
@@ -139,7 +133,6 @@ def test_trim_grid():
     noise_fname = _download_rename('beast_example_phat_noisemodel.hd5')
     obs_fname = _download_rename('b15_4band_det_27_A.fits')
 
-    #filter_fname = '/tmp/filters.hd5'
     #vega_fname = '/tmp/vega.hd5'
     #seds_fname = '/tmp/beast_example_phat_sed.grid.hd5'
     #noise_fname = '/tmp/beast_example_phat_noisemodel.hd5'
