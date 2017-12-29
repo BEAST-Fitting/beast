@@ -75,7 +75,7 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
         Spectral grid (in memory) containing the requested list of stars
         and associated spectra
     """
-    
+
     helpers.type_checker('osl', osl, stellib.Stellib)
     
     if chunksize <= 0:
@@ -233,6 +233,10 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
     for k in list(_grid.keys()):
             _grid[k] = _grid[k].compress(idx, axis=0)
 
+    # remove 'keep' column as not used further
+    #   and it makes the hdf file incompatible with h5py
+    del _grid['keep']
+
     # Step 6: Ship
     # ============
     header = {'stellib': osl.source,
@@ -302,7 +306,8 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
                            fA_prior_model={'name': 'flat'},
                            chunksize=0,
                            add_spectral_properties_kwargs=None,
-                           absflux_cov=False):
+                           absflux_cov=False,
+                           filterLib=None):
     """
     Extinguish spectra and extract an SEDGrid through given series of filters
     (all wavelengths in stellar SEDs and filter response functions are assumed
@@ -347,6 +352,9 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
         number of extinction model variations to generate at each cycle.
         Note that this means len(spec_grid * chunksize)
         If default <= 0, all models will be returned at once.
+
+    filterLib:  str
+        full filename to the filter library hd5 file
 
     add_spectral_properties_kwargs: dict
         keyword arguments to call :func:`add_spectral_properties` at each
@@ -470,8 +478,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
                 # add extra "spectral bands" if requested
                 if add_spectral_properties_kwargs is not None:
                     r = add_spectral_properties(r, nameformat=nameformat,
+                                                filterLib=filterLib,
                                             **add_spectral_properties_kwargs)
-                temp_results = r.getSEDs(filter_names)
+                temp_results = r.getSEDs(filter_names,
+                                         filterLib=filterLib)
                 # adding the dust parameters to the models
                 cols['Av'][N0 * count: N0 * (count + 1)] = Av
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
@@ -485,8 +495,10 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
                 
                 if add_spectral_properties_kwargs is not None:
                     r = add_spectral_properties(r, nameformat=nameformat,
+                                                filterLib=filterLib,
                                             **add_spectral_properties_kwargs)
-                temp_results = r.getSEDs(filter_names)
+                temp_results = r.getSEDs(filter_names,
+                                         filterLib=filterLib)
                 # adding the dust parameters to the models
                 cols['Av'][N0 * count: N0 * (count + 1)] = Av
                 cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
@@ -543,7 +555,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
 
 
 def add_spectral_properties(specgrid, filternames=None, filters=None,
-                            callables=None, nameformat=None):
+                            callables=None, nameformat=None, filterLib=None):
     """ Addon spectral calculations to spectral grids to extract in the fitting
     routines
 
@@ -566,6 +578,9 @@ def add_spectral_properties(specgrid, filternames=None, filters=None,
         naming format to adopt for filternames and filters
         default value is '{0:s}_0' where the value will be the filter name
 
+    filterLib:  str
+        full filename to the filter library hd5 file
+
     Returns
     -------
     specgrid: SpectralGrid instance
@@ -575,7 +590,7 @@ def add_spectral_properties(specgrid, filternames=None, filters=None,
         nameformat = '{0:s}_0'
 
     if filternames is not None:
-        temp = specgrid.getSEDs(filternames, extLaw=None)
+        temp = specgrid.getSEDs(filternames, extLaw=None, filterLib=filterLib)
 
         logtempseds = np.array(temp.seds)
         indxs = np.where(temp.seds > 0)

@@ -42,8 +42,10 @@ from astropy.table import Table
 from ..physicsmodel import grid
 from ..tools.pbar import Pbar
 
-from .fit_metrics.likelihood import *
-from .fit_metrics import expectation, percentile, getNorm_lnP
+from .fit_metrics.likelihood import (N_covar_logLikelihood,
+                                     N_logLikelihood_NM,
+                                     getNorm_lnP)
+from .fit_metrics import expectation, percentile
 
 from .pdf1d import pdf1d
 

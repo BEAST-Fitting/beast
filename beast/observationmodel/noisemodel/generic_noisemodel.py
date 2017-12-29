@@ -42,7 +42,7 @@ class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
 
 
 def make_toothpick_noise_model(outname, astfile, sedgrid,
-                               use_rate=False,
+                               use_rate=False, vega_fname=None,
                                absflux_a_matrix=None, **kwargs):
     """ toothpick noise model assumes that every filter is independent with
     any other.
@@ -71,9 +71,10 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
     noisefile: str
         noisemodel file name
     """
-
+    
     # read in AST results
-    model = Generic_ToothPick_Noisemodel(astfile, sedgrid.filters)
+    model = Generic_ToothPick_Noisemodel(astfile, sedgrid.filters,
+                                         vega_fname=vega_fname)
 
     # compute binned biases and uncertainties as a function of flux
     if use_rate:

@@ -15,7 +15,7 @@ __all__ = ['make_iso_table', 'make_spectral_grid', 'add_stellar_priors',
            'make_extinguished_sed_grid']
 
 def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
-                   z=[0.0152]):
+                   z=[0.0152], iso_fname=None):
     """
     The isochrone tables are loaded (downloading if necessary)
 
@@ -48,7 +48,8 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
     oiso: isochrone.Isochrone object
         contains the full isochrones information
     """
-    iso_fname = '%s/%s_iso.csv' % (project, project)
+    if iso_fname is None:
+        iso_fname = '%s/%s_iso.csv' % (project, project)
     if not os.path.isfile(iso_fname):
         if oiso is None: 
             oiso = isochrone.PadovaWeb()
@@ -67,7 +68,7 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
     return (iso_fname, oiso)
 
 def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
-                       verbose=True,
+                       verbose=True, spec_fname=None, filterLib=None,
                        add_spectral_properties_kwargs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
@@ -90,6 +91,12 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
         0 means absolute magnitude.
         Expecting pc units
 
+    spec_fname: str
+        full filename to save the spectral grid into
+
+    filterLib:  str
+        full filename to the filter library hd5 file
+
     add_spectral_properties_kwargs: dict
         keyword arguments to call :func:`add_spectral_properties`
         to add model properties from the spectra into the grid property table
@@ -102,7 +109,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
     g: grid.SpectralGrid object
         spectral grid to transform
     """
-    spec_fname = '%s/%s_spec_grid.hd5' % (project, project)
+    if spec_fname is None:
+        spec_fname = '%s/%s_spec_grid.hd5' % (project, project)
 
     if not os.path.isfile(spec_fname):
         osl = osl or stellib.Kurucz()
@@ -142,6 +150,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
             if add_spectral_properties_kwargs is not None:
                 g = creategrid.add_spectral_properties(g,
                                                        nameformat=nameformat,
+                                                       filterLib=filterLib,
                                             **add_spectral_properties_kwargs)
             g.writeHDF(spec_fname)
         else:
@@ -150,8 +159,9 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
                     gk.seds = gk.seds / (0.1 * _distance) ** 2
                 if add_spectral_properties_kwargs is not None:
                     gk = creategrid.add_spectral_properties(gk,
-                                              nameformat=nameformat,
-                                              **add_spectral_properties_kwargs)
+                                            nameformat=nameformat,
+                                            filterLib=filterLib,
+                                            **add_spectral_properties_kwargs)
     
                 gk.writeHDF(spec_fname, append=True)
 
@@ -159,7 +169,9 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
         
     return (spec_fname, g)
 
-def add_stellar_priors(project, specgrid, verbose=True, **kwargs):
+def add_stellar_priors(project, specgrid, verbose=True,
+                       priors_fname=None,
+                       **kwargs):
     """
     make_priors -- compute the weights for the stellar priors
 
@@ -171,6 +183,9 @@ def add_stellar_priors(project, specgrid, verbose=True, **kwargs):
     specgrid: grid.SpectralGrid object
         spectral grid to transform
 
+    priors_fname: str
+        full filename to which to save the spectral grid with priors
+
     returns
     -------
     fname: str
@@ -179,7 +194,8 @@ def add_stellar_priors(project, specgrid, verbose=True, **kwargs):
     g: grid.SpectralGrid object
         spectral grid to transform
     """
-    priors_fname = '%s/%s_spec_w_priors.grid.hd5' % (project, project)
+    if priors_fname is None:
+        priors_fname = '%s/%s_spec_w_priors.grid.hd5' % (project, project)
     if not os.path.isfile(priors_fname):
 
         if verbose:
@@ -211,6 +227,8 @@ def make_extinguished_sed_grid(project,
                                add_spectral_properties_kwargs=None,
                                absflux_cov=False,
                                verbose=True,
+                               seds_fname=None,
+                               filterLib=None,
                                **kwargs):
     """
     Create SED model grid integrated with filters and dust extinguished
@@ -256,6 +274,12 @@ def make_extinguished_sed_grid(project,
         set to calculate the absflux covariance matrices for each model
         (can be very slow!!!  But it is the right thing to do)
 
+    seds_fname: str
+        full filename to save the sed grid into
+
+    filterLib:  str
+        full filename to the filter library hd5 file
+
     returns
     -------
     fname: str
@@ -264,7 +288,8 @@ def make_extinguished_sed_grid(project,
     g: grid.SpectralGrid object
         spectral grid to transform
     """
-    seds_fname = '%s/%s_seds.grid.hd5' % (project, project)
+    if seds_fname is None:
+        seds_fname = '%s/%s_seds.grid.hd5' % (project, project)
     if not os.path.isfile(seds_fname):
 
         extLaw = extLaw or extinction.Cardelli()
@@ -277,7 +302,9 @@ def make_extinguished_sed_grid(project,
 
         if fA is not None:
             fAs = np.arange(fA[0], fA[1] + 0.5 * fA[2], fA[2])
-            g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
+            g = creategrid.make_extinguished_grid(specgrid,
+                                                  filters,
+                                                  extLaw,
                                                   avs, 
                                                   rvs, 
                                                   fAs, 
@@ -285,7 +312,8 @@ def make_extinguished_sed_grid(project,
                                                   rv_prior_model=rv_prior_model,
                                                   fA_prior_model=fA_prior_model,
                 add_spectral_properties_kwargs=add_spectral_properties_kwargs,
-                                                  absflux_cov=absflux_cov)
+                                                  absflux_cov=absflux_cov,
+                                                  filterLib=filterLib)
         else:
             g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
                                                   avs, 
