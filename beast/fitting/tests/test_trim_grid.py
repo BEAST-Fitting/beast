@@ -129,7 +129,7 @@ def test_trim_grid():
 
     # download the needed files
     vega_fname = _download_rename('vega.hd5')
-    seds_fname = _download_rename('beast_example_phat_sed.grid.hd5')
+    seds_fname = _download_rename('beast_example_phat_seds.grid.hd5')
     noise_fname = _download_rename('beast_example_phat_noisemodel.hd5')
     obs_fname = _download_rename('b15_4band_det_27_A.fits')
 
@@ -142,7 +142,7 @@ def test_trim_grid():
     noise_trim_fname_cache = _download_rename( \
                                 'beast_example_phat_noisemodel_trim.grid.hd5')
     seds_trim_fname_cache = _download_rename( \
-                                'beast_example_phat_sed_trim.grid.hd5')
+                                'beast_example_phat_seds_trim.grid.hd5')
     #seds_trim_fname_cache = '/tmp/beast_example_phat_sed_trim.grid_cache.hd5'
     #noise_trim_fname_cache = '/tmp/beast_example_phat_noisemodel_trim.grid_cache.hd5'
     

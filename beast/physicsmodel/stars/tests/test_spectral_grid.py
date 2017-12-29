@@ -26,7 +26,7 @@ def test_make_kurucz_tlusty_spectral_grid():
     tlusty_fname_dld = download_file('%s%s'%(url_loc,'tlusty.lowres.grid.fits'))
     filter_fname_dld = download_file('%s%s'%(url_loc,'filters.hd5'))
     iso_fname_dld = download_file('%s%s'%(url_loc,
-                                          'beast_example_phat_iso_new.csv'))
+                                          'beast_example_phat_iso.csv'))
 
     # rename files to have the correct extensions
     kurucz_fname = '%s.fits'%(kurucz_fname_dld)

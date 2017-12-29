@@ -31,7 +31,7 @@ def test_make_extinguished_sed_grid():
     
     # download cached version of sed grid
     filename = download_file('%s%s'%(url_loc,
-                                     'beast_example_phat_sed.grid.hd5'))
+                                     'beast_example_phat_seds.grid.hd5'))
     
     hdf_cache = h5py.File(filename, 'r')
     

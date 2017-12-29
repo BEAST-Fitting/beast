@@ -133,7 +133,7 @@ def test_fit_grid():
     noise_trim_fname = _download_rename( \
                                 'beast_example_phat_noisemodel_trim.grid.hd5')
     seds_trim_fname = _download_rename( \
-                                'beast_example_phat_sed_trim.grid.hd5')
+                                'beast_example_phat_seds_trim.grid.hd5')
 
     # download cached version of fitting results
     stats_fname_cache = _download_rename('beast_example_phat_stats.fits')

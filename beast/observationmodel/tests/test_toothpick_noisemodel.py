@@ -35,7 +35,7 @@ def test_toothpick_noisemodel():
     filter_fname = _download_rename('filters.hd5')
     vega_fname = _download_rename('vega.hd5')
     hst_fname = _download_rename('hst_whitedwarf_frac_covar.fits')
-    seds_fname = _download_rename('beast_example_phat_sed.grid.hd5')
+    seds_fname = _download_rename('beast_example_phat_seds.grid.hd5')
     
     # download cached version of noisemodel on the sed grid
     filename = _download_rename('beast_example_phat_noisemodel.hd5')

@@ -16,7 +16,7 @@ def test_padova_isochrone_download():
     # download the cached version
     url_loc = 'http://www.stsci.edu/~kgordon/beast/'
     filename = download_file('%s%s'%(url_loc,
-                                     'beast_example_phat_iso_new.csv'))
+                                     'beast_example_phat_iso.csv'))
     table_cache = Table.read(filename, format='ascii.csv', comment='#',
                              delimiter=',')
 
