@@ -52,9 +52,11 @@ class MultiFilterASTs(NoiseModel):
     filters: sequence(str)
         sequence of filter names
     """
-    def __init__(self, astfile, filters, *args, **kwargs):
+    def __init__(self, astfile, filters, vega_fname=None,
+                 *args, **kwargs):
+
         NoiseModel.__init__(self, astfile, *args, **kwargs)
-        self.setFilters(filters)
+        self.setFilters(filters, vega_fname=vega_fname)
         if not 'pass_mapping' in kwargs:
             self.set_data_mappings()
 
@@ -63,19 +65,22 @@ class MultiFilterASTs(NoiseModel):
         self._sigmas = None
         self._compls = None
 
-    def setFilters(self, filters):
+    def setFilters(self, filters,
+                   vega_fname=None):
         """ set the filters and update the vega reference for the conversions
 
         Parameters
         ----------
         filters: sequence
             list of filters using the internally normalized namings
+        vega_fname: str
+            filename of the vega database
         """
         self.filters = filters
         
         # ASTs inputs are in vega mag whereas models are in flux units
         #     for optimization purpose: pre-compute
-        with Vega() as v:
+        with Vega(source=vega_fname) as v:
             _, vega_flux, _ = v.getFlux(filters)
 
         self.vega_flux = vega_flux
@@ -225,9 +230,11 @@ class MultiFilterASTs(NoiseModel):
                     else:
                         # compute sigma via percentiles
                         # ave = 50th; std = (84th-16th)/2
-                        flux_percent_out = np.percentile(bin_bias_flux, [16.,50.,84.])
+                        flux_percent_out = np.percentile(bin_bias_flux,
+                                                         [16.,50.,84.])
                         ave_bias[i] = flux_percent_out[1]
-                        std_bias[i] = (flux_percent_out[2]-flux_percent_out[0])/2.
+                        std_bias[i] = (flux_percent_out[2]
+                                       - flux_percent_out[0])/2.
                     
         # only pass back the bins with non-zero results
         gindxs, = np.where(good_bins == 1)

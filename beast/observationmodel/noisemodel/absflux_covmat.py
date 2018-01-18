@@ -13,7 +13,8 @@ from ...config import __ROOT__
 
 from ...tools.pbar import Pbar
 
-def hst_frac_matrix(filters, spectrum=None, progress=True):
+def hst_frac_matrix(filters, spectrum=None, progress=True,
+                    hst_fname=None, filterLib=None):
     """ Uses the Bohlin et al. (2013) provided spectroscopic
     absolute flux covariance matrix to generate the covariance matrix
     for the input set of HST filters.
@@ -30,6 +31,11 @@ def hst_frac_matrix(filters, spectrum=None, progress=True):
                (wave, sed)
                wave = 1D numpy array with wavelengths in XX units
                spectrum = 1D numpy array with flux in ergs...
+    hst_fname : str
+                file with hst absflux covariance matrix
+    filterLib:  str
+        full filename to the filter library hd5 file
+
 
     Returns
     -------
@@ -44,7 +50,10 @@ def hst_frac_matrix(filters, spectrum=None, progress=True):
     """
 
     # get the HST fractional covariance matrix at spectroscopic resolution
-    hst_data = getdata(__ROOT__+'/libs/hst_whitedwarf_frac_covar.fits',1)
+    if hst_fname is None:
+        hst_fname = __ROOT__+'/libs/hst_whitedwarf_frac_covar.fits'
+
+    hst_data = getdata(hst_fname,1)
 
     waves = hst_data['WAVE'][0]
     frac_spec_covar = hst_data['COVAR'][0]
@@ -55,7 +64,8 @@ def hst_frac_matrix(filters, spectrum=None, progress=True):
         spectrum = (waves, np.full((n_waves),1.0))
 
     # read in the filter response functions
-    flist = phot.load_filters(filters, interp=True, lamb=waves)
+    flist = phot.load_filters(filters, filterLib=filterLib,
+                              interp=True, lamb=waves)
 
     # setup multiplication images to make it easy to compute the results
     n_filters = len(filters)

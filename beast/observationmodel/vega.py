@@ -27,8 +27,10 @@ class Vega(object):
 
     """
 
-    def __init__(self, source='{0}/libs/vega.hd5'.format(__ROOT__)):
+    def __init__(self, source=None):
         """ Constructor """
+        if source is None:
+            source = '{0}/libs/vega.hd5'.format(__ROOT__)
         self.source = source
         self.hdf = None
 
