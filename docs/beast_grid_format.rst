@@ -1,3 +1,7 @@
+############
+File Formats
+############
+
 physicsmodel grid file
 ======================
 
@@ -12,13 +16,13 @@ Three datasets are present:
 
 Grid Parameters
 ---------------
-  
+
 stellar parameters
 ^^^^^^^^^^^^^^^^^^
 
 Direct Grid Parameters:
    * M_ini: initial mass [M_sun]
-   * logA: stellar age in [log10(years)] 
+   * logA: stellar age in [log10(years)]
    * Z: metallicity [what units/convenction?]
 
 Ancillary Parameters:
@@ -29,7 +33,7 @@ Ancillary Parameters:
    * M_act: actual mass at current age [M_sun]
    * mbolmag: M(bol) (??more info??) [mag]
    * osl: ????
-  
+
 dust extinction parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -48,7 +52,7 @@ weights
    * grid_weight: weighting in summation marginalization for flat priors
    * prior_weight: weighting in the summation marginalization for input
      priors
-		
+
 
 model fluxes
 ^^^^^^^^^^^^

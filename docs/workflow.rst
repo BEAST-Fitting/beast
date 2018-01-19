@@ -17,7 +17,7 @@ Setup
 Working location
 ================
 
-Setup a working location, usually a subdirectory. For reference, a 
+Setup a working location, usually a subdirectory. For reference, a
 template is the 'metal_production' subdirectory in beast/examples.
 
 In this location, at a minimum you will need the following files:
@@ -34,7 +34,7 @@ In this location, at a minimum you will need the following files:
 Datamodel.py
 ============
 
-Before running the BEAST, you will need to modify this file to specify 
+Before running the BEAST, you will need to modify this file to specify
 the required parameters for generating models and fitting data.
 These parameters are described in :ref:`beast-setup`
 
@@ -61,27 +61,27 @@ A number of source density images are also created.  These include images
 that map the source density of objects with zero fluxes in different bands
 (or any band).
 
-Command to create the observed catalog with source density column with 
+Command to create the observed catalog with source density column with
 a pixel scale of 5 arcsec using the 'obscat.fits' catalog.
 
   .. code:: shell
 
      $ ./beast/tools/create_source_density_map.py --pixsize 5. obscat.fits
-    
+
 Split up observations by source density
 ---------------------------------------
 
-The observed catalog should be split into separate files for each source 
+The observed catalog should be split into separate files for each source
 density.  In addition, each source density catalog is split into a set of
 sub files to have at most 'n_per_file' sources.  The sources are sorted by
 the 'sort_col' flux before splitting to put sources with similar brightness
-together.  This splitting into sub files sorted by flux allows for trimming 
-the BEAST physics+observation model removing objects that are too bright 
-or too faint to fit any of the sources in the file.  In addition, this 
-allows for running the BEAST fitting in parallel with each sub file 
+together.  This splitting into sub files sorted by flux allows for trimming
+the BEAST physics+observation model removing objects that are too bright
+or too faint to fit any of the sources in the file.  In addition, this
+allows for running the BEAST fitting in parallel with each sub file
 on a different core.
 
-Command to create the the source density split files 
+Command to create the the source density split files
 
  .. code:: shell
 
@@ -105,11 +105,11 @@ the artifical star test (AST) inputs.  The '0 0' arguements are dummy values.
 Observation model
 =================
 
-The observation model is based on artifical star tests (ASTs).  ASTs are 
+The observation model is based on artifical star tests (ASTs).  ASTs are
 artifical sources inserted into the observations and extracted with
 the same software that was used for the observed photometry catalog.
 This ensures that the observation model has the same selection
-function as the data. 
+function as the data.
 
 Create the AST input list
 -------------------------
@@ -120,19 +120,19 @@ Compute the ASTs
 ----------------
 
 Done separately with the same code that was used to extract the source
-photometry. 
-     
-    
+photometry.
+
+
 Split up the ASTs by source density
 -----------------------------------
-  
+
 To be added.
 
 Currently the workflow assumes a single AST file for all the source densities.
 
 Create the observation models for each source density
 -----------------------------------------------------
-  
+
 To be added.
 
 Create a single observation model
@@ -146,7 +146,7 @@ The '0 0' arguements are dummy values.
   .. code:: shell
 
      $ ./run_beast_production.py -o 0 0
-    
+
 ******************
 Trimming for speed
 ******************
@@ -233,26 +233,26 @@ pdf1d or lnp files (see the next section).
 
 where the filebase where it is the first portion of the output stats filenames
 (e.g., filebase_sdx-x_subx_stats.fits).
-    
+
 Reorganize the results into spatial region files
 ================================================
-  
+
 The output files from the BEAST with this workflow are organized by source
-density and brightness.  This is not ideal for finding sources of interest 
+density and brightness.  This is not ideal for finding sources of interest
 or performing ensemble processing.  A more useful organization is by spatial
 region.  The large amount of BEAST output information makes it best to have
-individual files for each spatial region.  Code to do this spatial reordering 
+individual files for each spatial region.  Code to do this spatial reordering
 is provided in two parts.  The 1st spatially reorders the results for each
 source density/brightness BEAST run into files for each spatial region.  The
 2nd condenses the multiple individual files for each spatial region into the
 minimal set (stats, pdf1d, and lnp).
 
-Divide each source density/brightness file into files of spatial regions 
+Divide each source density/brightness file into files of spatial regions
 with 10"x10" pixels.
 
   .. code:: shell
 
-     $ beast/tools/reorder_beast_results_spatial.py 
+     $ beast/tools/reorder_beast_results_spatial.py
         --stats_filename filebase_stats.fits
         --region_filebase filebase_
         --output_filebase spatial/filebase
@@ -262,5 +262,5 @@ Condense the multiple files for each spatial region into the minimal set.
 Each spatial region will have files containing the stats, pdf1d, and lnp
 results for the stars in that region.
 
-     $ beast/tools/condense_beast_results_spatial.py 
+     $ beast/tools/condense_beast_results_spatial.py
         --filedir spatial

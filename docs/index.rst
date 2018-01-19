@@ -4,19 +4,25 @@ BEAST
 
 The Bayesian Extinction and Stellar Tool (BEAST) fits the ultraviolet to
 near-infrared photometric SEDs of stars to extract stellar and
-dust extinction parameters.  
+dust extinction parameters.
 The stellar parameters are age (t), mass (M), and metallicity (M).
 The dust extinction parameters are dust column (Av), average grain size (Rv),
-and mixing between type A and B extinction curves (fA).  
+and mixing between type A and B extinction curves (fA).
 
-The full details of the BEAST are provide by 
+The full details of the BEAST are provide by
 Gordon et al. (2016, ApJ, 826, 104).
 <http://adsabs.harvard.edu/abs/2016ApJ...826..104G>
 
-Repository
-==========
+User Documentation
+==================
 
-Github: <https://github.com/BEAST-Fitting/beast>
+.. toctree::
+   :maxdepth: 2
+
+   BEAST run setup details <beast_setup.rst>
+   Example production run workflow <workflow.rst>
+   Generating AST inputs <generating_asts.rst>
+   Format of BEAST grid files <beast_grid_format.rst>
 
 Installation
 ============
@@ -24,47 +30,56 @@ Installation
 .. toctree::
    :maxdepth: 2
 
-   install.rst
+   How to intall <install.rst>
 
-Example Workflow
+Developer Documentation
+=======================
+
+.. toctree::
+   :maxdepth: 2
+
+   How to contribute <beast_development.rst>
+
+Reporting Issues
 ================
 
-.. toctree::
-   :maxdepth: 2
+If you have found a bug in ``beast`` please report it by creating a
+new issue on the ``beast`` `GitHub issue tracker
+<https://github.com/BEAST-Fitting/beast/issues>`_.
 
-   workflow.rst
+Please include an example that demonstrates the issue sufficiently so that
+the developers can reproduce and fix the problem. You may also be asked to
+provide information about your operating system and a full Python
+stack trace.  The developers will walk you through obtaining a stack
+trace if it is necessary.
 
-Setup
-=====
+Contributing
+============
 
-.. toctree::
-   :maxdepth: 1
+Like the `Astropy`_ project, ``beast`` is made both by and for its
+users.  We accept contributions at all levels, spanning the gamut from
+fixing a typo in the documentation to developing a major new feature.
+We welcome contributors who will abide by the `Python Software
+Foundation Code of Conduct
+<https://www.python.org/psf/codeofconduct/>`_.
 
-   beast_setup.rst
+``beast`` follows the same workflow and coding guidelines as
+`Astropy`_.  The following pages will help you get started with
+contributing fixes, code, or documentation (no git or GitHub
+experience necessary):
 
-Format of Files
-===============
+* `How to make a code contribution <http://astropy.readthedocs.io/en/stable/development/workflow/development_workflow.html>`_
 
-.. toctree::
-   :maxdepth: 2
+* `Coding Guidelines <http://docs.astropy.io/en/latest/development/codeguide.html>`_
 
-   beast_grid_format.rst
+* `Try the development version <http://astropy.readthedocs.io/en/stable/development/workflow/get_devel_version.html>`_
 
-Generating AST Inputs
-=====================
+* `Developer Documentation <http://docs.astropy.org/en/latest/#developer-documentation>`_
 
-.. toctree::
-   :maxdepth: 2
 
-   Description <generating_asts.rst>
-
-Contribute to Development
-=========================
-
-.. toctree::
-   :maxdepth: 2
-
-   Description <beast_development.rst>
+For the complete list of contributors please see the `beast
+contributors page on Github
+<https://github.com/BEAST-Fitting/beast/graphs/contributors>`_.
 
 Reference API
 =============
@@ -74,10 +89,3 @@ Reference API
    physicsmodel_api.rst
    observationmodel_api.rst
    fitting_api.rst
-	      
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
