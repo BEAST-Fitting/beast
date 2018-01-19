@@ -75,7 +75,7 @@ matrix:
 
         # Do a coverage test. with python version 3.5
         - os: linux
-          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data --coverage'
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.12 SETUP_CMD='test --remote-data --coverage'
 
         # Do a coverage test.
         - os: linux
