@@ -1,7 +1,6 @@
-..  _beast_develoment:
-
+#################
 BEAST Development
-=================
+#################
 
 You are encouraged to help maintain and improve the BEAST. Before doing so,
 please familiarize yourself with basic version control and Git workflow
@@ -28,7 +27,7 @@ Details follow.
   official version and to minimize version conflicts
 
 - Resolve version conflicts as much as possible before sending pull requests
-  
+
 
 Fork the BEAST distro
 =====================
@@ -49,7 +48,7 @@ Fork the BEAST distro
 
   .. code:: shell
 
-     $ mv beast beast-official  
+     $ mv beast beast-official
      $ git clone https://github.com/YourName/beast.git
      $ mv beast beast-YourName
      $ mv beast-official beast
@@ -59,10 +58,10 @@ Fork the BEAST distro
   of your fork, run the following:
 
   .. code:: shell
-	    
+
      $ git remote add upstream https://github.com/BEAST-Fitting/beast.git
- 
-   
+
+
 Adding Branches
 ===============
 
@@ -73,13 +72,13 @@ Adding Branches
   practice to give branches names related to their purpose)
 
   .. code:: shell
-	    
+
      $ git checkout -b beast-dev1
-	  
+
 - Instead, if you want to create first a branch and then switch to it:
 
   .. code:: shell
-	    
+
      $ git branch beast-dev1
      $ git checkout beast-dev1
 
@@ -87,22 +86,22 @@ Adding Branches
   currently working on:
 
   .. code:: shell
-	    
+
      $ git branch
 
 - To 'upload' this branch to your fork:
 
   .. code:: shell
-	    
+
      $ git push origin beast-dev1
 
 - To revert back to your fork's master branch:
 
   .. code:: shell
-	    
+
      $ git checkout master
 
-    
+
 Making Changes
 ==============
 
@@ -114,7 +113,7 @@ and 'beast-dev1'.
 - Anywhere below 'beast-YourName', switch to the branch you wish to work off of:
 
   .. code:: shell
-	    
+
      $ git checkout beast-dev1
 
 - Make changes to the existing files as you wish and/or create new files.
@@ -122,46 +121,46 @@ and 'beast-dev1'.
 - To see what changes have been made at any time:
 
   .. code:: shell
-	    
+
      $ git status
 
 - To stage any new or edited file (e.g., 'newfile.py') in preparation for committing:
 
   .. code:: shell
-	    
+
      $ git add newfile.py
 
 - To add all edited files (*not recommended* unless you are sure of all your changes):
 
   .. code:: shell
-	    
+
      $ git add -A
 
 - To 'commit' all changes after adding desired files:
 
   .. code:: shell
-	    
+
      $ git commit -m 'brief comments describing changes'
 
 - Commit messages should be short but descriptive.
-    
+
 - To see the status of or commit changes of a single file:
 
   .. code:: shell
-	    
+
      $ git status PathToFile/filename
      $ git commit PathToFile/filename
-	  
+
 - To undo all changes made to a file since last commit:
 
   .. code:: shell
-	    
+
      $ git checkout PathToFile/filename
 
 - To sync changes made to the branch locally with your GitHub repo:
 
   .. code:: shell
-	    
+
      $ git push origin beast-dev1
 
 
@@ -171,7 +170,7 @@ Collaborating and Contributing
 Once you have changes that you'd like to contribute back to the project or share
 with collaborators, you can open a pull request. It is a good idea to check with
 the projects or your collaborators which branch of their BEAST repo you should
-send the pull requests. 
+send the pull requests.
 
 Note: Generally in git-lingo, 'Pull' is to 'download' what 'Push' is
 to 'upload'. When you are making a 'pull request', you are requesting
@@ -196,7 +195,7 @@ pushing it, but the other party is pulling it :-)
 - It is at the other party's (project, collaborator etc.) discretion to
   accept the changes and merge them with their repo.
 
-    
+
 Staying up-to-date
 ==================
 
@@ -212,25 +211,25 @@ efforts and other complications.
 - Switch to your fork's master branch:
 
   .. code:: shell
-	    
+
      $ git checkout master
 
 - Fetch the project's up-to-date distribution:
 
   .. code:: shell
-	    
+
      $ git fetch upstream
 
 - Merge the project-master (upstream) with your fork's master (master):
 
   .. code:: shell
-	    
+
      $ git merge upstream/master
 
 - Sync this change with your GitHub repo:
 
   .. code:: shell
-	    
+
      $ git push origin master
 
 
@@ -251,7 +250,7 @@ be conflicting versions of some files. The following steps can resolve this.
 - Merge your fork's master with upstream/master, and push the master
 
   .. code:: shell
-	    
+
      $ git checkout master
      $ git fetch upstream
      $ git merge upstream/master
@@ -260,14 +259,14 @@ be conflicting versions of some files. The following steps can resolve this.
 - Create a new branch from the updated fork-master, and push the new branch
 
   .. code:: shell
-	    
+
      $ git checkout -b beast-dev2
      $ git push origin beast-dev2
 
 - Switch to the branch where your made changes, make a backup and push it
 
   .. code:: shell
-	    
+
      $ git checkout beast-dev1
      $ git branch beast-dev1-backup beast-dev1
      $ git push origin beast-dev1-backup
@@ -276,7 +275,7 @@ be conflicting versions of some files. The following steps can resolve this.
   (Edit files on the newer branch to resolve differences manually if needed.)
 
   .. code:: shell
-	    
+
      $ git diff beast-dev1 beast-dev2
      $ git checkout beast-dev2
      $ git merge beast-dev1
@@ -286,45 +285,45 @@ be conflicting versions of some files. The following steps can resolve this.
   resolved both locally and on the gitHub repo.)
 
   .. code:: shell
-	    
+
      $ git push origin beast-dev2
 
 
 - If later you wish to restore the backup:
 
   .. code:: shell
-	    
+
      $ git reset --hard beast-dev1-backup
-    
+
 - Once all conflicts have been resolved and the re-base goes through,
   you can delete the backup branch:
 
   .. code:: shell
-	    
+
      $ git branch -D beast-dev1-backup
 
 
 Managing Conflicts via Re-basing
 ================================
 
-In some unusual situations, conflicts may seem unresolvable or 
+In some unusual situations, conflicts may seem unresolvable or
 version conflicts between branches/master/upstream may get messy.
-One last ditch solution can be re-basing, but this not recommended 
-and certainly is not the preferred way to resolve conflicts. Here 
+One last ditch solution can be re-basing, but this not recommended
+and certainly is not the preferred way to resolve conflicts. Here
 are the general steps to do this.
 
 - Merge your fork's master with upstream/master, and push the master
-  
+
 - Switch to and backup the branch with conflicts, and push the backup
 
 - Re-base the branch on upstream/master, and push it
-  
+
 - Example:
 
   - Do the preparatory steps
 
     .. code:: shell
-	      
+
        $ git checkout master
        $ git fetch upstream
        $ git merge upstream/master
@@ -336,24 +335,24 @@ are the general steps to do this.
   - Now re-base the branch:
 
     .. code:: shell
-	      
+
        $ git rebase upstream/master
 
   - Once all conflicts have been resolved and the re-base goes through
     without any error message, push the changes to your gitHub repo:
 
     .. code:: shell
-	      
+
        $ git push origin beast-dev1
 
   - If something goes wrong during re-base, you can start over:
 
     .. code:: shell
-	      
+
        $ git rebase --abort
 
   - If you wish to restore the backup:
 
     .. code:: shell
-	      
+
        $ git reset --hard beast-dev1-backup
