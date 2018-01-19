@@ -30,11 +30,11 @@ env:
         - PYTHON_VERSION=3.6
         - NUMPY_VERSION=stable
         - ASTROPY_VERSION=stable
-        - PYTEST_VERSION=3.2
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
         - PIP_DEPENDENCIES=''
         - EVENT_TYPE='pull_request push'
+        # - PYTEST_VERSION=3.2
 
         # For this package-template, we include examples of Cython modules,
         # so Cython is required for testing. If your package does not include
@@ -72,6 +72,10 @@ matrix:
         # Try MacOS X including the remote data tests
         - os: osx
           env: SETUP_CMD='test --remote-data'
+
+        # Do a coverage test. with python version 3.5
+        - os: linux
+          env: PYTHON_VERSION=3.5 SETUP_CMD='test --remote-data --coverage'
 
         # Do a coverage test.
         - os: linux
@@ -115,6 +119,10 @@ matrix:
         - os: osx
           env: SETUP_CMD='test --remote-data'
 
+        # Do a coverage test.
+        - os: linux
+          env: SETUP_CMD='test --remote-data --coverage'
+
         - os: linux
           env: ASTROPY_VERSION=development
                EVENT_TYPE='pull_request push cron'
@@ -141,7 +149,7 @@ install:
 
     - git clone --depth 1 git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda.sh
-    
+
     #- git clone git://github.com/astropy/ci-helpers.git
     #- source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
 
