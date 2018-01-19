@@ -40,8 +40,11 @@ def make_source_dens_map(catfile,
     """
 
     cat = Table.read(catfile)
+    # force catalog column names to be upper case
     for name in cat.colnames:
          cat.rename_column(name, name.upper())
+    # force filter magnitude name to be upper case to match column names
+    mag_name = mag_name.upper()
 
     # get the columns with fluxes
     rate_cols = [s for s in cat.colnames if s[-4:] == 'RATE']
