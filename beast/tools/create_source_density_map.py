@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Creates a source density map based on an input catalog
-Used to split the observed catalog and ASTs into source density bins 
+Used to split the observed catalog and ASTs into source density bins
    for the BEAST
 """
 
@@ -16,8 +16,8 @@ from astropy import wcs
 from astropy.io import fits
 from astropy.table import Table
 
-def make_source_dens_map(catfile, 
-                         pix_size = 10., 
+def make_source_dens_map(catfile,
+                         pix_size = 10.,
                          mag_name = 'F475W_VEGA',
                          mag_cut = [24.5,27]):
     """
@@ -40,11 +40,16 @@ def make_source_dens_map(catfile,
     """
 
     cat = Table.read(catfile)
+    # force catalog column names to be upper case
+    for name in cat.colnames:
+         cat.rename_column(name, name.upper())
+    # force filter magnitude name to be upper case to match column names
+    mag_name = mag_name.upper()
 
     # get the columns with fluxes
     rate_cols = [s for s in cat.colnames if s[-4:] == 'RATE']
     n_filters = len(rate_cols)
-    
+
     # create the indexs where any of the rates are zero and non-zero
     #   zero = missing data, etc. -> bad for fitting
     #   non-zero = good data, etc. -> great for fitting
@@ -73,7 +78,7 @@ def make_source_dens_map(catfile,
     max_ra = cat['RA'].max()
     min_dec = cat['DEC'].min()
     max_dec = cat['DEC'].max()
-    
+
     #Compute number of pixel alog each axis pix_size in arcsec
     dec_delt = pix_size/3600.
     n_y = np.fix(np.round((max_dec - min_dec)/dec_delt))
@@ -89,7 +94,7 @@ def make_source_dens_map(catfile,
 
     ra_limits = min_ra + ra_delt*np.arange(0,n_x+1, dtype=float)
     dec_limits = min_dec + dec_delt*np.arange(0,n_y+1, dtype=float)
-    
+
     cdelt = [ra_delt, dec_delt]
     crpix = np.asarray([n_x, n_y], dtype = float) / 2.
     crval = np.asarray([(min_ra + max_ra), (min_dec+max_dec)]) / 2.
@@ -118,20 +123,20 @@ def make_source_dens_map(catfile,
     for i in range(n_x):
         print('x = %s out of %s' % (str(i+1), str(n_x)))
         for j in range(n_y):
-            indxs,= np.where((pix_x > i) & (pix_x <= i+1) 
+            indxs,= np.where((pix_x > i) & (pix_x <= i+1)
                              & (pix_y > j) & (pix_y <= j+1))
             n_indxs = len(indxs)
-            indxs_for_SD,= np.where((cat[mag_name][indxs] >= mag_cut[0]) 
+            indxs_for_SD,= np.where((cat[mag_name][indxs] >= mag_cut[0])
                                     & (cat[mag_name][indxs] <= mag_cut[1]))
             n_indxs = len(indxs_for_SD)
             if n_indxs > 0:
                 npts_map[i,j] = n_indxs/(pix_size**2)
 
-                # now make a map of the sources with zero fluxes in 
+                # now make a map of the sources with zero fluxes in
                 #   at least one band
-                zindxs, = np.where((pix_x[zero_indxs] > i) 
-                                   & (pix_x[zero_indxs] <= i+1) 
-                                   & (pix_y[zero_indxs] > j) 
+                zindxs, = np.where((pix_x[zero_indxs] > i)
+                                   & (pix_x[zero_indxs] <= i+1)
+                                   & (pix_y[zero_indxs] > j)
                                    & (pix_y[zero_indxs] <= j+1))
                 if len(zindxs) > 0:
                     npts_zero_map[i,j] = len(zindxs)
@@ -139,9 +144,9 @@ def make_source_dens_map(catfile,
                 # do the same for each band
                 for k, cur_rate in enumerate(rate_cols):
                     tindxs = band_zero_indxs[cur_rate]
-                    zindxs, = np.where((pix_x[tindxs] > i) 
-                                       & (pix_x[tindxs] <= i+1) 
-                                       & (pix_y[tindxs] > j) 
+                    zindxs, = np.where((pix_x[tindxs] > i)
+                                       & (pix_x[tindxs] <= i+1)
+                                       & (pix_y[tindxs] > j)
                                        & (pix_y[tindxs] <= j+1))
                     if len(zindxs) > 0:
                         npts_band_zero_map[i,j,k] = len(zindxs)
