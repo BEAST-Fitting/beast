@@ -1,8 +1,9 @@
-
-.. _beast-setup:
-
+####################
 Setting Up the BEAST
-====================
+####################
+
+Basics
+======
 
 1) Define project and grid input parameters in datamodel.py
 
@@ -28,17 +29,17 @@ Project Details
 
 Artificial Star Test (AST) File Parameters
 ------------------------------------------
-          
+
 The BEAST generates artificial star test (AST) input files based on additional
-input parameters from datamodel.py. 
+input parameters from datamodel.py.
 
 * ``ast_models_selected_per_age``: number of models to pick per age (default = 70).
 * ``ast_bands_above_maglimit``: number of filters that must be above the magnitude limit for an AST to be included in the list (default = 3).
 * ``ast_realization_per_model``: number of realizations of each included AST model to be put into the list (default = 20).
-* ``ast_maglimit``: two options: (1) number of magnitudes fainter than the 90th percentile faintest star in the photometry catalog to be used for the mag cut (default = 1); (2) custom faint end limits (space-separated list of numbers, one for each band). 
+* ``ast_maglimit``: two options: (1) number of magnitudes fainter than the 90th percentile faintest star in the photometry catalog to be used for the mag cut (default = 1); (2) custom faint end limits (space-separated list of numbers, one for each band).
 * ``ast_with_positions``:  (optional; bool) if True, the AST list is produced with X,Y positions. If False, the AST list is produced with only magnitudes.
 * ``ast_pixel_distribution``: (optional; float) minimum pixel separation between AST position and catalog star used to determine the AST spatial distribution. Used if ast_with_positions is True.
-* ``ast_reference_image``: (optional; string)	name of the reference image used by DOLPHOT when running the measured photometry. Required if ast_with_positions is True and no X,Y information is present in the photometry catalog.        
+* ``ast_reference_image``: (optional; string)	name of the reference image used by DOLPHOT when running the measured photometry. Required if ast_with_positions is True and no X,Y information is present in the photometry catalog.
 * ``astfile``:  pathname to the AST files (single camera ASTs).
 * ``noisefile`` : pathname to the output noise model file.
 * ``distanceModulus``: distance modulus to the galaxy, in magnitudes.
@@ -100,7 +101,7 @@ Set ``av_prior_model`` in datamodel.py:
 
 
 BEAST Filters
-================
+=============
 
 The filters are defined in ``beast/libs/filters.hd5``.  The file
 contains two groups:
@@ -108,7 +109,7 @@ contains two groups:
 * ``content``: fields are ``TABLENAME`` (string), ``OBSERVATORY``
   (string), ``INSTRUMENT`` (string), ``NORM`` (float), ``CWAVE`` (float),
   ``PWAVE`` (float), ``COMMENT`` (string)
-  
+
 * ``filters`` has a group for each filter, with the same names as
   ``TABLENAME``.  The groups contain a dataset with the fields
   ``WAVELENGTH`` (float array, in Angstroms) and ``THROUGHPUT``
@@ -502,10 +503,8 @@ The filters currently included in the BEAST filter library are as follows.
 | GROUND_SDSS_Z            |
 +--------------------------+
 
-          
+
 .. _BTSettl:  https://phoenix.ens-lyon.fr/Grids/BT-Settl/
 .. _TLusty:  http://nova.astro.umd.edu/Tlusty2002/database/
 .. _Munari:  http://archives.pd.astro.it/2500-10500/
 .. _BaSel:  http://www.astro.unibas.ch/BaSeL_files/BaSeL2_2.tar.gz
-
-
