@@ -29,6 +29,12 @@ Details follow.
 - Resolve version conflicts as much as possible before sending pull requests
 
 
+BEAST on Slack
+==============
+
+There is a BEAST space on slack.  Email kgordon@stsci.edu for an invite.
+
+
 Fork the BEAST distro
 =====================
 
@@ -163,6 +169,26 @@ and 'beast-dev1'.
 
      $ git push origin beast-dev1
 
+Test Changes
+============
+
+It is a good idea to test your changes have not caused problems.  In the
+base beast directory the following commands may be run to do this.
+
+Run existing tests, including a regression test against a full BEAST model
+run.  Once the command below has finished, the coverage of the tests can
+be viewed in a web browser by pointing to files in the `htmlconv` subdirectory.
+
+  .. code:: shell
+
+    $ python setup.py test --remote-data --coverage
+
+Make sure the documentation can be created.  The resulting files can be viewed
+in a web browser by point to files in the `docs/docs/_build/html subdirectory`.
+
+    .. code:: shell
+
+      $ python setup.py build_docs
 
 Collaborating and Contributing
 ==============================
@@ -356,3 +382,20 @@ are the general steps to do this.
     .. code:: shell
 
        $ git reset --hard beast-dev1-backup
+
+
+
+Visualizing Repository Commits
+==============================
+
+The commits to the beast repository can be visualized using `gource`.  This
+creates a movie showing the time evolution of the code and who make the
+changes.
+
+Version created 22 Jan 2018:  <http://stsci.edu/~kgordon/beast/beast_repo.mp4>
+
+Command to create it:
+
+    .. code:: shell
+
+        $ gource -s .06 -1280x720 --auto-skip-seconds .1 --multi-sampling  --stop-at-end --key --highlight-users --hide mouse,progress --file-idle-time 0 --max-files 0  --background-colour 000000 --font-size 22 --title "This is beast" --output-ppm-stream - --output-framerate 30 | avconv -y -r 30 -f image2pipe -vcodec ppm -i - -b 65536K beast_repo.mp4
