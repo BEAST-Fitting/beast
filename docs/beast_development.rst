@@ -188,7 +188,7 @@ in a web browser by point to files in the `docs/docs/_build/html subdirectory`.
 
     .. code:: shell
 
-      $ python setup.py test build_docs
+      $ python setup.py build_docs
 
 Collaborating and Contributing
 ==============================
