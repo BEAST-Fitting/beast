@@ -36,7 +36,8 @@ Datamodel.py
 
 Before running the BEAST, you will need to modify this file to specify
 the required parameters for generating models and fitting data.
-These parameters are described in beast setup documenation (link needed).
+These parameters are described in the beast `setup documentation <beast_setup.rst>`_.
+
 
 
 ****
@@ -53,7 +54,7 @@ Adding source density to observations
 Create a new version of the observations that includes a column with the
 source density.  The new observation file includes only sources that have
 measurements in all bands (columns that match 'X_RATE').  In theory, sources
-without measurments in all bands is the result of non-overlapping observations.
+without measurements in all bands is the result of non-overlapping observations.
 The BEAST is based on fitting sources with the same selection function,
 in this case measurements in all bands.
 
@@ -96,7 +97,7 @@ Physics model
 =============
 
 Generate the full physics model grid.  Needed for the fitting and generation of
-the artifical star test (AST) inputs.  The '0 0' arguements are dummy values.
+the artificial star test (AST) inputs.  The '0 0' arguments are dummy values.
 
   .. code:: shell
 
@@ -105,8 +106,8 @@ the artifical star test (AST) inputs.  The '0 0' arguements are dummy values.
 Observation model
 =================
 
-The observation model is based on artifical star tests (ASTs).  ASTs are
-artifical sources inserted into the observations and extracted with
+The observation model is based on artificial star tests (ASTs).  ASTs are
+artificial sources inserted into the observations and extracted with
 the same software that was used for the observed photometry catalog.
 This ensures that the observation model has the same selection
 function as the data.
@@ -141,7 +142,7 @@ Create a single observation model
 This assumes that the ASTs do not have a strong dependence on source
 density.  This could be a good approximation if the source density does
 not change much over the observation area or is low everywhere.
-The '0 0' arguements are dummy values.
+The '0 0' arguments are dummy values.
 
   .. code:: shell
 
@@ -186,7 +187,7 @@ cores is desired.  Use the 'split' commandline tool.
 
 Once the batch files are created, then the joblist can be submitted to the
 queue.  The beast/tools/trim_many_via_obsdata.py code is called and trimmed
-versions of the pysics and observation models are created in the project
+versions of the physics and observation models are created in the project
 directory.
 
   .. code:: shell
@@ -200,9 +201,9 @@ Fitting
 The fitting is done for each sub file separately.  Code in the tools directory
 can be used to create the needed set of batch files for submission to a queue.
 In addition, this code will check and see if the fitting has already been done
-or was interuppted for the sub files.  Only sub files that have not been fit or
-where the fitting was interuppted will be added to the batch files.  The number
-of sub files to be run on each core is a command line arguement (the runs will
+or was interrupted for the sub files.  Only sub files that have not been fit or
+where the fitting was interrupted will be added to the batch files.  The number
+of sub files to be run on each core is a command line argument (the runs will
 are serial on the core).
 
   .. code:: shell

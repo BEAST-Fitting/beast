@@ -24,7 +24,7 @@ from beast.observationmodel.noisemodel import absflux_covmat
 # and to fit the data
 #-----------------------------------------------------------------
 # AC == authomatically created
-# indicates where user's input change is NOT necessary/recommeded
+# indicates where user's input change is NOT necessary/recommended
 #-----------------------------------------------------------------
 
 # project : string
