@@ -11,6 +11,8 @@ Basics
 
    * Default Full Stack Run: ``python run_beast.py -p -o -t -f``
 
+.. _beast_setup_datamodel:
+
 BEAST Data Model
 ================
 

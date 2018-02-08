@@ -36,9 +36,7 @@ Datamodel.py
 
 Before running the BEAST, you will need to modify this file to specify
 the required parameters for generating models and fitting data.
-These parameters are described in the beast `setup documentation <beast_setup.rst>`_.
-
-
+These parameters are described in the beast :ref:`setup documentation <beast_setup_datamodel>`.
 
 ****
 Data
