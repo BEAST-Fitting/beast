@@ -80,6 +80,7 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
                 # must be a single mass for this age,z combination
                 # set mass weight to zero to remove this point from the grid
                 mass_grid_weights = np.zeros(1)
+                mass_prior_weights = np.zeros(1)
 
             # apply both the mass and age weights  
             for i, k in enumerate(aindxs):
