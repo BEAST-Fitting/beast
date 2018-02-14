@@ -30,7 +30,7 @@ Installation
 .. toctree::
    :maxdepth: 2
 
-   How to intall <install.rst>
+   How to install <install.rst>
 
 Developer Documentation
 =======================
