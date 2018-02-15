@@ -132,7 +132,10 @@ class hdf5Backend(BaseBackend):
                     print("Warning: Table does not exists.  New table will be created")
                 t = self.__createTable__(hd5, tab, group, tablename)
         #fill the table
-        t.append( tab.data.astype(t.description._v_dtype) )
+        datatype_wanted = t.description._v_dtype
+        data_in_correct_order = tab.data[list(datatype_wanted.names)]
+        data_as_ndarray = data_in_correct_order.astype(datatype_wanted)
+        t.append(data_as_ndarray)
         hd5.flush()
 
         #update the header
