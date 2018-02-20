@@ -67,7 +67,7 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
         
     return (iso_fname, oiso)
 
-def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
+def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None, distance_grid
                        verbose=True, spec_fname=None, filterLib=None,
                        add_spectral_properties_kwargs=None, **kwargs):
     """
@@ -90,6 +90,10 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
         Distance at which models should be shifted
         0 means absolute magnitude.
         Expecting pc units
+
+    distance_Grid: list
+        Distances to shift models to, when using and fitting multiple distances
+        Expects list of distances in pc
 
     spec_fname: str
         full filename to save the spectral grid into
@@ -132,7 +136,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
         # get the distance
         if distance is not None:
             _distance = distance.to(units.pc).value
-            
+
         if verbose:    
             print('Adding spectral properties:', add_spectral_properties_kwargs
                   is not None)
