@@ -1,4 +1,8 @@
-1.1 (unreleased)
+1.2 (unreleased)
+================
+ - no changes yet
+
+1.1 (2018-02-23)
 ================
 
 - pip installable
