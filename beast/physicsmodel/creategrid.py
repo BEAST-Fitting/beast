@@ -46,11 +46,11 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
                                                 bounds=dict(dlogT=0.1,
                                                             dlogg=0.3),
                                                 chunksize=0):
-    """ 
+    """
     Generator that reinterpolates a given stellar spectral library on to
        an Isochrone grid
 
-    It will iterate over a list of `pts` points and generate 
+    It will iterate over a list of `pts` points and generate
        `chunksize` models until all the list of points is processed
 
     Parameters
@@ -77,7 +77,7 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
     """
 
     helpers.type_checker('osl', osl, stellib.Stellib)
-    
+
     if chunksize <= 0:
         yield osl.gen_spectral_grid_from_given_points(pts, bounds=bounds)
     else:
@@ -100,7 +100,7 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
 def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
                                    Z=(0.02,),
                                    bounds=dict(dlogT=0.1, dlogg=0.3)):
-    """ 
+    """
     Reinterpolate a given stellar spectral library on to an Isochrone grid
 
     DEPRECATED: use gen_spectral_grid_from_stellib_given_points instead
@@ -177,7 +177,7 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
     #rsun = 6.955e8  # in meters
     # uncomment for lastest version of Rsun
     rsun = constants.R_sun.to(units.m).value
-    
+
     for k, (_ak, _Zk) in \
             Pbar(niter, desc='spectral grid').iterover(enumerate(it)):
 
@@ -204,7 +204,7 @@ def gen_spectral_grid_from_stellib(osl, oiso, ages=(1e7,), masses=(3,),
         # get the isochrone of (age, Z) sampled at given masses
         radii = osl.get_radius(r['logL'], r['logT'])
         # denorm models are in cm**-2 (4*pi*rad)
-        weights = 4. * np.pi * (radii * 1e2) ** 2  
+        weights = 4. * np.pi * (radii * 1e2) ** 2
         _grid['radius'][start_idx: end_idx] = radii / rsun
 
         # Step 4: Interpolation
@@ -297,10 +297,83 @@ def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
 
     return npts, pts
 
+def apply_distance_grid(specgrid, distances, distances_prior):
+    """
+    Distances are applied to the spectral grid by copying the grid and
+    applying a scaling factor.
+
+    Parameters
+    ----------
+
+    project: str
+        project name
+
+    specgrid: grid.SpectralGrid object
+        spectral grid to transform
+
+    distances: list of float
+        Distances at which models should be shifted
+        0 means absolute magnitude.
+        Expecting pc units
+
+    distances_prior: list of float
+        prior values
+
+    """
+
+    g0 = specgrid
+
+    # Current length of the grid
+    N0 = len(g0.grid)
+    N = N0 * len(distances)
+
+    # Distance column
+    cols = {'distance': np.empty(N, dtype=float)}
+
+    # Existing columns
+    keys0 = list(g0.keys())
+    for key in keys0:
+        cols[key] = np.empty(N, dtype=float)
+
+    n_sed_points = g0.seds.shape[1]
+    new_seds = np.empty((N, n_sed_points), dtype=float)
+
+    for count, distance in \
+        Pbar(len(distances), desc='grid with distances').iterover(enumerate(distances)):
+
+        # The range where the current distance points will live
+        distance_slice = slice(N0 * count, N0 * (count + 1))
+
+        # The seds default to 10 pc. Therefore, scale them with (d / (10 pc))**(-2).
+        distance_pc = distance.to(units.pc).value
+        new_seds[distance_slice, :] = g0.seds / (0.1 * distance_pc) ** 2
+
+        # Fill in the distance in the distance column
+        cols['distance'][distance_slice] = distance_pc
+
+        # Copy the old columns
+        for key in keys0:
+            cols[key][distance_slice] = g0.grid[key]
+
+        # Multiply the existing prior weights (that were just copied in
+        # the for loop above) with the distance prior.
+        cols['weight'][distance_slice] *= distances_prior[count]
+
+    # New object
+    g = SpectralGrid(g0.lamb, seds=new_seds, grid=Table(cols), backend='memory')
+
+    # We can probably make this work for both the spectral grid and the
+    # sed grid, so we can choose afterwards when to invoke this
+    # function. Note that if we want to apply this function on the
+    # sedgrid instead of the specgrid, then we would need to copy the
+    # covariance matrices in case they are used. See near the end of
+    # make_extinguished_grid.
+    return g
+
 
 @generator
-def make_extinguished_grid(spec_grid, filter_names, extLaw, 
-                           avs, rvs, fAs=None, 
+def make_extinguished_grid(spec_grid, filter_names, extLaw,
+                           avs, rvs, fAs=None,
                            av_prior_model={'name': 'flat'},
                            rv_prior_model={'name': 'flat'},
                            fA_prior_model={'name': 'flat'},
@@ -492,7 +565,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
                 Av, Rv = pt
                 dust_prior_weight = dustpriors.get_weight(Av, Rv, 1.0)
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
-                
+
                 if add_spectral_properties_kwargs is not None:
                     r = add_spectral_properties(r, nameformat=nameformat,
                                                 filterLib=filterLib,
@@ -524,7 +597,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
             # copy the rest of the parameters
             for key in keys:
                 cols[key][N0 * count: N0 * (count + 1)] = g0.grid[key]
-            
+
             # multiply existing prior weights by the dust prior weight
             cols['weight'][N0 * count: N0 * (count + 1)] \
                 *= dust_prior_weight
@@ -612,11 +685,11 @@ def add_spectral_properties(specgrid, filternames=None, filters=None,
         indxs = np.where(temp.seds > 0)
         if len(indxs) > 0:
             logtempseds[indxs] = np.log10(temp.seds[indxs])
-                
+
         indxs = np.where(temp.seds <= 0)
         if len(indxs) > 0:
             logtempseds[indxs] = -100.
-                    
+
         for i, fk in enumerate(filters):
             specgrid.grid.addCol('log'+nameformat.format(fk.name),
                                  logtempseds[:, i])
@@ -644,7 +717,7 @@ def calc_absflux_cov_matrices(specgrid, sedgrid, filter_names):
 
     Returns
     -------
-    absflux_covmat : 
+    absflux_covmat :
     """
 
     # get the fractional absflux covariance matrix
@@ -674,7 +747,7 @@ def calc_absflux_cov_matrices(specgrid, sedgrid, filter_names):
             cov_offdiag[:,m] = absflux_cov_mats[:,k,l]* \
                                sedgrid.seds[:,k]*sedgrid.seds[:,l]
             m += 1
-    
+
     return (cov_diag, cov_offdiag)
 
 #=================== TESTUNITS ============================

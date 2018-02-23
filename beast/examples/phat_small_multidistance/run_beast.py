@@ -22,6 +22,7 @@ from beast.physicsmodel.create_project_dir import create_project_dir
 from beast.physicsmodel.model_grid import (make_iso_table,
                                            make_spectral_grid,
                                            add_stellar_priors,
+                                           make_grid_with_distances,
                                            make_extinguished_sed_grid)
 
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
@@ -54,8 +55,6 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-r", "--resume", help="Resume a fitting run",
                         action="store_true")
-    parser.add_argument("--multidist", help="Use distance grid",
-                        action="store_true")
     args = parser.parse_args()
 
     # check input parameters, print what is the problem, stop run_beast
@@ -75,14 +74,14 @@ if __name__ == '__main__':
                                            z=datamodel.z)
 
         # calculate the distances in pc
-        if datamodel.distanceModulus.unit == units.mag:
-            dmod = datamodel.distanceModulus.value
-            distance = 10 ** ((dmod / 5.) + 1) * units.pc
-        if args.multidist:
-            dmods = np.array([d.value for d in datamodel.distance])
+        distance_unit = datamodel.distances[0].unit
+        if distance_unit == units.mag:
+            dmods = np.array([d.value for d in datamodel.distances])
             distances = np.power(10, dmods / 5. + 1) * units.pc
+        elif distance_unit == units.pc:
+            distances = datamodel.distances
         else:
-            raise ValueError("distance modulus does not have mag units")
+            raise ValueError("distance modulus does not have mag or parsec units")
 
         if hasattr(datamodel, 'add_spectral_properties_kwargs'):
             extra_kwargs = datamodel.add_spectral_properties_kwargs
@@ -90,32 +89,28 @@ if __name__ == '__main__':
             extra_kwargs = None
 
         # generate the spectral library (no dust extinction)
-        if not args.multidist:
-            (spec_fname, g_spec) = make_spectral_grid(
-                datamodel.project,
-                oiso,
-                osl=datamodel.osl,
-                distance=distance,
-                add_spectral_properties_kwargs=extra_kwargs)
-        else:
-            (spec_fname, g_spec) = make_spectral_grid(
-                datamodel.project,
-                oiso,
-                osl=datamodel.osl,
-                distance_grid=distances
-                add_spectral_properties_kwargs=extra_kwargs)
+        (spec_fname, g_spec) = make_spectral_grid(
+            datamodel.project,
+            oiso,
+            osl=datamodel.osl,
+            distances=distances,
+            add_spectral_properties_kwargs=extra_kwargs)
 
         # add the stellar priors as weights
         #   also computes the grid weights for the stellar part
         (pspec_fname, g_pspec) = add_stellar_priors(datamodel.project,
                                                     g_spec)
 
+        g_pdist_pspec = make_grid_with_distances(datamodel.project, g_pspec, distances)
+        # override for debug
+        # g_pdist_pspec = g_pspec
+
         # generate the SED grid by integrating the filter response functions
         #   effect of dust extinction applied before filter integration
         #   also computes the dust priors as weights
         (seds_fname, g_seds) = make_extinguished_sed_grid(
             datamodel.project,
-            g_pspec,
+            g_pdist_pspec,
             datamodel.filters,
             extLaw=datamodel.extLaw,
             av=datamodel.avs,
