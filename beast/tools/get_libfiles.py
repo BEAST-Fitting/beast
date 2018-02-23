@@ -1,10 +1,10 @@
 # script to download the BEAST library files
-import os.path
 from shutil import copyfile
 
 from astropy.utils.data import download_file
 
 from beast.config import libs_server, libs, __ROOT__
+
 
 def _download_rename(filename, url_loc, local_loc):
     """
@@ -18,7 +18,3 @@ def _download_rename(filename, url_loc, local_loc):
 if __name__ == '__main__':
     for ckey, clib in libs.items():
         nfilename = _download_rename(clib, libs_server, __ROOT__)
-        #print(clib, libs_server, __ROOT__)
-
-
-#        asts_fname = _download_rename('fake_stars_b15_27_all.hd5')
