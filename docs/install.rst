@@ -7,8 +7,8 @@ Requirements
 
 Running the BEAST requires:
 
-- Python >=3.4 (recommended) or 2.7 (not recommended)
-- Astropy 1.3
+- Python >=3.4 (recommended) or 2.7 (still possible)
+- Astropy >=1.3
 
 In turn, Astropy depends on
 `other packages <http://docs.astropy.org/en/latest/install.html>`_ for
@@ -27,23 +27,22 @@ One easy way to obtain the above is through the AstroConda Python stack:
   you can use the `conda` command to install any other packages and create
   environments, etc.
 
-- Setup the AstroConda Channel:
+- Setup the AstroConda Channel::
 
-``$ conda config --add channels http://ssb.stsci.edu/astroconda``
+    $ conda config --add channels http://ssb.stsci.edu/astroconda
 
-- Install AstroConda with Python 3 (recommended):
+- Install AstroConda with Python 3 (recommended)::
 
-``$conda create -n astroconda stsci``
+    $conda create -n astroconda stsci
 
-- Install AstroConda with Python 2.7 (still possible):
+- Install AstroConda with Python 2.7 (still possible)::
 
-``$ conda create -n iraf27 python=2.7 stsci pyraf iraf``
+    $ conda create -n iraf27 python=2.7 stsci pyraf iraf
 
 - Make sure that the ``PyTables`` and ``hdf5`` packages are installed:
 
-``$ conda install -n astroconda (or iraf27) pytables``
-
-``$ conda install -n astroconda (or iraf27) hdf5``
+    $ conda install -n astroconda (or iraf27) pytables
+    $ conda install -n astroconda (or iraf27) hdf5
 
 
 Installing the BEAST
@@ -58,13 +57,13 @@ Using pip
 ``beast`` can also be installed using pip::
 
     # from PyPI
-    pip install beast
+    $ pip install beast
 
     # if you already have an older version installed
-    pip install --upgrade beast
+    $ pip install --upgrade beast
 
     # from the master trunk on the repository, considered developmental code
-    pip install git+https://github.com/BEAST-Fitting/beast.git
+    $ pip install git+https://github.com/BEAST-Fitting/beast.git
 
 From source
 -----------
@@ -72,7 +71,7 @@ From source
 ``beast`` can be installed from the source code in the normal
 python fashion after downloading it from the git repo::
 
-    python setup.py install
+     $ python setup.py install
 
 For developers
 --------------
@@ -88,6 +87,8 @@ BEAST Library Files
 For the BEAST to work properly, you need to place a set of files in a
 directory.  These files contain information related to filters,
 stellar atmospheres, and in the future stellar evolution models.
+
+.. _library_loc:
 
 Location
 --------
@@ -107,37 +108,50 @@ Manual download
 Script download
 ---------------
 
-TBA
+After installing the `beast`, run the following script and the library files
+will be downloaded into the location specified in :ref:`library_loc`::
+
+     $ beast/tools/get_libfiles.py
 
 
 Running Example
 ===============
 
-There is a small sample script named 'run_beast.py' located in
-'beast/beast/examples/phat_small' as a quick check to confirm that BEAST
-installation is working.
+You can find examples of BEAST runs in the
+<https://github.com/BEAST-Fitting/beast-examples>
+repository.
 
-If the beast has been installed
+Inside each example, there is a run_beast*.py script.
 
-In 'beast/beast/examples/phat_small', place a soft link named 'beast'
-pointing two levels up:
+phat_small example
+------------------
 
-``$ cd beast/beast/examples/phat_small``
+This example is based on a *very* small amount of PHAT old data.
 
-``$ ln -s ../../ beast``
+If the beast has not been installed (only downloaded from github), then
+In the 'phat_small' directory, place a soft link named 'beast' to where the
+beast code is located.  Specifically::
+
+    $ cd beast-examples/phat_small
+
+    $ ln -s beast_code_loc/beast/beast beast
 
 If you installed Python through AstroConda, first activate the correct
-AstroConda environment:
+AstroConda environment::
 
-``$ source activate astroconda``
+    $ source activate astroconda
 
-Verify that the current default Python is version 3:
+Verify that the current default Python is version 3::
 
-``$ python --version``
+    $ python --version
 
-Now try a sample BEAST run:
+Now try a sample BEAST run::
 
-``$ ./run_beast.py`` or ``$ python run_beast.py``
+    $ ./run_beast.py
+
+or::
+
+    $ python run_beast.py::
 
 Optionally, you can run BEAST with one, or a combination, of these arguments
 
@@ -152,9 +166,9 @@ For example: ``$ ./run_beast.py -h`` or ``$ ./run_beast.py -potf``
 
 If the BEAST is running correctly the second command should run without errors
 and should have written the output files into 'beast_example_phat/'. The result
-can be plotted using
+can be plotted using::
 
-``$ python beast/plotting/plot_indiv_fit.py beast_example_phat/beast_example_phat``
+    $ python beast/plotting/plot_indiv_fit.py beast_example_phat/beast_example_phat
 
 The argument for this script is the prefix of the output files. The output
 should look like this:
