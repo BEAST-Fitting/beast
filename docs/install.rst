@@ -7,7 +7,7 @@ Requirements
 
 Running the BEAST requires:
 
-- Python 2.7 or >=3.4
+- Python >=3.4 (recommended) or 2.7 (not recommended)
 - Astropy 1.3
 
 In turn, Astropy depends on
@@ -49,51 +49,65 @@ One easy way to obtain the above is through the AstroConda Python stack:
 Installing the BEAST
 ====================
 
-For the BEAST to work properly, you need to place a 'libs' directory containing
-files related to filters, photometry, stellar atmospheres, and in the future,
-stellar evolution models. See **Obtaining BEAST libraries** below.
+In addition to installing the code, library files also need to be installed.
+See :ref:`library-files`.
 
-Option 1
---------
+Using pip
+---------
 
-The following is the recommended option which will allow you to easily keep up
-with code updates. If additionally you would like to contribute to code
-enhancements, see Option 3 below.
+``beast`` can also be installed using pip::
 
-Places BEAST on your local computer as a clone of the
-`BEAST GitHub repository <https://github.com/BEAST-Fitting/beast>`_. To do this, go
-to the directory where you want to place the BEAST and type the following:
+    # from PyPI
+    pip install beast
 
-``$ git clone https://github.com/BEAST-Fitting/beast.git``
+    # if you already have an older version installed
+    pip install --upgrade beast
 
-This will create a directory named 'beast' containing the BEAST.
+    # from the master trunk on the repository, considered developmental code
+    pip install git+https://github.com/BEAST-Fitting/beast.git
 
-Option 2
---------
+From source
+-----------
 
-This option places BEAST in its current version on your local computer. One
-disadvantage is that you will have to manually obtain BEAST updates from the
-GitHub repository if you use this option.
+``beast`` can be installed from the source code in the normal
+python fashion after downloading it from the git repo::
 
-On the `BEAST GitHub homepage <https://github.com/BEAST-Fitting/beast>`_ click on
-the 'Clone or Download' button, then select 'Download ZIP'. Unzip the
-file in the desired directory.
+    python setup.py install
 
-Option 3
---------
+For developers
+--------------
 
 This option is suitable if you *plan to make code contributions* to the BEAST.
-See the :ref:'beast_development' for details.
+See the :ref:`beast_development` for details.
+
+.. _library-files:
 
 BEAST Library Files
 ===================
 
-For the BEAST to work properly, you need to place a 'libs' directory containing
-files related to filters, photometry, stellar atmospheres, and in the future
-stellar evolution models in the 'beast/beast' directory. Follow this link to
-download the 'libs' files.
+For the BEAST to work properly, you need to place a set of files in a
+directory.  These files contain information related to filters,
+stellar atmospheres, and in the future stellar evolution models.
+
+Location
+--------
+
+There are 3 possible locations for these files (in the order the code
+will search for them):
+
+1. in a directory designated by the BEAST_LIBS environment variable
+2. in the '.beast' directory in the home directory of the current user
+3. in the source code in 'beast/beast/libs'
+
+Manual download
+---------------
 
 <https://stsci.box.com/v/beastlibs>
+
+Script download
+---------------
+
+TBA
 
 
 Running Example
@@ -102,6 +116,8 @@ Running Example
 There is a small sample script named 'run_beast.py' located in
 'beast/beast/examples/phat_small' as a quick check to confirm that BEAST
 installation is working.
+
+If the beast has been installed
 
 In 'beast/beast/examples/phat_small', place a soft link named 'beast'
 pointing two levels up:

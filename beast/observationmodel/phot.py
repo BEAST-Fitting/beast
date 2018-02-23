@@ -26,8 +26,8 @@ from scipy.integrate import trapz
 from ..tools.decorators import timeit
 from ..config import __ROOT__
 
-__default__      = __ROOT__ + '/libs/filters.hd5'
-__default_vega__ = __ROOT__ + '/libs/vega.hd5'
+__default__      = __ROOT__ + 'filters.hd5'
+__default_vega__ = __ROOT__ + 'vega.hd5'
 
 # this is used to convert from bolometric luminosities to abs fluxes
 # object to 10parsecs -- abs mag.
@@ -695,23 +695,3 @@ def appendVegaFilter(filtInst, VegaLib=__default_vega__):
     sedTab.flush()
     vtab.close()
     print('% {0}: Filter {1} added to {2}'.format(sys.argv[0], filtInst.name, VegaLib))
-
-
-def xxtest(absFlux=True):
-    """ Test units """
-    gridfile = 'libs/stellib_kurucz2004_padovaiso.spectralgrid.fits'
-    filter_names = 'hst_wfc3_f275w hst_wfc3_f336w hst_acs_wfc_f475w hst_acs_wfc_f814w hst_wfc3_f110w hst_wfc3_f160w'.upper().split()
-
-    from . import grid
-
-    #Load the initial model grid
-    with timeit('Loading Grid, %s' % gridfile):
-        g0   = grid.FileSpectralGrid(gridfile)
-        lamb = g0.lamb
-
-    # Load the filters
-    with timeit('Loading Filters (with interpolation)'):
-        flist = load_filters(filter_names, interp=True, lamb=lamb)
-
-    with timeit('SED integrations over %d ' % g0.grid.nrows):
-        return extractSEDs(g0, flist, absFlux=absFlux)
