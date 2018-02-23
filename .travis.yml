@@ -32,7 +32,7 @@ env:
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES=''
+        - PIP_DEPENDENCIES='future'
         - EVENT_TYPE='pull_request push'
         # - PYTEST_VERSION=3.2
 
@@ -72,10 +72,6 @@ matrix:
         # Try MacOS X including the remote data tests
         - os: osx
           env: SETUP_CMD='test --remote-data'
-
-        # Do a coverage test. with python version 3.5
-        - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.12 SETUP_CMD='test --remote-data --coverage'
 
         # Do a coverage test.
         - os: linux
@@ -118,10 +114,6 @@ matrix:
         # Try MacOS X including the remote data tests
         - os: osx
           env: SETUP_CMD='test --remote-data'
-
-        # Do a coverage test.
-        - os: linux
-          env: SETUP_CMD='test --remote-data --coverage'
 
         - os: linux
           env: ASTROPY_VERSION=development
