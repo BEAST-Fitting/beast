@@ -110,12 +110,18 @@ if __name__ == '__main__':
         else:
             extra_kwargs = None
 
+        if hasattr(datamodel, 'redshift'):
+            redshift = datamodel.redshift
+        else:
+            redshift = 0
+
         # generate the spectral library (no dust extinction)
         (spec_fname, g_spec) = make_spectral_grid(
             datamodel.project,
             oiso,
             osl=datamodel.osl,
             distance=distance,
+            redshift=redshift,
             add_spectral_properties_kwargs=extra_kwargs)
 
         # add the stellar priors as weights

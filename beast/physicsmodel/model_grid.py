@@ -69,6 +69,7 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
 
 def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
                        verbose=True, spec_fname=None, filterLib=None,
+                       redshift=0,
                        add_spectral_properties_kwargs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
@@ -90,6 +91,10 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
         Distance at which models should be shifted
         0 means absolute magnitude.
         Expecting pc units
+
+    redshift: float
+        Redshift to which wavelengths should be shifted
+        Default is 0 (rest frame)
 
     spec_fname: str
         full filename to save the spectral grid into
@@ -145,6 +150,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
         # seds already at 10 pc, need multiplcation by the square of the ratio
         # to this distance
         if hasattr(g, 'writeHDF'):
+            g.lamb = g.lamb * (1. + redshift)
             if distance is not None:
                 g.seds = g.seds / (0.1 * _distance) ** 2
             if add_spectral_properties_kwargs is not None:
@@ -155,8 +161,9 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
             g.writeHDF(spec_fname)
         else:
             for gk in g:
+                gk.lamb = gk.lamb * (1. + redshift)
                 if distance is not None:
-                    gk.seds = gk.seds / (0.1 * _distance) ** 2
+                   gk.seds = gk.seds / (0.1 * _distance) ** 2
                 if add_spectral_properties_kwargs is not None:
                     gk = creategrid.add_spectral_properties(gk,
                                             nameformat=nameformat,
