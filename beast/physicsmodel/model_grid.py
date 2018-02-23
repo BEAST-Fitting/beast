@@ -163,7 +163,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
             for gk in g:
                 gk.lamb = gk.lamb * (1. + redshift)
                 if distance is not None:
-                   gk.seds = gk.seds / (0.1 * _distance) ** 2
+                    gk.seds = gk.seds / (0.1 * _distance) ** 2
                 if add_spectral_properties_kwargs is not None:
                     gk = creategrid.add_spectral_properties(gk,
                                             nameformat=nameformat,
