@@ -1,3 +1,5 @@
+.. _beast_development:
+
 #################
 BEAST Development
 #################
