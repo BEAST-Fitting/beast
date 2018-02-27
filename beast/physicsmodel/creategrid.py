@@ -320,15 +320,22 @@ def apply_distance_grid(specgrid, distances, distances_prior):
         prior values
 
     """
-
     g0 = specgrid
 
     # Current length of the grid
     N0 = len(g0.grid)
     N = N0 * len(distances)
 
-    # Distance column
-    cols = {'distance': np.empty(N, dtype=float)}
+    # Make singleton list if a single distance is given
+    if not hasattr(distances, '__iter__'):
+        _distances = [distances]
+    else:
+        _distances = distances
+
+    # Add distance column if multiple distances are specified
+    cols = {}
+    if len(distances) > 1:
+        cols['distance'] = np.empty(N, dtype=float)
 
     # Existing columns
     keys0 = list(g0.keys())
@@ -339,7 +346,7 @@ def apply_distance_grid(specgrid, distances, distances_prior):
     new_seds = np.empty((N, n_sed_points), dtype=float)
 
     for count, distance in \
-        Pbar(len(distances), desc='grid with distances').iterover(enumerate(distances)):
+        Pbar(len(_distances), desc='grid with distances').iterover(enumerate(_distances)):
 
         # The range where the current distance points will live
         distance_slice = slice(N0 * count, N0 * (count + 1))
@@ -349,7 +356,8 @@ def apply_distance_grid(specgrid, distances, distances_prior):
         new_seds[distance_slice, :] = g0.seds / (0.1 * distance_pc) ** 2
 
         # Fill in the distance in the distance column
-        cols['distance'][distance_slice] = distance_pc
+        if len(distances) > 1:
+            cols['distance'][distance_slice] = distance_pc
 
         # Copy the old columns
         for key in keys0:
