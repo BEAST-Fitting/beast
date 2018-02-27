@@ -134,13 +134,10 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                                                                bounds=bounds)
 
         # Make singleton list if a single distance is given
-        if not hasattr(distance, '__iter__'):
-            distances = [distance]
-        else:
-            distances = distance
+        distances = np.atleast_1d(distance)
 
         if distance_prior == None:
-            distance_prior = [1.] * len(distances)
+            distance_prior = np.ones(len(distances))
 
         if verbose:
             print('Adding spectral properties:', add_spectral_properties_kwargs

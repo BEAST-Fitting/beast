@@ -73,18 +73,14 @@ if __name__ == '__main__':
                                            z=datamodel.z)
 
         # calculate the distances in pc
-        try:
-            distance_unit = datamodel.distances[0].unit
-            distances = datamodel.distances
-        except:
-            distance_unit = datamodel.distances.unit
-            distances = [datamodel.distances]
+        distances = np.atleast_1d(datamodel.distances)
+        distance_unit = distances[0].unit
 
         if distance_unit == units.mag:
-            dmods = np.array([d.value for d in distances])
-            distances = np.power(10, dmods / 5. + 1) * units.pc
+            print("Converting distances to pc")
+            distances = np.power(10, distances.value / 5. + 1) * units.pc
         elif distance_unit == units.pc:
-            distances = datamodel.distances
+            print("Distances given in pc")
         else:
             raise ValueError("distance modulus does not have mag or parsec units")
 
