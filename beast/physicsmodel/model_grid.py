@@ -68,7 +68,8 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
     return (iso_fname, oiso)
 
 def make_spectral_grid(project, oiso, osl=None, bounds={},
-                       verbose=True, spec_fname=None, filterLib=None,
+                       verbose=True, spec_fname=None, distance=[10 * units.pc],
+                       distance_prior=None, filterLib=None,
                        add_spectral_properties_kwargs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
@@ -85,6 +86,14 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
 
     osl: stellib.Stellib object
         Spectral library to use (default stellib.Kurucz)
+
+    distance: float or list of float
+        distances at which models should be shifted
+        0 means absolute magnitude.
+        expecting pc units
+
+    distance_prior: list of float
+        prior values
 
     spec_fname: str
         full filename to save the spectral grid into
@@ -110,19 +119,28 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
     if not os.path.isfile(spec_fname):
         osl = osl or stellib.Kurucz()
 
-        #filter extrapolations of the grid with given sensitivities in logg
-        #  and logT
+        # filter extrapolations of the grid with given sensitivities in
+        # logg and logT
         if 'dlogT' not in bounds:
             bounds['dlogT'] = 0.1
         if 'dlogg' not in bounds:
             bounds['dlogg'] = 0.3
 
-        #make the spectral grid
+        # make the spectral grid
         if verbose:
             print('Make spectra')
         g = creategrid.gen_spectral_grid_from_stellib_given_points(osl,
                                                                    oiso.data,
                                                                bounds=bounds)
+
+        # Make singleton list if a single distance is given
+        if not hasattr(distance, '__iter__'):
+            distances = [distance]
+        else:
+            distances = distance
+
+        if distance_prior == None:
+            distance_prior = [1.] * len(distances)
 
         if verbose:
             print('Adding spectral properties:', add_spectral_properties_kwargs
@@ -131,25 +149,28 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
             nameformat = add_spectral_properties_kwargs.\
                          pop('nameformat', '{0:s}') + '_nd'
 
-        # write to disk
-        # and apply the distance to the particular galaxy of interest
-        # seds already at 10 pc, need multiplcation by the square of the ratio
-        # to this distance
-        if hasattr(g, 'writeHDF'):
+        # Apply the distances to the stars. Seds already at 10 pc, need
+        # multiplcation by the square of the ratio to this distance.
+        # TODO: Applying the distances might have to happen in chunks
+        # for larger grids.
+        def apply_distance_and_spectral_props(g):
+            g = creategrid.apply_distance_grid(g, distances, distance_prior)
+
             if add_spectral_properties_kwargs is not None:
                 g = creategrid.add_spectral_properties(g,
                                                        nameformat=nameformat,
                                                        filterLib=filterLib,
                                             **add_spectral_properties_kwargs)
+
+            return g
+
+        # Perform the extensions defined above and Write to disk
+        if hasattr(g, 'writeHDF'):
+            g = apply_distance_and_spectral_props(g)
             g.writeHDF(spec_fname)
         else:
             for gk in g:
-                if add_spectral_properties_kwargs is not None:
-                    gk = creategrid.add_spectral_properties(gk,
-                                            nameformat=nameformat,
-                                            filterLib=filterLib,
-                                            **add_spectral_properties_kwargs)
-
+                gk = apply_distance_and_spectral_props(gk)
                 gk.writeHDF(spec_fname, append=True)
 
     g = grid.FileSpectralGrid(spec_fname, backend='memory')
@@ -200,39 +221,6 @@ def add_stellar_priors(project, specgrid, verbose=True,
     g = grid.FileSpectralGrid(priors_fname, backend='memory')
 
     return (priors_fname, g)
-
-def make_grid_with_distances(project, specgrid, distances,
-                             distances_prior=None,
-                             verbose=True):
-    """
-    Distances are applied to the spectral grid by copying the grid and
-    applying a scaling factor.
-
-    Parameters
-    ----------
-
-    project: str
-        project name
-
-    specgrid: grid.SpectralGrid object
-        spectral grid to transform
-
-    distances: list of float
-        Distances at which models should be shifted
-        0 means absolute magnitude.
-        Expecting pc units
-
-    distances_prior: list of float
-        prior values
-
-    """
-    if distances_prior == None:
-        distances_prior = [1.] * len(distances)
-
-    if verbose:
-        print("Expanding grid with {} distances.".format(len(distances)))
-
-    return creategrid.apply_distance_grid(specgrid, distances, distances_prior)
 
 
 def make_extinguished_sed_grid(project,

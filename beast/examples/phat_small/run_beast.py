@@ -99,7 +99,7 @@ if __name__ == '__main__':
             oiso,
             osl=datamodel.osl,
             distance=distances,
-            distances_prior=[1.] * len(distances),
+            distances_prior=None,
             add_spectral_properties_kwargs=extra_kwargs)
 
         # add the stellar priors as weights
