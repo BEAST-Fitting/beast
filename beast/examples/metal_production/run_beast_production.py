@@ -2,7 +2,7 @@
 """
 Script to run the BEAST on the PHAT-like data.
 Assumes that the datamodel.py file exists in the same directory as this script.
-  And it must be called datamodel.py 
+  And it must be called datamodel.py
 """
 
 # system imports
@@ -22,13 +22,13 @@ from beast.physicsmodel.model_grid import (make_iso_table,
                                            add_stellar_priors,
                                            make_extinguished_sed_grid)
 
-import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
+import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.observationmodel.ast.make_ast_input_list import pick_models
 from beast.observationmodel.ast.make_ast_xy_list import pick_positions
 from beast.fitting import fit
 from beast.fitting import trim_grid
-from beast.physicsmodel.grid import FileSEDGrid  
-from beast.tools import verify_params 
+from beast.physicsmodel.grid import FileSEDGrid
+from beast.tools import verify_params
 
 import datamodel as datamodel
 #import datamodel
@@ -51,9 +51,9 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-r", "--resume", help="Resume a fitting run",
                         action="store_true")
-    parser.add_argument("source_density", 
+    parser.add_argument("source_density",
                         help="source density bin")
-    parser.add_argument("sub_source_density", 
+    parser.add_argument("sub_source_density",
                         help="subset of the source density bin [0, 1, 2, ...]")
 
     args = parser.parse_args()
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     stats_filebase = "%s/%s"%(datamodel.project,datamodel.project) \
                      + '_sd' + args.source_density.replace('_','-') \
-                     + '_sub' + args.sub_source_density 
+                     + '_sub' + args.sub_source_density
     sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
 
@@ -98,12 +98,16 @@ if __name__ == '__main__':
                                            dlogt=datamodel.logt[2],
                                            z=datamodel.z)
 
-        # calculate the distance in pc
-        if datamodel.distanceModulus.unit == units.mag:
-            dmod = datamodel.distanceModulus.value
-            distance = 10 ** ( (dmod / 5.) + 1 ) * units.pc
+        # calculate the distances in pc
+        distances = np.atleast_1d(datamodel.distances)
+        distance_unit = distances[0].unit
+        if distance_unit == units.mag:
+            print("Converting distances to pc")
+            distances = np.power(10, distances.value / 5. + 1) * units.pc
+        elif distance_unit == units.pc:
+            print("Distances given in pc")
         else:
-            raise ValueError("distance modulus does not have mag units")
+            raise ValueError("distance modulus does not have mag or parsec units")
 
         if hasattr(datamodel, 'add_spectral_properties_kwargs'):
             extra_kwargs = datamodel.add_spectral_properties_kwargs
@@ -122,7 +126,7 @@ if __name__ == '__main__':
         #   also computes the grid weights for the stellar part
         (pspec_fname, g_pspec) = add_stellar_priors(datamodel.project,
                                                     g_spec)
-                                                    
+
         # generate the SED grid by integrating the filter response functions
         #   effect of dust extinction applied before filter integration
         #   also computes the dust priors as weights
@@ -164,8 +168,8 @@ if __name__ == '__main__':
                 keep, = np.where(obsdata[sfiltername] < 99.)
                 min_mags[k] = np.percentile(obsdata[keep][sfiltername],90.)
 
-            # max. mags from the gst observation cat. 
-            mag_cuts = min_mags + tmp_cuts 
+            # max. mags from the gst observation cat.
+            mag_cuts = min_mags + tmp_cuts
 
         pick_models(modelsedgrid, mag_cuts, Nfilter=Nfilters,
                     N_stars=N_models, Nrealize=Nrealize)
@@ -182,17 +186,17 @@ if __name__ == '__main__':
 
     if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
- 
-        # get the modesedgrid on which to generate the noisemodel  
-        modelsedgrid = FileSEDGrid(modelsedgrid_filename)  
-            
-        # generate the AST noise model  
+
+        # get the modesedgrid on which to generate the noisemodel
+        modelsedgrid = FileSEDGrid(modelsedgrid_filename)
+
+        # generate the AST noise model
         noisemodel.make_toothpick_noise_model( \
-            datamodel.noisefile, 
+            datamodel.noisefile,
             datamodel.astfile,
             modelsedgrid,
             use_rate=True,
-            absflux_a_matrix=datamodel.absflux_a_matrix)  
+            absflux_a_matrix=datamodel.absflux_a_matrix)
 
     if args.trim:
         print('Trimming the model and noise grids')
@@ -201,25 +205,25 @@ if __name__ == '__main__':
         obsdata = datamodel.get_obscat(datamodel.obsfile,
                                        datamodel.filters)
 
-        # get the modesedgrid on which to generate the noisemodel  
-        modelsedgrid = FileSEDGrid(modelsedgrid_filename)  
-        
+        # get the modesedgrid on which to generate the noisemodel
+        modelsedgrid = FileSEDGrid(modelsedgrid_filename)
+
         # read in the noise model just created
         noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
 
         # trim the model sedgrid
         trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata,
-                              sed_trimname, noisemodel_trimname, 
+                              sed_trimname, noisemodel_trimname,
                               sigma_fac=3.)
 
     if args.fit:
         start_time = time.clock()
-    
+
         # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(noisemodel_trimname)
 
         # read in the observed data
-        obsdata = datamodel.get_obscat(datamodel.obsfile, 
+        obsdata = datamodel.get_obscat(datamodel.obsfile,
                                        datamodel.filters)
 
         # output files
@@ -242,6 +246,3 @@ if __name__ == '__main__':
     # print help if no arguments
     if not any(vars(args).values()):
         parser.print_help()
-
-
-        

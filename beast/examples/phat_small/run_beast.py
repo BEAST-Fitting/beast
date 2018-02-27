@@ -75,7 +75,6 @@ if __name__ == '__main__':
         # calculate the distances in pc
         distances = np.atleast_1d(datamodel.distances)
         distance_unit = distances[0].unit
-
         if distance_unit == units.mag:
             print("Converting distances to pc")
             distances = np.power(10, distances.value / 5. + 1) * units.pc

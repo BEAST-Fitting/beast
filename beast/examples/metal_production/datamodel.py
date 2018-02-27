@@ -125,7 +125,7 @@ noisefile = project + '/' + project + '_noisemodel.hd5'
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
 # distance modulus to the galaxy
-distanceModulus = 18.5 * units.mag
+distances = 18.5 * units.mag
 
 ################
 
