@@ -121,8 +121,8 @@ absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 # distance modulus to the galaxy
 distanceModulus = 24.47 * units.mag
 
-# redshift of galaxy
-redshift = -0.001 # M31 blueshift from SIMBAD
+# velocity of galaxy
+velocity =  -300 * units.km / units.s # M31 velocity from SIMBAD
 
 ################
 

@@ -16,6 +16,7 @@ import string
 import numpy as np
 
 from astropy import units
+from astropy import constants as const
 
 # BEAST imports
 from beast.physicsmodel.create_project_dir import create_project_dir
@@ -84,8 +85,8 @@ if __name__ == '__main__':
         else:
             extra_kwargs = None
 
-        if hasattr(datamodel, 'redshift'):
-            redshift = datamodel.redshift
+        if hasattr(datamodel, 'velocity'):
+            redshift = (datamodel.velocity / const.c).decompose().value
         else:
             redshift = 0
 

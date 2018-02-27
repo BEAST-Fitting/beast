@@ -127,8 +127,8 @@ absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 # distance modulus to the galaxy
 distanceModulus = 18.5 * units.mag
 
-# redshift of galaxy
-redshift = 0.000875 # LMC redshift from SIMBAD
+# velocity of galaxy
+velocity = 262.2 * units.km / units.s # LMC velocity from SIMBAD
 
 ################
 
