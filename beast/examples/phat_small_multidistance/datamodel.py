@@ -29,7 +29,7 @@ from beast.observationmodel.noisemodel import absflux_covmat
 
 # project : string
 #   the name of the output results directory
-project = 'beast_example_phat'
+project = 'multidistance'
 
 # filters : list of strings
 #   full filter names in BEAST filter database
@@ -119,7 +119,7 @@ noisefile = project + '/' + project + '_noisemodel.hd5'
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
 # distance modulus to the galaxy
-distances = [dmod * units.mag for dmod in [24.3, 24.4, 24.5]]
+distances = np.array([24.3, 24.4, 24.5]) * units.mag
 
 ################
 

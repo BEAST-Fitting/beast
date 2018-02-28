@@ -33,7 +33,23 @@ from beast.physicsmodel.grid import FileSEDGrid
 from beast.tools import verify_params
 
 
-import datamodel
+# import datamodel
+# print("Import statement gets datamodel from {}.".format(datamodel.__file__))
+# print("Distances are {}".format(datamodel.distances))
+
+# import runpy, os
+
+# print("runpy.run_path runs code from {}.".format(datamodelfile))
+# datamodel_globals = runpy.run_path(datamodelfile)
+# print("Distances are {}".format(datamodel_globals['distances']))
+
+# https://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
+import importlib.util, os
+datamodelfile = os.path.join(os.getcwd(), 'datamodel.py')
+spec = importlib.util.spec_from_file_location("datamodel", datamodelfile)
+datamodel = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(datamodel)
+print("Project name: {}".format(datamodel.project))
 
 
 if __name__ == '__main__':

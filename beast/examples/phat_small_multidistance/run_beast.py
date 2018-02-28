@@ -1,1 +1,1 @@
-beast/examples/phat_small/run_beast.py
+../phat_small/run_beast.py
