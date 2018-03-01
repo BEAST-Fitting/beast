@@ -103,22 +103,26 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
 def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     # setup the plot grid
-    gs = gridspec.GridSpec(4, 4,
+    gs = gridspec.GridSpec(4, 5,
                            height_ratios=[1.0,1.0,1.0,1.0],
-                           width_ratios=[1.0,1.0,1.0,1.0])
+                           width_ratios=[1.0,1.0,1.0,1.0,1.0])
     ax = []
-    # plots for the 1D PDFs
+    indices_1dpdf = []
+    # plots for the 1D PDFs go on rows 2 and 3, cols 0 to 3
     for j in range(2):
-        for i in range(4):
+        for i in range(5):
+            indices_1dpdf.append(len(ax))
             ax.append(plt.subplot(gs[j+2,i]))
+
     # now for the big SED plot
-    ax.append(plt.subplot(gs[0:2,0:3]))
+    index_sedplot = len(ax)
+    ax.append(plt.subplot(gs[0:2,0:4]))
 
     # plot the SED
     #print(np.sort(stats.colnames))
 
     n_filters = len(filters)
-    
+
     # get the observations
     waves *= 1e-4
     obs_flux = np.empty((n_filters),dtype=np.float)
@@ -130,12 +134,12 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     c = ap_SkyCoord(ra=stats['RA'][k]*ap_units.degree,
                     dec=stats['DEC'][k]*ap_units.degree,
                     frame='icrs')
-    corname = ('PHAT J' + 
+    corname = ('PHAT J' +
                c.ra.to_string(unit=ap_units.hourangle, sep="",precision=2,
-                              alwayssign=False,pad=True) + 
+                              alwayssign=False,pad=True) +
                c.dec.to_string(sep="",precision=2,
                                alwayssign=True,pad=True))
-        
+
     for i, cfilter in enumerate(filters):
         obs_flux[i] = stats[cfilter][k]
         mod_flux[i,0] = np.power(10.0,stats['log'+cfilter+'_wd_p50'][k])
@@ -151,72 +155,72 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
                                                       '_wd_bias_p16'][k])
             mod_flux_wbias[i,2] = np.power(10.0,stats['log'+cfilter+
                                                       '_wd_bias_p84'][k])
-        
-    ax[8].plot(waves, obs_flux, 'ko', label='observed')
+    sed_ax = ax[index_sedplot]
+    sed_ax.plot(waves, obs_flux, 'ko', label='observed')
 
     if 'log'+filters[0]+'_wd_bias_p50' in stats.colnames:
-        ax[8].plot(waves, mod_flux_wbias[:,0], 'b-',label='stellar+dust+bias')
-        ax[8].fill_between(waves, mod_flux_wbias[:,1], mod_flux_wbias[:,2],
+        sed_ax.plot(waves, mod_flux_wbias[:,0], 'b-',label='stellar+dust+bias')
+        sed_ax.fill_between(waves, mod_flux_wbias[:,1], mod_flux_wbias[:,2],
                            color='b', alpha = 0.3)
 
-    ax[8].plot(waves, mod_flux[:,0], 'r-',label='stellar+dust')
-    ax[8].fill_between(waves, mod_flux[:,1], mod_flux[:,2],
+    sed_ax.plot(waves, mod_flux[:,0], 'r-',label='stellar+dust')
+    sed_ax.fill_between(waves, mod_flux[:,1], mod_flux[:,2],
                        color='r', alpha = 0.2)
 
-    ax[8].plot(waves, mod_flux_nd[:,0], 'y-',label='stellar only')
-    ax[8].fill_between(waves, mod_flux_nd[:,1], mod_flux_nd[:,2],
+    sed_ax.plot(waves, mod_flux_nd[:,0], 'y-',label='stellar only')
+    sed_ax.fill_between(waves, mod_flux_nd[:,1], mod_flux_nd[:,2],
                        color='y', alpha = 0.1)
 
-    ax[8].legend(loc='upper right', bbox_to_anchor=(1.25, 1.025))
+    sed_ax.legend(loc='upper right', bbox_to_anchor=(1.25, 1.025))
 
-    ax[8].set_ylabel(r'Flux [ergs s$^{-1}$ cm$^{-2}$ $\AA^{-1}$]')
-    ax[8].set_yscale('log')
+    sed_ax.set_ylabel(r'Flux [ergs s$^{-1}$ cm$^{-2}$ $\AA^{-1}$]')
+    sed_ax.set_yscale('log')
 
-    ax[8].set_xscale('log')
-    ax[8].text(0.5,-0.01,r'$\lambda$ [$\AA$]', 
-               transform=ax[8].transAxes, va='top')
-    ax[8].set_xlim(0.2,2.0)
-    ax[8].set_xticks([0.2,0.3,0.4,0.5,0.8,0.9,1.0,2.0])
-    ax[8].get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    sed_ax.set_xscale('log')
+    sed_ax.text(0.5,-0.01,r'$\lambda$ [$\AA$]',
+               transform=sed_ax.transAxes, va='top')
+    sed_ax.set_xlim(0.2,2.0)
+    sed_ax.set_xticks([0.2,0.3,0.4,0.5,0.8,0.9,1.0,2.0])
+    sed_ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
-    ax[8].text(0.05, 0.95, corname, transform=ax[8].transAxes,
+    sed_ax.text(0.05, 0.95, corname, transform=sed_ax.transAxes,
                va='top',ha='left')
 
     # add the text results
-    keys = ['Av','M_ini','logA','Rv','f_A','Z','logT','logg','logL']
+    keys = ['Av','M_ini','logA','Rv','f_A','Z','logT','logg','logL','distance']
     dispnames = ['A(V)','log(M)','log(t)','R(V)',r'f$_\mathcal{A}$','Z',
-                 r'log(T$_\mathrm{eff})$','log(g)','log(L)']
+                 r'log(T$_\mathrm{eff})$','log(g)','log(L)', 'distance(pc)']
     laby = 0.72
     ty = np.linspace(laby-0.07,0.1,num=len(keys))
     ty[3:] -= 0.025
     ty[6:] -= 0.025
     tx = [1.12, 1.2, 1.3]
     for i in range(len(keys)):
-        ax[8].text(tx[0], ty[i], dispnames[i],
+        sed_ax.text(tx[0], ty[i], dispnames[i],
                    ha='right',
-                   transform=ax[8].transAxes)
-        ax[8].text(tx[1], ty[i], disp_str(stats, starnum, keys[i]),
+                   transform=sed_ax.transAxes)
+        sed_ax.text(tx[1], ty[i], disp_str(stats, starnum, keys[i]),
                    ha='center', color='m',
-                   transform=ax[8].transAxes)
+                   transform=sed_ax.transAxes)
         best_val = stats[keys[i]+'_Best'][k]
         if keys[i] == 'M_ini':
             best_val = np.log10(best_val)
-        ax[8].text(tx[2], ty[i],
-                   '$' + "{0:.2f}".format(best_val) + '$', 
-                   ha='center', color='c', 
-                   transform=ax[8].transAxes)
-    ax[8].text(tx[0],laby, 'Param',
+        sed_ax.text(tx[2], ty[i],
+                   '$' + "{0:.2f}".format(best_val) + '$',
+                   ha='center', color='c',
+                   transform=sed_ax.transAxes)
+    sed_ax.text(tx[0],laby, 'Param',
                ha='right',
-               transform=ax[8].transAxes)
-    ax[8].text(tx[1],laby, '50%$\pm$33%',
+               transform=sed_ax.transAxes)
+    sed_ax.text(tx[1],laby, '50%$\pm$33%',
                ha='center', color='k',
-               transform=ax[8].transAxes)
-    ax[8].text(tx[2],laby, 'Best',color='k',
+               transform=sed_ax.transAxes)
+    sed_ax.text(tx[2],laby, 'Best',color='k',
                ha='center',
-               transform=ax[8].transAxes)
+               transform=sed_ax.transAxes)
 
     # now draw boxes around the different kinds of parameters
-    tax = ax[8]
+    tax = sed_ax
 
     # primary
     rec = Rectangle((tx[0]-0.1,ty[2]-0.02),
@@ -245,16 +249,23 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     # padding for rectangles of 1D PDFs
     pad = 0.1
 
+    # Make these plots, from left to right
+
+    # Plot the distance
     # plot the primary parameter 1D PDFs
-    plot_1dpdf(ax[0], pdf1d_hdu, 'Av', 'A(V)', starnum,
+    ax_iter = (ax[i] for i in indices_1dpdf)
+    first_primary_ax = next(ax_iter)
+    plot_1dpdf(first_primary_ax, pdf1d_hdu, 'Av', 'A(V)', starnum,
                stats=stats)
-    plot_1dpdf(ax[1], pdf1d_hdu, 'M_ini', 'log(M)', starnum, logx=True,
+    plot_1dpdf(next(ax_iter), pdf1d_hdu, 'M_ini', 'log(M)', starnum, logx=True,
                stats=stats)
-    plot_1dpdf(ax[2], pdf1d_hdu, 'logA', 'log(t)', starnum,
+    plot_1dpdf(next(ax_iter), pdf1d_hdu, 'logA', 'log(t)', starnum,
+               stats=stats)
+    plot_1dpdf(next(ax_iter), pdf1d_hdu, 'distance', 'distance(pc)', starnum,
                stats=stats)
 
     # draw a box around them and label
-    tax = ax[0]
+    tax = first_primary_ax
     rec = Rectangle((-1.75*pad,-pad),
                     3*(1.0+pad)+1.5*pad,
                     1.0+1.5*pad,
@@ -263,24 +274,28 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     rec = tax.add_patch(rec)
     rec.set_clip_on(False)
 
-    tax.text(-2.*pad, 0.5, 'Primary', transform=tax.transAxes, 
+    tax.text(-2.*pad, 0.5, 'Primary', transform=tax.transAxes,
              rotation='vertical', fontstyle='oblique',
              va='center', ha='right')
 
-    tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes, 
-             rotation='vertical', 
+    tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes,
+             rotation='vertical',
              va='center', ha='right')
 
+    # Skip one box
+    next(ax_iter)
+
     # plot the secondary parameter 1D PDFs
-    plot_1dpdf(ax[4], pdf1d_hdu, 'Rv', 'R(V)', starnum,
+    first_secondary_ax = next(ax_iter)
+    plot_1dpdf(first_secondary_ax, pdf1d_hdu, 'Rv', 'R(V)', starnum,
                stats=stats)
-    plot_1dpdf(ax[5], pdf1d_hdu, 'f_A', r'f$_\mathcal{A}$', starnum,
+    plot_1dpdf(next(ax_iter), pdf1d_hdu, 'f_A', r'f$_\mathcal{A}$', starnum,
                stats=stats)
-    plot_1dpdf(ax[6], pdf1d_hdu, 'Z', 'Z', starnum,
+    plot_1dpdf(next(ax_iter), pdf1d_hdu, 'Z', 'Z', starnum,
                stats=stats)
 
     # draw a box around them
-    tax = ax[4]
+    tax = first_secondary_ax
     rec = Rectangle((-1.75*pad,-pad),
                     3*(1.0+pad)+1.5*pad,
                     1.0+1.5*pad,
@@ -289,33 +304,34 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     rec = tax.add_patch(rec)
     rec.set_clip_on(False)
 
-    tax.text(-2*pad, 0.5, 'Secondary', transform=tax.transAxes, 
+    tax.text(-2*pad, 0.5, 'Secondary', transform=tax.transAxes,
              rotation='vertical', fontstyle='oblique',
              va='center', ha='right')
 
-    tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes, 
-             rotation='vertical', 
+    tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes,
+             rotation='vertical',
              va='center', ha='right')
 
     # plot the derived parameter 1D PDFs
-    plot_1dpdf(ax[3], pdf1d_hdu, 'logT', r'log(T$_\mathrm{eff})$', starnum,
+    first_derived_ax = next(ax_iter)
+    plot_1dpdf(first_derived_ax, pdf1d_hdu, 'logT', r'log(T$_\mathrm{eff})$', starnum,
                stats=stats)
-    plot_1dpdf(ax[7], pdf1d_hdu, 'logg', 'log(g)', starnum,
+    plot_1dpdf(next(ax_iter), pdf1d_hdu, 'logg', 'log(g)', starnum,
                stats=stats)
 
     # draw a box around them
-    tax = ax[7]
-    rec = Rectangle((-0.25*pad,-pad),
-                    1.0+0.5*pad,
-                    2*(1.0+2.*pad)-0.125*pad,
+    tax = first_derived_ax
+    rec = Rectangle((-pad,-2*pad),
+                    2*(1.0 + 2*pad),
+                    1.0+3.*pad,
                     fill=False, lw=2, transform=tax.transAxes,
                     ls='dashdot')
     rec = tax.add_patch(rec)
     rec.set_clip_on(False)
 
-    tax.text(0.5, 2*(1.0+2*pad)-1.0*pad, 'Derived', transform=tax.transAxes, 
-             rotation='horizontal', fontstyle='oblique',
-             va='bottom', ha='center')
+    tax.text(-2*pad, 0.5, 'Derived', transform=tax.transAxes,
+             rotation='vertical',
+             va='center', ha='right')
 
     # optimize the figure layout
     plt.tight_layout(h_pad=2.0, w_pad=1.0)
@@ -341,18 +357,18 @@ if __name__ == '__main__':
     pdf1d_hdu = fits.open(filebase+'_pdf1d.fits')
 
     # filters for PHAT
-    #filters = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W', 
-    #           'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M', 
+    #filters = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W',
+    #           'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M',
     #           'HST_ACS_WFC_F658N', 'HST_ACS_WFC_F814W',
     #           'HST_WFC3_F110W', 'HST_WFC3_F160W']
-    #waves = np.asarray([2250., 2750.0, 3360.0, 
+    #waves = np.asarray([2250., 2750.0, 3360.0,
     #                    4750., 5500., 6580., 8140.,
     #                    11000., 16000.])
     filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W',
                'HST_ACS_WFC_F814W','HST_WFC3_F110W','HST_WFC3_F160W']
     waves = np.asarray([2722.05531502, 3366.00507206,4763.04670013,
                         8087.36760191,11672.35909295,15432.7387546])
-    
+
     fig, ax = plt.subplots(figsize=(8,8))
 
     # make the plot!
@@ -365,5 +381,3 @@ if __name__ == '__main__':
         fig.savefig('{}.{}'.format(basename, args.savefig))
     else:
         plt.show()
-
-    
