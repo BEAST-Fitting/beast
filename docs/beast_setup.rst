@@ -52,6 +52,8 @@ Grid Definition Parameters
 The BEAST generates a grid of stellar models based on aditional input parameters
 from datamodel.py.
 
+* ``distances``: distance grid range parameters (min, max, step).
+* ``distance_unit``: specify magnitude (``units.mag``) or a length unit
 * ``logt``: age grid range parameters (min, max, step).
 * ``z``: metallicity grid points.
 * ``oiso``: isochrone model grid. Current choices: Padova or MIST. Default: PARSEC+CALIBRI: ``oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)``
