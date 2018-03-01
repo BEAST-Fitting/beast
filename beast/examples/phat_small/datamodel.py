@@ -118,8 +118,11 @@ noisefile = project + '/' + project + '_noisemodel.hd5'
 # absflux calibration covariance matrix for HST specific filters (AC)
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
-# distance modulus to the galaxy
-distances = 24.47 * units.mag
+# Distances: distance to the galaxy [min, max, step] or [fixed number]
+distances = [24.47]
+
+# Distance unit (any length or units.mag)
+distance_unit = units.mag
 
 ################
 

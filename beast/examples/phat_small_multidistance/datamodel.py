@@ -120,8 +120,6 @@ absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
 ################
 
-# Distances: distance modulus to the galaxy [min, max, step] or single
-# number
 # Andromeda: 778 ± 33 kpc. Fit within range of 66 kpc. 10 steps --> 6.6 kpc
 distances = [(778. - 33.) * 1.e3, (778. + 33.) * 1.e3, 6.6e3]
 distance_unit = units.pc
