@@ -265,43 +265,6 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     plot_1dpdf(last_primary_ax, pdf1d_hdu, 'distance', 'distance(pc)', starnum,
                stats=stats)
 
-    def horizontal_rectangle_around_axes(leftmost_ax, rightmost_ax, pad, ls):
-        """
-        pad: left, right, bottom, top
-        """
-        left, bottom = leftmost_ax.get_position().get_points()[0]
-        right, top = rightmost_ax.get_position().get_points()[1]
-        left -= pad[0]
-        right += pad[1]
-        bottom -= pad[2]
-        top += pad[3]
-        rec = Rectangle((left,bottom), right - left, top - bottom,
-                        transform=plt.gcf().transFigure, fill=False, lw=2, ls=ls)
-        rec = leftmost_ax.add_patch(rec)
-        rec.set_clip_on(False)
-
-    # draw a box around them and label
-    tax = first_primary_ax
-    # rec = Rectangle((-1.75*pad,-pad),
-                    # 3*(1.0+pad)+1.5*pad,
-                    # 1.0+1.5*pad,
-                    # fill=False, lw=2, transform=tax.transAxes,
-                    # ls='dashed')
-    # rec = tax.add_patch(rec)
-    # rec.set_clip_on(False)
-
-    rectanglePadding = (0.03, 0.01, 0.03, 0.01)
-    horizontal_rectangle_around_axes(first_primary_ax, last_primary_ax,
-                                     pad=rectanglePadding, ls='dashed')
-
-    tax.text(-2.*pad, 0.5, 'Primary', transform=tax.transAxes,
-             rotation='vertical', fontstyle='oblique',
-             va='center', ha='right')
-
-    tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes,
-             rotation='vertical',
-             va='center', ha='right')
-
     # Skip one box
     next(ax_iter)
 
@@ -315,25 +278,6 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     plot_1dpdf(last_secondary_ax, pdf1d_hdu, 'Z', 'Z', starnum,
                stats=stats)
 
-    # draw a box around them
-    tax = first_secondary_ax
-    # rec = Rectangle((-1.75*pad,-1.75*pad),
-                    # 3*(1.0+pad)+1.5*pad,
-                    # 1.0+1.5*pad,
-                    # fill=False, lw=2, transform=tax.transAxes,
-                    # ls='dotted')
-
-    horizontal_rectangle_around_axes(first_secondary_ax, last_secondary_ax,
-                                     pad=rectanglePadding, ls='dotted')
-
-    tax.text(-2*pad, 0.5, 'Secondary', transform=tax.transAxes,
-             rotation='vertical', fontstyle='oblique',
-             va='center', ha='right')
-
-    tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes,
-             rotation='vertical',
-             va='center', ha='right')
-
     # plot the derived parameter 1D PDFs
     first_derived_ax = next(ax_iter)
     plot_1dpdf(first_derived_ax, pdf1d_hdu, 'logT', r'log(T$_\mathrm{eff})$', starnum,
@@ -342,7 +286,79 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     plot_1dpdf(last_derived_ax, pdf1d_hdu, 'logg', 'log(g)', starnum,
                stats=stats)
 
-    # draw a box around them
+    plt.tight_layout(h_pad=2.0, w_pad=1.0)
+
+    ####
+    # PLOT ALL THE BOXES AFTER CALLING TIGHT LAYOUT!
+    ####
+
+    def horizontal_rectangle_around_axes(leftmost_ax, rightmost_ax, pad, ls, label=None):
+        """
+        pad: left, right, bottom, top
+        """
+        left, bottom = leftmost_ax.get_position().get_points()[0]
+        right, top = rightmost_ax.get_position().get_points()[1]
+        left -= pad[0]
+        right += pad[1]
+        bottom -= pad[2]
+        top += pad[3]
+        transf = plt.gcf().transFigure
+        rec = Rectangle((left,bottom), right - left, top - bottom,
+                        transform=transf, fill=False, lw=2, ls=ls)
+        rec = leftmost_ax.add_patch(rec)
+        rec.set_clip_on(False)
+
+        if label:
+            middle = (top + bottom) / 2.
+            moreleft = left#  pad[0]
+            leftmost_ax.text(moreleft, middle, label, transform=transf,
+                             rotation='vertical', fontstyle='oblique',
+                             va='center', ha='right')
+
+    # Box around primaries
+    tax = first_primary_ax
+    # rec = Rectangle((-1.75*pad,-pad),
+                    # 3*(1.0+pad)+1.5*pad,
+                    # 1.0+1.5*pad,
+                    # fill=False, lw=2, transform=tax.transAxes,
+                    # ls='dashed')
+    # rec = tax.add_patch(rec)
+    # rec.set_clip_on(False)
+
+    rectanglePadding = (0.03, 0.01, 0.03, 0.01)
+    horizontal_rectangle_around_axes(first_primary_ax, last_primary_ax,
+                                     pad=rectanglePadding, ls='dashed',
+                                     label='Primary')
+
+    tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes,
+             rotation='vertical',
+             va='center', ha='right')
+    
+    # tax.text(-2.*pad, 0.5, 'Primary', transform=tax.transAxes,
+             # rotation='vertical', fontstyle='oblique',
+             # va='center', ha='right')
+
+    # Box around secondaries
+    tax = first_secondary_ax
+    # rec = Rectangle((-1.75*pad,-1.75*pad),
+                    # 3*(1.0+pad)+1.5*pad,
+                    # 1.0+1.5*pad,
+                    # fill=False, lw=2, transform=tax.transAxes,
+                    # ls='dotted')
+
+    horizontal_rectangle_around_axes(first_secondary_ax, last_secondary_ax,
+                                     pad=rectanglePadding, ls='dotted',
+                                     label='Secondary')
+    
+    tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes,
+             rotation='vertical',
+             va='center', ha='right')
+
+    # tax.text(-2*pad, 0.5, 'Secondary', transform=tax.transAxes,
+             # rotation='vertical', fontstyle='oblique',
+             # va='center', ha='right')
+
+    # Box around deriveds
     tax = first_derived_ax
     # rec = Rectangle((-pad,-2*pad),
                     # 2*(1.0 + 2*pad),
@@ -353,14 +369,13 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     # rec.set_clip_on(False)
 
     horizontal_rectangle_around_axes(first_derived_ax, last_derived_ax,
-                                     pad=rectanglePadding, ls='dashdot')
+                                     pad=rectanglePadding, ls='dashdot',
+                                     label='Derived')
 
-    tax.text(-2*pad, 0.5, 'Derived', transform=tax.transAxes,
-             rotation='vertical',
-             va='center', ha='right')
+    # tax.text(-2*pad, 0.5, 'Derived', transform=tax.transAxes,
+             # rotation='vertical',
+             # va='center', ha='right')
 
-    # optimize the figure layout
-    # plt.tight_layout(h_pad=2.0, w_pad=1.0)
 
 if __name__ == '__main__':
 
