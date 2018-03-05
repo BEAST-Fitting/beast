@@ -187,13 +187,19 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
                va='top',ha='left')
 
     # add the text results
-    keys = ['Av','M_ini','logA','Rv','f_A','Z','logT','logg','logL','distance']
-    dispnames = ['A(V)','log(M)','log(t)','R(V)',r'f$_\mathcal{A}$','Z',
-                 r'log(T$_\mathrm{eff})$','log(g)','log(L)', 'distance(pc)']
+    keys = ['Av','M_ini','logA','distance','Rv','f_A','Z','logT','logg','logL']
+    dispnames = ['A(V)','log(M)','log(t)', 'distance(pc)', 'R(V)',r'f$_\mathcal{A}$','Z',
+                 r'log(T$_\mathrm{eff})$','log(g)','log(L)']
+    nprim = 4
+    nsec = 3
+    nderiv = 3
+    startprim, stopprim = 0, nprim - 1 # 0 1 2 3
+    startsec, stopsec = stopprim + 1, stopprim + nsec # 4 5 6
+    startderiv, stopderiv = stopsec + 1, stopsec + nderiv # 7 8 9
     laby = 0.72
     ty = np.linspace(laby-0.07,0.1,num=len(keys))
-    ty[3:] -= 0.025
-    ty[6:] -= 0.025
+    ty[startsec:] -= 0.025
+    ty[startderiv:] -= 0.025
     tx = [1.12, 1.2, 1.3]
     for i in range(len(keys)):
         sed_ax.text(tx[0], ty[i], dispnames[i],
@@ -221,30 +227,42 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     # now draw boxes around the different kinds of parameters
     tax = sed_ax
+    left, right = tx[0], tx[-1]
+    def draw_box_around_values(start, stop, ls):
+        deltaline = ty[start] - ty[start+1]
+        top = ty[start] + deltaline # Draw the top border ABOVE the text
+        bottom = ty[stop]
+        rec = Rectangle((left-0.1, bottom-0.02), right - left + 0.15, top - bottom,
+                        fill=False, lw=2, transform=tax.transAxes, ls=ls)
+        rec = tax.add_patch(rec)
+        rec.set_clip_on(False)
 
     # primary
-    rec = Rectangle((tx[0]-0.1,ty[2]-0.02),
-                    tx[2]-tx[0]+0.15, (ty[0]-ty[2])*1.5,
-                    fill=False, lw=2, transform=tax.transAxes,
-                    ls='dashed')
-    rec = tax.add_patch(rec)
-    rec.set_clip_on(False)
+    draw_box_around_values(startprim, stopprim, ls='dashed')
+    # rec = Rectangle((tx[0]-0.1,ty[2]-0.02),
+                    # tx[2]-tx[0]+0.15, (ty[0]-ty[2])*1.5,
+                    # fill=False, lw=2, transform=tax.transAxes,
+                    # ls='dashed')
+    # rec = tax.add_patch(rec)
+    # rec.set_clip_on(False)
 
     # secondary
-    rec = Rectangle((tx[0]-0.1,ty[5]-0.02),
-                    tx[2]-tx[0]+0.15, (ty[3]-ty[5])*1.5,
-                    fill=False, lw=2, transform=tax.transAxes,
-                    ls='dotted')
-    rec = tax.add_patch(rec)
-    rec.set_clip_on(False)
+    draw_box_around_values(startsec, stopsec, ls='dotted')
+    # rec = Rectangle((tx[0]-0.1,ty[5]-0.02),
+                    # tx[2]-tx[0]+0.15, (ty[3]-ty[5])*1.5,
+                    # fill=False, lw=2, transform=tax.transAxes,
+                    # ls='dotted')
+    # rec = tax.add_patch(rec)
+    # rec.set_clip_on(False)
 
     # derived
-    rec = Rectangle((tx[0]-0.1,ty[8]-0.02),
-                    tx[2]-tx[0]+0.15, (ty[6]-ty[8])*1.5,
-                    fill=False, lw=2, transform=tax.transAxes,
-                    ls='dashdot')
-    rec = tax.add_patch(rec)
-    rec.set_clip_on(False)
+    draw_box_around_values(startderiv, stopderiv, ls='dashdot')
+    # rec = Rectangle((tx[0]-0.1,ty[8]-0.02),
+                    # tx[2]-tx[0]+0.15, (ty[6]-ty[8])*1.5,
+                    # fill=False, lw=2, transform=tax.transAxes,
+                    # ls='dashdot')
+    # rec = tax.add_patch(rec)
+    # rec.set_clip_on(False)
 
     # padding for rectangles of 1D PDFs
     pad = 0.1
