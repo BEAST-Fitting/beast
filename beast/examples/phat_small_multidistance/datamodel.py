@@ -124,10 +124,6 @@ absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 distances = [(778. - 33.) * 1.e3, (778. + 33.) * 1.e3, 6.6e3]
 distance_unit = units.pc
 
-# Example of distance prior specification. Needs to be implemented. The
-# current way just passes None as a prior, equivalent to a flat one.
-distance_prior = 'flat'
-
 ### Stellar grid definition
 
 # log10(Age) -- [min,max,step] to generate the isochrones in years

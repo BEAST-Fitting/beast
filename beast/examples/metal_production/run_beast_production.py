@@ -98,16 +98,20 @@ if __name__ == '__main__':
                                            dlogt=datamodel.logt[2],
                                            z=datamodel.z)
 
-        # calculate the distances in pc
-        distances = np.atleast_1d(datamodel.distances)
-        distance_unit = distances[0].unit
-        if distance_unit == units.mag:
-            print("Converting distances to pc")
-            distances = np.power(10, distances.value / 5. + 1) * units.pc
-        elif distance_unit == units.pc:
-            print("Distances given in pc")
+        # construct the distances array
+        if len(datamodel.distances) == 3:
+            mindist, maxdist, stepdist = datamodel.distances
+            distances = np.arange(mindist, maxdist + stepdist, stepdist)
+        elif len(datamodel.distances) == 1:
+            distances = np.array(datamodel.distances)
         else:
-            raise ValueError("distance modulus does not have mag or parsec units")
+            raise ValueError("distances needs to be (min, max, step) or single number")
+
+        # calculate the distances in pc
+        if datamodel.distance_unit == units.mag:
+            distances = np.power(10, distances / 5. + 1) * units.pc
+        else:
+            distances = (distances * datamodel.distance_unit).to(units.pc)
 
         if hasattr(datamodel, 'add_spectral_properties_kwargs'):
             extra_kwargs = datamodel.add_spectral_properties_kwargs
@@ -119,7 +123,7 @@ if __name__ == '__main__':
             datamodel.project,
             oiso,
             osl=datamodel.osl,
-            distance=distance,
+            distance=distances,
             add_spectral_properties_kwargs=extra_kwargs)
 
         # add the stellar priors as weights
