@@ -334,8 +334,7 @@ def apply_distance_grid(specgrid, distances, distances_prior):
 
     # Add distance column if multiple distances are specified
     cols = {}
-    if len(distances) > 1:
-        cols['distance'] = np.empty(N, dtype=float)
+    cols['distance'] = np.empty(N, dtype=float)
 
     # Existing columns
     keys0 = list(g0.keys())
@@ -356,8 +355,7 @@ def apply_distance_grid(specgrid, distances, distances_prior):
         new_seds[distance_slice, :] = g0.seds / (0.1 * distance_pc) ** 2
 
         # Fill in the distance in the distance column
-        if len(distances) > 1:
-            cols['distance'][distance_slice] = distance_pc
+        cols['distance'][distance_slice] = distance_pc
 
         # Copy the old columns
         for key in keys0:
