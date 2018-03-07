@@ -69,7 +69,7 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
 
 def make_spectral_grid(project, oiso, osl=None, bounds={},
                        verbose=True, spec_fname=None, distance=[10 * units.pc],
-                       distance_prior=None, filterLib=None,
+                        filterLib=None,
                        add_spectral_properties_kwargs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
@@ -91,9 +91,6 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         distances at which models should be shifted
         0 means absolute magnitude.
         expecting pc units
-
-    distance_prior: list of float
-        prior values
 
     spec_fname: str
         full filename to save the spectral grid into
@@ -136,9 +133,6 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         # Make singleton list if a single distance is given
         distances = np.atleast_1d(distance)
 
-        if distance_prior == None:
-            distance_prior = np.ones(len(distances))
-
         if verbose:
             print('Adding spectral properties:', add_spectral_properties_kwargs
                   is not None)
@@ -151,7 +145,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         # TODO: Applying the distances might have to happen in chunks
         # for larger grids.
         def apply_distance_and_spectral_props(g):
-            g = creategrid.apply_distance_grid(g, distances, distance_prior)
+            g = creategrid.apply_distance_grid(g, distances)
 
             if add_spectral_properties_kwargs is not None:
                 g = creategrid.add_spectral_properties(g,
