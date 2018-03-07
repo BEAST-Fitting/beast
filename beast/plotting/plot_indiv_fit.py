@@ -103,20 +103,32 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
 def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     # setup the plot grid
-    gs = gridspec.GridSpec(4, 5,
-                           height_ratios=[1.0,1.0,1.0,1.0],
-                           width_ratios=[1.0,1.0,1.0,1.0,1.0])
+    gridNrow, gridNcol = 5, 12
+    gs = gridspec.GridSpec(gridNrow, gridNcol,
+                           height_ratios=[1.]*gridNrow,
+                           width_ratios=[1.]*gridNcol)
     ax = []
-    indices_1dpdf = []
-    # plots for the 1D PDFs go on rows 2 and 3, cols 0 to 3
-    for j in range(2):
-        for i in range(5):
-            indices_1dpdf.append(len(ax))
-            ax.append(plt.subplot(gs[j+2,i]))
 
-    # now for the big SED plot
+    # axes for the big SED plot. Leave empty columns right of the plot to
+    # put the legend and values.
+    sed_height = 2
+    free_cols = 2
     index_sedplot = len(ax)
-    ax.append(plt.subplot(gs[0:2,0:4]))
+    ax.append(plt.subplot(gs[0:sed_height,0:-1 - free_cols]))
+
+    # axes for the 1D PDFs
+    nprim = 4
+    nsec = 3
+    nderiv = 3
+
+    indices_1dpdf = []
+    rows = [sed_height+i for i in range(3)]
+    widths = [3, 4, 4]
+    naxes = [nprim, nsec, nderiv]
+    for r, w, n in zip(rows, widths, naxes):
+        for i in range(n):
+            indices_1dpdf.append(len(ax))
+            ax.append(plt.subplot(gs[r, i * w:(i+1) * w]))
 
     # plot the SED
     #print(np.sort(stats.colnames))
@@ -190,9 +202,6 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     keys = ['Av','M_ini','logA','distance','Rv','f_A','Z','logT','logg','logL']
     dispnames = ['A(V)','log(M)','log(t)', 'distance(pc)', 'R(V)',r'f$_\mathcal{A}$','Z',
                  r'log(T$_\mathrm{eff})$','log(g)','log(L)']
-    nprim = 4
-    nsec = 3
-    nderiv = 3
     startprim, stopprim = 0, nprim - 1 # 0 1 2 3
     startsec, stopsec = stopprim + 1, stopprim + nsec # 4 5 6
     startderiv, stopderiv = stopsec + 1, stopsec + nderiv # 7 8 9
@@ -232,7 +241,7 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
         deltaline = ty[start] - ty[start+1]
         top = ty[start] + deltaline # Draw the top border ABOVE the text
         bottom = ty[stop]
-        rec = Rectangle((left-0.1, bottom-0.02), right - left + 0.15, top - bottom,
+        rec = Rectangle((left-0.1, bottom-0.02), right - left + 0.15, top - bottom+0.01,
                         fill=False, lw=2, transform=tax.transAxes, ls=ls)
         rec = tax.add_patch(rec)
         rec.set_clip_on(False)
@@ -269,7 +278,10 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     # Make these plots, from left to right
 
-    # Plot the distance
+    # A, M, t, dist,
+    # R, fA, Z
+    # logT, logg, logL
+
     # plot the primary parameter 1D PDFs
     ax_iter = (ax[i] for i in indices_1dpdf)
     first_primary_ax = next(ax_iter)
@@ -282,9 +294,6 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     last_primary_ax = next(ax_iter)
     plot_1dpdf(last_primary_ax, pdf1d_hdu, 'distance', 'distance(pc)', starnum,
                stats=stats)
-
-    # Skip one box
-    next(ax_iter)
 
     # plot the secondary parameter 1D PDFs
     first_secondary_ax = next(ax_iter)
@@ -300,8 +309,10 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     first_derived_ax = next(ax_iter)
     plot_1dpdf(first_derived_ax, pdf1d_hdu, 'logT', r'log(T$_\mathrm{eff})$', starnum,
                stats=stats)
+    plot_1dpdf(next(ax_iter), pdf1d_hdu, 'logg', 'log(g)', starnum,
+               stats=stats)
     last_derived_ax = next(ax_iter)
-    plot_1dpdf(last_derived_ax, pdf1d_hdu, 'logg', 'log(g)', starnum,
+    plot_1dpdf(last_derived_ax, pdf1d_hdu, 'logL', 'log(L)', starnum,
                stats=stats)
 
     plt.tight_layout(h_pad=2.0, w_pad=1.0)
@@ -351,7 +362,7 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes,
              rotation='vertical',
              va='center', ha='right')
-    
+
     # tax.text(-2.*pad, 0.5, 'Primary', transform=tax.transAxes,
              # rotation='vertical', fontstyle='oblique',
              # va='center', ha='right')
@@ -367,7 +378,7 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     horizontal_rectangle_around_axes(first_secondary_ax, last_secondary_ax,
                                      pad=rectanglePadding, ls='dotted',
                                      label='Secondary')
-    
+
     tax.text(0.0, 0.5, 'Probability', transform=tax.transAxes,
              rotation='vertical',
              va='center', ha='right')
