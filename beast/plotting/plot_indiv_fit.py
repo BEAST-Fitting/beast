@@ -314,7 +314,9 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     plot_1dpdf(last_derived_ax, pdf1d_hdu, 'logL', 'log(L)', starnum,
                stats=stats)
 
-    plt.tight_layout(h_pad=2.0, w_pad=1.0)
+    # A more manual version of tight_layout
+    plt.subplots_adjust(top=.95, bottom=.05, left=.125, right=.925,
+                        wspace=.5, hspace=.5)
 
     # PLOT ALL THE BOXES AFTER CALLING TIGHT LAYOUT! Tight layout
     # changes the coordinates of the axes a little, but leaves the boxes
