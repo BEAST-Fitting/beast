@@ -68,8 +68,8 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
     return (iso_fname, oiso)
 
 def make_spectral_grid(project, oiso, osl=None, bounds={},
-                       verbose=True, spec_fname=None, distance=[10 * units.pc],
-                        filterLib=None,
+                       verbose=True, spec_fname=None, distance=10,
+                       distance_unit=units.pc, filterLib=None,
                        add_spectral_properties_kwargs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
@@ -88,9 +88,15 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         Spectral library to use (default stellib.Kurucz)
 
     distance: float or list of float
-        distances at which models should be shifted
+        distances at which models should be shifted, specified as a
+        single number or as [min, max, step]
+
         0 means absolute magnitude.
-        expecting pc units
+
+    distance_unit: astropy length unit or mag
+        distances will be evenly spaced in this unit
+        therefore, specifying a distance grid in mag units will lead to
+        a log grid
 
     spec_fname: str
         full filename to save the spectral grid into
@@ -130,8 +136,22 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                                                                    oiso.data,
                                                                bounds=bounds)
 
-        # Make singleton list if a single distance is given
-        distances = np.atleast_1d(distance)
+        # Construct the distances array. Turn single value into
+        # 1-element list if single distance is given.
+        _distance = np.atleast_1d(distance)
+        if len(_distance) == 3:
+            mindist, maxdist, stepdist = _distance
+            distances = np.arange(mindist, maxdist + stepdist, stepdist)
+        elif len(_distance) == 1:
+            distances = np.array(_distance)
+        else:
+            raise ValueError("distance needs to be (min, max, step) or single number")
+
+        # calculate the distances in pc
+        if distance_unit == units.mag:
+            distances = np.power(10, distances / 5. + 1) * units.pc
+        else:
+            distances = (distances * distance_unit).to(units.pc)
 
         if verbose:
             print('Adding spectral properties:', add_spectral_properties_kwargs
@@ -141,7 +161,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                          pop('nameformat', '{0:s}') + '_nd'
 
         # Apply the distances to the stars. Seds already at 10 pc, need
-        # multiplcation by the square of the ratio to this distance.
+        # multiplication by the square of the ratio to this distance.
         # TODO: Applying the distances might have to happen in chunks
         # for larger grids.
         def apply_distance_and_spectral_props(g):
