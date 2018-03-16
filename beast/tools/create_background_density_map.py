@@ -171,7 +171,7 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
 
     # Save a file describing the properties of the bins in a handy format
     bin_details = astropy.table.Table(
-        names=['i_ra', 'i_dec', 'median_gb',
+        names=['i_ra', 'i_dec', 'median_bg',
                'min_ra', 'max_ra',
                'min_dec', 'max_dec'])
     for x in range(nx):
