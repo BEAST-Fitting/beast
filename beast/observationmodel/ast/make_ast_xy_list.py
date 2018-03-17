@@ -28,8 +28,9 @@ def pick_positions(filename,separation,refimage=None):
     OUTPUTS:
     --------
 
-    Ascii table that replaces [filename] with a new version of [filename] that contains the necessary
-    position columns for running the ASTs though DOLPHOT
+    Ascii table that replaces [filename] with a new version of
+    [filename] that contains the necessary position columns for running
+    the ASTs though DOLPHOT
     """
 
     noise = 3.0 #Spreads the ASTs in a circular annulus of 3 pixel width instead of all being 

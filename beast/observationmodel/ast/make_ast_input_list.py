@@ -8,6 +8,7 @@ from ..vega import Vega
 import datamodel as datamodel
 from ...physicsmodel.grid import FileSEDGrid
 from astropy.table import Table
+from astropy.table import Column
 from astropy.io import ascii
 
 
@@ -46,7 +47,7 @@ def mag_limits(seds, limits, Nfilter=1):
 
 
 def pick_models_per_background(sedgrid, bg_map, Nbg_bins, N_per_bg, filters, mag_cuts,
-                               Nfilter=3, N_per_age=70, Nrealize=20):
+                               Nfilter=3, N_per_age=70, Nrealize=20, outfile=None):
     """
     Create a fake start catalog from a BEAST model grid. Makes sure the
     stars are evenly distributed across regions of different background
@@ -92,19 +93,16 @@ def pick_models_per_background(sedgrid, bg_map, Nbg_bins, N_per_bg, filters, mag
     -------
     nothing, but writes an ascii file
     """
-    # Get the vega flux for each filter
-    with Vega() as v:
-        vega_f, vega_fluxes, lamb = v.getFlux(filters)
 
-    # Convert model star seds to vega fluxes
-    sedsMags = -2.5 * np.log10(sedgrid.seds[:] / vega_fluxes)
+    if not outfile:
+        outfile = 'inputAST.txt'
 
-    # Select the models that are above the magnitude limits in at least
-    # N filters. We will then sample from this grid.
-    indices_above_cut = mag_limits(sedsMags, mag_cuts, Nfilter)
-    grid_cut = sedgrid.grid[indices_above_cut]
+    # Get a set of seds
+    fake_star_seds = pick_models(sedgrid, mag_cuts, Nfilter, N_per_age,
+                                 Nrealize=Nrealize, ret=True, write=False)
+    Nseds = len(fake_star_seds)
 
-    # Read in the background density map
+    # Load the background map
     bg = Table.read(bg_map)
     tile_bg_vals = bg['median_bg']
     min_bg = np.amin(tile_bg_vals)
@@ -118,12 +116,57 @@ def pick_models_per_background(sedgrid, bg_map, Nbg_bins, N_per_bg, filters, mag
     # Find which bin each tile belongs to
     bgbin_foreach_tile = np.digitize(tile_bg_vals, bg_bins)
     # Invert this
-    tiles_foreach_bgbin = [np.nonzero(bgbin_foreach_tile == b)[0]
+    tiles_foreach_bgbin = [np.nonzero(bgbin_foreach_tile == b + 1)[0]
                            for b in range(Nbg_bins)]
-
     print(tiles_foreach_bgbin)
 
-def pick_models(sedgrid, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20):
+    # Remove empty bins
+    tile_sets = [tile_set for tile_set in tiles_foreach_bgbin if len(tile_set)]
+
+    # For each set of tiles, repeat the seds and spread them evenly over
+    # the tiles
+    repeated_seds = np.repeat(fake_star_seds[:], len(tile_sets))
+
+    out_table = Table(repeated_seds, names=filters)
+    ras = np.zeros(len(out_table))
+    decs = np.zeros(len(out_table))
+    bin_indices = np.zeros(len(out_table))
+
+    tile_ra_min = bg['min_ra']
+    tile_dec_min = bg['min_dec']
+    tile_ra_delta = bg['max_ra'] - tile_ra_min
+    tile_dec_delta = bg['max_dec'] - tile_dec_min
+
+    for bin_index, tile_set in enumerate(tile_sets):
+        # For each SED
+        start = bin_index * Nseds
+        stop = start + Nseds
+        bin_indices[start:stop] = bin_index
+        for i in range(Nseds):
+            j = bin_index * Nseds + i
+            # Pick a random tile
+            tile = np.random.choice(tile_set)
+            # Within this tile, pick a random ra and dec
+            ras[j] = tile_ra_min[tile] + \
+                np.random.random_sample() * tile_ra_delta[tile]
+            decs[j] = tile_dec_min[tile] + \
+                np.random.random_sample() * tile_dec_delta[tile]
+
+    # Add the positions to the table
+    ra_col = Column(ras, name='RA')
+    out_table.add_column(ra_col)
+    dec_col = Column(decs, name='DEC')
+    out_table.add_column(dec_col)
+    bin_col = Column(bin_indices, name='bg_bin')
+    out_table.add_column(bin_col)
+
+    # Write out the table in ascii
+    if outfile:
+        formats = {k: '%.5f' for k in out_table.colnames}
+        ascii.write(out_table, outfile, overwrite=True, formats=formats)
+
+
+def pick_models(sedgrid, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20, ret=False, write=True):
     """
     Creates a fake star catalog from a BEAST model grid
 
@@ -144,6 +187,14 @@ def pick_models(sedgrid, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20):
 
     Nrealize: Integer
               Number of realization of each models (default = 20)
+
+    ret: bool
+        Whether to return a table of seds
+
+    write:
+        whether to write the result to disk. You want to put this to
+        false when using this function as part of a bigger loop that
+        generates multiple sets of SEDS.
 
     Returns
     -------
@@ -176,7 +227,11 @@ def pick_models(sedgrid, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20):
     index = np.repeat(idx[np.array(models).reshape((-1))], Nrealize)
     sedsMags = Table(sedsMags[index, :], names=filters)
 
-    outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
+    if write:
+        outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
 
-    ascii.write(sedsMags, outfile, overwrite=True, formats={
-                k: '%.5f' for k in sedsMags.colnames})
+        ascii.write(sedsMags, outfile, overwrite=True, formats={
+            k: '%.5f' for k in sedsMags.colnames})
+
+    if ret:
+        return sedsMags
