@@ -5,7 +5,6 @@ import sys
 import argparse
 import numpy as np
 from ..vega import Vega
-import datamodel as datamodel
 from ...physicsmodel.grid import FileSEDGrid
 from astropy.table import Table
 from astropy.table import Column
@@ -25,7 +24,8 @@ def mag_limits(seds, limits, Nfilter=1):
             List of limit magnitudes
 
     Nfilter: integer
-             In how many filters, you want a fake star to be brighter than the limit
+             In how many filters, you want a fake star to be brighter
+             than the limit
 
     Returns
     -------
@@ -35,7 +35,8 @@ def mag_limits(seds, limits, Nfilter=1):
     """
     flag = seds.copy()
 
-    # flag is True if the models are brigter (=smaller number in mag) than the limits
+    # flag is True if the models are brigter (=smaller number in mag)
+    # than the limits
     for i, limit in enumerate(limits):
         flag[:, i] = seds[:, i] < limit
 
@@ -46,7 +47,7 @@ def mag_limits(seds, limits, Nfilter=1):
     return idx
 
 
-def pick_models_per_background(sedgrid, bg_map, Nbg_bins, N_per_bg, filters, mag_cuts,
+def pick_models_per_background(sedgrid, bg_map, N_bg_bins, filters, mag_cuts,
                                Nfilter=3, N_per_age=70, Nrealize=20, outfile=None):
     """
     Create a fake start catalog from a BEAST model grid. Makes sure the
@@ -65,7 +66,7 @@ def pick_models_per_background(sedgrid, bg_map, Nbg_bins, N_per_bg, filters, mag
         RA, the minimum and maximum DEC,and a value which represents the
         background density.
 
-    bg_bins: int
+    N_bg_bins: int
         The number of bins for the range of background density values.
         The bins will be picked on a linear grid, rangin from the
         minimum to the maximum background value of the map. Then, each
@@ -73,14 +74,13 @@ def pick_models_per_background(sedgrid, bg_map, Nbg_bins, N_per_bg, filters, mag
         obtained for each range of background density values.
 
     filters: list of str
-        List of filter names (helps with getting the right magnitudes
-        from the grid to apply mag_cuts)
+        List of filter names used in the catalog/grid
 
     mag_cuts: list
         List of magnitude limits for each filter
 
-    Nfitler: int
-        Model SEDs will be accepted when they are brighter than the
+    Nfilter: int
+        Model SEDs will be accepted when they are brighter than
         mag_cut in at least Nfilter filters
 
     N_per_age: int
@@ -91,15 +91,13 @@ def pick_models_per_background(sedgrid, bg_map, Nbg_bins, N_per_bg, filters, mag
 
     Returns
     -------
-    nothing, but writes an ascii file
+    astropy Table: List of fake stars, with magnitudes and positions
+    - optionally -
+    ascii file of this table, written to outfile
     """
-
-    if not outfile:
-        outfile = 'inputAST.txt'
-
-    # Get a set of seds
-    fake_star_seds = pick_models(sedgrid, mag_cuts, Nfilter, N_per_age,
-                                 Nrealize=Nrealize, ret=True, write=False)
+    # Get a set of seds, without writing them to file
+    fake_star_seds = pick_models(sedgrid, filters, mag_cuts, Nfilter=Nfilter,
+                                 N_stars=N_per_age, Nrealize=Nrealize)
     Nseds = len(fake_star_seds)
 
     # Load the background map
@@ -111,13 +109,13 @@ def pick_models_per_background(sedgrid, bg_map, Nbg_bins, N_per_bg, filters, mag
     # Create the background bins
     # [min, ., ., ., max]
     # 0 [1, 2, 3, 4, 5] 6
-    bg_bins = np.linspace(min_bg, max_bg, Nbg_bins + 1)
+    bg_bins = np.linspace(min_bg, max_bg, N_bg_bins + 1)
 
     # Find which bin each tile belongs to
     bgbin_foreach_tile = np.digitize(tile_bg_vals, bg_bins)
     # Invert this
     tiles_foreach_bgbin = [np.nonzero(bgbin_foreach_tile == b + 1)[0]
-                           for b in range(Nbg_bins)]
+                           for b in range(N_bg_bins)]
     print(tiles_foreach_bgbin)
 
     # Remove empty bins
@@ -165,43 +163,45 @@ def pick_models_per_background(sedgrid, bg_map, Nbg_bins, N_per_bg, filters, mag
         formats = {k: '%.5f' for k in out_table.colnames}
         ascii.write(out_table, outfile, overwrite=True, formats=formats)
 
+    return out_table
 
-def pick_models(sedgrid, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20, ret=False, write=True):
-    """
-    Creates a fake star catalog from a BEAST model grid
+
+def pick_models(sedgrid, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
+                outfile=None):
+    """Creates a fake star catalog from a BEAST model grid
 
     Parameters
     ----------
     sedgrid: beast.grid
                BEAST model grid from which the models are picked
 
+    filters: list of string
+        Names of the filters
+
     mag_cuts: list
-               List of magnitude limits
+        List of magnitude limits for each filter
 
     Nfilter: Integer
-             In how many filters, you want a fake star to be brighter than the limit
-             (default = 3)
+             In how many filters, you want a fake star to be brighter
+             than the limit (mag_cut) (default = 3)
 
     N_stars: Integer
-               Number of stellar models picked per a single log(age) (default=70)
+               Number of stellar models picked per a single log(age)
+               (default=70)
 
     Nrealize: Integer
               Number of realization of each models (default = 20)
 
-    ret: bool
-        Whether to return a table of seds
-
-    write:
-        whether to write the result to disk. You want to put this to
-        false when using this function as part of a bigger loop that
-        generates multiple sets of SEDS.
+    outfile: str
+        If a file name is given, the selected models will be written to
+        disk
 
     Returns
     -------
-    ascii file: A list of selected models
+    astropy Table of selected models
+    - and optionally -
+    ascii file: A list of selected models, written to 'outfile'
     """
-
-    filters = datamodel.filters
 
     with Vega() as v:               # Get the vega fluxes
         vega_f, vega_flux, lamb = v.getFlux(filters)
@@ -227,11 +227,8 @@ def pick_models(sedgrid, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20, ret=False
     index = np.repeat(idx[np.array(models).reshape((-1))], Nrealize)
     sedsMags = Table(sedsMags[index, :], names=filters)
 
-    if write:
-        outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
-
+    if outfile:
         ascii.write(sedsMags, outfile, overwrite=True, formats={
             k: '%.5f' for k in sedsMags.colnames})
 
-    if ret:
-        return sedsMags
+    return sedsMags
