@@ -9,7 +9,7 @@ from ...physicsmodel.grid import FileSEDGrid
 from astropy.table import Table
 from astropy.table import Column
 from astropy.io import ascii
-
+from ...tools.pbar import Pbar
 
 def mag_limits(seds, limits, Nfilter=1):
     """
@@ -135,8 +135,9 @@ def pick_models_per_background(sedgrid, bg_map, N_bg_bins, filters, mag_cuts,
     tile_ra_delta = bg['max_ra'] - tile_ra_min
     tile_dec_delta = bg['max_dec'] - tile_dec_min
 
-    for bin_index, tile_set in enumerate(tile_sets):
-        # For each SED
+    pbar = Pbar(len(tile_sets), desc='{} models per background bin'.format(Nseds))
+    for bin_index, tile_set in pbar.iterover(enumerate(tile_sets)):
+
         start = bin_index * Nseds
         stop = start + Nseds
         bin_indices[start:stop] = bin_index
