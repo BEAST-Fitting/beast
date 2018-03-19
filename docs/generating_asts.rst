@@ -64,6 +64,10 @@ Table of fake star magnitudes for all bands in the datamodel photometry file.
 The file will be in ascii format in the project directory, and it will have the
 name: [project]/[project]_inputAST.txt
 
-The table will have ast_models_selected_per_age * ast_realization_per_model lines.
-If ast_with_positions is True then each line will start with 0 1 X Y, which are the first
-four columns required by DOLPHOT to define the input star position.
+The table will have <number of ages> * ast_models_selected_per_age *
+ast_realization_per_model lines. If ast_with_positions is True then each line
+will start with 0 1 X Y, which are the first four columns required by DOLPHOT to
+define the input star position.
+
+In case the new method is used, which samples by background density, this number
+will be multiplied by the number of background density bins chosen.
