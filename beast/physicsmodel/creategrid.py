@@ -360,13 +360,6 @@ def apply_distance_grid(specgrid, distances):
 
     # New object
     g = SpectralGrid(g0.lamb, seds=new_seds, grid=Table(cols), backend='memory')
-
-    # We can probably make this work for both the spectral grid and the
-    # sed grid, so we can choose afterwards when to invoke this
-    # function. Note that if we want to apply this function on the
-    # sedgrid instead of the specgrid, then we would need to copy the
-    # covariance matrices in case they are used. See near the end of
-    # make_extinguished_grid.
     return g
 
 

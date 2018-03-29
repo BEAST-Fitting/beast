@@ -70,7 +70,8 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
 def make_spectral_grid(project, oiso, osl=None, bounds={},
                        verbose=True, spec_fname=None, distance=10,
                        distance_unit=units.pc, filterLib=None,
-                       add_spectral_properties_kwargs=None, **kwargs):
+                       add_spectral_properties_kwargs=None,
+                       num_dist_subgrids=None, nprocs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
     interpolation of the isochrones and the generation of spectra into the
@@ -119,7 +120,20 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
     if spec_fname is None:
         spec_fname = '%s/%s_spec_grid.hd5' % (project, project)
 
-    if not os.path.isfile(spec_fname):
+    subgrid_names = []
+    if num_dist_subgrids is not None:
+        for i in range(num_dist_subgrids):
+            subgrid_name = spec_fname.replace(
+                ".hd5", "sub_{}.hd5".format(i))
+            subgrid_names.append(subgrid_name)
+    else:
+        subgrid_name = [spec_fname]
+
+    missing = False
+    for n in subgrid_names:
+        missing = missing or not os.path.isfile(n)
+
+    if missing:
         osl = osl or stellib.Kurucz()
 
         # filter extrapolations of the grid with given sensitivities in
@@ -134,7 +148,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
             print('Make spectra')
         g = creategrid.gen_spectral_grid_from_stellib_given_points(osl,
                                                                    oiso.data,
-                                                               bounds=bounds)
+                                                                   bounds=bounds)
 
         # Construct the distances array. Turn single value into
         # 1-element list if single distance is given.
@@ -158,35 +172,61 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                   is not None)
         if add_spectral_properties_kwargs is not None:
             nameformat = add_spectral_properties_kwargs.\
-                         pop('nameformat', '{0:s}') + '_nd'
+                pop('nameformat', '{0:s}') + '_nd'
 
         # Apply the distances to the stars. Seds already at 10 pc, need
         # multiplication by the square of the ratio to this distance.
-        # TODO: Applying the distances might have to happen in chunks
-        # for larger grids.
-        def apply_distance_and_spectral_props(g):
-            g = creategrid.apply_distance_grid(g, distances)
-
+        def apply_distance_and_spectral_props(g0, distances):
+            g = creategrid.apply_distance_grid(g0, distances)
             if add_spectral_properties_kwargs is not None:
                 g = creategrid.add_spectral_properties(g,
                                                        nameformat=nameformat,
                                                        filterLib=filterLib,
-                                            **add_spectral_properties_kwargs)
-
+                                                       **add_spectral_properties_kwargs)
             return g
 
-        # Perform the extensions defined above and Write to disk
+        def grid_processing_method(g0):
+
+            if num_dist_subgrids is None or num_dist_subgrids <= 1:
+                g = apply_distance_and_spectral_props(g0, distances)
+                g.writeHDF(spec_fname, append=True)
+                return [spec_fname]
+
+            # Else, save the grid for separate sets of distances, with
+            # or without multiprocessing
+            subs = []
+            per_subgrid = len(distances) // num_dist_subgrids
+            for i in range(num_dist_subgrids):
+                start = i * per_subgrid
+                stop = min((i + 1) * per_subgrid, len(distances))
+                subs.append(distances[start:stop])
+
+            if nprocs is None:
+                # Do a regular for loop
+                for i, dists in enumerate(subs):
+                    g = apply_distance_and_spectral_props(g0, dists)
+                    g.writeHDF(subgrid_names[i], append=True)
+                    g.writeHDF(spec_fname, append=True)
+            else:
+                # Do a parallel for loop
+                print("Parallel grid construction not implemented yet")
+
+            return subgrid_names
+
+        # Perform the processing defined above. When the grid is
+        # generated in chunks, the result of the chunks will be appended
+        # to all the subgrids, and the total grid. Watch out when trying
+        # this in parallel though.
         if hasattr(g, 'writeHDF'):
-            g = apply_distance_and_spectral_props(g)
-            g.writeHDF(spec_fname)
+            subgrid_names = grid_processing_method(g)
         else:
             for gk in g:
-                gk = apply_distance_and_spectral_props(gk)
-                gk.writeHDF(spec_fname, append=True)
+                subgrid_names = grid_processing_method(gk)
 
     g = grid.FileSpectralGrid(spec_fname, backend='memory')
 
-    return (spec_fname, g)
+    return (spec_fname, g, subgrid_names)
+
 
 def add_stellar_priors(project, specgrid, verbose=True,
                        priors_fname=None,
@@ -250,7 +290,6 @@ def make_extinguished_sed_grid(project,
                                seds_fname=None,
                                filterLib=None,
                                **kwargs):
-
     """
     Create SED model grid integrated with filters and dust extinguished
 
@@ -332,7 +371,7 @@ def make_extinguished_sed_grid(project,
                                                   av_prior_model=av_prior_model,
                                                   rv_prior_model=rv_prior_model,
                                                   fA_prior_model=fA_prior_model,
-                add_spectral_properties_kwargs=add_spectral_properties_kwargs,
+                                                  add_spectral_properties_kwargs=add_spectral_properties_kwargs,
                                                   absflux_cov=absflux_cov,
                                                   filterLib=filterLib)
         else:
@@ -341,7 +380,7 @@ def make_extinguished_sed_grid(project,
                                                   rvs,
                                                   av_prior_model=av_prior_model,
                                                   rv_prior_model=rv_prior_model,
-                  add_spectral_properties_kwargs=add_spectral_properties_kwargs,
+                                                  add_spectral_properties_kwargs=add_spectral_properties_kwargs,
                                                   absflux_cov=absflux_cov)
 
         #write to disk
