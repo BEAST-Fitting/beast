@@ -125,7 +125,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         for i in range(num_dist_subgrids):
             subgrid_name = spec_fname.replace(
                 ".hd5", "sub{}.hd5".format(i))
-            subgrid_.append(subgrid_name)
+            subgrid_names.append(subgrid_name)
     else:
         subgrid_name = [spec_fname]
 
@@ -135,7 +135,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
 
     if missing:
         # Clear the existing files, and then create new ones
-        for n in subgrid_names + spec_fname:
+        for n in subgrid_names + [spec_fname]:
             try:
                 os.remove(n)
             except:
