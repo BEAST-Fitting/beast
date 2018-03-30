@@ -124,8 +124,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
     if num_dist_subgrids is not None:
         for i in range(num_dist_subgrids):
             subgrid_name = spec_fname.replace(
-                ".hd5", "sub_{}.hd5".format(i))
-            subgrid_names.append(subgrid_name)
+                ".hd5", "sub{}.hd5".format(i))
+            subgrid_.append(subgrid_name)
     else:
         subgrid_name = [spec_fname]
 
@@ -393,3 +393,23 @@ def make_extinguished_sed_grid(project,
     g = grid.FileSEDGrid(seds_fname, backend='hdf')
 
     return (seds_fname, g)
+
+def merge_grids(seds_fname, sub_names):
+    """
+    Merges a set of grids into one big grid. The grids need to have the
+    same columns
+
+    seds_fname: string
+        path for the output file
+
+    sub_names: list of strings
+        paths for the input grids
+    """
+
+    if not os.path.isfile(seds_fname):
+        for n in sub_names:
+            print('Appending {} to {}'.format(n, seds_fname))
+            g = grid.FileSEDGrid(n)
+            g.writeHDF(seds_fname, append=True)
+    else:
+        print('{} already exists'.format(seds_fname))
