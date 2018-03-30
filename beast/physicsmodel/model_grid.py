@@ -134,6 +134,13 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         missing = missing or not os.path.isfile(n)
 
     if missing:
+        # Clear the existing files, and then create new ones
+        for n in subgrid_names + spec_fname:
+            try:
+                os.remove(n)
+            except:
+                pass
+
         osl = osl or stellib.Kurucz()
 
         # filter extrapolations of the grid with given sensitivities in
