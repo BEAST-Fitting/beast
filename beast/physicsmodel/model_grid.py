@@ -174,6 +174,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         else:
             distances = (distances * distance_unit).to(units.pc)
 
+        print('applying {} distances'.format(len(distances)))
+
         if verbose:
             print('Adding spectral properties:', add_spectral_properties_kwargs
                   is not None)
@@ -202,10 +204,17 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
             # Else, save the grid for separate sets of distances, with
             # or without multiprocessing
             subs = []
-            per_subgrid = len(distances) // num_dist_subgrids
+            q = len(distances) // num_dist_subgrids # quotient
+            r = len(distances) % num_dist_subgrids # remainder
             for i in range(num_dist_subgrids):
-                start = i * per_subgrid
-                stop = min((i + 1) * per_subgrid, len(distances))
+                # spread remainder acrogss the first r subs (they get q+1 distances each)
+                if i < r:
+                    start = i * (q+1)
+                    stop = start + q + 1
+                # the rest of the subs get q distances each
+                else:
+                    start = r * (q+1) + (i - r) * q
+                    stop = start + q
                 subs.append(distances[start:stop])
 
             if nprocs is None:
