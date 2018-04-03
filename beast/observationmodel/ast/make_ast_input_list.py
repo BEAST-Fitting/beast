@@ -8,8 +8,10 @@ from ..vega import Vega
 from ...physicsmodel.grid import FileSEDGrid
 from astropy.table import Table
 from astropy.table import Column
-from astropy.io import ascii
+from astropy.io import ascii, fits
+from astropy.wcs import WCS
 from ...tools.pbar import Pbar
+
 
 def mag_limits(seds, limits, Nfilter=1):
     """
@@ -48,7 +50,7 @@ def mag_limits(seds, limits, Nfilter=1):
 
 
 def pick_models_per_background(sedgrid, bg_map, N_bg_bins, filters, mag_cuts,
-                               Nfilter=3, N_per_age=70, Nrealize=20, outfile=None):
+                               Nfilter=3, N_per_age=70, Nrealize=20, outfile=None, refimage=None):
     """
     Create a fake start catalog from a BEAST model grid. Makes sure the
     stars are evenly distributed across regions of different background
@@ -89,11 +91,17 @@ def pick_models_per_background(sedgrid, bg_map, N_bg_bins, filters, mag_cuts,
     Nrealize: int
         Number of times all these models are repeated
 
+    refimage: str
+        Path to fits image that is used for the positions. If none is
+        given, the ra and dec will be put in the x and y output columns
+        instead.
+
     Returns
     -------
     astropy Table: List of fake stars, with magnitudes and positions
     - optionally -
     ascii file of this table, written to outfile
+
     """
     # Get a set of seds, without writing them to file
     fake_star_seds = pick_models(sedgrid, filters, mag_cuts, Nfilter=Nfilter,
@@ -108,7 +116,8 @@ def pick_models_per_background(sedgrid, bg_map, N_bg_bins, filters, mag_cuts,
 
     # Create the background bins
     # [min, ., ., ., max]
-    bg_bins = np.linspace(min_bg - 0.01 * abs(min_bg), max_bg + 0.01 * abs(max_bg), N_bg_bins + 1)
+    bg_bins = np.linspace(min_bg - 0.01 * abs(min_bg),
+                          max_bg + 0.01 * abs(max_bg), N_bg_bins + 1)
 
     # Find which bin each tile belongs to
     # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
@@ -139,7 +148,8 @@ def pick_models_per_background(sedgrid, bg_map, N_bg_bins, filters, mag_cuts,
     tile_ra_delta = bg['max_ra'] - tile_ra_min
     tile_dec_delta = bg['max_dec'] - tile_dec_min
 
-    pbar = Pbar(len(tile_sets), desc='{} models per background bin'.format(Nseds))
+    pbar = Pbar(len(tile_sets),
+                desc='{} models per background bin'.format(Nseds))
     for bin_index, tile_set in pbar.iterover(enumerate(tile_sets)):
 
         start = bin_index * Nseds
@@ -156,12 +166,30 @@ def pick_models_per_background(sedgrid, bg_map, N_bg_bins, filters, mag_cuts,
                 np.random.random_sample() * tile_dec_delta[tile]
 
     # Add the positions to the table
-    ra_col = Column(ras, name='RA')
-    out_table.add_column(ra_col)
-    dec_col = Column(decs, name='DEC')
-    out_table.add_column(dec_col)
-    bin_col = Column(bin_indices, name='bg_bin')
-    out_table.add_column(bin_col)
+    # ra_col = Column(ras, name='RA')
+    # out_table.add_column(ra_col)
+    # dec_col = Column(decs, name='DEC')
+    # out_table.add_column(dec_col)
+    # bin_col = Column(bin_indices, name='bg_bin')
+    # out_table.add_column(bin_col)
+
+    # I'm just copying the format that is output by the examples
+    cs = []
+    cs.append(Column(np.zeros(len(out_table)), name='zeros'))
+    cs.append(Column(np.ones(len(out_table)), name='ones'))
+
+    if refimage is None:
+        cs.append(Column(ras, name='RA'))
+        cs.append(Column(decs, name='DEC'))
+    else:
+        imagehdu = fits.open(refimage)[1]
+        wcs = WCS(imagehdu.header)
+        xs, ys = wcs.all_world2pix(ras, decs, 0)
+        cs.append(Column(xs, name='X'))
+        cs.append(Column(ys, name='Y'))
+
+    for i, c in enumerate(cs):
+        out_table.add_column(c, index=i)  # insert these columns from the left
 
     # Write out the table in ascii
     if outfile:
