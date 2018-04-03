@@ -108,12 +108,16 @@ def pick_models_per_background(sedgrid, bg_map, N_bg_bins, filters, mag_cuts,
 
     # Create the background bins
     # [min, ., ., ., max]
-    # 0 [1, 2, 3, 4, 5] 6
-    bg_bins = np.linspace(min_bg, max_bg, N_bg_bins + 1)
+    bg_bins = np.linspace(min_bg - 0.01 * abs(min_bg), max_bg + 0.01 * abs(max_bg), N_bg_bins + 1)
 
     # Find which bin each tile belongs to
+    # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
+    # We have purposely chosen our bin boundaries so that no points fall
+    # outside of the [1,5] range
     bgbin_foreach_tile = np.digitize(tile_bg_vals, bg_bins)
-    # Invert this
+    print(bgbin_foreach_tile)
+    # Invert this (the [0] is to dereference the tuple (i,) returned by
+    # nonzero)
     tiles_foreach_bgbin = [np.nonzero(bgbin_foreach_tile == b + 1)[0]
                            for b in range(N_bg_bins)]
     print(tiles_foreach_bgbin)
