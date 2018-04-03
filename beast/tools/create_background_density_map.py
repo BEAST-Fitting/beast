@@ -159,9 +159,9 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
 
     # Save the catalog with extra density info
     median_background_foreach_source = [
-        background_map[xy_bin] for xy_bin in bin_foreach_source]
+        background_map[xy_bin[0], xy_bin[1]] for xy_bin in bin_foreach_source]
     extra_columns = {'indiv_bg': individual_backgrounds,
-                     'bin_median_bg': median_background_foreach_source, }
+                     'bin_median_bg': median_background_foreach_source }
     for k in extra_columns:
         c = astropy.table.Column(extra_columns[k], name=k)
         cat.add_column(c)
