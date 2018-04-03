@@ -170,10 +170,10 @@ if __name__ == '__main__':
             filename = datamodel.project+'/'+datamodel.project+'_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
-                pick_positions(obscat, filename, separation,
+                pick_positions(obsdata, filename, separation,
                                refimage=datamodel.ast_reference_image)
             else:
-                pick_positions(obscat, filename, separation)
+                pick_positions(obsdata, filename, separation)
 
     if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
