@@ -199,6 +199,33 @@ def pick_models_per_background(sedgrid, bg_map, N_bg_bins, filters, mag_cuts,
     return out_table
 
 
+def pick_models_toothpick_style(sedgrid, filters, mag_limits, Nfilter,
+                                N_fluxes, min_N_per_flux, Nrealize,
+                                outfile=None, mag_pad=.25):
+    with Vega() as v:
+        vega_f, vega_flux, lambd = v.getFlux(filters)
+    sedsMags = -2.5 * np.log10(sedgrid.seds[:] / vega_flux)
+
+    idx = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter)
+    grid_cut = sedgrid.grid[idx]
+
+    # Set up a number of flux bins for each filter
+    maxes = np.amax(grid_cut, axis=0) + mag_pad
+    mins = np.amin(grid_cut, axis=0) - mag_pad
+    Nf = grid_cut.shape[1]
+    bin_edges = np.zeros((N_fluxes + 1, Nf)) # indexed on [fluxbin, nfilters]
+    for f in range(Nf):
+        bin_edges[:, f] = np.linspace(mins[f], maxes[f], N_fluxes + 1)
+    bin_mins = bin_edges[:-1, :]
+    bin_maxs = bin_edges[1:, :]
+    assert(len(bin_mins) == N_fluxes)
+    assert(len(bin_maxs) == N_fluxes)
+
+    enough = False
+    while not enough:
+       rand_sed = np.random.choice(grid_cut)
+
+
 def pick_models(sedgrid, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
                 outfile=None):
     """Creates a fake star catalog from a BEAST model grid
