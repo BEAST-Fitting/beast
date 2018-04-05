@@ -1,1 +1,0 @@
-../phat_small/run_beast.py
