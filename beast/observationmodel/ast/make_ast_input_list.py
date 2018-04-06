@@ -80,9 +80,13 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
 
     bin_count = np.zeros((N_fluxes, Nf))
     chosen_idxs = []
+    counter = 0
+    successes = 0
+    include_mask = np.full(idxs.shape, True, dtype=bool)
     while True:
+        counter += 1
         # pick a random model
-        rand_idx = np.random.choice(idxs)
+        rand_idx = np.random.choice(idxs[include_mask])
 
         # find which flux bin it belongs to for each filter
         fluxbins = [np.digitize(flux, bin_maxs[:, fltr])
@@ -93,13 +97,25 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
         # to be output
         if (bin_count[fluxbins, range(Nf)] < min_N_per_flux).any():
             bin_count[fluxbins, range(Nf)] += 1
+            successes += 1
             chosen_idxs.append(rand_idx)
 
-        # If all these bins are full, check if we have enough samples
-        # everywhere, and exit the loop if so.
+        # If all these bins are full...
         else:
-            if (bin_count.flatten() >= min_N_per_flux).all():
+            # ... do not include this model again, since we will reject it
+            # anyway.
+            include_mask[idxs == rand_idx] = False
+            # ... check if we have enough samples everywhere, or if all
+            # the models have been exhausted (and hence the bins are
+            # impossible to fill).
+            enough_samples = (bin_count.flatten() >= min_N_per_flux).all()
+            still_models_left = include_mask.any()
+            if enough_samples or not still_models_left:
                 break
+
+        if not counter % 10000:
+            print('Sampled {} models. {} successfull. Ratio = {}'.format(
+                counter, successes, successes / counter))
 
     # Gather the selected model seds in a table
     sedsMags = Table(sedsMags[chosen_idxs, :], names=filters)
