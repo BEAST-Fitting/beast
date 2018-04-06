@@ -201,19 +201,19 @@ def pick_models_per_background(sedgrid, bg_map, N_bg_bins, filters, mag_cuts,
 
 def pick_models_toothpick_style(sedgrid, filters, mag_limits, Nfilter,
                                 N_fluxes, min_N_per_flux, Nrealize,
-                                outfile=None, mag_pad=.25):
+                                outfile=None, bins_outfile=None, mag_pad=.25):
     with Vega() as v:
         vega_f, vega_flux, lambd = v.getFlux(filters)
     sedsMags = -2.5 * np.log10(sedgrid.seds[:] / vega_flux)
 
-    idx = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter)
-    grid_cut = sedgrid.grid[idx]
+    idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter)
+    grid_cut = sedgrid.grid[idxs]
 
     # Set up a number of flux bins for each filter
     maxes = np.amax(grid_cut, axis=0) + mag_pad
     mins = np.amin(grid_cut, axis=0) - mag_pad
     Nf = grid_cut.shape[1]
-    bin_edges = np.zeros((N_fluxes + 1, Nf)) # indexed on [fluxbin, nfilters]
+    bin_edges = np.zeros((N_fluxes + 1, Nf))  # indexed on [fluxbin, nfilters]
     for f in range(Nf):
         bin_edges[:, f] = np.linspace(mins[f], maxes[f], N_fluxes + 1)
     bin_mins = bin_edges[:-1, :]
@@ -221,9 +221,48 @@ def pick_models_toothpick_style(sedgrid, filters, mag_limits, Nfilter,
     assert(len(bin_mins) == N_fluxes)
     assert(len(bin_maxs) == N_fluxes)
 
-    enough = False
-    while not enough:
-       rand_sed = np.random.choice(grid_cut)
+    bin_count = np.zeros((N_fluxes, Nf))
+    chosen_idxs = []
+    while True:
+        # pick a random model
+        rand_idx = np.random.choice(idxs)
+
+        # find which flux bin it belongs to for each filter
+        fluxbin_foreach_filter = [np.digitize(flux, bin_maxs[:, fltr])
+                                  for fltr, flux in enumerate(sedgrid[rand_idx, :])]
+
+        # If any of the flux bins that this model falls into does not
+        # have enough samples yet, add it to the list of model spectra
+        # to be output
+        if (bin_count[fluxbin_foreach_filter, :] < min_N_per_flux).any():
+            for fltr, fbin in enumerate(fluxbin_foreach_filter)
+            bin_count[fbin, fltr] += 1
+            chosen_idxs.append(rand_idx)
+
+        # If all these bins are full, check if we have enough samples
+        # everywhere, and exit the loop if so.
+        else:
+            if (bin_count.flatten() >= min_N_per_flux).all():
+                break
+
+    # Gather the selected model seds in a table
+    sedsMags = Table(sedsMags[chosen_idxs, :], names=filters)
+
+    if outfile is not None:
+        ascii.write(sedsMags, outfile, overwrite=True,
+                    formats{k: '%.5f' for k in sedsMags.colnames})
+
+    if bins_outfile is not None:
+        bin_info_table = Table()
+        col_bigarrays = [bin_mins, bin_maxs, bin_count]
+        col_basenames = ['bin_mins_', 'bin_maxs_', 'bin_count_']
+        all_cols = []
+        for fltr, filter_name in enumerate(filters):
+            for bigarray, basename in zip(col_bigarrays, col_basenames):
+                bin_info_table.add_column(Column(bigarray[:, fltr], name=basename + filter_name))
+        ascii.write(bin_info_table, bins_outfile, overwrite=True)
+
+    return sedsMags
 
 
 def pick_models(sedgrid, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
@@ -270,8 +309,8 @@ def pick_models(sedgrid, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
     sedsMags = -2.5 * np.log10(sedgrid.seds[:] / vega_flux)
 
     # Select the models above the magnitude limits in N filters
-    idx = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter)
-    grid_cut = sedgrid.grid[idx]
+    idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter)
+    grid_cut = sedgrid.grid[idxs]
 
     # Sample the model grid uniformly
     prime_params = np.column_stack(
@@ -284,11 +323,11 @@ def pick_models(sedgrid, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
         tmp, = np.where(prime_params[:, 0] == iage)
         models.append(np.random.choice(tmp, N_sample))
 
-    index = np.repeat(idx[np.array(models).reshape((-1))], Nrealize)
+    index = np.repeat(idxs[np.array(models).reshape((-1))], Nrealize)
     sedsMags = Table(sedsMags[index, :], names=filters)
 
-    if outfile:
-        ascii.write(sedsMags, outfile, overwrite=True, formats={
-            k: '%.5f' for k in sedsMags.colnames})
+    if outfile is not None:
+        ascii.write(sedsMags, outfile, overwrite=True,
+                    formats={k: '%.5f' for k in sedsMags.colnames})
 
     return sedsMags
