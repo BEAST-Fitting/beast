@@ -2,8 +2,9 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
+
 from astropy.io import ascii
-from astropy.table import Column
+from astropy.table import Column, Table
 from astropy.wcs import WCS
 
 
