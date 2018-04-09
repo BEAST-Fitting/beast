@@ -78,28 +78,38 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
     counter = 0
     successes = 0
     include_mask = np.full(idxs.shape, True, dtype=bool)
+    chunksize = 100000
     while True:
         counter += 1
-        # pick a random model
-        rand_idx = np.random.choice(idxs[include_mask])
+        # pick some random models
+        rand_idx = np.random.choice(idxs[include_mask], size=chunksize)
+        randomseds = sedsMags[rand_idx, :]
 
-        # find which flux bin it belongs to for each filter
-        fluxbins = [np.digitize(flux, bin_maxs[:, fltr])
-            for fltr, flux in enumerate(sedsMags[rand_idx, :])]
+        fluxbins = np.zeros(randomseds.shape, dtype=int)
+        for fltr in range(Nf):
+            fluxbins[:, fltr] = np.digitize(randomseds[:, fltr], bin_maxs[:, fltr])
 
-        # If any of the flux bins that this model falls into does not
-        # have enough samples yet, add it to the list of model spectra
-        # to be output
-        if (bin_count[fluxbins, range(Nf)] < min_N_per_flux).any():
-            bin_count[fluxbins, range(Nf)] += 1
-            successes += 1
-            chosen_idxs.append(rand_idx)
+        add_these = np.full((len(rand_idx)), False, dtype=bool)
+        for r in range(len(rand_idx)):
+            # If any of the flux bins that this model falls into does
+            # not have enough samples yet, add it to the list of model
+            # spectra to be output
+            if (bin_count[fluxbins[r, :], range(Nf)] < min_N_per_flux).any():
+                bin_count[fluxbins[r, :], range(Nf)] += 1
+                successes += 1
+                add_these[r] = True
 
-        # If all these bins are full...
-        else:
-            # ... do not include this model again, since we will reject it
-            # anyway.
-            include_mask[idxs == rand_idx] = False
+            # If all these bins are full...
+            else:
+                # ... do not include this model again, since we will reject it
+                # anyway.
+                include_mask[idxs == rand_idx] = False
+
+        # Add the approved models
+        chosen_idxs.extend(rand_idx[add_these])
+
+        # If some of the randomly picked models were not added
+        if not add_these.any():
             # ... check if we have enough samples everywhere, or if all
             # the models have been exhausted (and hence the bins are
             # impossible to fill).
@@ -108,9 +118,11 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
             if enough_samples or not still_models_left:
                 break
 
-        if not counter % 10000:
-            print('Sampled {} models. {} successfull. Ratio = {}'.format(
-                counter, successes, successes / counter))
+        if not counter % 10:
+            print('Sampled {} models. {} successfull seds. Ratio = {}'.format(
+                counter * chunksize, successes, successes / counter / chunksize))
+            print('Bin array:')
+            print(bin_count)
 
     # Gather the selected model seds in a table
     sedsMags = Table(sedsMags[chosen_idxs, :], names=filters)
