@@ -88,14 +88,11 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
         fluxbins = [np.digitize(flux, bin_maxs[:, fltr])
             for fltr, flux in enumerate(sedsMags[rand_idx, :])]
 
-        # Row and column indices in the bin_count array
-        bincoords = [fluxbins, range(Nf)]
-
         # If any of the flux bins that this model falls into does not
         # have enough samples yet, add it to the list of model spectra
         # to be output
-        if (bin_count[bincoords] < min_N_per_flux).any():
-            bin_count[bincoords] += 1
+        if (bin_count[fluxbins, range(Nf)] < min_N_per_flux).any():
+            bin_count[fluxbins, range(Nf)] += 1
             chosen_idxs.append(rand_idx)
 
         # If all these bins are full, check if we have enough samples
