@@ -90,7 +90,7 @@ def pick_positions_per_background(chosen_seds, bg_map, N_bg_bins,
     # the tiles
     repeated_seds = np.repeat(chosen_seds, len(tile_sets))
 
-    out_table = Table(repeated_seds, names=filters)
+    out_table = Table(repeated_seds, names=chosen_seds.colnames)
     ras = np.zeros(len(out_table))
     decs = np.zeros(len(out_table))
     bin_indices = np.zeros(len(out_table))
