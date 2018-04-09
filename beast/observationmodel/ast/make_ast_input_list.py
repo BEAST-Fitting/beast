@@ -128,7 +128,8 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
 
         fluxbins = np.zeros(randomseds.shape, dtype=int)
         for fltr in range(Nf):
-            fluxbins[:, fltr] = np.digitize(randomseds[:, fltr], bin_maxs[:, fltr])
+            fluxbins[:, fltr] = np.digitize(
+                randomseds[:, fltr], bin_maxs[:, fltr])
 
         add_these = np.full((len(rand_idx)), False, dtype=bool)
         for r in range(len(rand_idx)):
