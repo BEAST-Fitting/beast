@@ -1,18 +1,13 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import argparse
-import sys
 
 import numpy as np
 
+from astropy.io import ascii
 from astropy.table import Table
 from astropy.table import Column
-from astropy.io import ascii, fits
-from astropy.wcs import WCS
 
 from ..vega import Vega
-from ...physicsmodel.grid import FileSEDGrid
-from ...tools.pbar import Pbar
 
 
 def mag_limits(seds, limits, Nfilter=1):
@@ -128,7 +123,6 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
         bin_info_table = Table()
         col_bigarrays = [bin_mins, bin_maxs, bin_count]
         col_basenames = ['bin_mins_', 'bin_maxs_', 'bin_count_']
-        all_cols = []
         for fltr, filter_name in enumerate(filters):
             for bigarray, basename in zip(col_bigarrays, col_basenames):
                 bin_info_table.add_column(

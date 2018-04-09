@@ -3,9 +3,11 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from astropy.io import ascii
+from astropy.io import ascii, fits
 from astropy.table import Column, Table
 from astropy.wcs import WCS
+
+from ...tools.pbar import Pbar
 
 
 def pick_positions_per_background(chosen_seds, bg_map, N_bg_bins,
@@ -59,6 +61,7 @@ def pick_positions_per_background(chosen_seds, bg_map, N_bg_bins,
     ascii file of this table, written to outfile
 
     """
+    Nseds = len(chosen_seds)
 
     # Load the background map
     bg = Table.read(bg_map)
@@ -76,12 +79,10 @@ def pick_positions_per_background(chosen_seds, bg_map, N_bg_bins,
     # We have purposely chosen our bin boundaries so that no points fall
     # outside of the [1,5] range
     bgbin_foreach_tile = np.digitize(tile_bg_vals, bg_bins)
-    print(bgbin_foreach_tile)
     # Invert this (the [0] is to dereference the tuple (i,) returned by
     # nonzero)
     tiles_foreach_bgbin = [np.nonzero(bgbin_foreach_tile == b + 1)[0]
                            for b in range(N_bg_bins)]
-    print(tiles_foreach_bgbin)
 
     # Remove empty bins
     tile_sets = [tile_set for tile_set in tiles_foreach_bgbin if len(tile_set)]
@@ -99,6 +100,7 @@ def pick_positions_per_background(chosen_seds, bg_map, N_bg_bins,
     tile_dec_min = bg['min_dec']
     tile_ra_delta = bg['max_ra'] - tile_ra_min
     tile_dec_delta = bg['max_dec'] - tile_dec_min
+
 
     pbar = Pbar(len(tile_sets),
                 desc='{} models per background bin'.format(Nseds))
