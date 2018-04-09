@@ -47,8 +47,49 @@ def mag_limits(seds, limits, Nfilter=1):
 
 
 def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
-                                N_fluxes, min_N_per_flux, Nrealize,
+                                N_fluxes, min_N_per_flux,
                                 outfile=None, bins_outfile=None, mag_pad=.25):
+    """
+    Creates a fake star catalog from a BEAST model grid. The chosen seds
+    are optimized for the toothpick model, by working with a given
+    number of flux bins, and making sure that every flux bin is covered
+    by at least a given number of models (for each filter individually,
+    which is how the toothpick model works).
+
+    Parameters
+    ----------
+    sedgrid: beast.grid
+        BEAST model grid from which the models are picked
+
+    filters: list of string
+        Names of the filters, to be used as columns of the output table
+
+    mag_cuts: list of float
+        List of magnitude limits for each filter
+
+    Nfilter: integer
+        In how many filters a fake star needs to be brighter than the
+        mag_cut value
+
+    N_fluxes: integer
+        The number of flux bins into which the dynamic range of the
+        model grid in each filter is divided
+
+    min_N_per_flux: integer
+        Minimum number of model seds that need to fall into each bin
+
+    outfile: string
+        Output path for the models (optional)
+
+    bins_outfile: string
+        Output path for a file containing the flux bin limits for each
+        filter, and the number of samples for each (optional)
+
+    mag_pad: float
+        The range that the lowest and highest bins should extend above
+        and below the minimum and maximum magnitude
+
+    """
     with Vega() as v:
         vega_f, vega_flux, lambd = v.getFlux(filters)
 
