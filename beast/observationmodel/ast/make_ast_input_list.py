@@ -1,8 +1,9 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import numpy as np
+import os
 
+import numpy as np
 from astropy.io import ascii
 from astropy.table import Table
 from astropy.table import Column
@@ -79,7 +80,8 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
         Minimum number of model seds that need to fall into each bin
 
     outfile: string
-        Output path for the models (optional)
+        Output path for the models (optional). If this file already
+        exists, the chosen seds are loaded from this file instead.
 
     bins_outfile: string
         Output path for a file containing the flux bin limits for each
@@ -90,6 +92,11 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
         and below the minimum and maximum magnitude
 
     """
+    if outfile is not None and os.path.isfile(outfile):
+        print('{} already exists. Will attempt to load SEDs for ASTs from there.'.format(outfile))
+        t = Table.read(outfile)
+        return t
+
     with Vega() as v:
         vega_f, vega_flux, lambd = v.getFlux(filters)
 
