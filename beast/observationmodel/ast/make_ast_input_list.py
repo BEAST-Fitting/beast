@@ -89,12 +89,21 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
 
     mag_pad: float
         The range that the lowest and highest bins should extend above
-        and below the minimum and maximum magnitude
+        and below the minimum and maximum magnitude. Negative values
+        will shove models that fall outside of the clipped range into
+        the outermost bins.
+
+    Returns
+    -------
+    sedsMags: astropy Table
+        A table containing the selected model seds (columns are named
+        after the filters)
 
     """
     if outfile is not None and os.path.isfile(outfile):
-        print('{} already exists. Will attempt to load SEDs for ASTs from there.'.format(outfile))
-        t = Table.read(outfile)
+        print('{} already exists. Will attempt to load SEDs for ASTs from there.'.format(
+            outfile))
+        t = Table.read(outfile, format='ascii')
         return t
 
     with Vega() as v:
@@ -133,10 +142,16 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
         rand_idx = np.random.choice(idxs[include_mask], size=chunksize)
         randomseds = sedsMags[rand_idx, :]
 
+        # Find in which bin each model belongs, for each filter
         fluxbins = np.zeros(randomseds.shape, dtype=int)
         for fltr in range(Nf):
-            fluxbins[:, fltr] = np.digitize(
-                randomseds[:, fltr], bin_maxs[:, fltr])
+            fluxbins[:, fltr] = np.digitize(randomseds[:, fltr],
+                                            bin_maxs[:, fltr])
+
+        # Clip in place (models of which the flux is equal to the max
+        # are assigned bin nr N_fluxes. Move these down to bin nr
+        # N_fluxes - 1)
+        np.clip(fluxbins, a_min=0, a_max=N_fluxes - 1, out=fluxbins)
 
         add_these = np.full((len(rand_idx)), False, dtype=bool)
         for r in range(len(rand_idx)):
