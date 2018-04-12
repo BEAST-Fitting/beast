@@ -127,8 +127,8 @@ def pick_positions_per_background(chosen_seds, bg_map, N_bg_bins,
 
     # I'm just mimicking the format that is produced by the examples
     cs = []
-    cs.append(Column(np.zeros(len(out_table)), name='zeros'))
-    cs.append(Column(np.ones(len(out_table)), name='ones'))
+    cs.append(Column(np.zeros(len(out_table), dtype=int), name='zeros'))
+    cs.append(Column(np.ones(len(out_table), dtype=int), name='ones'))
 
     if refimage is None:
         cs.append(Column(ras, name='RA'))
