@@ -51,24 +51,25 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
     if iso_fname is None:
         iso_fname = '%s/%s_iso.csv' % (project, project)
     if not os.path.isfile(iso_fname):
-        if oiso is None: 
+        if oiso is None:
             oiso = isochrone.PadovaWeb()
-        
+
         t = oiso._get_t_isochrones(max(5.0, logtmin), min(10.13, logtmax),
                                    dlogt, z)
         t.header['NAME'] = '{0} Isochrones'.format('_'.join(iso_fname.split('_')[:-1]))
         print('{0} Isochrones'.format('_'.join(iso_fname.split('_')[:-1])))
-    
+
         t.write(iso_fname)
 
     # read in the isochrone data from the file
     #   not sure why this is needed, but reproduces previous ezpipe method
     oiso = ezIsoch(iso_fname)
-        
+
     return (iso_fname, oiso)
 
-def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
-                       verbose=True, spec_fname=None, filterLib=None,
+def make_spectral_grid(project, oiso, osl=None, bounds={},
+                       verbose=True, spec_fname=None, distance=10,
+                       distance_unit=units.pc, filterLib=None,
                        add_spectral_properties_kwargs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
@@ -86,10 +87,16 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
     osl: stellib.Stellib object
         Spectral library to use (default stellib.Kurucz)
 
-    distance: float
-        Distance at which models should be shifted
+    distance: float or list of float
+        distances at which models should be shifted, specified as a
+        single number or as [min, max, step]
+
         0 means absolute magnitude.
-        Expecting pc units
+
+    distance_unit: astropy length unit or mag
+        distances will be evenly spaced in this unit
+        therefore, specifying a distance grid in mag units will lead to
+        a log grid
 
     spec_fname: str
         full filename to save the spectral grid into
@@ -115,58 +122,70 @@ def make_spectral_grid(project, oiso, osl=None, bounds={}, distance=None,
     if not os.path.isfile(spec_fname):
         osl = osl or stellib.Kurucz()
 
-        #filter extrapolations of the grid with given sensitivities in logg
-        #  and logT
+        # filter extrapolations of the grid with given sensitivities in
+        # logg and logT
         if 'dlogT' not in bounds:
             bounds['dlogT'] = 0.1
         if 'dlogg' not in bounds:
             bounds['dlogg'] = 0.3
 
-        #make the spectral grid
+        # make the spectral grid
         if verbose:
             print('Make spectra')
         g = creategrid.gen_spectral_grid_from_stellib_given_points(osl,
                                                                    oiso.data,
                                                                bounds=bounds)
 
-        # get the distance
-        if distance is not None:
-            _distance = distance.to(units.pc).value
-            
-        if verbose:    
+        # Construct the distances array. Turn single value into
+        # 1-element list if single distance is given.
+        _distance = np.atleast_1d(distance)
+        if len(_distance) == 3:
+            mindist, maxdist, stepdist = _distance
+            distances = np.arange(mindist, maxdist + stepdist, stepdist)
+        elif len(_distance) == 1:
+            distances = np.array(_distance)
+        else:
+            raise ValueError("distance needs to be (min, max, step) or single number")
+
+        # calculate the distances in pc
+        if distance_unit == units.mag:
+            distances = np.power(10, distances / 5. + 1) * units.pc
+        else:
+            distances = (distances * distance_unit).to(units.pc)
+
+        if verbose:
             print('Adding spectral properties:', add_spectral_properties_kwargs
                   is not None)
         if add_spectral_properties_kwargs is not None:
             nameformat = add_spectral_properties_kwargs.\
                          pop('nameformat', '{0:s}') + '_nd'
 
-        # write to disk
-        # and apply the distance to the particular galaxy of interest
-        # seds already at 10 pc, need multiplcation by the square of the ratio
-        # to this distance
-        if hasattr(g, 'writeHDF'):
-            if distance is not None:
-                g.seds = g.seds / (0.1 * _distance) ** 2
+        # Apply the distances to the stars. Seds already at 10 pc, need
+        # multiplication by the square of the ratio to this distance.
+        # TODO: Applying the distances might have to happen in chunks
+        # for larger grids.
+        def apply_distance_and_spectral_props(g):
+            g = creategrid.apply_distance_grid(g, distances)
+
             if add_spectral_properties_kwargs is not None:
                 g = creategrid.add_spectral_properties(g,
                                                        nameformat=nameformat,
                                                        filterLib=filterLib,
                                             **add_spectral_properties_kwargs)
+
+            return g
+
+        # Perform the extensions defined above and Write to disk
+        if hasattr(g, 'writeHDF'):
+            g = apply_distance_and_spectral_props(g)
             g.writeHDF(spec_fname)
         else:
             for gk in g:
-                if distance is not None:
-                    gk.seds = gk.seds / (0.1 * _distance) ** 2
-                if add_spectral_properties_kwargs is not None:
-                    gk = creategrid.add_spectral_properties(gk,
-                                            nameformat=nameformat,
-                                            filterLib=filterLib,
-                                            **add_spectral_properties_kwargs)
-    
+                gk = apply_distance_and_spectral_props(gk)
                 gk.writeHDF(spec_fname, append=True)
 
     g = grid.FileSpectralGrid(spec_fname, backend='memory')
-        
+
     return (spec_fname, g)
 
 def add_stellar_priors(project, specgrid, verbose=True,
@@ -214,22 +233,24 @@ def add_stellar_priors(project, specgrid, verbose=True,
 
     return (priors_fname, g)
 
+
 def make_extinguished_sed_grid(project,
                                specgrid,
-                               filters, 
-                               av=[0., 5, 0.1], 
-                               rv=[0., 5, 0.2], 
-                               fA=None, 
+                               filters,
+                               av=[0., 5, 0.1],
+                               rv=[0., 5, 0.2],
+                               fA=None,
                                av_prior_model={'name': 'flat'},
                                rv_prior_model={'name': 'flat'},
                                fA_prior_model={'name': 'flat'},
-                               extLaw=None, 
+                               extLaw=None,
                                add_spectral_properties_kwargs=None,
                                absflux_cov=False,
                                verbose=True,
                                seds_fname=None,
                                filterLib=None,
                                **kwargs):
+
     """
     Create SED model grid integrated with filters and dust extinguished
 
@@ -305,9 +326,9 @@ def make_extinguished_sed_grid(project,
             g = creategrid.make_extinguished_grid(specgrid,
                                                   filters,
                                                   extLaw,
-                                                  avs, 
-                                                  rvs, 
-                                                  fAs, 
+                                                  avs,
+                                                  rvs,
+                                                  fAs,
                                                   av_prior_model=av_prior_model,
                                                   rv_prior_model=rv_prior_model,
                                                   fA_prior_model=fA_prior_model,
@@ -316,8 +337,8 @@ def make_extinguished_sed_grid(project,
                                                   filterLib=filterLib)
         else:
             g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
-                                                  avs, 
-                                                  rvs,   
+                                                  avs,
+                                                  rvs,
                                                   av_prior_model=av_prior_model,
                                                   rv_prior_model=rv_prior_model,
                   add_spectral_properties_kwargs=add_spectral_properties_kwargs,
@@ -331,5 +352,5 @@ def make_extinguished_sed_grid(project,
                 gk.writeHDF(seds_fname, append=True)
 
     g = grid.FileSEDGrid(seds_fname, backend='hdf')
-        
+
     return (seds_fname, g)

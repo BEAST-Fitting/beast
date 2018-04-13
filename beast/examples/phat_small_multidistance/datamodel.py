@@ -29,7 +29,7 @@ from beast.observationmodel.noisemodel import absflux_covmat
 
 # project : string
 #   the name of the output results directory
-project = 'beast_example_phat'
+project = 'multidistance'
 
 # filters : list of strings
 #   full filter names in BEAST filter database
@@ -118,13 +118,11 @@ noisefile = project + '/' + project + '_noisemodel.hd5'
 # absflux calibration covariance matrix for HST specific filters (AC)
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
-# Distances: distance to the galaxy [min, max, step] or [fixed number]
-distances = [24.47]
-
-# Distance unit (any length or units.mag)
-distance_unit = units.mag
-
 ################
+
+# Andromeda: 778 ± 33 kpc. Fit within range of 66 kpc. 10 steps --> 6.6 kpc
+distances = [(778. - 33.) * 1.e3, (778. + 33.) * 1.e3, 6.6e3]
+distance_unit = units.pc
 
 ### Stellar grid definition
 

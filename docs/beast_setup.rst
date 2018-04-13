@@ -26,8 +26,6 @@ Project Details
 * ``basefilters``: short versions of passband names.
 * ``obsfile``: filename for input flux data.
 * ``obs_colnames``: column names in ``obsfile`` for observed fluxes. The input data MUST be in fluxes, NOT in magnitudes and the fluxes MUST be in normalized Vega units.
-* ``distanceModulus``: distance modulus to target in magnitudes.
-
 
 Artificial Star Test (AST) File Parameters
 ------------------------------------------
@@ -44,7 +42,6 @@ input parameters from datamodel.py.
 * ``ast_reference_image``: (optional; string)	name of the reference image used by DOLPHOT when running the measured photometry. Required if ast_with_positions is True and no X,Y information is present in the photometry catalog.
 * ``astfile``:  pathname to the AST files (single camera ASTs).
 * ``noisefile`` : pathname to the output noise model file.
-* ``distanceModulus``: distance modulus to the galaxy, in magnitudes.
 
 Grid Definition Parameters
 --------------------------
@@ -52,6 +49,8 @@ Grid Definition Parameters
 The BEAST generates a grid of stellar models based on aditional input parameters
 from datamodel.py.
 
+* ``distances``: distance grid range parameters. ``[min, max, step]``, or ``[fixed number]``.
+* ``distance_unit``: specify magnitude (``units.mag``) or a length unit
 * ``logt``: age grid range parameters (min, max, step).
 * ``z``: metallicity grid points.
 * ``oiso``: isochrone model grid. Current choices: Padova or MIST. Default: PARSEC+CALIBRI: ``oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)``
