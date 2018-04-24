@@ -1,8 +1,8 @@
 from __future__ import (absolute_import, division, print_function)
 import os
 
+import h5py
 import numpy as np
-
 from astropy import units
 
 from . import grid
@@ -10,6 +10,7 @@ from . import creategrid
 from .stars import isochrone
 from .stars.isochrone import ezIsoch
 from .grid_and_prior_weights import compute_age_mass_metallicity_weights
+from ..external.eztables import Table
 
 __all__ = ['make_iso_table', 'make_spectral_grid', 'add_stellar_priors',
            'make_extinguished_sed_grid']
@@ -124,7 +125,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
     if num_dist_subgrids is not None:
         for i in range(num_dist_subgrids):
             subgrid_name = spec_fname.replace(
-                ".hd5", "sub{}.hd5".format(i))
+                ".hd5", "_dist_sub{}.hd5".format(i))
             subgrid_names.append(subgrid_name)
     else:
         subgrid_name = [spec_fname]
@@ -239,9 +240,9 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
             for gk in g:
                 subgrid_names = grid_processing_method(gk)
 
-    g = grid.FileSpectralGrid(spec_fname, backend='memory')
+    # g = grid.FileSpectralGrid(spec_fname, backend='memory')
 
-    return (spec_fname, g, subgrid_names)
+    return (spec_fname, subgrid_names)
 
 
 def add_stellar_priors(project, specgrid, verbose=True,
@@ -410,11 +411,76 @@ def make_extinguished_sed_grid(project,
 
     return (seds_fname, g)
 
+
+def split_grid(grid_fname, num_subgrids):
+    """
+    Splits a spectral or sed grid (they are the same class actually)
+    according to grid point index (so basically, arbitrarily).
+
+    Parameters
+    ----------
+    grid_fname: string
+        file name of the existing grid to be split up
+
+    num_subgrids: integer
+        the number of parts the grid should be split into
+
+    Returns
+    -------
+    list of string
+        the names of the newly created subgrid files
+
+    """
+
+    # With h5py we can choose which data we want to load to memory by
+    # providing a slice
+    h5grid = h5py.File(grid_fname)
+    lamb = h5grid['lamb']
+    seds = h5grid['seds']
+    gr = h5grid['grid']
+
+    fnames = []
+
+    num_seds = seds.shape[0]
+    q = num_seds // num_subgrids
+    r = num_seds % num_subgrids
+    for i in range(num_subgrids):
+
+        subgrid_fname = grid_fname.replace('.hd5', 'sub{}.hd5'.format(i))
+        fnames.append(subgrid_fname)
+        if os.path.isfile(subgrid_fname):
+            print('{} already exists. Skipping.'.format(subgrid_fname))
+            continue
+        else:
+            print('constructing subgrid ' + str(i))
+
+        # First, do strides of q+1
+        if i < r:
+            start = i * (q + 1)
+            stop = start + q + 1
+        # After the remainder has been taken care of, do strides of q
+        else:
+            start = r * (q + 1) + (i - r) * q
+            stop = start + q
+
+        # Load a slice as a SpectralGrid object
+        slc = slice(start, stop)
+        g = grid.SpectralGrid(lamb, seds=seds[slc], grid=Table(gr[slc]),
+                              backend='memory')
+
+        # Save it to a new file
+        g.writeHDF(subgrid_fname, append=False)
+
+    return fnames
+
+
 def merge_grids(seds_fname, sub_names):
     """
     Merges a set of grids into one big grid. The grids need to have the
     same columns
 
+    Parameters
+    ----------
     seds_fname: string
         path for the output file
 
