@@ -240,9 +240,9 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
             for gk in g:
                 subgrid_names = grid_processing_method(gk)
 
-    # g = grid.FileSpectralGrid(spec_fname, backend='memory')
+    g = grid.FileSpectralGrid(spec_fname, backend='memory')
 
-    return (spec_fname, subgrid_names)
+    return (spec_fname, g, subgrid_names)
 
 
 def add_stellar_priors(project, specgrid, verbose=True,
