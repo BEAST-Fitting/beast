@@ -100,14 +100,20 @@ def pick_positions_per_background(chosen_seds, bg_map, N_bg_bins,
     repeated_seds = np.repeat(repeated_seds, len(tile_sets))
 
     out_table = Table(repeated_seds, names=chosen_seds.colnames)
-    ras = np.zeros(len(out_table))
-    decs = np.zeros(len(out_table))
+    xs = np.zeros(len(out_table))
+    ys = np.zeros(len(out_table))
     bin_indices = np.zeros(len(out_table))
 
     tile_ra_min = bg['min_ra']
     tile_dec_min = bg['min_dec']
     tile_ra_delta = bg['max_ra'] - tile_ra_min
     tile_dec_delta = bg['max_dec'] - tile_dec_min
+
+    if refimage is None:
+        wcs = None
+    else:
+        imagehdu = fits.open(refimage)[1]
+        wcs = WCS(imagehdu.header)
 
     pbar = Pbar(len(tile_sets),
                 desc='{} models per background bin'.format(Nseds_per_region))
@@ -116,27 +122,38 @@ def pick_positions_per_background(chosen_seds, bg_map, N_bg_bins,
         stop = start + Nseds_per_region
         bin_indices[start:stop] = bin_index
         for i in range(Nseds_per_region):
+            x = -1
+            y = -1
+            # Convert each ra,dec to x,y. If there are negative values, try again
+            while x < 0 or y < 0:
+                # Pick a random tile
+                tile = np.random.choice(tile_set)
+                # Within this tile, pick a random ra and dec
+                ra = tile_ra_min[tile] + \
+                     np.random.random_sample() * tile_ra_delta[tile]
+                dec = tile_dec_min[tile] + \
+                      np.random.random_sample() * tile_dec_delta[tile]
+
+                if wcs is None:
+                    x, y = ra, dec
+                    break
+                else:
+                    [x], [y] = wcs.all_world2pix(np.array([ra]), np.array([dec]), 0)
+
             j = bin_index * Nseds_per_region + i
-            # Pick a random tile
-            tile = np.random.choice(tile_set)
-            # Within this tile, pick a random ra and dec
-            ras[j] = tile_ra_min[tile] + \
-                np.random.random_sample() * tile_ra_delta[tile]
-            decs[j] = tile_dec_min[tile] + \
-                np.random.random_sample() * tile_dec_delta[tile]
+            xs[j] = x
+            ys[j] = y
+
 
     # I'm just mimicking the format that is produced by the examples
     cs = []
     cs.append(Column(np.zeros(len(out_table), dtype=int), name='zeros'))
     cs.append(Column(np.ones(len(out_table), dtype=int), name='ones'))
 
-    if refimage is None:
-        cs.append(Column(ras, name='RA'))
-        cs.append(Column(decs, name='DEC'))
+    if wcs is None:
+        cs.append(Column(xs, name='RA'))
+        cs.append(Column(ys, name='DEC'))
     else:
-        imagehdu = fits.open(refimage)[1]
-        wcs = WCS(imagehdu.header)
-        xs, ys = wcs.all_world2pix(ras, decs, 0)
         cs.append(Column(xs, name='X'))
         cs.append(Column(ys, name='Y'))
 
