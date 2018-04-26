@@ -57,8 +57,8 @@ __all__ = ['summary_table_memory',
            'save_lnp']
 
 def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals,
-               per_vals, chi2_vals, chi2_indx, 
-               lnp_vals, lnp_indx, best_specgrid_indx, qnames, p):
+               per_vals, chi2_vals, chi2_indx, lnp_vals, lnp_indx,
+               best_specgrid_indx, total_log_norm, qnames, p):
     """ Saves the stats to a file
 
     Keywords
@@ -74,6 +74,7 @@ def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals,
     lnp_indx(1D nparray) : indx in model grid of P(max) values
     best_specgrid_indx(1D nparray) : indx in spectroscopic model grid of
                                      P(max) values
+    total_log_norm(1D nparray) : log of the total grid weight
     qnames(1D nparray) : list of the parameter names
     p(1D nparray) : list of percentiles use to create the per_vals
 
@@ -97,6 +98,7 @@ def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals,
     stats_dict['Pmax'] = lnp_vals
     stats_dict['Pmax_indx'] = lnp_indx.astype(int)
     stats_dict['specgrid_indx'] = best_specgrid_indx.astype(int)
+    stats_dict['total_log_norm'] = total_log_norm
 
     summary_tab = Table(stats_dict)
 
@@ -322,6 +324,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     lnp_vals = np.zeros(nobs)
     lnp_indx = np.zeros(nobs)
     best_specgrid_indx = np.zeros(nobs)
+    total_log_norm = np.zeros(nobs)
 
     # variable to save the lnp files
     save_lnp_vals = []
@@ -470,8 +473,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
         # normalize the weights make sure they sum to one
         #   needed for np.random.choice
-        weights /= np.sum(weights)
-                
+        weight_sum = np.sum(weights)
+        weights /= weight_sum
+
         # save the current set of lnps
         if lnp_outname is not None:
             if lnp_npts is not None:
@@ -486,6 +490,13 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                                   np.array(lnp[rindx], dtype=np.float32),
                                   np.array(chi2[rindx], dtype=np.float32),
                                   np.array([sed]).T])
+
+        # To merge the stats for different subgrids, we need the total
+        # weight of a grid, which is sum(exp(lnps)). Since sum(exp(lnps
+        # - log_norm - log(weight_sum))) = 1, the relative weight of
+        # each subgrid will be exp(log_norm + log(weight_sum)).
+        # Therefore, we also store the following quantity:
+        total_log_norm[e] = log_norm + np.log(weight_sum)
 
         # index to the full model grid for the best fit values
         best_full_indx = g0_indxs[indx[weights.argmax()]]
