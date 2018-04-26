@@ -128,7 +128,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                 ".hd5", "_dist_sub{}.hd5".format(i))
             subgrid_names.append(subgrid_name)
     else:
-        subgrid_name = [spec_fname]
+        subgrid_names = [spec_fname]
 
     missing = False
     for n in subgrid_names:
@@ -196,11 +196,10 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
             return g
 
         def grid_processing_method(g0):
-
             if num_dist_subgrids is None or num_dist_subgrids <= 1:
                 g = apply_distance_and_spectral_props(g0, distances)
                 g.writeHDF(spec_fname, append=True)
-                return [spec_fname]
+                return spec_fname, g, subgrid_names
 
             # Else, save the grid for separate sets of distances, with
             # or without multiprocessing
