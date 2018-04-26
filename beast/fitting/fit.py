@@ -550,7 +550,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                     save_stats(stats_outname, prev_result, best_vals,
                                exp_vals, per_vals, chi2_vals, chi2_indx,
                                lnp_vals, lnp_indx, best_specgrid_indx,
-                               qnames, p)
+                               total_log_norm, qnames, p)
 
                 # save the lnps
                 if lnp_outname is not None:
@@ -565,9 +565,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     
     # save the stats/catalog
     if stats_outname is not None:
-        save_stats(stats_outname, prev_result, best_vals, exp_vals, per_vals,
-                   chi2_vals, chi2_indx,
-                   lnp_vals, lnp_indx, best_specgrid_indx, qnames, p)
+        save_stats(stats_outname, prev_result, best_vals, exp_vals,
+                   per_vals, chi2_vals, chi2_indx, lnp_vals, lnp_indx,
+                   best_specgrid_indx, total_log_norm, qnames, p)
 
     # save the lnps
     if lnp_outname is not None:
