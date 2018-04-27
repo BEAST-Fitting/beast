@@ -139,7 +139,7 @@ def verify_input_format(datamodel, physicsmodel=False, noexit=False):
 	    param_format = ['list_float', 'str_file',
 	                    'list_float_grid', 'list_float_grid',
 	                    'list_float_grid', 'list_float_grid']
-	    parameters_limits = [ [0., 0.1], None, None, [-inf, 10.15],
+	    parameters_limits = [ [0., 0.1], None, [-inf, 10.15],
 	                          [0., inf], [1., 7.], [0., 1.]]
     else:
 	    parameters = [datamodel.z, datamodel.obsfile, \

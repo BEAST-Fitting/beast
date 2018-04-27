@@ -79,7 +79,8 @@ if __name__ == '__main__':
     print("***run information***")
     print("  project = " + datamodel.project)
     print("  obsfile = " + datamodel.obsfile)
-    print("  astfile = " + datamodel.astfile)
+    if not args.physicsmodel:
+        print("  astfile = " + datamodel.astfile)
     print("        noisefile = " + datamodel.noisefile)
     print("   trimed sedfile = " + sed_trimname)
     print("trimed noisefiles = " + noisemodel_trimname)
