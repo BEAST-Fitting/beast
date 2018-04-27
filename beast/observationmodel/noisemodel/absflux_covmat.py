@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from astropy.io.fits import getdata    
+from astropy.io.fits import getdata
 
 from .. import phot
 from ...config import __ROOT__
@@ -51,7 +51,7 @@ def hst_frac_matrix(filters, spectrum=None, progress=True,
 
     # get the HST fractional covariance matrix at spectroscopic resolution
     if hst_fname is None:
-        hst_fname = __ROOT__+'/libs/hst_whitedwarf_frac_covar.fits'
+        hst_fname = __ROOT__+'/hst_whitedwarf_frac_covar.fits'
 
     hst_data = getdata(hst_fname,1)
 
@@ -76,7 +76,7 @@ def hst_frac_matrix(filters, spectrum=None, progress=True,
 
     for i in range(n_filters):
         mult_image[:,:,i] = image_ones*flist[i].transmit
-        
+
     # handle single spectrum or many spectra
     if len(spectrum[1].shape) > 1:
         n_models = spectrum[1].shape[0]
@@ -99,7 +99,7 @@ def hst_frac_matrix(filters, spectrum=None, progress=True,
         else:
             interp_spectrum = np.interp(waves, spectrum[0], spectrum[1][k,:])
 
-    
+
         for i in range(n_filters):
             mult_image_spec[:,:,i] = mult_image[:,:,i]*interp_spectrum
 
@@ -115,7 +115,7 @@ def hst_frac_matrix(filters, spectrum=None, progress=True,
         for i in range(n_filters):
             for j in range(0,i):
                 frac_covar_bands[i,j] = frac_covar_bands[j,i]
-                
+
         # add the term accounting for the uncertainty in the overall
         #  zero point of the flux scale
         #  (e.g., uncertainty in Vega at 5555 A)
