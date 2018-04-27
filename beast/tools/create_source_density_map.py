@@ -118,7 +118,7 @@ def make_source_dens_map(catfile,
     npts_map = np.zeros([n_x,n_y], dtype=float)
     npts_zero_map = np.zeros([n_x,n_y], dtype=float)
     npts_band_zero_map = np.zeros([n_x,n_y,n_filters], dtype=float)
-    source_dens = np.empty(N_stars, dtype=float)
+    source_dens = np.zeros(N_stars, dtype=float)
 
     for i in range(n_x):
         print('x = %s out of %s' % (str(i+1), str(n_x)))
