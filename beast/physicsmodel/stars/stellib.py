@@ -42,7 +42,7 @@ config = {
     'aringerc': __ROOT__ + '/libs/aringerc.lowres.grid.fits'}
 
 __all__ = ['Stellib', 'CompositeStellib', 'Kurucz', 'Tlusty',
-           'BTSettl', 'Munari', 'Elodie', 'BaSeL']
+           'BTSettl', 'Munari', 'Elodie', 'BaSeL','AringerMK','AringerC']
 
 
 def isNestedInstance(obj, cl):
