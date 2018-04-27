@@ -94,7 +94,7 @@ def merge_grids(seds_fname, sub_names):
         print('{} already exists'.format(seds_fname))
 
 
-def gather_mins_maxes(grid_fname, noise_fname=None):
+def subgrid_info(grid_fname, noise_fname=None):
     """
     Generates a list of mins and maxes of all the quantities in the given grid
 
@@ -111,22 +111,26 @@ def gather_mins_maxes(grid_fname, noise_fname=None):
 
     Returns
     -------
-    min_max_dict: dictionary
-        {name of quantity [string]: (minimum, maximum), ...}
+    info_dict: dictionary
+        {name of quantity [string]: {'min': min, 'max': max, 'unique': unique values}}
     """
 
     # Use the HDFStore (pytables) backend
     sedgrid = grid.FileSEDGrid(grid_fname, backend='hdf')
     seds = sedgrid.seds
 
-    min_max_dict = {}
+    info_dict = {}
 
     qnames = sedgrid.keys()
     for q in qnames:
         qvals = sedgrid[q]
         qmin = np.amin(qvals)
         qmax = np.amax(qvals)
-        min_max_dict[q] = (qmin, qmax)
+        qunique = np.unique(qvals)
+        info_dict[q] = {}
+        info_dict[q]['min'] = qmin
+        info_dict[q]['max'] = qmax
+        info_dict[q]['unique'] = qunique
 
     if noise_fname is not None:
         # This code is more or less copied from fit.py
@@ -141,16 +145,18 @@ def gather_mins_maxes(grid_fname, noise_fname=None):
             f_fluxes = full_model_flux[:, i]
             qmin = np.amin(f_fluxes)
             qmax = np.amax(f_fluxes)
+            qunique = np.unique(qvals)
 
             q = 'log'+f+'_wd_bias'
-            qnames.append(q)
+            info_dict[q] = {}
+            info_dict[q]['min'] = qmin
+            info_dict[q]['max'] = qmax
+            info_dict[q]['unique'] = qunique
 
-            min_max_dict[q] = (qmin, qmax)
+    print('Gathered grid info for {}'.format(grid_fname))
+    return info_dict
 
-    print('Got minima and maxima of {} for {}'.format(qnames, grid_fname))
-    return min_max_dict
-
-def reduce_mins_maxes(grid_fnames, noise_fnames=None, nprocs=1):
+def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
     """
     Computes the total minimum and maximum of the necessary quantities
     across all the subgrids. Can run in parallel.
@@ -168,7 +174,7 @@ def reduce_mins_maxes(grid_fnames, noise_fnames=None, nprocs=1):
 
     Returns
     -------
-    min_max_dict: dictionary
+    info_dict: dictionary
         {name of quantity: (min, max), ...}
     """
     # Gather the mins and maxes for the subgrid
@@ -180,22 +186,34 @@ def reduce_mins_maxes(grid_fnames, noise_fnames=None, nprocs=1):
     parallel = nprocs > 1
     if (parallel):
         p = Pool(nprocs)
-        min_max_dicts = p.starmap(gather_mins_maxes, arguments)
+        info_dicts = p.starmap(subgrid_info, arguments)
     else:
-        min_max_dicts = []
+        info_dicts = []
         for a in arguments:
-            min_max_dicts.append(gather_mins_maxes(*a))
-
-    # Assume that all dicts have the same keys. Copy the (min,max)
-    # tuples from the first dict as a starting point.
-    result_min_max_dict = min_max_dicts[0]
+            info_dicts.append(subgrid_info(*a))
 
     # Then, reduce the values over the rest of the dicts
-    for individual_min_max_dict in min_max_dicts:
-        for q in result_min_max_dict:
-            currentmin, currentmax = result_min_max_dict[q]
-            othermin, othermax = individual_min_max_dict[q]
-            result_min_max_dict[q] = (min(currentmin, othermin),
-                                          max(currentmax, othermax))
+    result_dict = {}
+    for q in info_dicts[0]:
+        # Combine the values of the first subgrid
+        union_min = info_dicts[0][q]['min']
+        union_max = info_dicts[0][q]['max']
+        union_unique = info_dicts[0][q]['unique']
 
-    return result_min_max_dict
+        # And all the other subgrids
+        for individual_dict in info_dicts[1:]:
+            other_min = individual_dict[q]['min']
+            union_min = min(union_min, other_min)
+
+            other_max = individual_dict[q]['max']
+            union_max = max(union_max, other_max)
+
+            other_unique = individual_dict[q]['unique']
+            union_unique = np.union1d(union_unique, other_unique)
+
+        result_dict[q] = {}
+        result_dict[q]['min'] = union_min
+        result_dict[q]['max'] = union_max
+        result_dict[q]['num_unique'] = len(union_unique)
+
+    return result_dict
