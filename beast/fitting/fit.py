@@ -177,7 +177,7 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
 
 def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                  gridbackend='cache', max_nbins=50,
-                 stats_outname=None, pdf1d_outname=None, min_max_dict=None,
+                 stats_outname=None, pdf1d_outname=None, grid_info_dict=None,
                  lnp_outname=None, lnp_npts=None, save_every_npts=None,
                  threshold=-40, resume=False,
                  use_full_cov_matrix=True):
@@ -229,7 +229,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
 
-    min_max_dict: set to fix the mins/maxes of the 1dpdfs
+    grid_info_dict: set to fix the mins/maxes of the 1dpdfs
         format: {qname: (min,max)}
 
     lnp_outname: set to output the sparse likelihoods into a (usually HDF5)
@@ -343,9 +343,16 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
             q = full_model_flux[:,filters.index(fname)]
         else:
             q = g0[qname]
+
+        if grid_info_dict is not None and qname in grid_info_dict:
+            # When processing a subgrid, we actuall need the number of
+            # unique values across all the subgrids to make the 1dpdfs
+            # compatible
+            n_uniq = grid_info_dict[qname]['num_unique']
+        else:
+            n_uniq = len(np.unique(q))
         
-        n_uniq = len(np.unique(q))
-        if len(np.unique(q)) > max_nbins: 
+        if len(n_uniq) > max_nbins:
             # limit the number of bins in the 1D likelihood for speed
             nbins = max_nbins  
         else:
@@ -370,8 +377,8 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         else:
             logspacing = False
 
-        if min_max_dict is not None and qname in min_max_dict:
-            minval, maxval = min_max_dict[qname]
+        if grid_info_dict is not None and qname in grid_info_dict:
+            minval, maxval = grid_info_dict[qname]
         else:
             minval, maxval = None, None
 
@@ -649,7 +656,7 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                          gridbackend='cache', threshold=-10,
                          save_every_npts=None, lnp_npts=None,
                          resume=False, stats_outname=None,
-                         pdf1d_outname=None, min_max_dict=None,
+                         pdf1d_outname=None, grid_info_dict=None,
                          lnp_outname=None, use_full_cov_matrix=True,
                          surveyname='PHAT', extraInfo=False):
     """
@@ -690,7 +697,7 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
 
-    min_max_dict: set to fix the mins/maxes of the 1dpdfs
+    grid_info_dict: set to fix the mins/maxes of the 1dpdfs
         format: {qname: (min,max)}
 
     lnp_outname: set to output the sparse likelihoods into a (usually HDF5)
@@ -741,6 +748,6 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                  lnp_npts=lnp_npts,
                  stats_outname=stats_outname,
                  pdf1d_outname=pdf1d_outname,
-                 min_max_dict=min_max_dict,
+                 grid_info_dict=grid_info_dict,
                  lnp_outname=lnp_outname,
                  use_full_cov_matrix=use_full_cov_matrix)
