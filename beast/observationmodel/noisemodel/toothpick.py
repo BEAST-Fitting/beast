@@ -316,6 +316,9 @@ class MultiFilterASTs(NoiseModel):
         sedgrid: beast.core.grid type
             model grid to interpolate AST results on
 
+        progress: bool, optional
+            if set, display a progress bar
+
         Returns
         -------
         bias: ndarray
@@ -326,9 +329,6 @@ class MultiFilterASTs(NoiseModel):
 
         comp: ndarray
             completeness table per model
-
-        progress: bool, optional
-            if set, display a progress bar
         """
         flux = sedgrid.seds
         N, M = flux.shape

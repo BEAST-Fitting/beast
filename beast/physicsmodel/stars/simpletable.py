@@ -74,7 +74,7 @@ if PY3:
     strtype = (str, bytes)
 else:
     range = xrange
-    
+
     iteritems = operator.methodcaller('iteritems')
     itervalues = operator.methodcaller('itervalues')
     strtype = (str, str)
@@ -721,7 +721,7 @@ def _ascii_generate_header(tab, comments='#', delimiter=' ',
         #MB hdr.append(comments)  # add empty line
         for k, v in list(tab._aliases.items()):
             hdr.append('{0:s} alias\t{1:s}={2:s}'.format(comments, k, v))
-    
+
     # column names
     #MB hdr.append(comments)
     if commentedHeader:
@@ -2738,104 +2738,104 @@ class stats(object):
 # Adding some plotting functions
 # =============================================================================
 
-try:
-    import pylab as plt
-
-    def plot_function(tab, fn, *args, **kwargs):
-        """ Generate a plotting method of tab from a given function
-
-        Parameters
-        ----------
-        tab: SimpleTable instance
-            table instance
-
-        fn: str or callable
-            if str, will try a function in matplotlib
-            if callable, calls the function directly
-
-        xname: str
-            expecting a column name from the table
-
-        yname: str, optional
-            if provided, another column to use for the plot
-
-        onlywhere: sequence or str, optional
-            if provided, selects only data with this condition
-            the condition can be a ndarray slice or a string.
-            When a string is given, the evaluation calls :func:`SimpleTable.where`
-
-        ax: matplotlib.Axes instance
-            if provided make sure it uses the axis to do the plots if a mpl
-            function is used.
-
-        Returns
-        -------
-        r: object
-            anything returned by the called function
-        """
-        if not hasattr(fn, '__call__'):
-            ax = kwargs.pop('ax', None)
-            if ax is None:
-                ax = plt.gca()
-            _fn = getattr(ax, fn, None)
-            if _fn is None:
-                raise AttributeError('function neither callable or found in matplotlib')
-        else:
-            _fn = fn
-
-        onlywhere = kwargs.pop('onlywhere', None)
-        if type(onlywhere) in strtype:
-            select = tab.where(onlywhere)
-        else:
-            select = onlywhere
-
-        _args = ()
-        for a in args:
-            if (hasattr(a, '__iter__')):
-                try:
-                    b = tab[a]
-                    if select is not None:
-                        b = b.compress(select)
-                    if (len(b.dtype) > 1):
-                        b = list((b[k] for k in b.dtype.names))
-                    _args += (b, )
-                except Exception as e:
-                    print(e)
-                    _args += (a, )
-            else:
-                _args += (a, )
-
-        return _fn(*_args, **kwargs)
-
-    def attached_function(fn, doc=None, errorlevel=0):
-        """ eclare a function as a method to the class table"""
-
-        def _fn(self, *args, **kwargs):
-            try:
-                return plot_function(self, fn, *args, **kwargs)
-            except Exception as e:
-                if errorlevel < 1:
-                    pass
-                else:
-                    raise e
-
-        if doc is not None:
-            _fn.__doc__ = doc
-
-        return _fn
-
-    SimpleTable.plot_function = plot_function
-    SimpleTable.plot = attached_function('plot', plt.plot.__doc__)
-    SimpleTable.hist = attached_function('hist', plt.hist.__doc__)
-    SimpleTable.hist2d = attached_function('hist2d', plt.hist2d.__doc__)
-    SimpleTable.hexbin = attached_function('hexbin', plt.hexbin.__doc__)
-    SimpleTable.scatter = attached_function('scatter', plt.scatter.__doc__)
-
-    # newer version of matplotlib
-    if hasattr(plt, 'violinplot'):
-        SimpleTable.violinplot = attached_function('violinplot', plt.violinplot.__doc__)
-    if hasattr(plt, 'boxplot'):
-        SimpleTable.boxplot = attached_function('boxplot', plt.boxplot.__doc__)
-
-except Exception as e:
-    print(e)
+# try:
+#     import pylab as plt
+#
+#     def plot_function(tab, fn, *args, **kwargs):
+#         """ Generate a plotting method of tab from a given function
+#
+#         Parameters
+#         ----------
+#         tab: SimpleTable instance
+#             table instance
+#
+#         fn: str or callable
+#             if str, will try a function in matplotlib
+#             if callable, calls the function directly
+#
+#         xname: str
+#             expecting a column name from the table
+#
+#         yname: str, optional
+#             if provided, another column to use for the plot
+#
+#         onlywhere: sequence or str, optional
+#             if provided, selects only data with this condition
+#             the condition can be a ndarray slice or a string.
+#             When a string is given, the evaluation calls :func:`SimpleTable.where`
+#
+#         ax: matplotlib.Axes instance
+#             if provided make sure it uses the axis to do the plots if a mpl
+#             function is used.
+#
+#         Returns
+#         -------
+#         r: object
+#             anything returned by the called function
+#         """
+#         if not hasattr(fn, '__call__'):
+#             ax = kwargs.pop('ax', None)
+#             if ax is None:
+#                 ax = plt.gca()
+#             _fn = getattr(ax, fn, None)
+#             if _fn is None:
+#                 raise AttributeError('function neither callable or found in matplotlib')
+#         else:
+#             _fn = fn
+#
+#         onlywhere = kwargs.pop('onlywhere', None)
+#         if type(onlywhere) in strtype:
+#             select = tab.where(onlywhere)
+#         else:
+#             select = onlywhere
+#
+#         _args = ()
+#         for a in args:
+#             if (hasattr(a, '__iter__')):
+#                 try:
+#                     b = tab[a]
+#                     if select is not None:
+#                         b = b.compress(select)
+#                     if (len(b.dtype) > 1):
+#                         b = list((b[k] for k in b.dtype.names))
+#                     _args += (b, )
+#                 except Exception as e:
+#                     print(e)
+#                     _args += (a, )
+#             else:
+#                 _args += (a, )
+#
+#         return _fn(*_args, **kwargs)
+#
+#     def attached_function(fn, doc=None, errorlevel=0):
+#         """ eclare a function as a method to the class table"""
+#
+#         def _fn(self, *args, **kwargs):
+#             try:
+#                 return plot_function(self, fn, *args, **kwargs)
+#             except Exception as e:
+#                 if errorlevel < 1:
+#                     pass
+#                 else:
+#                     raise e
+#
+#         if doc is not None:
+#             _fn.__doc__ = doc
+#
+#         return _fn
+#
+#     SimpleTable.plot_function = plot_function
+#     SimpleTable.plot = attached_function('plot', plt.plot.__doc__)
+#     SimpleTable.hist = attached_function('hist', plt.hist.__doc__)
+#     SimpleTable.hist2d = attached_function('hist2d', plt.hist2d.__doc__)
+#     SimpleTable.hexbin = attached_function('hexbin', plt.hexbin.__doc__)
+#     SimpleTable.scatter = attached_function('scatter', plt.scatter.__doc__)
+#
+#     # newer version of matplotlib
+#     if hasattr(plt, 'violinplot'):
+#         SimpleTable.violinplot = attached_function('violinplot', plt.violinplot.__doc__)
+#     if hasattr(plt, 'boxplot'):
+#         SimpleTable.boxplot = attached_function('boxplot', plt.boxplot.__doc__)
+#
+# except Exception as e:
+#     print(e)
