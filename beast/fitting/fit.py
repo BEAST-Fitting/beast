@@ -506,7 +506,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
             # best value
             best_vals[e,k] = q[best_full_indx]
 
-            # expectration value
+            # expectation value
             exp_vals[e,k] = expectation(q[g0_indxs[indx]], weights=weights)
 
             # percentile values
