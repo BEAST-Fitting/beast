@@ -1,9 +1,10 @@
 import os
+from multiprocessing import Pool
 
 import h5py
 import numpy as np
 
-import ..observationmodel.noisemodel.generic_noisemode import get_noisemodelcat
+from ..observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
 from ..physicsmodel import grid
 from ..external.eztables import Table
 
@@ -116,17 +117,16 @@ def gather_mins_maxes(grid_fname, noise_fname=None):
 
     # Use the HDFStore (pytables) backend
     sedgrid = grid.FileSEDGrid(grid_fname, backend='hdf')
-    g = sedgrid.grid
     seds = sedgrid.seds
 
-    outdict = {}
+    min_max_dict = {}
 
     qnames = sedgrid.keys()
     for q in qnames:
-        qvals = gr[q]
+        qvals = sedgrid[q]
         qmin = np.amin(qvals)
         qmax = np.amax(qvals)
-        outdict[q] = (qmin, qmax)
+        min_max_dict[q] = (qmin, qmax)
 
     if noise_fname is not None:
         # This code is more or less copied from fit.py
@@ -145,7 +145,7 @@ def gather_mins_maxes(grid_fname, noise_fname=None):
             q = 'log'+f+'_wd_bias'
             qnames.append(q)
 
-            outdict[q] = (qmin, qmax)
+            min_max_dict[q] = (qmin, qmax)
 
     print('Got minima and maxima of {} for {}'.format(qnames, grid_fname))
     return min_max_dict
@@ -175,7 +175,7 @@ def reduce_mins_maxes(grid_fnames, noise_fnames=None, nprocs=1):
     if noise_fnames is None:
         arguments = [(g, None) for g in grid_fnames]
     else:
-        arguments = zip(grid_fnames, noise_fnames)
+        arguments = list(zip(grid_fnames, noise_fnames))
 
     parallel = nprocs > 1
     if (parallel):
@@ -184,7 +184,7 @@ def reduce_mins_maxes(grid_fnames, noise_fnames=None, nprocs=1):
     else:
         min_max_dicts = []
         for a in arguments:
-            min_max_dicts.append(reduce_mins_maxes(*a))
+            min_max_dicts.append(gather_mins_maxes(*a))
 
     # Assume that all dicts have the same keys. Copy the (min,max)
     # tuples from the first dict as a starting point.

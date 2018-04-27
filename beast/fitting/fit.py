@@ -370,9 +370,15 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         else:
             logspacing = False
 
+        if min_max_dict is not None and qname in min_max_dict:
+            minval, maxval = min_max_dict[qname]
+        else:
+            minval, maxval = None, None
+
         # generate the fast 1d pdf mapping
         _tpdf1d = pdf1d(q, nbins, ignorebelow=ignorebelow,
-                        logspacing=logspacing)
+                        logspacing=logspacing, minval=minval,
+                        maxval=maxval)
         fast_pdf1d_objs.append(_tpdf1d)
         
         # setup the arrays to save the 1d PDFs
