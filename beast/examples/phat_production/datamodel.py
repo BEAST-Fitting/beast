@@ -1,5 +1,5 @@
 """ Data Model interface v2.0
-BEAST datamodel for LMC METAL fields
+BEAST datamodel for example PHAT field (Brick 15)
 """
 from __future__ import (absolute_import, division, print_function)
 
@@ -29,11 +29,11 @@ from beast.observationmodel.noisemodel import absflux_covmat
 
 # project : string
 #   the name of the output results directory
-project = 'LMC-5665ne-12232_beast_small'
+project = 'phat_example_beast'
 
 # name of the survey
 #  used for the creation of the unique name for each source
-surveyname = 'METAL'
+surveyname = 'PHAT'
 
 # filters : list of strings
 #   full filter names in BEAST filter database
@@ -50,13 +50,13 @@ basefilters = ['F225W','F275W','F336W',
 # obs_colnames : list of strings
 #   names of columns for filters in the observed catalog
 #   need to match column names in the observed catalog,
-#   input data MUST be in fluxes, NOT in magnitudes 
+#   input data MUST be in fluxes, NOT in magnitudes
 #   fluxes MUST be in normalized Vega units
 obs_colnames = [ f.upper() + '_RATE' for f in basefilters ]
 
-# obsfile : string 
+# obsfile : string
 #   pathname of the observed catalog
-obsfile = 'data/14675_LMC-5665ne-12232.gst.fits'
+obsfile = 'data/b15-6filt-cut-4band-gst-bright.fits'
 
 #------------------------------------------------------
 # Artificial Star Test Input File Generation Parameters
@@ -64,19 +64,19 @@ obsfile = 'data/14675_LMC-5665ne-12232.gst.fits'
 
 # ast_models_selected_per_age : integer
 # Number of models to pick per age (Default = 70).
-ast_models_selected_per_age = 70  
+ast_models_selected_per_age = 70
 
-# ast_bands_above_maglimit : integer 
+# ast_bands_above_maglimit : integer
 # Number of filters that must be above the magnitude limit
 # for an AST to be included in the list (Default = 3)
-ast_bands_above_maglimit = 3  
-                             
+ast_bands_above_maglimit = 3
+
 
 # ast_realization_per_model : integer
 # Number of Realizations of each included AST model
 # to be put into the list. (Default = 20)
 ast_realization_per_model = 20
-                             
+
 
 # ast_maglimit : float (single value or array with one value per filter)
 # (1) option 1: [number] to change the number of mags fainter than
@@ -86,22 +86,22 @@ ast_realization_per_model = 20
 #               (Default = 1)
 # (2) option 2: [space-separated list of numbers] to set custom faint end limits
 #               (one value for each band).
-ast_maglimit = [1.] 
+ast_maglimit = [1.]
 
 # ast_with_positions :  (bool,optional)
 # If True, the ast list is produced with X,Y positions.
 # If False, the ast list is produced with only magnitudes.
 ast_with_positions = True
-                         
+
 # ast_pixel_distribution : float (optional)
 # (Used if ast_with_positions is True), minimum pixel separation between AST
 # position and catalog star used to determine the AST spatial distribution
-ast_pixel_distribution = 10.0 
+ast_pixel_distribution = 10.0
 
 # ast_reference_image : string (optional, but required if ast_with_positions
-# is True and no X and Y information  is present in the photometry catalog)	
-# Name of the reference image used by DOLPHOT when running the measured 
-# photometry.	            
+# is True and no X and Y information  is present in the photometry catalog)
+# Name of the reference image used by DOLPHOT when running the measured
+# photometry.
 ast_reference_image = None
 
 
@@ -111,11 +111,11 @@ ast_reference_image = None
 
 # astfile : string
 #   pathname of the AST files (single camera ASTs)
-astfile = 'data/14675_LMC-5665ne-12232.gst.fake.fits'
+#astfile = 'data/14675_LMC-5665ne-12232.gst.fake.fits'
 
-# ast_colnames : list of strings 
+# ast_colnames : list of strings
 #   names of columns for filters in the AST catalog (AC)
-ast_colnames = np.array(basefilters)
+#ast_colnames = np.array(basefilters)
 
 # noisefile : string
 #   create a name for the noise model
@@ -227,7 +227,7 @@ class GenFluxCatalog(Observations):
             self.data.set_alias(k, obs_colnames[ik])
 
     def getFlux(self, num, units=False):
-        """returns the absolute flux of an observation 
+        """returns the absolute flux of an observation
 
         Parameters
         ----------
@@ -240,16 +240,16 @@ class GenFluxCatalog(Observations):
         Returns
         -------
         flux: ndarray[dtype=float, ndim=1]
-            Measured integrated flux values throughout the filters 
+            Measured integrated flux values throughout the filters
             in erg/s/cm^2/A
         """
 
         # case for using '_flux' result
         d = self.data[num]
-        
-        flux = np.array([ d[self.data.resolve_alias(ok)] 
+
+        flux = np.array([ d[self.data.resolve_alias(ok)]
                           for ok in self.filters ]) * self.vega_flux
-        
+
         if units is True:
             return flux * units.erg / (units.s*units.cm*units.cm*units.angstrom)
         else:
