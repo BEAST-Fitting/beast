@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-	Script to verify wrong format of the BEAST input parameters 
+	Script to verify wrong format of the BEAST input parameters
            and terminate run_beast
-	It must be called run_beast.py 
+	It must be called run_beast.py
 	Created by Maria Kapala on Feb 24th 2017
 """
 from __future__ import (absolute_import, division, print_function,
@@ -15,7 +15,7 @@ from sys import exit
 
 def verify_range(param, param_name, param_lim, noexit=False):
     # check if input param limits make sense
-	
+
     if any(p < param_lim[0] for p in param):
         print((param_name + ' min value not physical.'))
         if not noexit: exit()
@@ -28,7 +28,7 @@ def check_grid(param, param_name, param_lim, noexit=False):
     # check if input param limits and grid initialisation make sense
 
     param_min, param_max, param_step = param
-	
+
     if param_min < param_lim[0]:
         print((param_name + ' min value not physical.'))
         if not noexit: exit()
@@ -72,7 +72,7 @@ def verify_one_input_format(param, param_name, param_format, param_lim,
        Override exit() commands if there is an error.
        Default = False (exit on error)
     """
-	
+
     if 'list' in param_format:
         if type(param) is not list:
             if param is None:
@@ -92,15 +92,15 @@ def verify_one_input_format(param, param_name, param_format, param_lim,
                 check_grid(param, param_name, param_lim, noexit=noexit)
             else:
                 verify_range(param, param_name, param_lim, noexit=noexit)
-	  			
+
         if 'str' in param_format:
             if type(param) is not str:
-                print((param_name + ' is not in the right format - a string.')) 
+                print((param_name + ' is not in the right format - a string.'))
                 if not noexit: exit()
             elif 'file' in param_format:
                 if not exists(param):
                     print((param_name +
-                          ' does not exist. Please provide the file path.')) 
+                          ' does not exist. Please provide the file path.'))
                     if not noexit: exit()
 
         if 'version' in param_format:
@@ -112,12 +112,12 @@ def verify_one_input_format(param, param_name, param_format, param_lim,
                     ' is an invalid number, leading to version of the isochrone.'))
                 if not noexit: exit()
 
-def verify_input_format(datamodel, noexit=False):
+def verify_input_format(datamodel, physicsmodel=False, noexit=False):
 
     """
     Import BEAST input parameters from datamodel.
     Define relevant parameters, their correct names, format and limits.
-    Call verify_one_input_format to test for correctness of format and 
+    Call verify_one_input_format to test for correctness of format and
     limits.
 
     Parameters
@@ -130,17 +130,28 @@ def verify_input_format(datamodel, noexit=False):
         Default = False (exit on error)
 
     """
-
-    parameters = [datamodel.z, datamodel.obsfile, \
-                  datamodel.astfile, datamodel.logt, datamodel.avs,
-                  datamodel.rvs, datamodel.fAs]
-    parameters_names = ['z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs',
-                        'fAs']
-    param_format = ['list_float', 'str_file', 'str_file',
-                    'list_float_grid', 'list_float_grid',
-                    'list_float_grid', 'list_float_grid']
-    parameters_limits = [ [0., 0.1], None, None, [-inf, 10.15],
-                          [0., inf], [1., 7.], [0., 1.]]
+    if physicsmodel:
+	    parameters = [datamodel.z, datamodel.obsfile,
+	                  datamodel.logt, datamodel.avs,
+	                  datamodel.rvs, datamodel.fAs]
+	    parameters_names = ['z', 'obsfile', 'logt', 'avs', 'rvs',
+	                        'fAs']
+	    param_format = ['list_float', 'str_file',
+	                    'list_float_grid', 'list_float_grid',
+	                    'list_float_grid', 'list_float_grid']
+	    parameters_limits = [ [0., 0.1], None, None, [-inf, 10.15],
+	                          [0., inf], [1., 7.], [0., 1.]]
+    else:
+	    parameters = [datamodel.z, datamodel.obsfile, \
+	                  datamodel.astfile, datamodel.logt, datamodel.avs,
+	                  datamodel.rvs, datamodel.fAs]
+	    parameters_names = ['z', 'obsfile', 'astfile', 'logt', 'avs', 'rvs',
+	                        'fAs']
+	    param_format = ['list_float', 'str_file', 'str_file',
+	                    'list_float_grid', 'list_float_grid',
+	                    'list_float_grid', 'list_float_grid']
+	    parameters_limits = [ [0., 0.1], None, None, [-inf, 10.15],
+	                          [0., inf], [1., 7.], [0., 1.]]
 
     for i, param_ in enumerate(parameters):
         verify_one_input_format(param_, parameters_names[i],

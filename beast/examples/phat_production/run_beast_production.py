@@ -59,10 +59,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # check input parameters, print what is the problem, stop run_beast
-    verify_params.verify_input_format(datamodel)
+    verify_params.verify_input_format(datamodel, physicsmodel = args.physicsmodel)
 
     # update the filenames as needed for production
-    basename = '14675_LMC-5665ne-12232.gst'
+    basename = 'b15-6filt-cut-4band-gst-bright'
     datamodel.obsfile = 'data/' + basename + '_with_sourceden' \
                         + '_SD_' + args.source_density.replace('_','-') \
                         + '_sub' + args.sub_source_density + '.fits'
