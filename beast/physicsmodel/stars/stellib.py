@@ -1757,6 +1757,7 @@ class AringerMK(Stellib):
     def logZ(self):
         return self.grid['logZ']
 
+
 class AringerC(Stellib):
     """
     Aringer C Star Library
