@@ -37,8 +37,9 @@ config = {
     'tlusty': __ROOT__ + '/libs/tlusty.lowres.grid.fits',
     'btsettl': __ROOT__ + '/libs/bt-settl.lowres.grid.fits',
     'btsettl_medres': __ROOT__ + '/libs/bt-settl.medres.grid.fits',
-    'munari': __ROOT__ + '/libs/atlas9-munari.hires.grid.fits'
-}
+    'munari': __ROOT__ + '/libs/atlas9-munari.hires.grid.fits',
+    'aringermk': __ROOT__ + '/libs/aringermk.lowres.grid.fits',
+    'aringerc': __ROOT__ + '/libs/aringerc.lowres.grid.fits'}
 
 __all__ = ['Stellib', 'CompositeStellib', 'Kurucz', 'Tlusty',
            'BTSettl', 'Munari', 'Elodie', 'BaSeL']
@@ -1669,3 +1670,165 @@ class Munari(Stellib):
     @property
     def logZ(self):
         return self.grid['logZ']
+
+
+class AringerMK(Stellib):
+    """
+    Aringer M+K giants Library
+
+    References
+    ----------
+
+    Paper: http://adsabs.harvard.edu/abs/2016MNRAS.457.3611A
+
+
+    Files available at: 
+    http://starkey.astro.unipd.it/atm/
+    """
+    def __init__(self, *args, **kwargs):
+        self.name = 'AringerMK'
+        self.source = config['aringermk']
+        self._load_()
+
+    def _load_(self):
+        g = SpectralGrid(self.source, backend='memory')
+        self.wavelength = g.lamb
+        self.grid = g.grid
+        self.grid.header['NAME'] = self.name
+        self.spectra = g.seds
+
+    def bbox(self, dlogT=0.05, dlogg=0.25):
+        """ Boundary of Aringer library for M+K giants
+
+        Parameters
+        ----------
+        dlogT: float
+            log-temperature tolerance before extrapolation limit
+
+        dlogg: float
+            log-g tolerance before extrapolation limit
+
+        Returns
+        -------
+        bbox: ndarray
+            (logT, logg) edges of the bounding polygon
+            Excludes excess isochrone models (red/green lines in Fig. 4 of Aringer+2016)
+        """
+        bbox = [(3.41497 - dlogT,  5.00 + dlogg),
+                (3.69897 + dlogT,  5.00 + dlogg),
+                (3.69897 + dlogT,  3.50 + dlogg),
+                (3.71600 + dlogT,  3.50 + dlogg),
+                (3.71600 + dlogT,  2.50 - dlogg),
+                (3.69897 + dlogT,  2.50 - dlogg),
+                (3.69897 + dlogT,  0.00 - dlogg),
+                (3.57978 + dlogT,  0.00 - dlogg),
+                (3.57978 + dlogT, -0.50 - dlogg),
+                (3.51851 + dlogT, -0.50 - dlogg),
+                (3.51851 + dlogT, -0.80 - dlogg),
+                (3.50515 + dlogT, -0.70 - dlogg),
+                (3.47712 + dlogT, -0.70 - dlogg),
+                (3.47712 + dlogT, -0.80 - dlogg),
+                (3.46240 + dlogT, -0.85 - dlogg),
+                (3.44716 + dlogT, -1.00 - dlogg),
+                (3.39794 - dlogT, -1.00 - dlogg),
+                (3.39794 - dlogT,  2.00 + dlogg),
+                (3.41497 - dlogT,  2.00 + dlogg),
+                (3.41497 - dlogT,  5.00 + dlogg)]
+
+        return np.array(bbox)
+
+    @property
+    def logT(self):
+        return self.grid['logT']
+
+    @property
+    def logg(self):
+        return self.grid['logg']
+
+    @property
+    def Teff(self):
+        return self.grid['Teff']
+
+    @property
+    def Z(self):
+        return self.grid['Z']
+
+    @property
+    def logZ(self):
+        return self.grid['logZ']
+
+class AringerC(Stellib):
+    """
+    Aringer C Star Library
+
+    References
+    ----------
+
+    Paper: http://adsabs.harvard.edu/abs/2009A%26A...503..913A
+
+
+    Files available at: 
+    http://stev.oapd.inaf.it/synphot/Cstars/
+    """
+    def __init__(self, *args, **kwargs):
+        self.name = 'AringerC'
+        self.source = config['aringerc']
+        self._load_()
+
+    def _load_(self):
+        g = SpectralGrid(self.source, backend='memory')
+        self.wavelength = g.lamb
+        self.grid = g.grid
+        self.grid.header['NAME'] = self.name
+        self.spectra = g.seds
+
+    def bbox(self, dlogT=0.05, dlogg=0.25):
+        """ Boundary of Aringer library for C stars
+
+        Parameters
+        ----------
+        dlogT: float
+            log-temperature tolerance before extrapolation limit
+
+        dlogg: float
+            log-g tolerance before extrapolation limit
+
+        Returns
+        -------
+        bbox: ndarray
+            (logT, logg) edges of the bounding polygon
+        """
+        bbox = [(3.38021 - dlogT,  0.00 + dlogg),
+                (3.60206 + dlogT,  0.00 + dlogg),
+                (3.54407 + dlogT, -0.20 - dlogg),
+                (3.50515 + dlogT, -0.20 - dlogg),
+                (3.50515 + dlogT, -0.65 - dlogg),
+                (3.47712 + dlogT, -0.65 - dlogg),
+                (3.47712 + dlogT, -0.80 - dlogg),
+                (3.46240 + dlogT, -0.80 - dlogg),
+                (3.46240 + dlogT, -1.00 - dlogg),
+                (3.38021 - dlogT, -1.00 - dlogg),
+                (3.38021 - dlogT,  0.00 + dlogg)]
+
+        return np.array(bbox)
+
+    @property
+    def logT(self):
+        return self.grid['logT']
+
+    @property
+    def logg(self):
+        return self.grid['logg']
+
+    @property
+    def Teff(self):
+        return self.grid['Teff']
+
+    @property
+    def Z(self):
+        return self.grid['Z']
+
+    @property
+    def logZ(self):
+        return self.grid['logZ']
+
