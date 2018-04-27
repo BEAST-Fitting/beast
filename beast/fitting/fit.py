@@ -177,7 +177,7 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
 
 def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                  gridbackend='cache', max_nbins=50,
-                 stats_outname=None, pdf1d_outname=None,
+                 stats_outname=None, pdf1d_outname=None, min_max_dict=None,
                  lnp_outname=None, lnp_npts=None, save_every_npts=None,
                  threshold=-40, resume=False,
                  use_full_cov_matrix=True):
@@ -228,6 +228,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                    extensions
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
+
+    min_max_dict: set to fix the mins/maxes of the 1dpdfs
+        format: {qname: (min,max)}
 
     lnp_outname: set to output the sparse likelihoods into a (usually HDF5)
                  file
@@ -637,12 +640,11 @@ def IAU_names_and_extra_info(obsdata, surveyname='PHAT',extraInfo=False):
     return r
 
 def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
-                         gridbackend='cache',
-                         threshold=-10, save_every_npts=None,
-                         lnp_npts=None, resume=False,
-                         stats_outname=None, pdf1d_outname=None,
-                         lnp_outname=None,
-                         use_full_cov_matrix=True, 
+                         gridbackend='cache', threshold=-10,
+                         save_every_npts=None, lnp_npts=None,
+                         resume=False, stats_outname=None,
+                         pdf1d_outname=None, min_max_dict=None,
+                         lnp_outname=None, use_full_cov_matrix=True,
                          surveyname='PHAT', extraInfo=False):
     """
     keywords
@@ -681,6 +683,9 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                    extensions
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
+
+    min_max_dict: set to fix the mins/maxes of the 1dpdfs
+        format: {qname: (min,max)}
 
     lnp_outname: set to output the sparse likelihoods into a (usually HDF5)
                  file
@@ -730,5 +735,6 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                  lnp_npts=lnp_npts,
                  stats_outname=stats_outname,
                  pdf1d_outname=pdf1d_outname,
+                 min_max_dict=min_max_dict,
                  lnp_outname=lnp_outname,
                  use_full_cov_matrix=use_full_cov_matrix)
