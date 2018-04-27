@@ -1,7 +1,9 @@
 import os
 
 import h5py
+import numpy as np
 
+import ..observationmodel.noisemodel.generic_noisemode import get_noisemodelcat
 from ..physicsmodel import grid
 from ..external.eztables import Table
 
@@ -91,7 +93,7 @@ def merge_grids(seds_fname, sub_names):
         print('{} already exists'.format(seds_fname))
 
 
-def gather_mins_maxes(grid_fname):
+def gather_mins_maxes(grid_fname, noise_fname=None):
     """
     Generates a list of mins and maxes of all the quantities in the given grid
 
@@ -100,11 +102,100 @@ def gather_mins_maxes(grid_fname):
     grid_fname: string
         path to a beast grid file (hd5 format)
 
+    noise_fname: string
+        Path to the noise model file for the given grid (hd5 format)
+        (optional). If this is given, the mins/maxes for the full model
+        fluxes are added too, under the name 'log'+filter+'_wd_bias'
+        (needs to conform to the name used in fit.py).
+
     Returns
     -------
-    dictionary:
+    min_max_dict: dictionary
         {name of quantity [string]: (minimum, maximum), ...}
     """
-    h5grid = h5py.File(grid_fname)
-    gr = h5grid['grid']
-    seds = h5grid['seds']
+
+    # Use the HDFStore (pytables) backend
+    sedgrid = grid.FileSEDGrid(grid_fname, backend='hdf')
+    g = sedgrid.grid
+    seds = sedgrid.seds
+
+    outdict = {}
+
+    qnames = sedgrid.keys()
+    for q in qnames:
+        qvals = gr[q]
+        qmin = np.amin(qvals)
+        qmax = np.amax(qvals)
+        outdict[q] = (qmin, qmax)
+
+    if noise_fname is not None:
+        # This code is more or less copied from fit.py
+        noisemodel = get_noisemodelcat(noise_fname)
+        full_model_flux = seds[:] + noisemodel.root.bias[:]
+        indxs = np.where(full_model_flux > 0)
+        full_model_flux[indxs] = np.log10(full_model_flux[indxs])
+        full_model_flux[np.where(full_model_flux <= 0)] = -100.
+
+        filters = sedgrid.filters
+        for i, f in enumerate(filters):
+            f_fluxes = full_model_flux[:, i]
+            qmin = np.amin(f_fluxes)
+            qmax = np.amax(f_fluxes)
+
+            q = 'log'+f+'_wd_bias'
+            qnames.append(q)
+
+            outdict[q] = (qmin, qmax)
+
+    print('Got minima and maxima of {} for {}'.format(qnames, grid_fname))
+    return min_max_dict
+
+def reduce_mins_maxes(grid_fnames, noise_fnames=None, nprocs=1):
+    """
+    Computes the total minimum and maximum of the necessary quantities
+    across all the subgrids. Can run in parallel.
+
+    Parameters
+    ----------
+    grid_fnames: list of str
+        subgrid file paths
+
+    noise_fnames: list of str (optional)
+        noise file for each subgrid
+
+    nprocs: int
+        Number of processes to use
+
+    Returns
+    -------
+    min_max_dict: dictionary
+        {name of quantity: (min, max), ...}
+    """
+    # Gather the mins and maxes for the subgrid
+    if noise_fnames is None:
+        arguments = [(g, None) for g in grid_fnames]
+    else:
+        arguments = zip(grid_fnames, noise_fnames)
+
+    parallel = nprocs > 1
+    if (parallel):
+        p = Pool(nprocs)
+        min_max_dicts = p.starmap(gather_mins_maxes, arguments)
+    else:
+        min_max_dicts = []
+        for a in arguments:
+            min_max_dicts.append(reduce_mins_maxes(*a))
+
+    # Assume that all dicts have the same keys. Copy the (min,max)
+    # tuples from the first dict as a starting point.
+    result_min_max_dict = min_max_dicts[0]
+
+    # Then, reduce the values over the rest of the dicts
+    for individual_min_max_dict in min_max_dicts:
+        for q in result_min_max_dict:
+            currentmin, currentmax = result_min_max_dict[q]
+            othermin, othermax = individual_min_max_dict[q]
+            result_min_max_dict[q] = (min(currentmin, othermin),
+                                          max(currentmax, othermax))
+
+    return result_min_max_dict
