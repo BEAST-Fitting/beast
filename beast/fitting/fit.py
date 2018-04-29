@@ -356,7 +356,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         else:
             n_uniq = len(np.unique(q))
         
-        if len(n_uniq) > max_nbins:
+        if n_uniq > max_nbins:
             # limit the number of bins in the 1D likelihood for speed
             nbins = max_nbins  
         else:
