@@ -229,8 +229,12 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
 
-    grid_info_dict: set to fix the mins/maxes of the 1dpdfs
-        format: {qname: (min,max)}
+    grid_info_dict: dict: {'qname': {'min': float,
+                                     'max': float,
+                                     'num_unique': int},
+                           ...}
+        Set to override the mins/maxes of the 1dpdfs, and the number of
+        unique values.
 
     lnp_outname: set to output the sparse likelihoods into a (usually HDF5)
                  file
@@ -697,8 +701,12 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
 
-    grid_info_dict: set to fix the mins/maxes of the 1dpdfs
-        format: {qname: (min,max)}
+    grid_info_dict: dict: {'qname': {'min': float,
+                                     'max': float,
+                                     'num_unique': int},
+                           ...}
+        Set to override the mins/maxes of the 1dpdfs, and the number of
+        unique values.
 
     lnp_outname: set to output the sparse likelihoods into a (usually HDF5)
                  file
