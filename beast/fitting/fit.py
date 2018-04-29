@@ -382,9 +382,11 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
             logspacing = False
 
         if grid_info_dict is not None and qname in grid_info_dict:
-            minval, maxval = grid_info_dict[qname]
+            minval = grid_info_dict[qname]['min']
+            maxval = grid_info_dict[qname]['max']
         else:
-            minval, maxval = None, None
+            minval = None
+            maxval = None
 
         # generate the fast 1d pdf mapping
         _tpdf1d = pdf1d(q, nbins, ignorebelow=ignorebelow,

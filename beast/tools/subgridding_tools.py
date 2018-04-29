@@ -156,6 +156,12 @@ def subgrid_info(grid_fname, noise_fname=None):
     print('Gathered grid info for {}'.format(grid_fname))
     return info_dict
 
+def unpack_and_subgrid_info(x):
+    """
+    Utility to call this function in parallel, with multiple arguments
+    """
+    return subgrid_info(*x)
+
 def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
     """
     Computes the total minimum and maximum of the necessary quantities
@@ -186,8 +192,6 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
     # Use generators here for memory efficiency
     parallel = nprocs > 1
     if (parallel):
-        def unpack_and_subgrid_info(x):
-            return subgrid_info(*x)
         p = Pool(nprocs)
         info_dicts_generator = p.imap(unpack_and_subgrid_info, arguments)
     else:
