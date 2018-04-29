@@ -1,7 +1,6 @@
 from __future__ import (absolute_import, division, print_function)
 import os
 
-import h5py
 import numpy as np
 from astropy import units
 
@@ -10,7 +9,6 @@ from . import creategrid
 from .stars import isochrone
 from .stars.isochrone import ezIsoch
 from .grid_and_prior_weights import compute_age_mass_metallicity_weights
-from ..external.eztables import Table
 
 __all__ = ['make_iso_table', 'make_spectral_grid', 'add_stellar_priors',
            'make_extinguished_sed_grid']
