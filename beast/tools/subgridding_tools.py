@@ -183,25 +183,29 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
     else:
         arguments = list(zip(grid_fnames, noise_fnames))
 
+    # Use generators here for memory efficiency
     parallel = nprocs > 1
     if (parallel):
+        def unpack_and_subgrid_info(x):
+            return subgrid_info(*x)
         p = Pool(nprocs)
-        info_dicts = p.starmap(subgrid_info, arguments)
+        info_dicts_generator = p.imap(unpack_and_subgrid_info, arguments)
     else:
-        info_dicts = []
-        for a in arguments:
-            info_dicts.append(subgrid_info(*a))
+        info_dicts_generator = (subgrid_info(*a) for a in arguments)
 
     # Then, reduce the values over the rest of the dicts
     result_dict = {}
-    for q in info_dicts[0]:
+
+    # Assume that all info dicts have the same keys
+    first_info_dict = next(info_dicts_generator)
+    for q in first_info_dict:
         # Combine the values of the first subgrid
-        union_min = info_dicts[0][q]['min']
-        union_max = info_dicts[0][q]['max']
-        union_unique = info_dicts[0][q]['unique']
+        union_min = first_info_dict[q]['min']
+        union_max = first_info_dict[q]['max']
+        union_unique = first_info_dict[q]['unique']
 
         # And all the other subgrids
-        for individual_dict in info_dicts[1:]:
+        for individual_dict in info_dicts_generator:
             other_min = individual_dict[q]['min']
             union_min = min(union_min, other_min)
 
