@@ -15,25 +15,34 @@ from astropy.table import Table
 from astropy.io import fits
 #####
 
-if __name__ == '__main__':
 
-    # commandline parser
-    parser = argparse.ArgumentParser()
-    parser.add_argument("projectname",
-                        help="project name to use (basename for files)")
-    parser.add_argument("datafile",
-                        help="file with the observed data (FITS file)")
-    parser.add_argument("--num_percore", default=5, type=int,
-                        help="number of fitting runs per core")
-    args = parser.parse_args()
+def setup_batch_beast_fit(projectname,
+                              datafile,
+                              num_percore=5):
+    """
+    Sets up batch files for submission to the 'at' queue on linux (or similar) systems
 
-    project = args.projectname
-    datafile = args.datafile
+
+    Parameters
+    ----------
+    project : string
+        project name to use (basename for files)
+
+    datafile : string
+        file with the observed data (FITS file) - the observed photometry, not the sub-files
+
+    num_percore : int (default = 5)
+        number of fitting runs per core
+
+    """
+    
+
+    project = projectname
 
     cat_files = np.array(glob.glob(datafile.replace('.fits','*_sub*.fits')))
 
     n_cat_files = len(cat_files)
-    n_pernode_files = args.num_percore
+    n_pernode_files = num_percore
 
     # setup the subdirectory for the batch and log files
     job_path = project+'/fit_batch_jobs/'
@@ -162,3 +171,21 @@ if __name__ == '__main__':
 
     if pf_open:
         pf.close()
+
+
+
+
+if __name__ == '__main__':
+
+    # commandline parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument("projectname",
+                        help="project name to use (basename for files)")
+    parser.add_argument("datafile",
+                        help="file with the observed data (FITS file)")
+    parser.add_argument("--num_percore", default=5, type=int,
+                        help="number of fitting runs per core")
+    args = parser.parse_args()
+
+
+    setup_batch_beast_fit(args.projectname, args.datafile, args.num_percore=5)
