@@ -37,7 +37,6 @@ def setup_batch_beast_trim(project,
 
     """
 
-    # keep input variable names consistent with original command-line input method
     ast_file = astfile
     n_subtrim_files = num_subtrim
 
