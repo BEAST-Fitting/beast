@@ -127,4 +127,4 @@ if __name__ == '__main__':
     ast_file = args.astfile
     n_subtrim_files = args.num_subtrim
 
-    setup_batch_beast_trim(project, datafile, astfile, n_subtrim_files=5)
+    setup_batch_beast_trim(project, datafile, ast_file, n_subtrim_files=5)
