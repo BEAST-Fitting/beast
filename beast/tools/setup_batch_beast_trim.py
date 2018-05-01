@@ -122,5 +122,9 @@ if __name__ == '__main__':
                         help="number of trim batch jobs")
     args = parser.parse_args()
 
+    project = args.projectname
+    datafile = args.datafile
+    ast_file = args.astfile
+    n_subtrim_files = args.num_subtrim
 
-    setup_batch_beast_trim(args.projectname, args.datafile, args.astfile, args.num_subtrim=5)
+    setup_batch_beast_trim(project, datafile, astfile, n_subtrim_files=5)

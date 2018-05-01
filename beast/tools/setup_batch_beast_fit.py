@@ -187,5 +187,8 @@ if __name__ == '__main__':
                         help="number of fitting runs per core")
     args = parser.parse_args()
 
+    project = args.projectname
+    datafile = args.datafile
+    n_pernode_files = args.num_percore
 
-    setup_batch_beast_fit(args.projectname, args.datafile, args.num_percore=5)
+    setup_batch_beast_fit(project, datafile, n_pernode_files=5)
