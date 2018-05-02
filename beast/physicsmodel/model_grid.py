@@ -70,7 +70,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                        verbose=True, spec_fname=None, distance=10,
                        distance_unit=units.pc, filterLib=None,
                        add_spectral_properties_kwargs=None,
-                       num_dist_subgrids=None, nprocs=None, **kwargs):
+                       num_dist_subgrids=None, return_sub_names=False, nprocs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
     interpolation of the isochrones and the generation of spectra into the
@@ -197,7 +197,6 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
             if num_dist_subgrids is None or num_dist_subgrids <= 1:
                 g = apply_distance_and_spectral_props(g0, distances)
                 g.writeHDF(spec_fname, append=True)
-                return spec_fname, g, subgrid_names
 
             # Else, save the grid for separate sets of distances, with
             # or without multiprocessing
@@ -225,21 +224,19 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                 # Do a parallel for loop
                 print("Parallel grid construction not implemented yet")
 
-            return subgrid_names
-
         # Perform the processing defined above. When the grid is
         # generated in chunks, the result of the chunks will be appended
         # to all the subgrids, and the total grid. Watch out when trying
         # this in parallel though.
         if hasattr(g, 'writeHDF'):
-            subgrid_names = grid_processing_method(g)
+            grid_processing_method(g)
         else:
             for gk in g:
-                subgrid_names = grid_processing_method(gk)
+                grid_processing_method(gk)
 
     g = grid.FileSpectralGrid(spec_fname, backend='memory')
-
-    return (spec_fname, g, subgrid_names)
+    return ((spec_fname, g) if not return_sub_names
+            else (spec_fname, g, subgrid_names))
 
 
 def add_stellar_priors(project, specgrid, verbose=True,
@@ -407,4 +404,3 @@ def make_extinguished_sed_grid(project,
     g = grid.FileSEDGrid(seds_fname, backend='hdf')
 
     return (seds_fname, g)
-
