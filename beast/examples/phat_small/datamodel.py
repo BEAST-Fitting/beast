@@ -86,6 +86,16 @@ ast_maglimit = [1.]
 # If True, the ast list is produced with X,Y positions.
 # If False, the ast list is produced with only magnitudes.
 ast_with_positions = True
+
+# ast_with_source_density :  (string,optional)
+# Name of source density table from tools/create_source_density_map.py
+# If supplied, the ASTs will be repeated for each source density bin in the table
+ast_with_source_density = None
+
+# ast_with_background :  (string,optional)
+# Name of background table from tools/create_background_density_map.py
+# If supplied, the ASTs will be repeated for each background level bin in the table
+ast_with_background = None
                          
 # ast_pixel_distribution : float (optional)
 # (Used if ast_with_positions is True), minimum pixel separation between AST
