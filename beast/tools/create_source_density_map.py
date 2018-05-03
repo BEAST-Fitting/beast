@@ -185,6 +185,17 @@ def make_source_dens_map(catfile,
     cat[nonzero_indxs].write(catfile.replace('.fits',
                                              '_with_sourceden.fits'),
                              overwrite=True)
+    
+    bin_details = Table(names=['i_ra', 'i_dec', 'sourcedens', 'min_ra', 'max_ra', 'min_dec', 'max_dec'])
+
+    for i in range(n_x):
+
+        for j in range(n_y):
+
+            bin_details.add_row([i, j, npts_map[i, j], ra_limits[i], ra_limits[i + 1], dec_limits[j], dec_limits[j + 1]])
+
+    bin_details.write(catfile.replace('.fits', '_source_den_bins_table.fits'))
+
 
 if __name__ == '__main__':
 
