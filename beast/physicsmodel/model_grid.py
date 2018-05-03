@@ -197,6 +197,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
             if num_dist_subgrids is None or num_dist_subgrids <= 1:
                 g = apply_distance_and_spectral_props(g0, distances)
                 g.writeHDF(spec_fname, append=True)
+                return
 
             # Else, save the grid for separate sets of distances, with
             # or without multiprocessing
