@@ -96,6 +96,11 @@ ast_with_source_density = None
 # Name of background table from tools/create_background_density_map.py
 # If supplied, the ASTs will be repeated for each background level bin in the table
 ast_with_background = None
+
+#ast_N_dens_bins : (int, optional)
+#Number of source or background bins that you want ASTs repeated over
+ast_N_dens_bins = 10
+
                          
 # ast_pixel_distribution : float (optional)
 # (Used if ast_with_positions is True), minimum pixel separation between AST

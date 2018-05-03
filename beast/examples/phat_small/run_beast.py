@@ -145,6 +145,13 @@ if __name__ == '__main__':
             if datamodel.ast_reference_image is not None:
                 pick_positions(obsdata, filename, separation,
                                refimage=datamodel.ast_reference_image)
+            if datamodel.ast_source_density_table is not None:
+		pick_positions_per_density(datamodel.chosen_seds, datamodel.ast_source_density_table, datamodel.ast_N_dens_bins,
+                                  outfile=filename, refimage=datamodel.ast_reference_image, Nrealize=1):
+
+            if datamodel.ast_background_table is not None:
+		pick_positions_per_density(datamodel.chosen_seds, datamodel.ast_background_table, datamodel.ast_N_dens_bins,
+                                  outfile=filename, refimage=datamodel.ast_reference_image, Nrealize=1):
             else:
                 pick_positions(obsdata, filename, separation)
 

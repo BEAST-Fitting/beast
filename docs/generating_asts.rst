@@ -8,8 +8,10 @@ Once the input lists have been run through the user's photometry program and eac
 
 Generating BEAST-friendly lists of artificial star tests
 
-1) Run "run_small.py -p" to produce the physics model grid file "project_name_seds.grid.hd5".
-2) Run "run_small.py -a"   This will use the datamodel to find everything it needs to make ASTs (filters, limits, SED grid, etc.).  It will produce a list of fake stars in all bands using the datamodel photometry catalog to trim the inputs at the proper magnitudes.  Currently, this script generates fake stars uniformly sampling log(age) space and randomly drawing from the metallicities in the model grid.
+1) Run "run_beast.py -p" to produce the physics model grid file "project_name_seds.grid.hd5".
+2) If you wish to repeat ASTs over multiple bins of stellar density, run "tools/create_source_density_map.py" on your observed star catalog.
+   If you wish to repeat ASTs over multiple bins of background brightness, run "tools/create_background_density_map.py" on your observed star catalog and reference image.
+3) Run "run_beast.py -a"   This will use the datamodel to find everything it needs to make ASTs (filters, limits, SED grid, etc.).  It will produce a list of fake stars in all bands using the datamodel photometry catalog to trim the inputs at the proper magnitudes.  Currently, this script generates fake stars uniformly sampling log(age) space and randomly drawing from the metallicities in the model grid.
 
 Functions
 =========
@@ -47,6 +49,14 @@ ast_maglimit : float (single value or array with one value per filter)
 ast_with_positions :  (bool,optional)
 If True, the ast list is produced with X,Y positions.
 If False, the ast list is produced with only magnitudes.
+
+ast_multiple_source_density : string (optional, if defined the file named 
+will be used to determine spatial distribution of ASTs, and all ASTs will be repeated 
+within each source density region.
+
+ast_multiple_background brightness : string (optional, if defined the file named 
+will be used to determine spatial distribution of ASTs, and all ASTs will be repeated 
+within each background brightness region.
 
 ast_pixel_distribution : float (optional)
 (Used if ast_with_positions is True), minimum pixel separation between AST
