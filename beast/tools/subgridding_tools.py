@@ -334,4 +334,8 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
         save_pdf1d_vals[i][:-1][nonzero, :] /= norms_col[nonzero]
 
     # Save the combined 1dpdf file
-    save_pdf1d("combined_pdf1d.fits", save_pdf1d_vals, qnames)
+    if output_fname_base is not None:
+        pdf1d_fname = output_fname_base + "_pdf1d.fits"
+    else:
+        pdf1d_fname = "combined_pdf1d.fits"
+    save_pdf1d(pdf1d_fname, save_pdf1d_vals, qnames)
