@@ -1,4 +1,5 @@
 import os
+import re
 from multiprocessing import Pool
 
 import h5py
@@ -10,6 +11,7 @@ from ..observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
 from ..physicsmodel import grid
 from ..external import eztables
 from ..fitting.fit import save_pdf1d
+from ..fitting.fit_metrics import percentile
 
 
 def split_grid(grid_fname, num_subgrids):
@@ -289,31 +291,38 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
                     # is only one bin; this is a glitch in the
                     # implementation, but no reason for alarm).
                     bin_centers_ok = \
-                    np.isnan(pdf1d_0[-1,0]) and np.isnan(pdf1d[-1,0]) \
-                    or (pdf1d_0[-1, :] == pdf1d[-1, :]).all()
+                        np.isnan(pdf1d_0[-1, 0]) and np.isnan(pdf1d[-1, 0]) \
+                        or (pdf1d_0[-1, :] == pdf1d[-1, :]).all()
                     assert(bin_centers_ok)
+
+    # Load all the stats files
+    stats = [Table.read(f) for f in subgrid_stats_fnames]
 
     # First, let's read the arrays of weights (each subgrid has an array
     # of weights, containing one weight for each source).
     logweight = np.zeros((nobs, nsubgrids))
-    for i, stats_f in enumerate(subgrid_stats_fnames):
-        stats = Table.read(stats_f)
-        logweight[:, i] = stats['total_log_norm']
+    for i, s in enumerate(stats):
+        logweight[:, i] = s['total_log_norm']
 
-    # Take the maximum over all the grids. This will be used to
-    # normalize the weights, per star.
-    max_weights = np.amax(logweight, axis=1, keepdims=True)
+    # Best grid for each star (take max along grid axis)
+    maxweight_index_per_star = np.argmax(logweight, axis=1)
+    # Grab the max values, too
+    max_logweight = logweight[range(len(logweight)), maxweight_index_per_star]
 
-    # Get linear weights for each object/grid. By using keepdims above,
-    # max_weights is a column, and the subtraction will be done for each
-    # column.
-    weights = np.exp(logweight - max_weights)
+    # Get linear weights for each object/grid. By casting the maxima
+    # into a column shape, the subtraction will be done for each column
+    # (broadcasted).
+    weight = np.exp(logweight - max_logweight[:, np.newaxis])
+
+    # ------------------------------------------------------------------------
+    # PDF1D
+    # ------------------------------------------------------------------------
 
     # We will try to reuse the save function defined in fit.py
     save_pdf1d_vals = []
     for i, q in enumerate(qnames):
         # Prepare the ouput array
-        save_pdf1d_vals.append(np.zeros((nobs+1, nbins[q])))
+        save_pdf1d_vals.append(np.zeros((nobs + 1, nbins[q])))
         # Copy the bin centers
         save_pdf1d_vals[i][-1, :] = bincenters[q]
 
@@ -322,7 +331,7 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
         with fits.open(pdf1d_f) as hdul:
             for i, q in enumerate(qnames):
                 pdf1d_g = hdul[q].data[:-1, :]
-                weight_column = weights[:, [g]] # use [g] to keep dimension
+                weight_column = weight[:, [g]]  # use [g] to keep dimension
                 save_pdf1d_vals[i][:-1, :] += pdf1d_g * weight_column
 
     # Normalize all the pdfs of the final result
@@ -330,7 +339,7 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
         # sum for each source in a column
         norms_col = np.sum(save_pdf1d_vals[i][:-1, :], axis=1, keepdims=True)
         # non zero mask as 1d array
-        nonzero = norms_col[:,0] > 0
+        nonzero = norms_col[:, 0] > 0
         save_pdf1d_vals[i][:-1][nonzero, :] /= norms_col[nonzero]
 
     # Save the combined 1dpdf file
@@ -339,3 +348,76 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
     else:
         pdf1d_fname = "combined_pdf1d.fits"
     save_pdf1d(pdf1d_fname, save_pdf1d_vals, qnames)
+
+    # ------------------------------------------------------------------------
+    # STATS
+    # ------------------------------------------------------------------------
+
+    # Rebuild the stats
+    stats_dict = {}
+    for col in stats[0].colnames:
+        suffix = col.split('_')[-1]
+
+        if suffix == 'Best':
+            # For the best values, we take the 'Best' value of the grid with the highest weight
+            stats_dict[col] = [stats[i][col] for i in maxweight_index_per_star]
+
+        elif suffix == 'Exp':
+            # Sum and weigh the expectation values
+            stats_dict[col] = np.zeros(nobs)
+            total_weight = np.zeros(nobs)
+            for gridnr, s in enumerate(stats):
+                weight_per_star = weight[:, gridnr]
+                stats_dict[col] += stats[col] * weight_per_star
+                total_weight += weight_per_star
+            stats_dict[col] /= total_weight
+
+        elif re.compile('p\d{1,2}$').match(suffix):
+            # Grab the percentile value
+            digits = suffix[1:]
+            p = int(digits)
+
+            # Find the correct quantity (the col name without the
+            # '_'+suffix), and its position in save_pdf1d_vals.
+            qname = col[:-len(suffix) - 1]
+            qindex = qnames.index(qname)
+
+            # Recalculate the new percentiles from the newly obtained 1dpdf. For each star, call the percentile function.
+            stats_dict[col] = [percentile(save_pdf1d_vals[qindex][-1],
+                                          [p], save_pdf1d_vals[qindex][i])
+                               for i in range(nobs)]
+
+        elif col == 'chi2min':
+            # Take the lowest chi2 over all the grids
+            all_chi2s = np.zeros((nobs, nsubgrids))
+            for gridnr, s in enumerate(stats):
+                all_chi2s[:, gridnr] = s[col]
+            stats_dict[col] = np.amin(all_chi2s, axis=1)
+
+        elif col == 'Pmax':
+            all_pmaxs = np.zeros((nobs, nsubgrids))
+            for gridnr, s, in enumerate(stats):
+                all_pmaxs[:, gridnr] = s[col]
+            stats_dict[col] = np.amax(all_pmaxs, axis=1)
+
+        elif col == 'total_log_norm':
+            stats_dict[col] = np.log(weight.sum(axis=1)) + max_logweight
+
+        # For anything else, just copy the values from grid 0. Except
+        # for the index fields. Those don't make sense when using
+        # subgrids. They might in the future though. The grid split
+        # function and some changes to the processesing might help with
+        # this. Actually specgrid_indx might make sense, since in my
+        # particular case I'm splitting after the spec grid has been
+        # created. Still leaving this out though.
+        elif not col == 'chi2min_indx' and \
+                not col == 'Pmax_indx' and \
+                not 'specgrid_indx':
+            stats_dict[col] = stats[0][col]
+
+    summary_tab = Table(stats_dict)
+    if output_fname_base is None:
+        stats_fname = 'combined_stats.fits'
+    else:
+        stats_fname = output_fname_base + '_stats.fits'
+    summary_tab.write(stats_fname, overwrite=True)
