@@ -152,7 +152,7 @@ def subgrid_info(grid_fname, noise_fname=None):
             qmax = np.amax(f_fluxes)
             qunique = np.unique(qvals)
 
-            q = 'log'+f+'_wd_bias'
+            q = 'log' + f + '_wd_bias'
             info_dict[q] = {}
             info_dict[q]['min'] = qmin
             info_dict[q]['max'] = qmax
@@ -161,11 +161,13 @@ def subgrid_info(grid_fname, noise_fname=None):
     print('Gathered grid info for {}'.format(grid_fname))
     return info_dict
 
+
 def unpack_and_subgrid_info(x):
     """
     Utility to call this function in parallel, with multiple arguments
     """
     return subgrid_info(*x)
+
 
 def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
     """
@@ -209,10 +211,10 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
     union_min = {}
     union_max = {}
     union_unique = {}
-     # This last field can take up a lot of memory. A solution would be
-     # to allow a maximum number of values (50 is the default maximum
-     # number of bins anyway, and this value is needed to determine the
-     # number of bins).
+    # This last field can take up a lot of memory. A solution would be
+    # to allow a maximum number of values (50 is the default maximum
+    # number of bins anyway, and this value is needed to determine the
+    # number of bins).
 
     for q in qs:
         # Combine the values of the first subgrid
@@ -235,6 +237,7 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
                           'num_unique': len(union_unique[q])}
 
     return result_dict
+
 
 def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_base=None):
     """
