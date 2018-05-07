@@ -180,7 +180,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                  stats_outname=None, pdf1d_outname=None, grid_info_dict=None,
                  lnp_outname=None, lnp_npts=None, save_every_npts=None,
                  threshold=-40, resume=False,
-                 use_full_cov_matrix=True):
+                 use_full_cov_matrix=True, do_not_normalize=False):
     """ Fit each star, calculate various fit statistics, and output them
         to files
       (done in one function for speed and ability to resume partially
@@ -246,6 +246,12 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
               lnp points above the threshold
               otherwise, the full sparse likelihood is output
 
+    do_not_normalize: bool
+        Do not normalize the prior weights before applying them. This
+        should have no effect on the final outcome when using only a
+        single grid, but is essential when using the subgridding
+        approach.
+
     returns
     -------
     N/A
@@ -260,8 +266,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     g0_indxs, = np.where(g0['weight'] > 0.0)
 
     g0_weights = np.log(g0['weight'][g0_indxs])
-    g0_weights_sum = np.log(g0['weight'][g0_indxs].sum())
-    g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
+    if not do_not_normalize:
+        g0_weights_sum = np.log(g0['weight'][g0_indxs].sum())
+        g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
 
     if len(g0['weight']) != len(g0_indxs):
         print('some zero weight models exist')
@@ -664,7 +671,8 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                          resume=False, stats_outname=None,
                          pdf1d_outname=None, grid_info_dict=None,
                          lnp_outname=None, use_full_cov_matrix=True,
-                         surveyname='PHAT', extraInfo=False):
+                         surveyname='PHAT', extraInfo=False,
+                         do_not_normalize=False):
     """
     keywords
     --------
@@ -726,6 +734,12 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
     extraInfo: bool
         set to get extra information, such as IAU name, brick, field, etc.
 
+    do_not_normalize: bool
+        Do not normalize the prior weights before applying them. This
+        should have no effect on the final outcome when using only a
+        single grid, but is essential when using the subgridding
+        approach.
+
     returns
     -------
     N/A
@@ -760,4 +774,5 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                  pdf1d_outname=pdf1d_outname,
                  grid_info_dict=grid_info_dict,
                  lnp_outname=lnp_outname,
-                 use_full_cov_matrix=use_full_cov_matrix)
+                 use_full_cov_matrix=use_full_cov_matrix,
+                 do_not_normalize=do_not_normalize)
