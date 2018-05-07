@@ -138,17 +138,26 @@ def subgrid_info(grid_fname, noise_fname=None):
         info_dict[q]['unique'] = qunique
 
     if noise_fname is not None:
-        # This code is more or less copied from fit.py
         noisemodel = get_noisemodelcat(noise_fname)
+
+        # The following is also in fit.py, so we're kind of doing double
+        # work here, but it's necessary if we want to know the proper
+        # ranges for these values.
         full_model_flux = seds[:] + noisemodel.root.bias[:]
+        logtempseds = np.array(full_model_flux)
         indxs = np.where(full_model_flux > 0)
-        full_model_flux[indxs] = np.log10(full_model_flux[indxs])
-        full_model_flux[np.where(full_model_flux <= 0)] = -100.
+        if len(indxs) > 0:
+            logtempseds[indxs] = np.log10(full_model_flux[indxs])
+        indxs = np.where(full_model_flux <= 0)
+        if len(indxs) > 0:
+            logtempseds[indxs] = -100.
+        full_model_flux = logtempseds
 
         filters = sedgrid.filters
         for i, f in enumerate(filters):
             f_fluxes = full_model_flux[:, i]
-            qmin = np.amin(f_fluxes)
+            # Be sure to cut out the -100's in the calculation of the minimum
+            qmin = np.amin(f_fluxes[f_fluxes > -99.99])
             qmax = np.amax(f_fluxes)
             qunique = np.unique(qvals)
 
