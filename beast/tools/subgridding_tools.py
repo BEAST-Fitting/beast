@@ -270,16 +270,16 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
     nsubgrids = len(subgrid_pdf1d_fnames)
     assert(len(subgrid_stats_fnames) == nsubgrids)
 
-    # Open the first one, and check the contents of the others against
-    # it. Gather some useful information along the way.
     nbins = {}
     with fits.open(subgrid_pdf1d_fnames[0]) as hdul_0:
+        # Get this useful information
         qnames = [hdu.name for hdu in hdul_0[1:]]
         nbins = {q: hdul_0[q].data.shape[1] for q in qnames}
         bincenters = {q: hdul_0[q].data[-1, :] for q in qnames}
         nobs = hdul_0[qnames[0]].data.shape[0] - 1
 
-        # Check if all the bins are equal
+        # Check the following bin parameters for each of the other
+        # subgrids
         for pdf1d_f in subgrid_pdf1d_fnames[1:]:
             with fits.open(pdf1d_f) as hdul:
                 for q in qnames:
@@ -287,12 +287,10 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
                     pdf1d = hdul[q].data
                     # the number of bins
                     assert(pdf1d_0.shape[1] == pdf1d.shape[1])
-                    # the number of stars
+                    # the number of stars + 1
                     assert(pdf1d_0.shape[0] == pdf1d.shape[0])
                     # the bin centers (stored in the last row of the
-                    # image) should be equal (or both nan, in case there
-                    # is only one bin; this is a glitch in the
-                    # implementation, but no reason for alarm).
+                    # image) should be equal (or both nan)
                     bin_centers_ok = \
                         np.isnan(pdf1d_0[-1, 0]) and np.isnan(pdf1d[-1, 0]) \
                         or (pdf1d_0[-1, :] == pdf1d[-1, :]).all()
@@ -356,24 +354,32 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
     # STATS
     # ------------------------------------------------------------------------
 
+    # Grid with highest Pmax, for each star
+    pmaxes = np.zeros((nobs, nsubgrids))
+    for gridnr in range(nsubgrids):
+        pmaxes[:,gridnr] = stats[gridnr]['Pmax']
+    max_pmax_index_per_star = pmaxes.argmax(axis=1)
+
     # Rebuild the stats
     stats_dict = {}
     for col in stats[0].colnames:
         suffix = col.split('_')[-1]
 
         if suffix == 'Best':
-            # For the best values, we take the 'Best' value of the grid with the highest weight
-            stats_dict[col] = [stats[i][col] for i in maxweight_index_per_star]
+            # For the best values, we take the 'Best' value of the grid
+            # with the highest Pmax
+            stats_dict[col] = [stats[gridnr][col][e] for e, gridnr in
+                               enumerate(max_pmax_index_per_star)]
 
         elif suffix == 'Exp':
             # Sum and weigh the expectation values
             stats_dict[col] = np.zeros(nobs)
-            total_weight = np.zeros(nobs)
+            total_weight_per_star = np.zeros(nobs)
             for gridnr, s in enumerate(stats):
-                weight_per_star = weight[:, gridnr]
-                stats_dict[col] += stats[col] * weight_per_star
-                total_weight += weight_per_star
-            stats_dict[col] /= total_weight
+                grid_weight_per_star = weight[:, gridnr]
+                stats_dict[col] += stats[gridnr][col] * grid_weight_per_star
+                total_weight_per_star += grid_weight_per_star
+            stats_dict[col] /= total_weight_per_star
 
         elif re.compile('p\d{1,2}$').match(suffix):
             # Grab the percentile value
@@ -385,10 +391,16 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
             qname = col[:-len(suffix) - 1]
             qindex = qnames.index(qname)
 
-            # Recalculate the new percentiles from the newly obtained 1dpdf. For each star, call the percentile function.
-            stats_dict[col] = [percentile(save_pdf1d_vals[qindex][-1],
-                                          [p], save_pdf1d_vals[qindex][i])
-                               for i in range(nobs)]
+            # Recalculate the new percentiles from the newly obtained
+            # 1dpdf. For each star, call the percentile function.
+            stats_dict[col] = np.zeros(nobs)
+            for e in range(nobs):
+                bins = save_pdf1d_vals[qindex][-1]
+                vals = save_pdf1d_vals[qindex][e]
+                if vals.max() > 0:
+                    stats_dict[col][e] = percentile(bins, [p], vals)[0]
+                else:
+                    stats_dict[col][e] = 0
 
         elif col == 'chi2min':
             # Take the lowest chi2 over all the grids
@@ -415,7 +427,7 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
         # created. Still leaving this out though.
         elif not col == 'chi2min_indx' and \
                 not col == 'Pmax_indx' and \
-                not 'specgrid_indx':
+                not col == 'specgrid_indx':
             stats_dict[col] = stats[0][col]
 
     summary_tab = Table(stats_dict)
@@ -424,3 +436,6 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
     else:
         stats_fname = output_fname_base + '_stats.fits'
     summary_tab.write(stats_fname, overwrite=True)
+
+    print('Saved combined 1dpdfs in ' + pdf1d_fname)
+    print('Saved combined stats in ' + stats_fname)
