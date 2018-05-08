@@ -70,7 +70,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                        verbose=True, spec_fname=None, distance=10,
                        distance_unit=units.pc, filterLib=None,
                        add_spectral_properties_kwargs=None,
-                       num_dist_subgrids=None, return_sub_names=False, nprocs=None, **kwargs):
+                       num_dist_subgrids=None, return_sub_names=False, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
     interpolation of the isochrones and the generation of spectra into the
@@ -199,13 +199,13 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                 g.writeHDF(spec_fname, append=True)
                 return
 
-            # Else, save the grid for separate sets of distances, with
-            # or without multiprocessing
-            subs = []
+            # Else, save the grid for separate sets of distances
+            distance_subsets = []
             q = len(distances) // num_dist_subgrids # quotient
             r = len(distances) % num_dist_subgrids # remainder
             for i in range(num_dist_subgrids):
-                # spread remainder acrogss the first r subs (they get q+1 distances each)
+                # spread remainder across the first r subs (they get q+1
+                # distances each)
                 if i < r:
                     start = i * (q+1)
                     stop = start + q + 1
@@ -213,17 +213,12 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                 else:
                     start = r * (q+1) + (i - r) * q
                     stop = start + q
-                subs.append(distances[start:stop])
+                distance_subsets.append(distances[start:stop])
 
-            if nprocs is None:
-                # Do a regular for loop
-                for i, dists in enumerate(subs):
-                    g = apply_distance_and_spectral_props(g0, dists)
-                    g.writeHDF(subgrid_names[i], append=True)
-                    g.writeHDF(spec_fname, append=True)
-            else:
-                # Do a parallel for loop
-                print("Parallel grid construction not implemented yet")
+            for i, dists in enumerate(distance_subsets):
+                g = apply_distance_and_spectral_props(g0, dists)
+                g.writeHDF(subgrid_names[i], append=True)
+                g.writeHDF(spec_fname, append=True)
 
         # Perform the processing defined above. When the grid is
         # generated in chunks, the result of the chunks will be appended
