@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 
+import h5py
 import numpy as np
 from astropy.io import ascii
 from astropy.table import Table
@@ -47,7 +48,7 @@ def mag_limits(seds, limits, Nfilter=1):
     return idx
 
 
-def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
+def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
                                 N_fluxes, min_N_per_flux,
                                 outfile=None, bins_outfile=None, mag_pad=.25):
     """
@@ -59,8 +60,8 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
 
     Parameters
     ----------
-    sedgrid: beast.grid
-        BEAST model grid from which the models are picked
+    sedgrid_fname: string
+        BEAST model grid from which the models are picked (hdf5 file)
 
     filters: list of string
         Names of the filters, to be used as columns of the output table
@@ -109,7 +110,9 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
     with Vega() as v:
         vega_f, vega_flux, lambd = v.getFlux(filters)
 
-    sedsMags = -2.5 * np.log10(sedgrid.seds[:] / vega_flux)
+    gridf = h5py.File(sedgrid_fname)
+
+    sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
     Nf = sedsMags.shape[1]
 
     idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter)
@@ -208,14 +211,14 @@ def pick_models_toothpick_style(sedgrid, filters, mag_cuts, Nfilter,
     return sedsMags
 
 
-def pick_models(sedgrid, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
+def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
                 outfile=None):
     """Creates a fake star catalog from a BEAST model grid
 
     Parameters
     ----------
-    sedgrid: beast.grid
-               BEAST model grid from which the models are picked
+    sedgrid_fname: string
+        BEAST model grid from which the models are picked (hdf5 file)
 
     filters: list of string
         Names of the filters
@@ -248,12 +251,14 @@ def pick_models(sedgrid, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
     with Vega() as v:               # Get the vega fluxes
         vega_f, vega_flux, lamb = v.getFlux(filters)
 
+    gridf = h5py.File(sedgrid_fname)
+
     # Convert to Vega mags
-    sedsMags = -2.5 * np.log10(sedgrid.seds[:] / vega_flux)
+    sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
 
     # Select the models above the magnitude limits in N filters
     idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter)
-    grid_cut = sedgrid.grid[idxs]
+    grid_cut = gridf['grid'][idxs]
 
     # Sample the model grid uniformly
     prime_params = np.column_stack(
