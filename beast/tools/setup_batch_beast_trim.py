@@ -11,7 +11,7 @@ import glob
 import argparse
 
 import numpy as np
-import pdb
+
 
 def setup_batch_beast_trim(project,
                                datafile,
