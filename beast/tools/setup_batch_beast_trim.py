@@ -11,7 +11,7 @@ import glob
 import argparse
 
 import numpy as np
-
+import pdb
 
 def setup_batch_beast_trim(project,
                                datafile,
@@ -51,7 +51,11 @@ def setup_batch_beast_trim(project,
     if n_subtrim_files > n_cat_files:
         n_subtrim_files = n_cat_files
 
-    n_per_subtrim = int(n_cat_files/n_subtrim_files) + 1
+    # max number of files per process
+    n_per_subtrim = int(n_cat_files/n_subtrim_files)
+    if n_cat_files % n_subtrim_files != 0:
+        n_per_subtrim += 1
+
 
     print('# trim files per process = ',n_per_subtrim)
 
