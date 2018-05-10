@@ -41,12 +41,16 @@ def setup_batch_beast_trim(project,
     n_subtrim_files = num_subtrim
 
     
-    
     full_model_filename = "%s/%s_seds.grid.hd5"%(project,project)
 
     cat_files = np.array(glob.glob(datafile.replace('.fits','*_sub*.fits')))
 
     n_cat_files = len(cat_files)
+
+    # make sure n_subtrim_files isn't larger than the number of catalog sub-files
+    if n_subtrim_files > n_cat_files:
+        n_subtrim_files = n_cat_files
+
     n_per_subtrim = int(n_cat_files/n_subtrim_files) + 1
 
     print('# trim files per process = ',n_per_subtrim)
