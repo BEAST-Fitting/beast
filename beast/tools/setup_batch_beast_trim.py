@@ -88,7 +88,7 @@ def setup_batch_beast_trim(project,
         bt_f.append(open(trimfile,'w'))
         bt_f[-1].write(project + '\n')
         #bt_f[-1].write(full_model_filename + '\n')
-        pf.write('python -m beast.tools.trim_many_via_obsdata.py '+trimfile+' > '
+        pf.write('python -m beast.tools.trim_many_via_obsdata '+trimfile+' > '
                  +log_path+'beast_trim_tr'+str(i+1)+'.log\n')
     pf.close()
     
