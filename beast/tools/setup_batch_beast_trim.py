@@ -41,13 +41,21 @@ def setup_batch_beast_trim(project,
     n_subtrim_files = num_subtrim
 
     
-    
     full_model_filename = "%s/%s_seds.grid.hd5"%(project,project)
 
     cat_files = np.array(glob.glob(datafile.replace('.fits','*_sub*.fits')))
 
     n_cat_files = len(cat_files)
-    n_per_subtrim = int(n_cat_files/n_subtrim_files) + 1
+
+    # make sure n_subtrim_files isn't larger than the number of catalog sub-files
+    if n_subtrim_files > n_cat_files:
+        n_subtrim_files = n_cat_files
+
+    # max number of files per process
+    n_per_subtrim = int(n_cat_files/n_subtrim_files)
+    if n_cat_files % n_subtrim_files != 0:
+        n_per_subtrim += 1
+
 
     print('# trim files per process = ',n_per_subtrim)
 
@@ -80,7 +88,7 @@ def setup_batch_beast_trim(project,
         bt_f.append(open(trimfile,'w'))
         bt_f[-1].write(project + '\n')
         #bt_f[-1].write(full_model_filename + '\n')
-        pf.write('./beast/tools/trim_many_via_obsdata.py '+trimfile+' > '
+        pf.write('python -m beast.tools.trim_many_via_obsdata '+trimfile+' > '
                  +log_path+'beast_trim_tr'+str(i+1)+'.log\n')
     pf.close()
     
