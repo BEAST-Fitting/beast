@@ -55,6 +55,13 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
     n_objects, n_bins = pdf.shape
     n_objects -= 1
 
+    ax.text(0.95, 0.95, xlabel, transform=ax.transAxes,
+            va='top', ha='right')
+
+    if n_bins == 1:
+        ax.text(0.5, 0.5, 'unused', transform=ax.transAxes, va='center', ha='center')
+        return
+
     xvals = pdf[n_objects, :]
     if logx:
         xvals = np.log10(xvals)
@@ -74,9 +81,6 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
     ax.set_xlim(xlim[0] - 0.05 * xlim_delta, xlim[1] + 0.05 * xlim_delta)
     # ax.set_ylim(0.0,1.1*pdf[starnum,:].max())
     ax.set_ylim(0.0, 1.1)
-
-    ax.text(0.95, 0.95, xlabel, transform=ax.transAxes,
-            va='top', ha='right')
 
     if stats is not None:
         ylim = ax.get_ylim()
