@@ -143,13 +143,10 @@ if __name__ == '__main__':
         Nfilters = datamodel.ast_bands_above_maglimit
         Nrealize = datamodel.ast_realization_per_model
         mag_cuts = datamodel.ast_maglimit
+        obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.filters)
 
         if len(mag_cuts) == 1:
             tmp_cuts = mag_cuts
-            obsdata = datamodel.get_obscat(datamodel.obsfile,
-                                           datamodel.distanceModulus,
-                                           datamodel.filters)
-
             min_mags = np.zeros(len(datamodel.filters))
             for k, filtername in enumerate(obsdata.filters):
                 sfiltername = obsdata.data.resolve_alias(filtername)
