@@ -475,7 +475,10 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         # save the current set of lnps
         if lnp_outname is not None:
             if lnp_npts is not None:
-                rindx = np.random.choice(indx,size=lnp_npts,p=weights)
+                if lnp_npts < len(indx):
+                    rindx = np.random.choice(indx, size=lnp_npts, replace=False)
+                if lnp_npts >= len(indx):
+                    rindx = indx
             else:
                 rindx = indx
             save_lnp_vals.append([e,
@@ -506,7 +509,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
             # best value
             best_vals[e,k] = q[best_full_indx]
 
-            # expectration value
+            # expectation value
             exp_vals[e,k] = expectation(q[g0_indxs[indx]], weights=weights)
 
             # percentile values
