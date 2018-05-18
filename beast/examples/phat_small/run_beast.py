@@ -113,7 +113,8 @@ if __name__ == '__main__':
         # get the modesedgrid on which to grab input AST
         modelsedgridfile = './' + datamodel.project + '/' + datamodel.project + '_seds.grid.hd5'
         modelsedgrid = FileSEDGrid(modelsedgridfile)
-        print(modelsedgridfile)
+        modelsedgridfile = datamodel.project + '/' + datamodel.project + '_seds.grid.hd5'
+
         N_models = datamodel.ast_models_selected_per_age
         Nfilters = datamodel.ast_bands_above_maglimit
         Nrealize = datamodel.ast_realization_per_model

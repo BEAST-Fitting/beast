@@ -92,13 +92,14 @@ ast_with_positions = True
 # ast_source_density_table :  (string,optional)
 # Name of source density table from tools/create_source_density_map.py
 # If supplied, the ASTs will be repeated for each source density bin in the table
-ast_source_density_table = None
+#ast_source_density_table = None
+ast_source_density_table = "data/14675_LMC-5665ne-12232.st_source_den_bins_table.fits"
 
 # ast_background_table :  (string,optional)
 # Name of background table from tools/create_background_density_map.py
 # If supplied, the ASTs will be repeated for each background level bin in the table
-#ast_background_table = None
-ast_background_table = "data/14675_LMC-5665ne-12232_F475W_drz_background_map.fits"
+ast_background_table = None
+#ast_background_table = "data/14675_LMC-5665ne-12232_F475W_drz_background_map.fits"
 
 #ast_N_dens_bins : (int, optional)
 #Number of source or background bins that you want ASTs repeated over
