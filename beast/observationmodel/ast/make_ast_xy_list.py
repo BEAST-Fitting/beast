@@ -162,7 +162,7 @@ def pick_positions_per_background(chosen_seds, bg_map, N_bg_bins,
 
     # Write out the table in ascii
     if outfile:
-        formats = {k: '%.5f' for k in out_table.colnames}
+        formats = {k: '%.5f' for k in out_table.colnames[2:]}
         ascii.write(out_table, outfile, overwrite=True, formats=formats)
 
     return out_table

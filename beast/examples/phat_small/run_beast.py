@@ -111,7 +111,6 @@ if __name__ == '__main__':
         # get the modesedgrid on which to grab input AST
         modelsedgridfile = datamodel.project + '/' + datamodel.project + \
             '_seds.grid.hd5'
-        modelsedgrid = FileSEDGrid(modelsedgridfile)
 
         N_models = datamodel.ast_models_selected_per_age
         Nfilters = datamodel.ast_bands_above_maglimit
@@ -134,7 +133,7 @@ if __name__ == '__main__':
             mag_cuts = min_mags + tmp_cuts
 
         outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
-        pick_models(modelsedgrid, datamodel.filters, mag_cuts, Nfilter=Nfilters,
+        pick_models(modelsedgridfile, datamodel.filters, mag_cuts, Nfilter=Nfilters,
                     N_stars=N_models, Nrealize=Nrealize, outfile=outfile)
 
         if datamodel.ast_with_positions == True:

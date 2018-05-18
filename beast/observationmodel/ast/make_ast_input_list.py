@@ -258,7 +258,7 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
 
     # Select the models above the magnitude limits in N filters
     idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter)
-    grid_cut = gridf['grid'][idxs]
+    grid_cut = gridf['grid'][list(idxs)]
 
     # Sample the model grid uniformly
     prime_params = np.column_stack(
