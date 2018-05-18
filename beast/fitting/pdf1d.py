@@ -7,7 +7,30 @@ import math
 import numpy as np
 
 class pdf1d():
-    def __init__(self, gridvals, nbins, ignorebelow=None, logspacing=False):
+    def __init__(self, gridvals, nbins, ignorebelow=None, logspacing=False, minval=None, maxval=None):
+        """
+        Create an object which can be used to efficiently generate a 1D pdf for an observed object
+
+        Parameters
+        ----------
+
+        gridvals: array-like
+            values of the quantity for all the grid points
+
+        nbins: int
+            number of bins to use for the 1D pdf
+
+        ignorebelow: float
+            ignore the grid points for which the quantity falls below
+            this threshold
+
+        logspacing: bool
+            whether to use logarithmic spacing for the bins
+
+        minval, maxval: float (optional)
+            override the range for the bins. this can be useful to make
+            sure that the pdfs for different runs have the same bins
+        """
         self.nbins = nbins
         self.n_gridvals = len(gridvals)
         self.logspacing = logspacing
@@ -31,8 +54,8 @@ class pdf1d():
             self.bin_vals = np.linspace(0.0,1.0, num=self.nbins)
         else:
             self.bad = False
-            self.min_val = tgridvals.min()
-            self.max_val = tgridvals.max()
+            self.min_val = tgridvals.min() if minval is None else minval
+            self.max_val = tgridvals.max() if maxval is None else maxval
 
             # if log spacing requested, make the transformation
             if logspacing:

@@ -2,7 +2,6 @@ from __future__ import (absolute_import, division, print_function)
 import os
 
 import numpy as np
-
 from astropy import units
 
 from . import grid
@@ -152,6 +151,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
             distances = np.power(10, distances / 5. + 1) * units.pc
         else:
             distances = (distances * distance_unit).to(units.pc)
+
+        print('applying {} distances'.format(len(distances)))
 
         if verbose:
             print('Adding spectral properties:', add_spectral_properties_kwargs
