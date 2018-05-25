@@ -85,7 +85,7 @@ def make_source_dens_map(catfile,
     ra_delt = dec_delt
     n_x = np.fix(np.round(math.cos(0.5*(max_dec+min_dec)*math.pi/180.)
                           *(max_ra-min_ra)/ra_delt))
-    ra_delt *= -1.
+    #ra_delt *= -1. #Not sure why the ra delta would want to be negative...
 
     n_x = int(np.max([n_x,1]))
     n_y = int(np.max([n_y,1]))
