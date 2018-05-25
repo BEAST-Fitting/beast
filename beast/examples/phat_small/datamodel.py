@@ -51,8 +51,7 @@ obs_colnames = [ f.upper() + '_RATE' for f in basefilters ]
 
 # obsfile : string 
 #   pathname of the observed catalog
-#obsfile = 'data/b15_4band_det_27_A.fits'
-obsfile = 'data/14675_LMC-5665ne-12232.st.fits'
+obsfile = 'data/b15_4band_det_27_A.fits'
 
 #------------------------------------------------------
 # Artificial Star Test Input File Generation Parameters
@@ -92,14 +91,12 @@ ast_with_positions = True
 # ast_source_density_table :  (string,optional)
 # Name of source density table from tools/create_source_density_map.py
 # If supplied, the ASTs will be repeated for each source density bin in the table
-#ast_source_density_table = None
-ast_source_density_table = "data/14675_LMC-5665ne-12232.st_source_den_bins_table.fits"
+ast_source_density_table = None
 
 # ast_background_table :  (string,optional)
 # Name of background table from tools/create_background_density_map.py
 # If supplied, the ASTs will be repeated for each background level bin in the table
 ast_background_table = None
-#ast_background_table = "data/14675_LMC-5665ne-12232_F475W_drz_background_map.fits"
 
 #ast_N_dens_bins : (int, optional)
 #Number of source or background bins that you want ASTs repeated over
@@ -115,9 +112,7 @@ ast_pixel_distribution = 10.0
 # is True and no X and Y information  is present in the photometry catalog)	
 # Name of the reference image used by DOLPHOT when running the measured 
 # photometry.	            
-#ast_reference_image = None
-ast_reference_image = "data/14675_LMC-5665ne-12232_F475W_drz.fits"
-
+ast_reference_image = None
 
 #-------------------------------------------
 #Noise Model Artificial Star Test Parameters
