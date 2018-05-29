@@ -18,7 +18,8 @@ from astropy.io import fits
 
 def setup_batch_beast_fit(projectname,
                               datafile,
-                              num_percore=5):
+                              num_percore=5,
+                              nice=None):
     """
     Sets up batch files for submission to the 'at' queue on linux (or similar) systems
 
@@ -34,6 +35,9 @@ def setup_batch_beast_fit(projectname,
     num_percore : int (default = 5)
         number of fitting runs per core
 
+    nice : int (default = None)
+        set this to an integer (-20 to 20) to prepend a "nice" level to the fitting command
+  
     """
     
 
@@ -162,7 +166,12 @@ def setup_batch_beast_fit(projectname,
                       str(len(indxs)) + '/' + str(len(t['Pmax'])) + ')')
                 ext_str = '-r'
 
-            job_command = './run_beast_production.py -f ' + ext_str + ' ' + \
+            nice_str = ''
+            if nice is not None:
+                nice_str = 'nice -n' + str(int(nice)) + ' '
+
+
+            job_command = nice_str + './run_beast_production.py -f ' + ext_str + ' ' + \
                           sd_num + ' '+sub_num+' > ' \
                           + log_path+'beast_fit' + \
                           '_sd'+sd_num+'_sub'+sub_num+'.log'
