@@ -37,7 +37,7 @@ def setup_batch_beast_trim(project,
         number of trim batch jobs
 
     nice : int (default = None)
-        set this to an integer (-20 to 20) to prepend a "nice" level to the fitting command
+        set this to an integer (-20 to 20) to prepend a "nice" level to the trimming command
   
     """
 
