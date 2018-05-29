@@ -16,7 +16,7 @@ import numpy as np
 def setup_batch_beast_trim(project,
                                datafile,
                                astfile,
-                               num_subtrim=5
+                               num_subtrim=5,
                                nice=None):
     """
     Sets up batch files for submission to the 'at' queue on linux (or similar) systems
