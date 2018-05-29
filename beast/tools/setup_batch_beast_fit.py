@@ -171,7 +171,7 @@ def setup_batch_beast_fit(projectname,
                 nice_str = 'nice -n' + str(int(nice)) + ' '
 
 
-            job_command = nice_str + './run_beast_production.py -f ' + ext_str + ' ' + \
+            job_command = nice_str + 'python run_beast_production.py -f ' + ext_str + ' ' + \
                           sd_num + ' '+sub_num+' > ' \
                           + log_path+'beast_fit' + \
                           '_sd'+sd_num+'_sub'+sub_num+'.log'
