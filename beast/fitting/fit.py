@@ -369,12 +369,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
         # setup the fast 1d pdf
 
-        # need to know so 'zeros' (defined at -100) are ignored
-        if '_bias' in qname:
-            ignorebelow = -99.99
-        else:
-            ignorebelow = None
-
         # needed for mass parameters as they are stored as linear values
         # computationally, less bins needed if 1D PDFs done as log spacing
         if qname in set(['M_ini', 'M_act','radius']):
@@ -390,7 +384,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
             maxval = None
 
         # generate the fast 1d pdf mapping
-        _tpdf1d = pdf1d(q, nbins, ignorebelow=ignorebelow,
+        _tpdf1d = pdf1d(q, nbins,
                         logspacing=logspacing, minval=minval,
                         maxval=maxval)
         fast_pdf1d_objs.append(_tpdf1d)
