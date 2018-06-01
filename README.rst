@@ -8,11 +8,11 @@ BEAST
 .. image:: https://travis-ci.org/BEAST-Fitting/beast.svg?branch=master
     :target: https://travis-ci.org/BEAST-Fitting/beast
     :alt: Build Status
-	     
+
 .. image:: https://coveralls.io/repos/github/BEAST-Fitting/beast/badge.svg?branch=master
     :target: https://coveralls.io/github/BEAST-Fitting/beast?branch=master
     :alt: Coverage Status
-	     
+
 .. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
     :target: http://www.astropy.org
     :alt: Powered by Astropy
@@ -23,12 +23,12 @@ BEAST
 
 The Bayesian Extinction and Stellar Tool (BEAST) fits the ultraviolet to
 near-infrared photometric SEDs of stars to extract stellar and
-dust extinction parameters.  
+dust extinction parameters.
 The stellar parameters are age (t), mass (M), and metallicity (M).
 The dust extinction parameters are dust column (Av), average grain size (Rv),
-and mixing between type A and B extinction curves (fA).  
+and mixing between type A and B extinction curves (fA).  Test.
 
-The full details of the BEAST are provided by 
+The full details of the BEAST are provided by
 Gordon et al. (2016, ApJ, 826, 104).
 <http://adsabs.harvard.edu/abs/2016ApJ...826..104G>
 
@@ -54,7 +54,7 @@ Direct code contributors (including new contributors since 2016):
 In Development!
 ---------------
 
-This code is currently in active development.  
+This code is currently in active development.
 
 Contributing
 ------------
