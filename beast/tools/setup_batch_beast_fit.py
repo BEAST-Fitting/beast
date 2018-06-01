@@ -18,7 +18,9 @@ from astropy.io import fits
 
 def setup_batch_beast_fit(projectname,
                               datafile,
-                              num_percore=5):
+                              num_percore=5,
+                              nice=None,
+                              overwrite_logfile=True):
     """
     Sets up batch files for submission to the 'at' queue on linux (or similar) systems
 
@@ -34,6 +36,12 @@ def setup_batch_beast_fit(projectname,
     num_percore : int (default = 5)
         number of fitting runs per core
 
+    nice : int (default = None)
+        set this to an integer (-20 to 20) to prepend a "nice" level to the fitting command
+
+    overwrite_logfile : boolean (default = True)
+        if True, will overwrite the log file; if False, will append to existing log file
+  
     """
     
 
@@ -162,8 +170,16 @@ def setup_batch_beast_fit(projectname,
                       str(len(indxs)) + '/' + str(len(t['Pmax'])) + ')')
                 ext_str = '-r'
 
-            job_command = './run_beast_production.py -f ' + ext_str + ' ' + \
-                          sd_num + ' '+sub_num+' > ' \
+            nice_str = ''
+            if nice is not None:
+                nice_str = 'nice -n' + str(int(nice)) + ' '
+
+            pipe_str = ' > '
+            if not overwrite_logfile:
+                pipe_str = ' >> '
+
+            job_command = nice_str + 'python run_beast_production.py -f ' + ext_str + ' ' + \
+                          sd_num + ' '+sub_num + pipe_str \
                           + log_path+'beast_fit' + \
                           '_sd'+sd_num+'_sub'+sub_num+'.log'
 

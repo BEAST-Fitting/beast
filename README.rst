@@ -8,11 +8,11 @@ BEAST
 .. image:: https://travis-ci.org/BEAST-Fitting/beast.svg?branch=master
     :target: https://travis-ci.org/BEAST-Fitting/beast
     :alt: Build Status
-	     
+
 .. image:: https://coveralls.io/repos/github/BEAST-Fitting/beast/badge.svg?branch=master
     :target: https://coveralls.io/github/BEAST-Fitting/beast?branch=master
     :alt: Coverage Status
-	     
+
 .. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
     :target: http://www.astropy.org
     :alt: Powered by Astropy
@@ -23,17 +23,17 @@ BEAST
 
 The Bayesian Extinction and Stellar Tool (BEAST) fits the ultraviolet to
 near-infrared photometric SEDs of stars to extract stellar and
-dust extinction parameters.  
-The stellar parameters are age (t), mass (M), and metallicity (M).
+dust extinction parameters.
+The stellar parameters are age (t), mass (M), metallicity (M), and distance (d).
 The dust extinction parameters are dust column (Av), average grain size (Rv),
-and mixing between type A and B extinction curves (fA).  
+and mixing between type A and B extinction curves (fA).
 
-The full details of the BEAST are provided by 
-Gordon et al. (2016, ApJ, 826, 104).
-<http://adsabs.harvard.edu/abs/2016ApJ...826..104G>
+The full details of the BEAST are provided by
+`Gordon et al. (2016, ApJ, 826, 104)
+<http://adsabs.harvard.edu/abs/2016ApJ...826..104G>`_.
 
-Documenation
-------------
+Documentation
+-------------
 
 Details of installing, running, and contributing to the BEAST are at
 <http://beast.readthedocs.io>.
@@ -49,12 +49,42 @@ Leo Girardi, David W. Hogg, Jason S. Kalirai, Maria Kapala,
 Alexia R. Lewis, Hans-Walter Rix, Karin Sandstrom, and Evan D. Skillman
 
 Direct code contributors (including new contributors since 2016):
-<https://github.com/karllark/beast/graphs/contributors>
+<https://github.com/BEAST-fitting/beast/graphs/contributors>
+
+Attribution
+-----------
+
+Please cite `Gordon et al. (2016, ApJ, 826, 104)
+<http://adsabs.harvard.edu/abs/2016ApJ...826..104G>`_
+if you find this code useful in your research.
+The BibTeX entry for the paper is::
+
+    @ARTICLE{2016ApJ...826..104G,
+      author = {{Gordon}, K.~D. and {Fouesneau}, M. and {Arab}, H. and {Tchernyshyov}, K. and
+          {Weisz}, D.~R. and {Dalcanton}, J.~J. and {Williams}, B.~F. and
+          {Bell}, E.~F. and {Bianchi}, L. and {Boyer}, M. and {Choi}, Y. and
+          {Dolphin}, A. and {Girardi}, L. and {Hogg}, D.~W. and {Kalirai}, J.~S. and
+          {Kapala}, M. and {Lewis}, A.~R. and {Rix}, H.-W. and {Sandstrom}, K. and
+          {Skillman}, E.~D.},
+      title = "{The Panchromatic Hubble Andromeda Treasury. XV. The BEAST: Bayesian Extinction and Stellar Tool}",
+      journal = {\apj},
+      archivePrefix = "arXiv",
+      eprint = {1606.06182},
+      keywords = {dust, extinction, galaxies: individual: M31, methods: data analysis, methods: statistical, stars: fundamental parameters},
+      year = 2016,
+      month = aug,
+      volume = 826,
+      eid = {104},
+      pages = {104},
+      doi = {10.3847/0004-637X/826/2/104},
+      adsurl = {http://adsabs.harvard.edu/abs/2016ApJ...826..104G},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+    }
 
 In Development!
 ---------------
 
-This code is currently in active development.  
+This code is currently in active development.
 
 Contributing
 ------------

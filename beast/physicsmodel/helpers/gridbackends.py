@@ -332,7 +332,7 @@ class MemoryBackend(GridBackend):
                         hd['/covoffdiag'] = self.cov_offdiag[:]
                 else:
                     try:
-                        node = hd.getNode('/seds')
+                        node = hd.get_node('/seds')
                         node.append(self.seds[:])
                     except:
                         hd['/seds'] = self.seds[:]
@@ -551,7 +551,7 @@ class CacheBackend(GridBackend):
                     hd['/lamb'] = self.lamb[:]
                 else:
                     try:
-                        node = hd.getNode('/seds')
+                        node = hd.get_node('/seds')
                         node.append(self.seds[:])
                     except:
                         hd['/seds'] = self.seds[:]
@@ -652,7 +652,7 @@ class HDFBackend(GridBackend):
                     hd['/lamb'] = self.lamb[:]
                 else:
                     try:
-                        node = hd.getNode('/seds')
+                        node = hd.get_node('/seds')
                         node.append(self.seds[:])
                     except:
                         hd['/seds'] = self.seds[:]
