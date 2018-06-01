@@ -100,6 +100,8 @@ will search for them):
 2. in the '.beast' directory in the home directory of the current user
 3. in the source code in 'beast/beast/libs'
 
+Whichever of the options used, the directory needs to be manually created.
+
 Manual download
 ---------------
 
@@ -111,8 +113,7 @@ Script download
 After installing the `beast`, run the following script and the library files
 will be downloaded into the location specified in :ref:`library_loc`::
 
-     $ beast/tools/get_libfiles.py
-
+     $ python -m beast.tools.get_libfiles
 
 Running Example
 ===============
