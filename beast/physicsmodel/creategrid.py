@@ -297,7 +297,8 @@ def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
 
     return npts, pts
 
-def apply_distance_grid(specgrid, distances):
+def apply_distance_grid(specgrid, distances,
+                        redshift=0):
     """
     Distances are applied to the spectral grid by copying the grid and
     applying a scaling factor.
@@ -316,6 +317,9 @@ def apply_distance_grid(specgrid, distances):
         0 means absolute magnitude.
         Expecting pc units
 
+    redshift: float
+        Redshift to which wavelengths should be shifted
+        Default is 0 (rest frame)
     """
     g0 = specgrid
 
@@ -357,6 +361,9 @@ def apply_distance_grid(specgrid, distances):
         # Copy the old columns
         for key in keys0:
             cols[key][distance_slice] = g0.grid[key]
+
+    # apply redshift
+    g.lamb = g.lamb * (1. + redshift)
 
     # New object
     g = SpectralGrid(g0.lamb, seds=new_seds, grid=Table(cols), backend='memory')

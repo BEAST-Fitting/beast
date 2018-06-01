@@ -67,9 +67,10 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
     return (iso_fname, oiso)
 
 def make_spectral_grid(project, oiso, osl=None, bounds={},
-                       verbose=True, spec_fname=None, distance=10,
-                       distance_unit=units.pc, filterLib=None,
-                       redshift=0,
+                       verbose=True, spec_fname=None,
+                       distance=10, distance_unit=units.pc,
+                       redshift=0.,
+                       filterLib=None,
                        add_spectral_properties_kwargs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
@@ -171,7 +172,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         # TODO: Applying the distances might have to happen in chunks
         # for larger grids.
         def apply_distance_and_spectral_props(g):
-            g = creategrid.apply_distance_grid(g, distances, redshift)
+            g = creategrid.apply_distance_grid(g, distances,
+                                               redshift=redshift)
 
             if add_spectral_properties_kwargs is not None:
                 g = creategrid.add_spectral_properties(g,
