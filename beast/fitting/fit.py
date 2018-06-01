@@ -455,7 +455,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
     it = Pbar(len(obs)-start_pos,
               desc='Calculating Lnp/Stats').iterover(islice(obs.enumobs(),
-                                                            start_pos,None))
+                                                            int(start_pos),None))
     for e, obj in it:
         # calculate the full nD posterior
         (sed) = obj
