@@ -71,7 +71,7 @@ def test_toothpick_noisemodel():
         if isinstance(hdf_cache[sname], h5py.Dataset):
             cvalue = hdf_cache[sname]
             cvalue_new = hdf_new[sname]
-            if cvalue.dtype.isbuiltin:
+            if cvalue.dtype.fields is None:
                 np.testing.assert_allclose(cvalue.value, cvalue_new.value,
                                            err_msg='testing %s' % (sname),
                                            rtol=1e-6)
