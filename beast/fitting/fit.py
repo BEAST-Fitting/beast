@@ -26,6 +26,7 @@ import os
 import sys
 import time
 import numpy as np
+import math
 import tables
 import string
 from itertools import islice
