@@ -28,8 +28,7 @@ from beast.physicsmodel.model_grid import (make_iso_table,
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.observationmodel.ast.make_ast_input_list import pick_models
 from beast.observationmodel.ast.make_ast_xy_list import pick_positions
-from beast.observationmodel.ast.make_ast_xy_list import pick_positions_per_density
-from beast.observationmodel.ast.make_ast_xy_list import pick_positions_per_background
+from beast.observationmodel.ast.make_ast_xy_list import pick_positions_from_map
 from beast.fitting import fit
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid
@@ -152,12 +151,10 @@ if __name__ == '__main__':
                 pick_positions(obsdata, filename, separation,
                                	refimage=datamodel.ast_reference_image)
             if datamodel.ast_source_density_table is not None:
-                pick_positions_from_map(chosen_seds, datamodel.ast_source_density_table, 'sourcedens', datamodel.ast_N_dens_bins,
-                               	outfile=filename, refimage=datamodel.ast_reference_image, Nrealize=1)
+                pick_positions_from_map(chosen_seds, datamodel.ast_source_density_table, 'sourcedens', datamodel.ast_N_bins, datamodel.ast_realization_per_model, outfile=filename, refimage=datamodel.ast_reference_image, Nrealize=1)
 
             if datamodel.ast_background_table is not None:
-                pick_positions_from_map(chosen_seds, datamodel.ast_background_table, 'median_bg', datamodel.ast_N_dens_bins,
-                               	outfile=filename, refimage=datamodel.ast_reference_image, Nrealize=1)
+                pick_positions_from_map(chosen_seds, datamodel.ast_background_table, 'median_bg', datamodel.ast_N_bins, datamodel.ast_realization_per_model, outfile=filename, refimage=datamodel.ast_reference_image, Nrealize=1)
             if datamodel.ast_reference_image is None and datamodel.ast_source_density_table is None and datamodel.ast_background_table is None:
                 pick_positions(obsdata, filename, separation)
 
