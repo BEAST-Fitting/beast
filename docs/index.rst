@@ -5,7 +5,7 @@ BEAST
 The Bayesian Extinction and Stellar Tool (BEAST) fits the ultraviolet to
 near-infrared photometric SEDs of stars to extract stellar and
 dust extinction parameters.
-The stellar parameters are age (t), mass (M), and metallicity (M).
+The stellar parameters are age (t), mass (M), metallicity (M), and distance (d).
 The dust extinction parameters are dust column (Av), average grain size (Rv),
 and mixing between type A and B extinction curves (fA).
 
