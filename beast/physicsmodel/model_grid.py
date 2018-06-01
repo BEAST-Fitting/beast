@@ -69,6 +69,7 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
 def make_spectral_grid(project, oiso, osl=None, bounds={},
                        verbose=True, spec_fname=None, distance=10,
                        distance_unit=units.pc, filterLib=None,
+                       redshift=0,
                        add_spectral_properties_kwargs=None, **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
@@ -96,6 +97,10 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         distances will be evenly spaced in this unit
         therefore, specifying a distance grid in mag units will lead to
         a log grid
+
+    redshift: float
+        Redshift to which wavelengths should be shifted
+        Default is 0 (rest frame)
 
     spec_fname: str
         full filename to save the spectral grid into
@@ -166,7 +171,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         # TODO: Applying the distances might have to happen in chunks
         # for larger grids.
         def apply_distance_and_spectral_props(g):
-            g = creategrid.apply_distance_grid(g, distances)
+            g = creategrid.apply_distance_grid(g, distances, redshift)
 
             if add_spectral_properties_kwargs is not None:
                 g = creategrid.add_spectral_properties(g,
@@ -182,6 +187,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
             g.writeHDF(spec_fname)
         else:
             for gk in g:
+                # how to add redshift??
                 gk = apply_distance_and_spectral_props(gk)
                 gk.writeHDF(spec_fname, append=True)
 

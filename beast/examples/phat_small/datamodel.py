@@ -124,6 +124,9 @@ distances = [24.47]
 # Distance unit (any length or units.mag)
 distance_unit = units.mag
 
+# velocity of galaxy
+velocity =  -300 * units.km / units.s # M31 velocity from SIMBAD
+
 ################
 
 ### Stellar grid definition
