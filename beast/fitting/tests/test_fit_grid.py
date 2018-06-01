@@ -15,6 +15,7 @@ from beast.observationmodel.vega import Vega
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.fitting import fit
 
+
 def _download_rename(filename):
     """
     Download a file and rename it to have the right extension
@@ -22,11 +23,12 @@ def _download_rename(filename):
     Otherwise, downloaded file will not have an extension at all
     """
     url_loc = 'http://www.stsci.edu/~kgordon/beast/'
-    fname_dld = download_file('%s%s'%(url_loc, filename))
+    fname_dld = download_file('%s%s' % (url_loc, filename))
     extension = filename.split('.')[-1]
-    fname = '%s.%s'%(fname_dld, extension)
+    fname = '%s.%s' % (fname_dld, extension)
     os.rename(fname_dld, fname)
     return fname
+
 
 class GenFluxCatalog(Observations):
     """Generic n band filter photometry
@@ -41,13 +43,13 @@ class GenFluxCatalog(Observations):
         """ Construct the interface """
         desc = 'GENERIC star: %s' % inputFile
         Observations.__init__(self, inputFile, desc=desc)
-        self.setFilters( filters, vega_fname=vega_fname )
-        #some bad values smaller than expected
+        self.setFilters(filters, vega_fname=vega_fname)
+        # some bad values smaller than expected
         # in physical flux units
         self.setBadValue(6e-40)
 
         # rate column needed as this is the *flux* column
-        for ik,k in enumerate(filters):
+        for ik, k in enumerate(filters):
             self.data.set_alias(k, obs_colnames[ik])
 
     def getFlux(self, num, units=False):
@@ -71,8 +73,7 @@ class GenFluxCatalog(Observations):
         # case for using '_flux' result
         d = self.data[num]
         
-        flux = np.array([ d[self.data.resolve_alias(ok)] 
-                          for ok in self.filters ]) * self.vega_flux
+        flux = np.array([d[self.data.resolve_alias(ok)] for ok in self.filters]) * self.vega_flux
         
         if units is True:
             return flux * units.erg / (units.s*units.cm*units.cm*units.angstrom)
@@ -80,16 +81,17 @@ class GenFluxCatalog(Observations):
             return flux
 
     def setFilters(self, filters, vega_fname=None):
-        """ set the filters and update the vega reference for the conversions
-
-        Parameters
-        ----------
-        filters: sequence
-            list of filters using the internally normalized namings
         """
+        set the filters and update the vega reference for the conversions
+        :param filters: sequence
+            list of filters using the internally normalized namings
+        :param vega_fname:
+        :return:
+        """
+
         self.filters = filters
 
-        #Data "rates" are normalized to Vega already, fits are not using vega
+        # Data "rates" are normalized to Vega already, fits are not using vega
 
         # for optimization purpose: pre-compute
         #   getting vega mags, require to open and read the content of one file.
@@ -124,21 +126,21 @@ def get_obscat(obsfile, filters, obs_colnames, vega_fname=None,
 
 
 @remote_data
-#@pytest.mark.skip(reason="temporarily disable")
+# @pytest.mark.skip(reason="temporarily disable")
 def test_fit_grid():
 
     # download the needed files
     vega_fname = _download_rename('vega.hd5')
     obs_fname = _download_rename('b15_4band_det_27_A.fits')
-    noise_trim_fname = _download_rename( \
+    noise_trim_fname = _download_rename(
                                 'beast_example_phat_noisemodel_trim.grid.hd5')
-    seds_trim_fname = _download_rename( \
+    seds_trim_fname = _download_rename(
                                 'beast_example_phat_seds_trim.grid.hd5')
 
     # download cached version of fitting results
     stats_fname_cache = _download_rename('beast_example_phat_stats.fits')
     pdf1d_fname_cache = _download_rename('beast_example_phat_pdf1d.fits')
-    #lnp_fname_cache = _download_rename('beast_example_phat_lnp.hd5')
+    # lnp_fname_cache = _download_rename('beast_example_phat_lnp.hd5')
 
     ################
 
@@ -146,11 +148,11 @@ def test_fit_grid():
     noisemodel_vals = noisemodel.get_noisemodelcat(noise_trim_fname)
 
     # read in the observed data
-    filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W',
-               'HST_ACS_WFC_F814W', 'HST_WFC3_F110W','HST_WFC3_F160W']
-    basefilters = ['F275W','F336W','F475W',
-                   'F814W','F110W','F160W']
-    obs_colnames = [ f.lower() + '_rate' for f in basefilters ]
+    filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
+               'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+    basefilters = ['F275W', 'F336W', 'F475W',
+                   'F814W', 'F110W', 'F160W']
+    obs_colnames = [f.lower() + '_rate' for f in basefilters]
 
     obsdata = get_obscat(obs_fname,
                          filters,
@@ -177,7 +179,7 @@ def test_fit_grid():
 
     for tcolname in table_new.colnames:
         np.testing.assert_equal(table_new[tcolname], table_cache[tcolname],
-                                '%s columns not equal'%tcolname)
+                                '%s columns not equal' % tcolname)
 
     # lnp files not checked as they are randomly sparsely sampled
     #   hence will be different every time the fitting is run
@@ -192,9 +194,10 @@ def test_fit_grid():
         qname = fits_new[k].header['EXTNAME']
         np.testing.assert_equal(fits_new[k].data,
                                 fits_cache[qname].data,
-                                '%s pdf1d not equal'%qname)
+                                '%s pdf1d not equal' % qname)
+
 
 if __name__ == '__main__':
 
     test_fit_grid()
-                       
+
