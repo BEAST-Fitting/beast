@@ -363,7 +363,7 @@ def apply_distance_grid(specgrid, distances,
             cols[key][distance_slice] = g0.grid[key]
 
     # apply redshift
-    g.lamb = g.lamb * (1. + redshift)
+    g0.lamb = g0.lamb * (1. + redshift)
 
     # New object
     g = SpectralGrid(g0.lamb, seds=new_seds, grid=Table(cols), backend='memory')
