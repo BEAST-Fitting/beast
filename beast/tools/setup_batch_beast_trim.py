@@ -16,7 +16,8 @@ import numpy as np
 def setup_batch_beast_trim(project,
                                datafile,
                                astfile,
-                               num_subtrim=5):
+                               num_subtrim=5,
+                               nice=None):
     """
     Sets up batch files for submission to the 'at' queue on linux (or similar) systems
 
@@ -35,6 +36,9 @@ def setup_batch_beast_trim(project,
     num_subtrim : int (default = 5)
         number of trim batch jobs
 
+    nice : int (default = None)
+        set this to an integer (-20 to 20) to prepend a "nice" level to the trimming command
+  
     """
 
     ast_file = astfile
@@ -79,6 +83,12 @@ def setup_batch_beast_trim(project,
     sindxs = np.argsort(sd_nums)
     cat_files = cat_files[sindxs]
 
+    # prepend nice
+    nice_str = ''
+    if nice is not None:
+        nice_str = 'nice -n' + str(int(nice)) + ' '
+
+
     joblist_file = job_path+'beast_batch_trim.joblist'
     pf = open(joblist_file,'w')
 
@@ -88,7 +98,7 @@ def setup_batch_beast_trim(project,
         bt_f.append(open(trimfile,'w'))
         bt_f[-1].write(project + '\n')
         #bt_f[-1].write(full_model_filename + '\n')
-        pf.write('python -m beast.tools.trim_many_via_obsdata '+trimfile+' > '
+        pf.write(nice_str + 'python -m beast.tools.trim_many_via_obsdata '+trimfile+' > '
                  +log_path+'beast_trim_tr'+str(i+1)+'.log\n')
     pf.close()
     
