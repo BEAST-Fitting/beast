@@ -128,6 +128,9 @@ absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 distances = [18.5]
 distance_unit = units.mag
 
+# velocity of galaxy
+velocity = 262.2 * units.km / units.s # LMC velocity from SIMBAD
+
 ################
 
 ### Stellar grid definition
