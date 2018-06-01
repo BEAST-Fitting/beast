@@ -201,7 +201,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     ast: beast noisemodel instance
         noise model data
 
-    qnames: list of quantities or expresions
+    qnames: list of quantities or expressions
 
     p: array-like
         list of percentile values
