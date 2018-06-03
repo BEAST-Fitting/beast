@@ -320,7 +320,8 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     #   save as symmetric log, since the fluxes can be negative
     full_model_flux = _seds + ast_bias
     logtempseds = np.array(full_model_flux)
-    full_model_flux = np.sign(logtempseds) * np.log10(1 + np.abs(logtempseds * math.log(10)))
+    #full_model_flux = np.sign(logtempseds) * np.log10(1 + np.abs(logtempseds * math.log(10)))
+    full_model_flux = np.sign(logtempseds) * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
 
     # setup the arrays to temp store the results
     n_qnames = len(qnames)
