@@ -314,7 +314,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     qnames = qnames_in
     filters = sedgrid.filters
     for i, cfilter in enumerate(filters):
-        qnames.append('log'+cfilter+'_wd_bias')
+        qnames.append('symlog'+cfilter+'_wd_bias')
 
     # create the full model fluxes for later use
     #   save as symmetric log, since the fluxes can be negative
@@ -346,7 +346,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     for qname in qnames:
         #q = g0[qname][g0_indxs]
         if '_bias' in qname:
-            fname = (qname.replace('_wd_bias','')).replace('log','')
+            fname = (qname.replace('_wd_bias','')).replace('symlog','')
             q = full_model_flux[:,filters.index(fname)]
         else:
             q = g0[qname]
@@ -531,7 +531,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
         for k, qname in enumerate(qnames):
             if '_bias' in qname:
-                fname = (qname.replace('_wd_bias','')).replace('log','')
+                fname = (qname.replace('_wd_bias','')).replace('symlog','')
                 q = full_model_flux[:,filters.index(fname)]
             else:
                 q = g0[qname]
