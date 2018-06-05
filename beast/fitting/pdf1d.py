@@ -7,7 +7,7 @@ import math
 import numpy as np
 
 class pdf1d():
-    def __init__(self, gridvals, nbins, ignorebelow=None, logspacing=False, minval=None, maxval=None):
+    def __init__(self, gridvals, nbins, logspacing=False, minval=None, maxval=None):
         """
         Create an object which can be used to efficiently generate a 1D pdf for an observed object
 
@@ -20,10 +20,6 @@ class pdf1d():
         nbins: int
             number of bins to use for the 1D pdf
 
-        ignorebelow: float
-            ignore the grid points for which the quantity falls below
-            this threshold
-
         logspacing: bool
             whether to use logarithmic spacing for the bins
 
@@ -35,12 +31,7 @@ class pdf1d():
         self.n_gridvals = len(gridvals)
         self.logspacing = logspacing
 
-        # useful when very low values need to be ignored
-        # (mainly log values that have zeros set to a low value)
-        if ignorebelow is not None:
-            indxs, = np.where(gridvals > ignorebelow)
-        else:
-            indxs = np.arange(self.n_gridvals)
+        indxs = np.arange(self.n_gridvals)
         self.n_indxs = len(indxs)
             
         # storage of the grid values to consider

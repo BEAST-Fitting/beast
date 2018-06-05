@@ -26,6 +26,7 @@ import os
 import sys
 import time
 import numpy as np
+import math
 import tables
 import string
 from itertools import islice
@@ -201,7 +202,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     ast: beast noisemodel instance
         noise model data
 
-    qnames: list of quantities or expresions
+    qnames: list of quantities or expressions
 
     p: array-like
         list of percentile values
@@ -313,19 +314,14 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     qnames = qnames_in
     filters = sedgrid.filters
     for i, cfilter in enumerate(filters):
-        qnames.append('log'+cfilter+'_wd_bias')
+        qnames.append('symlog'+cfilter+'_wd_bias')
 
     # create the full model fluxes for later use
-    #   save on log format like the other fluxes
+    #   save as symmetric log, since the fluxes can be negative
     full_model_flux = _seds + ast_bias
     logtempseds = np.array(full_model_flux)
-    indxs = np.where(full_model_flux > 0)
-    if len(indxs) > 0:
-        logtempseds[indxs] = np.log10(full_model_flux[indxs])
-    indxs = np.where(full_model_flux <= 0)
-    if len(indxs) > 0:
-        logtempseds[indxs] = -100.
-    full_model_flux = logtempseds
+    #full_model_flux = np.sign(logtempseds) * np.log10(1 + np.abs(logtempseds * math.log(10)))
+    full_model_flux = np.sign(logtempseds) * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
 
     # setup the arrays to temp store the results
     n_qnames = len(qnames)
@@ -350,7 +346,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     for qname in qnames:
         #q = g0[qname][g0_indxs]
         if '_bias' in qname:
-            fname = (qname.replace('_wd_bias','')).replace('log','')
+            fname = (qname.replace('_wd_bias','')).replace('symlog','')
             q = full_model_flux[:,filters.index(fname)]
         else:
             q = g0[qname]
@@ -375,12 +371,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
         # setup the fast 1d pdf
 
-        # need to know so 'zeros' (defined at -100) are ignored
-        if '_bias' in qname:
-            ignorebelow = -99.99
-        else:
-            ignorebelow = None
-
         # needed for mass parameters as they are stored as linear values
         # computationally, less bins needed if 1D PDFs done as log spacing
         if qname in set(['M_ini', 'M_act','radius']):
@@ -396,7 +386,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
             maxval = None
 
         # generate the fast 1d pdf mapping
-        _tpdf1d = pdf1d(q, nbins, ignorebelow=ignorebelow,
+        _tpdf1d = pdf1d(q, nbins,
                         logspacing=logspacing, minval=minval,
                         maxval=maxval)
         fast_pdf1d_objs.append(_tpdf1d)
@@ -541,7 +531,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
         for k, qname in enumerate(qnames):
             if '_bias' in qname:
-                fname = (qname.replace('_wd_bias','')).replace('log','')
+                fname = (qname.replace('_wd_bias','')).replace('symlog','')
                 q = full_model_flux[:,filters.index(fname)]
             else:
                 q = g0[qname]
