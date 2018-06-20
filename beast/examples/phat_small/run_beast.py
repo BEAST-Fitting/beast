@@ -28,6 +28,7 @@ from beast.physicsmodel.model_grid import (make_iso_table,
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.observationmodel.ast.make_ast_input_list import pick_models
 from beast.observationmodel.ast.make_ast_xy_list import pick_positions
+from beast.observationmodel.ast.make_ast_xy_list import pick_positions_from_map
 from beast.fitting import fit
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid
@@ -116,8 +117,9 @@ if __name__ == '__main__':
 
     if args.ast:
         # get the modesedgrid on which to grab input AST
-        modelsedgridfile = datamodel.project + '/' + datamodel.project + \
-            '_seds.grid.hd5'
+        modelsedgridfile = './' + datamodel.project + '/' + datamodel.project + '_seds.grid.hd5'
+        modelsedgrid = FileSEDGrid(modelsedgridfile)
+        modelsedgridfile = datamodel.project + '/' + datamodel.project + '_seds.grid.hd5'
 
         N_models = datamodel.ast_models_selected_per_age
         Nfilters = datamodel.ast_bands_above_maglimit
@@ -138,19 +140,22 @@ if __name__ == '__main__':
 
             # max. mags from the gst observation cat.
             mag_cuts = min_mags + tmp_cuts
-
+        print(modelsedgrid)
         outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
-        pick_models(modelsedgridfile, datamodel.filters, mag_cuts, Nfilter=Nfilters,
-                    N_stars=N_models, Nrealize=Nrealize, outfile=outfile)
-
+        chosen_seds = pick_models(modelsedgridfile, datamodel.filters, mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize, outfile=outfile)
         if datamodel.ast_with_positions == True:
             separation = datamodel.ast_pixel_distribution
             filename = datamodel.project + '/' + datamodel.project + '_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
                 pick_positions(obsdata, filename, separation,
-                               refimage=datamodel.ast_reference_image)
-            else:
+                               	refimage=datamodel.ast_reference_image)
+            if datamodel.ast_source_density_table is not None:
+                pick_positions_from_map(chosen_seds, datamodel.ast_source_density_table, 'sourcedens', datamodel.ast_N_bins, datamodel.ast_realization_per_model, outfile=filename, refimage=datamodel.ast_reference_image, Nrealize=1)
+
+            if datamodel.ast_background_table is not None:
+                pick_positions_from_map(chosen_seds, datamodel.ast_background_table, 'median_bg', datamodel.ast_N_bins, datamodel.ast_realization_per_model, outfile=filename, refimage=datamodel.ast_reference_image, Nrealize=1)
+            if datamodel.ast_reference_image is None and datamodel.ast_source_density_table is None and datamodel.ast_background_table is None:
                 pick_positions(obsdata, filename, separation)
 
     if args.observationmodel:
