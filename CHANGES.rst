@@ -3,7 +3,7 @@
 
 - no changes yet
 
-1.2 (2018-06-20)
+1.2 (2018-06-22)
 ================
 
 - systemic velocity of galaxy can be specified
