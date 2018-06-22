@@ -221,7 +221,7 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
 
 
 def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
-                outfile=None):
+                outfile=None, bright_cut=None):
     """Creates a fake star catalog from a BEAST model grid
 
     Parameters
@@ -250,6 +250,9 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
         If a file name is given, the selected models will be written to
         disk
 
+    bright_cut: list of float
+        Same as mag_cuts, but for the bright end
+
     Returns
     -------
     astropy Table of selected models
@@ -266,7 +269,7 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
     sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
 
     # Select the models above the magnitude limits in N filters
-    idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter)
+    idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
     grid_cut = gridf['grid'][list(idxs)]
 
     # Sample the model grid uniformly
