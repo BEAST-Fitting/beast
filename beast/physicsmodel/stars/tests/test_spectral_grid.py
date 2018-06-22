@@ -6,6 +6,7 @@ import h5py
 from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 from astropy import units
+from astropy import constants as const
 
 from ...stars import stellib
 from ...stars.isochrone import ezIsoch
@@ -52,9 +53,11 @@ def test_make_kurucz_tlusty_spectral_grid():
     oiso = ezIsoch(iso_fname)
 
     # define the distance
-    distanceModulus = 24.47 * units.mag
-    dmod = distanceModulus.value
-    distance = 10 ** ((dmod / 5.) + 1) * units.pc
+    distances = [24.47]
+    distance_unit = units.mag
+
+    velocity = -300 * units.km / units.s
+    redshift = (velocity / const.c).decompose().value
 
     # define the spectral libraries to use
     osl = stellib.Tlusty(filename=tlusty_fname) \
@@ -65,8 +68,12 @@ def test_make_kurucz_tlusty_spectral_grid():
     add_spectral_properties_kwargs = dict(filternames=filters)
 
     spec_fname = '/tmp/beast_example_phat_spec_grid.hd5'
-    spec_fname, g = make_spectral_grid('test', oiso, osl=osl,
-                                       distance=distance,
+    spec_fname, g = make_spectral_grid('test',
+                                       oiso,
+                                       osl=osl,
+                                       redshift=redshift,
+                                       distance=distances,
+                                       distance_unit=distance_unit,
                                        spec_fname=spec_fname,
                                        filterLib=filter_fname,
          add_spectral_properties_kwargs=add_spectral_properties_kwargs)
