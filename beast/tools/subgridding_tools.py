@@ -1,3 +1,4 @@
+import math
 import os
 import re
 from multiprocessing import Pool
@@ -145,13 +146,7 @@ def subgrid_info(grid_fname, noise_fname=None):
         # ranges for these values.
         full_model_flux = seds[:] + noisemodel.root.bias[:]
         logtempseds = np.array(full_model_flux)
-        indxs = np.where(full_model_flux > 0)
-        if len(indxs) > 0:
-            logtempseds[indxs] = np.log10(full_model_flux[indxs])
-        indxs = np.where(full_model_flux <= 0)
-        if len(indxs) > 0:
-            logtempseds[indxs] = -100.
-        full_model_flux = logtempseds
+        full_model_flux = np.sign(logtempseds) * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
 
         filters = sedgrid.filters
         for i, f in enumerate(filters):
@@ -161,7 +156,7 @@ def subgrid_info(grid_fname, noise_fname=None):
             qmax = np.amax(f_fluxes)
             qunique = np.unique(qvals)
 
-            q = 'log' + f + '_wd_bias'
+            q = 'symlog' + f + '_wd_bias'
             info_dict[q] = {}
             info_dict[q]['min'] = qmin
             info_dict[q]['max'] = qmax
