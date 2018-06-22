@@ -12,7 +12,7 @@ from astropy.table import Column
 from ..vega import Vega
 
 
-def mag_limits(seds, limits, Nfilter=1):
+def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
     """
     Selects models which have at least N filter above the limits
 
@@ -21,12 +21,17 @@ def mag_limits(seds, limits, Nfilter=1):
     seds:   np.array
             Magnitude array from BEAST grid
 
-    limits: list
-            List of limit magnitudes
+    faint_cut: list
+            List of limit magnitudes on the faint end
 
     Nfilter: integer
              In how many filters, you want a fake star to be brighter
-             than the limit
+             than the limit (or fainter than the upper limit)
+
+    bright_cut: list
+        List of limit magnitudes on the bright end. Useful for cutting
+        out bright, nearby models, when no such bright nearby stars are
+        present in the data
 
     Returns
     -------
@@ -38,8 +43,14 @@ def mag_limits(seds, limits, Nfilter=1):
 
     # flag is True if the models are brigter (=smaller number in mag)
     # than the limits
-    for i, limit in enumerate(limits):
+    for i, limit in enumerate(faint_cut):
         flag[:, i] = seds[:, i] < limit
+
+    # flag is True if the models are frainter than the upper brightness
+    # limits
+    if bright_cut is not None:
+        for i, limit in enumerate(bright_cut):
+            flag[:,i] = np.logical_and(flag[:, i], seds[:, i] > limit)
 
     # Keep index where model is brighter than the limit in N filters
     s = np.sum(flag, axis=1)
@@ -50,7 +61,7 @@ def mag_limits(seds, limits, Nfilter=1):
 
 def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
                                 N_fluxes, min_N_per_flux,
-                                outfile=None, bins_outfile=None, mag_pad=.25):
+                                outfile=None, bins_outfile=None, bright_cut=None):
     """
     Creates a fake star catalog from a BEAST model grid. The chosen seds
     are optimized for the toothpick model, by working with a given
@@ -88,11 +99,9 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
         Output path for a file containing the flux bin limits for each
         filter, and the number of samples for each (optional)
 
-    mag_pad: float
-        The range that the lowest and highest bins should extend above
-        and below the minimum and maximum magnitude. Negative values
-        will shove models that fall outside of the clipped range into
-        the outermost bins.
+    bright_cut: list of float
+        List of magnitude limits for each filter (won't sample model
+        SEDs that are too bright)
 
     Returns
     -------
@@ -115,15 +124,15 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
     sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
     Nf = sedsMags.shape[1]
 
-    idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter)
+    idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
     sedsMags_cut = sedsMags[idxs]
 
     # Note that i speak of fluxes, but I've recently modified this to
     # work with mags instead
 
     # Set up a number of flux bins for each filter
-    maxes = np.amax(sedsMags_cut, axis=0) + mag_pad
-    mins = np.amin(sedsMags_cut, axis=0) - mag_pad
+    maxes = np.amax(sedsMags_cut, axis=0)
+    mins = np.amin(sedsMags_cut, axis=0)
 
     bin_edges = np.zeros((N_fluxes + 1, Nf))  # indexed on [fluxbin, nfilters]
     for f in range(Nf):
