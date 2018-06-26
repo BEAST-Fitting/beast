@@ -9,8 +9,6 @@ Plot the individual fit for a single observed star
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import argparse
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -163,26 +161,28 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     for i, cfilter in enumerate(filters):
         obs_flux[i] = stats[cfilter][k]
-        mod_flux[i, 0] = np.power(10.0, stats['log' + cfilter + '_wd_p50'][k])
-        mod_flux[i, 1] = np.power(10.0, stats['log' + cfilter + '_wd_p16'][k])
-        mod_flux[i, 2] = np.power(10.0, stats['log' + cfilter + '_wd_p84'][k])
+        fluxname = 'log' + cfilter
+        mod_flux[i, 0] = np.power(10.0, stats[fluxname + '_wd_p50'][k])
+        mod_flux[i, 1] = np.power(10.0, stats[fluxname + '_wd_p16'][k])
+        mod_flux[i, 2] = np.power(10.0, stats[fluxname + '_wd_p84'][k])
         mod_flux_nd[i, 0] = np.power(
-            10.0, stats['log' + cfilter + '_nd_p50'][k])
+            10.0, stats[fluxname + '_nd_p50'][k])
         mod_flux_nd[i, 1] = np.power(
-            10.0, stats['log' + cfilter + '_nd_p16'][k])
+            10.0, stats[fluxname + '_nd_p16'][k])
         mod_flux_nd[i, 2] = np.power(
-            10.0, stats['log' + cfilter + '_nd_p84'][k])
-        if 'log' + cfilter + '_wd_bias_p50' in stats.colnames:
-            mod_flux_wbias[i, 0] = np.power(10.0, stats['log' + cfilter +
-                                                        '_wd_bias_p50'][k])
-            mod_flux_wbias[i, 1] = np.power(10.0, stats['log' + cfilter +
-                                                        '_wd_bias_p16'][k])
-            mod_flux_wbias[i, 2] = np.power(10.0, stats['log' + cfilter +
-                                                        '_wd_bias_p84'][k])
+            10.0, stats[fluxname + '_nd_p84'][k])
+        if 'sym' + fluxname + '_wd_bias_p50' in stats.colnames:
+            mod_flux_wbias[i, 0] = np.expm1(np.log(10) * stats['sym' + fluxname +
+                                                               '_wd_bias_p50'][k]) / np.log(10)
+            mod_flux_wbias[i, 1] = np.expm1(np.log(10) * stats['sym' + fluxname +
+                                                               '_wd_bias_p16'][k]) / np.log(10)
+            mod_flux_wbias[i, 2] = np.expm1(np.log(10) * stats['sym' + fluxname +
+                                                               '_wd_bias_p84'][k]) / np.log(10)
+
     sed_ax = ax[index_sedplot]
     sed_ax.plot(waves, obs_flux, 'ko', label='observed')
 
-    if 'log' + filters[0] + '_wd_bias_p50' in stats.colnames:
+    if 'symlog' + filters[0] + '_wd_bias_p50' in stats.colnames:
         sed_ax.plot(waves, mod_flux_wbias[:, 0],
                     'b-', label='stellar+dust+bias')
         sed_ax.fill_between(waves, mod_flux_wbias[:, 1], mod_flux_wbias[:, 2],
@@ -272,9 +272,6 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
 
     # derived
     draw_box_around_values(startderiv, stopderiv, ls='dashdot')
-
-    # padding for rectangles of 1D PDFs
-    pad = 0.1
 
     # Make these plots:
 
