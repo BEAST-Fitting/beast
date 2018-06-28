@@ -25,6 +25,10 @@ from astropy.coordinates import SkyCoord as ap_SkyCoord
 from beastplotlib import initialize_parser
 
 
+def inverse_symlog(y):
+    return np.sign(y) / np.log(10) * np.expm1(np.abs(y) * np.log(10))
+
+
 def disp_str(stats, k, keyname):
     dvals = [stats[keyname + '_p50'][k],
              stats[keyname + '_p84'][k],
@@ -172,12 +176,9 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
         mod_flux_nd[i, 2] = np.power(
             10.0, stats[fluxname + '_nd_p84'][k])
         if 'sym' + fluxname + '_wd_bias_p50' in stats.colnames:
-            mod_flux_wbias[i, 0] = np.expm1(np.log(10) * stats['sym' + fluxname +
-                                                               '_wd_bias_p50'][k]) / np.log(10)
-            mod_flux_wbias[i, 1] = np.expm1(np.log(10) * stats['sym' + fluxname +
-                                                               '_wd_bias_p16'][k]) / np.log(10)
-            mod_flux_wbias[i, 2] = np.expm1(np.log(10) * stats['sym' + fluxname +
-                                                               '_wd_bias_p84'][k]) / np.log(10)
+            mod_flux_wbias[i, 0] = inverse_symlog(stats['sym' + fluxname + '_wd_bias_p50'][k])
+            mod_flux_wbias[i, 1] = inverse_symlog(stats['sym' + fluxname + '_wd_bias_p16'][k])
+            mod_flux_wbias[i, 2] = inverse_symlog(stats['sym' + fluxname + '_wd_bias_p84'][k])
 
     sed_ax = ax[index_sedplot]
     sed_ax.plot(waves, obs_flux, 'ko', label='observed')
