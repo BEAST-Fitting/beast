@@ -1,7 +1,7 @@
-""" 
+"""
 Generates a generic noise model from artifical star tests (ASTs) results
-using the toothpick method.  Using ASTs results in a noise model that 
-includes contributions from measurement (photon) noise *and* crowding 
+using the toothpick method.  Using ASTs results in a noise model that
+includes contributions from measurement (photon) noise *and* crowding
 noise.
 
 Toothpick assumes that all bands are independent - no covariance.
@@ -18,8 +18,9 @@ import tables
 
 from . import toothpick
 
-__all__ = ['Generic_ToothPick_Noisemodel','make_toothpick_noise_model',
+__all__ = ['Generic_ToothPick_Noisemodel', 'make_toothpick_noise_model',
            'get_noisemodelcat']
+
 
 class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
 
@@ -31,7 +32,7 @@ class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
             try:
                 self.data.set_alias(k + '_out',
                                     k.split('_')[-1].upper() + '_VEGA')
-                #self.data.set_alias(k + '_rate',
+                # self.data.set_alias(k + '_rate',
                 #                    k.split('_')[-1].upper() + '_RATE')
                 self.data.set_alias(k + '_in',
                                     k.split('_')[-1].upper() + '_IN')
@@ -59,7 +60,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
         sed model grid for everyone of which we will evaluate the model
 
     use_rate: boolean
-        set to use the rate column (normalized vega flux) 
+        set to use the rate column (normalized vega flux)
         instead of out column (mags)
 
     absflux_a_matrix: ndarray
@@ -71,7 +72,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
     noisefile: str
         noisemodel file name
     """
-    
+
     # read in AST results
     model = Generic_ToothPick_Noisemodel(astfile, sedgrid.filters,
                                          vega_fname=vega_fname)
@@ -86,7 +87,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
     else:
         model.fit_bins(nbins=30, completeness_mag_cut=80)
 
-    #for k in range(len(model.filters)):
+    # for k in range(len(model.filters)):
     #    print(model.filters[k])
     #    print(model._fluxes[:,k])
     #    print(model._sigmas[:,k]/model._fluxes[:,k])
@@ -114,17 +115,18 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
     # we are assuming that extrapolation at high fluxes is ok as the noise
     # will be very small there
     for k in range(len(model.filters)):
-        indxs, = np.where(sedgrid.seds[:,k] <= model._minmax_asts[0,k])
+        indxs, = np.where(sedgrid.seds[:, k] <= model._minmax_asts[0, k])
         if len(indxs) > 0:
-            noise[indxs,k] *= -1.0
+            noise[indxs, k] *= -1.0
 
     print('Writting to disk into {0:s}'.format(outname))
     with tables.open_file(outname, 'w') as outfile:
-        outfile.create_array(outfile.root,'bias', bias)
-        outfile.create_array(outfile.root,'error', noise)
-        outfile.create_array(outfile.root,'completeness', compl)
+        outfile.create_array(outfile.root, 'bias', bias)
+        outfile.create_array(outfile.root, 'error', noise)
+        outfile.create_array(outfile.root, 'completeness', compl)
 
     return outname
+
 
 def get_noisemodelcat(filename):
     """

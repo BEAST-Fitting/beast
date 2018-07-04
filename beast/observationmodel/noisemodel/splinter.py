@@ -11,7 +11,6 @@ zeros for the bias terms.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import math
 import numpy as np
 
 import tables
@@ -22,7 +21,8 @@ __all__ = ['make_splinter_noise_model']
 
 def make_splinter_noise_model(outname, sedgrid, frac_unc=0.10,
                               absflux_a_matrix=None, **kwargs):
-    """ splinter noise model assumes that every filter is independent with
+    """
+    Splinter noise model assumes that every filter is independent with
     any other.  And assumes a fractional uncertainty at all fluxes.
     No ASTs are used.
 
@@ -51,13 +51,14 @@ def make_splinter_noise_model(outname, sedgrid, frac_unc=0.10,
     n_models, n_filters = sedgrid.seds.shape
 
     # fill the bias vector with zeros
-    bias = np.full((n_models,n_filters),0.0)
+    bias = np.full((n_models, n_filters), 0.0)
 
-    # fill the sigma vector with uncertainties based on input fraction uncertainty
+    # fill the sigma vector with uncertainties based on the
+    #   input fraction uncertainty
     sigma = sedgrid.seds[:]*frac_unc
 
     # fill the completeness vector with ones
-    compl = np.full((n_models,n_filters),1.0)
+    compl = np.full((n_models, n_filters), 1.0)
 
     # absolute flux calibration uncertainties
     #  currently we are ignoring the off-diagnonal terms
@@ -74,8 +75,8 @@ def make_splinter_noise_model(outname, sedgrid, frac_unc=0.10,
     # save to disk
     print('Writting to disk into {0:s}'.format(outname))
     with tables.open_file(outname, 'w') as outfile:
-        outfile.create_array(outfile.root,'bias', bias)
-        outfile.create_array(outfile.root,'error', noise)
-        outfile.create_array(outfile.root,'completeness', compl)
+        outfile.create_array(outfile.root, 'bias', bias)
+        outfile.create_array(outfile.root, 'error', noise)
+        outfile.create_array(outfile.root, 'completeness', compl)
 
     return outname
