@@ -166,12 +166,22 @@ if __name__ == '__main__':
             '_seds.grid.hd5'
         modelsedgrid = FileSEDGrid(modelsedgridfile)
 
-        # generate the AST noise model
+        # generate the AST noise model using the toothpick model
         noisemodel.make_toothpick_noise_model(
-            datamodel.noisefile,
-            datamodel.astfile,
-            modelsedgrid,
-            absflux_a_matrix=datamodel.absflux_a_matrix)
+           datamodel.noisefile,
+           datamodel.astfile,
+           modelsedgrid,
+           absflux_a_matrix=datamodel.absflux_a_matrix)
+
+        # in the absence of ASTs, the splinter noise model can be used
+        # instead of the toothpick model above
+        #  **warning** not very realistic
+        # import beast.observationmodel.noisemodel.splinter as noisemodel
+        #
+        # noisemodel.make_splinter_noise_model(
+        #    datamodel.noisefile,
+        #    modelsedgrid,
+        #    absflux_a_matrix=datamodel.absflux_a_matrix)
 
     if args.trim:
         print('Trimming the model and noise grids')
