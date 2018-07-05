@@ -30,7 +30,7 @@ __all__ = ['MultiFilterASTs']
 
 
 class MultiFilterASTs(NoiseModel):
-    """ Implement a noise model for which input information of ASTs are
+    """ A noise model for which input information of ASTs are
     provided as one single table
 
     Attributes

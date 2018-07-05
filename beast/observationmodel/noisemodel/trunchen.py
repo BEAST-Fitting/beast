@@ -1,6 +1,6 @@
 """
 Trunchen version of noisemodel
-Goal is to compute the full 6-band covariance matrix for each model
+Goal is to compute the full n-band covariance matrix for each model
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
