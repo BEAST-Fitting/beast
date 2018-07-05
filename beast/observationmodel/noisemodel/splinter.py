@@ -4,9 +4,8 @@ from the others and has a fractional flux uncertainty and no bias.
 
 Method
 ------
-Create a noise model that has sigmas that are 'frac_unc'*sed_flux and
+Create a noise model that has sigmas that are frac_unc times sed_flux and
 zeros for the bias terms.
-
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -40,6 +39,7 @@ def make_splinter_noise_model(outname, sedgrid, frac_unc=0.10,
     absflux_a_matrix: ndarray
         absolute calibration a matrix giving the fractional uncertainties
         including correlated terms (off diagonals)
+        for the splinter model, only the diagonal terms are used
 
     returns
     -------
@@ -61,7 +61,7 @@ def make_splinter_noise_model(outname, sedgrid, frac_unc=0.10,
     compl = np.full((n_models, n_filters), 1.0)
 
     # absolute flux calibration uncertainties
-    #  currently we are ignoring the off-diagnonal terms
+    #  off-diagnonal terms are ignored for the splinter
     if absflux_a_matrix is not None:
         if absflux_a_matrix.ndim == 1:
             abs_calib_2 = absflux_a_matrix[:] ** 2
