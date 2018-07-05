@@ -32,8 +32,8 @@ The full details of the BEAST are provided by
 Gordon et al. (2016, ApJ, 826, 104).
 <http://adsabs.harvard.edu/abs/2016ApJ...826..104G>
 
-Documenation
-------------
+Documentation
+-------------
 
 Details of installing, running, and contributing to the BEAST are at
 <http://beast.readthedocs.io>.
