@@ -2,16 +2,9 @@
 Toothpick noise model assumes that every photometric band is independent
 from the others.
 
-The following package implements two classes that corresponds to two variants
-of input AST data.
-
-the first :class:`MultiFilterASTs` assumes that all AST information is compiled
+The :class:`MultiFilterASTs` assumes that all AST information is compiled
 into on single table, in which one entry corresponds to one artificial star
 and recovered values
-
-the second :class:`perCameraASTs` assumes that the information is split into
-multiple tables, and implements the equivalent of multiple instances of
-:class:`MultiFilterASTs` in parallel to calculate the model.
 
 Method
 ------
@@ -19,10 +12,6 @@ The noise model is computed in equally spaced bins in log flux space to
 avoid injecting noise when the ASTs grossly oversample the model space.
 This is the case for single band ASTs - this is always the case for the
 BEAST toothpick noise model.
-
-TODO:
-  +++ perCameraASTs has not been updated - delete?  Does not work with
-  PHAT single camera ASTs - column names duplicated
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -34,14 +23,14 @@ import numpy as np
 from .noisemodel import NoiseModel
 from ..vega import Vega
 
-#from .helpers import _prepare_x, nearest_neighbors, toFlux
 from .helpers import convert_dict_to_structured_ndarray
 from ...tools.pbar import Pbar
 
 __all__ = ['MultiFilterASTs']
 
+
 class MultiFilterASTs(NoiseModel):
-    """ Implement a noise model for which input information of ASTs are
+    """ A noise model for which input information of ASTs are
     provided as one single table
 
     Attributes
@@ -57,7 +46,7 @@ class MultiFilterASTs(NoiseModel):
 
         NoiseModel.__init__(self, astfile, *args, **kwargs)
         self.setFilters(filters, vega_fname=vega_fname)
-        if not 'pass_mapping' in kwargs:
+        if 'pass_mapping' not in kwargs:
             self.set_data_mappings()
 
         self._fluxes = None
@@ -77,7 +66,7 @@ class MultiFilterASTs(NoiseModel):
             filename of the vega database
         """
         self.filters = filters
-        
+
         # ASTs inputs are in vega mag whereas models are in flux units
         #     for optimization purpose: pre-compute
         with Vega(source=vega_fname) as v:
@@ -101,7 +90,6 @@ class MultiFilterASTs(NoiseModel):
             print(e)
             print('Warning: Mapping failed. This could lead to wrong results')
 
-
     def _compute_sigma_bins(self, magflux_in, magflux_out, nbins=30,
                             min_per_bin=5, completeness_mag_cut=80,
                             name_prefix=None, asarray=False,
@@ -111,7 +99,7 @@ class MultiFilterASTs(NoiseModel):
         dictionary. Estimation performed using percentile-based method
         (by default) where sigma = (84th-16th)/2 and avg bias = 50th.
         Alternate method: use mean and stddev.
-        
+
         Parameters
         ----------
         magflux_in: ndarray
@@ -168,7 +156,7 @@ class MultiFilterASTs(NoiseModel):
 
             # now convert from input mags to normalized vega fluxes
             flux_out = 10 ** (-0.4*magflux_out)
-            bad_indxs,= np.where(magflux_out >= completeness_mag_cut)
+            bad_indxs, = np.where(magflux_out >= completeness_mag_cut)
             flux_out[bad_indxs] = 0.0
         else:
             flux_out = magflux_out
@@ -186,7 +174,7 @@ class MultiFilterASTs(NoiseModel):
         good_bins = np.zeros(nbins, dtype=int)
 
         # get the indexs to the recovered fluxes
-        good_indxs,= np.where(flux_out != 0.0)
+        good_indxs, = np.where(flux_out != 0.0)
 
         ast_minmax = np.empty(2)
         ast_minmax[0] = np.amin(flux_in[good_indxs])
@@ -221,8 +209,8 @@ class MultiFilterASTs(NoiseModel):
                 if n_g_bindxs > min_per_bin:
                     good_bins[i] = 1
                     ave_flux_in[i] = np.mean(bin_flux_in)
-                    bin_bias_flux = bin_flux_out[g_bindxs] - \
-                                    bin_flux_in[g_bindxs]
+                    bin_bias_flux = (bin_flux_out[g_bindxs]
+                                     - bin_flux_in[g_bindxs])
                     if compute_stddev:
                         # compute sigma via mean/stddev
                         ave_bias[i] = np.mean(bin_bias_flux)
@@ -231,11 +219,11 @@ class MultiFilterASTs(NoiseModel):
                         # compute sigma via percentiles
                         # ave = 50th; std = (84th-16th)/2
                         flux_percent_out = np.percentile(bin_bias_flux,
-                                                         [16.,50.,84.])
+                                                         [16., 50., 84.])
                         ave_bias[i] = flux_percent_out[1]
                         std_bias[i] = (flux_percent_out[2]
                                        - flux_percent_out[0])/2.
-                    
+
         # only pass back the bins with non-zero results
         gindxs, = np.where(good_bins == 1)
 
@@ -276,12 +264,12 @@ class MultiFilterASTs(NoiseModel):
 
         shape = nbins, len(self.filters)
 
-        self._fluxes = np.empty( shape, dtype=float)
-        self._biases = np.empty( shape, dtype=float)
-        self._sigmas = np.empty( shape, dtype=float)
-        self._compls = np.empty( shape, dtype=float)
+        self._fluxes = np.empty(shape, dtype=float)
+        self._biases = np.empty(shape, dtype=float)
+        self._sigmas = np.empty(shape, dtype=float)
+        self._compls = np.empty(shape, dtype=float)
         self._nasts = np.empty(shape[1], dtype=int)
-        self._minmax_asts = np.empty((2,shape[1]), dtype=float)
+        self._minmax_asts = np.empty((2, shape[1]), dtype=float)
 
         if progress is True:
             it = Pbar(desc='fitting model').iterover(self.filters)
@@ -303,7 +291,7 @@ class MultiFilterASTs(NoiseModel):
             self._biases[0:ncurasts, e] = d['FLUX_BIAS'] * self.vega_flux[e]
             self._compls[0:ncurasts, e] = d['COMPLETENESS']
             self._nasts[e] = ncurasts
-            self._minmax_asts[:,e] = d['MINMAX'] * self.vega_flux[e]
+            self._minmax_asts[:, e] = d['MINMAX'] * self.vega_flux[e]
 
             del d
 
@@ -334,8 +322,8 @@ class MultiFilterASTs(NoiseModel):
         N, M = flux.shape
 
         if M != len(self.filters):
-            raise AttributeError('the grid of models does not seem to' + 
-                                 'be defined with the same number of filters') 
+            raise AttributeError('the grid of models does not seem to' +
+                                 'be defined with the same number of filters')
 
         bias = np.empty((N, M), dtype=float)
         sigma = np.empty((N, M), dtype=float)
@@ -357,156 +345,11 @@ class MultiFilterASTs(NoiseModel):
             arg_sort = np.argsort(_fluxes)
             _fluxes = _fluxes[arg_sort]
 
-            bias[:, i] = np.interp(flux[:, i], _fluxes, _biases[arg_sort] )
+            bias[:, i] = np.interp(flux[:, i], _fluxes, _biases[arg_sort])
             sigma[:, i] = np.interp(flux[:, i], _fluxes, _sigmas[arg_sort])
             compl[:, i] = np.interp(flux[:, i], _fluxes, _compls[arg_sort])
 
         return (bias, sigma, compl)
-
-    def __call__(self, sedgrid, **kwargs):
-        return self.interpolate(sedgrid, **kwargs)
-
-
-#*****************************
-# not tested with code updates above!
-# KDG - 18 Dec 2015
-
-class perCameraASTs(NoiseModel):
-    """ Implement a noise model for which input information of ASTs are
-    provided as multiple tables
-
-    Attributes
-    ----------
-    astfiles: sequence(str)
-        files containing the ASTs
-
-    filters: sequence(sequence(str))
-        sequence of sequence of filter names (one per astfile)
-    """
-
-    def __init__(self, astfiles, filters, *args, **kwargs):
-        self.models = [ MultiFilterASTs(astfile, filts, pass_mapping=True) for astfile, filts in zip(astfiles, filters) ]
-        self.set_data_mappings()
-
-    def set_data_mappings(self):
-        """ hard code mapping directly with the interface to PHAT-like ASTs
-
-        .. note::
-
-            it makes it trivial to update this function for other input formats
-        """
-        #TODO: update the mapping to stick to the initial PHAT version
-        for filts, model in zip(self.filters, self.models):
-            for k in filts:
-                try:
-                    #self.data.set_alias(k, k.split('_')[-1].lower() + '_rate')
-                    model.data.set_alias(k + '_out', k.split('_')[-1].upper() + '_VEGA')
-                    model.data.set_alias(k + '_in', k.split('_')[-1].upper() + '_IN')
-                except Exception as e:
-                    print('Warning: Mapping failed. This could lead to wrong results')
-                    raise e
-
-    def fit(self, k=10, eps=0, completeness_mag_cut=80, progress=True):
-        """
-        Fit one model per camera
-
-        Parameters
-        ----------
-        k: Integer
-            Number of nearest neighbors taken in the standard deviation computation
-
-        eps: non-negative float
-            precision on the NN search
-
-        completeness_mag_cut: float
-            magnitude at which consider a star not recovered
-
-        progress: bool, optional
-            if set, display a progress bar
-        """
-        if progress is True:
-            it = Pbar(desc='fitting camera').iterover(self.models)
-        else:
-            it = self.models
-
-        for model in it:
-            model.fit(k=k, eps=eps, completeness_mag_cut=completeness_mag_cut,
-                      progress=progress)
-
-    def setFilters(self, filters):
-        """ set the filters and update the vega reference for the conversions
-
-        Parameters
-        ----------
-        filters: sequence or sequences
-            list of filters per camera using the internally normalized namings
-        """
-        self.filters = filters
-        for model, filts in zip(self.models, self.filters):
-            model.setFilters(filts)
-
-    @property
-    def filters(self):
-        return [model.filters for model in self.models]
-
-    @property
-    def astfile(self):
-        return [model.astfile for model in self.models]
-
-    @property
-    def vega_flux(self):
-        return self.models[0].vega_flux
-
-    def interpolate(self, sedgrid, progress=True):
-        """
-        Interpolate the results of the ASTs on a model grid
-
-        Parameters
-        ----------
-        sedgrid: beast.core.grid type
-            model grid to interpolate AST results on
-
-        Returns
-        -------
-        bias: ndarray
-            bias table of the models
-
-        sigma: ndarray
-            dispersion table of the models
-
-        comp: ndarray
-            completeness table per model
-        """
-        flux = sedgrid.seds
-        N, M = flux.shape
-
-        nfilters = sum([len(model.filters) for model in self.models])
-
-        if M != nfilters:
-            raise AttributeError('the grid of models does not seem to be defined with the same number of filters')
-
-        bias = np.empty((N, M), dtype=float)
-        sigma = np.empty((N, M), dtype=float)
-        compl = np.empty((N, M), dtype=float)
-
-        if progress is True:
-            pbar = Pbar(M, desc='Evaluating model')
-
-        for j, model in enumerate(self.models):
-            for i in range(len(model.filters)):
-
-                if progress:
-                    pbar.update(i + j)
-
-                _fluxes = model._fluxes[:, i + j]
-                arg_sort = np.argsort(model._fluxes[:, i + j])
-                _fluxes = _fluxes[arg_sort]
-
-                bias[:, i + j] = np.interp(flux[:, i], _fluxes, model._biases[arg_sort, i] )
-                sigma[:, i + j] = np.interp(flux[:, i], _fluxes, model._sigmas[arg_sort, i])
-                compl[:, i + j] = np.interp(flux[:, i], _fluxes, model._compls[arg_sort, i])
-
-            return (bias, sigma, compl)
 
     def __call__(self, sedgrid, **kwargs):
         return self.interpolate(sedgrid, **kwargs)

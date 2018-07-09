@@ -104,11 +104,30 @@ the artificial star test (AST) inputs.  The '0 0' arguments are dummy values.
 Observation model
 =================
 
-The observation model is based on artificial star tests (ASTs).  ASTs are
-artificial sources inserted into the observations and extracted with
+The observation model is generally based on artificial star tests (ASTs).
+ASTs are artificial sources inserted into the observations and extracted with
 the same software that was used for the observed photometry catalog.
 This ensures that the observation model has the same selection
 function as the data.
+
+There are 3 different flavors of observation models.
+
+1. 'Splinter': A very simple (and likely not very good) model that assumes
+   the noise is a fraction of the model SED flux and there is no bias.
+   No ASTs are used.
+2. 'Toothpick':  The AST results are assumed to be independent between
+   different bands (even if they are not).  The ASTs results are binned
+   in log(flux) bins and the average bias and standard deviation is tabulated
+   and used to compute the bias and noise for each model in the physics grid.
+3. 'Trunchen': The covariance between bands is measured using the AST results.
+   The input AST SEDs are assumed to have been chosen from the BEAST
+   physics model grid and are expected to sparsely sample the full model
+   grid. The ASTs should be run simultaneously with all bands and it assumed that
+   there are multiple ASTs run for the same model.  The covariance
+   between the bands is approximated with a multi-variate Gaussian.
+   The bias and a multi-variate Gaussian is computed for each model in the
+   physic grid by interpolating between the sparse grid computed from the AST
+   results.
 
 Create the AST input list
 -------------------------
