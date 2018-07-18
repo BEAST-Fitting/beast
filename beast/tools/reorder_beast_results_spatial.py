@@ -270,7 +270,7 @@ if __name__ == '__main__':
                 hdulist.append(chdu)
 
             # write the 1D PDFs
-            hdulist.writeto(reg_pdf1d_file, clobber=True)
+            hdulist.writeto(reg_pdf1d_file, overwrite=True)
 
             # write the nD sparse likelihood info
             reg_lnp_file = reg_filebase + '_lnp.hd5'
@@ -295,4 +295,4 @@ if __name__ == '__main__':
         hdu = fits.PrimaryHDU(wcs_nstars, header=header)
 
         # Save to FITS file
-        hdu.writeto(out_filebase+'_nstars.fits', clobber=True)
+        hdu.writeto(out_filebase+'_nstars.fits', overwrite=True)
