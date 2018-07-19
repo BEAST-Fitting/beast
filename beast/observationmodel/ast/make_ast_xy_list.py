@@ -2,7 +2,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-import pdb
+
 from astropy.io import ascii, fits
 from astropy.table import Column, Table
 from astropy.wcs import WCS
@@ -176,7 +176,6 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
                     break
                 else:
                     [x], [y] = wcs.all_world2pix(np.array([ra]), np.array([dec]), 0)
-                    pdb.set_trace()
                     # if x_max/y_max are set, check that this x/y isn't too big
                     if x_max is not None:
                         if x > x_max or y > y_max:
@@ -192,8 +191,6 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
     cs.append(Column(np.zeros(len(out_table), dtype=int), name='zeros'))
     cs.append(Column(np.ones(len(out_table), dtype=int), name='ones'))
 
-    pdb.set_trace()
-    
     if wcs is None:
         cs.append(Column(xs, name='RA'))
         cs.append(Column(ys, name='DEC'))
@@ -313,8 +310,4 @@ def pick_positions(catalog, filename, separation, refimage=None, refcat=None):
     astmags.add_column(column4,3)
     
     ascii.write(astmags,filename,overwrite=True)
-
-    print('new xmin/xmax: ', np.min(new_x), np.max(new_x))
-    print('new ymin/ymax: ', np.min(new_y), np.max(new_y))
     
-    pdb.set_trace()
