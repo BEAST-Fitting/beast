@@ -76,17 +76,19 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
 
     # if appropriate information is given, extract the x/y positions so that
     # there are no ASTs generated outside of the image footprint
+    x_min = 0
     x_max = None
+    y_min = 0
     y_max = None
     colnames = catalog.data.columns    
 
     if 'X' or 'x' in colnames:
         if 'X' in colnames:
-           x_max = np.max(catalog.data['X'][:])
-           y_max = np.max(catalog.data['Y'][:])
+           x_min, x_max = np.min(catalog.data['X'][:]), np.max(catalog.data['X'][:])
+           y_min, y_max = np.min(catalog.data['Y'][:]), np.max(catalog.data['Y'][:])
         if 'x' in colnames:
-           x_max = np.max(catalog.data['x'][:])
-           y_max = np.max(catalog.data['y'][:])
+           x_min, x_max = np.min(catalog.data['x'][:]), np.max(catalog.data['x'][:])
+           y_min, y_max = np.min(catalog.data['y'][:]), np.max(catalog.data['y'][:])
     else:
         if refimage:
             if 'RA' or 'ra' in colnames:
@@ -98,8 +100,8 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
                     dec_positions = catalog.data['dec'][:]
                 wcs = WCS(refimage)[0]
                 x_positions,y_positions = wcs.all_world2pix(ra_positions,dec_positions,0)
-                x_max = np.max(x_positions)
-                y_max = np.max(y_positions)
+                x_min, x_max = np.min(x_positions), np.max(x_positions)
+                y_min, y_max = np.min(y_positions), np.max(y_positions)
 
         
     # Load the background map
@@ -162,7 +164,7 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
             x = -1
             y = -1
             # Convert each ra,dec to x,y. If there are negative values, try again
-            while x < 0 or y < 0:
+            while x < x_min or y < y_min:
                 # Pick a random tile
                 tile = np.random.choice(tile_set)
                 # Within this tile, pick a random ra and dec
