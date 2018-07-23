@@ -77,8 +77,8 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
     """
 
     # if appropriate information is given, extract the x/y positions so that
-    # there are no ASTs generated outside of the image footprint
-    path = None    
+    # there are no ASTs generated outside of the catalog footprint
+    catalog_boundary = None
     colnames = catalog.data.columns    
 
 
@@ -92,7 +92,7 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
         coords = np.array([x_positions,y_positions]).T # there's a weird astropy datatype issue that requires numpy coercion
         hull = ConvexHull(coords)
         bounds_x, bounds_y = coords[hull.vertices,0], coords[hull.vertices,1]
-        path = Path(np.array([bounds_x, bounds_y]).T)
+        catalog_boundary = Path(np.array([bounds_x, bounds_y]).T)
         
     else:
         if refimage:
@@ -108,7 +108,7 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
             coords = np.array([x_positions,y_positions]).T # there's a weird astropy datatype issue that requires numpy coercion
             hull = ConvexHull(coords)
             bounds_x, bounds_y = coords[hull.vertices,0], coords[hull.vertices,1]
-            path = Path(np.array([bounds_x, bounds_y]).T)
+            catalog_boundary = Path(np.array([bounds_x, bounds_y]).T)
  
         
     # Load the background map
@@ -185,9 +185,9 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
                     break
                 else:
                     [x], [y] = wcs.all_world2pix(np.array([ra]), np.array([dec]), 0)
-                    # if x_max/y_max are set, check that this x/y isn't too big
-                    if path is not None:
-                        within_bounds = path.contains_points([[x,y]]) # N,2 array of AST X and Y positions
+                    # if catalog_boundary has been calculated, check that this x/y is within the catalog footprint
+                    if catalog_boundary is not None:
+                        within_bounds = catalog_boundary.contains_points([[x,y]]) # N,2 array of AST X and Y positions
                         if within_bounds == False:
                             x = -1
             j = bin_index * Nseds_per_region + i
@@ -279,6 +279,7 @@ def pick_positions(catalog, filename, separation, refimage=None):
     n_asts = len(astmags)
 
     # keep is defined to ensure that no fake stars are put outside of the image boundaries
+
     keep = (x_positions > np.min(x_positions) + separation + noise) & (x_positions < np.max(x_positions) - separation - noise) & \
            (y_positions > np.min(y_positions) + separation + noise) & (y_positions < np.max(y_positions) - separation - noise)
 
@@ -288,6 +289,7 @@ def pick_positions(catalog, filename, separation, refimage=None):
     ncat = len(x_positions)
     ind = np.random.random(n_asts)*ncat
     ind = ind.astype('int')
+
 
     # Here we generate the circular distribution of ASTs surrounding random observed stars
  
