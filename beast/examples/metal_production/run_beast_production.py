@@ -35,7 +35,8 @@ import datamodel as datamodel
 #import datamodel
 
 
-def run_beast_production(physicsmodel=False, ast=False, observationmodel=False,
+def run_beast_production(basename,
+                             physicsmodel=False, ast=False, observationmodel=False,
                              trim=False, fitting=False, resume=False,
                              source_density='', sub_source_density=''):
     """
@@ -45,14 +46,16 @@ def run_beast_production(physicsmodel=False, ast=False, observationmodel=False,
 
     Parameters
     ----------
-    For the info related to the inputs, see the argparse info at the bottom
+    basename : string
+       name of the gst file (assuming it's located in ./data/)
+
+    For the info related to the other inputs, see the argparse info at the bottom
     """
 
     # check input parameters, print what is the problem, stop run_beast
     verify_params.verify_input_format(datamodel)
 
     # update the filenames as needed for production
-    basename = '14675_LMC-5665ne-12232.gst'
     datamodel.obsfile = 'data/' + basename + '_with_sourceden' \
                         + '_SD_' + args.source_density.replace('_','-') \
                         + '_sub' + args.sub_source_density + '.fits'
@@ -245,6 +248,8 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("-r", "--resume", help="Resume a fitting run",
                         action="store_true")
+    parser.add_argument("basename",
+                        help="path+filename for the gst file")
     parser.add_argument("source_density",
                         help="source density bin")
     parser.add_argument("sub_source_density",
@@ -253,7 +258,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
-    run_beast_production(physicsmodel=args.physicsmodel,
+    run_beast_production(args.basename,
+                             physicsmodel=args.physicsmodel,
                              ast=args.ast,
                              observationmodel=args.observationmodel,
                              trim=args.trim,
