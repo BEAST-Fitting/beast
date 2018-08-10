@@ -34,30 +34,19 @@ from beast.tools import verify_params
 import datamodel as datamodel
 #import datamodel
 
-if __name__ == '__main__':
-    # commandline parser
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--physicsmodel",
-                        help="Generate the physics model grid",
-                        action="store_true")
-    parser.add_argument("-a", "--ast", help="Generate an input AST file",
-                        action="store_true")
-    parser.add_argument("-o", "--observationmodel",
-                        help="Calculate the observation model (bias and noise)",
-                        action="store_true")
-    parser.add_argument("-t", "--trim",
-                        help="Trim the physics and observation model grids",
-                        action="store_true")
-    parser.add_argument("-f", "--fit", help="Fit the observed data",
-                        action="store_true")
-    parser.add_argument("-r", "--resume", help="Resume a fitting run",
-                        action="store_true")
-    parser.add_argument("source_density",
-                        help="source density bin")
-    parser.add_argument("sub_source_density",
-                        help="subset of the source density bin [0, 1, 2, ...]")
 
-    args = parser.parse_args()
+def run_beast_production(physicsmodel=False, ast=False, observationmodel=False,
+                             trim=False, fitting=False, resume=False,
+                             source_density='', sub_source_density=''):
+    """
+    Turns the original command-line version of run_beast_production.py into
+    something callable from within a function
+
+
+    Parameters
+    ----------
+    For the info related to the inputs, see the argparse info at the bottom
+    """
 
     # check input parameters, print what is the problem, stop run_beast
     verify_params.verify_input_format(datamodel)
@@ -236,6 +225,42 @@ if __name__ == '__main__':
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')
+
+
+if __name__ == '__main__':
+    # commandline parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--physicsmodel",
+                        help="Generate the physics model grid",
+                        action="store_true")
+    parser.add_argument("-a", "--ast", help="Generate an input AST file",
+                        action="store_true")
+    parser.add_argument("-o", "--observationmodel",
+                        help="Calculate the observation model (bias and noise)",
+                        action="store_true")
+    parser.add_argument("-t", "--trim",
+                        help="Trim the physics and observation model grids",
+                        action="store_true")
+    parser.add_argument("-f", "--fit", help="Fit the observed data",
+                        action="store_true")
+    parser.add_argument("-r", "--resume", help="Resume a fitting run",
+                        action="store_true")
+    parser.add_argument("source_density",
+                        help="source density bin")
+    parser.add_argument("sub_source_density",
+                        help="subset of the source density bin [0, 1, 2, ...]")
+
+    args = parser.parse_args()
+
+
+    run_beast_production(physicsmodel=args.physicsmodel,
+                             ast=args.ast,
+                             observationmodel=args.observationmodel,
+                             trim=args.trim,
+                             fitting=args.fit,
+                             resume=args.resume,
+                             source_density=args.source_density,
+                             sub_source_density=args.sub_source_density)
 
     # print help if no arguments
     if not any(vars(args).values()):
