@@ -31,8 +31,9 @@ from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid
 from beast.tools import verify_params
 
-import datamodel as datamodel
-#import datamodel
+import datamodel
+import importlib
+importlib.reload(datamodel)
 
 
 def run_beast_production(basename,
