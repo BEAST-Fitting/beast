@@ -58,12 +58,12 @@ def run_beast_production(basename,
 
     # update the filenames as needed for production
     datamodel.obsfile = 'data/' + basename + '_with_sourceden' \
-                        + '_SD_' + args.source_density.replace('_','-') \
-                        + '_sub' + args.sub_source_density + '.fits'
+                        + '_SD_' + source_density.replace('_','-') \
+                        + '_sub' + sub_source_density + '.fits'
 
     stats_filebase = "%s/%s"%(datamodel.project,datamodel.project) \
-                     + '_sd' + args.source_density.replace('_','-') \
-                     + '_sub' + args.sub_source_density
+                     + '_sd' + source_density.replace('_','-') \
+                     + '_sub' + sub_source_density
     sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
 
@@ -74,12 +74,12 @@ def run_beast_production(basename,
     print("  project = " + datamodel.project)
     print("  obsfile = " + datamodel.obsfile)
     print("  astfile = " + datamodel.astfile)
-    print("        noisefile = " + datamodel.noisefile)
-    print("   trimed sedfile = " + sed_trimname)
-    print("trimed noisefiles = " + noisemodel_trimname)
-    print("   stats filebase = " + stats_filebase)
+    print("         noisefile = " + datamodel.noisefile)
+    print("   trimmed sedfile = " + sed_trimname)
+    print("trimmed noisefiles = " + noisemodel_trimname)
+    print("    stats filebase = " + stats_filebase)
 
-    if args.physicsmodel:
+    if physicsmodel:
 
         # make sure the project directory exists
         pdir = create_project_dir(datamodel.project)
@@ -133,7 +133,7 @@ def run_beast_production(basename,
             fA_prior_model=datamodel.fA_prior_model,
             add_spectral_properties_kwargs=extra_kwargs)
 
-    if args.ast:
+    if ast:
         # get the modesedgrid on which to grab input AST
         modelsedgridfile = datamodel.project + '/' + datamodel.project + \
                        '_seds.grid.hd5'
@@ -171,7 +171,7 @@ def run_beast_production(basename,
             else:
                 pick_positions(obsdata, filename, separation)
 
-    if args.observationmodel:
+    if observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
 
         # get the modesedgrid on which to generate the noisemodel
@@ -185,7 +185,7 @@ def run_beast_production(basename,
             use_rate=True,
             absflux_a_matrix=datamodel.absflux_a_matrix)
 
-    if args.trim:
+    if trim:
         print('Trimming the model and noise grids')
 
         # read in the observed data
@@ -203,7 +203,7 @@ def run_beast_production(basename,
                               sed_trimname, noisemodel_trimname,
                               sigma_fac=3.)
 
-    if args.fit:
+    if fitting:
         start_time = time.clock()
 
         # read in the the AST noise model
@@ -219,7 +219,7 @@ def run_beast_production(basename,
         lnpfile = statsfile.replace('stats.fits','lnp.hd5')
 
         fit.summary_table_memory(obsdata, noisemodel_vals, sed_trimname,
-                                 resume=args.resume,
+                                 resume=resume,
                                  threshold=-10., save_every_npts=100,
                                  lnp_npts=500,
                                  stats_outname=statsfile,
