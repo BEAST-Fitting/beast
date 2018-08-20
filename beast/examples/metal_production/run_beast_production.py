@@ -33,7 +33,6 @@ from beast.tools import verify_params
 
 import datamodel
 import importlib
-importlib.reload(datamodel)
 
 
 def run_beast_production(basename,
@@ -48,25 +47,31 @@ def run_beast_production(basename,
     Parameters
     ----------
     basename : string
-       name of the gst file (assuming it's located in ./data/)
+        name of the gst file (assuming it's located in ./data/)
 
     For the info related to the other inputs, see the argparse info at the bottom
     """
+
+    # before doing ANYTHING, force datamodel to re-import (otherwise, any
+    # changes within this python session will not be loaded!)
+    importlib.reload(datamodel)
 
     # check input parameters, print what is the problem, stop run_beast
     verify_params.verify_input_format(datamodel)
 
     # update the filenames as needed for production
+    # - photometry sub-file
     datamodel.obsfile = 'data/' + basename + '_with_sourceden' \
                         + '_SD_' + source_density.replace('_','-') \
                         + '_sub' + sub_source_density + '.fits'
-
+    # - stats files
     stats_filebase = "%s/%s"%(datamodel.project,datamodel.project) \
                      + '_sd' + source_density.replace('_','-') \
                      + '_sub' + sub_source_density
     sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
+    # - trimmed noise model
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
-
+    # - SED grid
     modelsedgrid_filename = "%s/%s_seds.grid.hd5"%(datamodel.project,
                                                    datamodel.project)
 
@@ -229,6 +234,7 @@ def run_beast_production(basename,
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')
+
 
 
 if __name__ == '__main__':
