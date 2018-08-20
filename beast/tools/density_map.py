@@ -7,14 +7,15 @@ bin_colname = 'bin'
 
 class DensityMap:
     """
-    Class which helps with using a background map consistently, and
-    allows for reliable writing and reading. The file format in question
-    is the one produced by create_background_density_map. It should
-    readable as an astropy Table, where every entry represents a tile of
-    the background map, with the following tile properties as columns:
+    Class which helps with using a density map consistently, and allows
+    for reliable writing and reading. The file format in question is the
+    one produced by create_background_density_map or
+    create_source_density_map. It should readable as an astropy Table,
+    where every entry represents a tile of the background map, with the
+    following tile properties as columns:
     'i_ra': right ascencion (RA) index
     'i_dec': declination (DEC) index
-    'median_bg': the background value
+    'value': the density value
     'min_ra': edge of tile with lowest RA
     'max_ra': edge of tile with highest RA
     'min_dec': edge of tile with lowest DEC
@@ -22,8 +23,9 @@ class DensityMap:
     and the following metadata
     table.meta['ra_grid']
     table.meta['dec_grid']
+    containing the edges of the RA and DEC bins.
     For the time being, just look at the source code of
-    create_background_density_map
+    create_background_density_map to see how this is constructed exactly.
     """
 
     def __init__(self, tile_data):
@@ -93,24 +95,24 @@ class DensityMap:
 
     def value(self, tile_index):
         """
-        Return the background value at the given tile index
+        Return the map value at the given tile index
         """
         return self.tile_data[input_column][tile_index]
 
     def tile_vals(self):
         """
-        Return all the values of the background tiles
+        Return all the values of the tiles
         """
         return self.tile_data[input_column]
 
 
 class BinnedDensityMap(DensityMap):
     """
-    Subclass which adds an extra column, which groups tiles by
-    background bin. It is recommended to not use the constructor
-    directly. In the 'create' function, you can choose how many
-    background bins you want, while the 'read' function reads an
-    existing binned density map from file.
+    Subclass which adds an extra column, which groups tiles by density
+    bin. It is recommended to not use the constructor directly. In the
+    'create' function, you can choose how many density bins you want,
+    while the 'read' function reads an existing binned density map from
+    file.
     """
 
     def __init__(self, tile_data, bins=None):
@@ -148,7 +150,7 @@ class BinnedDensityMap(DensityMap):
             bins = np.array(range(len(binned_density_map.tile_data)))
 
         else:
-            # Create the background bins
+            # Create the density bins
             # [min, ., ., ., max]
             tile_densities = binned_density_map.tile_data[input_column]
             min_density = np.amin(tile_densities)
@@ -175,7 +177,7 @@ class BinnedDensityMap(DensityMap):
 
     def bin_for_position(self, ra, dec):
         """
-        Finds which background bin a certain ra,dec fits into, and
+        Finds which density bin a certain ra,dec fits into, and
         returns its index.
         """
         t = self.tile_for_position(ra, dec)
