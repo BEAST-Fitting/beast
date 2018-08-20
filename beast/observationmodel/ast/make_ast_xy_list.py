@@ -66,7 +66,7 @@ def pick_positions_from_map(chosen_seds, input_map, N_bins, Npermodel,
     # Load the background map
     print(Npermodel,' repeats of each model in each map bin')
 
-    bdm = density_map.BinnedDensityMap.create('input_map', N_bins)
+    bdm = density_map.BinnedDensityMap.create(input_map, N_bins)
     tile_vals = bdm.tile_data[density_map.input_column]
     max_val = np.amax(tile_vals)
     min_val = np.amin(tile_vals)
