@@ -4,6 +4,7 @@ from astropy.table import Table, Column
 input_column = 'value'
 bin_colname = 'bin'
 
+
 class DensityMap:
     """
     Class which helps with using a background map consistently, and
@@ -95,6 +96,12 @@ class DensityMap:
         Return the background value at the given tile index
         """
         return self.tile_data[input_column][tile_index]
+
+    def tile_vals(self):
+        """
+        Return all the values of the background tiles
+        """
+        return self.tile_data[input_column]
 
 
 class BinnedDensityMap(DensityMap):
