@@ -22,22 +22,83 @@ template is the 'metal_production' subdirectory in beast/examples.
 
 In this location, at a minimum you will need the following files:
 
-  * datamodel.py
   * run_beast_production.py: a "production" version of run_beast.py
         - Provides commandline options for sub region files
+  * beast_production_wrapper.py: assembles the commands below into a script
+  * datamodel_template.py: a "production" version of datamodel.py that
+    will have name/filter fields automatically filled in by beast_production_wrapper
   * symbolic link to the beast directory in the beast repository
 
   .. code:: shell
 
      $ ln -s /location/beast/beast/ beast
 
-Datamodel.py
-============
+
+
+Datamodel_template.py
+===============
 
 Before running the BEAST, you will need to modify this file to specify
 the required parameters for generating models and fitting data.
-These parameters are described in the beast :ref:`setup documentation <beast_setup_datamodel>`.
+These parameters are described in the beast :ref:`setup documentation
+<beast_setup_datamodel>`.  The fields for project, obsfile, astfile,
+filters, and basefilters will be filled in by beast_production_wrapper.py.
 
+****
+Beast_production_wrapper.py
+****
+
+This is a wrapper for each of the commands described below.  You may
+choose to run each of those commands individually, but this
+conveniently packages them into one file.  If you use this wrapper, you
+should edit several items in the file:
+  * field_names: used to identify photometry files and create BEAST files
+  * gst_filter_names: labels for the filters used in your photometry
+    file (e.g., 'X_RATE')
+  * beast_filter_names: the corresponding long names used by the BEAST
+  * settings for the source density map: pixel size, filter, magnitude
+    range
+  * settings for splitting the catalog by source density: filter,
+    number of sources per file
+  * settings for the trimming/fitting batch scripts: number of files, nice level
+
+You can (and should!) read about the individual functions below before
+running beast_production_wrapper:
+
+  .. code:: shell
+
+     $ run beast_production_wrapper.py
+
+The first thing it does is use datamodel_template.py to create a
+datamodel.py file.  This will be imported as needed in the functions
+called by the wrapper.  As noted above, five of the datamodel fields
+will be updated, so ensure that the other fields in
+datamodel_template.py have the desired values.
+
+The wrapper will proceed through each of the functions below.  At
+three points, you will need to manually run things independently of
+the wrapper.  It will not continue running subsequent functions until
+it finds that the necessary steps have been taken.
+  * Creating ASTs (if a fake star catalog doesn't exist)
+  * running the batch trimming scripts
+  * running the batch fitting scripts
+
+Once you have completed each of these, run the wrapper again.  It will
+skip past the steps that it has already processed, and resume at the point
+where you left off.  In the case of the batch scripts, if you only
+partially completed them, it will re-generate new scripts for the
+remaining trimming/fitting (and tell you which ones are new), and
+pause again.
+
+Note of warning: if you are using this wrapper for multiple fields,
+check that the proper version of datamodel.py is in place before
+running the batch trimming/fitting scripts.  For instance, if you have
+recently used the wrapper to do part of the processing for field_A,
+and you want to start the batch fitting script for field_B, re-run the
+wrapper for field_B to make sure that datamodel.py refers to the
+information for field_B.
+
+    
 ****
 Data
 ****
@@ -61,11 +122,11 @@ that map the source density of objects with zero fluxes in different bands
 (or any band).
 
 Command to create the observed catalog with source density column with
-a pixel scale of 5 arcsec using the 'obscat.fits' catalog.
+a pixel scale of 5 arcsec using the 'datafile.fits' catalog.
 
   .. code:: shell
 
-     $ ./beast/tools/create_source_density_map.py --pixsize 5. obscat.fits
+     $ ./beast/tools/create_source_density_map.py --pixsize 5. datafile.fits
 
 Split up observations by source density
 ---------------------------------------
@@ -85,7 +146,7 @@ Command to create the the source density split files
  .. code:: shell
 
     $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 \
-             --sort_col F475W_RATE obscat_with_sourceden.fits
+             --sort_col F475W_RATE datafile_with_sourceden.fits
 
 *****
 Model
@@ -99,7 +160,7 @@ the artificial star test (AST) inputs.  The '0 0' arguments are dummy values.
 
   .. code:: shell
 
-     $ ./run_beast_production.py -p 0 0
+     $ ./run_beast_production.py -p obscat.fits 0 0
 
 Observation model
 =================
@@ -163,7 +224,7 @@ The '0 0' arguments are dummy values.
 
   .. code:: shell
 
-     $ ./run_beast_production.py -o 0 0
+     $ ./run_beast_production.py -o datafile.fits 0 0
 
 ******************
 Trimming for speed
@@ -183,24 +244,26 @@ fitting.
 
 The trimming can take significant time to run.  In addition, reading in the
 full physics+observation model can be slow and such reading can be minimized
-by producing multiple trimmed models with a single read.  A specific tools is
+by producing multiple trimmed models with a single read.  A specific tool is
 provided to setup batch files for this trimming and to do the actual
 trimming.
 
 This code sets up batch files for submission to the 'at' queue on linux
 (or similar) systems.  The projectname (e.g., 'PHAT') provides a portion
 of the batch file names.  The datafile and astfile are the observed photometry
-file (not sub files) and file with the ASTs in them.  A subdirection in the
+file (not sub files) and file with the ASTs in them.  A subdirectory in the
 project directory is created with a joblist file for submission to the batch
 queue and smaller files used by the trimming code.
 
 The joblist file can be split into smaller files if submission to multiple
-cores is desired.  Use the 'split' commandline tool.
+cores is desired.  Use the 'split' commandline tool.  The optional 'nice'
+input allows you to prepend a 'nice' option, expecially useful if
+you're utilizing shared computing resources.
 
   .. code:: shell
 
-     $ ./beast/tools/setup_batch_beast_trim.py projectname datafile astfile \
-       --num_subtrim 5
+     $ ./beast/tools/setup_batch_beast_trim.py projectname datafile.fits \
+          astfile.fits --num_subtrim 5 --nice 19
 
 Once the batch files are created, then the joblist can be submitted to the
 queue.  The beast/tools/trim_many_via_obsdata.py code is called and trimmed
@@ -225,8 +288,8 @@ are serial on the core).
 
   .. code:: shell
 
-     $ ./beast/tools/setup_batch_beast_fit.py projectname datafile \
-       --num_percore 2
+     $ ./beast/tools/setup_batch_beast_fit.py projectname datafile.fits \
+       --num_percore 2 --nice 19
 
 The jobs can be submitted to the batch queue via:
 
@@ -280,5 +343,9 @@ Condense the multiple files for each spatial region into the minimal set.
 Each spatial region will have files containing the stats, pdf1d, and lnp
 results for the stars in that region.
 
+  .. code:: shell
+
      $ beast/tools/condense_beast_results_spatial.py
         --filedir spatial
+
+You may wish to use these files as inputs for the `MegaBEAST <https://megabeast.readthedocs.io/en/latest/>`_.
