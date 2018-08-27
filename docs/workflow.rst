@@ -36,7 +36,7 @@ In this location, at a minimum you will need the following files:
 
 
 Datamodel_template.py
-===============
+=====================
 
 Before running the BEAST, you will need to modify this file to specify
 the required parameters for generating models and fitting data.
@@ -44,9 +44,9 @@ These parameters are described in the beast :ref:`setup documentation
 <beast_setup_datamodel>`.  The fields for project, obsfile, astfile,
 filters, and basefilters will be filled in by beast_production_wrapper.py.
 
-****
+***************************
 Beast_production_wrapper.py
-****
+***************************
 
 This is a wrapper for each of the commands described below.  You may
 choose to run each of those commands individually, but this
