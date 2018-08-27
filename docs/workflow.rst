@@ -52,6 +52,7 @@ This is a wrapper for each of the commands described below.  You may
 choose to run each of those commands individually, but this
 conveniently packages them into one file.  If you use this wrapper, you
 should edit several items in the file:
+
   * field_names: used to identify photometry files and create BEAST files
   * gst_filter_names: labels for the filters used in your photometry
     file (e.g., 'X_RATE')
@@ -79,6 +80,7 @@ The wrapper will proceed through each of the functions below.  At
 three points, you will need to manually run things independently of
 the wrapper.  It will not continue running subsequent functions until
 it finds that the necessary steps have been taken.
+
   * Creating ASTs (if a fake star catalog doesn't exist)
   * running the batch trimming scripts
   * running the batch fitting scripts
