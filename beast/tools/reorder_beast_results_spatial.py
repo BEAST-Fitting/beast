@@ -26,132 +26,39 @@ from astropy import wcs
 from astropy.io import fits
 from astropy.table import Table
 
-def setup_spatial_regions(cat_filename,
-                          pix_size=10.0):
+
+def reorder_beast_results_spatial(bricknum=None,
+                                      stats_filename=None,
+                                      region_filebase=None,
+                                      output_filebase=None,
+                                      reg_size=10.):
     """
-    The spatial regions are setup via a WCS object
-        
+    Do the spatial reordering of BEAST results.
+
+    Two options for inputs: either the PHAT brick number (which will
+    automatically generate file bases) or specify all of the file bases
+   
     Parameters
     ----------
-    cat_filename : string
-       filename of catalog
+    bricknum : int or string
+        PHAT brick num shortcut (supersedes other inputs)
 
-    pix_size : float
-       size of pixels/regions in arcsec
+    stats_filename : string
+        Filename of the full run stats, from merge_stats_file.py
 
-    Returns
-    -------
-    wcs_info: astropy WCS object
-    """
-    
-    # read in the catalog file
-    cat = Table.read(cat_filename)
+    region_filebase : string
+        Filebase of the BEAST run sub-files
 
-    # min/max ra
-    min_ra = cat['RA'].min()
-    max_ra = cat['RA'].max()
-    min_dec = cat['DEC'].min()
-    max_dec = cat['DEC'].max()
+    output_filebase : string
+        Path+prefix to use for output folders/files
 
-    # ra/dec delta values
-    dec_delt = pix_size/3600.
-    ra_delt = dec_delt
-
-    # compute the number of pixels and 
-    n_y = int(np.rint((max_dec - min_dec)/dec_delt) + 1)
-    n_x = int(np.rint(math.cos(0.5*(max_dec+min_dec)*math.pi/180.)*
-                      (max_ra-min_ra)/ra_delt) + 1)
-
-    # ra delta should be negative
-    ra_delt *= -1.
-
-    print('# of x & y pixels = ', n_x, n_y)
-
-    w = wcs.WCS(naxis = 2)
-    w.wcs.crpix = np.asarray([n_x, n_y], dtype = float) / 2.
-    w.wcs.cdelt = [ra_delt, dec_delt]
-    w.wcs.crval = np.asarray([(min_ra+max_ra), (min_dec+max_dec)]) / 2.
-    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
-
-    return (w, n_x, n_y)
-
-def regions_for_objects(ra,
-                        dec,
-                        wcs_info):
-    """
-    Generate the x,y coordinates for each object based on the input
-    ra/dec and already created WCS information.
-        
-    Parameters
-    ----------
-    ra : array of float
-       right ascension of the objects
-
-    dec : array of float
-       declination of the objects
-
-    wcs_info: astropy WCS object
-       previously generated WCS object based on the full catalog
-
-    Returns
-    -------
-    dictonary of:
-
-    x : int array
-      x values of regions
-
-    y : int array
-      y values of regions
-
-    name : str array
-      string array composed of x_y
+    reg_size : float (default=10)
+        spatial region size [arcsec]
+ 
     """
 
-    # generate the array needed for fast conversion
-    world = np.empty((len(ra),2),float)
-    world[:,0] = ra
-    world[:,1] = dec
-
-    # convert
-    pixcrd = wcs_info.wcs_world2pix(world, 1)
-
-    # get the arrays to return
-    x = pixcrd[:,0].astype(int)
-    y = pixcrd[:,1].astype(int)
-    xy_name = [None]*len(ra)
-
-    x_str = x.astype(np.string_)
-    y_str = y.astype(np.string_)
-                  
-    for k in range(len(x)):
-        xy_name[k] = str(x[k]) + '_' + str(y[k])
-    
-    # return the results as a dictonary
-    #   values are truncated to provide the ids for the subregions
-    return {'x': x, 'y': y, 'name': xy_name}
-
-if __name__ == '__main__':
-
-    # command line params to specify the run directory
-    #   and any other needed parameters
-
-    # commandline parser
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-b","--bricknum", 
-                        help="PHAT brick num shortcut" + \
-                        " (superceeds other inputs)")
-    parser.add_argument("-s","--stats_filename", 
-                        help="Filename of the full run stats")
-    parser.add_argument("-r","--region_filebase", 
-                        help="Filebase of the run regions")
-    parser.add_argument("-o","--output_filebase", 
-                        help="Filebase to use for output")
-    parser.add_argument("-p","--reg_size", default=10., type=float,
-                        help="spatial region size [arcsec]")
-    args = parser.parse_args()
-
-    if args.bricknum:
-        brick = str(args.bricknum)
+    if bricknum is not None:
+        brick = str(bricknum)
         cat_filename = '/astro/dust_kg2/harab/toothpick_results/v1_1/b' + \
             brick + '_stats_v1_1.fits'
         reg_filebase = '/astro/dust_kg2/kgordon/BEAST_production/b' + \
@@ -161,16 +68,13 @@ if __name__ == '__main__':
         out_filebase = out_dir + '/b' + brick
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
-    elif (args.stats_filename and args.region_filebase):
-        cat_filename = args.stats_filename    
-        reg_filebase = args.region_filebase
-        out_filebase = args.output_filebase
+    elif ((stats_filename is not None) and (region_filebase is not None) and (output_filebase is not None)):
+        cat_filename = stats_filename
+        reg_filebase = region_filebase
+        out_filebase = output_filebase
     else:
-        parser.print_help()
-        exit()
+        raise ValueError("Must specify either all file information or a PHAT brick number")
 
-    # size of the regions (square, units in arcsec)
-    reg_size = args.reg_size
 
     # read in the full brick catalog and setup the spatial subdivided regions
     wcs_info, n_x, n_y = setup_spatial_regions(cat_filename,
@@ -296,3 +200,136 @@ if __name__ == '__main__':
 
         # Save to FITS file
         hdu.writeto(out_filebase+'_nstars.fits', overwrite=True)
+
+
+
+def setup_spatial_regions(cat_filename,
+                          pix_size=10.0):
+    """
+    The spatial regions are setup via a WCS object
+        
+    Parameters
+    ----------
+    cat_filename : string
+       filename of catalog
+
+    pix_size : float
+       size of pixels/regions in arcsec
+
+    Returns
+    -------
+    wcs_info: astropy WCS object
+    """
+    
+    # read in the catalog file
+    cat = Table.read(cat_filename)
+
+    # min/max ra
+    min_ra = cat['RA'].min()
+    max_ra = cat['RA'].max()
+    min_dec = cat['DEC'].min()
+    max_dec = cat['DEC'].max()
+
+    # ra/dec delta values
+    dec_delt = pix_size/3600.
+    ra_delt = dec_delt
+
+    # compute the number of pixels and 
+    n_y = int(np.rint((max_dec - min_dec)/dec_delt) + 1)
+    n_x = int(np.rint(math.cos(0.5*(max_dec+min_dec)*math.pi/180.)*
+                      (max_ra-min_ra)/ra_delt) + 1)
+
+    # ra delta should be negative
+    ra_delt *= -1.
+
+    print('# of x & y pixels = ', n_x, n_y)
+
+    w = wcs.WCS(naxis = 2)
+    w.wcs.crpix = np.asarray([n_x, n_y], dtype = float) / 2.
+    w.wcs.cdelt = [ra_delt, dec_delt]
+    w.wcs.crval = np.asarray([(min_ra+max_ra), (min_dec+max_dec)]) / 2.
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+
+    return (w, n_x, n_y)
+
+def regions_for_objects(ra,
+                        dec,
+                        wcs_info):
+    """
+    Generate the x,y coordinates for each object based on the input
+    ra/dec and already created WCS information.
+        
+    Parameters
+    ----------
+    ra : array of float
+       right ascension of the objects
+
+    dec : array of float
+       declination of the objects
+
+    wcs_info: astropy WCS object
+       previously generated WCS object based on the full catalog
+
+    Returns
+    -------
+    dictonary of:
+
+    x : int array
+      x values of regions
+
+    y : int array
+      y values of regions
+
+    name : str array
+      string array composed of x_y
+    """
+
+    # generate the array needed for fast conversion
+    world = np.empty((len(ra),2),float)
+    world[:,0] = ra
+    world[:,1] = dec
+
+    # convert
+    pixcrd = wcs_info.wcs_world2pix(world, 1)
+
+    # get the arrays to return
+    x = pixcrd[:,0].astype(int)
+    y = pixcrd[:,1].astype(int)
+    xy_name = [None]*len(ra)
+
+    x_str = x.astype(np.string_)
+    y_str = y.astype(np.string_)
+                  
+    for k in range(len(x)):
+        xy_name[k] = str(x[k]) + '_' + str(y[k])
+    
+    # return the results as a dictonary
+    #   values are truncated to provide the ids for the subregions
+    return {'x': x, 'y': y, 'name': xy_name}
+
+if __name__ == '__main__':
+
+    # command line params to specify the run directory
+    #   and any other needed parameters
+
+    # commandline parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-b","--bricknum", default=None,
+                        help="PHAT brick num shortcut" + \
+                        " (supersedes other inputs)")
+    parser.add_argument("-s","--stats_filename", default=None, 
+                        help="Filename of the full run stats")
+    parser.add_argument("-r","--region_filebase", default=None, 
+                        help="Filebase of the run regions")
+    parser.add_argument("-o","--output_filebase", default=None, 
+                        help="Filebase to use for output")
+    parser.add_argument("-p","--reg_size", default=10., type=float,
+                        help="spatial region size [arcsec]")
+    args = parser.parse_args()
+
+    
+    reorder_beast_results_spatial(bricknum=args.bricknum,
+                                      stats_filename=args.stats_filename,
+                                      region_filebase=args.region_filebase,
+                                      output_filebase=args.output_filebase,
+                                      reg_size=args.reg_size)
