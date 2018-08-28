@@ -41,9 +41,9 @@ def pick_positions_from_map(chosen_seds, input_map, N_bins, Npermodel,
     N_bins: int
         The number of bins for the range of background density values.
         The bins will be picked on a linear grid, ranging from the
-        minimum to the maximum value of the map. Then, each
-        tile will be put in a bin, so that a set of tiles of the map is
-        obtained for each range of background density values.
+        minimum to the maximum value of the map. Then, each tile will be
+        put in a bin, so that a set of tiles of the map is obtained for
+        each range of source density/background values.
 
     refimage: str
         Path to fits image that is used for the positions. If none is
