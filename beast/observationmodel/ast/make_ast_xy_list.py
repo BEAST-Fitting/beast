@@ -82,9 +82,7 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
 
     # if appropriate information is given, extract the x/y positions so that
     # there are no ASTs generated outside of the catalog footprint
-    catalog_boundary = None
     colnames = catalog.data.columns    
-
 
     if 'X' or 'x' in colnames:
         if 'X' in colnames:
@@ -93,28 +91,33 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
         if 'x' in colnames:
            x_positions = catalog.data['x'][:]
            y_positions = catalog.data['y'][:]
-        coords = np.array([x_positions,y_positions]).T # there's a weird astropy datatype issue that requires numpy coercion
-        hull = ConvexHull(coords)
-        bounds_x, bounds_y = coords[hull.vertices,0], coords[hull.vertices,1]
-        catalog_boundary = Path(np.array([bounds_x, bounds_y]).T)
         
     else:
-        if refimage:
-            if 'RA' or 'ra' in colnames:
-                if 'RA' in colnames:
-                    ra_positions = catalog.data['RA'][:]
-                    dec_positions = catalog.data['DEC'][:]
-                if 'ra' in colnames:
-                    ra_positions = catalog.data['ra'][:]
-                    dec_positions = catalog.data['dec'][:]
-            wcs = WCS(refimage)[refimage_hdu]
-            x_positions,y_positions = wcs.all_world2pix(ra_positions,dec_positions,0)
-            coords = np.array([x_positions,y_positions]).T # there's a weird astropy datatype issue that requires numpy coercion
-            hull = ConvexHull(coords)
-            bounds_x, bounds_y = coords[hull.vertices,0], coords[hull.vertices,1]
-            catalog_boundary = Path(np.array([bounds_x, bounds_y]).T)
+        if 'RA' or 'ra' in colnames:
+            if 'RA' in colnames:
+                ra_positions = catalog.data['RA'][:]
+                dec_positions = catalog.data['DEC'][:]
+            if 'ra' in colnames:
+                ra_positions = catalog.data['ra'][:]
+                dec_positions = catalog.data['dec'][:]
+
+            # if there's a refimage, convert RA/Dec to x/y
+            if refimage:
+                wcs = WCS(refimage)[refimage_hdu]
+                x_positions,y_positions = wcs.all_world2pix(ra_positions,dec_positions,0)
+            else:
+                x_positions,y_positions = ra_positions,dec_positions
+        else:
+            raise RuntimeError("Your catalog does not supply X, Y or RA, DEC information for spatial AST distribution")
+
+    # create path containing the positions
+    coords = np.array([x_positions,y_positions]).T # there's a weird astropy datatype issue that requires numpy coercion
+    hull = ConvexHull(coords)
+    bounds_x, bounds_y = coords[hull.vertices,0], coords[hull.vertices,1]
+    catalog_boundary = Path(np.array([bounds_x, bounds_y]).T)
  
-        
+
+    
     # Load the background map
     print(Npermodel,' repeats of each model in each map bin')
     vals = Table.read(input_map)
@@ -186,14 +189,17 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
 
                 if wcs is None:
                     x, y = ra, dec
+                    # check that this x/y is within the catalog footprint
+                    within_bounds = catalog_boundary.contains_points([[x,y]]) # N,2 array of AST X and Y positions
+                    if within_bounds == False:
+                        x = -1
                     break
                 else:
                     [x], [y] = wcs.all_world2pix(np.array([ra]), np.array([dec]), 0)
-                    # if catalog_boundary has been calculated, check that this x/y is within the catalog footprint
-                    if catalog_boundary is not None:
-                        within_bounds = catalog_boundary.contains_points([[x,y]]) # N,2 array of AST X and Y positions
-                        if within_bounds == False:
-                            x = -1
+                    # check that this x/y is within the catalog footprint
+                    within_bounds = catalog_boundary.contains_points([[x,y]]) # N,2 array of AST X and Y positions
+                    if within_bounds == False:
+                        x = -1
             j = bin_index * Nseds_per_region + i
             xs[j] = x
             ys[j] = y
