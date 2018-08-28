@@ -87,6 +87,14 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
 
     """
 
+    # if refimage exists, extract WCS info
+    if refimage is None:
+        wcs = None
+    else:
+        imagehdu = fits.open(refimage)[refimage_hdu]
+        wcs = WCS(imagehdu.header)
+
+
     # if appropriate information is given, extract the x/y positions so that
     # there are no ASTs generated outside of the catalog footprint
     colnames = catalog.data.columns    
@@ -110,7 +118,6 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
 
             # if there's a refimage, convert RA/Dec to x/y
             if refimage:
-                wcs = WCS(refimage)[refimage_hdu]
                 x_positions,y_positions = wcs.all_world2pix(ra_positions,dec_positions,0)
             else:
                 x_positions,y_positions = ra_positions,dec_positions
@@ -127,7 +134,6 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
     # if coord_boundary set, define an additional boundary for ASTs
     if set_coord_boundary is not None:
         if refimage:
-            wcs = WCS(refimage)[refimage_hdu]
             bounds_x, bounds_y = wcs.all_world2pix(set_coord_boundary[0],set_coord_boundary[1],0)
             coord_boundary = Path(np.array([bounds_x, bounds_y]).T)
         else:
@@ -179,11 +185,6 @@ def pick_positions_from_map(catalog, chosen_seds, input_map, input_column, N_bin
     tile_ra_delta = vals['max_ra'] - tile_ra_min
     tile_dec_delta = vals['max_dec'] - tile_dec_min
 
-    if refimage is None:
-        wcs = None
-    else:
-        imagehdu = fits.open(refimage)[refimage_hdu]
-        wcs = WCS(imagehdu.header)
 
     pbar = Pbar(len(tile_sets),
                 desc='{} models per map bin'.format(Nseds_per_region/Npermodel))
