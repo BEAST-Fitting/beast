@@ -20,7 +20,7 @@ from matplotlib.collections import PatchCollection
 import numpy as np
 import photutils as pu
 import os
-
+from density_map import DensityMap
 
 def main():
     parser = argparse.ArgumentParser()
@@ -171,7 +171,7 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
 
     # Save a file describing the properties of the bins in a handy format
     bin_details = astropy.table.Table(
-        names=['i_ra', 'i_dec', 'median_bg',
+        names=['i_ra', 'i_dec', 'value',
                'min_ra', 'max_ra',
                'min_dec', 'max_dec'])
     for x in range(nx):
@@ -179,8 +179,13 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
             bin_details.add_row([x, y, background_map[x, y],
                                  ra_grid[x], ra_grid[x + 1],
                                  dec_grid[y], dec_grid[y + 1]])
-    bin_details.write(outfile_base + '_background_map.fits',
-                      format='fits', overwrite=True)
+
+    # Add the ra and dec grids as metadata
+    bin_details.meta['ra_grid'] = ra_grid
+    bin_details.meta['dec_grid'] = dec_grid
+
+    dm = DensityMap(bin_details)
+    dm.write(outfile_base + '_background_map.hd5')
 
     # Return a bunch of stuff, to be used for plots
     return {'background_map': background_map,

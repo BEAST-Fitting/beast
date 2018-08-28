@@ -92,6 +92,7 @@ ast_with_positions = True
 # Name of source density table from tools/create_source_density_map.py
 # If supplied, the ASTs will be repeated for each source density bin in the table
 ast_source_density_table = None
+# ast_source_density_table = 'data/b15_4band_det_27_A_sourcedens_map.hd5'
 
 # ast_background_table :  (string,optional)
 # Name of background table from tools/create_background_density_map.py
