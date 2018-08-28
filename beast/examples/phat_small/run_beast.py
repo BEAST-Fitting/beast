@@ -149,13 +149,10 @@ if __name__ == '__main__':
             filename = datamodel.project + '/' + datamodel.project + '_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
-                start_time = time.time()
                 pick_positions(obsdata, filename, separation,
                                	refimage=datamodel.ast_reference_image)
-                print('time to choose initial positions: ', (time.time() - start_time)/60, ' minutes')
             
             if datamodel.ast_source_density_table is not None:
-                start_time = time.time()
                 pick_positions_from_map(obsdata,
                                             chosen_seds,
                                             datamodel.ast_source_density_table,
@@ -167,7 +164,6 @@ if __name__ == '__main__':
                                             refimage_hdu=0,
                                             Nrealize=1,
                                             set_coord_boundary=datamodel.ast_coord_boundary)
-                print('time to apply source density: ', (time.time() - start_time)/60, ' minutes')
 
             if datamodel.ast_background_table is not None:
                 pick_positions_from_map(obsdata,
