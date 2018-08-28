@@ -114,6 +114,12 @@ ast_pixel_distribution = 10.0
 # photometry.	            
 ast_reference_image = None
 
+# ast_coord_boundary : None, or list of two arrays (optional)
+# If supplied, these RA/Dec coordinates will be used to limit the region
+# over which ASTs are generated.  Input should be list of two arrays, the
+# first RA and the second Dec, ordered sequentially around the region
+# (either CW or CCW).
+ast_coord_boundary = None
 
 #-------------------------------------------
 #Noise Model Artificial Star Test Parameters
