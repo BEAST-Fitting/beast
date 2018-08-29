@@ -41,13 +41,21 @@ def setup_batch_beast_fit(projectname,
 
     overwrite_logfile : boolean (default = True)
         if True, will overwrite the log file; if False, will append to existing log file
+
+    Returns
+    -------
+    run_info_dict : dict
+        Dictionary indicating which catalog files have complete modeling, and
+        which job files need to be run
   
     """
     
 
     project = projectname
 
-    cat_files = np.array(glob.glob(datafile.replace('.fits','*_sub*.fits')))
+    cat_files = np.array(sorted(glob.glob(datafile.replace('.fits','*_sub*.fits'))))
+
+    datafile_basename = datafile.split('/')[-1].replace('.fits','')
 
     n_cat_files = len(cat_files)
     n_pernode_files = num_percore
@@ -65,6 +73,10 @@ def setup_batch_beast_fit(projectname,
     cur_f = 0
     cur_total_size = 0.0
     j = -1
+
+    # keep track of which files are done running
+    run_info_dict = {'cat_file':cat_files, 'done':np.full(n_cat_files, False),
+                         'files_to_run':[]}
 
     #cat_files = cat_files[0:2]
 
@@ -139,6 +151,7 @@ def setup_batch_beast_fit(projectname,
 
         if run_done:
             print(stats_file + ' done')
+            run_info_dict['done'][i] = True
         else:
 
             j += 1
@@ -157,6 +170,7 @@ def setup_batch_beast_fit(projectname,
                 joblist_file = job_path+'beast_batch_fit_'+str(cur_f) \
                                +'.joblist'
                 pf = open(joblist_file,'w')
+                run_info_dict['files_to_run'].append(joblist_file)
                 
 
             ext_str = ''
@@ -179,7 +193,7 @@ def setup_batch_beast_fit(projectname,
                 pipe_str = ' >> '
 
             job_command = nice_str + 'python run_beast_production.py -f ' + ext_str + ' ' + \
-                          sd_num + ' '+sub_num + pipe_str \
+                          datafile_basename + ' ' + sd_num + ' '+sub_num + pipe_str \
                           + log_path+'beast_fit' + \
                           '_sd'+sd_num+'_sub'+sub_num+'.log'
 
@@ -189,6 +203,8 @@ def setup_batch_beast_fit(projectname,
         pf.close()
 
 
+    # return the info about completed modeling
+    return run_info_dict
 
 
 if __name__ == '__main__':

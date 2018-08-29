@@ -31,49 +31,47 @@ from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid
 from beast.tools import verify_params
 
-import datamodel as datamodel
-#import datamodel
+import datamodel
+import importlib
 
-if __name__ == '__main__':
-    # commandline parser
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--physicsmodel",
-                        help="Generate the physics model grid",
-                        action="store_true")
-    parser.add_argument("-a", "--ast", help="Generate an input AST file",
-                        action="store_true")
-    parser.add_argument("-o", "--observationmodel",
-                        help="Calculate the observation model (bias and noise)",
-                        action="store_true")
-    parser.add_argument("-t", "--trim",
-                        help="Trim the physics and observation model grids",
-                        action="store_true")
-    parser.add_argument("-f", "--fit", help="Fit the observed data",
-                        action="store_true")
-    parser.add_argument("-r", "--resume", help="Resume a fitting run",
-                        action="store_true")
-    parser.add_argument("source_density",
-                        help="source density bin")
-    parser.add_argument("sub_source_density",
-                        help="subset of the source density bin [0, 1, 2, ...]")
 
-    args = parser.parse_args()
+def run_beast_production(basename,
+                             physicsmodel=False, ast=False, observationmodel=False,
+                             trim=False, fitting=False, resume=False,
+                             source_density='', sub_source_density=''):
+    """
+    Turns the original command-line version of run_beast_production.py into
+    something callable from within a function
+
+
+    Parameters
+    ----------
+    basename : string
+        name of the gst file (assuming it's located in ./data/)
+
+    For the info related to the other inputs, see the argparse info at the bottom
+    """
+
+    # before doing ANYTHING, force datamodel to re-import (otherwise, any
+    # changes within this python session will not be loaded!)
+    importlib.reload(datamodel)
 
     # check input parameters, print what is the problem, stop run_beast
     verify_params.verify_input_format(datamodel)
 
     # update the filenames as needed for production
-    basename = '14675_LMC-5665ne-12232.gst'
+    # - photometry sub-file
     datamodel.obsfile = 'data/' + basename + '_with_sourceden' \
-                        + '_SD_' + args.source_density.replace('_','-') \
-                        + '_sub' + args.sub_source_density + '.fits'
-
+                        + '_SD_' + source_density.replace('_','-') \
+                        + '_sub' + sub_source_density + '.fits'
+    # - stats files
     stats_filebase = "%s/%s"%(datamodel.project,datamodel.project) \
-                     + '_sd' + args.source_density.replace('_','-') \
-                     + '_sub' + args.sub_source_density
+                     + '_sd' + source_density.replace('_','-') \
+                     + '_sub' + sub_source_density
     sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
+    # - trimmed noise model
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
-
+    # - SED grid
     modelsedgrid_filename = "%s/%s_seds.grid.hd5"%(datamodel.project,
                                                    datamodel.project)
 
@@ -81,12 +79,12 @@ if __name__ == '__main__':
     print("  project = " + datamodel.project)
     print("  obsfile = " + datamodel.obsfile)
     print("  astfile = " + datamodel.astfile)
-    print("        noisefile = " + datamodel.noisefile)
-    print("   trimed sedfile = " + sed_trimname)
-    print("trimed noisefiles = " + noisemodel_trimname)
-    print("   stats filebase = " + stats_filebase)
+    print("         noisefile = " + datamodel.noisefile)
+    print("   trimmed sedfile = " + sed_trimname)
+    print("trimmed noisefiles = " + noisemodel_trimname)
+    print("    stats filebase = " + stats_filebase)
 
-    if args.physicsmodel:
+    if physicsmodel:
 
         # make sure the project directory exists
         pdir = create_project_dir(datamodel.project)
@@ -140,7 +138,7 @@ if __name__ == '__main__':
             fA_prior_model=datamodel.fA_prior_model,
             add_spectral_properties_kwargs=extra_kwargs)
 
-    if args.ast:
+    if ast:
         # get the modesedgrid on which to grab input AST
         modelsedgridfile = datamodel.project + '/' + datamodel.project + \
                        '_seds.grid.hd5'
@@ -178,7 +176,7 @@ if __name__ == '__main__':
             else:
                 pick_positions(obsdata, filename, separation)
 
-    if args.observationmodel:
+    if observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
 
         # get the modesedgrid on which to generate the noisemodel
@@ -192,7 +190,7 @@ if __name__ == '__main__':
             use_rate=True,
             absflux_a_matrix=datamodel.absflux_a_matrix)
 
-    if args.trim:
+    if trim:
         print('Trimming the model and noise grids')
 
         # read in the observed data
@@ -210,7 +208,7 @@ if __name__ == '__main__':
                               sed_trimname, noisemodel_trimname,
                               sigma_fac=3.)
 
-    if args.fit:
+    if fitting:
         start_time = time.clock()
 
         # read in the the AST noise model
@@ -226,7 +224,7 @@ if __name__ == '__main__':
         lnpfile = statsfile.replace('stats.fits','lnp.hd5')
 
         fit.summary_table_memory(obsdata, noisemodel_vals, sed_trimname,
-                                 resume=args.resume,
+                                 resume=resume,
                                  threshold=-10., save_every_npts=100,
                                  lnp_npts=500,
                                  stats_outname=statsfile,
@@ -236,6 +234,46 @@ if __name__ == '__main__':
 
         new_time = time.clock()
         print('time to fit: ',(new_time - start_time)/60., ' min')
+
+
+
+if __name__ == '__main__':
+    # commandline parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--physicsmodel",
+                        help="Generate the physics model grid",
+                        action="store_true")
+    parser.add_argument("-a", "--ast", help="Generate an input AST file",
+                        action="store_true")
+    parser.add_argument("-o", "--observationmodel",
+                        help="Calculate the observation model (bias and noise)",
+                        action="store_true")
+    parser.add_argument("-t", "--trim",
+                        help="Trim the physics and observation model grids",
+                        action="store_true")
+    parser.add_argument("-f", "--fit", help="Fit the observed data",
+                        action="store_true")
+    parser.add_argument("-r", "--resume", help="Resume a fitting run",
+                        action="store_true")
+    parser.add_argument("basename",
+                        help="path+filename for the gst file")
+    parser.add_argument("source_density",
+                        help="source density bin")
+    parser.add_argument("sub_source_density",
+                        help="subset of the source density bin [0, 1, 2, ...]")
+
+    args = parser.parse_args()
+
+
+    run_beast_production(args.basename,
+                             physicsmodel=args.physicsmodel,
+                             ast=args.ast,
+                             observationmodel=args.observationmodel,
+                             trim=args.trim,
+                             fitting=args.fit,
+                             resume=args.resume,
+                             source_density=args.source_density,
+                             sub_source_density=args.sub_source_density)
 
     # print help if no arguments
     if not any(vars(args).values()):

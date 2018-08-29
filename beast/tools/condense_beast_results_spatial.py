@@ -19,6 +19,56 @@ import numpy as np
 from astropy.io import fits
 from astropy.table import Table, Column, vstack
 
+
+def condense_files(bricknum=None, filedir=None):
+    """
+    Condense multiple files for each spatial region into the minimal set.  Each
+    spatial region will have files containing the stats, pdf1d, and lnp results
+    for the stars in that region.
+
+    Parameters
+    ----------
+    bricknum : int or string
+        PHAT brick number (supersedes other inputs)
+
+    filedir : string
+        Directory to put condensed results
+    """
+
+    if bricknum is not None:
+        brick = str(bricknum)
+        out_dir = '/astro/dust_kg2/kgordon/BEAST_production/b' + \
+            brick + '/spatial'
+    elif filedir is not None:
+        out_dir = filedir
+    else:
+        raise ValueError("Must specify either an output directory or a PHAT brick number")
+
+    if not os.path.exists(out_dir):
+        raise ValueError(out_dir + ' directory does not exist')
+
+    # get the list of directories
+    #    each directory is a different pixel
+    pix_dirs = sorted(glob.glob(out_dir + '/*/'))
+
+    # loop over each subdirectory and condense the files as appropriate
+    for cur_dir in tqdm(pix_dirs, desc='spatial regions'):
+
+        # get the base name
+        spos = cur_dir.rfind('/',0,len(cur_dir)-1)
+        bname = cur_dir[spos+1:-1]
+
+        # process that catalog (stats) files
+        n_sources = condense_stats_files(bname, cur_dir, out_dir)
+
+        # process the pdf1d files
+        condense_pdf1d_files(bname, cur_dir, out_dir, n_sources)
+
+        # process the nD lnp files
+        condense_lnp_files(bname, cur_dir, out_dir)
+
+
+
 def condense_stats_files(bname,
                          cur_dir,
                          out_dir):
@@ -156,43 +206,12 @@ if __name__ == '__main__':
 
     # commandline parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-b","--bricknum", 
+    parser.add_argument("-b","--bricknum", default=None,
                         help="PHAT brick num shortcut" + \
-                        " (superceeds other input)")
-    parser.add_argument("-d","--filedir", 
+                        " (supersedes other input)")
+    parser.add_argument("-d","--filedir", default=None,
                         help="Directory to condense results")
     args = parser.parse_args()
 
-    if args.bricknum:
-        brick = str(args.bricknum)
-        out_dir = '/astro/dust_kg2/kgordon/BEAST_production/b' + \
-            brick + '/spatial'
-    elif args.filedir:
-        out_dir = args.filedir
-    else:
-        parser.print_help()
-        exit()
 
-    if not os.path.exists(out_dir):
-        print(out_dir + ' directory does not exist')
-        exit()
-
-    # get the list of directories
-    #    each directory is a different pixel
-    pix_dirs = sorted(glob.glob(out_dir + '/*/'))
-
-    # loop over each subdirectory and condense the files as appropriate
-    for cur_dir in tqdm(pix_dirs, desc='spatial regions'):
-
-        # get the base name
-        spos = cur_dir.rfind('/',0,len(cur_dir)-1)
-        bname = cur_dir[spos+1:-1]
-
-        # process that catalog (stats) files
-        n_sources = condense_stats_files(bname, cur_dir, out_dir)
-
-        # process the pdf1d files
-        condense_pdf1d_files(bname, cur_dir, out_dir, n_sources)
-
-        # process the nD lnp files
-        condense_lnp_files(bname, cur_dir, out_dir)
+    condense_files(bricknum=args.bricknum, filedir=args.filedir)

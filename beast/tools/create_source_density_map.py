@@ -10,11 +10,12 @@ from __future__ import print_function
 import argparse
 
 import numpy as np
-import matplotlib.pyplot as plt
 import math
 from astropy import wcs
 from astropy.io import fits
 from astropy.table import Table
+
+from density_map import DensityMap
 
 def make_source_dens_map(catfile,
                          pix_size = 10.,
@@ -186,7 +187,9 @@ def make_source_dens_map(catfile,
                                              '_with_sourceden.fits'),
                              overwrite=True)
     
-    bin_details = Table(names=['i_ra', 'i_dec', 'sourcedens', 'min_ra', 'max_ra', 'min_dec', 'max_dec'])
+    bin_details = Table(names=['i_ra', 'i_dec', 'value', 'min_ra', 'max_ra', 'min_dec', 'max_dec'])
+    bin_details.meta['ra_grid'] = ra_limits
+    bin_details.meta['dec_grid'] = dec_limits
 
     for i in range(n_x):
 
@@ -194,7 +197,8 @@ def make_source_dens_map(catfile,
 
             bin_details.add_row([i, j, npts_map[i, j], ra_limits[i], ra_limits[i + 1], dec_limits[j], dec_limits[j + 1]])
 
-    bin_details.write(catfile.replace('.fits', '_source_den_bins_table.fits'))
+    dm = DensityMap(bin_details)
+    dm.write(catfile.replace('.fits', '_sourcedens_map.hd5'))
 
 
 if __name__ == '__main__':
