@@ -173,7 +173,7 @@ def unpack_and_subgrid_info(x):
     return subgrid_info(*x)
 
 
-def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
+def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1, cap_unique=1000):
     """
     Computes the total minimum and maximum of the necessary quantities
     across all the subgrids. Can run in parallel.
@@ -188,6 +188,16 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
 
     nprocs: int
         Number of processes to use
+
+    cap_unique: int
+        Stop keeping track of the number of unique values once it
+        reaches this cap. This reduces the memory usage. (Typically, for
+        the fluxes, there are as many unique values as there are grid
+        points. Since we need to store all these values to check if
+        they're unique, a whole column of the grid is basically being
+        stored. This cap fixes this, and everything should keep working
+        in the rest of the code as long as cap_unique is larger than
+        whatever number of bins is being used.).
 
     Returns
     -------
@@ -231,8 +241,9 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
         for q in qs:
             union_min[q] = min(union_min[q], individual_dict[q]['min'])
             union_max[q] = max(union_max[q], individual_dict[q]['max'])
-            union_unique[q] = np.union1d(union_unique[q],
-                                         individual_dict[q]['unique'])
+            if len(union_unique[q]) < cap_unique:
+                union_unique[q] = np.union1d(union_unique[q],
+                                             individual_dict[q]['unique'])
 
     result_dict = {}
     for q in qs:
