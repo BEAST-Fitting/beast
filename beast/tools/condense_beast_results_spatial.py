@@ -117,49 +117,53 @@ def condense_pdf1d_files(bname,
     n_bins_default = 50 
 
     # get all the files
-    pdf1d_files = glob.glob(cur_dir + '*_pdf1d.fits')
+    pdf1d_files = sorted(glob.glob(cur_dir + '*_pdf1d.fits'))
 
-    # loop over the pdf1d files, accumulating the condensed 2D format 1d pdfs
-    init_condensed = False
-    cond_pdf1d_vals = []
-    cond_pdf1d_name = []
-    for cur_pdf1d in pdf1d_files:
+    # loop over the pdf1d files, accumulating the 1d pdfs and bins
+    with fits.open(pdf1d_files[0]) as hdu:
+        cond_pdf1d_name = [hdu[i].header['EXTNAME'] for i in range(1,len(hdu))]
+    n_qnames = len(cond_pdf1d_name)
+    pdf1d_vals = [[] for i in range(n_qnames)]
+    pdf1d_bins = [[] for i in range(n_qnames)]
+
+    
+    for i,cur_pdf1d in enumerate(pdf1d_files):
 
         hdulist = fits.open(cur_pdf1d)
-        n_qnames = len(hdulist) - 1
+        
         for k in range(n_qnames):
             pdf1d_histo = hdulist[k+1].data
             n_cur_source, n_bins = pdf1d_histo.shape
             n_cur_source -= 1
+ 
+            # copy the 1D PDFs
+            pdf1d_vals[k].append(pdf1d_histo[0:n_cur_source, :])
+            # copy the bin values
+            pdf1d_bins[k].append(pdf1d_histo[-1, :])
 
-            # initialize condensed versions
-            if not init_condensed:
-                pos_source = 0
 
-                if n_bins == 1:
-                    n_bins = n_bins_default
+    # condense the info into arrays with dimensions [n_stars, max(n_bins), 2]
 
-                cond_pdf1d_vals.append(np.empty((n_sources+1, n_bins),
-                                                dtype=float))
-                cond_pdf1d_name.append(hdulist[k+1].header['EXTNAME'])
-
-                # copy in the bin values to the last column
-                cond_pdf1d_vals[k][n_sources,:] = pdf1d_histo[-1,:]
-
-            # insert the 1d pdfs into the 2D format structure
-            #print(k, len(cond_pdf1d_vals))
-            cond_pdf1d_vals[k][pos_source:pos_source+n_cur_source,:] = \
-                pdf1d_histo[0:-1,:]
-        
-        pos_source += n_cur_source
-        init_condensed = True
-
-    # output the condensed 2D format 1D pdfs
+    tot_stars = np.sum(np.array( [i.shape[0] for i in pdf1d_vals[0]] ))
+            
     hdulist = fits.HDUList([fits.PrimaryHDU()])
 
-    # generate the extensions
     for k, qname in enumerate(cond_pdf1d_name):
-        chdu = fits.PrimaryHDU(cond_pdf1d_vals[k])
+
+        max_bin_length = np.max([len(pdf1d_bins[k][i]) for i in range(len(pdf1d_bins[k]))])
+
+        # initialize array with NaNs
+        cond_data = np.zeros((tot_stars, max_bin_length, 2)) + np.nan
+        # fill in the array
+        curr_star = 0
+        for i in range(len(pdf1d_bins[k])):
+            n_bin = len(pdf1d_bins[k][i])
+            n_star = pdf1d_vals[k][i].shape[0]
+            cond_data[curr_star:curr_star+n_star, 0:n_bin, 0] = pdf1d_vals[k][i]
+            cond_data[curr_star:curr_star+n_star, 0:n_bin, 1] = pdf1d_bins[k][i]
+            curr_star += n_star
+        
+        chdu = fits.PrimaryHDU(cond_data)
         chdu.header.set('XTENSION','IMAGE') 
         chdu.header.set('EXTNAME',qname) 
         
