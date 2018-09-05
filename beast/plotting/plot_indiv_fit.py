@@ -52,28 +52,34 @@ def disp_str(stats, k, keyname):
 def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
                stats=None, logx=False):
 
-    pdf = pdf1d_hdu[tagname].data
+    pdf_data = pdf1d_hdu[tagname].data
 
-    n_objects, n_bins = pdf.shape
-    n_objects -= 1
+    if pdf_data.ndim == 2:
+        pdf = pdf_data[starnum, :]
+        xvals = pdf_data[-1, :]
+        n_objects, n_bins = pdf_data.shape
+        n_objects -= 1
+    elif pdf_data.ndim == 3:
+        pdf = pdf_data[starnum, :, 0]
+        xvals = pdf_data[starnum, :, 1]
+        n_bins = np.sum(~np.isnan(xvals))
 
     ax.text(0.95, 0.95, xlabel, transform=ax.transAxes,
             va='top', ha='right')
 
-    if n_bins == 1:
+    if (n_bins == 1) or (n_bins == 0):
         ax.text(0.5, 0.5, 'unused', transform=ax.transAxes, va='center', ha='center')
         return
 
-    xvals = pdf[n_objects, :]
     if logx:
         xvals = np.log10(xvals)
 
     if tagname == 'Z':
-        gindxs, = np.where(pdf[starnum, :] > 0.)
-        ax.plot(xvals[gindxs], pdf[starnum, gindxs] / max(pdf[starnum, gindxs]),
+        gindxs, = np.where(pdf > 0.)
+        ax.plot(xvals[gindxs], pdf[gindxs] / max(pdf[gindxs]),
                 color='k')
     else:
-        ax.plot(xvals, pdf[starnum, :] / max(pdf[starnum, :]), color='k')
+        ax.plot(xvals, pdf/max(pdf), color='k')
 
     ax.yaxis.set_major_locator(MaxNLocator(6))
     ax.set_yticklabels([])
@@ -81,7 +87,7 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
     xlim = [xvals.min(), xvals.max()]
     xlim_delta = xlim[1] - xlim[0]
     ax.set_xlim(xlim[0] - 0.05 * xlim_delta, xlim[1] + 0.05 * xlim_delta)
-    # ax.set_ylim(0.0,1.1*pdf[starnum,:].max())
+    # ax.set_ylim(0.0,1.1*pdf.max())
     ax.set_ylim(0.0, 1.1)
 
     if stats is not None:
