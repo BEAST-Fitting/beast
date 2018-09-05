@@ -153,20 +153,28 @@ if __name__ == '__main__':
             if datamodel.ast_reference_image is not None:
                 # With reference image, use one of these options
                 if datamodel.ast_source_density_table is not None:
-                    pick_positions_from_map(chosen_seds,
+                    pick_positions_from_map(obsdata,
+                                            chosen_seds,
                                             datamodel.ast_source_density_table,
                                             datamodel.ast_N_bins,
                                             datamodel.ast_realization_per_model,
                                             outfile=filename,
-                                            refimage=datamodel.ast_reference_image, Nrealize=1)
+                                            refimage=datamodel.ast_reference_image,
+                                            refimage_hdu=0,
+                                            Nrealize=1,
+                                            set_coord_boundary=datamodel.ast_coord_boundary)
 
                 elif datamodel.ast_background_table is not None:
-                    pick_positions_from_map(chosen_seds,
+                    pick_positions_from_map(obsdata,
+                                            chosen_seds,
                                             datamodel.ast_background_table,
                                             datamodel.ast_N_bins,
                                             datamodel.ast_realization_per_model,
                                             outfile=filename,
-                                            refimage=datamodel.ast_reference_image, Nrealize=1)
+                                            refimage=datamodel.ast_reference_image,
+                                            refimage_hdu=0,
+                                            Nrealize=1,
+                                            set_coord_boundary=datamodel.ast_coord_boundary)
                 else:
                     pick_positions(obsdata, filename, separation,
                                	   refimage=datamodel.ast_reference_image)
