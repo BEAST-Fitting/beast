@@ -30,22 +30,18 @@ def _download_rename(filename):
 @remote_data
 # @pytest.mark.skip(reason="temporarily disable")
 def test_pick_models():
-
     # download the needed files
-    asts_fname = _download_rename('fake_stars_b15_27_all.hd5')
-    filter_fname = _download_rename('filters.hd5')
     vega_fname = _download_rename('vega.hd5')
-    hst_fname = _download_rename('hst_whitedwarf_frac_covar.fits')
-    seds_fname = _download_rename('beast_example_phat_seds.grid.hd5')
 
     # download cached version of noisemodel on the sed grid
     filename = _download_rename('beast_example_phat_noisemodel.hd5')
     filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
                'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
     mag_cuts = [1.]
-    make_ast_input_list.pick_models(filename, filters, mag_cuts)
+    make_ast_input_list.pick_models(filename, filters, mag_cuts, vega_fname=vega_fname)
     if len(make_ast_input_list) < 1:
         raise ValueError('fake star catalog is empty')
+
 
 if __name__ == '__main__':
 
