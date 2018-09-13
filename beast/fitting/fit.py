@@ -26,6 +26,7 @@ import os
 import sys
 import time
 import numpy as np
+import math
 import tables
 import string
 from itertools import islice
@@ -57,8 +58,8 @@ __all__ = ['summary_table_memory',
            'save_lnp']
 
 def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals,
-               per_vals, chi2_vals, chi2_indx, 
-               lnp_vals, lnp_indx, best_specgrid_indx, qnames, p):
+               per_vals, chi2_vals, chi2_indx, lnp_vals, lnp_indx,
+               best_specgrid_indx, total_log_norm, qnames, p):
     """ Saves the stats to a file
 
     Keywords
@@ -74,6 +75,7 @@ def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals,
     lnp_indx(1D nparray) : indx in model grid of P(max) values
     best_specgrid_indx(1D nparray) : indx in spectroscopic model grid of
                                      P(max) values
+    total_log_norm(1D nparray) : log of the total grid weight
     qnames(1D nparray) : list of the parameter names
     p(1D nparray) : list of percentiles use to create the per_vals
 
@@ -97,6 +99,7 @@ def save_stats(stats_outname, stats_dict_in, best_vals, exp_vals,
     stats_dict['Pmax'] = lnp_vals
     stats_dict['Pmax_indx'] = lnp_indx.astype(int)
     stats_dict['specgrid_indx'] = best_specgrid_indx.astype(int)
+    stats_dict['total_log_norm'] = total_log_norm
 
     summary_tab = Table(stats_dict)
 
@@ -175,10 +178,10 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
 
 def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                  gridbackend='cache', max_nbins=50,
-                 stats_outname=None, pdf1d_outname=None,
+                 stats_outname=None, pdf1d_outname=None, grid_info_dict=None,
                  lnp_outname=None, lnp_npts=None, save_every_npts=None,
                  threshold=-40, resume=False,
-                 use_full_cov_matrix=True):
+                 use_full_cov_matrix=True, do_not_normalize=False):
     """ Fit each star, calculate various fit statistics, and output them
         to files
       (done in one function for speed and ability to resume partially
@@ -199,7 +202,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     ast: beast noisemodel instance
         noise model data
 
-    qnames: list of quantities or expresions
+    qnames: list of quantities or expressions
 
     p: array-like
         list of percentile values
@@ -227,6 +230,13 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
 
+    grid_info_dict: dict: {'qname': {'min': float,
+                                     'max': float,
+                                     'num_unique': int},
+                           ...}
+        Set to override the mins/maxes of the 1dpdfs, and the number of
+        unique values.
+
     lnp_outname: set to output the sparse likelihoods into a (usually HDF5)
                  file
 
@@ -236,6 +246,12 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     lnp_npts: set to a number to output a random sampling of the
               lnp points above the threshold
               otherwise, the full sparse likelihood is output
+
+    do_not_normalize: bool
+        Do not normalize the prior weights before applying them. This
+        should have no effect on the final outcome when using only a
+        single grid, but is essential when using the subgridding
+        approach.
 
     returns
     -------
@@ -251,8 +267,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     g0_indxs, = np.where(g0['weight'] > 0.0)
 
     g0_weights = np.log(g0['weight'][g0_indxs])
-    g0_weights_sum = np.log(g0['weight'][g0_indxs].sum())
-    g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
+    if not do_not_normalize:
+        g0_weights_sum = np.log(g0['weight'][g0_indxs].sum())
+        g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
 
     if len(g0['weight']) != len(g0_indxs):
         print('some zero weight models exist')
@@ -297,19 +314,14 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     qnames = qnames_in
     filters = sedgrid.filters
     for i, cfilter in enumerate(filters):
-        qnames.append('log'+cfilter+'_wd_bias')
+        qnames.append('symlog'+cfilter+'_wd_bias')
 
     # create the full model fluxes for later use
-    #   save on log format like the other fluxes
+    #   save as symmetric log, since the fluxes can be negative
     full_model_flux = _seds + ast_bias
     logtempseds = np.array(full_model_flux)
-    indxs = np.where(full_model_flux > 0)
-    if len(indxs) > 0:
-        logtempseds[indxs] = np.log10(full_model_flux[indxs])
-    indxs = np.where(full_model_flux <= 0)
-    if len(indxs) > 0:
-        logtempseds[indxs] = -100.
-    full_model_flux = logtempseds
+    #full_model_flux = np.sign(logtempseds) * np.log10(1 + np.abs(logtempseds * math.log(10)))
+    full_model_flux = np.sign(logtempseds) * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
 
     # setup the arrays to temp store the results
     n_qnames = len(qnames)
@@ -322,6 +334,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     lnp_vals = np.zeros(nobs)
     lnp_indx = np.zeros(nobs)
     best_specgrid_indx = np.zeros(nobs)
+    total_log_norm = np.zeros(nobs)
 
     # variable to save the lnp files
     save_lnp_vals = []
@@ -333,13 +346,20 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     for qname in qnames:
         #q = g0[qname][g0_indxs]
         if '_bias' in qname:
-            fname = (qname.replace('_wd_bias','')).replace('log','')
+            fname = (qname.replace('_wd_bias','')).replace('symlog','')
             q = full_model_flux[:,filters.index(fname)]
         else:
             q = g0[qname]
+
+        if grid_info_dict is not None and qname in grid_info_dict:
+            # When processing a subgrid, we actuall need the number of
+            # unique values across all the subgrids to make the 1dpdfs
+            # compatible
+            n_uniq = grid_info_dict[qname]['num_unique']
+        else:
+            n_uniq = len(np.unique(q))
         
-        n_uniq = len(np.unique(q))
-        if len(np.unique(q)) > max_nbins: 
+        if n_uniq > max_nbins:
             # limit the number of bins in the 1D likelihood for speed
             nbins = max_nbins  
         else:
@@ -351,12 +371,6 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
         # setup the fast 1d pdf
 
-        # need to know so 'zeros' (defined at -100) are ignored
-        if '_bias' in qname:
-            ignorebelow = -99.99
-        else:
-            ignorebelow = None
-
         # needed for mass parameters as they are stored as linear values
         # computationally, less bins needed if 1D PDFs done as log spacing
         if qname in set(['M_ini', 'M_act','radius']):
@@ -364,9 +378,17 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         else:
             logspacing = False
 
+        if grid_info_dict is not None and qname in grid_info_dict:
+            minval = grid_info_dict[qname]['min']
+            maxval = grid_info_dict[qname]['max']
+        else:
+            minval = None
+            maxval = None
+
         # generate the fast 1d pdf mapping
-        _tpdf1d = pdf1d(q, nbins, ignorebelow=ignorebelow,
-                        logspacing=logspacing)
+        _tpdf1d = pdf1d(q, nbins,
+                        logspacing=logspacing, minval=minval,
+                        maxval=maxval)
         fast_pdf1d_objs.append(_tpdf1d)
         
         # setup the arrays to save the 1d PDFs
@@ -423,7 +445,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
     it = Pbar(len(obs)-start_pos,
               desc='Calculating Lnp/Stats').iterover(islice(obs.enumobs(),
-                                                            start_pos,None))
+                                                            int(start_pos),None))
     for e, obj in it:
         # calculate the full nD posterior
         (sed) = obj
@@ -470,12 +492,16 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
         # normalize the weights make sure they sum to one
         #   needed for np.random.choice
-        weights /= np.sum(weights)
-                
+        weight_sum = np.sum(weights)
+        weights /= weight_sum
+
         # save the current set of lnps
         if lnp_outname is not None:
             if lnp_npts is not None:
-                rindx = np.random.choice(indx,size=lnp_npts,p=weights)
+                if lnp_npts < len(indx):
+                    rindx = np.random.choice(indx, size=lnp_npts, replace=False)
+                if lnp_npts >= len(indx):
+                    rindx = indx
             else:
                 rindx = indx
             save_lnp_vals.append([e,
@@ -483,6 +509,13 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                                   np.array(lnp[rindx], dtype=np.float32),
                                   np.array(chi2[rindx], dtype=np.float32),
                                   np.array([sed]).T])
+
+        # To merge the stats for different subgrids, we need the total
+        # weight of a grid, which is sum(exp(lnps)). Since sum(exp(lnps
+        # - log_norm - log(weight_sum))) = 1, the relative weight of
+        # each subgrid will be exp(log_norm + log(weight_sum)).
+        # Therefore, we also store the following quantity:
+        total_log_norm[e] = log_norm + np.log(weight_sum)
 
         # index to the full model grid for the best fit values
         best_full_indx = g0_indxs[indx[weights.argmax()]]
@@ -498,7 +531,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
         for k, qname in enumerate(qnames):
             if '_bias' in qname:
-                fname = (qname.replace('_wd_bias','')).replace('log','')
+                fname = (qname.replace('_wd_bias','')).replace('symlog','')
                 q = full_model_flux[:,filters.index(fname)]
             else:
                 q = g0[qname]
@@ -506,7 +539,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
             # best value
             best_vals[e,k] = q[best_full_indx]
 
-            # expectration value
+            # expectation value
             exp_vals[e,k] = expectation(q[g0_indxs[indx]], weights=weights)
 
             # percentile values
@@ -536,7 +569,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                     save_stats(stats_outname, prev_result, best_vals,
                                exp_vals, per_vals, chi2_vals, chi2_indx,
                                lnp_vals, lnp_indx, best_specgrid_indx,
-                               qnames, p)
+                               total_log_norm, qnames, p)
 
                 # save the lnps
                 if lnp_outname is not None:
@@ -551,9 +584,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     
     # save the stats/catalog
     if stats_outname is not None:
-        save_stats(stats_outname, prev_result, best_vals, exp_vals, per_vals,
-                   chi2_vals, chi2_indx,
-                   lnp_vals, lnp_indx, best_specgrid_indx, qnames, p)
+        save_stats(stats_outname, prev_result, best_vals, exp_vals,
+                   per_vals, chi2_vals, chi2_indx, lnp_vals, lnp_indx,
+                   best_specgrid_indx, total_log_norm, qnames, p)
 
     # save the lnps
     if lnp_outname is not None:
@@ -623,13 +656,13 @@ def IAU_names_and_extra_info(obsdata, surveyname='PHAT',extraInfo=False):
     return r
 
 def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
-                         gridbackend='cache',
-                         threshold=-10, save_every_npts=None,
-                         lnp_npts=None, resume=False,
-                         stats_outname=None, pdf1d_outname=None,
-                         lnp_outname=None,
-                         use_full_cov_matrix=True, 
-                         surveyname='PHAT', extraInfo=False):
+                         gridbackend='cache', threshold=-10,
+                         save_every_npts=None, lnp_npts=None,
+                         resume=False, stats_outname=None,
+                         pdf1d_outname=None, grid_info_dict=None,
+                         lnp_outname=None, use_full_cov_matrix=True,
+                         surveyname='PHAT', extraInfo=False,
+                         do_not_normalize=False):
     """
     keywords
     --------
@@ -668,6 +701,13 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
 
+    grid_info_dict: dict: {'qname': {'min': float,
+                                     'max': float,
+                                     'num_unique': int},
+                           ...}
+        Set to override the mins/maxes of the 1dpdfs, and the number of
+        unique values.
+
     lnp_outname: set to output the sparse likelihoods into a (usually HDF5)
                  file
 
@@ -683,6 +723,12 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
 
     extraInfo: bool
         set to get extra information, such as IAU name, brick, field, etc.
+
+    do_not_normalize: bool
+        Do not normalize the prior weights before applying them. This
+        should have no effect on the final outcome when using only a
+        single grid, but is essential when using the subgridding
+        approach.
 
     returns
     -------
@@ -716,5 +762,7 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
                  lnp_npts=lnp_npts,
                  stats_outname=stats_outname,
                  pdf1d_outname=pdf1d_outname,
+                 grid_info_dict=grid_info_dict,
                  lnp_outname=lnp_outname,
-                 use_full_cov_matrix=use_full_cov_matrix)
+                 use_full_cov_matrix=use_full_cov_matrix,
+                 do_not_normalize=do_not_normalize)

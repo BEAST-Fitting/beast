@@ -10,11 +10,12 @@ from __future__ import print_function
 import argparse
 
 import numpy as np
-import matplotlib.pyplot as plt
 import math
 from astropy import wcs
 from astropy.io import fits
 from astropy.table import Table
+
+from .density_map import DensityMap
 
 def make_source_dens_map(catfile,
                          pix_size = 10.,
@@ -85,7 +86,7 @@ def make_source_dens_map(catfile,
     ra_delt = dec_delt
     n_x = np.fix(np.round(math.cos(0.5*(max_dec+min_dec)*math.pi/180.)
                           *(max_ra-min_ra)/ra_delt))
-    ra_delt *= -1.
+    #ra_delt *= -1. #Not sure why the ra delta would want to be negative...
 
     n_x = int(np.max([n_x,1]))
     n_y = int(np.max([n_y,1]))
@@ -118,7 +119,7 @@ def make_source_dens_map(catfile,
     npts_map = np.zeros([n_x,n_y], dtype=float)
     npts_zero_map = np.zeros([n_x,n_y], dtype=float)
     npts_band_zero_map = np.zeros([n_x,n_y,n_filters], dtype=float)
-    source_dens = np.empty(N_stars, dtype=float)
+    source_dens = np.zeros(N_stars, dtype=float)
 
     for i in range(n_x):
         print('x = %s out of %s' % (str(i+1), str(n_x)))
@@ -185,6 +186,20 @@ def make_source_dens_map(catfile,
     cat[nonzero_indxs].write(catfile.replace('.fits',
                                              '_with_sourceden.fits'),
                              overwrite=True)
+    
+    bin_details = Table(names=['i_ra', 'i_dec', 'value', 'min_ra', 'max_ra', 'min_dec', 'max_dec'])
+    bin_details.meta['ra_grid'] = ra_limits
+    bin_details.meta['dec_grid'] = dec_limits
+
+    for i in range(n_x):
+
+        for j in range(n_y):
+
+            bin_details.add_row([i, j, npts_map[i, j], ra_limits[i], ra_limits[i + 1], dec_limits[j], dec_limits[j + 1]])
+
+    dm = DensityMap(bin_details)
+    dm.write(catfile.replace('.fits', '_sourcedens_map.hd5'))
+
 
 if __name__ == '__main__':
 

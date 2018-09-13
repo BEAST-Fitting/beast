@@ -15,25 +15,50 @@ from astropy.table import Table
 from astropy.io import fits
 #####
 
-if __name__ == '__main__':
 
-    # commandline parser
-    parser = argparse.ArgumentParser()
-    parser.add_argument("projectname",
-                        help="project name to use (basename for files)")
-    parser.add_argument("datafile",
-                        help="file with the observed data (FITS file)")
-    parser.add_argument("--num_percore", default=5, type=int,
-                        help="number of fitting runs per core")
-    args = parser.parse_args()
+def setup_batch_beast_fit(projectname,
+                              datafile,
+                              num_percore=5,
+                              nice=None,
+                              overwrite_logfile=True):
+    """
+    Sets up batch files for submission to the 'at' queue on linux (or similar) systems
 
-    project = args.projectname
-    datafile = args.datafile
 
-    cat_files = np.array(glob.glob(datafile.replace('.fits','*_sub*.fits')))
+    Parameters
+    ----------
+    project : string
+        project name to use (basename for files)
+
+    datafile : string
+        file with the observed data (FITS file) - the observed photometry, not the sub-files
+
+    num_percore : int (default = 5)
+        number of fitting runs per core
+
+    nice : int (default = None)
+        set this to an integer (-20 to 20) to prepend a "nice" level to the fitting command
+
+    overwrite_logfile : boolean (default = True)
+        if True, will overwrite the log file; if False, will append to existing log file
+
+    Returns
+    -------
+    run_info_dict : dict
+        Dictionary indicating which catalog files have complete modeling, and
+        which job files need to be run
+  
+    """
+    
+
+    project = projectname
+
+    cat_files = np.array(sorted(glob.glob(datafile.replace('.fits','*_sub*.fits'))))
+
+    datafile_basename = datafile.split('/')[-1].replace('.fits','')
 
     n_cat_files = len(cat_files)
-    n_pernode_files = args.num_percore
+    n_pernode_files = num_percore
 
     # setup the subdirectory for the batch and log files
     job_path = project+'/fit_batch_jobs/'
@@ -48,6 +73,10 @@ if __name__ == '__main__':
     cur_f = 0
     cur_total_size = 0.0
     j = -1
+
+    # keep track of which files are done running
+    run_info_dict = {'cat_file':cat_files, 'done':np.full(n_cat_files, False),
+                         'files_to_run':[]}
 
     #cat_files = cat_files[0:2]
 
@@ -122,6 +151,7 @@ if __name__ == '__main__':
 
         if run_done:
             print(stats_file + ' done')
+            run_info_dict['done'][i] = True
         else:
 
             j += 1
@@ -140,6 +170,7 @@ if __name__ == '__main__':
                 joblist_file = job_path+'beast_batch_fit_'+str(cur_f) \
                                +'.joblist'
                 pf = open(joblist_file,'w')
+                run_info_dict['files_to_run'].append(joblist_file)
                 
 
             ext_str = ''
@@ -153,8 +184,16 @@ if __name__ == '__main__':
                       str(len(indxs)) + '/' + str(len(t['Pmax'])) + ')')
                 ext_str = '-r'
 
-            job_command = './run_beast_production.py -f ' + ext_str + ' ' + \
-                          sd_num + ' '+sub_num+' > ' \
+            nice_str = ''
+            if nice is not None:
+                nice_str = 'nice -n' + str(int(nice)) + ' '
+
+            pipe_str = ' > '
+            if not overwrite_logfile:
+                pipe_str = ' >> '
+
+            job_command = nice_str + 'python run_beast_production.py -f ' + ext_str + ' ' + \
+                          datafile_basename + ' ' + sd_num + ' '+sub_num + pipe_str \
                           + log_path+'beast_fit' + \
                           '_sd'+sd_num+'_sub'+sub_num+'.log'
 
@@ -162,3 +201,26 @@ if __name__ == '__main__':
 
     if pf_open:
         pf.close()
+
+
+    # return the info about completed modeling
+    return run_info_dict
+
+
+if __name__ == '__main__':
+
+    # commandline parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument("projectname",
+                        help="project name to use (basename for files)")
+    parser.add_argument("datafile",
+                        help="file with the observed data (FITS file)")
+    parser.add_argument("--num_percore", default=5, type=int,
+                        help="number of fitting runs per core")
+    args = parser.parse_args()
+
+    project = args.projectname
+    datafile = args.datafile
+    n_pernode_files = args.num_percore
+
+    setup_batch_beast_fit(project, datafile, n_pernode_files=5)

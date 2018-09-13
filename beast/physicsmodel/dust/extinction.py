@@ -15,7 +15,7 @@ from ...config import __ROOT__
 __all__ = ['ExtinctionLaw', 'Cardelli89', 'Fitzpatrick99',
            'Gordon03_SMCBar', 'Gordon16_RvFALaw']
 
-libdir = __ROOT__ + '/libs/'
+libdir = __ROOT__
 
 class ExtinctionLaw(object):
     """
@@ -23,7 +23,7 @@ class ExtinctionLaw(object):
 
     Parameters
     ----------
-    
+
     Attributes
     ----------
     name : 'string'
@@ -33,7 +33,7 @@ class ExtinctionLaw(object):
         self.name = 'None'
 
     def function(self, lamb, *arg, **kwargs):
-        """ 
+        """
         function to provide extinction curve given wavelength(s)
         """
         raise NotImplementedError
@@ -88,7 +88,7 @@ class ExtinctionLaw(object):
         return self.function(*args, **kwargs)
 
     def isvalid(self, *args, **kwargs):
-        """ 
+        """
         Check if the current arguments are in the validity domain of the law
         Must be redefined if any restriction applies to the law
         """
@@ -101,7 +101,7 @@ class Cardelli89(ExtinctionLaw):
     From Cardelli, Clayton, and Mathis (1989, ApJ, 345, 245).
 
     Fitzpatrick99 should be used instead except for historical puposes
-    as this newer law is based on 10x more observations and a better 
+    as this newer law is based on 10x more observations and a better
     treatment of the optical/NIR photometry based portion of the curves.
     """
     def __init__(self):
@@ -315,7 +315,7 @@ class Fitzpatrick99(ExtinctionLaw):
                 dfname = libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv))
                 l_draine, k_draine = np.loadtxt(dfname, usecols=(0,1),
                                                 unpack=True)
-            else: 
+            else:
                 add, = np.where(diffRv < 0.)
                 Rv1 = tmprvs[add[0]-1]
                 Rv2 = tmprvs[add[0]]
@@ -325,9 +325,9 @@ class Fitzpatrick99(ExtinctionLaw):
                 dfname = libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv2))
                 l_draine, k_draine2 = np.loadtxt(dfname, usecols=(0,1),
                                                  unpack=True)
-                frac = diffRv[add[0]-1]/(Rv2-Rv1) 
+                frac = diffRv[add[0]-1]/(Rv2-Rv1)
                 k_draine = (1. - frac)*k_draine1 + frac*k_draine2
-            
+
             dind = np.where((1./l_draine) >= 5.9)
             k[fuvind] = interp(x[fuvind],1./l_draine[dind][::-1],
                                k_draine[dind][::-1])
@@ -340,10 +340,10 @@ class Fitzpatrick99(ExtinctionLaw):
 
 
 class Gordon03_SMCBar(ExtinctionLaw):
-    """ 
+    """
     Gordon03 SMCBar extinction curve
 
-    Average of 4 SMCBar extinction curves from 
+    Average of 4 SMCBar extinction curves from
     Gordon et al. 2003 (ApJ, 594, 279).
 
     Note that Rv has no impact on this law: according to Gordon et al (2003),
@@ -389,7 +389,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
 
         # set Rv explicitly to the fixed value
         Rv = self.Rv
-            
+
         c1 = -4.959 / Rv
         c2 = 2.264 / Rv
         c3 = 0.389 / Rv
@@ -412,8 +412,8 @@ class Gordon03_SMCBar(ExtinctionLaw):
             yspluv = 1.0 + c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) / \
                      ( ((xspluv) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) *
                        ((xspluv) ** 2 ))
-            
-        # FUV portion  
+
+        # FUV portion
         ind = np.where(x >= 5.9)
         if np.size(ind) > 0:
             if draine_extend:
@@ -453,13 +453,13 @@ class Gordon03_SMCBar(ExtinctionLaw):
 
 
 class Gordon16_RvFALaw(ExtinctionLaw):
-    """ 
+    """
     Gordon16 RvFA extinction law
 
-    Mixture of Milky Way R(V) dependent extinction law and 
+    Mixture of Milky Way R(V) dependent extinction law and
     Gordon et al. (2003) SMCBar average extinction curve.
 
-    This extinction curve model encompasses the average behavior of 
+    This extinction curve model encompasses the average behavior of
     measured extinction curves in the Milky Way, LMC, and SMC.
 
     Implemented as a mixture between Fitzpatrick99 and Gordon03_SMCBar
@@ -512,13 +512,13 @@ class Gordon16_RvFALaw(ExtinctionLaw):
         return f_A*k_A + (1. - f_A)*k_B
 
     def get_Rv_A(self, Rv, f_A=0.5):
-        """ 
+        """
         Calculate the R(V) of the A component given the R(V) of the mixture
 
         Rv_A is such that:
 
                 1 / Rv = f_A / Rv_A + (1 - f_A) / Rv_B
-        
+
                 Rv_A = 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
 
                 where Rv_B = 2.74 by definition (see Gordon03_SMCBar)
@@ -541,13 +541,13 @@ class Gordon16_RvFALaw(ExtinctionLaw):
         return 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
 
     def get_Rv(self, Rv_A, f_A=0.5):
-        """ 
+        """
         Calculate the Rv of the mixture law given R(V) of the A component
 
         Rv_A is such that:
 
                 1 / Rv = f_A / Rv_A + (1 - f_A) / Rv_B
-        
+
                 where Rv_B = 2.74 by definition (see Gordon03_SMCBar)
 
         Parameters

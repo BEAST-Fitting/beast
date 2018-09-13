@@ -47,6 +47,7 @@ basefilters = ['F275W','F336W','F475W',
 #   input data MUST be in fluxes, NOT in magnitudes 
 #   fluxes MUST be in normalized Vega units
 obs_colnames = [ f.lower() + '_rate' for f in basefilters ]
+#obs_colnames = [ f.upper() + '_RATE' for f in basefilters ]
 
 # obsfile : string 
 #   pathname of the observed catalog
@@ -69,7 +70,7 @@ ast_bands_above_maglimit = 3
 # ast_realization_per_model : integer
 # Number of Realizations of each included AST model
 # to be put into the list. (Default = 20)
-ast_realization_per_model = 20
+ast_realization_per_model = 20 
                              
 
 # ast_maglimit : float (single value or array with one value per filter)
@@ -86,6 +87,22 @@ ast_maglimit = [1.]
 # If True, the ast list is produced with X,Y positions.
 # If False, the ast list is produced with only magnitudes.
 ast_with_positions = True
+
+# ast_source_density_table :  (string,optional)
+# Name of source density table from tools/create_source_density_map.py
+# If supplied, the ASTs will be repeated for each source density bin in the table
+ast_source_density_table = None
+# ast_source_density_table = 'data/b15_4band_det_27_A_sourcedens_map.hd5'
+
+# ast_background_table :  (string,optional)
+# Name of background table from tools/create_background_density_map.py
+# If supplied, the ASTs will be repeated for each background level bin in the table
+ast_background_table = None
+
+#ast_N_bins : (int, optional)
+#Number of source or background bins that you want ASTs repeated over
+#ast_N_bins = 8
+
                          
 # ast_pixel_distribution : float (optional)
 # (Used if ast_with_positions is True), minimum pixel separation between AST
@@ -98,6 +115,12 @@ ast_pixel_distribution = 10.0
 # photometry.	            
 ast_reference_image = None
 
+# ast_coord_boundary : None, or list of two arrays (optional)
+# If supplied, these RA/Dec coordinates will be used to limit the region
+# over which ASTs are generated.  Input should be list of two arrays, the
+# first RA and the second Dec, ordered sequentially around the region
+# (either CW or CCW).
+ast_coord_boundary = None
 
 #-------------------------------------------
 #Noise Model Artificial Star Test Parameters
@@ -123,6 +146,9 @@ distances = [24.47]
 
 # Distance unit (any length or units.mag)
 distance_unit = units.mag
+
+# velocity of galaxy	
+velocity =  -300 * units.km / units.s # M31 velocity from SIMBAD	
 
 ################
 

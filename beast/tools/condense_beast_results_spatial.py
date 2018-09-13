@@ -19,6 +19,56 @@ import numpy as np
 from astropy.io import fits
 from astropy.table import Table, Column, vstack
 
+
+def condense_files(bricknum=None, filedir=None):
+    """
+    Condense multiple files for each spatial region into the minimal set.  Each
+    spatial region will have files containing the stats, pdf1d, and lnp results
+    for the stars in that region.
+
+    Parameters
+    ----------
+    bricknum : int or string
+        PHAT brick number (supersedes other inputs)
+
+    filedir : string
+        Directory to put condensed results
+    """
+
+    if bricknum is not None:
+        brick = str(bricknum)
+        out_dir = '/astro/dust_kg2/kgordon/BEAST_production/b' + \
+            brick + '/spatial'
+    elif filedir is not None:
+        out_dir = filedir
+    else:
+        raise ValueError("Must specify either an output directory or a PHAT brick number")
+
+    if not os.path.exists(out_dir):
+        raise ValueError(out_dir + ' directory does not exist')
+
+    # get the list of directories
+    #    each directory is a different pixel
+    pix_dirs = sorted(glob.glob(out_dir + '/*/'))
+
+    # loop over each subdirectory and condense the files as appropriate
+    for cur_dir in tqdm(pix_dirs, desc='spatial regions'):
+
+        # get the base name
+        spos = cur_dir.rfind('/',0,len(cur_dir)-1)
+        bname = cur_dir[spos+1:-1]
+
+        # process that catalog (stats) files
+        n_sources = condense_stats_files(bname, cur_dir, out_dir)
+
+        # process the pdf1d files
+        condense_pdf1d_files(bname, cur_dir, out_dir, n_sources)
+
+        # process the nD lnp files
+        condense_lnp_files(bname, cur_dir, out_dir)
+
+
+
 def condense_stats_files(bname,
                          cur_dir,
                          out_dir):
@@ -67,49 +117,53 @@ def condense_pdf1d_files(bname,
     n_bins_default = 50 
 
     # get all the files
-    pdf1d_files = glob.glob(cur_dir + '*_pdf1d.fits')
+    pdf1d_files = sorted(glob.glob(cur_dir + '*_pdf1d.fits'))
 
-    # loop over the pdf1d files, accumulating the condensed 2D format 1d pdfs
-    init_condensed = False
-    cond_pdf1d_vals = []
-    cond_pdf1d_name = []
-    for cur_pdf1d in pdf1d_files:
+    # loop over the pdf1d files, accumulating the 1d pdfs and bins
+    with fits.open(pdf1d_files[0]) as hdu:
+        cond_pdf1d_name = [hdu[i].header['EXTNAME'] for i in range(1,len(hdu))]
+    n_qnames = len(cond_pdf1d_name)
+    pdf1d_vals = [[] for i in range(n_qnames)]
+    pdf1d_bins = [[] for i in range(n_qnames)]
+
+    
+    for i,cur_pdf1d in enumerate(pdf1d_files):
 
         hdulist = fits.open(cur_pdf1d)
-        n_qnames = len(hdulist) - 1
+        
         for k in range(n_qnames):
             pdf1d_histo = hdulist[k+1].data
             n_cur_source, n_bins = pdf1d_histo.shape
             n_cur_source -= 1
+ 
+            # copy the 1D PDFs
+            pdf1d_vals[k].append(pdf1d_histo[0:n_cur_source, :])
+            # copy the bin values
+            pdf1d_bins[k].append(pdf1d_histo[-1, :])
 
-            # initialize condensed versions
-            if not init_condensed:
-                pos_source = 0
 
-                if n_bins == 1:
-                    n_bins = n_bins_default
+    # condense the info into arrays with dimensions [n_stars, max(n_bins), 2]
 
-                cond_pdf1d_vals.append(np.empty((n_sources+1, n_bins),
-                                                dtype=float))
-                cond_pdf1d_name.append(hdulist[k+1].header['EXTNAME'])
-
-                # copy in the bin values to the last column
-                cond_pdf1d_vals[k][n_sources,:] = pdf1d_histo[-1,:]
-
-            # insert the 1d pdfs into the 2D format structure
-            #print(k, len(cond_pdf1d_vals))
-            cond_pdf1d_vals[k][pos_source:pos_source+n_cur_source,:] = \
-                pdf1d_histo[0:-1,:]
-        
-        pos_source += n_cur_source
-        init_condensed = True
-
-    # output the condensed 2D format 1D pdfs
+    tot_stars = np.sum(np.array( [i.shape[0] for i in pdf1d_vals[0]] ))
+            
     hdulist = fits.HDUList([fits.PrimaryHDU()])
 
-    # generate the extensions
     for k, qname in enumerate(cond_pdf1d_name):
-        chdu = fits.PrimaryHDU(cond_pdf1d_vals[k])
+
+        max_bin_length = np.max([len(pdf1d_bins[k][i]) for i in range(len(pdf1d_bins[k]))])
+
+        # initialize array with NaNs
+        cond_data = np.zeros((tot_stars, max_bin_length, 2)) + np.nan
+        # fill in the array
+        curr_star = 0
+        for i in range(len(pdf1d_bins[k])):
+            n_bin = len(pdf1d_bins[k][i])
+            n_star = pdf1d_vals[k][i].shape[0]
+            cond_data[curr_star:curr_star+n_star, 0:n_bin, 0] = pdf1d_vals[k][i]
+            cond_data[curr_star:curr_star+n_star, 0:n_bin, 1] = pdf1d_bins[k][i]
+            curr_star += n_star
+        
+        chdu = fits.PrimaryHDU(cond_data)
         chdu.header.set('XTENSION','IMAGE') 
         chdu.header.set('EXTNAME',qname) 
         
@@ -156,43 +210,12 @@ if __name__ == '__main__':
 
     # commandline parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("-b","--bricknum", 
+    parser.add_argument("-b","--bricknum", default=None,
                         help="PHAT brick num shortcut" + \
-                        " (superceeds other input)")
-    parser.add_argument("-d","--filedir", 
+                        " (supersedes other input)")
+    parser.add_argument("-d","--filedir", default=None,
                         help="Directory to condense results")
     args = parser.parse_args()
 
-    if args.bricknum:
-        brick = str(args.bricknum)
-        out_dir = '/astro/dust_kg2/kgordon/BEAST_production/b' + \
-            brick + '/spatial'
-    elif args.filedir:
-        out_dir = args.filedir
-    else:
-        parser.print_help()
-        exit()
 
-    if not os.path.exists(out_dir):
-        print(out_dir + ' directory does not exist')
-        exit()
-
-    # get the list of directories
-    #    each directory is a different pixel
-    pix_dirs = sorted(glob.glob(out_dir + '/*/'))
-
-    # loop over each subdirectory and condense the files as appropriate
-    for cur_dir in tqdm(pix_dirs, desc='spatial regions'):
-
-        # get the base name
-        spos = cur_dir.rfind('/',0,len(cur_dir)-1)
-        bname = cur_dir[spos+1:-1]
-
-        # process that catalog (stats) files
-        n_sources = condense_stats_files(bname, cur_dir, out_dir)
-
-        # process the pdf1d files
-        condense_pdf1d_files(bname, cur_dir, out_dir, n_sources)
-
-        # process the nD lnp files
-        condense_lnp_files(bname, cur_dir, out_dir)
+    condense_files(bricknum=args.bricknum, filedir=args.filedir)

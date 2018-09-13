@@ -52,7 +52,7 @@ def _prepare_x(x):
             return xi
 
 
-def nearest_neighbors(x, k=10,eps=0.):
+def nearest_neighbors(x, k=10, eps=0.):
     """ kd-tree for quick nearest-neighbor lookup
 
     ..note::
@@ -93,8 +93,3 @@ def nearest_neighbors(x, k=10,eps=0.):
     tree = cKDTree(x)
     d, ind = tree.query(x, k=k, eps=eps)
     return ind
-
-
-#lazy functions
-def toFlux(mag):
-    return 10 ** (-0.4 * mag)

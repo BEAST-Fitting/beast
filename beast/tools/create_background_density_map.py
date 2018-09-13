@@ -20,7 +20,7 @@ from matplotlib.collections import PatchCollection
 import numpy as np
 import photutils as pu
 import os
-
+from .density_map import DensityMap
 
 def main():
     parser = argparse.ArgumentParser()
@@ -161,7 +161,7 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
     median_background_foreach_source = [
         background_map[xy_bin[0], xy_bin[1]] for xy_bin in bin_foreach_source]
     extra_columns = {'indiv_bg': individual_backgrounds,
-                     'bin_median_bg': median_background_foreach_source }
+                     'bin_median_bg': median_background_foreach_source}
     for k in extra_columns:
         c = astropy.table.Column(extra_columns[k], name=k)
         cat.add_column(c)
@@ -171,7 +171,7 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
 
     # Save a file describing the properties of the bins in a handy format
     bin_details = astropy.table.Table(
-        names=['i_ra', 'i_dec', 'median_bg',
+        names=['i_ra', 'i_dec', 'value',
                'min_ra', 'max_ra',
                'min_dec', 'max_dec'])
     for x in range(nx):
@@ -179,8 +179,13 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
             bin_details.add_row([x, y, background_map[x, y],
                                  ra_grid[x], ra_grid[x + 1],
                                  dec_grid[y], dec_grid[y + 1]])
-    bin_details.write(outfile_base + '_background_map.fits',
-                      format='fits', overwrite=True)
+
+    # Add the ra and dec grids as metadata
+    bin_details.meta['ra_grid'] = ra_grid
+    bin_details.meta['dec_grid'] = dec_grid
+
+    dm = DensityMap(bin_details)
+    dm.write(outfile_base + '_background_map.hd5')
 
     # Return a bunch of stuff, to be used for plots
     return {'background_map': background_map,
@@ -221,24 +226,17 @@ def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None, title=Non
     image_fig, image_ax = plt.subplots()
     imdata = image.data.astype(float)
     f = np.sort(imdata.flatten())
-    imavg = np.average(f)
-    imstd = np.std(f)
     p = len(f) // 32
     vmin = np.median(f[:p])
     vmax = np.median(f[-p:])
     if mask is not None:
         imdata = np.where(mask, vmin, imdata)
-    axes_image = plt.imshow(imdata, cmap='gray',
-                            interpolation='none', vmin=vmin, vmax=vmax)
+    plt.imshow(imdata, cmap='gray', interpolation='none', vmin=vmin,
+               vmax=vmax)
     plt.colorbar()
 
     # If we want to rotate the rectangles so they align with the WCS
     rotation = (90. - image.header['ORIENTAT']) * math.pi / 180.
-
-    # Colormap for the rectangles
-    cmap = mpl.cm.get_cmap('magma')
-    norm = mpl.colors.Normalize(vmax=np.amax(background_map),
-                                vmin=np.amin(background_map))
 
     # Make a rectangular patch for each grid point
     rectangles = []

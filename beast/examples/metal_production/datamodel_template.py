@@ -37,15 +37,11 @@ surveyname = 'METAL'
 
 # filters : list of strings
 #   full filter names in BEAST filter database
-filters = ['HST_WFC3_F225W','HST_WFC3_F275W','HST_WFC3_F336W',
-           'HST_ACS_WFC_F475W','HST_ACS_WFC_F814W',
-           'HST_WFC3_F110W','HST_WFC3_F160W']
+filters = ['TBD']
 
 # basefilters : list of strings
 #   short names for filters
-basefilters = ['F225W','F275W','F336W',
-               'F475W','F814W',
-               'F110W','F160W']
+basefilters = ['TBD']
 
 # obs_colnames : list of strings
 #   names of columns for filters in the observed catalog
@@ -127,6 +123,9 @@ absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 # Distances: distance to the galaxy [min, max, step] or [fixed number]
 distances = [18.5]
 distance_unit = units.mag
+
+# velocity of galaxy
+velocity = 262.2 * units.km / units.s # LMC velocity from SIMBAD
 
 ################
 

@@ -16,6 +16,7 @@ import string
 import numpy as np
 
 from astropy import units
+from astropy import constants as const
 
 # BEAST imports
 from beast.physicsmodel.create_project_dir import create_project_dir
@@ -27,6 +28,7 @@ from beast.physicsmodel.model_grid import (make_iso_table,
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.observationmodel.ast.make_ast_input_list import pick_models
 from beast.observationmodel.ast.make_ast_xy_list import pick_positions
+from beast.observationmodel.ast.make_ast_xy_list import pick_positions_from_map
 from beast.fitting import fit
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid
@@ -77,11 +79,17 @@ if __name__ == '__main__':
         else:
             extra_kwargs = None
 
+        if hasattr(datamodel, 'velocity'):
+            redshift = (datamodel.velocity / const.c).decompose().value
+        else:
+            redshift = 0
+
         # generate the spectral library (no dust extinction)
         (spec_fname, g_spec) = make_spectral_grid(
             datamodel.project,
             oiso,
             osl=datamodel.osl,
+            redshift=redshift,
             distance=datamodel.distances,
             distance_unit=datamodel.distance_unit,
             add_spectral_properties_kwargs=extra_kwargs)
@@ -109,19 +117,18 @@ if __name__ == '__main__':
 
     if args.ast:
         # get the modesedgrid on which to grab input AST
-        modelsedgridfile = datamodel.project + '/' + datamodel.project + \
-            '_seds.grid.hd5'
+        modelsedgridfile = './' + datamodel.project + '/' + datamodel.project + '_seds.grid.hd5'
         modelsedgrid = FileSEDGrid(modelsedgridfile)
+        modelsedgridfile = datamodel.project + '/' + datamodel.project + '_seds.grid.hd5'
 
         N_models = datamodel.ast_models_selected_per_age
         Nfilters = datamodel.ast_bands_above_maglimit
         Nrealize = datamodel.ast_realization_per_model
         mag_cuts = datamodel.ast_maglimit
+        obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.filters)
 
         if len(mag_cuts) == 1:
             tmp_cuts = mag_cuts
-            obsdata = datamodel.get_obscat(datamodel.obsfile,
-                                           datamodel.filters)
 
             min_mags = np.zeros(len(datamodel.filters))
             for k, filtername in enumerate(obsdata.filters):
@@ -133,20 +140,52 @@ if __name__ == '__main__':
 
             # max. mags from the gst observation cat.
             mag_cuts = min_mags + tmp_cuts
-
+        print(modelsedgrid)
         outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
-        pick_models(modelsedgrid, datamodel.filters, mag_cuts, Nfilter=Nfilters,
-                    N_stars=N_models, Nrealize=Nrealize, outfile=outfile)
+        chosen_seds = pick_models(modelsedgridfile, datamodel.filters,
+                                  mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize,
+                                  outfile=outfile)
 
         if datamodel.ast_with_positions == True:
             separation = datamodel.ast_pixel_distribution
             filename = datamodel.project + '/' + datamodel.project + '_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
-                pick_positions(obsdata, filename, separation,
-                               refimage=datamodel.ast_reference_image)
+                # With reference image, use one of these options
+                if datamodel.ast_source_density_table is not None:
+                    pick_positions_from_map(obsdata,
+                                            chosen_seds,
+                                            datamodel.ast_source_density_table,
+                                            datamodel.ast_N_bins,
+                                            datamodel.ast_realization_per_model,
+                                            outfile=filename,
+                                            refimage=datamodel.ast_reference_image,
+                                            refimage_hdu=0,
+                                            Nrealize=1,
+                                            set_coord_boundary=datamodel.ast_coord_boundary)
+
+                elif datamodel.ast_background_table is not None:
+                    pick_positions_from_map(obsdata,
+                                            chosen_seds,
+                                            datamodel.ast_background_table,
+                                            datamodel.ast_N_bins,
+                                            datamodel.ast_realization_per_model,
+                                            outfile=filename,
+                                            refimage=datamodel.ast_reference_image,
+                                            refimage_hdu=0,
+                                            Nrealize=1,
+                                            set_coord_boundary=datamodel.ast_coord_boundary)
+                else:
+                    pick_positions(obsdata, filename, separation,
+                               	   refimage=datamodel.ast_reference_image)
+
             else:
-                pick_positions(obsdata, filename, separation)
+                # Without reference image, we can only use this function
+                if (datamodel.ast_source_density_table is None and
+                  datamodel.ast_background_table is None):
+                    pick_positions(obsdata, filename, separation)
+                else:
+                    print("To use ast_source_density_table or ast_background_table, ast_reference_image must be specified.")
 
     if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
@@ -156,12 +195,22 @@ if __name__ == '__main__':
             '_seds.grid.hd5'
         modelsedgrid = FileSEDGrid(modelsedgridfile)
 
-        # generate the AST noise model
+        # generate the AST noise model using the toothpick model
         noisemodel.make_toothpick_noise_model(
-            datamodel.noisefile,
-            datamodel.astfile,
-            modelsedgrid,
-            absflux_a_matrix=datamodel.absflux_a_matrix)
+           datamodel.noisefile,
+           datamodel.astfile,
+           modelsedgrid,
+           absflux_a_matrix=datamodel.absflux_a_matrix)
+
+        # in the absence of ASTs, the splinter noise model can be used
+        # instead of the toothpick model above
+        #  **warning** not very realistic
+        # import beast.observationmodel.noisemodel.splinter as noisemodel
+        #
+        # noisemodel.make_splinter_noise_model(
+        #    datamodel.noisefile,
+        #    modelsedgrid,
+        #    absflux_a_matrix=datamodel.absflux_a_matrix)
 
     if args.trim:
         print('Trimming the model and noise grids')

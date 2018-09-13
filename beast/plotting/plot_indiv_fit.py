@@ -9,8 +9,6 @@ Plot the individual fit for a single observed star
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import argparse
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -25,6 +23,10 @@ from astropy import units as ap_units
 from astropy.coordinates import SkyCoord as ap_SkyCoord
 
 from beast.plotting.beastplotlib import initialize_parser
+
+
+def inverse_symlog(y):
+    return np.sign(y) / np.log(10) * np.expm1(np.abs(y) * np.log(10))
 
 
 def disp_str(stats, k, keyname):
@@ -50,21 +52,34 @@ def disp_str(stats, k, keyname):
 def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
                stats=None, logx=False):
 
-    pdf = pdf1d_hdu[tagname].data
+    pdf_data = pdf1d_hdu[tagname].data
 
-    n_objects, n_bins = pdf.shape
-    n_objects -= 1
+    if pdf_data.ndim == 2:
+        pdf = pdf_data[starnum, :]
+        xvals = pdf_data[-1, :]
+        n_objects, n_bins = pdf_data.shape
+        n_objects -= 1
+    elif pdf_data.ndim == 3:
+        pdf = pdf_data[starnum, :, 0]
+        xvals = pdf_data[starnum, :, 1]
+        n_bins = np.sum(~np.isnan(xvals))
 
-    xvals = pdf[n_objects, :]
+    ax.text(0.95, 0.95, xlabel, transform=ax.transAxes,
+            va='top', ha='right')
+
+    if (n_bins == 1) or (n_bins == 0):
+        ax.text(0.5, 0.5, 'unused', transform=ax.transAxes, va='center', ha='center')
+        return
+
     if logx:
         xvals = np.log10(xvals)
 
     if tagname == 'Z':
-        gindxs, = np.where(pdf[starnum, :] > 0.)
-        ax.plot(xvals[gindxs], pdf[starnum, gindxs] / max(pdf[starnum, gindxs]),
+        gindxs, = np.where(pdf > 0.)
+        ax.plot(xvals[gindxs], pdf[gindxs] / max(pdf[gindxs]),
                 color='k')
     else:
-        ax.plot(xvals, pdf[starnum, :] / max(pdf[starnum, :]), color='k')
+        ax.plot(xvals, pdf/max(pdf), color='k')
 
     ax.yaxis.set_major_locator(MaxNLocator(6))
     ax.set_yticklabels([])
@@ -79,9 +94,6 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
             bestval /= 1000.
         ax.set_xlim(0.95 * bestval, 1.05 * bestval)
     ax.set_ylim(0.0, 1.1)
-
-    ax.text(0.95, 0.95, xlabel, transform=ax.transAxes,
-            va='top', ha='right')
 
     if stats is not None:
         ylim = ax.get_ylim()
@@ -166,26 +178,25 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
 
     for i, cfilter in enumerate(filters):
         obs_flux[i] = stats[cfilter][k]
-        mod_flux[i, 0] = np.power(10.0, stats['log' + cfilter + '_wd_p50'][k])
-        mod_flux[i, 1] = np.power(10.0, stats['log' + cfilter + '_wd_p16'][k])
-        mod_flux[i, 2] = np.power(10.0, stats['log' + cfilter + '_wd_p84'][k])
+        fluxname = 'log' + cfilter
+        mod_flux[i, 0] = np.power(10.0, stats[fluxname + '_wd_p50'][k])
+        mod_flux[i, 1] = np.power(10.0, stats[fluxname + '_wd_p16'][k])
+        mod_flux[i, 2] = np.power(10.0, stats[fluxname + '_wd_p84'][k])
         mod_flux_nd[i, 0] = np.power(
-            10.0, stats['log' + cfilter + '_nd_p50'][k])
+            10.0, stats[fluxname + '_nd_p50'][k])
         mod_flux_nd[i, 1] = np.power(
-            10.0, stats['log' + cfilter + '_nd_p16'][k])
+            10.0, stats[fluxname + '_nd_p16'][k])
         mod_flux_nd[i, 2] = np.power(
-            10.0, stats['log' + cfilter + '_nd_p84'][k])
-        if 'log' + cfilter + '_wd_bias_p50' in stats.colnames:
-            mod_flux_wbias[i, 0] = np.power(10.0, stats['log' + cfilter +
-                                                        '_wd_bias_p50'][k])
-            mod_flux_wbias[i, 1] = np.power(10.0, stats['log' + cfilter +
-                                                        '_wd_bias_p16'][k])
-            mod_flux_wbias[i, 2] = np.power(10.0, stats['log' + cfilter +
-                                                        '_wd_bias_p84'][k])
+            10.0, stats[fluxname + '_nd_p84'][k])
+        if 'sym' + fluxname + '_wd_bias_p50' in stats.colnames:
+            mod_flux_wbias[i, 0] = inverse_symlog(stats['sym' + fluxname + '_wd_bias_p50'][k])
+            mod_flux_wbias[i, 1] = inverse_symlog(stats['sym' + fluxname + '_wd_bias_p16'][k])
+            mod_flux_wbias[i, 2] = inverse_symlog(stats['sym' + fluxname + '_wd_bias_p84'][k])
+
     sed_ax = ax[index_sedplot]
     sed_ax.plot(waves, obs_flux, 'ko', label='observed')
 
-    if 'log' + filters[0] + '_wd_bias_p50' in stats.colnames:
+    if 'symlog' + filters[0] + '_wd_bias_p50' in stats.colnames:
         sed_ax.plot(waves, mod_flux_wbias[:, 0],
                     'b-', label='stellar+dust+bias')
         sed_ax.fill_between(waves, mod_flux_wbias[:, 1], mod_flux_wbias[:, 2],
@@ -276,9 +287,6 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
 
     # derived
     draw_box_around_values(startderiv, stopderiv, ls='dashdot')
-
-    # padding for rectangles of 1D PDFs
-    pad = 0.1
 
     # Make these plots:
 

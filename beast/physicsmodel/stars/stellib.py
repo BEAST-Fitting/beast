@@ -31,13 +31,13 @@ sig_stefan = constants.sigma_sb.value
 rsun = constants.R_sun.value
 
 config = {
-    'basel_2.2_pegase': __ROOT__ + '/libs/BaSeL_v2.2.pegase.grid.fits',
-    'elodie_3.1': __ROOT__ + '/libs/Elodie_v3.1.grid.fits',
-    'kurucz': __ROOT__ + '/libs/kurucz2004.grid.fits',
-    'tlusty': __ROOT__ + '/libs/tlusty.lowres.grid.fits',
-    'btsettl': __ROOT__ + '/libs/bt-settl.lowres.grid.fits',
-    'btsettl_medres': __ROOT__ + '/libs/bt-settl.medres.grid.fits',
-    'munari': __ROOT__ + '/libs/atlas9-munari.hires.grid.fits'
+    'basel_2.2_pegase': __ROOT__ + '/BaSeL_v2.2.pegase.grid.fits',
+    'elodie_3.1': __ROOT__ + '/Elodie_v3.1.grid.fits',
+    'kurucz': __ROOT__ + '/kurucz2004.grid.fits',
+    'tlusty': __ROOT__ + '/tlusty.lowres.grid.fits',
+    'btsettl': __ROOT__ + '/bt-settl.lowres.grid.fits',
+    'btsettl_medres': __ROOT__ + '/bt-settl.medres.grid.fits',
+    'munari': __ROOT__ + '/atlas9-munari.hires.grid.fits'
 }
 
 __all__ = ['Stellib', 'CompositeStellib', 'Kurucz', 'Tlusty',
@@ -514,7 +514,7 @@ class Stellib(object):
 
     def gen_spectral_grid_from_given_points(self, pts, bounds=dict(dlogT=0.1,
                                                                    dlogg=0.3)):
-        """ 
+        """
         Reinterpolate a given stellar spectral library on to an Isochrone grid
 
         Parameters
@@ -534,7 +534,7 @@ class Stellib(object):
         Returns
         -------
         g: SpectralGrid
-            Spectral grid (in memory) containing the requested list of 
+            Spectral grid (in memory) containing the requested list of
             stars and associated spectra
         """
         # Step 0: prepare outputs
@@ -557,12 +557,12 @@ class Stellib(object):
         # stores the grid weights separately (initialize to 1)
         #   these weights alone provide flat priors on all fit parameters
         _grid['grid_weight'] = np.full(ndata, 1.0, dtype=float)
-        
+
         # index to the grid
         # useful to setup here as it will then be cleanly propagated
         #   to the SED grid
         _grid['specgrid_indx'] = np.full(ndata, 0.0, dtype=float)
-                    
+
         specs = np.empty( (ndata, len(self.wavelength)), dtype=float )
 
         # copy meta data of pts into the resulting structure
@@ -618,7 +618,7 @@ class Stellib(object):
         # populate the specgrid index
         _grid['specgrid_indx'] = np.arange(len(_grid['specgrid_indx']),
                                            dtype=np.int64)
-        
+
         # ship
         g = SpectralGrid(lamb, seds=specs, grid=Table(_grid), header=header, backend='memory')
 
@@ -731,7 +731,7 @@ class CompositeStellib(Stellib):
             * second, if points are not found in strict mode, the boundary is
               relaxed and a new search is made.
 
-        Each point is associated to the first library matching the above 
+        Each point is associated to the first library matching the above
             conditions.
 
         Parameters
@@ -748,7 +748,7 @@ class CompositeStellib(Stellib):
         returns
         -------
         res: ndarray(dtype=int)
-            a ndarray, 0 meaning no library covers the point, and 1, ... n, 
+            a ndarray, 0 meaning no library covers the point, and 1, ... n,
                for the n-th library
         """
         xy = np.asarray(xypoints)
@@ -828,7 +828,7 @@ class CompositeStellib(Stellib):
         returns
         -------
         b: ndarray[float, ndim=2]
-            (closed) boundary points: [logg, Teff] (or [Teff, logg] is swap 
+            (closed) boundary points: [logg, Teff] (or [Teff, logg] is swap
             is True)
 
         .. note::
@@ -884,7 +884,7 @@ class CompositeStellib(Stellib):
         -------
         (osl, r): tuple
             osl: is the library index starting from 1. 0 means no coverage.
-            r: is the result from interp call on the corresponding library. 
+            r: is the result from interp call on the corresponding library.
             a 3 to 12 star indexes and associated weights
         """
         dlogT = bounds.get('dlogT', 0.1)
@@ -951,7 +951,7 @@ class CompositeStellib(Stellib):
         -------
         (osl, r): tuple
             osl is the library index starting from 1. 0 means no coverage.
-            r is the result from interp call on the corresponding library. 
+            r is the result from interp call on the corresponding library.
             a 3 to 12 star indexes and associated weights
         """
         dlogT = bounds.get('dlogT', 0.1)
@@ -1023,7 +1023,7 @@ class CompositeStellib(Stellib):
         returns
         -------
         s: ndarray
-            an array containing the composite spectrum reinterpolated onto 
+            an array containing the composite spectrum reinterpolated onto
             self.wavelength
 
         .. note::
@@ -1051,7 +1051,7 @@ class CompositeStellib(Stellib):
 
     def gen_spectral_grid_from_given_points(self, pts,
                                             bounds=dict(dlogT=0.1, dlogg=0.3)):
-        """ 
+        """
         Reinterpolate a given stellar spectral library on to an Isochrone grid
 
         Parameters
@@ -1071,7 +1071,7 @@ class CompositeStellib(Stellib):
         Returns
         -------
         g: SpectralGrid
-            Spectral grid (in memory) containing the requested list of stars 
+            Spectral grid (in memory) containing the requested list of stars
             and associated spectra
         """
         dlogT = bounds.get('dlogT', 0.1)
@@ -1573,7 +1573,7 @@ class BTSettl(Stellib):
                 (3.60206 + dlogT, 5.5 + dlogg),
                 (3.60206 + dlogT, 6.0 + dlogg),
                 (3.41497 - dlogT, 6.0 + dlogg)]
-            
+
         return np.array(bbox)
 
     @property
@@ -1647,7 +1647,7 @@ class Munari(Stellib):
                 (3.98900 + dlogT, 2.0 - dlogg),
                 (3.98900 + dlogT, 5.0 + dlogg),
                 (3.54407 - dlogT, 5.0 + dlogg)]
-            
+
         return np.array(bbox)
 
     @property

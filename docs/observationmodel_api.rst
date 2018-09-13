@@ -16,10 +16,10 @@ Noise Model
 
 .. automodapi:: beast.observationmodel.noisemodel.noisemodel
 
+.. automodapi:: beast.observationmodel.noisemodel.splinter
+
 .. automodapi:: beast.observationmodel.noisemodel.toothpick
 
 .. automodapi:: beast.observationmodel.noisemodel.trunchen
-		
+
 .. automodapi:: beast.observationmodel.noisemodel.generic_noisemodel
-
-
