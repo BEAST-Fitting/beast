@@ -50,7 +50,7 @@ def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
     # limits
     if bright_cut is not None:
         for i, limit in enumerate(bright_cut):
-            flag[:,i] = np.logical_and(flag[:, i], seds[:, i] > limit)
+            flag[:, i] = np.logical_and(flag[:, i], seds[:, i] > limit)
 
     # Keep index where model is brighter than the limit in N filters
     s = np.sum(flag, axis=1)
@@ -263,11 +263,12 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
     ascii file: A list of selected models, written to 'outfile'
     """
 
-    with Vega() as v:               # Get the vega fluxes
+    with Vega(source=vega_fname) as v:               # Get the vega fluxes
         vega_f, vega_flux, lamb = v.getFlux(filters)
 
     gridf = h5py.File(sedgrid_fname)
-
+    print(vega_flux)
+    print(sedgrid_fname)
     # Convert to Vega mags
     sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
 
