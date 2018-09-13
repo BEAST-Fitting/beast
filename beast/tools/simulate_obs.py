@@ -1,7 +1,4 @@
 import argparse
-# import numpy as np
-
-# from astropy.table import Table, Column
 
 from beast.physicsmodel.grid import FileSEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel

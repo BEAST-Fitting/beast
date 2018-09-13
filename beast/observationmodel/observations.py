@@ -8,6 +8,8 @@ import numpy as np
 
 from astropy.table import Table, Column
 
+from beast.observationmodel.vega import Vega
+
 __all__ = ['Observations', 'gen_SimObs_from_sedgrid']
 
 
@@ -152,7 +154,8 @@ class Observations(object):
 
 
 def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
-                            nsim=100, compl_filter='F475W'):
+                            nsim=100, compl_filter='F475W',
+                            ranseed=None, vega_fname=None):
     """
     Generate simulated observations using the physics and observation grids.
     The priors are sampled as they give the ensemble model for the stellar
@@ -176,6 +179,14 @@ def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
 
     compl_filter : str
         filter to use for completeness (required for toothpick model)
+
+    ranseed : int
+        used to set the seed to make the results reproducable
+        useful for testing
+
+    vega_fname : string
+        filename for the vega info
+        usefule for testing
 
     Outputs
     -------
@@ -211,9 +222,17 @@ def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
     # need to sum to 1
     gridweights = gridweights/np.sum(gridweights)
 
+    # set the random seed - mainly for testing
+    if not None:
+        np.random.seed(ranseed)
+
     # sample to get the indexes of the picked models
     indx = range(n_models)
     sim_indx = np.random.choice(indx, size=nsim, p=gridweights)
+    print(sim_indx)
+
+    # get the vega fluxes for the filters
+    _, vega_flux, _ = Vega(source=vega_fname).getFlux(sedgrid.filters)
 
     # setup the output table
     ot = Table()
@@ -224,7 +243,7 @@ def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
         simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
         simflux = np.random.normal(loc=simflux_wbias,
                                    scale=model_unc[sim_indx, k])
-        ot[colname] = Column(simflux)
+        ot[colname] = Column(simflux/vega_flux[k])
     # model parmaeters
     for qname in qnames:
         ot[qname] = Column(sedgrid[qname][sim_indx])
