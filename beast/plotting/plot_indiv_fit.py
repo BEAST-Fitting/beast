@@ -229,7 +229,7 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
     # add the text results
     keys = ['Av', 'M_ini', 'logA', 'distance',
             'Rv', 'f_A', 'Z', 'logT', 'logg', 'logL']
-    dispnames = ['A(V)', 'log(M)', 'log(t)', 'd(pc)', 'R(V)', r'f$_\mathcal{A}$', 'Z',
+    dispnames = ['A(V)', 'log(M)', 'log(t)', 'd(kpc)', 'R(V)', r'f$_\mathcal{A}$', 'Z',
                  r'log(T$_\mathrm{eff})$', 'log(g)', 'log(L)']
     startprim, stopprim = 0, nprim - 1  # 0 1 2 3
     startsec, stopsec = stopprim + 1, stopprim + nsec  # 4 5 6
