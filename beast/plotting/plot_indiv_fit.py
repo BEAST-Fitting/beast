@@ -24,7 +24,7 @@ from astropy.io import fits
 from astropy import units as ap_units
 from astropy.coordinates import SkyCoord as ap_SkyCoord
 
-from beastplotlib import initialize_parser
+from beast.plotting.beastplotlib import initialize_parser
 
 
 def disp_str(stats, k, keyname):

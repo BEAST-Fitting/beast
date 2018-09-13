@@ -29,12 +29,12 @@ def _download_rename(filename):
 def test_indiv_plot():
 
     # download cached version of fitting results
-    #stats_fname_cache = _download_rename('beast_example_phat_stats.fits')
-    #pdf1d_fname_cache = _download_rename('beast_example_phat_pdf1d.fits')
+    stats_fname_cache = _download_rename('beast_example_phat_stats.fits')
+    pdf1d_fname_cache = _download_rename('beast_example_phat_pdf1d.fits')
 
-    results_dir = '../examples/phat_small/beast_example_phat/'
-    stats_fname_cache = results_dir + 'beast_example_phat_stats.fits'
-    pdf1d_fname_cache = results_dir + 'beast_example_phat_pdf1d.fits'
+    #results_dir = '../../examples/phat_small/beast_example_phat/'
+    #stats_fname_cache = results_dir + 'beast_example_phat_stats.fits'
+    #pdf1d_fname_cache = results_dir + 'beast_example_phat_pdf1d.fits'
 
     starnum = 0
 
