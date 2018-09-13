@@ -74,7 +74,9 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
     if ~np.isnan(xlim[0]):
         ax.set_xlim(xlim[0] - 0.05 * xlim_delta, xlim[1] + 0.05 * xlim_delta)
     else:
-        bestval = stats[tagname + '_Best'][starnum] / 1000.
+        bestval = stats[tagname + '_Best'][starnum]
+        if tagname == 'distance':
+            bestval /= 1000.
         ax.set_xlim(0.95 * bestval, 1.05 * bestval)
     ax.set_ylim(0.0, 1.1)
 
