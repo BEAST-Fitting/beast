@@ -71,11 +71,11 @@ matrix:
 
         # Try MacOS X including the remote data tests
         - os: osx
-          env: SETUP_CMD='test --remote-data --mpl'
+          env: SETUP_CMD='test --remote-data'
 
         # Do a coverage test.
         - os: linux
-          env: SETUP_CMD='test --remote-data --mpl --coverage'
+          env: SETUP_CMD='test --remote-data --coverage'
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
@@ -113,7 +113,7 @@ matrix:
     allow_failures:
         # Try MacOS X including the remote data tests
         - os: osx
-          env: SETUP_CMD='test --remote-data --mpl'
+          env: SETUP_CMD='test --remote-data'
 
         - os: linux
           env: ASTROPY_VERSION=development
