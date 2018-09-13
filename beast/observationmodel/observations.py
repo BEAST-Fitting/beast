@@ -1,16 +1,14 @@
-""" Defines a generic interface to observation catalog
-    This enables to handle non detections, (upper limits one day?), flux and
-    magnitude conversions to avoid painful preparation of the dataset
-
-    Data model v2 with limited quantity units handling
+"""
+Defines a generic interface to observation catalog
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from scipy.interpolate import interp1d
 
-__all__ = ['Observations', 'FakeObs', 'PhotCharact']
+from astropy.table import Table, Column
+
+__all__ = ['Observations', 'gen_SimObs_from_sedgrid']
 
 
 class Observations(object):
@@ -153,7 +151,8 @@ class Observations(object):
             yield k, self.getObs(k)
 
 
-def gen_SimObs_from_sedgrid(sedgrid, noisemodel):
+def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
+                            nsim=100, compl_filter='F475W'):
     """
     Generate simulated observations using the physics and observation grids.
     The priors are sampled as they give the ensemble model for the stellar
@@ -171,28 +170,63 @@ def gen_SimObs_from_sedgrid(sedgrid, noisemodel):
 
     sedgrid_noisemodel: beast noisemodel instance
         noise model data
+
+    nsim : int
+        number of observations to simulate
+
+    compl_filter : str
+        filter to use for completeness (required for toothpick model)
+
+    Outputs
+    -------
+    simtable : astropy Table
+        table giving the simulated observed fluxes as well as the
+        physics model parmaeters
     """
+    flux = sedgrid.seds
+    n_models, n_filters = flux.shape
 
+    # hack to get things to run for now
+    short_filters = [filter.split(sep='_')[-1].lower()
+                     for filter in sedgrid.filters]
+    if compl_filter.lower() not in short_filters:
+        print('requested completeness filter not present')
+        print('%s requested' % compl_filter.lower())
+        print('possible filters', short_filters)
+        exit()
+    filter_k = short_filters.index(compl_filter.lower())
+    print('Completeness from %s' % sedgrid.filters[filter_k])
 
-def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05,
-                             filters=None, save=False):
-    from ..external.eztables import Table
-    from . import grid
-    if type(sedgrid) == str:
-        sedgrid = grid.FileSEDGrid(sedgrid)
+    # cache the noisemodel values
+    model_bias = sedgrid_noisemodel.root.bias[:]
+    model_unc = np.fabs(sedgrid_noisemodel.root.error[:])
+    model_compl = sedgrid_noisemodel.root.completeness[:]
 
-    inds = np.random.randint(0, high=sedgrid.grid.nrows, size=nrows)
-    obsTab = Table()
-    if filters is None:
-        filters = sedgrid.grid.header.FILTERS.split()
-    for e, filt in enumerate(filters):
-        errs = np.random.normal(loc=0., scale=err, size=nrows)
-        obsTab.addCol(filt, (1. + errs) * sedgrid.seds[inds, e])
-        obsTab.addCol(filt + 'err', err * sedgrid.seds[inds, e])
-    for key in list(sedgrid.grid.keys()):
-        obsTab.addCol(key, sedgrid.grid[key][inds])
+    # the combined prior and grid weights
+    # using both as the grid weight needed to account for the finite size
+    # of each grid bin
+    # if we change to interpolating between grid points, need to rethink this
+    # ***still need to include completeness
+    gridweights = sedgrid['weight']*model_compl[:, filter_k]
+    # need to sum to 1
+    gridweights = gridweights/np.sum(gridweights)
 
-    if save is True:
-        return obsTab
-    else:
-        obsTab.write(save, clobber=True, append=False)
+    # sample to get the indexes of the picked models
+    indx = range(n_models)
+    sim_indx = np.random.choice(indx, size=nsim, p=gridweights)
+
+    # setup the output table
+    ot = Table()
+    qnames = list(sedgrid.keys())
+    # simulated data
+    for k, filter in enumerate(sedgrid.filters):
+        colname = '%s_rate' % filter.split(sep='_')[-1].lower()
+        simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
+        simflux = np.random.normal(loc=simflux_wbias,
+                                   scale=model_unc[sim_indx, k])
+        ot[colname] = Column(simflux)
+    # model parmaeters
+    for qname in qnames:
+        ot[qname] = Column(sedgrid[qname][sim_indx])
+
+    return ot
