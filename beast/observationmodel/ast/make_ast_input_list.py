@@ -221,7 +221,7 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
 
 
 def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
-                outfile=None, bright_cut=None):
+                outfile=None, bright_cut=None, vega_fname=None):
     """Creates a fake star catalog from a BEAST model grid
 
     Parameters
@@ -252,6 +252,9 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
 
     bright_cut: list of float
         Same as mag_cuts, but for the bright end
+
+    vega_fname: str
+        filename of vega file
 
     Returns
     -------
