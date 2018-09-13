@@ -1,7 +1,8 @@
-import os.path
-import pytest
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
+
+import os.path
+import pytest
 
 import numpy as np
 from astropy.table import Table
