@@ -24,7 +24,8 @@ User Documentation
    Running in parallel by using subgrids <subgrid_parallelism.rst>
    Generating AST inputs <generating_asts.rst>
    Format of BEAST grid files <beast_grid_format.rst>
-
+   Known issues <beast_issues.rst>
+   
 Installation
 ============
 
