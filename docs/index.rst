@@ -25,7 +25,8 @@ User Documentation
    Generating AST inputs <generating_asts.rst>
    Format of BEAST grid files <beast_grid_format.rst>
    Details on BEAST libraries for grid <beast_grid_inputs.rst>
-
+   Known issues <beast_issues.rst>
+   
 Installation
 ============
 
