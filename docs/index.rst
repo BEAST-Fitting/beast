@@ -23,6 +23,7 @@ User Documentation
    Example production run workflow <workflow.rst>
    Running in parallel by using subgrids <subgrid_parallelism.rst>
    Generating AST inputs <generating_asts.rst>
+   Simulating observations <simulations.rst>
    Format of BEAST grid files <beast_grid_format.rst>
    Known issues <beast_issues.rst>
    
