@@ -14,8 +14,8 @@ def main(fitsfile, mag1_filter='F475W', mag2_filter='F814W',
          mag3_filter='F475W', showplot=False, saveplot=True, 
          xlim=(-0.2, 3.5), ylim=(16, 26)):
     """ 
-    Read in photometry and plot a color-magnitude diagram based on specified 
-    filters.
+    Read in flux from real or simulated data in fitsfile and plot a 
+    color-magnitude diagram based on specified filters.
     
     fitsfile:           str
         input fitsfile (includes full path to file); format = .fits
