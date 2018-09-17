@@ -56,8 +56,8 @@ erg/s/cm2/AA.
 
 Choices:
 
-* `Kurucz/CK04`_
-   * ATLAS9 model atmospheres by Castelli & Kurucz (2004), the industry
+* `Kurucz`_
+   * ATLAS9 model atmospheres by Castelli & Kurucz (2004; CK04), the industry
      standard for LTE stellar atmospheres that spans a wide range of L and
      Teff parameter space and a broad range of wavelenghts (XXX) at low
      spectral resolution (20 Ang/pix; 2x sampling of R~100 at 4000 Ang).
@@ -90,6 +90,11 @@ Choices:
    * ATLAS9 model atmospheres available at higher spectral resolution than
      CK04, but over limited wavelength range.
 
+Recommendations: Tlusty+Kurucz as default, providing non-LTE models at high
+temperatures and standard ATLAS9 models elsewhere.  BTSettl library provides
+improvement at low temperatures, while BOSZ (coming soon) or Munari provide
+higher spectral resolution if required.
+
 Dust Extinction
 =================
 
@@ -111,5 +116,5 @@ Choices:
  .. _BTSettl: https://phoenix.ens-lyon.fr/Grids/BT-Settl/
  .. _TLusty: http://nova.astro.umd.edu/Tlusty2002/database/
  .. _Munari: http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=J%2FA%2BA%2F442%2F1127
- .. _Kurucz/CK04: http://www.stsci.edu/hst/observatory/crds/castelli_kurucz_atlas.html
+ .. _Kurucz: http://www.stsci.edu/hst/observatory/crds/castelli_kurucz_atlas.html
  .. _BOSZ: https://archive.stsci.edu/prepds/bosz/
