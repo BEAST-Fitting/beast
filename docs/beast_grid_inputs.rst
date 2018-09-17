@@ -22,7 +22,8 @@ Choices:
      including the most recent set of PARSEC and COLIBRI models (Bressan+12,
      Marigo+17). 
    * PARSEC models accessed via
-     `webform <http://stev.oapd.inaf.it/cgi-bin/cmd>`_ by ``ezpadova`` module.
+     `CMD webform <http://stev.oapd.inaf.it/cgi-bin/cmd>`_ by ``ezpadova``
+     module.
    * Options = ``modeltype`` (default='parsec12s_r14' for PARSEC+COLIBRI):
      isochrone model set - alternate choices=['parsec12s' for PARSEC 1.2S,
      '2010' for Marigo08+Girardi10]; ``filterPMS`` (default=False): remove
