@@ -31,13 +31,13 @@ sig_stefan = constants.sigma_sb.value
 rsun = constants.R_sun.value
 
 config = {
-    'basel_2.2_pegase': __ROOT__ + '/BaSeL_v2.2.pegase.grid.fits',
-    'elodie_3.1': __ROOT__ + '/Elodie_v3.1.grid.fits',
-    'kurucz': __ROOT__ + '/kurucz2004.grid.fits',
-    'tlusty': __ROOT__ + '/tlusty.lowres.grid.fits',
-    'btsettl': __ROOT__ + '/bt-settl.lowres.grid.fits',
-    'btsettl_medres': __ROOT__ + '/bt-settl.medres.grid.fits',
-    'munari': __ROOT__ + '/atlas9-munari.hires.grid.fits'
+    'basel_2.2_pegase': __ROOT__ + 'BaSeL_v2.2.pegase.grid.fits',
+    'elodie_3.1': __ROOT__ + 'Elodie_v3.1.grid.fits',
+    'kurucz': __ROOT__ + 'kurucz2004.grid.fits',
+    'tlusty': __ROOT__ + 'tlusty.lowres.grid.fits',
+    'btsettl': __ROOT__ + 'bt-settl.lowres.grid.fits',
+    'btsettl_medres': __ROOT__ + 'bt-settl.medres.grid.fits',
+    'munari': __ROOT__ + 'atlas9-munari.hires.grid.fits'
 }
 
 __all__ = ['Stellib', 'CompositeStellib', 'Kurucz', 'Tlusty',

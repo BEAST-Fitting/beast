@@ -617,7 +617,7 @@ class MISTWeb(Isochrone):
         iso_table.add_column('logg', iso_table['log_g'][:])
         iso_table.add_column('stage', iso_table['phase'][:])
         iso_table.remove_columns(['log10_isochrone_age_yr', 'log_Teff', 'log_L', 'log_g',
-                                  'initial_mass', 'star_mass', 'stage'])
+                                  'initial_mass', 'star_mass', 'phase'])
 
         # Remove phot columns and unnecessary properties
         extracol1="star_mdot he_core_mass c_core_mass log_LH log_LHe log_R".split()
