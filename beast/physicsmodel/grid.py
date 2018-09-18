@@ -3,15 +3,17 @@
 Major changes from the previous version of core.grid:
     Removed general write method
     added backend functions and direct access to properties
-    MemoryGrid migrates to a function that creates a ModelGrid with a MemoryBackend
-    FileSEDGrid, FileSpectralGrid migrated to functions as well
+    MemoryGrid migrates to a function that creates a ModelGrid with a
+    MemoryBackend, FileSEDGrid, FileSpectralGrid migrated to functions as well
 
-Currently no majors variation is expected as long as memory or cache backend types are used
+Currently no majors variation is expected as long as memory or cache
+    backend types are used
 
 More optimization can be done, especially in SpectralGrid.getSEDs
 
 TODO: Check where any beast code uses eztable.Table's specific methods and
-      implement equivalent in the backends for transparency in the case of HDFBackend
+      implement equivalent in the backends for transparency in the case of
+      HDFBackend
          * aliases
          * eval expression
          * selectWhere
@@ -26,7 +28,8 @@ from copy import deepcopy
 
 from ..observationmodel import phot
 from .dust import extinction
-from .helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
+from .helpers.gridbackends import (MemoryBackend, CacheBackend,
+                                   HDFBackend, GridBackend)
 from .helpers.gridhelpers import pretty_size_print, isNestedInstance
 
 try:
@@ -36,7 +39,7 @@ except NameError:
     str = str
     unicode = str
     bytes = bytes
-    basestring = (str,bytes)
+    basestring = (str, bytes)
 else:
     # 'unicode' exists, must be Python 2
     str = str
@@ -44,8 +47,9 @@ else:
     bytes = str
     basestring = (str, unicode)
 
-__all__ = ['ModelGrid', 'SpectralGrid','StellibGrid',
-           'MemoryGrid','FileSEDGrid']
+__all__ = ['ModelGrid', 'SpectralGrid', 'StellibGrid',
+           'MemoryGrid', 'FileSEDGrid']
+
 
 def find_backend(txt):
     """find_backend
@@ -81,7 +85,8 @@ class ModelGrid(object):
         *args and **kwargs are directly forwarded to the backend constructor
 
         lamb: ndarray or str or GridBackend
-            if ndarray: wavelength of the SEDs (requires seds and grid arguments)
+            if ndarray: wavelength of the SEDs (requires seds and
+            grid arguments)
             if str: filename to the grid
             if backend: ref to the given grid
 
@@ -158,7 +163,7 @@ class ModelGrid(object):
     @property
     def nbytes(self):
         """ return the number of bytes of the object """
-        n = sum(k.nbytes if hasattr(k, 'nbytes') else \
+        n = sum(k.nbytes if hasattr(k, 'nbytes') else
                 sys.getsizeof(k) for k in list(self.__dict__.values()))
         return n
 
@@ -176,8 +181,6 @@ class ModelGrid(object):
             return self.__dict__[name]
         elif hasattr(self._backend, name):
             return getattr(self._backend, name)
-        #elif name in self.keys():
-        #    return self.grid[name]
         elif hasattr(self.grid, 'keys'):
             return self.grid[name]
         else:
@@ -240,7 +243,7 @@ class SpectralGrid(ModelGrid):
         else:
             flist = phot.load_Integrationfilters(filter_names, interp=True,
                                                  lamb=self.lamb)
-            _fnames = [ fk.name for fk in filter_names ]
+            _fnames = [fk.name for fk in filter_names]
         if extLaw is not None:
             if not inplace:
                 r = self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
@@ -277,8 +280,8 @@ class SpectralGrid(ModelGrid):
             if not inplace, returns a new ModelGrid instance. Otherwise returns
             nothing
         """
-        assert( isinstance(extLaw, extinction.ExtinctionLaw)), \
-                'Expecting ExtinctionLaw object got %s' % type(extLaw)
+        assert(isinstance(extLaw, extinction.ExtinctionLaw)), \
+            'Expecting ExtinctionLaw object got %s' % type(extLaw)
         extCurve = np.exp(-1. * extLaw.function(self.lamb[:], **kwargs))
         if not inplace:
             g = self.copy()
