@@ -5,7 +5,6 @@ import glob
 import os
 import sys
 
-import ah_bootstrap
 from setuptools import setup
 
 # A dirty hack to get around some early import/configurations ambiguities
@@ -95,8 +94,10 @@ package_info = get_package_info()
 
 # Add the project-global data
 package_info['package_data'].setdefault(PACKAGENAME, [])
-package_info['package_data'][PACKAGENAME].append('physicsmodel/stars/ezpadova/parsec.json')
-package_info['package_data'][PACKAGENAME].append('physicsmodel/stars/ezmist/mist.json')
+package_info['package_data'][PACKAGENAME].append(
+    'physicsmodel/stars/ezpadova/parsec.json')
+package_info['package_data'][PACKAGENAME].append(
+    'physicsmodel/stars/ezmist/mist.json')
 
 # Define entry points for command-line scripts
 entry_points = {'console_scripts': []}
@@ -126,7 +127,8 @@ setup(name=PACKAGENAME,
       version=VERSION,
       description=DESCRIPTION,
       scripts=scripts,
-      install_requires=metadata.get('install_requires', 'astropy').strip().split(),
+      install_requires=metadata.get(
+          'install_requires', 'astropy').strip().split(),
       author=AUTHOR,
       author_email=AUTHOR_EMAIL,
       license=LICENSE,
@@ -137,4 +139,4 @@ setup(name=PACKAGENAME,
       use_2to3=False,
       entry_points=entry_points,
       **package_info
-)
+      )
