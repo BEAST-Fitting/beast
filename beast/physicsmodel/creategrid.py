@@ -25,7 +25,6 @@ from astropy import constants, units
 
 from .stars import stellib
 from .stars import isochrone
-from .dust import extinction
 from .grid import SpectralGrid
 from .prior_weights_dust import PriorWeightsDust
 from ..external.eztables import Table
