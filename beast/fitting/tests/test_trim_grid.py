@@ -1,9 +1,5 @@
-import os.path
-
 import numpy as np
-import h5py
 
-from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 
 from ...physicsmodel.grid import FileSEDGrid
@@ -11,20 +7,7 @@ from ...observationmodel.observations import Observations
 from ...observationmodel.vega import Vega
 from ...observationmodel.noisemodel import generic_noisemodel as noisemodel
 from ..trim_grid import trim_models
-
-
-def _download_rename(filename):
-    """
-    Download a file and rename it to have the right extension
-
-    Otherwise, downloaded file will not have an extension at all
-    """
-    url_loc = 'http://www.stsci.edu/~kgordon/beast/'
-    fname_dld = download_file('%s%s' % (url_loc, filename))
-    extension = filename.split('.')[-1]
-    fname = '%s.%s' % (fname_dld, extension)
-    os.rename(fname_dld, fname)
-    return fname
+from beast.tests.helpers import (download_rename, compare_hdf5)
 
 
 class GenFluxCatalog(Observations):
@@ -127,19 +110,16 @@ def get_obscat(obsfile, filters, obs_colnames, vega_fname=None,
 def test_trim_grid():
 
     # download the needed files
-    vega_fname = _download_rename('vega.hd5')
-    seds_fname = _download_rename('beast_example_phat_seds.grid.hd5')
-    noise_fname = _download_rename('beast_example_phat_noisemodel.hd5')
-    obs_fname = _download_rename('b15_4band_det_27_A.fits')
+    vega_fname = download_rename('vega.hd5')
+    seds_fname = download_rename('beast_example_phat_seds.grid.hd5')
+    noise_fname = download_rename('beast_example_phat_noisemodel.hd5')
+    obs_fname = download_rename('b15_4band_det_27_A.fits')
 
     # download cached version of noisemodel on the sed grid
-    noise_trim_fname_cache = _download_rename(
+    noise_trim_fname_cache = download_rename(
                                 'beast_example_phat_noisemodel_trim.grid.hd5')
-    seds_trim_fname_cache = _download_rename(
+    seds_trim_fname_cache = download_rename(
                                 'beast_example_phat_seds_trim.grid.hd5')
-
-    hdf_noise_cache = h5py.File(noise_trim_fname_cache, 'r')
-    hdf_seds_cache = h5py.File(seds_trim_fname_cache, 'r')
 
     ################
 
@@ -168,31 +148,6 @@ def test_trim_grid():
     trim_models(modelsedgrid, noisemodel_vals, obsdata,
                 seds_trim_fname, noise_trim_fname, sigma_fac=3.)
 
-    # check both the trimmed version of the seds and noisemodel
-    fnames = [seds_trim_fname, noise_trim_fname]
-    ctypes = ['sed', 'noise']
-    for k, hdf_cache in enumerate([hdf_seds_cache, hdf_noise_cache]):
-        # open the hdf file with the trimmed sed/noise grid
-        hdf_new = h5py.File(fnames[k], 'r')
-
-        # go through the file and check if it is exactly the same
-        for sname in hdf_cache.keys():
-            if isinstance(hdf_cache[sname], h5py.Dataset):
-                cvalue = hdf_cache[sname]
-                cvalue_new = hdf_new[sname]
-                if cvalue.dtype.fields is None:
-                    np.testing.assert_equal(cvalue.value, cvalue_new.value,
-                                            'testing %s/%s' %
-                                            (ctypes[k], sname))
-                else:
-                    for ckey in cvalue.dtype.fields.keys():
-                        np.testing.assert_equal(cvalue.value[ckey],
-                                                cvalue_new.value[ckey],
-                                                'testing %s/%s/%s' %
-                                                (ctypes[k], sname, ckey))
-        hdf_new.close()
-
-
-if __name__ == '__main__':
-
-    test_trim_grid()
+    # compare the new to the cached version
+    compare_hdf5(seds_trim_fname_cache, seds_trim_fname, ctype='seds')
+    compare_hdf5(noise_trim_fname_cache, noise_trim_fname, ctype='noise')
