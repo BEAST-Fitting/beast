@@ -14,10 +14,10 @@ More optimization can be done, especially in SpectralGrid.getSEDs
 TODO: Check where any beast code uses eztable.Table's specific methods and
       implement equivalent in the backends for transparency in the case of
       HDFBackend
-         * aliases
-         * eval expression
-         * selectWhere
-         * readCoordinates (although should work already)
+      * aliases
+      * eval expression
+      * selectWhere
+      * readCoordinates (although should work already)
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
