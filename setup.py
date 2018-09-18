@@ -5,6 +5,7 @@ import glob
 import os
 import sys
 
+# needed even if not used (astropy-helpers will not work properly otherwise)
 import ah_bootstrap
 from setuptools import setup
 
@@ -95,8 +96,10 @@ package_info = get_package_info()
 
 # Add the project-global data
 package_info['package_data'].setdefault(PACKAGENAME, [])
-package_info['package_data'][PACKAGENAME].append('physicsmodel/stars/ezpadova/parsec.json')
-package_info['package_data'][PACKAGENAME].append('physicsmodel/stars/ezmist/mist.json')
+package_info['package_data'][PACKAGENAME].append(
+    'physicsmodel/stars/ezpadova/parsec.json')
+package_info['package_data'][PACKAGENAME].append(
+    'physicsmodel/stars/ezmist/mist.json')
 
 # Define entry points for command-line scripts
 entry_points = {'console_scripts': []}
@@ -126,7 +129,12 @@ setup(name=PACKAGENAME,
       version=VERSION,
       description=DESCRIPTION,
       scripts=scripts,
-      install_requires=metadata.get('install_requires', 'astropy').strip().split(),
+      install_requires=['astropy',
+                        'scipy',
+                        'h5py',
+                        'matplotlib',
+                        'hdf5',
+                        'tables'],
       author=AUTHOR,
       author_email=AUTHOR_EMAIL,
       license=LICENSE,
