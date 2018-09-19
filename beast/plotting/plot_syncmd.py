@@ -2,7 +2,7 @@
 # Plots a generic CMD from real or simulated BEAST fitting data
 # PYMJ
 # Created 9/13/18
-# Updated 9/16/18
+# Updated 9/19/18
 
 from __future__ import print_function, division
 import numpy as np
@@ -28,10 +28,6 @@ def main(fitsfile, mag1_filter='F475W', mag2_filter='F814W',
         Keep plot after saving it; default = False
     saveplot:           boolean
         Save plot; default = True
-    xlim:               tuple
-        color limit; default = None
-    ylim:               tuple
-        mag limit; default = None
     """
 
     fits_data = fits.open(fitsfile)
