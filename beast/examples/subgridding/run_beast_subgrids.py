@@ -115,7 +115,7 @@ if __name__ == '__main__':
         parallel = args.nprocs > 1
         if (parallel):
             p = Pool(args.nprocs)
-            for r in p.imap_unordered(function, argument):
+            for r in p.imap_unordered(function, argument, chunksize=1):
                 print(r)
 
         else:
@@ -190,22 +190,25 @@ if __name__ == '__main__':
             return sub_seds_fname
 
         par_tuples = [(i, sub_name)
-                      for i, sub_name in enumerate(custom_sub_pspec)]
+                      for i, sub_name in enumerate(custom_sub_pspec)][subset_slice]
 
         parallel = args.nprocs > 1
         if (parallel):
             p = Pool(args.nprocs)
-            final_sub_names = p.starmap(gen_subgrid, par_tuples)
+            p.starmap(gen_subgrid, par_tuples)
         else:
-            final_sub_names = [gen_subgrid(*pt) for pt in par_tuples]
+            for pt in par_tuples:
+                gen_subgrid(*pt)
 
-        # Save a list of subgrid names
+        # Save a list of subgrid names that we expect to see
+        required_names = ['{}seds.gridsub{}.hd5'.format(file_prefix, i)
+                          for i in range(args.nsubs)]
         with open(subgrid_names_file, 'w') as fname_file:
-            for fname in final_sub_names:
+            for fname in required_names:
                 fname_file.write(fname + '\n')
 
-        seds_fname = '{}seds.grid.hd5'.format(file_prefix)
-        subgridding_tools.merge_grids(seds_fname, final_sub_names)
+        # seds_fname = '{}seds.grid.hd5'.format(file_prefix)
+        # subgridding_tools.merge_grids(seds_fname, final_sub_names)
 
     if args.ast:
         # Determine magnitude range for ASTs
@@ -356,14 +359,18 @@ if __name__ == '__main__':
         trimmed_noisemodelfiles = [
             s.replace('seds', 'noisemodel') for s in trimmed_modelsedgridfiles]
 
+        # File where the ranges and number of unique values for the grid
+        # will be stored (this can take a while to calculate)
+        grid_info_pkl = 'grid_info_dict.pkl'
+
         if args.dens_bin is not None:
             # Use the right subfolder
             trimmed_modelsedgridfiles, trimmed_noisemodelfiles = [
                 [os.path.join(bin_subfolder, f) for f in l]
                 for l in [trimmed_modelsedgridfiles, trimmed_noisemodelfiles]
             ]
+            grid_info_pkl = os.path.join(bin_subfolder, grid_info_pkl)
 
-        grid_info_pkl = 'grid_info_dict.pkl'
         if not os.path.isfile(grid_info_pkl):
             grid_info_dict = subgridding_tools.reduce_grid_info(
                 trimmed_modelsedgridfiles,
