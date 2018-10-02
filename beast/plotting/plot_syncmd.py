@@ -2,7 +2,11 @@
 # Plots a generic CMD from real or simulated BEAST fitting data
 # Petia YMJ
 # Created 9/13/18
+<<<<<<< HEAD
 # Updated 10/02/18
+=======
+# Updated 9/19/18
+>>>>>>> a3202345e0004abe76b3a4eb53eef7b13187a88c
 
 from __future__ import print_function, division
 import numpy as np
@@ -27,6 +31,13 @@ def plot_cmd(fitsfile, mag1_filter='F475W', mag2_filter='F814W',
         2nd color filter; default = 'F814W'
     mag3_filter:        str
         magnitude; default = 'F475W'
+<<<<<<< HEAD
+=======
+    showplot:           boolean
+        Keep plot after saving it; default = False
+    saveplot:           boolean
+        Save plot; default = True
+>>>>>>> a3202345e0004abe76b3a4eb53eef7b13187a88c
     """
 
     fits_data = fits.open(fitsfile)
