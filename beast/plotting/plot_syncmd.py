@@ -1,8 +1,8 @@
 # plot_syncmd.py
 # Plots a generic CMD from real or simulated BEAST fitting data
-# PYMJ
+# Petia YMJ
 # Created 9/13/18
-# Updated 9/16/18
+# Updated 10/02/18
 
 from __future__ import print_function, division
 import numpy as np
@@ -10,8 +10,11 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 from functools import reduce
 
-def main(fitsfile, mag1_filter='F475W', mag2_filter='F814W', 
-         mag3_filter='F475W', showplot=False, saveplot=True):
+from beastplotlib import initialize_parser
+
+
+def plot_cmd(fitsfile, mag1_filter='F475W', mag2_filter='F814W', 
+         mag3_filter='F475W'):
     """ 
     Read in flux from real or simulated data in fitsfile and plot a 
     color-magnitude diagram based on specified filters.
@@ -24,14 +27,6 @@ def main(fitsfile, mag1_filter='F475W', mag2_filter='F814W',
         2nd color filter; default = 'F814W'
     mag3_filter:        str
         magnitude; default = 'F475W'
-    showplot:           boolean
-        Keep plot after saving it; default = False
-    saveplot:           boolean
-        Save plot; default = True
-    xlim:               tuple
-        color limit; default = None
-    ylim:               tuple
-        mag limit; default = None
     """
 
     fits_data = fits.open(fitsfile)
@@ -57,21 +52,45 @@ def main(fitsfile, mag1_filter='F475W', mag2_filter='F814W',
 
     col = mag1 - mag2
 
-    plt.figure(figsize=(9,9))
+    fig = plt.figure(figsize=(9,9))
     plt.plot(col, mag, '.')
 
     plt.gca().invert_yaxis()
     plt.xlabel('%s - %s' % (mag1_filter, mag2_filter))
     plt.ylabel(mag3_filter)
 
-    if '/' in fitsfile:
-        plottitle = fitsfile.rpartition('/')[-1].replace('fits','png')
+    return fig
+
+
+if __name__ == '__main__':
+
+    parser = initialize_parser()
+    parser.add_argument('filename', type=str,
+                        help='Path to FITS file to plot')
+
+    params=['F275W','F336W','F475W','F814W','F110W','F160W']
+    parser.add_argument('--mag1', action='store', default='F475W',
+                        choices=params,
+                        help='Choose filter for mag1 (color=mag1-mag2) \
+                        Must be one of: "{}"'.format('", "'.join(params))
+                        )
+    parser.add_argument('--mag2', action='store', default='F814W',
+                        choices=params,
+                        help='Choose filter for mag2 (color=mag1-mag2) \
+                        Must be one of: "{}"'.format('", "'.join(params))
+                        )
+    parser.add_argument('--magy', action='store', default='F475W',
+                        choices=params,
+                        help='Choose filter for the magnitude \
+                        Must be one of: "{}"'.format('", "'.join(params))
+                        )
+
+    args = parser.parse_args()
+    basename = args.filename.replace('.fits', '_plot')
+    fig = plot_cmd(args.filename, mag1_filter=args.mag1, 
+                   mag2_filter=args.mag2, mag3_filter=args.magy)
+
+    if args.savefig:
+        fig.savefig('{}.{}'.format(basename, args.savefig))
     else:
-        plottitle = fitsfile.replace('fits','png')
-    plt.title(plottitle)
-
-    if saveplot:
-        figname = fitsfile.replace('.fits','.png')
-        plt.savefig('%s' % figname)
-
-    if not showplot: plt.close()
+        plt.show()
