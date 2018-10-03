@@ -35,7 +35,6 @@ from ..tools import helpers
 from ..observationmodel.noisemodel import absflux_covmat
 
 __all__ = ['gen_spectral_grid_from_stellib_given_points',
-           'gen_spectral_grid_from_stellib',
            'make_extinguished_grid',
            'add_spectral_properties',
            'calc_absflux_cov_matrices']
