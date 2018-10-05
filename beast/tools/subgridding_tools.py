@@ -3,7 +3,6 @@ import os
 import re
 from multiprocessing import Pool
 
-import h5py
 import numpy as np
 from astropy.io import fits
 from astropy.table import Table
@@ -35,16 +34,11 @@ def split_grid(grid_fname, num_subgrids):
 
     """
 
-    # With h5py we can choose which data we want to load to memory by
-    # providing a slice
-    h5grid = h5py.File(grid_fname)
-    lamb = h5grid['lamb']
-    seds = h5grid['seds']
-    gr = h5grid['grid']
+    g = grid.FileSEDGrid(grid_fname, backend='hdf')
 
     fnames = []
 
-    num_seds = seds.shape[0]
+    num_seds = len(g.seds)
     q = num_seds // num_subgrids
     r = num_seds % num_subgrids
     for i in range(num_subgrids):
@@ -68,11 +62,11 @@ def split_grid(grid_fname, num_subgrids):
 
         # Load a slice as a SpectralGrid object
         slc = slice(start, stop)
-        g = grid.SpectralGrid(lamb, seds=seds[slc], grid=eztables.Table(gr[slc]),
-                              backend='memory')
+        sub_g = grid.SpectralGrid(g.lamb[:], seds=g.seds[slc],
+                                  grid=eztables.Table(g.grid[slc]), backend='memory')
 
         # Save it to a new file
-        g.writeHDF(subgrid_fname, append=False)
+        sub_g.writeHDF(subgrid_fname, append=False)
 
     return fnames
 
