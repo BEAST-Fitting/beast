@@ -22,7 +22,7 @@ def split_and_check(grid_fname, num_subgrids):
         sub_grids.append(sub_g.grid.data)
 
         np.testing.assert_equal(complete_g.lamb, sub_g.lamb)
-        np.testing.assert_equal(complete_g.grid.columns, sub_g.grid.columns)
+        assert complete_g.grid.columns.items() == sub_g.grid.columns.items()
 
     sub_seds_reconstructed = np.concatenate(sub_seds)
     np.testing.assert_equal(sub_seds_reconstructed, complete_g.seds)
