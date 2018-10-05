@@ -1,5 +1,6 @@
-import numpy as np
+import os
 
+import numpy as np
 from astropy.tests.helper import remote_data
 
 from beast.tools import subgridding_tools
@@ -30,13 +31,19 @@ def split_and_check(grid_fname, num_subgrids):
     sub_grids_reconstructed = np.concatenate(sub_grids)
     np.testing.assert_equal(sub_grids_reconstructed, complete_g.grid.data)
 
+    # the split method skips anything that already exists, so if we
+    # want to use this function multiple times for the same test
+    # grid, we need to do this.
+    for f in sub_fnames:
+        os.remove(f)
+
 @remote_data
 def test_split_grid():
     seds_trim_fname = download_rename('beast_example_phat_seds_trim.grid.hd5')
-    split_and_check(seds_trim_fname, 4) # an even number
-    split_and_check(seds_trim_fname, 3) # an odd numer
-    split_and_check(seds_trim_fname, 1) # an edge case
+    sub_fnames = split_and_check(seds_trim_fname, 1) # an edge case
+    sub_fnames = split_and_check(seds_trim_fname, 3) # an odd numer
+    sub_fnames = split_and_check(seds_trim_fname, 4) # an even number
 
 @remote_data
-def test_reduct_grid_info():
+def test_reduce_grid_info():
     pass
