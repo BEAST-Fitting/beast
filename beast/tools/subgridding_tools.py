@@ -140,7 +140,8 @@ def subgrid_info(grid_fname, noise_fname=None):
         # ranges for these values.
         full_model_flux = seds[:] + noisemodel.root.bias[:]
         logtempseds = np.array(full_model_flux)
-        full_model_flux = np.sign(logtempseds) * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
+        full_model_flux = np.sign(logtempseds)\
+            * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
 
         filters = sedgrid.filters
         for i, f in enumerate(filters):
@@ -366,7 +367,7 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
     # Grid with highest Pmax, for each star
     pmaxes = np.zeros((nobs, nsubgrids))
     for gridnr in range(nsubgrids):
-        pmaxes[:,gridnr] = stats[gridnr]['Pmax']
+        pmaxes[:, gridnr] = stats[gridnr]['Pmax']
     max_pmax_index_per_star = pmaxes.argmax(axis=1)
 
     # Rebuild the stats

@@ -7,10 +7,10 @@ from beast.tools import subgridding_tools
 from beast.tests.helpers import download_rename
 from beast.physicsmodel.grid import FileSEDGrid
 
-def split_and_check(grid_fname, num_subgrids):
-    sub_fnames = subgridding_tools.split_grid(grid_fname, num_subgrids)
 
+def split_and_check(grid_fname, num_subgrids):
     complete_g = FileSEDGrid(grid_fname)
+    sub_fnames = subgridding_tools.split_grid(grid_fname, num_subgrids)
 
     # count the number of grid cells
     sub_seds = []
@@ -37,12 +37,14 @@ def split_and_check(grid_fname, num_subgrids):
     for f in sub_fnames:
         os.remove(f)
 
+
 @remote_data
 def test_split_grid():
     seds_trim_fname = download_rename('beast_example_phat_seds_trim.grid.hd5')
-    sub_fnames = split_and_check(seds_trim_fname, 1) # an edge case
-    sub_fnames = split_and_check(seds_trim_fname, 3) # an odd numer
-    sub_fnames = split_and_check(seds_trim_fname, 4) # an even number
+    split_and_check(seds_trim_fname, 1)  # an edge case
+    split_and_check(seds_trim_fname, 3)  # an odd numer
+    split_and_check(seds_trim_fname, 4)  # an even number
+
 
 @remote_data
 def test_reduce_grid_info():
