@@ -56,10 +56,9 @@ sample call from the command line may be:
 
 .. code:: shell
 
-   $ python plot_cmd.py outfile.fits --mag1 F475W --mag2 F814W \
-                     --magy F475W
+   $ python plot_cmd.py outfile.fits --mag1 F475W --mag2 F814W --magy F475W
 
 where `outfile.fits` may be the output from `tools/simulate_obs.py`.
-`mag1` -  `mag2` is the color, and `magy` the magnitude.
+`mag1`-`mag2` is the color, and `magy` the magnitude.
 By default the figure is saved as `outfile_plot.png` in the directory
 of outfile.fits.
