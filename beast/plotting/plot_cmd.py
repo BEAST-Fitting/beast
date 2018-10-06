@@ -2,7 +2,7 @@
 # Plots a generic CMD from real or simulated BEAST fitting data
 # Petia YMJ
 # Created 9/13/18
-# Updated 10/04/18
+# Updated 10/05/18
 
 from __future__ import print_function, division
 import numpy as np
@@ -13,7 +13,7 @@ from functools import reduce
 from beastplotlib import initialize_parser
 
 
-def plot_cmd(fitsfile, mag1_filter='F475W', mag2_filter='F814W', 
+def plot(fitsfile, mag1_filter='F475W', mag2_filter='F814W', 
          mag3_filter='F475W'):
     """ 
     Read in flux from real or simulated data in fitsfile and plot a 
@@ -32,6 +32,7 @@ def plot_cmd(fitsfile, mag1_filter='F475W', mag2_filter='F814W',
     fits_data = fits.open(fitsfile)
     table = fits_data[1].data
 
+    # Read in band_rate
     mag1_flux = table['%s' % (mag1_filter + '_rate')]
     mag2_flux = table['%s' % (mag2_filter + '_rate')]
     mag_flux = table['%s' % (mag3_filter + '_rate')]
@@ -88,7 +89,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # plot the CMD
-    fig = plot_cmd(args.filename, mag1_filter=args.mag1, 
+    fig = plot(args.filename, mag1_filter=args.mag1, 
                    mag2_filter=args.mag2, mag3_filter=args.magy)
 
     # figname
