@@ -14,6 +14,24 @@ from ..fitting.fit import save_pdf1d
 from ..fitting.fit_metrics import percentile
 
 
+def uniform_slices(num_points, num_slices):
+    q = num_points // num_slices
+    r = num_points % num_slices
+    slices = []
+    for i in range(num_slices):
+        if i < r:
+            start = i * (q + 1)
+            stop = start + q + 1
+        # After the remainder has been taken care of, do strides of q
+        else:
+            start = r * (q + 1) + (i - r) * q
+            stop = start + q
+
+        slices.append(slice(start, stop))
+
+    return slices
+
+
 def split_grid(grid_fname, num_subgrids):
     """
     Splits a spectral or sed grid (they are the same class actually)
@@ -39,9 +57,8 @@ def split_grid(grid_fname, num_subgrids):
     fnames = []
 
     num_seds = len(g.seds)
-    q = num_seds // num_subgrids
-    r = num_seds % num_subgrids
-    for i in range(num_subgrids):
+    slices = uniform_slices(num_seds, num_subgrids)
+    for i, slc in enumerate(slices):
 
         subgrid_fname = grid_fname.replace('.hd5', 'sub{}.hd5'.format(i))
         fnames.append(subgrid_fname)
@@ -51,17 +68,7 @@ def split_grid(grid_fname, num_subgrids):
         else:
             print('constructing subgrid ' + str(i))
 
-        # First, do strides of q+1
-        if i < r:
-            start = i * (q + 1)
-            stop = start + q + 1
-        # After the remainder has been taken care of, do strides of q
-        else:
-            start = r * (q + 1) + (i - r) * q
-            stop = start + q
-
         # Load a slice as a SpectralGrid object
-        slc = slice(start, stop)
         sub_g = grid.SpectralGrid(g.lamb[:], seds=g.seds[slc],
                                   grid=eztables.Table(g.grid[slc]), backend='memory')
 
