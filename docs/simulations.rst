@@ -46,3 +46,19 @@ Trunchen
 The code does not handle the trunchen model at this point.  It is
 straightforward to extend the code for this model, but it has not
 been done yet.
+
+********
+Plotting
+********
+
+To plot a color-magnitide diagram of the simulated observations, a
+sample call from the command line may be:
+
+.. code:: shell
+
+   $ python plot_cmd.py outfile.fits --mag1 F475W --mag2 F814W --magy F475W
+
+where `outfile.fits` may be the output from `tools/simulate_obs.py`.
+`mag1`-`mag2` is the color, and `magy` the magnitude.
+By default the figure is saved as `outfile_plot.png` in the directory
+of outfile.fits.
