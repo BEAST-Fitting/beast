@@ -3,7 +3,6 @@ import os
 import re
 from multiprocessing import Pool
 
-import h5py
 import numpy as np
 from astropy.io import fits
 from astropy.table import Table
@@ -35,16 +34,11 @@ def split_grid(grid_fname, num_subgrids):
 
     """
 
-    # With h5py we can choose which data we want to load to memory by
-    # providing a slice
-    h5grid = h5py.File(grid_fname)
-    lamb = h5grid['lamb']
-    seds = h5grid['seds']
-    gr = h5grid['grid']
+    g = grid.FileSEDGrid(grid_fname, backend='hdf')
 
     fnames = []
 
-    num_seds = seds.shape[0]
+    num_seds = len(g.seds)
     q = num_seds // num_subgrids
     r = num_seds % num_subgrids
     for i in range(num_subgrids):
@@ -68,11 +62,11 @@ def split_grid(grid_fname, num_subgrids):
 
         # Load a slice as a SpectralGrid object
         slc = slice(start, stop)
-        g = grid.SpectralGrid(lamb, seds=seds[slc], grid=eztables.Table(gr[slc]),
-                              backend='memory')
+        sub_g = grid.SpectralGrid(g.lamb[:], seds=g.seds[slc],
+                                  grid=eztables.Table(g.grid[slc]), backend='memory')
 
         # Save it to a new file
-        g.writeHDF(subgrid_fname, append=False)
+        sub_g.writeHDF(subgrid_fname, append=False)
 
     return fnames
 
@@ -146,7 +140,8 @@ def subgrid_info(grid_fname, noise_fname=None):
         # ranges for these values.
         full_model_flux = seds[:] + noisemodel.root.bias[:]
         logtempseds = np.array(full_model_flux)
-        full_model_flux = np.sign(logtempseds) * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
+        full_model_flux = np.sign(logtempseds)\
+            * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
 
         filters = sedgrid.filters
         for i, f in enumerate(filters):
@@ -173,7 +168,7 @@ def unpack_and_subgrid_info(x):
     return subgrid_info(*x)
 
 
-def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
+def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1, cap_unique=1000):
     """
     Computes the total minimum and maximum of the necessary quantities
     across all the subgrids. Can run in parallel.
@@ -188,6 +183,16 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
 
     nprocs: int
         Number of processes to use
+
+    cap_unique: int
+        Stop keeping track of the number of unique values once it
+        reaches this cap. This reduces the memory usage. (Typically, for
+        the fluxes, there are as many unique values as there are grid
+        points. Since we need to store all these values to check if
+        they're unique, a whole column of the grid is basically being
+        stored. This cap fixes this, and everything should keep working
+        in the rest of the code as long as cap_unique is larger than
+        whatever number of bins is being used.).
 
     Returns
     -------
@@ -231,8 +236,9 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
         for q in qs:
             union_min[q] = min(union_min[q], individual_dict[q]['min'])
             union_max[q] = max(union_max[q], individual_dict[q]['max'])
-            union_unique[q] = np.union1d(union_unique[q],
-                                         individual_dict[q]['unique'])
+            if len(union_unique[q]) < cap_unique:
+                union_unique[q] = np.union1d(union_unique[q],
+                                             individual_dict[q]['unique'])
 
     result_dict = {}
     for q in qs:
@@ -361,7 +367,7 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
     # Grid with highest Pmax, for each star
     pmaxes = np.zeros((nobs, nsubgrids))
     for gridnr in range(nsubgrids):
-        pmaxes[:,gridnr] = stats[gridnr]['Pmax']
+        pmaxes[:, gridnr] = stats[gridnr]['Pmax']
     max_pmax_index_per_star = pmaxes.argmax(axis=1)
 
     # Rebuild the stats
