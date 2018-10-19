@@ -32,7 +32,7 @@ def uniform_slices(num_points, num_slices):
     return slices
 
 
-def split_grid(grid_fname, num_subgrids):
+def split_grid(grid_fname, num_subgrids, overwrite=False):
     """
     Splits a spectral or sed grid (they are the same class actually)
     according to grid point index (so basically, arbitrarily).
@@ -44,6 +44,10 @@ def split_grid(grid_fname, num_subgrids):
 
     num_subgrids: integer
         the number of parts the grid should be split into
+
+    overwrite: boolean
+        any subgrids that already exist will be deleted if set to True.
+        If set to False, skip over any grids that are already there.
 
     Returns
     -------
@@ -63,10 +67,13 @@ def split_grid(grid_fname, num_subgrids):
         subgrid_fname = grid_fname.replace('.hd5', 'sub{}.hd5'.format(i))
         fnames.append(subgrid_fname)
         if os.path.isfile(subgrid_fname):
-            print('{} already exists. Skipping.'.format(subgrid_fname))
-            continue
-        else:
-            print('constructing subgrid ' + str(i))
+            if overwrite:
+                os.remove(subgrid_fname)
+            else:
+                print('{} already exists. Skipping.'.format(subgrid_fname))
+                continue
+
+        print('constructing subgrid ' + str(i))
 
         # Load a slice as a SpectralGrid object
         sub_g = grid.SpectralGrid(g.lamb[:], seds=g.seds[slc],
