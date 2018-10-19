@@ -287,9 +287,9 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
 
     Returns
     -------
-    merged_pdf1d_fname: string
-        file name of the resulting pdf1d fits file (newly created by
-        this function)
+    merged_pdf1d_fname, merged_stats_fname: string, string
+        file name of the resulting pdf1d and stats fits files (newly
+        created by this function)
     """
 
     nsubgrids = len(subgrid_pdf1d_fnames)
@@ -464,3 +464,5 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
 
     print('Saved combined 1dpdfs in ' + pdf1d_fname)
     print('Saved combined stats in ' + stats_fname)
+
+    return pdf1d_fname, stats_fname
