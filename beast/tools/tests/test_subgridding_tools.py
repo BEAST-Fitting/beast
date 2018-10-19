@@ -162,7 +162,6 @@ def test_merge_pdf1d_stats():
                                  lnp_outname=subgrid_lnp_fnames[i],
                                  grid_info_dict=grid_info_dict)
 
-
     # Now merge the results
     merged_pdf1d_fname, merged_stats_fname = \
         subgridding_tools.merge_pdf1d_stats(subgrid_pdf1d_fnames,
@@ -203,6 +202,9 @@ def test_merge_pdf1d_stats():
     # bit-correct due do floating point math (exacerbated by exponentials)
     for c in table_new.colnames:
         print(c)
-        np.testing.assert_allclose(
-            table_normal[c], table_new[c], rtol=0.3, atol=1e-2, equal_nan=True)
-
+        if c == 'Name' or c == 'RA' or c == 'DEC':
+            np.testing.assert_equal(table_normal[c], table_new[c],
+                                    err_msg='column {} is not equal'.format(c))
+        else:
+            np.testing.assert_allclose(table_normal[c], table_new[c], rtol=1e-2, atol=1e-2,
+                                       equal_nan=True, err_msg='column {} is not close enough'.format(c))
