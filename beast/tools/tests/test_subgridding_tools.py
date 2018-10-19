@@ -183,6 +183,7 @@ def test_merge_pdf1d_stats():
     # different by a factor
 
     # CHECKS
+    tolerance = 1e-6
     print("comparing pdf1d")
     # fits_cache = fits.open(pdf1d_fname_cache)
     fits_normal = fits.open(normal_pdf1d)
@@ -195,7 +196,7 @@ def test_merge_pdf1d_stats():
         qname = fits_new[k].header['EXTNAME']
         print(qname)
         np.testing.assert_allclose(fits_new[k].data, fits_normal[qname].data,
-                                   rtol=1e-4, atol=1e-4)
+                                   rtol=tolerance, atol=tolerance)
 
     print("comparing stats")
     # table_cache = Table.read(stats_fname_cache)
@@ -212,5 +213,5 @@ def test_merge_pdf1d_stats():
             np.testing.assert_equal(table_normal[c], table_new[c],
                                     err_msg='column {} is not equal'.format(c))
         else:
-            np.testing.assert_allclose(table_normal[c], table_new[c], rtol=1e-4, atol=1e-4,
+            np.testing.assert_allclose(table_normal[c], table_new[c], rtol=tolerance,
                                        equal_nan=True, err_msg='column {} is not close enough'.format(c))
