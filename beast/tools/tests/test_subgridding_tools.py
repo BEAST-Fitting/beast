@@ -160,7 +160,9 @@ def test_merge_pdf1d_stats():
                                  stats_outname=subgrid_stats_fnames[i],
                                  pdf1d_outname=subgrid_pdf1d_fnames[i],
                                  lnp_outname=subgrid_lnp_fnames[i],
-                                 grid_info_dict=grid_info_dict)
+                                 grid_info_dict=grid_info_dict,
+                                 do_not_normalize=True)
+        # The do_not_normalize option is absolutely crucial!
 
     # Now merge the results
     merged_pdf1d_fname, merged_stats_fname = \
@@ -175,7 +177,11 @@ def test_merge_pdf1d_stats():
                              threshold=-40., save_every_npts=100,
                              lnp_npts=60, stats_outname=normal_stats,
                              pdf1d_outname=normal_pdf1d,
-                             lnp_outname=normal_lnp)
+                             lnp_outname=normal_lnp,
+                             do_not_normalize=True)
+    # Here, we also need to use do_not_normalize, otherwise Pmax will be
+    # different by a factor
+
     # CHECKS
     print("comparing pdf1d")
     # fits_cache = fits.open(pdf1d_fname_cache)
