@@ -106,7 +106,7 @@ def test_merge_pdf1d_stats():
     ###########################################################################################
     ## STEP 2: SPLIT THE GRIDS AND GENERATE THE GRID INFO DICT AS IN THE SUBGRIDDING EXAMPLE ##
     ###########################################################################################
-    num_subgrids = 2
+    num_subgrids = 3
 
     # Split SED grid
     sub_seds_trim_fnames = subgridding_tools.split_grid(
