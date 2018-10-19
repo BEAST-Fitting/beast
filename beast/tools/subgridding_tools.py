@@ -71,6 +71,7 @@ def split_grid(grid_fname, num_subgrids):
         # Load a slice as a SpectralGrid object
         sub_g = grid.SpectralGrid(g.lamb[:], seds=g.seds[slc],
                                   grid=eztables.Table(g.grid[slc]), backend='memory')
+        sub_g.grid.header['filters'] = ' '.join(g.filters)
 
         # Save it to a new file
         sub_g.writeHDF(subgrid_fname, append=False)
