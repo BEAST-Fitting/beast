@@ -14,7 +14,25 @@ from ..fitting.fit import save_pdf1d
 from ..fitting.fit_metrics import percentile
 
 
-def split_grid(grid_fname, num_subgrids):
+def uniform_slices(num_points, num_slices):
+    q = num_points // num_slices
+    r = num_points % num_slices
+    slices = []
+    for i in range(num_slices):
+        if i < r:
+            start = i * (q + 1)
+            stop = start + q + 1
+        # After the remainder has been taken care of, do strides of q
+        else:
+            start = r * (q + 1) + (i - r) * q
+            stop = start + q
+
+        slices.append(slice(start, stop))
+
+    return slices
+
+
+def split_grid(grid_fname, num_subgrids, overwrite=False):
     """
     Splits a spectral or sed grid (they are the same class actually)
     according to grid point index (so basically, arbitrarily).
@@ -26,6 +44,10 @@ def split_grid(grid_fname, num_subgrids):
 
     num_subgrids: integer
         the number of parts the grid should be split into
+
+    overwrite: boolean
+        any subgrids that already exist will be deleted if set to True.
+        If set to False, skip over any grids that are already there.
 
     Returns
     -------
@@ -39,31 +61,24 @@ def split_grid(grid_fname, num_subgrids):
     fnames = []
 
     num_seds = len(g.seds)
-    q = num_seds // num_subgrids
-    r = num_seds % num_subgrids
-    for i in range(num_subgrids):
+    slices = uniform_slices(num_seds, num_subgrids)
+    for i, slc in enumerate(slices):
 
         subgrid_fname = grid_fname.replace('.hd5', 'sub{}.hd5'.format(i))
         fnames.append(subgrid_fname)
         if os.path.isfile(subgrid_fname):
-            print('{} already exists. Skipping.'.format(subgrid_fname))
-            continue
-        else:
-            print('constructing subgrid ' + str(i))
+            if overwrite:
+                os.remove(subgrid_fname)
+            else:
+                print('{} already exists. Skipping.'.format(subgrid_fname))
+                continue
 
-        # First, do strides of q+1
-        if i < r:
-            start = i * (q + 1)
-            stop = start + q + 1
-        # After the remainder has been taken care of, do strides of q
-        else:
-            start = r * (q + 1) + (i - r) * q
-            stop = start + q
+        print('constructing subgrid ' + str(i))
 
         # Load a slice as a SpectralGrid object
-        slc = slice(start, stop)
         sub_g = grid.SpectralGrid(g.lamb[:], seds=g.seds[slc],
                                   grid=eztables.Table(g.grid[slc]), backend='memory')
+        sub_g.grid.header['filters'] = ' '.join(g.filters)
 
         # Save it to a new file
         sub_g.writeHDF(subgrid_fname, append=False)
@@ -272,9 +287,9 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
 
     Returns
     -------
-    merged_pdf1d_fname: string
-        file name of the resulting pdf1d fits file (newly created by
-        this function)
+    merged_pdf1d_fname, merged_stats_fname: string, string
+        file name of the resulting pdf1d and stats fits files (newly
+        created by this function)
     """
 
     nsubgrids = len(subgrid_pdf1d_fnames)
@@ -449,3 +464,5 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
 
     print('Saved combined 1dpdfs in ' + pdf1d_fname)
     print('Saved combined stats in ' + stats_fname)
+
+    return pdf1d_fname, stats_fname
