@@ -6,12 +6,14 @@ from astropy import units
 
 from . import grid
 from . import creategrid
-from .stars import isochrone
+from .stars import (isochrone, stellib)
 from .stars.isochrone import ezIsoch
+from .dust import extinction
 from .grid_and_prior_weights import compute_age_mass_metallicity_weights
 
 __all__ = ['make_iso_table', 'make_spectral_grid', 'add_stellar_priors',
            'make_extinguished_sed_grid']
+
 
 def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
                    z=[0.0152], iso_fname=None):
@@ -55,7 +57,8 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
 
         t = oiso._get_t_isochrones(max(5.0, logtmin), min(10.13, logtmax),
                                    dlogt, z)
-        t.header['NAME'] = '{0} Isochrones'.format('_'.join(iso_fname.split('_')[:-1]))
+        t.header['NAME'] = '{0} Isochrones'.format(
+            '_'.join(iso_fname.split('_')[:-1]))
         print('{0} Isochrones'.format('_'.join(iso_fname.split('_')[:-1])))
 
         t.write(iso_fname)
@@ -65,6 +68,7 @@ def make_iso_table(project, oiso=None, logtmin=6.0, logtmax=10.13, dlogt=0.05,
     oiso = ezIsoch(iso_fname)
 
     return (iso_fname, oiso)
+
 
 def make_spectral_grid(project, oiso, osl=None, bounds={},
                        verbose=True, spec_fname=None,
@@ -137,9 +141,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         # make the spectral grid
         if verbose:
             print('Make spectra')
-        g = creategrid.gen_spectral_grid_from_stellib_given_points(osl,
-                                                                   oiso.data,
-                                                               bounds=bounds)
+        g = creategrid.gen_spectral_grid_from_stellib_given_points(
+            osl, oiso.data, bounds=bounds)
 
         # Construct the distances array. Turn single value into
         # 1-element list if single distance is given.
@@ -150,7 +153,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         elif len(_distance) == 1:
             distances = np.array(_distance)
         else:
-            raise ValueError("distance needs to be (min, max, step) or single number")
+            raise ValueError(
+                "distance needs to be (min, max, step) or single number")
 
         # calculate the distances in pc
         if distance_unit == units.mag:
@@ -176,10 +180,9 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                                                redshift=redshift)
 
             if add_spectral_properties_kwargs is not None:
-                g = creategrid.add_spectral_properties(g,
-                                                       nameformat=nameformat,
-                                                       filterLib=filterLib,
-                                            **add_spectral_properties_kwargs)
+                g = creategrid.add_spectral_properties(
+                    g, nameformat=nameformat, filterLib=filterLib,
+                    **add_spectral_properties_kwargs)
 
             return g
 
@@ -195,6 +198,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
     g = grid.FileSpectralGrid(spec_fname, backend='memory')
 
     return (spec_fname, g)
+
 
 def add_stellar_priors(project, specgrid, verbose=True,
                        priors_fname=None,
@@ -230,7 +234,7 @@ def add_stellar_priors(project, specgrid, verbose=True,
 
         compute_age_mass_metallicity_weights(specgrid.grid, **kwargs)
 
-        #write to disk
+        # write to disk
         if hasattr(specgrid, 'writeHDF'):
             specgrid.writeHDF(priors_fname)
         else:
@@ -331,28 +335,25 @@ def make_extinguished_sed_grid(project,
 
         if fA is not None:
             fAs = np.arange(fA[0], fA[1] + 0.5 * fA[2], fA[2])
-            g = creategrid.make_extinguished_grid(specgrid,
-                                                  filters,
-                                                  extLaw,
-                                                  avs,
-                                                  rvs,
-                                                  fAs,
-                                                  av_prior_model=av_prior_model,
-                                                  rv_prior_model=rv_prior_model,
-                                                  fA_prior_model=fA_prior_model,
+            g = creategrid.make_extinguished_grid(
+                specgrid, filters, extLaw,
+                avs, rvs, fAs,
+                av_prior_model=av_prior_model,
+                rv_prior_model=rv_prior_model,
+                fA_prior_model=fA_prior_model,
                 add_spectral_properties_kwargs=add_spectral_properties_kwargs,
-                                                  absflux_cov=absflux_cov,
-                                                  filterLib=filterLib)
+                absflux_cov=absflux_cov,
+                filterLib=filterLib)
         else:
-            g = creategrid.make_extinguished_grid(specgrid, filters, extLaw,
-                                                  avs,
-                                                  rvs,
-                                                  av_prior_model=av_prior_model,
-                                                  rv_prior_model=rv_prior_model,
-                  add_spectral_properties_kwargs=add_spectral_properties_kwargs,
-                                                  absflux_cov=absflux_cov)
+            g = creategrid.make_extinguished_grid(
+                specgrid, filters, extLaw,
+                avs, rvs,
+                av_prior_model=av_prior_model,
+                rv_prior_model=rv_prior_model,
+                add_spectral_properties_kwargs=add_spectral_properties_kwargs,
+                absflux_cov=absflux_cov)
 
-        #write to disk
+        # write to disk
         if hasattr(g, 'writeHDF'):
             g.writeHDF(seds_fname)
         else:
