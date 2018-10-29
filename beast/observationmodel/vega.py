@@ -63,7 +63,8 @@ class Vega(object):
             FNAME  = s.hdf.root.sed.cols.FNAME[:]
             MAG    = s.hdf.root.sed.cols.MAG[:]
             CWAVE  = s.hdf.root.sed.cols.CWAVE[:]
-        idx = numpy.asarray([ numpy.where( FNAME == k) for k in filters ])
+        idx = numpy.asarray([ numpy.where( FNAME == k.encode('utf-8') )
+                              for k in filters ])
         return numpy.ravel(FNAME[idx]), numpy.ravel(MAG[idx]), numpy.ravel(CWAVE[idx])
 
 
