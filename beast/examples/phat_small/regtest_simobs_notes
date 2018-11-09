@@ -1,0 +1,4 @@
+# To create a new cached file for the regression tests for simulated obs
+# run the following on the commandline in the phat_small directory
+
+../../tools/simulate_obs.py --nsim 100 --compl_filter=F475W --ranseed 1234 beast_example_phat/beast_example_phat_seds.grid.hd5 beast_example_phat/beast_example_phat_noisemodel.hd5 beast_example_phat/beast_example_phat_simobs.fits

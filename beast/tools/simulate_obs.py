@@ -15,10 +15,12 @@ if __name__ == '__main__':
                         help='filename of observation/nosie grid')
     parser.add_argument("outfile",
                         help='filename for simulated observations')
-    parser.add_argument('--nsim', default=100,
+    parser.add_argument('--nsim', default=100, type=int,
                         help='number of simulated objects')
     parser.add_argument('--compl_filter', default='F475W',
                         help='filter name to use for completeness')
+    parser.add_argument('--ranseed', default=None, type=int,
+                        help='seed for random number generator')
     args = parser.parse_args()
 
     # get the physics model grid - includes priors
@@ -29,6 +31,7 @@ if __name__ == '__main__':
 
     simtable = gen_SimObs_from_sedgrid(modelsedgrid, noisegrid,
                                        nsim=args.nsim,
-                                       compl_filter=args.compl_filter)
+                                       compl_filter=args.compl_filter,
+                                       ranseed=args.ranseed)
 
     simtable.write(args.outfile, overwrite=True)

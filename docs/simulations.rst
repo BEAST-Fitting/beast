@@ -30,7 +30,7 @@ The filter to use for the completeness function is given by the
 
 .. code:: shell
 
-   $ python simulate.py physicsgrid obsgrid outfile \
+   $ python simulate_obs.py physicsgrid obsgrid outfile \
                 --nsim 200 --compl_filter f475w
 
 The output file gives the simulated data in the observed data columns
