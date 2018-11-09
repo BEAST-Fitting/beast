@@ -229,7 +229,6 @@ def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
     # sample to get the indexes of the picked models
     indx = range(n_models)
     sim_indx = np.random.choice(indx, size=nsim, p=gridweights)
-    print(sim_indx)
 
     # get the vega fluxes for the filters
     _, vega_flux, _ = Vega(source=vega_fname).getFlux(sedgrid.filters)
