@@ -4,8 +4,9 @@ import os
 
 __all__ = ['create_project_dir']
 
+
 def create_project_dir(project):
-    """ 
+    """
     Create the project directory if necessary
 
     Parameters
@@ -26,7 +27,9 @@ def create_project_dir(project):
     outdir = project
     if os.path.exists(outdir):
         if not os.path.isdir(outdir):
-            raise Exception('Output directory %s already exists but is not a directory' % outdir)
+            raise Exception(
+                'Output directory %s already exists but is not a directory'
+                % outdir)
     else:
         os.mkdir(outdir)
     return '%s/%s' % (outdir, project)

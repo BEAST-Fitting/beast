@@ -1,5 +1,5 @@
 {
-	"version": [1.0],
+	"version": [1.2],
 	"url": "http://waps.cfa.harvard.edu/MIST/interp_isos.html",
 	"request_url": "http://waps.cfa.harvard.edu/MIST/iso_form.php",
 	"download_url": "http://waps.cfa.harvard.edu/MIST/",
@@ -37,7 +37,7 @@
 		],
 	"Av_value": 0,
 	"defaults": {
-		"version": 1.0,
+		"version": 1.2,
 		"v_div_vcrit": "vvcrit0.0",
 		"age_scale": "log10",
 		"age_type": "standard",

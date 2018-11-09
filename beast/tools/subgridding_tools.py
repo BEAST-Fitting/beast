@@ -3,7 +3,6 @@ import os
 import re
 from multiprocessing import Pool
 
-import h5py
 import numpy as np
 from astropy.io import fits
 from astropy.table import Table
@@ -15,7 +14,25 @@ from ..fitting.fit import save_pdf1d
 from ..fitting.fit_metrics import percentile
 
 
-def split_grid(grid_fname, num_subgrids):
+def uniform_slices(num_points, num_slices):
+    q = num_points // num_slices
+    r = num_points % num_slices
+    slices = []
+    for i in range(num_slices):
+        if i < r:
+            start = i * (q + 1)
+            stop = start + q + 1
+        # After the remainder has been taken care of, do strides of q
+        else:
+            start = r * (q + 1) + (i - r) * q
+            stop = start + q
+
+        slices.append(slice(start, stop))
+
+    return slices
+
+
+def split_grid(grid_fname, num_subgrids, overwrite=False):
     """
     Splits a spectral or sed grid (they are the same class actually)
     according to grid point index (so basically, arbitrarily).
@@ -28,6 +45,10 @@ def split_grid(grid_fname, num_subgrids):
     num_subgrids: integer
         the number of parts the grid should be split into
 
+    overwrite: boolean
+        any subgrids that already exist will be deleted if set to True.
+        If set to False, skip over any grids that are already there.
+
     Returns
     -------
     list of string
@@ -35,44 +56,32 @@ def split_grid(grid_fname, num_subgrids):
 
     """
 
-    # With h5py we can choose which data we want to load to memory by
-    # providing a slice
-    h5grid = h5py.File(grid_fname)
-    lamb = h5grid['lamb']
-    seds = h5grid['seds']
-    gr = h5grid['grid']
+    g = grid.FileSEDGrid(grid_fname, backend='hdf')
 
     fnames = []
 
-    num_seds = seds.shape[0]
-    q = num_seds // num_subgrids
-    r = num_seds % num_subgrids
-    for i in range(num_subgrids):
+    num_seds = len(g.seds)
+    slices = uniform_slices(num_seds, num_subgrids)
+    for i, slc in enumerate(slices):
 
         subgrid_fname = grid_fname.replace('.hd5', 'sub{}.hd5'.format(i))
         fnames.append(subgrid_fname)
         if os.path.isfile(subgrid_fname):
-            print('{} already exists. Skipping.'.format(subgrid_fname))
-            continue
-        else:
-            print('constructing subgrid ' + str(i))
+            if overwrite:
+                os.remove(subgrid_fname)
+            else:
+                print('{} already exists. Skipping.'.format(subgrid_fname))
+                continue
 
-        # First, do strides of q+1
-        if i < r:
-            start = i * (q + 1)
-            stop = start + q + 1
-        # After the remainder has been taken care of, do strides of q
-        else:
-            start = r * (q + 1) + (i - r) * q
-            stop = start + q
+        print('constructing subgrid ' + str(i))
 
         # Load a slice as a SpectralGrid object
-        slc = slice(start, stop)
-        g = grid.SpectralGrid(lamb, seds=seds[slc], grid=eztables.Table(gr[slc]),
-                              backend='memory')
+        sub_g = grid.SpectralGrid(g.lamb[:], seds=g.seds[slc],
+                                  grid=eztables.Table(g.grid[slc]), backend='memory')
+        sub_g.grid.header['filters'] = ' '.join(g.filters)
 
         # Save it to a new file
-        g.writeHDF(subgrid_fname, append=False)
+        sub_g.writeHDF(subgrid_fname, append=False)
 
     return fnames
 
@@ -146,7 +155,8 @@ def subgrid_info(grid_fname, noise_fname=None):
         # ranges for these values.
         full_model_flux = seds[:] + noisemodel.root.bias[:]
         logtempseds = np.array(full_model_flux)
-        full_model_flux = np.sign(logtempseds) * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
+        full_model_flux = np.sign(logtempseds)\
+            * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
 
         filters = sedgrid.filters
         for i, f in enumerate(filters):
@@ -173,7 +183,7 @@ def unpack_and_subgrid_info(x):
     return subgrid_info(*x)
 
 
-def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
+def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1, cap_unique=1000):
     """
     Computes the total minimum and maximum of the necessary quantities
     across all the subgrids. Can run in parallel.
@@ -188,6 +198,16 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
 
     nprocs: int
         Number of processes to use
+
+    cap_unique: int
+        Stop keeping track of the number of unique values once it
+        reaches this cap. This reduces the memory usage. (Typically, for
+        the fluxes, there are as many unique values as there are grid
+        points. Since we need to store all these values to check if
+        they're unique, a whole column of the grid is basically being
+        stored. This cap fixes this, and everything should keep working
+        in the rest of the code as long as cap_unique is larger than
+        whatever number of bins is being used.).
 
     Returns
     -------
@@ -231,8 +251,9 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1):
         for q in qs:
             union_min[q] = min(union_min[q], individual_dict[q]['min'])
             union_max[q] = max(union_max[q], individual_dict[q]['max'])
-            union_unique[q] = np.union1d(union_unique[q],
-                                         individual_dict[q]['unique'])
+            if len(union_unique[q]) < cap_unique:
+                union_unique[q] = np.union1d(union_unique[q],
+                                             individual_dict[q]['unique'])
 
     result_dict = {}
     for q in qs:
@@ -266,9 +287,9 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
 
     Returns
     -------
-    merged_pdf1d_fname: string
-        file name of the resulting pdf1d fits file (newly created by
-        this function)
+    merged_pdf1d_fname, merged_stats_fname: string, string
+        file name of the resulting pdf1d and stats fits files (newly
+        created by this function)
     """
 
     nsubgrids = len(subgrid_pdf1d_fnames)
@@ -361,7 +382,7 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
     # Grid with highest Pmax, for each star
     pmaxes = np.zeros((nobs, nsubgrids))
     for gridnr in range(nsubgrids):
-        pmaxes[:,gridnr] = stats[gridnr]['Pmax']
+        pmaxes[:, gridnr] = stats[gridnr]['Pmax']
     max_pmax_index_per_star = pmaxes.argmax(axis=1)
 
     # Rebuild the stats
@@ -443,3 +464,5 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames, output_fname_b
 
     print('Saved combined 1dpdfs in ' + pdf1d_fname)
     print('Saved combined stats in ' + stats_fname)
+
+    return pdf1d_fname, stats_fname

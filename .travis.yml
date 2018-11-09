@@ -75,7 +75,7 @@ matrix:
 
         # Do a coverage test.
         - os: linux
-          env: SETUP_CMD='test -a "--mpl" --remote-data --coverage'
+          env: SETUP_CMD='test --remote-data --coverage'
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time

@@ -47,14 +47,14 @@ Grid Definition Parameters
 --------------------------
 
 The BEAST generates a grid of stellar models based on aditional input parameters
-from datamodel.py.
+from datamodel.py. See <beast_grid_inputs.rst> for details on model libraries.
 
 * ``distances``: distance grid range parameters. ``[min, max, step]``, or ``[fixed number]``.
 * ``distance_unit``: specify magnitude (``units.mag``) or a length unit
 * ``logt``: age grid range parameters (min, max, step).
 * ``z``: metallicity grid points.
-* ``oiso``: isochrone model grid. Current choices: Padova or MIST. Default: PARSEC+CALIBRI: ``oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)``
-* ``osl``: stellar library definition. Options include Kurucz, `Tlusty`_, `BTSettl`_, Munari, Elodie and BaSel. You can also generate an object from the union of multiple individual libraries: ``osl = stellib.Tlusty() + stellib.Kurucz()``
+* ``oiso``: isochrone model grid. Current choices: Padova or MIST. Default: PARSEC+CALIBRI: ``oiso = isochrone.PadovaWeb()``
+* ``osl``: stellar library definition. Options include Kurucz, Tlusty, BTSettl, Munari, Elodie and BaSel. You can also generate an object from the union of multiple individual libraries: ``osl = stellib.Tlusty() + stellib.Kurucz()``
 
 * ``extLaw``: extinction law definition.
 
@@ -503,9 +503,3 @@ The filters currently included in the BEAST filter library are as follows.
 +--------------------------+
 | GROUND_SDSS_Z            |
 +--------------------------+
-
-
-.. _BTSettl:  https://phoenix.ens-lyon.fr/Grids/BT-Settl/
-.. _TLusty:  http://nova.astro.umd.edu/Tlusty2002/database/
-.. _Munari:  http://archives.pd.astro.it/2500-10500/
-.. _BaSel:  http://www.astro.unibas.ch/BaSeL_files/BaSeL2_2.tar.gz
