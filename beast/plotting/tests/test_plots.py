@@ -27,6 +27,7 @@ def _download_rename(filename):
     os.rename(fname_dld, fname)
     return fname
 
+@unittest.skip("awaiting fix for pytest-mpl")
 @remote_data
 @pytest.mark.mpl_image_compare
 def test_indiv_plot():
