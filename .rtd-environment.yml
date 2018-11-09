@@ -10,5 +10,6 @@ dependencies:
     - numpy
     - scipy
     - pytables
+    - pytest-mpl
 #   - pip:
 #       - dependency_from_pip
