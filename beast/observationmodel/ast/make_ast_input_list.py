@@ -11,6 +11,7 @@ from astropy.table import Column
 
 from ..vega import Vega
 
+import pdb
 
 def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
     """
@@ -267,6 +268,10 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
 
     # Convert to Vega mags
     sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
+
+    # make sure Nfilters isn't larger than the total number of filters
+    if Nfilters > len(filters):
+        Nfilters = len(filters)
 
     # Select the models above the magnitude limits in N filters
     idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
