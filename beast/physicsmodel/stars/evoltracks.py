@@ -70,10 +70,49 @@ class EvolTracks(object):
         if yval not in self.data.keys():
             raise ValueError("yval choice not in data table")
 
-        ax.plot(self.data[xval], self.data[yval])
+        # get uniq M_ini values
+        uvals, indices = np.unique(self.data['M_ini'], return_inverse=True)
+        for k, cval in enumerate(uvals):
+            cindxs = np.where(k == indices)
+            ax.plot(self.data[xval][cindxs], self.data[yval][cindxs])
 
         ax.set_xlabel(self.alabels[xval])
         ax.set_ylabel(self.alabels[yval])
+
+        if xval is 'logT':
+            xmin, xmax = ax.get_xlim()
+            ax.set_xlim(xmax, xmin)
+
+    def grid_metrics(self, target_delta=0.05):
+        """
+        Compute metrics of the grid
+        Primarily to determine how well parameter space is covered
+        """
+        # loop over the initial mass values
+        uvals, indices = np.unique(self.data['M_ini'], return_inverse=True)
+        for k, cval in enumerate(uvals):
+            cindxs, = np.where(k == indices)
+            delta_logL = np.absolute(self.data['logL'][cindxs[1:]]
+                                     - self.data['logL'][cindxs[0:-1]])
+            delta_logT = np.absolute(self.data['logT'][cindxs[1:]]
+                                     - self.data['logT'][cindxs[0:-1]])
+            nindxs = [0]
+            cdelt_logL = 0.0
+            cdelt_logT = 0.0
+            for i in range(len(delta_logL)):
+                if ((cdelt_logL > target_delta)
+                        or (cdelt_logT > target_delta)):
+                    nindxs.append(i+1)
+                    cdelt_logL = 0.0
+                    cdelt_logT = 0.0
+                else:
+                    cdelt_logL += delta_logL[i]
+                    cdelt_logT += delta_logT[i]
+            if not max(nindxs) == (len(delta_logL) + 1):
+                nindxs.append((len(delta_logL) + 1))
+
+            print(cval, len(cindxs), len(nindxs), np.median(delta_logL),
+                  np.median(delta_logT))
 
 
 class ETParsec(EvolTracks):
@@ -127,6 +166,7 @@ class ETMist(EvolTracks):
             files = [files]
 
         mass_act = np.array([])
+        mass_ini = np.array([])
         logA = np.array([])
         logL = np.array([])
         logT = np.array([])
@@ -135,7 +175,10 @@ class ETMist(EvolTracks):
         eep = np.array([])
         for cfile in files:
             a = Table.read(cfile, format='ascii', header_start=11)
-            mass_act = np.concatenate((mass_act, a['star_mass'].data))
+            tmass = a['star_mass'].data
+            mass_act = np.concatenate((mass_act, tmass))
+            mass_ini = np.concatenate((mass_ini,
+                                       np.full((len(tmass)), max(tmass))))
             logA = np.concatenate((logA, np.log10(a['star_age'].data)))
             logL = np.concatenate((logL, a['log_L'].data))
             logT = np.concatenate((logT, a['log_Teff'].data))
@@ -145,7 +188,7 @@ class ETMist(EvolTracks):
 
         self.data = {}
         self.data['M_act'] = mass_act
-        self.data['M_ini'] = np.full((len(mass_act)), max(mass_act))
+        self.data['M_ini'] = mass_ini
         self.data['logA'] = logA
         self.data['logL'] = logL
         self.data['logT'] = logT
