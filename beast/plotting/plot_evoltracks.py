@@ -35,7 +35,7 @@ if __name__ == '__main__':
     # plot, plot, plot
     et.plot_tracks(ax[0, 0], xval='logT', yval='logL')
     et.plot_tracks(ax[1, 1], xval='logA', yval='phase')
-    et.plot_tracks(ax[0, 1], xval='logA', yval='eep')
+    et.plot_tracks(ax[0, 1], xval='eep', yval='M_ini')
     et.plot_tracks(ax[1, 0], xval='logT', yval='logg')
 
     fig.tight_layout()

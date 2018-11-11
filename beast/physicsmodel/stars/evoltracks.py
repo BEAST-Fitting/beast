@@ -83,33 +83,60 @@ class EvolTracks(object):
             xmin, xmax = ax.get_xlim()
             ax.set_xlim(xmax, xmin)
 
-    def grid_metrics(self, target_delta=0.05):
+    def grid_metrics(self, target_delta=0.01):
         """
         Compute metrics of the grid
         Primarily to determine how well parameter space is covered
+
+        Parameters
+        ----------
+        target_delta : float, optional
+            target delta in log space for new grid
         """
         # loop over the initial mass values
         uvals, indices = np.unique(self.data['M_ini'], return_inverse=True)
         for k, cval in enumerate(uvals):
             cindxs, = np.where(k == indices)
-            delta_logL = np.absolute(self.data['logL'][cindxs[1:]]
-                                     - self.data['logL'][cindxs[0:-1]])
-            delta_logT = np.absolute(self.data['logT'][cindxs[1:]]
-                                     - self.data['logT'][cindxs[0:-1]])
+            delta_logL = np.absolute(np.diff(self.data['logL'][cindxs]))
+            delta_logT = np.absolute(np.diff(self.data['logT'][cindxs]))
             nindxs = [0]
             cdelt_logL = 0.0
             cdelt_logT = 0.0
             for i in range(len(delta_logL)):
+                cdelt_logL += delta_logL[i]
+                cdelt_logT += delta_logT[i]
                 if ((cdelt_logL > target_delta)
                         or (cdelt_logT > target_delta)):
                     nindxs.append(i+1)
                     cdelt_logL = 0.0
                     cdelt_logT = 0.0
-                else:
-                    cdelt_logL += delta_logL[i]
-                    cdelt_logT += delta_logT[i]
-            if not max(nindxs) == (len(delta_logL) + 1):
-                nindxs.append((len(delta_logL) + 1))
+
+            if not max(nindxs) == len(delta_logL):
+                nindxs.append(len(delta_logL))
+
+            print(cval, len(cindxs), len(nindxs), np.median(delta_logL),
+                  np.median(delta_logT))
+
+        # loop over eep values
+        uvals, indices = np.unique(self.data['eep'], return_inverse=True)
+        for k, cval in enumerate(uvals):
+            cindxs, = np.where(k == indices)
+            delta_logL = np.absolute(np.diff(self.data['logL'][cindxs]))
+            delta_logT = np.absolute(np.diff(self.data['logT'][cindxs]))
+            nindxs = [0]
+            cdelt_logL = 0.0
+            cdelt_logT = 0.0
+            for i in range(len(delta_logL)):
+                cdelt_logL += delta_logL[i]
+                cdelt_logT += delta_logT[i]
+                if ((cdelt_logL > target_delta)
+                        or (cdelt_logT > target_delta)):
+                    nindxs.append(i+1)
+                    cdelt_logL = 0.0
+                    cdelt_logT = 0.0
+
+            if not max(nindxs) == len(delta_logL):
+                nindxs.append(len(delta_logL))
 
             print(cval, len(cindxs), len(nindxs), np.median(delta_logL),
                   np.median(delta_logT))
@@ -188,7 +215,7 @@ class ETMist(EvolTracks):
 
         self.data = {}
         self.data['M_act'] = mass_act
-        self.data['M_ini'] = mass_ini
+        self.data['M_ini'] = np.log10(mass_ini)
         self.data['logA'] = logA
         self.data['logL'] = logL
         self.data['logT'] = logT
