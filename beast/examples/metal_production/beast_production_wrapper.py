@@ -160,8 +160,15 @@ def beast_production_wrapper():
         # -----------------
 
         # only create an AST input list if the ASTs don't already exist
+        ast_input_file = './' + field_names[b] + '_beast/' + field_names[b] + '_inputAST.txt'
+            
         if not os.path.isfile(ast_file):
-            run_beast_production(gst_file, ast=True)
+            if not os.path.isfile(ast_input_file):
+                print('')
+                print('creating artificial stars')
+                print('')
+                run_beast_production(gst_file, ast=True)
+                
             print('\n**** go run ASTs for '+field_names[b]+'! ****\n')
             continue
        
