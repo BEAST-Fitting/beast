@@ -163,8 +163,10 @@ def run_beast_production(basename,
             mag_cuts = min_mags + tmp_cuts
 
         outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
-        pick_models(modelsedgridfile, datamodel.filters, mag_cuts, Nfilter=Nfilters,
-                    N_stars=N_models, Nrealize=Nrealize, outfile=outfile)
+        outfile_params = './' + datamodel.project + '/' + datamodel.project + '_ASTparams.fits'
+        chosen_seds = pick_models(modelsedgridfile, datamodel.filters,
+                                  mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize,
+                                  outfile=outfile, outfile_params=outfile_params)
 
         if datamodel.ast_with_positions == True:
             separation = datamodel.ast_pixel_distribution

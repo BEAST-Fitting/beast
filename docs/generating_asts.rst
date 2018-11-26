@@ -105,3 +105,8 @@ DOLPHOT to define the input star position.
 
 In case the new method is used, which samples by background density, this number
 will be multiplied by the number of background density bins chosen.
+
+The code will also optionally output a fits file, `[project]/[project]_ASTparams.fits`,
+which has the physical parameters associated with each of the artificial stars.  It
+has `<number of ages> * ast_models_selected_per_age` lines, and has the same
+columns as the main SED grid file.
