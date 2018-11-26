@@ -31,12 +31,39 @@ def main():
     parser.add_argument('--nointeract', action='store_true')
     args = parser.parse_args()
 
-    ref_base = os.path.basename(args.reference).replace('.fits', '')
-    hdul = astropy.io.fits.open(args.reference)
+    
+    create_background_density_map(args.catfile,
+                                      npix=args.npix,
+                                      reference=args.reference,
+                                      nointeract=args.nointeract)
+
+
+def create_background_density_map(catfile, npix=10, reference=None, nointeract=True):
+    """
+    Wrapper for all of the background density and plotting functions
+    
+    Parameters
+    ==========
+    catfile : string
+        catalog FITS file
+
+    npix : int
+        resolution of the background map (number of pixels in each dimension)
+
+    reference : string or None
+        image to be used for background calculations
+
+    nointeract : boolean (default=True)
+        if False, will show the background map (in addition to saving it)
+    
+    """
+
+    ref_base = os.path.basename(reference).replace('.fits', '')
+    hdul = astropy.io.fits.open(reference)
     image = hdul[1]
 
     result = make_background_map(
-        args.catfile, args.npix, ref_im=image, outfile_base=ref_base)
+        catfile, npix, ref_im=image, outfile_base=ref_base)
 
     bg_map = result['background_map']
     n_map = result['nsources_map']
@@ -60,7 +87,7 @@ def main():
         plot_on_image(image, bg_map, ra_grid, dec_grid, mask=mask,
                       title=ref_base)
 
-    if not args.nointeract:
+    if not nointeract:
         plt.show()
 
 
