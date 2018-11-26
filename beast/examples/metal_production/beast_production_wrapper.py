@@ -125,7 +125,7 @@ def beast_production_wrapper():
         # new file name with the source density column
         gst_file_new = gst_file.replace('.fits', '_with_sourceden.fits')
 
-        if not os.path.isfile(gst_file_new):
+        if len(glob.glob(gst_file_new.replace('.fits','*sub*fits') )) == 0:
 
             # a smaller value for Ns_file will mean more individual files/runs,
             # but each run will take a shorter amount of time
