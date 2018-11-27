@@ -6,6 +6,7 @@ import os
 
 from run_beast_production import run_beast_production
 from beast.tools import create_source_density_map
+from beast.tools import create_background_density_map
 from beast.tools import subdivide_obscat_by_source_density
 from beast.tools import merge_beast_stats
 from beast.tools import setup_batch_beast_trim
@@ -36,6 +37,7 @@ def beast_production_wrapper():
         - datamodel_template.py: setting up the file with desired parameters
         - here: list the catalog filter names with the corresponding BEAST names
         - here: choose settings (pixel size, filter, mag range) for the source density map
+        - here: choose settings (pixel size, reference image) for the background map
         - here: choose settings (filter, number per file) for dividing catalog by source density
         - here: choose settings (# files, nice level) for the trimming/fitting batch scripts
     * process the ASTs, as described in BEAST documentation
@@ -83,7 +85,8 @@ def beast_production_wrapper():
         # paths for the data/AST files
         gst_file = './data/' + field_names[b]+'.gst.fits'
         ast_file = './data/' + field_names[b]+'.gst.fake.fits'
-
+        # path for the reference image (if using for the background map)
+        im_file = './data/'+field_names[b]+'_F475W.fits.gz'
         
         # -----------------
         # make datamodel file
@@ -113,7 +116,28 @@ def beast_production_wrapper():
             create_source_density_map.make_source_dens_map(gst_file, pix_size=10,
                                                             mag_name='F475W_VEGA', mag_cut=[17,27])
 
+        # new file name with the source density column
+        gst_file_new = gst_file.replace('.fits', '_with_sourceden.fits')
+
         
+        # -----------------
+        # make a background map
+        # -----------------
+
+        print('')
+        print('making background map')
+        print('')
+        
+        if not os.path.isfile(gst_file.replace('.fits','_background_map.hd5')):
+            # - pixel size of 10 arcsec
+            # - use F475W between vega mags of 17 and 27
+            create_background_density_map.create_background_density_map(gst_file_new, npix=15,
+                                                            reference=im_file)
+
+        # new file name with the background column
+        #gst_file_new = gst_file_new.replace('.fits', '_with_bg.fits')
+
+
         # -----------------
         # split observations by source density
         # -----------------
@@ -121,9 +145,6 @@ def beast_production_wrapper():
         print('')
         print('splitting observations by source density')
         print('')
-
-        # new file name with the source density column
-        gst_file_new = gst_file.replace('.fits', '_with_sourceden.fits')
 
         if len(glob.glob(gst_file_new.replace('.fits','*sub*fits') )) == 0:
 
