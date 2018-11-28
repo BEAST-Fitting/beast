@@ -128,11 +128,10 @@ def beast_production_wrapper():
         print('making background map')
         print('')
         
-        if not os.path.isfile(gst_file.replace('.fits','_background_map.hd5')):
-            # - pixel size of 10 arcsec
-            # - use F475W between vega mags of 17 and 27
+        if not os.path.isfile(gst_file_new.replace('.fits','_F475W_bg_map.hd5')):
+            # - pixel dimensions: 15x15
             create_background_density_map.create_background_density_map(gst_file_new, npix=15,
-                                                            reference=im_file)
+                                                      reference=im_file, filebase='F475W')
 
         # new file name with the background column
         #gst_file_new = gst_file_new.replace('.fits', '_with_bg.fits')
