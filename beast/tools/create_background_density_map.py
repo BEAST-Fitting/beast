@@ -29,16 +29,19 @@ def main():
     parser.add_argument('--reference', type=str, help='reference image (FITS)',
                         default=None)
     parser.add_argument('--nointeract', action='store_true')
+    parser.add_argument('--filebase', type=str, help='override default labeling of files',
+                        default=None)
     args = parser.parse_args()
 
     
     create_background_density_map(args.catfile,
                                       npix=args.npix,
                                       reference=args.reference,
-                                      nointeract=args.nointeract)
+                                      nointeract=args.nointeract,
+                                      filebase=args.filebase)
 
 
-def create_background_density_map(catfile, npix=10, reference=None, nointeract=True):
+def create_background_density_map(catfile, npix=10, reference=None, nointeract=True, filebase=None):
     """
     Wrapper for all of the background density and plotting functions
     
@@ -55,10 +58,17 @@ def create_background_density_map(catfile, npix=10, reference=None, nointeract=T
 
     nointeract : boolean (default=True)
         if False, will show the background map (in addition to saving it)
+
+    filebase : str or None
+        If set, this will be used as the label when naming files.  Otherwise,
+        the name from the input reference image will be used.
     
     """
 
-    ref_base = os.path.basename(reference).replace('.fits', '')
+    if filebase == None:
+        ref_base = os.path.basename(reference).replace('.fits', '')
+    else:
+        ref_base = filebase
     hdul = astropy.io.fits.open(reference)
     image = hdul[1]
 
@@ -80,12 +90,12 @@ def create_background_density_map(catfile, npix=10, reference=None, nointeract=T
     ax[1].set_title('number of sources')
     for f, a in zip(figs, ax):
         plt.colorbar(f, ax=a)
-    plt.savefig('{}-maps.png'.format(ref_base))
+    plt.savefig(catfile.replace('.fits','_'+ref_base+'-maps.png'))
 
     # Overplot the map on the image used for the calculation
     if image:
         plot_on_image(image, bg_map, ra_grid, dec_grid, mask=mask,
-                      title=ref_base)
+                      title=catfile.replace('.fits','_'+ref_base))
 
     if not nointeract:
         plt.show()
@@ -192,8 +202,7 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
     for k in extra_columns:
         c = astropy.table.Column(extra_columns[k], name=k)
         cat.add_column(c)
-    mod_catfile = catfile.replace(
-        '.fits', '_with_{}_bg.fits'.format(outfile_base))
+    mod_catfile = catfile.replace('.fits', '_with_{}_bg.fits'.format(outfile_base))
     cat.write(mod_catfile, format='fits', overwrite=True)
 
     # Save a file describing the properties of the bins in a handy format
@@ -212,7 +221,7 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
     bin_details.meta['dec_grid'] = dec_grid
 
     dm = DensityMap(bin_details)
-    dm.write(outfile_base + '_background_map.hd5')
+    dm.write(catfile.replace('.fits','')+'_'+outfile_base + '_bg_map.hd5')
 
     # Return a bunch of stuff, to be used for plots
     return {'background_map': background_map,
