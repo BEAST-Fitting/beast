@@ -85,11 +85,12 @@ def create_background_density_map(catfile, npix=10, reference=None, nointeract=T
     _, ax = plt.subplots(1, 2)
     figs = []
     figs.append(ax[0].imshow(bg_map))
-    ax[0].set_title('density_estimate')
+    ax[0].set_title('bg_density_estimate')
     figs.append(ax[1].imshow(n_map))
     ax[1].set_title('number of sources')
     for f, a in zip(figs, ax):
         plt.colorbar(f, ax=a)
+    plt.tight_layout()
     plt.savefig(catfile.replace('.fits','_'+ref_base+'-maps.png'))
 
     # Overplot the map on the image used for the calculation
