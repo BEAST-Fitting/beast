@@ -59,6 +59,7 @@ should edit several items in the file:
   * beast_filter_names: the corresponding long names used by the BEAST
   * settings for the source density map: pixel size, filter, magnitude
     range
+  * settings for the background map: pixel dimensions, reference image
   * settings for splitting the catalog by source density: filter,
     number of sources per file
   * settings for the trimming/fitting batch scripts: number of files, nice level
