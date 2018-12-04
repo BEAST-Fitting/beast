@@ -139,9 +139,6 @@ def run_beast_production(basename,
             add_spectral_properties_kwargs=extra_kwargs)
 
     if ast:
-        # get the modesedgrid on which to grab input AST
-        modelsedgridfile = datamodel.project + '/' + datamodel.project + \
-                       '_seds.grid.hd5'
 
         N_models = datamodel.ast_models_selected_per_age
         Nfilters = datamodel.ast_bands_above_maglimit
@@ -164,7 +161,7 @@ def run_beast_production(basename,
 
         outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
         outfile_params = './' + datamodel.project + '/' + datamodel.project + '_ASTparams.fits'
-        chosen_seds = pick_models(modelsedgridfile, datamodel.filters,
+        chosen_seds = pick_models(modelsedgrid_filename, datamodel.filters,
                                   mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize,
                                   outfile=outfile, outfile_params=outfile_params)
 
