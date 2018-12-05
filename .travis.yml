@@ -81,19 +81,22 @@ matrix:
         # may run for a long time
         - os: linux
           env: SETUP_CMD='build_docs -w'
+               CONDA_DEPENDENCIES=$CONDA_DEPENDENCIES_DOC
 
         # Now try Astropy dev and LTS vesions with the latest 3.x and 2.7.
         - os: linux
           env: ASTROPY_VERSION=development
                EVENT_TYPE='pull_request push cron'
+        - os: linux
+          env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts
+        - os: linux
+          env: ASTROPY_VERSION=lts
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
         # time.
 
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.12
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.12
         - os: linux
@@ -106,25 +109,28 @@ matrix:
           env: NUMPY_VERSION=prerelease
                EVENT_TYPE='pull_request push cron'
 
-        # Do a PEP8 test with pycodestyle
+        # Do a PEP8 test with flake8
         - os: linux
-          env: MAIN_CMD='pycodestyle beast --count' SETUP_CMD=''
+          env: MAIN_CMD='flake8 beast --count --show-source --statistics $FLAKE8_OPT' SETUP_CMD=''
 
     allow_failures:
         # Try MacOS X including the remote data tests
+        # fails due to some issue with numerical precision
         - os: osx
           env: SETUP_CMD='test -a "--mpl" --remote-data'
 
         - os: linux
           env: ASTROPY_VERSION=development
                EVENT_TYPE='pull_request push cron'
+
         - os: linux
           env: NUMPY_VERSION=prerelease
                EVENT_TYPE='pull_request push cron'
-        # Do a PEP8 test with pycodestyle
+
+        # Do a PEP8 test with flake8
         # (allow to fail unless your code completely compliant)
         - os: linux
-          env: MAIN_CMD='pycodestyle beast --count' SETUP_CMD=''
+          env: MAIN_CMD='flake8 beast --count --show-source --statistics $FLAKE8_OPT' SETUP_CMD=''
 
 install:
 
