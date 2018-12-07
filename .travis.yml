@@ -40,7 +40,7 @@ env:
         # so Cython is required for testing. If your package does not include
         # Cython code, you can set CONDA_DEPENDENCIES=''
         - CONDA_DEPENDENCIES='Cython scipy h5py matplotlib pytables hdf5'
-        - CONDA_DEPENDENCIES_DOC='sphinx-astropy Cython scipy h5py matplotlib pytables hdf5'
+        - CONDA_DEPENDENCIES_DOC='sphinx-astropy'
 
         # Conda packages for affiliated packages are hosted in channel
         # "astropy" while builds for astropy LTS with recent numpy versions
