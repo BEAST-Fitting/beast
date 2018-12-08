@@ -14,7 +14,8 @@ __all__ = ['Observations', 'gen_SimObs_from_sedgrid']
 
 
 class Observations(object):
-    """ A generic class that interfaces observation catalog in a standardized way
+    """
+    A generic class that interfaces observation catalog in a standardized way
 
     Attributes
     ----------
@@ -166,8 +167,8 @@ def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
 
     Currently written to only work for the toothpick noisemodel.
 
-    Keywords
-    ---------
+    Parameters
+    ----------
     sedgrid: grid.SEDgrid instance
         model grid
 
@@ -188,7 +189,7 @@ def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
         filename for the vega info
         usefule for testing
 
-    Outputs
+    Returns
     -------
     simtable : astropy Table
         table giving the simulated observed fluxes as well as the

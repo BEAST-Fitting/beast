@@ -4,6 +4,7 @@ channels:
     - astropy
 
 dependencies:
+    - python>=2.7
     - astropy
     - Cython
     - matplotlib
@@ -11,5 +12,6 @@ dependencies:
     - scipy
     - pytables
     - pytest-mpl
+    - sphinx-astropy
 #   - pip:
 #       - dependency_from_pip

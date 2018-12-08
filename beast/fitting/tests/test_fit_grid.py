@@ -1,14 +1,14 @@
 import numpy as np
 
 from astropy.table import Table
-from astropy.io import fits
 from astropy.tests.helper import remote_data
 
 from beast.observationmodel.observations import Observations
 from beast.observationmodel.vega import Vega
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.fitting import fit
-from beast.tests.helpers import (download_rename, compare_tables)
+from beast.tests.helpers import (download_rename, compare_tables,
+                                 compare_fits)
 
 
 class GenFluxCatalog(Observations):
@@ -156,23 +156,8 @@ def test_fit_grid():
 
     compare_tables(table_cache, table_new)
 
-    assert len(table_new) == len(table_cache)
-
-    for tcolname in table_new.colnames:
-        np.testing.assert_equal(table_new[tcolname], table_cache[tcolname],
-                                '%s columns not equal' % tcolname)
-
     # lnp files not checked as they are randomly sparsely sampled
     #   hence will be different every time the fitting is run
 
     # check that the pdf1d files are exactly the same
-    fits_cache = fits.open(pdf1d_fname_cache)
-    fits_new = fits.open(pdf1d_fname)
-
-    assert len(fits_new) == len(fits_cache)
-
-    for k in range(1, len(fits_new)):
-        qname = fits_new[k].header['EXTNAME']
-        np.testing.assert_equal(fits_new[k].data,
-                                fits_cache[qname].data,
-                                '%s pdf1d not equal' % qname)
+    compare_fits(pdf1d_fname_cache, pdf1d_fname)

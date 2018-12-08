@@ -1,13 +1,3 @@
-"""
-Trim the grid of models
-=======================
-
-For a given set of observations, there will be models that are so
-bright or faint that they will always have ~0 probability of fitting
-the data.  This program trims those models out of the SED grid
-so that time is not spent calculating model points that are always
-zero probability.
-"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -25,9 +15,14 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
                 sigma_fac=3., n_detected=4, inFlux=True,
                 trunchen=False):
     """
+    For a given set of observations, there will be models that are so
+    bright or faint that they will always have ~0 probability of fitting
+    the data.  This program trims those models out of the SED grid
+    so that time is not spent calculating model points that are always
+    zero probability.
 
-    Keywords
-    ---------
+    Parameters
+    ----------
     sedgrid: grid.SEDgrid instance
         model grid
 
@@ -58,10 +53,6 @@ def trim_models(sedgrid, sedgrid_noisemodel, obsdata, sed_outname,
 
     trunchen: boolean
         if true use the trunchen noise model (default: False)
-
-    returns
-    --------
-    N/A
     """
     # Store the brigtest and faintest fluxes in each band (for data and asts)
     n_filters = len(obsdata.filters)

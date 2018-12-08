@@ -274,8 +274,8 @@ class SpectralGrid(ModelGrid):
 
         **kwargs        extra keywords will be forwrded to extLaw
 
-        Return
-        ------
+        Returns
+        -------
         g: ModelGrid instance or None
             if not inplace, returns a new ModelGrid instance. Otherwise returns
             nothing

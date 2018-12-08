@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-plt.switch_backend('agg')
 
 import os.path
 import pytest
@@ -10,9 +9,12 @@ from astropy.io import fits
 from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 
-#from beast.plotting.plot_indiv_fit import plot_indiv_fit
+# from beast.plotting.plot_indiv_fit import plot_indiv_fit
 from beast.plotting import plot_indiv_fit
-from beast.plotting import plot_filters
+# from beast.plotting import plot_filters
+
+plt.switch_backend('agg')
+
 
 def _download_rename(filename):
     """
@@ -21,15 +23,15 @@ def _download_rename(filename):
     Otherwise, downloaded file will not have an extension at all
     """
     url_loc = 'http://www.stsci.edu/~kgordon/beast/'
-    fname_dld = download_file('%s%s'%(url_loc, filename))
+    fname_dld = download_file('%s%s' % (url_loc, filename))
     extension = filename.split('.')[-1]
-    fname = '%s.%s'%(fname_dld, extension)
+    fname = '%s.%s' % (fname_dld, extension)
     os.rename(fname_dld, fname)
     return fname
 
 
-@pytest.mark.skip(reason="awaiting resolution of pytest-mpl")
-@remote_data
+# @pytest.mark.skip(reason="awaiting resolution of pytest-mpl")
+# @remote_data
 @pytest.mark.mpl_image_compare
 def test_indiv_plot():
 
@@ -37,9 +39,9 @@ def test_indiv_plot():
     stats_fname_cache = _download_rename('beast_example_phat_stats.fits')
     pdf1d_fname_cache = _download_rename('beast_example_phat_pdf1d.fits')
 
-    #results_dir = '../../examples/phat_small/beast_example_phat/'
-    #stats_fname_cache = results_dir + 'beast_example_phat_stats.fits'
-    #pdf1d_fname_cache = results_dir + 'beast_example_phat_pdf1d.fits'
+    # results_dir = '../../examples/phat_small/beast_example_phat/'
+    # stats_fname_cache = results_dir + 'beast_example_phat_stats.fits'
+    # pdf1d_fname_cache = results_dir + 'beast_example_phat_pdf1d.fits'
 
     starnum = 0
 

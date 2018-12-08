@@ -5,9 +5,11 @@ import os.path
 import numpy as np
 import h5py
 
+from astropy.io import fits
 from astropy.utils.data import download_file
 
-__all__ = ['download_rename', 'compare_tables', 'compare_hdf5']
+__all__ = ['download_rename', 'compare_tables', 'compare_fits',
+           'compare_hdf5']
 
 
 def download_rename(filename):
@@ -41,8 +43,41 @@ def compare_tables(table_cache, table_new):
     assert len(table_new) == len(table_cache)
 
     for tcolname in table_new.colnames:
-        np.testing.assert_equal(table_new[tcolname], table_cache[tcolname],
-                                '%s columns not equal' % tcolname)
+        # test numerical types for closeness
+        # and other types for equality
+        if table_new[tcolname].data.dtype.kind in ['f', 'i']:
+            np.testing.assert_allclose(table_new[tcolname],
+                                       table_cache[tcolname],
+                                       err_msg=('%s columns not equal'
+                                                % tcolname))
+        else:
+            np.testing.assert_equal(table_new[tcolname],
+                                    table_cache[tcolname],
+                                    err_msg=('%s columns not equal'
+                                             % tcolname))
+
+
+def compare_fits(fname_cache, fname_new):
+    """
+    Compare two FITS files.
+
+    Parameters
+    ----------
+    fname_cache : str
+    fname_new : type
+        names to FITS files
+    """
+    fits_cache = fits.open(fname_cache)
+    fits_new = fits.open(fname_new)
+
+    assert len(fits_new) == len(fits_cache)
+
+    for k in range(1, len(fits_new)):
+        qname = fits_new[k].header['EXTNAME']
+        np.testing.assert_allclose(fits_new[k].data,
+                                   fits_cache[qname].data,
+                                   err_msg=('%s FITS extension not equal'
+                                            % qname))
 
 
 def compare_hdf5(fname_cache, fname_new, ctype=None):
