@@ -73,7 +73,7 @@ matrix:
 
         # Try MacOS X including the remote data tests
         - os: osx
-          env: SETUP_CMD='test  -a "--mpl" --remote-data'
+          env: SETUP_CMD='test -a "--mpl" --remote-data'
 
         # Do a coverage test.
         - os: linux

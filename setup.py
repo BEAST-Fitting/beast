@@ -110,6 +110,8 @@ package_info['package_data'][PACKAGENAME].append(
     'physicsmodel/stars/ezpadova/parsec.json')
 package_info['package_data'][PACKAGENAME].append(
     'physicsmodel/stars/ezmist/mist.json')
+package_info['package_data'][PACKAGENAME].append(
+    'plotting/tests/baseline/*.png')
 package_info['package_data'][PACKAGENAME].append('data/*')
 
 
