@@ -32,7 +32,7 @@ env:
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES='pytest-faulthandler'
+        - PIP_DEPENDENCIES='pytest-faulthandler pytest-mpl'
         - EVENT_TYPE='pull_request push'
         # - PYTEST_VERSION=3.2
 
