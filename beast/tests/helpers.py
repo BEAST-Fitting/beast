@@ -43,8 +43,18 @@ def compare_tables(table_cache, table_new):
     assert len(table_new) == len(table_cache)
 
     for tcolname in table_new.colnames:
-        np.testing.assert_allclose(table_new[tcolname], table_cache[tcolname],
-                                   err_msg='%s columns not equal' % tcolname)
+        # test numerical types for closeness
+        # and other types for equality
+        if table_new[tcolname].data.dtype.kind in ['f', 'i']:
+            np.testing.assert_allclose(table_new[tcolname],
+                                       table_cache[tcolname],
+                                       err_msg=('%s columns not equal'
+                                                % tcolname))
+        else:
+            np.testing.assert_equal(table_new[tcolname],
+                                    table_cache[tcolname],
+                                    err_msg=('%s columns not equal'
+                                             % tcolname))
 
 
 def compare_fits(fname_cache, fname_new):
