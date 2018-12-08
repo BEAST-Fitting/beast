@@ -235,17 +235,16 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
     (all wavelengths in stellar SEDs and filter response functions are assumed
     to be in Angstroms)
 
-    keywords
-    --------
-
+    Parameters
+    ----------
     spec_grid: string or grid.SpectralGrid
         if string:
-            spec_grid is the filename to the grid file with stellar spectra
-            the backend to load this grid will be the minimal invasive: 'HDF'
-            if possible, 'cache' otherwise.
+        spec_grid is the filename to the grid file with stellar spectra
+        the backend to load this grid will be the minimal invasive: 'HDF'
+        if possible, 'cache' otherwise.
 
         if not a string, expecting the corresponding SpectralGrid instance
-           (backend already setup)
+        (backend already setup)
 
     filter_names: list
         list of filter names according to the filter lib
@@ -265,7 +264,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
     fAs: sequence (optional)
         f_A values to iterate over
         f_A can be omitted if the extinction Law does not use it or allow
-            fixed values
+        fixed values
 
     fA_prior_model: list
         list including prior model name and parameters
@@ -287,7 +286,7 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
         set to calculate the absflux covariance matrices for each model
         (can be very slow!!!  But it is the right thing to do)
 
-    returns
+    Returns
     -------
     g: grid.SpectralGrid
         final grid of reddened SEDs and models

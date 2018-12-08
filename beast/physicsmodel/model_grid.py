@@ -217,7 +217,7 @@ def add_stellar_priors(project, specgrid, verbose=True,
     priors_fname: str
         full filename to which to save the spectral grid with priors
 
-    returns
+    Returns
     -------
     fname: str
        name of saved file
@@ -313,7 +313,7 @@ def make_extinguished_sed_grid(project,
     filterLib:  str
         full filename to the filter library hd5 file
 
-    returns
+    Returns
     -------
     fname: str
        name of saved file
