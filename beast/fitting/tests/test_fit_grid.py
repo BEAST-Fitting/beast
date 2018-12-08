@@ -159,8 +159,8 @@ def test_fit_grid():
     assert len(table_new) == len(table_cache)
 
     for tcolname in table_new.colnames:
-        np.testing.assert_equal(table_new[tcolname], table_cache[tcolname],
-                                '%s columns not equal' % tcolname)
+        np.testing.assert_allclose(table_new[tcolname], table_cache[tcolname],
+                                   '%s columns not equal' % tcolname)
 
     # lnp files not checked as they are randomly sparsely sampled
     #   hence will be different every time the fitting is run
@@ -173,6 +173,6 @@ def test_fit_grid():
 
     for k in range(1, len(fits_new)):
         qname = fits_new[k].header['EXTNAME']
-        np.testing.assert_equal(fits_new[k].data,
-                                fits_cache[qname].data,
-                                '%s pdf1d not equal' % qname)
+        np.testing.assert_allclose(fits_new[k].data,
+                                   fits_cache[qname].data,
+                                   '%s pdf1d not equal' % qname)

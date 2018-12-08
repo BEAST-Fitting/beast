@@ -69,15 +69,15 @@ matrix:
     include:
         # Try MacOS X
         - os: osx
-          env: SETUP_CMD='test'
+          env: SETUP_CMD='test -a "--mpl"'
 
         # Try MacOS X including the remote data tests
         - os: osx
-          env: SETUP_CMD='test -a "--mpl" --remote-data'
+          env: SETUP_CMD='test  -a "--mpl" --remote-data'
 
         # Do a coverage test.
         - os: linux
-          env: SETUP_CMD='test --remote-data --coverage'
+          env: SETUP_CMD='test -a "--mpl" --remote-data --coverage'
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
