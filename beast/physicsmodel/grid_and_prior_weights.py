@@ -25,8 +25,7 @@ from .prior_weights import compute_age_prior_weights
 from .prior_weights import compute_mass_prior_weights
 from .prior_weights import compute_metallicity_prior_weights
 
-__all__ = ['compute_age_mass_metallicity_weights',
-           'compute_bin_boundaries']
+__all__ = ['compute_age_mass_metallicity_weights']
 
 
 def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
