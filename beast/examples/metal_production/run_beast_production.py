@@ -139,9 +139,6 @@ def run_beast_production(basename,
             add_spectral_properties_kwargs=extra_kwargs)
 
     if ast:
-        # get the modesedgrid on which to grab input AST
-        modelsedgridfile = datamodel.project + '/' + datamodel.project + \
-                       '_seds.grid.hd5'
 
         N_models = datamodel.ast_models_selected_per_age
         Nfilters = datamodel.ast_bands_above_maglimit
@@ -164,19 +161,50 @@ def run_beast_production(basename,
 
         outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
         outfile_params = './' + datamodel.project + '/' + datamodel.project + '_ASTparams.fits'
-        chosen_seds = pick_models(modelsedgridfile, datamodel.filters,
+        chosen_seds = pick_models(modelsedgrid_filename, datamodel.filters,
                                   mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize,
                                   outfile=outfile, outfile_params=outfile_params)
 
         if datamodel.ast_with_positions == True:
             separation = datamodel.ast_pixel_distribution
-            filename = datamodel.project+'/'+datamodel.project+'_inputAST.txt'
+            filename = datamodel.project + '/' + datamodel.project + '_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
-                pick_positions(obsdata, filename, separation,
-                               refimage=datamodel.ast_reference_image)
+                # With reference image, use one of these options
+                if datamodel.ast_source_density_table is not None:
+                    pick_positions_from_map(obsdata,
+                                            chosen_seds,
+                                            datamodel.ast_source_density_table,
+                                            datamodel.ast_N_bins,
+                                            datamodel.ast_realization_per_model,
+                                            outfile=filename,
+                                            refimage=datamodel.ast_reference_image,
+                                            refimage_hdu=0,
+                                            Nrealize=1,
+                                            set_coord_boundary=datamodel.ast_coord_boundary)
+
+                elif datamodel.ast_background_table is not None:
+                    pick_positions_from_map(obsdata,
+                                            chosen_seds,
+                                            datamodel.ast_background_table,
+                                            datamodel.ast_N_bins,
+                                            datamodel.ast_realization_per_model,
+                                            outfile=filename,
+                                            refimage=datamodel.ast_reference_image,
+                                            refimage_hdu=0,
+                                            Nrealize=1,
+                                            set_coord_boundary=datamodel.ast_coord_boundary)
+                else:
+                    pick_positions(obsdata, filename, separation,
+                               	   refimage=datamodel.ast_reference_image)
+
             else:
-                pick_positions(obsdata, filename, separation)
+                # Without reference image, we can only use this function
+                if (datamodel.ast_source_density_table is None and
+                  datamodel.ast_background_table is None):
+                    pick_positions(obsdata, filename, separation)
+                else:
+                    print("To use ast_source_density_table or ast_background_table, ast_reference_image must be specified.")
 
     if observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')

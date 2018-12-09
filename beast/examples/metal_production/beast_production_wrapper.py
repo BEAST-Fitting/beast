@@ -6,6 +6,7 @@ import os
 
 from run_beast_production import run_beast_production
 from beast.tools import create_source_density_map
+from beast.tools import create_background_density_map
 from beast.tools import subdivide_obscat_by_source_density
 from beast.tools import merge_beast_stats
 from beast.tools import setup_batch_beast_trim
@@ -36,6 +37,7 @@ def beast_production_wrapper():
         - datamodel_template.py: setting up the file with desired parameters
         - here: list the catalog filter names with the corresponding BEAST names
         - here: choose settings (pixel size, filter, mag range) for the source density map
+        - here: choose settings (pixel size, reference image) for the background map
         - here: choose settings (filter, number per file) for dividing catalog by source density
         - here: choose settings (# files, nice level) for the trimming/fitting batch scripts
     * process the ASTs, as described in BEAST documentation
@@ -83,7 +85,8 @@ def beast_production_wrapper():
         # paths for the data/AST files
         gst_file = './data/' + field_names[b]+'.gst.fits'
         ast_file = './data/' + field_names[b]+'.gst.fake.fits'
-
+        # path for the reference image (if using for the background map)
+        im_file = './data/'+field_names[b]+'_F475W.fits.gz'
         
         # -----------------
         # make datamodel file
@@ -113,7 +116,27 @@ def beast_production_wrapper():
             create_source_density_map.make_source_dens_map(gst_file, pix_size=10,
                                                             mag_name='F475W_VEGA', mag_cut=[17,27])
 
+        # new file name with the source density column
+        gst_file_new = gst_file.replace('.fits', '_with_sourceden.fits')
+
         
+        # -----------------
+        # make a background map
+        # -----------------
+
+        print('')
+        print('making background map')
+        print('')
+        
+        if not os.path.isfile(gst_file_new.replace('.fits','_F475W_bg_map.hd5')):
+            # - pixel dimensions: 15x15
+            create_background_density_map.create_background_density_map(gst_file_new, npix=15,
+                                                      reference=im_file, filebase='F475W')
+
+        # new file name with the background column
+        #gst_file_new = gst_file_new.replace('.fits', '_with_bg.fits')
+
+
         # -----------------
         # split observations by source density
         # -----------------
@@ -122,10 +145,7 @@ def beast_production_wrapper():
         print('splitting observations by source density')
         print('')
 
-        # new file name with the source density column
-        gst_file_new = gst_file.replace('.fits', '_with_sourceden.fits')
-
-        if not os.path.isfile(gst_file_new):
+        if len(glob.glob(gst_file_new.replace('.fits','*sub*fits') )) == 0:
 
             # a smaller value for Ns_file will mean more individual files/runs,
             # but each run will take a shorter amount of time
@@ -160,8 +180,15 @@ def beast_production_wrapper():
         # -----------------
 
         # only create an AST input list if the ASTs don't already exist
+        ast_input_file = './' + field_names[b] + '_beast/' + field_names[b] + '_inputAST.txt'
+            
         if not os.path.isfile(ast_file):
-            run_beast_production(gst_file, ast=True)
+            if not os.path.isfile(ast_input_file):
+                print('')
+                print('creating artificial stars')
+                print('')
+                run_beast_production(gst_file, ast=True)
+                
             print('\n**** go run ASTs for '+field_names[b]+'! ****\n')
             continue
        
