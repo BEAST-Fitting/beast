@@ -107,7 +107,8 @@ Data
 
 The data need to have source density information added as it is common
 for the observation model (scatter and bias) to be strongly dependent
-on source density due to crowding/confusion noise.
+on source density due to crowding/confusion noise.  The background may
+also be important in some situations, so there is code to calculate it as well.
 
 Adding source density to observations
 =====================================
@@ -149,6 +150,25 @@ Command to create the the source density split files
 
     $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 \
              --sort_col F475W_RATE datafile_with_sourceden.fits
+
+
+
+Adding background to observations
+=================================
+
+Create a new version of the observations that includes a column with the
+background level.  This is done by calculating the median background for
+stars that fall in each spatial bin.  The code will output a new catalog, an
+hdf5 file with the background maps and grid information, and some
+diagnostic plots. 
+
+Command to create the observed catalog with background column with a 15x15 pixel array using the 'datafile.fits' catalog and the 'image.fits' reference image.
+
+  .. code:: shell
+
+     $ ./beast/tools/create_background_density_map.py --npix 15 \
+             --reference image.fits --nointeract True datafile.fits
+
 
 *****
 Model
