@@ -60,12 +60,12 @@ def imf_kroupa(x):
     alpha0 = -0.3
     alpha1 = -1.3
     alpha2 = -2.3
-    if (x < m1):
+    if x < m1:
         return x**alpha0
-    elif (x >= m1) and (x < m2):
-        return x**alpha1
-    elif (x >= m2):
+    elif x >= m2:
         return x**alpha2
+    else:
+        return x**alpha1
 
 
 def imf_salpeter(x):

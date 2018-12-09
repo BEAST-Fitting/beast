@@ -24,6 +24,7 @@ from .ezmist import mist
 __all__ = ['Isochrone', 'padova2010', 'pegase', 'ezIsoch', 'PadovaWeb',
            'MISTWeb']
 
+
 class Isochrone(object):
     def __init__(self, name='', *args, **kwargs):
         self.name = name
@@ -63,46 +64,56 @@ class Isochrone(object):
         dl = kwargs.pop('dl', 0.01)
 
         iso = self._get_isochrone(*args, **kwargs)
-        logT, logg, logL, logM = iso['logT'], iso['logg'], iso['logL'], iso['logM']
+        logT, logg, logL, logM = (iso['logT'], iso['logg'],
+                                  iso['logL'], iso['logM'])
 
         # compute vector of discrete derivaties for each quantity
         # and the final number of points
-        npts  = (numpy.abs(numpy.divide(numpy.diff(logM), dm))).astype(int)
+        npts = (numpy.abs(numpy.divide(numpy.diff(logM), dm))).astype(int)
         npts += (numpy.abs(numpy.divide(numpy.diff(logT), dt))).astype(int)
         npts += (numpy.abs(numpy.divide(numpy.diff(logL), dl))).astype(int)
         idx = numpy.hstack([[0], numpy.cumsum(npts + 1)])
         # set up vectors for storage
-        ntot  = (npts + 1).sum()
-        newm  = numpy.empty(ntot, dtype=float)
+        ntot = (npts + 1).sum()
+        newm = numpy.empty(ntot, dtype=float)
         newdm = numpy.empty(ntot, dtype=float)
-        newt  = numpy.empty(ntot, dtype=float)
-        newg  = numpy.empty(ntot, dtype=float)
-        newl  = numpy.empty(ntot, dtype=float)
+        newt = numpy.empty(ntot, dtype=float)
+        newg = numpy.empty(ntot, dtype=float)
+        newl = numpy.empty(ntot, dtype=float)
 
-        for i in range( len(npts) ):
+        for i in range(len(npts)):
             a, b = idx[i], idx[i] + npts[i] + 1
             if npts[i] > 0:
-                # construct new 1d grids in each dimension, being careful about endpoints
+                # construct new 1d grids in each dimension, being careful
+                #   about endpoints
                 # append them to storage vectors
-                newm[a:b]  = numpy.linspace(logM[i], logM[i + 1], npts[i] + 1, endpoint=False)
-                newt[a:b]  = numpy.linspace(logT[i], logT[i + 1], npts[i] + 1, endpoint=False)
-                newg[a:b]  = numpy.linspace(logg[i], logg[i + 1], npts[i] + 1, endpoint=False)
-                newl[a:b]  = numpy.linspace(logL[i], logL[i + 1], npts[i] + 1, endpoint=False)
-                newdm[a:b] = numpy.ones(npts[i] + 1) * (logM[i + 1] - logM[i]) / (npts[i] + 1)
-            else:  # if the maximumum allowable difference is small, then just store the good point
-                newm[a]  = logM[i]
-                newt[a]  = logT[i]
-                newg[a]  = logg[i]
-                newl[a]  = logL[i]
+                newm[a:b] = numpy.linspace(logM[i], logM[i + 1], npts[i] + 1,
+                                           endpoint=False)
+                newt[a:b] = numpy.linspace(logT[i], logT[i + 1], npts[i] + 1,
+                                           endpoint=False)
+                newg[a:b] = numpy.linspace(logg[i], logg[i + 1], npts[i] + 1,
+                                           endpoint=False)
+                newl[a:b] = numpy.linspace(logL[i], logL[i + 1], npts[i] + 1,
+                                           endpoint=False)
+                newdm[a:b] = (numpy.ones(npts[i] + 1) * (logM[i + 1] - logM[i])
+                              / (npts[i] + 1))
+            else:
+                # if the maximumum allowable difference is small,
+                # then just store the good point
+                newm[a] = logM[i]
+                newt[a] = logT[i]
+                newg[a] = logg[i]
+                newl[a] = logL[i]
                 newdm[a] = (logM[i + 1] - logM[i])
         # tack on the last point on the grid, as the loop is one element short
-        newm[-1]  = logM[-1]
-        newt[-1]  = logT[-1]
-        newg[-1]  = logg[-1]
-        newl[-1]  = logL[-1]
+        newm[-1] = logM[-1]
+        newt[-1] = logT[-1]
+        newg[-1] = logg[-1]
+        newl[-1] = logL[-1]
         newdm[-1] = logM[-1] - logM[-2]
 
-        table = Table( dict(logM=newm, logT=newt, logg=newg, logL=newl, dlogm=newdm) )
+        table = Table(dict(logM=newm, logT=newt, logg=newg, logL=newl,
+                           dlogm=newdm))
 
         for k in list(iso.header.keys()):
             table.header[k] = iso.header[k]
@@ -122,20 +133,20 @@ class padova2010(Isochrone):
         self.source = __ROOT__ + '/padova2010.iso.fits'
         self._load_table_(self.source)
         self.ages = 10 ** numpy.unique(self.data['logA'])
-        self.Z    = numpy.unique(self.data['Z'])
+        self.Z = numpy.unique(self.data['Z'])
 
     def _load_table_(self, source):
         t = Table(self.source)
         data = {}
         for k in list(t.keys()):
             data[k] = t[k]
-        #Alias columns
+        # Alias columns
         data['logM'] = log10(numpy.asarray(data['M_ini']))
         data['logg'] = numpy.asarray(data['logG'])
         data['logT'] = numpy.asarray(data['logTe'])
         data['logL'] = numpy.asarray(data['logL/Lo'])
         data['logA'] = numpy.asarray(data['log(age/yr)'])
-        #clean columns
+        # clean columns
         data.pop('log(age/yr)')
         data.pop('M_ini')
         data.pop('logG')
@@ -152,12 +163,13 @@ class padova2010(Isochrone):
         # make sure unit is in years and then only give the value (no units)
         _age = int(units.Quantity(age, units.year).value)
 
-        #if hasUnit(age):
+        # if hasUnit(age):
         #    _age = int(age.to('yr').magnitude)
-        #else:
+        # else:
         #    _age = int(age * inputUnit.to('yr').magnitude)
 
-        assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
+        assert ((metal is not None) | (FeH is not None)),\
+            "Need a chemical par. value."
 
         if (metal is not None) & (FeH is not None):
             print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
@@ -168,21 +180,24 @@ class padova2010(Isochrone):
         assert (metal in self.Z), "Metal %f not find in %s" % (metal, self.Z)
 
         data = {}
-        t = self.data.selectWhere( '*', '(Z == _z)', condvars={'_z': metal} )
+        t = self.data.selectWhere('*', '(Z == _z)', condvars={'_z': metal})
         if _age in self.ages:
-            #no interpolation, isochrone already in the file
-            t = t.selectWhere('*', '(logA == _age)', condvars={'_age': log10(_age)} )
+            # no interpolation, isochrone already in the file
+            t = t.selectWhere('*', '(logA == _age)',
+                              condvars={'_age': log10(_age)})
             for kn in list(t.keys()):
                 data[kn] = numpy.asarray(t[kn])
         else:
-            #interpolate between isochrones
-            d      = (self.ages - float(_age)) ** 2
+            # interpolate between isochrones
+            d = (self.ages - float(_age)) ** 2
             a1, a2 = self.ages[numpy.argsort(d)[:2]]
-            #print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
+            # print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
             r = numpy.log10(_age / a1) / numpy.log10(a2 / a1)
 
-            t1 = t.selectWhere('*', 'logA == _age', condvars={'_age': log10(a1)} )
-            t2 = t.selectWhere('*', 'logA == _age', condvars={'_age': log10(a2)} )
+            t1 = t.selectWhere('*', 'logA == _age',
+                               condvars={'_age': log10(a1)})
+            t2 = t.selectWhere('*', 'logA == _age',
+                               condvars={'_age': log10(a2)})
 
             stop = min(t1.nrows, t2.nrows)
 
@@ -192,9 +207,9 @@ class padova2010(Isochrone):
                 data[kn] = y2 * r + y1 * (1. - r)
                 del y1, y2
 
-        #mass selection
+        # mass selection
         if masses is not None:
-            #masses are expected in logM for interpolation
+            # masses are expected in logM for interpolation
             if masses.max() > 2.3:
                 _m = numpy.log10(masses)
             else:
@@ -212,11 +227,15 @@ class padova2010(Isochrone):
 
 class pegase(Isochrone):
     def __init__(self):
-        self.name   = 'Pegase.2 (Fioc+1997)'
+        self.name = 'Pegase.2 (Fioc+1997)'
         self.source = __ROOT__ + '/pegase.iso.hd5'
-        self.data   = tables.openFile(self.source)
-        self.ages   = numpy.sort(numpy.asarray([k.attrs.time for k in self.data.root.Z02]) * 1e6)
-        self.Z      = numpy.asarray([ float('0.' + k[1:]) for k in self.data.root._g_listGroup(self.data.getNode('/'))[0]])
+        self.data = tables.openFile(self.source)
+        self.ages = numpy.sort(numpy.asarray([k.attrs.time
+                                              for k in self.data.root.Z02])
+                               * 1e6)
+        self.Z = numpy.asarray(
+            [float('0.' + k[1:])
+             for k in self.data.root._g_listGroup(self.data.getNode('/'))[0]])
 
     def __getstate__(self):
         self.data.close()
@@ -244,7 +263,8 @@ class pegase(Isochrone):
 #        else:
 #            _age = int(age * inputUnit.to('Myr').magnitude)
 
-        assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
+        assert ((metal is not None) | (FeH is not None)),\
+            "Need a chemical par. value."
 
         if (metal is not None) & (FeH is not None):
             print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
@@ -253,19 +273,19 @@ class pegase(Isochrone):
             metal = self.FeHtometal(FeH)
 
         assert (metal in self.Z), "Metal %f not find in %s" % (metal, self.Z)
-        #node = self.data.getNode('/Z' + str(metal)[2:])
+        # node = self.data.getNode('/Z' + str(metal)[2:])
 
         data = {}
         if age in self.ages:
-            #no interpolation, isochrone already in the file
+            # no interpolation, isochrone already in the file
             t = self.data.getNode('/Z' + str(metal)[2:] + '/a' + str(_age))
             for kn in t.colnames:
                 data[kn] = t.col(kn)
         else:
-            #interpolate between isochrones
-            d      = (self.ages - float(age)) ** 2
+            # interpolate between isochrones
+            d = (self.ages - float(age)) ** 2
             a1, a2 = numpy.sort(self.ages[numpy.argsort(d)[:2]] * 1e-6)
-            #print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
+            # print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
             r = numpy.log10(_age / a1) / numpy.log10(a2 / a1)
 
             t1 = self.data.getNode('/Z' + str(metal)[2:] + '/a' + str(int(a1)))
@@ -279,9 +299,9 @@ class pegase(Isochrone):
                 data[kn] = y2 * r + y1 * (1. - r)
                 del y1, y2
 
-        #mass selection
+        # mass selection
         if masses is not None:
-            #masses are expected in logM for interpolation
+            # masses are expected in logM for interpolation
             if masses.max() > 2.3:
                 _m = numpy.log10(masses)
             else:
@@ -305,9 +325,10 @@ class ezIsoch(Isochrone):
         self.name = '<auto>'
         self.source = source
         self._load_table_(self.source)
-        self.logages = np.unique(np.round(self.data['logA'], 6))  # round because of precision noise
+        # round because of precision noise
+        self.logages = np.unique(np.round(self.data['logA'], 6))
         self.ages = np.round(10 ** self.logages)
-        self.Z    = np.unique(np.round(self.data['Z'], 6))
+        self.Z = np.unique(np.round(self.data['Z'], 6))
         self.interpolation(interp)
 
     def selectWhere(self, *args, **kwargs):
@@ -320,6 +341,7 @@ class ezIsoch(Isochrone):
             self.interp = bool(b)
         else:
             return self.interp
+
     def _load_table_(self, source):
         self.data = Table(self.source).selectWhere('*', 'isfinite(logA)')
 
@@ -341,7 +363,8 @@ class ezIsoch(Isochrone):
 
         _logA = np.log10(_age)
 
-        assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
+        assert ((metal is not None) | (FeH is not None)),\
+            "Need a chemical par. value."
 
         if (metal is not None) & (FeH is not None):
             print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
@@ -350,71 +373,76 @@ class ezIsoch(Isochrone):
             metal = self.FeHtometal(FeH)
 
         if self.interpolation():
-            #Do the actual nd interpolation
+            # Do the actual nd interpolation
 
-            #Maybe already exists?
+            # Maybe already exists?
             if (metal in self.Z) & (_age in self.ages):
                 t = self.selectWhere('*', '(round(Z, 6) == {0}) & (round(logA, 6) == {1})'.format(metal, _logA))
                 if t.nrows > 0:
                     return t
-            #apparently not
-            #find 2 closest metal values
+            # apparently not
+            # find 2 closest metal values
             ca1 = (self.ages <= _age)
             ca2 = (self.ages > _age)
             cz1 = (self.Z <= metal)
             cz2 = (self.Z > metal)
             if (metal in self.Z):
-                #perfect match in metal, need to find ages
+                # perfect match in metal, need to find ages
                 if (_age in self.ages):
                     return self.selectWhere('*', '(round(Z, 6) == {0}) & (round(logA, 6) == {1})'.format(metal, _logA))
-                elif ( True in ca1) & ( True in ca2 ):
+                elif (True in ca1) & (True in ca2):
                     # bracket on _age: closest values
-                    a1, a2 = np.log10(max(self.ages[ca1])), np.log10(min(self.ages[ca2]))
+                    a1, a2 = (np.log10(max(self.ages[ca1])),
+                              np.log10(min(self.ages[ca2])))
                     iso = self.selectWhere('*', '(Z == 0.02) & ( (abs(logA - {0}) < 1e-4) | (abs(logA - {1}) < 1e-4 )  )'.format(a1, a2) )
                     if masses is None:
                         _logM = np.unique(iso['logM'])
                     else:
                         _logM = masses
 
-                    #define interpolator
-                    points = np.array([self[k] for k in 'logA logM Z'.split()]).T
-                    values = np.array([ self[k] for k in list(self.data.keys()) ]).T
+                    # define interpolator
+                    points = np.array([self[k]
+                                       for k in 'logA logM Z'.split()]).T
+                    values = np.array([self[k]
+                                       for k in list(self.data.keys())]).T
                     _ifunc = interpolate.LinearNDInterpolator(points, values)
 
-                    pts = np.array([ (_logA, logMk, metal) for logMk in _logM ])
+                    pts = np.array([(_logA, logMk, metal) for logMk in _logM])
                     r = _ifunc(pts)
                     return Table(r)
                 else:
                     raise Exception('Age not covered by the isochrones')
-            elif ( True in cz1 ) & ( True in cz2 ):
-                #need to find closest Z
+            elif (True in cz1) & (True in cz2):
+                # need to find closest Z
                 pass
             return
         else:
             # find the closest match
             _Z = self.Z[((metal - self.Z) ** 2).argmin()]
-            #_logA = np.log10(self.ages[((_age - self.ages) ** 2).argmin()])
-            _logA = self.logages[ ((np.log10(_age) - self.logages) ** 2).argmin() ]
+            # _logA = np.log10(self.ages[((_age - self.ages) ** 2).argmin()])
+            _logA = self.logages[((np.log10(_age)
+                                   - self.logages) ** 2).argmin()]
             tab = self.data.selectWhere('*', "(round(Z, 6) == {0}) & (round(logA,6) == {1})".format(_Z, _logA))
-            #mass selection
+            # mass selection
             if masses is not None:
-                #masses are expected in logM for interpolation
-                #if masses.max() > 2.3:
+                # masses are expected in logM for interpolation
+                # if masses.max() > 2.3:
                 #    _m = np.log10(masses)
-                #else:
+                # else:
                 _m = masses
                 data_logM = tab['logM'][:]
                 # refuse extrapolation!
-                #ind = np.where(_m <= max(data_logM))
+                # ind = np.where(_m <= max(data_logM))
                 data = {}
                 for kn in list(tab.keys()):
-                    data[kn] = interp(_m, data_logM, tab[kn], left=np.nan, right=np.nan)
+                    data[kn] = interp(_m, data_logM, tab[kn],
+                                      left=np.nan, right=np.nan)
                 return Table(data)
 
 
 class PadovaWeb(Isochrone):
-    def __init__(self, Zref=None, modeltype='parsec12s_r14', filterPMS=False, filterBad=False,
-                 *args, **kwargs):
+    def __init__(self, Zref=None, modeltype='parsec12s_r14', filterPMS=False,
+                 filterBad=False, *args, **kwargs):
         self.name = 'Padova CMD isochrones'
         if Zref is None:
             if modeltype.startswith('parsec'):
@@ -439,7 +467,8 @@ class PadovaWeb(Isochrone):
 #        else:
 #            _age = int(age * inputUnit.to('yr').magnitude)
 
-        assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
+        assert ((metal is not None) | (FeH is not None)),\
+            "Need a chemical par. value."
 
         if (metal is not None) & (FeH is not None):
             print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
@@ -447,10 +476,12 @@ class PadovaWeb(Isochrone):
         if metal is None:
             metal = self.FeHtometal(FeH)
 
-        iso_table = parsec.get_one_isochrone(_age, metal, ret_table=True, model=self.modeltype)
+        iso_table = parsec.get_one_isochrone(_age, metal, ret_table=True,
+                                             model=self.modeltype)
         iso_table = self._clean_cols(iso_table)
         iso_table = self._filter_iso_points(iso_table,
-                                            filterPMS=self.filterPMS, filterBad=self.filterBad)
+                                            filterPMS=self.filterPMS,
+                                            filterBad=self.filterBad)
 
         return iso_table
 
@@ -482,10 +513,13 @@ class PadovaWeb(Isochrone):
         filternames = "U UX B BX V R I J H K L M".split()
         theorycols = ['C/O', 'M_hec', 'int_IMF', 'period', 'pmode',
                       'CO', 'C_O', 'period0', 'period1', 'McoreTP', 'tau1m']
-        theorycols += ['logMdot', 'Mloss'] # removing mass loss outputs
+        # removing mass loss outputs
+        theorycols += ['logMdot', 'Mloss']
         abundcols = "X Y Xc Xn Xo Cexcess".split()
-        drop = theorycols + abundcols + filternames + [s + "mag" for s in filternames]
-        iso_table.remove_columns([x for x in drop if x in iso_table]) # make sure columns exist
+        drop = theorycols + abundcols + filternames + [s + "mag"
+                                                       for s in filternames]
+        # make sure columns exist
+        iso_table.remove_columns([x for x in drop if x in iso_table])
 
         # polish the header
         iso_table.setUnit('logA', 'yr')
@@ -502,14 +536,15 @@ class PadovaWeb(Isochrone):
         iso_table.setComment('logg', 'Surface gravity')
         iso_table.setComment('stage', 'Evolutionary Stage')
         iso_table.setComment('Z', 'Metallicity')
-        #iso_table.setUnit('logMdot', 'Msun/yr')
-        #iso_table.setComment('logMdot', 'Mass loss')
+        # iso_table.setUnit('logMdot', 'Msun/yr')
+        # iso_table.setComment('logMdot', 'Mass loss')
 
         return iso_table
 
     def _filter_iso_points(self, iso_table, filterPMS=False, filterBad=False):
         """ Filter bad points and PMS points
-            Bad points known to affect pre-PARSEC isochrones. Selection is an empirical definition.
+            Bad points known to affect pre-PARSEC isochronesself.
+            Selection is an empirical definition.
         """
         # Filter pre-ms stars
         if filterPMS:
@@ -549,10 +584,11 @@ class PadovaWeb(Isochrone):
             the table of isochrones
         """
         if not hasattr(Z, '__iter__'):
-            iso_table = parsec.get_t_isochrones(max(6.0, logtmin), min(10.13, logtmax), dlogt, Z,
+            iso_table = parsec.get_t_isochrones(max(6.0, logtmin),
+                                                min(10.13, logtmax), dlogt, Z,
                                                 model=self.modeltype)
             iso_table.header['NAME'] = 'PadovaCMD Isochrones: '+self.modeltype
-            if not 'Z' in iso_table:
+            if 'Z' not in iso_table:
                 iso_table.add_column('Z', np.ones(iso_table.nrows) * Z)
 
             # rename cols, remove phot and other unnecessary cols
@@ -560,18 +596,24 @@ class PadovaWeb(Isochrone):
 
             # filter iso data: pre-ms and bad points
             iso_table = self._filter_iso_points(iso_table,
-                                                filterPMS=self.filterPMS, filterBad=self.filterBad)
+                                                filterPMS=self.filterPMS,
+                                                filterBad=self.filterBad)
 
         else:
             iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
             iso_table.header['NAME'] = 'PadovaCMD Isochrones: '+self.modeltype
 
             if len(Z) > 1:
-                more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]
-                iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more,
-                                                            usemask=False, asrecarray=True)
+                more = [
+                    self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data
+                    for Zk in Z[1:]]
+                iso_table.data = recfunctions.stack_arrays([iso_table.data]
+                                                           + more,
+                                                           usemask=False,
+                                                           asrecarray=True)
 
         return iso_table
+
 
 class MISTWeb(Isochrone):
     def __init__(self, Zref=0.0142, rotation='vvcrit0.0', *args, **kwargs):
@@ -592,7 +634,8 @@ class MISTWeb(Isochrone):
 #        else:
 #            _age = int(age * inputUnit.to('yr').magnitude)
 
-        assert ((metal is not None) | (FeH is not None)), "Need a chemical par. value."
+        assert ((metal is not None) | (FeH is not None)),\
+            "Need a chemical par. value."
 
         if (metal is not None) & (FeH is not None):
             print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
@@ -600,7 +643,9 @@ class MISTWeb(Isochrone):
         if metal is None:
             metal = self.FeHtometal(FeH)
 
-        iso_table = mist.get_one_isochrone(_age, FeH, v_div_vcrit=self.rotation, age_scale='log10',
+        iso_table = mist.get_one_isochrone(_age, FeH,
+                                           v_div_vcrit=self.rotation,
+                                           age_scale='log10',
                                            ret_table=True)
         iso_table = self._clean_cols(iso_table)
 
@@ -616,15 +661,17 @@ class MISTWeb(Isochrone):
         iso_table.add_column('M_act', iso_table['star_mass'][:])
         iso_table.add_column('logg', iso_table['log_g'][:])
         iso_table.add_column('stage', iso_table['phase'][:])
-        iso_table.remove_columns(['log10_isochrone_age_yr', 'log_Teff', 'log_L', 'log_g',
+        iso_table.remove_columns(['log10_isochrone_age_yr', 'log_Teff',
+                                  'log_L', 'log_g',
                                   'initial_mass', 'star_mass', 'phase'])
 
         # Remove phot columns and unnecessary properties
-        extracol1="star_mdot he_core_mass c_core_mass log_LH log_LHe log_R".split()
-        extracol2="log_center_T log_center_Rho center_gamma center_h1 center_he4 center_c12".split()
-        extracol3="surface_h1 surface_he3 surface_he4 surface_c12 surface_o16".split()
+        extracol1 = "star_mdot he_core_mass c_core_mass log_LH log_LHe log_R".split()
+        extracol2 = "log_center_T log_center_Rho center_gamma center_h1 center_he4 center_c12".split()
+        extracol3 = "surface_h1 surface_he3 surface_he4 surface_c12 surface_o16".split()
         drop = extracol1 + extracol2 + extracol3
-        iso_table.remove_columns([x for x in drop if x in iso_table]) # make sure columns exist
+        # make sure columns exist
+        iso_table.remove_columns([x for x in drop if x in iso_table])
 
         # polish the header
         iso_table.setUnit('logA', 'yr')
@@ -641,8 +688,8 @@ class MISTWeb(Isochrone):
         iso_table.setComment('logg', 'Surface gravity')
         iso_table.setComment('stage', 'Evolutionary Stage')
         iso_table.setComment('Z', 'Metallicity')
-        #iso_table.setUnit('logMdot', 'Msun/yr')
-        #iso_table.setComment('logMdot', 'Mass loss')
+        # iso_table.setUnit('logMdot', 'Msun/yr')
+        # iso_table.setComment('logMdot', 'Mass loss')
 
         return iso_table
 
@@ -670,11 +717,12 @@ class MISTWeb(Isochrone):
         """
 
         if not hasattr(Z, '__iter__'):
-            iso_table = mist.get_t_isochrones(max(5.0, logtmin), min(10.13, logtmax), dlogt,
+            iso_table = mist.get_t_isochrones(max(5.0, logtmin),
+                                              min(10.13, logtmax), dlogt,
                                               v_div_vcrit=self.rotation,
                                               FeH_value=np.log10(Z/self.Zref))
             iso_table.header['NAME'] = 'MESA/MIST Isochrones'
-            if not 'Z' in iso_table:
+            if 'Z' not in iso_table:
                 iso_table.add_column('Z', np.ones(iso_table.nrows) * Z)
 
             # rename cols, remove phot and other unnecessary cols
@@ -685,8 +733,12 @@ class MISTWeb(Isochrone):
             iso_table.header['NAME'] = 'MESA/MIST Isochrones'
 
             if len(Z) > 1:
-                more = [ self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data for Zk in Z[1:] ]
-                iso_table.data = recfunctions.stack_arrays( [iso_table.data] + more,
-                                                            usemask=False, asrecarray=True)
+                more = [
+                    self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data
+                    for Zk in Z[1:]]
+                iso_table.data = recfunctions.stack_arrays([iso_table.data]
+                                                           + more,
+                                                           usemask=False,
+                                                           asrecarray=True)
 
         return iso_table
