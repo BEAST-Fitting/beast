@@ -30,6 +30,8 @@ if __name__ == '__main__':
     # read in the tracks
     et.load_orig_tables(args.filename)
 
+    orig_metrics = et.grid_metrics()
+
     # plot, plot, plot
     nls = ':'
     et.plot_tracks(ax[0, 0], xval='logT', yval='logL', linestyle=nls)
@@ -39,8 +41,19 @@ if __name__ == '__main__':
 
     # regrid the evolutionary tracks to uniform log(mass) and variable age
     print('size orig = ', len(et.data['M_ini']))
-    et.regrid(logmass_range=[-1., 3.])
+
+    et.regrid(logmass_range=[-1., 3.],
+              logmass_delta=0.05,
+              logT_delta=0.05,
+              logL_delta=0.05)
+
     print('size regrid = ', len(et.data['M_ini']))
+
+    regrid_metrics = et.grid_metrics()
+    for ckey in regrid_metrics.keys():
+        print(ckey)
+        print(orig_metrics[ckey])
+        print(regrid_metrics[ckey])
 
     # get the new grid metrics
     # et.grid_metrics()

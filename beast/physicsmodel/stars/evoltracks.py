@@ -90,29 +90,46 @@ class EvolTracks(object):
             xmin, xmax = ax.get_xlim()
             ax.set_xlim(xmax, xmin)
 
-    def grid_metrics(self):
+    def grid_metrics(self,
+                     check_keys=['logL', 'logT', 'logg']):
         """
         Compute metrics of the grid
         Primarily to determine how well parameter space is covered
 
         Parameters
         ----------
-        target_delta : float, optional
-            target delta in log space for new grid
-        """
-        # loop over the initial mass values
-        uvals, indices = np.unique(self.data['M_ini'], return_inverse=True)
-        for k, cval in enumerate(uvals):
-            cindxs, = np.where(k == indices)
-            delta_logL = np.absolute(np.diff(self.data['logL'][cindxs]))
-            delta_logT = np.absolute(np.diff(self.data['logT'][cindxs]))
+        check_keys : string array
+            keys in grid to generage metrics for
 
-        # loop over eep values
-        uvals, indices = np.unique(self.data['eep'], return_inverse=True)
-        for k, cval in enumerate(uvals):
-            cindxs, = np.where(k == indices)
-            delta_logL = np.absolute(np.diff(self.data['logL'][cindxs]))
-            delta_logT = np.absolute(np.diff(self.data['logT'][cindxs]))
+        Returns
+        -------
+        metrics : dictonary
+            each entry has an array with [min, max, median, mean] deltas
+            for that grid paramters
+        """
+        # loop over eep values accumulating deltas
+        dvals = {}
+        for cname in check_keys:
+            dvals[cname] = []
+
+        for gparam in ['M_ini']:
+            uvals, indices = np.unique(self.data[gparam], return_inverse=True)
+            for k, cval in enumerate(uvals):
+                cindxs, = np.where(k == indices)
+                for cname in check_keys:
+                    dvals[cname] = np.concatenate(
+                        (dvals[cname],
+                         np.absolute(np.diff(self.data[cname][cindxs]))))
+
+        # compute the metrics
+        metrics = {}
+        for cname in check_keys:
+            metrics[cname] = [np.min(dvals[cname]),
+                              np.max(dvals[cname]),
+                              np.median(dvals[cname]),
+                              np.mean(dvals[cname])]
+
+        return metrics
 
     def regrid(self,
                logmass_range=[-1., 2.],
@@ -212,12 +229,6 @@ class EvolTracks(object):
                 new_grid[cname] = np.concatenate(
                     (new_grid[cname],
                      self.data[cname][cindxs][nindxs]))
-
-            new_delta_logL = np.absolute(np.diff(self.data['logL'][cindxs][nindxs]))
-            new_delta_logT = np.absolute(np.diff(self.data['logT'][cindxs][nindxs]))
-
-            print(10**cval, len(cindxs), len(nindxs), np.max(delta_logT),
-                  np.max(new_delta_logT))
 
         # update the grid
         self.data = new_grid
