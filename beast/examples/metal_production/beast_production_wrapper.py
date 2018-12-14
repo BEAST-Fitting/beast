@@ -230,7 +230,8 @@ def beast_production_wrapper():
 
             setup_batch_beast_trim.setup_batch_beast_trim(field_names[b] + '_beast',
                                                             gst_file, ast_file,
-                                                            num_subtrim=1, nice=19)
+                                                            num_subtrim=1, nice=19,
+                                                            seds_fname=physics_model_file)
 
             print('\n**** go run trimming code for '+field_names[b]+'! ****')
             print('Here is the command to run:')

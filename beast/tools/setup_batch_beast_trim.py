@@ -17,7 +17,8 @@ def setup_batch_beast_trim(project,
                                datafile,
                                astfile,
                                num_subtrim=5,
-                               nice=None):
+                               nice=None,
+                               seds_fname=None):
     """
     Sets up batch files for submission to the 'at' queue on linux (or similar) systems
 
@@ -38,14 +39,19 @@ def setup_batch_beast_trim(project,
 
     nice : int (default = None)
         set this to an integer (-20 to 20) to prepend a "nice" level to the trimming command
+
+    seds_fname : string (default = None)
+        full filename to the SED grid
   
     """
 
     ast_file = astfile
     n_subtrim_files = num_subtrim
 
-    
-    full_model_filename = "%s/%s_seds.grid.hd5"%(project,project)
+    if seds_fname is None:
+        full_model_filename = "%s/%s_seds.grid.hd5"%(project,project)
+    else:
+        full_model_filename = seds_fname
 
     cat_files = np.array(glob.glob(datafile.replace('.fits','*_sub*.fits')))
 
@@ -97,6 +103,7 @@ def setup_batch_beast_trim(project,
         trimfile = job_path+'BEAST_' + str(i+1)
         bt_f.append(open(trimfile,'w'))
         bt_f[-1].write(project + '\n')
+        bt_f[-1].write(full_model_filename + '\n')
         #bt_f[-1].write(full_model_filename + '\n')
         pf.write(nice_str + 'python -m beast.tools.trim_many_via_obsdata '+trimfile+' > '
                  +log_path+'beast_trim_tr'+str(i+1)+'.log\n')
