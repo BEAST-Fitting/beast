@@ -86,9 +86,10 @@ class EvolTracks(object):
         ax.set_xlabel(self.alabels[xval])
         ax.set_ylabel(self.alabels[yval])
 
-        if xval is 'logT':
+        if xval == 'logT':
             xmin, xmax = ax.get_xlim()
-            ax.set_xlim(xmax, xmin)
+            if xmin < xmax:
+                ax.set_xlim(xmax, xmin)
 
     def grid_metrics(self,
                      check_keys=['logL', 'logT', 'logg']):

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Make a plot of the evolutionary tracks
 """
@@ -36,7 +35,7 @@ if __name__ == '__main__':
     nls = ':'
     et.plot_tracks(ax[0, 0], xval='logT', yval='logL', linestyle=nls)
     et.plot_tracks(ax[1, 1], xval='logA', yval='M_ini', linestyle=nls)
-    et.plot_tracks(ax[0, 1], xval='eep', yval='M_ini', linestyle=nls)
+    et.plot_tracks(ax[0, 1], xval='phase', yval='M_ini', linestyle=nls)
     et.plot_tracks(ax[1, 0], xval='logT', yval='logg', linestyle=nls)
 
     # regrid the evolutionary tracks to uniform log(mass) and variable age
@@ -62,7 +61,7 @@ if __name__ == '__main__':
     nls = '-'
     et.plot_tracks(ax[0, 0], xval='logT', yval='logL', linestyle=nls)
     et.plot_tracks(ax[1, 1], xval='logA', yval='M_ini', linestyle=nls)
-    et.plot_tracks(ax[0, 1], xval='eep', yval='M_ini', linestyle=nls)
+    et.plot_tracks(ax[0, 1], xval='phase', yval='M_ini', linestyle=nls)
     et.plot_tracks(ax[1, 0], xval='logT', yval='logg', linestyle=nls)
 
     fig.tight_layout()
