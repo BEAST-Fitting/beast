@@ -72,8 +72,9 @@ def run_beast_production(basename,
     # - trimmed noise model
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
     # - SED grid
-    modelsedgrid_filename = "%s/%s_seds.grid.hd5"%(datamodel.project,
-                                                   datamodel.project)
+    #modelsedgrid_filename = "%s/%s_seds.grid.hd5"%(datamodel.project,
+    #                                               datamodel.project)
+    modelsedgrid_filename = "METAL_seds.grid.hd5"
 
     print("***run information***")
     print("  project = " + datamodel.project)
@@ -84,10 +85,10 @@ def run_beast_production(basename,
     print("trimmed noisefiles = " + noisemodel_trimname)
     print("    stats filebase = " + stats_filebase)
 
-    if physicsmodel:
+    # make sure the project directory exists
+    pdir = create_project_dir(datamodel.project)
 
-        # make sure the project directory exists
-        pdir = create_project_dir(datamodel.project)
+    if physicsmodel:
 
         # download and load the isochrones
         (iso_fname, oiso) = make_iso_table(datamodel.project,
@@ -115,6 +116,7 @@ def run_beast_production(basename,
             redshift=redshift,
             distance=datamodel.distances,
             distance_unit=datamodel.distance_unit,
+            spec_fname=modelsedgrid_filename,
             add_spectral_properties_kwargs=extra_kwargs)
 
         # add the stellar priors as weights
@@ -136,6 +138,7 @@ def run_beast_production(basename,
             rv_prior_model=datamodel.rv_prior_model,
             av_prior_model=datamodel.av_prior_model,
             fA_prior_model=datamodel.fA_prior_model,
+            spec_fname=modelsedgrid_filename,
             add_spectral_properties_kwargs=extra_kwargs)
 
     if ast:
