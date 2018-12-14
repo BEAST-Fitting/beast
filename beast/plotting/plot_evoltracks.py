@@ -30,13 +30,27 @@ if __name__ == '__main__':
     # read in the tracks
     et.load_orig_tables(args.filename)
 
-    et.grid_metrics()
+    # plot, plot, plot
+    nls = ':'
+    et.plot_tracks(ax[0, 0], xval='logT', yval='logL', linestyle=nls)
+    et.plot_tracks(ax[1, 1], xval='logA', yval='M_ini', linestyle=nls)
+    et.plot_tracks(ax[0, 1], xval='eep', yval='M_ini', linestyle=nls)
+    et.plot_tracks(ax[1, 0], xval='logT', yval='logg', linestyle=nls)
+
+    # regrid the evolutionary tracks to uniform log(mass) and variable age
+    print('size orig = ', len(et.data['M_ini']))
+    et.regrid(logmass_range=[-1., 3.])
+    print('size regrid = ', len(et.data['M_ini']))
+
+    # get the new grid metrics
+    # et.grid_metrics()
 
     # plot, plot, plot
-    et.plot_tracks(ax[0, 0], xval='logT', yval='logL')
-    et.plot_tracks(ax[1, 1], xval='logA', yval='phase')
-    et.plot_tracks(ax[0, 1], xval='eep', yval='M_ini')
-    et.plot_tracks(ax[1, 0], xval='logT', yval='logg')
+    nls = '-'
+    et.plot_tracks(ax[0, 0], xval='logT', yval='logL', linestyle=nls)
+    et.plot_tracks(ax[1, 1], xval='logA', yval='M_ini', linestyle=nls)
+    et.plot_tracks(ax[0, 1], xval='eep', yval='M_ini', linestyle=nls)
+    et.plot_tracks(ax[1, 0], xval='logT', yval='logg', linestyle=nls)
 
     fig.tight_layout()
 

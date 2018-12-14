@@ -2,6 +2,8 @@
 # the stellar physicsgrid
 
 import numpy as np
+from scipy.interpolate import interp1d
+
 from astropy.table import Table
 
 
@@ -41,8 +43,8 @@ class EvolTracks(object):
                         'logL': 'log(L)',
                         'logA': 'log(age)',
                         'phase': 'evol phase',
-                        'M_act': 'current mass',
-                        'M_ini': 'initial mass'}
+                        'M_act': 'log(current mass)',
+                        'M_ini': 'log(initial mass)'}
 
     def load_orig_tables(self, source):
         """
@@ -50,7 +52,8 @@ class EvolTracks(object):
         """
         print('not implemented')
 
-    def plot_tracks(self, ax, xval='logT', yval='logL'):
+    def plot_tracks(self, ax, xval='logT', yval='logL',
+                    linestyle='-'):
         """
         Plot the tracks with the input x, y choices
 
@@ -64,6 +67,9 @@ class EvolTracks(object):
 
         xval : str, optional
             what data for y
+
+        linestyle : string
+            matplotlib linestyle
         """
         if xval not in self.data.keys():
             raise ValueError("xval choice not in data table")
@@ -74,7 +80,8 @@ class EvolTracks(object):
         uvals, indices = np.unique(self.data['M_ini'], return_inverse=True)
         for k, cval in enumerate(uvals):
             cindxs = np.where(k == indices)
-            ax.plot(self.data[xval][cindxs], self.data[yval][cindxs])
+            ax.plot(self.data[xval][cindxs], self.data[yval][cindxs],
+                    linestyle=linestyle)
 
         ax.set_xlabel(self.alabels[xval])
         ax.set_ylabel(self.alabels[yval])
@@ -83,7 +90,7 @@ class EvolTracks(object):
             xmin, xmax = ax.get_xlim()
             ax.set_xlim(xmax, xmin)
 
-    def grid_metrics(self, target_delta=0.01):
+    def grid_metrics(self):
         """
         Compute metrics of the grid
         Primarily to determine how well parameter space is covered
@@ -99,26 +106,90 @@ class EvolTracks(object):
             cindxs, = np.where(k == indices)
             delta_logL = np.absolute(np.diff(self.data['logL'][cindxs]))
             delta_logT = np.absolute(np.diff(self.data['logT'][cindxs]))
-            nindxs = [0]
-            cdelt_logL = 0.0
-            cdelt_logT = 0.0
-            for i in range(len(delta_logL)):
-                cdelt_logL += delta_logL[i]
-                cdelt_logT += delta_logT[i]
-                if ((cdelt_logL > target_delta)
-                        or (cdelt_logT > target_delta)):
-                    nindxs.append(i+1)
-                    cdelt_logL = 0.0
-                    cdelt_logT = 0.0
-
-            if not max(nindxs) == len(delta_logL):
-                nindxs.append(len(delta_logL))
-
-            print(cval, len(cindxs), len(nindxs), np.median(delta_logL),
-                  np.median(delta_logT))
 
         # loop over eep values
         uvals, indices = np.unique(self.data['eep'], return_inverse=True)
+        for k, cval in enumerate(uvals):
+            cindxs, = np.where(k == indices)
+            delta_logL = np.absolute(np.diff(self.data['logL'][cindxs]))
+            delta_logT = np.absolute(np.diff(self.data['logT'][cindxs]))
+
+    def regrid(self,
+               logmass_range=[-1., 2.],
+               logmass_delta=0.05,
+               logL_delta=0.05,
+               logT_delta=0.05):
+        """
+        Interpolate a set of evolutionary tracks to a uniform grid
+        in log(initial mass) and variable grid in stellar age.
+        Use Equivalent Evolutionary Points (EEPs) values to do the
+        mass interpolation.  EEPs are provide as part of the evolutionary
+        tracks.
+
+        Parameters
+        ----------
+        logmass_range : (float, float)
+            range of new mass grid
+            default is -1 to 2 (0.1 to 100 M_sun)
+
+        logmass_delta : float
+            log(mass) delta for new mass grid
+            default is 0.05
+        """
+        # get the unique mass values
+        uvals, indices = np.unique(self.data['M_ini'], return_inverse=True)
+        # print(10**uvals)
+
+        # ensure there are evolutionary tracks spanning
+        #   the min/max of the new grid --> no extrapolation
+        new_min_mass = max([min(uvals), logmass_range[0]])
+        new_max_mass = min([max(uvals), logmass_range[1]])
+
+        n_new_masses = int((new_max_mass - new_min_mass)/logmass_delta) + 1
+        new_mass_vals = np.linspace(new_min_mass, new_max_mass,
+                                    num=n_new_masses)
+        # print(n_new_masses, len(uvals))
+        # print(10**new_mass_vals)
+
+        # setup the new grid
+        new_grid = {}
+        for cname in self.data.keys():
+            new_grid[cname] = np.array([])
+
+        # loop over eep values and interopolate to new mass grid
+        # along constant eep tracks
+        uvals, indices = np.unique(self.data['eep'], return_inverse=True)
+        for k, cval in enumerate(uvals):
+            cindxs, = np.where(k == indices)
+            cur_masses = self.data['M_ini'][cindxs]
+
+            # only interpolate for masses defined for the current eep
+            new_gindxs, = np.where(
+                np.logical_and(min(cur_masses) <= new_mass_vals,
+                               new_mass_vals <= max(cur_masses)))
+
+            for cname in self.data.keys():
+                if cname == 'eep':
+                    vals = np.full((len(new_gindxs)), cval)
+                elif cname == 'M_ini':
+                    vals = new_mass_vals[new_gindxs]
+                else:
+                    f = interp1d(cur_masses, self.data[cname][cindxs])
+                    vals = f(new_mass_vals[new_gindxs])
+
+                new_grid[cname] = np.concatenate((new_grid[cname],
+                                                  vals))
+
+        # update the grid
+        self.data = new_grid
+
+        # setup the new grid
+        new_grid = {}
+        for cname in self.data.keys():
+            new_grid[cname] = np.array([])
+
+        # loop over each mass track and condense
+        uvals, indices = np.unique(self.data['M_ini'], return_inverse=True)
         for k, cval in enumerate(uvals):
             cindxs, = np.where(k == indices)
             delta_logL = np.absolute(np.diff(self.data['logL'][cindxs]))
@@ -129,17 +200,27 @@ class EvolTracks(object):
             for i in range(len(delta_logL)):
                 cdelt_logL += delta_logL[i]
                 cdelt_logT += delta_logT[i]
-                if ((cdelt_logL > target_delta)
-                        or (cdelt_logT > target_delta)):
-                    nindxs.append(i+1)
-                    cdelt_logL = 0.0
-                    cdelt_logT = 0.0
+                if ((cdelt_logL > logL_delta) or (cdelt_logT > logT_delta)):
+                    nindxs.append(i)
+                    cdelt_logL = delta_logL[i]
+                    cdelt_logT = delta_logT[i]
 
-            if not max(nindxs) == len(delta_logL):
-                nindxs.append(len(delta_logL))
+            if not max(nindxs) == len(delta_logL) - 1:
+                nindxs.append(len(delta_logL) - 1)
 
-            print(cval, len(cindxs), len(nindxs), np.median(delta_logL),
-                  np.median(delta_logT))
+            for cname in self.data.keys():
+                new_grid[cname] = np.concatenate(
+                    (new_grid[cname],
+                     self.data[cname][cindxs][nindxs]))
+
+            new_delta_logL = np.absolute(np.diff(self.data['logL'][cindxs][nindxs]))
+            new_delta_logT = np.absolute(np.diff(self.data['logT'][cindxs][nindxs]))
+
+            print(10**cval, len(cindxs), len(nindxs), np.max(delta_logT),
+                  np.max(new_delta_logT))
+
+        # update the grid
+        self.data = new_grid
 
 
 class ETParsec(EvolTracks):
@@ -214,7 +295,7 @@ class ETMist(EvolTracks):
             eep = np.concatenate((eep, range(len(a))))
 
         self.data = {}
-        self.data['M_act'] = mass_act
+        self.data['M_act'] = np.log10(mass_act)
         self.data['M_ini'] = np.log10(mass_ini)
         self.data['logA'] = logA
         self.data['logL'] = logL
