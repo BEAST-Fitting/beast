@@ -168,7 +168,8 @@ def beast_production_wrapper():
         print('')
 
         # the file name for the model grid
-        physics_model_file = './' + field_names[b] + '_beast/' + field_names[b] + '_beast_seds.grid.hd5'
+        #physics_model_file = './' + field_names[b] + '_beast/' + field_names[b] + '_beast_seds.grid.hd5'
+        physics_model_file = 'METAL_seds.grid.hd5'
 
         # only make the physics model if it doesn't already exist
         if not os.path.isfile(physics_model_file):
