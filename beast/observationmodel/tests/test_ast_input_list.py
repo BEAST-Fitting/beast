@@ -27,7 +27,7 @@ def test_pick_models():
     mag_cuts = [1.]
 
     table_new = make_ast_input_list.pick_models(filename, filters, mag_cuts, vega_fname=vega_fname,
-                                                outfile='/tmp/test_inputAST.txt')
+                                                outfile='/tmp/test_inputAST.txt', ranseed=1234)
 
     # download cached version of the file and compare it to new file
     cached_table_filename = download_rename('cache_inputAST.txt')

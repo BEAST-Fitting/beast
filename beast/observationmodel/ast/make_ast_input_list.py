@@ -222,7 +222,7 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
 
 
 def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
-                outfile=None, outfile_params=None, bright_cut=None, vega_fname=None):
+                outfile=None, outfile_params=None, bright_cut=None, vega_fname=None, ranseed=None):
     """Creates a fake star catalog from a BEAST model grid
 
     Parameters
@@ -260,6 +260,10 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
 
     vega_fname: str
         filename of vega file
+
+    ranseed : int
+        used to set the seed to make the results reproducable
+        useful for testing
 
     Returns
     -------
@@ -299,6 +303,11 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
     N_sample = N_stars
     model_ind = []  # indices for the model grid
     ast_params = grid_cut[[]]  # the corresponding model parameters
+
+    # set the random seed - mainly for testing
+    if not None:
+        np.random.seed(ranseed)
+
     for iage in search_age:
         tmp, = np.where(prime_params[:, 0] == iage)
         new_ind = np.random.choice(tmp, N_sample)
