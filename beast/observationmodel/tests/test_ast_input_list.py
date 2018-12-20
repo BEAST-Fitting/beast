@@ -26,15 +26,15 @@ def test_pick_models():
                'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
     mag_cuts = [1.]
 
-    table_new = make_ast_input_list.pick_models(filename, filters, mag_cuts, vega_fname=vega_fname,
+    table_out = make_ast_input_list.pick_models(filename, filters, mag_cuts, vega_fname=vega_fname,
                                                 outfile='/tmp/test_inputAST.txt', ranseed=1234)
+
+    table_new = Table.read('/tmp/test_inputAST.txt', format='ascii')
 
     # download cached version of the file and compare it to new file
     cached_table_filename = download_rename('cache_inputAST.txt')
-
     table_cache = Table.read(cached_table_filename, format='csv', delimiter=' ')
-    # compare_tables(table_new, table_cache)
-    assert(len(table_new) == len(table_cache))
+    compare_tables(table_new, table_cache)
 
 
 if __name__ == '__main__':
