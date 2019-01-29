@@ -55,6 +55,8 @@ def setup_batch_beast_fit(projectname,
 
     cat_files = np.array(sorted(glob.glob(datafile.replace('.fits','*_sub*.fits'))))
 
+    datafile_basename = datafile.split('/')[-1].replace('.fits','')
+
     n_cat_files = len(cat_files)
     n_pernode_files = num_percore
 
@@ -191,7 +193,7 @@ def setup_batch_beast_fit(projectname,
                 pipe_str = ' >> '
 
             job_command = nice_str + 'python run_beast_production.py -f ' + ext_str + ' ' + \
-                          datafile + ' ' + sd_num + ' '+sub_num + pipe_str \
+                          datafile_basename + ' ' + sd_num + ' '+sub_num + pipe_str \
                           + log_path+'beast_fit' + \
                           '_sd'+sd_num+'_sub'+sub_num+'.log'
 
