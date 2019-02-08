@@ -26,9 +26,8 @@ from density_map import DensityMap
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('catfile', type=str, help='catalog FITS file')
+    parser.add_argument('reference', type=str, help='reference image (FITS)')
     parser.add_argument('--npix', type=int, default=10, help='resolution')
-    parser.add_argument('--reference', type=str, help='reference image (FITS)',
-                        default=None)
     parser.add_argument('--nointeract', action='store_true')
     parser.add_argument('--suffix', type=str, help='which suffix to add to the output files',
                         default='_bg')
