@@ -30,51 +30,19 @@ def main():
     parser.add_argument('--reference', type=str, help='reference image (FITS)',
                         default=None)
     parser.add_argument('--nointeract', action='store_true')
-    parser.add_argument('--filebase', type=str, help='override default labeling of files',
-                        default=None)
+    parser.add_argument('--suffix', type=str, help='which suffix to add to the output files',
+                        default='_bg')
+    parser.add_argument('--make_map_plot', action='store_true',
+                        help='plot the map using transparant colored tiles on top of the reference image')
+    parser.add_argument('--colorbar', type=str, default=None,
+                        help='put a colorbar next to the plot and label it with the given string')
     args = parser.parse_args()
 
-    
-    create_background_density_map(args.catfile,
-                                      npix=args.npix,
-                                      reference=args.reference,
-                                      nointeract=args.nointeract,
-                                      filebase=args.filebase)
-
-
-def create_background_density_map(catfile, npix=10, reference=None, nointeract=True, filebase=None):
-    """
-    Wrapper for all of the background density and plotting functions
-    
-    Parameters
-    ==========
-    catfile : string
-        catalog FITS file
-
-    npix : int
-        resolution of the background map (number of pixels in each dimension)
-
-    reference : string or None
-        image to be used for background calculations
-
-    nointeract : boolean (default=True)
-        if False, will show the background map (in addition to saving it)
-
-    filebase : str or None
-        If set, this will be used as the label when naming files.  Otherwise,
-        the name from the input reference image will be used.
-    
-    """
-
-    if filebase == None:
-        ref_base = os.path.basename(reference).replace('.fits', '')
-    else:
-        ref_base = filebase
-    hdul = astropy.io.fits.open(reference)
+    hdul = astropy.io.fits.open(args.reference)
     image = hdul[1]
 
     result = make_background_map(
-        catfile, npix, ref_im=image, outfile_base=ref_base)
+        args.catfile, args.npix, ref_im=image, outfile_suffix=args.suffix)
 
     bg_map = result['background_map']
     n_map = result['nsources_map']
@@ -92,18 +60,33 @@ def create_background_density_map(catfile, npix=10, reference=None, nointeract=T
     for f, a in zip(figs, ax):
         plt.colorbar(f, ax=a)
     plt.tight_layout()
-    plt.savefig(catfile.replace('.fits','_'+ref_base+'-maps.png'))
+    catfile_base = os.path.basename(args.catfile.replace('.fits', ''))
+    plt.savefig('{}{}_and_npts.png'.format(catfile_base, args.suffix))
 
     # Overplot the map on the image used for the calculation
-    if image:
-        plot_on_image(image, bg_map, ra_grid, dec_grid, mask=mask,
-                      title=catfile.replace('.fits','_'+ref_base))
+    if image and args.make_map_plot:
+        image_fig, image_ax, patch_col = plot_on_image(
+            image, bg_map, ra_grid, dec_grid, mask=mask)
 
-    if not nointeract:
+        if args.colorbar is not None:
+            cb = image_fig.colorbar(patch_col)
+            cb.set_alpha(1)
+            cb.draw_all()
+
+            if len(args.colorbar) == 0:
+                label = 'background (arbitrary units)'
+            else:
+                label = args.colorbar
+
+            cb.set_label(label)
+
+        image_fig.savefig('{}{}_overlay.pdf'.format(catfile_base, args.suffix))
+
+    if not args.nointeract:
         plt.show()
 
 
-def make_background_map(catfile, npix, ref_im, outfile_base):
+def make_background_map(catfile, npix, ref_im, outfile_suffix):
     """
     Divide the image into a number of bins, and calculate the median
     background for the stars that fall within each bin. Create a new
@@ -122,8 +105,8 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
     ref_im: imageHDU
         image which will be used for the background measurements
 
-    outfile: str
-        name for the output file
+    outfile_suffix: str
+        suffix for the output file
 
     Returns
     -------
@@ -204,7 +187,7 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
     for k in extra_columns:
         c = astropy.table.Column(extra_columns[k], name=k)
         cat.add_column(c)
-    mod_catfile = catfile.replace('.fits', '_with_{}_bg.fits'.format(outfile_base))
+    mod_catfile = catfile.replace('.fits', '{}.fits'.format(outfile_suffix))
     cat.write(mod_catfile, format='fits', overwrite=True)
 
     # Save a file describing the properties of the bins in a handy format
@@ -223,7 +206,8 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
     bin_details.meta['dec_grid'] = dec_grid
 
     dm = DensityMap(bin_details)
-    dm.write(catfile.replace('.fits','')+'_'+outfile_base + '_bg_map.hd5')
+    catfile_base = catfile.replace('.fits', '')
+    dm.write('{}{}_map.hd5'.format(catfile_base, outfile_suffix))
 
     # Return a bunch of stuff, to be used for plots
     return {'background_map': background_map,
@@ -233,7 +217,7 @@ def make_background_map(catfile, npix, ref_im, outfile_base):
             'mask': mask}
 
 
-def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None, title=None):
+def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None):
     """
     Plot the density grid as a collection of colored rectangles layered
     over the given fits image.
@@ -256,22 +240,30 @@ def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None, title=Non
         Mask that blacks out pixels. Needs to be of same dimensions as
         image.data (indexed on y,x).
 
-    title: str
-        title of the resulting image, also used as prefix for the image
-        file
+    Returns
+    -------
+    image_fig: matplotlib Figure
+        the figure on which the plot was made
+
+    image_ax: matplotlib Axes
+        the axes on which the imshow and the patches were applied
+
+    patch_col: matplotlib PatchCollection
+        the patch collection that was added to the axes to plot the
+        rectangles representing the background map tiles
     """
     # plot the image
-    image_fig, image_ax = plt.subplots()
+    image_wcs = wcs.WCS(image.header)
+    image_fig = plt.figure()
+    image_ax = image_fig.add_subplot(1, 1, 1, projection=image_wcs)
+    # image_ax = plt.subplot(1, 1, 1, projection=wcs.WCS(image))
     imdata = image.data.astype(float)
-    f = np.sort(imdata.flatten())
-    p = len(f) // 32
-    vmin = np.median(f[:p])
-    vmax = np.median(f[-p:])
+    vmin = np.percentile(imdata, 16)
+    vmax = np.percentile(imdata, 99)
     if mask is not None:
         imdata = np.where(mask, vmin, imdata)
-    plt.imshow(imdata, cmap='gray', interpolation='none', vmin=vmin,
+    plt.imshow(imdata, cmap='gray_r', interpolation='none', vmin=vmin,
                vmax=vmax)
-    plt.colorbar()
 
     # If we want to rotate the rectangles so they align with the WCS
     rotation = (90. - image.header['ORIENTAT']) * math.pi / 180.
@@ -279,7 +271,6 @@ def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None, title=Non
     # Make a rectangular patch for each grid point
     rectangles = []
     values = []
-    image_wcs = wcs.WCS(image.header)
 
     height, width = imdata.shape
     height /= len(dec_grid)
@@ -308,11 +299,7 @@ def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None, title=Non
     # 'mappable', which works because we did set_array.
     image_ax.add_collection(patch_col)
     patch_col.set_array(np.array(values))
-    cb = image_fig.colorbar(patch_col)
-    cb.set_alpha(1)
-    cb.draw_all()
-    plt.title(title)
-    image_fig.savefig('{}_overlay.png'.format(title))
+    return image_fig, image_ax, patch_col
 
 
 def measure_backgrounds(cat_table, ref_im):
