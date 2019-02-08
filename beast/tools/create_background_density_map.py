@@ -12,6 +12,7 @@ import astropy
 from astropy import wcs
 from astropy.table import Table
 from astropy import units
+from astropy.io import fits
 import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -19,8 +20,9 @@ from matplotlib.patches import Rectangle
 from matplotlib.collections import PatchCollection
 import numpy as np
 import photutils as pu
-import os
 from density_map import DensityMap
+import itertools as it
+import os
 
 
 def main():
@@ -32,21 +34,22 @@ def main():
     commonparser = argparse.ArgumentParser(add_help=False)
     commonparser.add_argument('-catfile', type=str, required=True,
                               help='catalog FITS file')
-    commonparser.add_argument('--npix', type=int, default=10,
-                              help='resolution')
+
+    npix_or_pixsize = commonparser.add_mutually_exclusive_group()
+    npix_or_pixsize.add_argument('--npix', type=int, default=10,
+                                 help='resolution')
+    npix_or_pixsize.add_argument('--pixsize', type=float, default=10.)
+    npix_or_pixsize.set_defaults(type='npix')
 
     background_parser = subparsers.add_parser('background', parents=[commonparser],
         help="""Create a background intensity map based on annulus
         measurements around the sources listed in the catalog""")
-    sourcedens_parser = subparsers.add_parser('sourcedens', parents=[commonparser],
+    sourceden_parser = subparsers.add_parser('sourceden', parents=[commonparser],
         help="""Create a source density map, counting the number of
         sources in each tile of the map""")
 
     background_parser.add_argument('-reference', type=str,  metavar='FITSIMAGE', required=True,
                                    help='reference image (FITS)')
-    background_parser.add_argument('--suffix', type=str, default='_bg',
-                                   help='which suffix to add to the output files')
-    background_parser.add_argument('--nointeract', action='store_true')
     background_parser.add_argument('--plot_map_on_image', action='store_true',
                                    help='plot the map using transparant colored tiles on top of the reference image')
     background_parser.add_argument('--colorbar', type=str, default=None, metavar='LABEL',
@@ -54,39 +57,59 @@ def main():
 
     args = parser.parse_args()
 
-    if args.map_type != 'background':
-        print('not implemented yet')
-        exit()
+    # Common actions: load the catalog and set up the grid
+    cat = Table.read(args.catfile)
+    for name in cat.colnames:
+        cat.rename_column(name, name.upper())
 
-    hdul = astropy.io.fits.open(args.reference)
-    image = hdul[1]
+    if args.npix is not None:
+        n_x, n_y = args.npix, args.npix
+    else:
+        n_x, n_y = calc_nx_ny_from_pixsize(cat, args.pixsize)
 
-    result = make_background_map(
-        args.catfile, args.npix, ref_im=image, outfile_suffix=args.suffix)
+    ra = cat['RA']
+    dec = cat['DEC']
+    ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
+    dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
 
-    bg_map = result['background_map']
-    n_map = result['nsources_map']
-    ra_grid = result['ra_grid']
-    dec_grid = result['dec_grid']
-    mask = result['mask']
+    output_base=os.path.basename(args.catfile).replace('.fits', '')
 
-    # Plot the maps directly
-    _, ax = plt.subplots(1, 2)
-    figs = []
-    figs.append(ax[0].imshow(bg_map))
-    ax[0].set_title('bg_density_estimate')
-    figs.append(ax[1].imshow(n_map))
-    ax[1].set_title('number of sources')
-    for f, a in zip(figs, ax):
-        plt.colorbar(f, ax=a)
-    plt.tight_layout()
-    catfile_base = os.path.basename(args.catfile.replace('.fits', ''))
-    plt.savefig('{}{}_and_npts.png'.format(catfile_base, args.suffix))
+    if args.map_type == 'sourceden':
+        map_values_array = make_source_dens_map(cat, ra_grid, dec_grid,
+                                                output_base)
 
-    # Overplot the map on the image used for the calculation
-    if args.plot_map_on_image:
-        image_fig, image_ax, patch_col = plot_on_image(
-            image, bg_map, ra_grid, dec_grid, mask=mask)
+    if args.map_type == 'background':
+        hdul = astropy.io.fits.open(args.reference)
+        image = hdul[1]
+        result = make_background_map(cat, ra_grid, dec_grid, ref_im=image,
+                                     output_base=output_base)
+        map_values_array = result['background_map']
+
+        # Parts of the plotting which depend on command line arguments.
+        # Maybe make this kind of plot possible for the sourceden map
+        # too.
+        n_map = result['nsources_map']
+        ra_grid = result['ra_grid']
+        dec_grid = result['dec_grid']
+        mask = result['mask']
+
+        # Plot the maps directly
+        _, ax = plt.subplots(1, 2)
+        figs = []
+        figs.append(ax[0].imshow(map_values_array))
+        ax[0].set_title('bg_density_estimate')
+        figs.append(ax[1].imshow(n_map))
+        ax[1].set_title('number of sources')
+        for f, a in zip(figs, ax):
+            plt.colorbar(f, ax=a)
+            plt.tight_layout()
+
+        plt.savefig('{}_plot_bg_and_npts.png'.format(output_base))
+
+        # Overplot the map on the image used for the calculation
+        if args.plot_map_on_image:
+            image_fig, image_ax, patch_col = plot_on_image(
+                image, map_values_array, ra_grid, dec_grid, mask=mask)
 
         if args.colorbar is not None:
             cb = image_fig.colorbar(patch_col)
@@ -100,13 +123,27 @@ def main():
 
             cb.set_label(label)
 
-        image_fig.savefig('{}{}_overlay.pdf'.format(catfile_base, args.suffix))
+        image_fig.savefig('{}_plot_overlay.pdf'.format(output_base))
 
-    if not args.nointeract:
-        plt.show()
+    # Save a file describing the properties of the bins in a handy format
+    bin_details = astropy.table.Table(
+        names=['i_ra', 'i_dec', 'value',
+               'min_ra', 'max_ra',
+               'min_dec', 'max_dec'])
+    for x, y in xyrange(n_x, n_y):
+        bin_details.add_row([x, y, map_values_array[x, y],
+                             ra_grid[x], ra_grid[x + 1],
+                             dec_grid[y], dec_grid[y + 1]])
+
+    # Add the ra and dec grids as metadata
+    bin_details.meta['ra_grid'] = ra_grid
+    bin_details.meta['dec_grid'] = dec_grid
+
+    dm = DensityMap(bin_details)
+    dm.write('{}_{}_map.hd5'.format(output_base, args.map_type))
 
 
-def make_background_map(catfile, npix, ref_im, outfile_suffix):
+def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
     """
     Divide the image into a number of bins, and calculate the median
     background for the stars that fall within each bin. Create a new
@@ -118,15 +155,14 @@ def make_background_map(catfile, npix, ref_im, outfile_suffix):
     Parameters
     ----------
     catfile: str
-        file name of the photometry catalog. The positions of the
-        sources will be used to measure the backgrounds, and mask the
-        sources themselves.
+        The photometry catalog. The positions of the sources will be
+        used to measure the backgrounds, and mask the sources
+        themselves.
 
     ref_im: imageHDU
         image which will be used for the background measurements
 
-    outfile_suffix: str
-        suffix for the output file
+    output_base: string
 
     Returns
     -------
@@ -138,64 +174,50 @@ def make_background_map(catfile, npix, ref_im, outfile_suffix):
         'dec_grid': list of dec bin edges,
         'mask': 2d ndarray the pixels in ref_im that were ignored
     """
-    cat = Table.read(catfile)
-
-    # Dimensions of the grid
-    nx, ny = npix, npix
-
-    # Coordinates
-    ra = cat['RA']
-    dec = cat['DEC']
-
-    # The bin edges
-    ra_grid = np.linspace(ra.min(), ra.max(), nx + 1)
-    dec_grid = np.linspace(dec.min(), dec.max(), ny + 1)
-
-    # The left sides of the bins
-    ra_limits = ra_grid[:-1]
-    dec_limits = dec_grid[:-1]
-
     # A list of background values for each source of the catalog will be
     # built up. Mask used is also returned.
     individual_backgrounds, mask = measure_backgrounds(cat, ref_im)
 
     # Dictionary indexed on (x,y). Contains lists of indices and
     # measurements for each bin.
+    n_x = len(ra_grid)
+    n_y = len(dec_grid)
     sources_foreach_bin = {}
-    for x in range(nx):
-        for y in range(ny):
-            sources_foreach_bin[x, y] = {'indices': [], 'measurements': []}
+    for x, y in xyrange(n_x, n_y):
+        sources_foreach_bin[x, y] = {'indices': [], 'measurements': []}
 
     # Indexed on source nr i. Will contain [x,y] for each source
     bin_foreach_source = [None] * len(cat)
 
     # Go over all the sources, and put them in the right bins
+    ra = cat['RA']
+    dec = cat['DEC']
     for i in range(len(cat)):
-        # Find the correct bin in the map. With side='right', the points
-        # that are exactly on the min or max get assigned the next
-        # insertion point. When we do minus one, we are sure that we
-        # have the point to the left of the value.
-        x = np.searchsorted(ra_limits, ra[i], side='right') - 1
-        y = np.searchsorted(dec_limits, dec[i], side='right') - 1
+        # Find the correct bin in the map, based on the left sides of
+        # the bins. With side='right', the points that are exactly on
+        # the min or max get assigned the next insertion point. When we
+        # do minus one, we are sure that we have the point to the left
+        # of the value.
+        x = np.searchsorted(ra_grid[:-1], ra[i], side='right') - 1
+        y = np.searchsorted(dec_grid[:-1], dec[i], side='right') - 1
 
         sources_foreach_bin[x, y]['indices'].append(i)
         sources_foreach_bin[x, y]['measurements'].append(
             individual_backgrounds[i])
         bin_foreach_source[i] = [x, y]
 
-    background_map = np.zeros((nx, ny))
-    nsources_map = np.zeros((nx, ny))
-    for x in range(nx):
-        for y in range(ny):
-            # For plotting the number sources in each bin
-            n = len(sources_foreach_bin[x, y]['indices'])
-            nsources_map[x, y] = n
-            # Get the median background of all the sources in each bin
-            if n:
-                background_map[x, y] = np.median(
-                    sources_foreach_bin[x, y]['measurements'])
-            if n == 1:
-                print('Only 1 source in bin {},{}'.format(x, y))
+    background_map = np.zeros((n_x, n_y))
+    nsources_map = np.zeros((n_x, n_y))
+    for x, y in xyrange(n_x, n_y):
+        # For plotting the number sources in each bin
+        n = len(sources_foreach_bin[x, y]['indices'])
+        nsources_map[x, y] = n
+        # Get the median background of all the sources in each bin
+        if n:
+            background_map[x, y] = np.median(
+                sources_foreach_bin[x, y]['measurements'])
+        if n == 1:
+            print('Only 1 source in bin {},{}'.format(x, y))
 
     background_map[nsources_map == 0] = 0
 
@@ -207,27 +229,7 @@ def make_background_map(catfile, npix, ref_im, outfile_suffix):
     for k in extra_columns:
         c = astropy.table.Column(extra_columns[k], name=k)
         cat.add_column(c)
-    mod_catfile = catfile.replace('.fits', '{}.fits'.format(outfile_suffix))
-    cat.write(mod_catfile, format='fits', overwrite=True)
-
-    # Save a file describing the properties of the bins in a handy format
-    bin_details = astropy.table.Table(
-        names=['i_ra', 'i_dec', 'value',
-               'min_ra', 'max_ra',
-               'min_dec', 'max_dec'])
-    for x in range(nx):
-        for y in range(ny):
-            bin_details.add_row([x, y, background_map[x, y],
-                                 ra_grid[x], ra_grid[x + 1],
-                                 dec_grid[y], dec_grid[y + 1]])
-
-    # Add the ra and dec grids as metadata
-    bin_details.meta['ra_grid'] = ra_grid
-    bin_details.meta['dec_grid'] = dec_grid
-
-    dm = DensityMap(bin_details)
-    catfile_base = catfile.replace('.fits', '')
-    dm.write('{}{}_map.hd5'.format(catfile_base, outfile_suffix))
+    cat.write(output_base + '_with_bg.fits', format='fits', overwrite=True)
 
     # Return a bunch of stuff, to be used for plots
     return {'background_map': background_map,
@@ -235,91 +237,6 @@ def make_background_map(catfile, npix, ref_im, outfile_suffix):
             'ra_grid': ra_grid,
             'dec_grid': dec_grid,
             'mask': mask}
-
-
-def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None):
-    """
-    Plot the density grid as a collection of colored rectangles layered
-    over the given fits image.
-
-    Parameters
-    ----------
-    image: imageHDU
-        the fits image, which should include a WCS
-
-    background_map: 2d ndarray
-        the values for the bins (indexed on [ra_index,dec_index])
-
-    ra_grid: list of float
-        edges of the right ascension bins in degrees
-
-    dec_grid: list of float
-        edges of the declination bins in degrees
-
-    mask: 2d ndarray of bool
-        Mask that blacks out pixels. Needs to be of same dimensions as
-        image.data (indexed on y,x).
-
-    Returns
-    -------
-    image_fig: matplotlib Figure
-        the figure on which the plot was made
-
-    image_ax: matplotlib Axes
-        the axes on which the imshow and the patches were applied
-
-    patch_col: matplotlib PatchCollection
-        the patch collection that was added to the axes to plot the
-        rectangles representing the background map tiles
-    """
-    # plot the image
-    image_wcs = wcs.WCS(image.header)
-    image_fig = plt.figure()
-    image_ax = image_fig.add_subplot(1, 1, 1, projection=image_wcs)
-    # image_ax = plt.subplot(1, 1, 1, projection=wcs.WCS(image))
-    imdata = image.data.astype(float)
-    vmin = np.percentile(imdata, 16)
-    vmax = np.percentile(imdata, 99)
-    if mask is not None:
-        imdata = np.where(mask, vmin, imdata)
-    plt.imshow(imdata, cmap='gray_r', interpolation='none', vmin=vmin,
-               vmax=vmax)
-
-    # If we want to rotate the rectangles so they align with the WCS
-    rotation = (90. - image.header['ORIENTAT']) * math.pi / 180.
-
-    # Make a rectangular patch for each grid point
-    rectangles = []
-    values = []
-
-    height, width = imdata.shape
-    height /= len(dec_grid)
-    width /= len(ra_grid)
-
-    for ix in range(len(ra_grid) - 1):
-        for iy in range(len(dec_grid) - 1):
-            # Current, one to the right, and one upwards. Remember
-            # that the x and xup can be different because of the
-            # orientation of the WCS.
-            [x], [y] = image_wcs.wcs_world2pix(
-                [ra_grid[ix]], [dec_grid[iy]], 0)
-
-            rec = Rectangle((x, y), width, height)
-            rot = mpl.transforms.Affine2D().rotate_around(x, y, rotation)
-            rec.set_transform(rot)
-            rectangles.append(rec)
-            values.append(background_map[ix, iy])
-
-            patch_col = PatchCollection(rectangles, cmap='viridis')
-            patch_col.set_alpha(0.3)
-
-    # Associate the values with the patches. They will be used to
-    # pick colors from the colorbar. By passing the patch collection
-    # as an argument, the patch collection will be treated as a
-    # 'mappable', which works because we did set_array.
-    image_ax.add_collection(patch_col)
-    patch_col.set_array(np.array(values))
-    return image_fig, image_ax, patch_col
 
 
 def measure_backgrounds(cat_table, ref_im):
@@ -414,10 +331,275 @@ def measure_backgrounds(cat_table, ref_im):
 
     # Threshold
     mask_union = mask_union > 0
-
     phot = pu.aperture_photometry(ref_im.data, annuli, wcs=w, mask=mask_union)
-
     return phot['aperture_sum'] / area, mask_union
+
+
+def make_source_dens_map(cat,
+                         ra_grid, dec_grid,
+                         output_base,
+                         mag_name='F475W_VEGA',
+                         mag_cut=[24.5, 27]):
+    """
+    Computes the source density map and store it in a pyfits HDU
+    Also writes a text file storing the source density for each source
+
+    INPUTS:
+    -------
+    catfile: observed catalog
+    ra_grid, dec_grid: the edges of the bins in ra and dec space
+    mag_name: string
+         name of magnitude column in table
+    mag_cut: 2-element list
+         magnitude range on which the source density is computed
+
+    OUTPUT:
+    -------
+    FITS files written to disk.
+    """
+    # force filter magnitude name to be upper case to match column names
+    mag_name = mag_name.upper()
+
+    # get the columns with fluxes
+    rate_cols = [s for s in cat.colnames if s[-4:] == 'RATE']
+    n_filters = len(rate_cols)
+
+    # create the indexs where any of the rates are zero and non-zero
+    #   zero = missing data, etc. -> bad for fitting
+    #   non-zero = good data, etc. -> great for fitting
+    initialize_zero = False
+    band_zero_indxs = {}
+    print('band, good, zero')
+    for cur_rate in rate_cols:
+        cur_good_indxs, = np.where(cat[cur_rate] != 0.0)
+        cur_indxs, = np.where(cat[cur_rate] == 0.0)
+        print(cur_rate, len(cur_good_indxs), len(cur_indxs))
+        if not initialize_zero:
+            initialize_zero = True
+            zero_indxs = cur_indxs
+            nonzero_indxs = cur_good_indxs
+        else:
+            zero_indxs = np.union1d(zero_indxs, cur_indxs)
+            nonzero_indxs = np.intersect1d(nonzero_indxs, cur_good_indxs)
+
+        # save the zero indexs for each band
+        band_zero_indxs[cur_rate] = zero_indxs
+
+    print('all bands', len(nonzero_indxs), len(zero_indxs))
+
+    N_stars = len(cat)
+
+    w = make_wcs_for_map(ra_grid, dec_grid)
+    pix_x, pix_y = get_pix_coords(cat, w)
+
+    n_x = len(ra_grid) - 1
+    n_y = len(dec_grid) - 1
+    npts_map = np.zeros([n_x, n_y], dtype=float)
+    npts_zero_map = np.zeros([n_x, n_y], dtype=float)
+    npts_band_zero_map = np.zeros([n_x, n_y, n_filters], dtype=float)
+    source_dens = np.zeros(N_stars, dtype=float)
+
+    for i in range(n_x):
+        print('x = %s out of %s' % (str(i+1), str(n_x)))
+        for j in range(n_y):
+            indxs, = np.where((pix_x > i) & (pix_x <= i+1)
+                              & (pix_y > j) & (pix_y <= j+1))
+            n_indxs = len(indxs)
+            indxs_for_SD, = np.where((cat[mag_name][indxs] >= mag_cut[0])
+                                     & (cat[mag_name][indxs] <= mag_cut[1]))
+            n_indxs = len(indxs_for_SD)
+            if n_indxs > 0:
+                pix_area = (ra_grid[i + 1] - ra_grid[i]) * (dec_grid[j + 1] - dec_grid[j]) * 3600 ** 2
+                npts_map[i, j] = n_indxs / pix_area
+
+                # now make a map of the sources with zero fluxes in
+                #   at least one band
+                zindxs, = np.where((pix_x[zero_indxs] > i)
+                                   & (pix_x[zero_indxs] <= i+1)
+                                   & (pix_y[zero_indxs] > j)
+                                   & (pix_y[zero_indxs] <= j+1))
+                if len(zindxs) > 0:
+                    npts_zero_map[i, j] = len(zindxs)
+
+                # do the same for each band
+                for k, cur_rate in enumerate(rate_cols):
+                    tindxs = band_zero_indxs[cur_rate]
+                    zindxs, = np.where((pix_x[tindxs] > i)
+                                       & (pix_x[tindxs] <= i+1)
+                                       & (pix_y[tindxs] > j)
+                                       & (pix_y[tindxs] <= j+1))
+                    if len(zindxs) > 0:
+                        npts_band_zero_map[i, j, k] = len(zindxs)
+
+            # save the source density as an entry for each source
+            source_dens[indxs] = npts_map[i, j]
+
+    # Save to FITS file
+    header = w.to_header()
+    hdu = fits.PrimaryHDU(npts_map.T, header=header)
+    hdu.writeto(output_base + '_source_den_image.fits', overwrite=True)
+
+    # Save to FITS file (zero flux sources)
+    header = w.to_header()
+    hdu = fits.PrimaryHDU(npts_zero_map.T, header=header)
+    hdu.writeto(output_base + '_npts_zero_fluxes_image.fits', overwrite=True)
+
+    for k, cur_rate in enumerate(rate_cols):
+        # Save to FITS file (zero flux sources)
+        header = w.to_header()
+        hdu = fits.PrimaryHDU(npts_band_zero_map[:, :, k].T, header=header)
+        hdu.writeto(output_base + cur_rate + '_image.fits', overwrite=True)
+
+    # Save the source density for individual stars in a new catalog file
+    cat['SourceDensity'] = source_dens
+    cat.write(output_base + '_with_sourceden_inc_zerofluxes.fits',
+              overwrite=True)
+
+    # Save the source density for individual stars in a new catalog file
+    #   only those that have non-zero fluxes in all bands
+    cat[nonzero_indxs].write(output_base + '_with_sourceden.fits',
+                             overwrite=True)
+
+    return npts_map
+
+
+def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None):
+    """
+    Plot the density grid as a collection of colored rectangles layered
+    over the given fits image.
+
+    Parameters
+    ----------
+    image: imageHDU
+        the fits image, which should include a WCS
+
+    background_map: 2d ndarray
+        the values for the bins (indexed on [ra_index,dec_index])
+
+    ra_grid: list of float
+        edges of the right ascension bins in degrees
+
+    dec_grid: list of float
+        edges of the declination bins in degrees
+
+    mask: 2d ndarray of bool
+        Mask that blacks out pixels. Needs to be of same dimensions as
+        image.data (indexed on y,x).
+
+    Returns
+    -------
+    image_fig: matplotlib Figure
+        the figure on which the plot was made
+
+    image_ax: matplotlib Axes
+        the axes on which the imshow and the patches were applied
+
+    patch_col: matplotlib PatchCollection
+        the patch collection that was added to the axes to plot the
+        rectangles representing the background map tiles
+    """
+    # plot the image
+    image_wcs = wcs.WCS(image.header)
+    image_fig = plt.figure()
+    image_ax = image_fig.add_subplot(1, 1, 1, projection=image_wcs)
+    # image_ax = plt.subplot(1, 1, 1, projection=wcs.WCS(image))
+    imdata = image.data.astype(float)
+    vmin = np.percentile(imdata, 16)
+    vmax = np.percentile(imdata, 99)
+    if mask is not None:
+        imdata = np.where(mask, vmin, imdata)
+    plt.imshow(imdata, cmap='gray_r', interpolation='none', vmin=vmin,
+               vmax=vmax)
+
+    # If we want to rotate the rectangles so they align with the WCS
+    rotation = (90. - image.header['ORIENTAT']) * math.pi / 180.
+
+    # Make a rectangular patch for each grid point
+    rectangles = []
+    values = []
+
+    height, width = imdata.shape
+    height /= len(dec_grid)
+    width /= len(ra_grid)
+
+    for ix in range(len(ra_grid) - 1):
+        for iy in range(len(dec_grid) - 1):
+            # Current, one to the right, and one upwards. Remember
+            # that the x and xup can be different because of the
+            # orientation of the WCS.
+            [x], [y] = image_wcs.wcs_world2pix(
+                [ra_grid[ix]], [dec_grid[iy]], 0)
+
+            rec = Rectangle((x, y), width, height)
+            rot = mpl.transforms.Affine2D().rotate_around(x, y, rotation)
+            rec.set_transform(rot)
+            rectangles.append(rec)
+            values.append(background_map[ix, iy])
+
+            patch_col = PatchCollection(rectangles, cmap='viridis')
+            patch_col.set_alpha(0.3)
+
+    # Associate the values with the patches. They will be used to
+    # pick colors from the colorbar. By passing the patch collection
+    # as an argument, the patch collection will be treated as a
+    # 'mappable', which works because we did set_array.
+    image_ax.add_collection(patch_col)
+    patch_col.set_array(np.array(values))
+    return image_fig, image_ax, patch_col
+
+def calc_nx_ny_from_pixsize(cat, pix_size):
+    min_ra = cat['RA'].min()
+    max_ra = cat['RA'].max()
+    min_dec = cat['DEC'].min()
+    max_dec = cat['DEC'].max()
+
+    # Compute number of pixel alog each axis pix_size in arcsec
+    dec_delt = pix_size/3600.
+    n_y = np.fix(np.round((max_dec - min_dec)/dec_delt))
+    ra_delt = dec_delt
+    n_x = np.fix(np.round(math.cos(0.5*(max_dec+min_dec)*math.pi/180.)
+                          * (max_ra-min_ra)/ra_delt))
+    n_x = int(np.max([n_x, 1]))
+    n_y = int(np.max([n_y, 1]))
+    print('# of x & y pixels = ', n_x, n_y)
+    return n_x, n_y
+
+
+def xyrange(n_x, n_y):
+    return it.product(range(n_x), range(n_y))
+
+
+def make_wcs_for_map(ra_grid, dec_grid):
+    """make wcs corresponding to a linear ra_grid and dec_grid"""
+    ra_delt = ra_grid[1] - ra_grid[0]
+    dec_delt = dec_grid[1] - dec_grid[0]
+    cdelt = [ra_delt, dec_delt]
+
+    n_x = len(ra_grid) - 1
+    n_y = len(dec_grid) - 1
+    crpix = np.asarray([n_x, n_y], dtype=float) / 2.
+
+    min_ra, max_ra = ra_grid.min(), ra_grid.max()
+    min_dec, max_dec = dec_grid.min(), dec_grid.max()
+    crval = np.asarray([(min_ra + max_ra), (min_dec + max_dec)]) / 2.
+
+    w = wcs.WCS(naxis=2)
+    w.wcs.crpix = crpix
+    w.wcs.cdelt = cdelt
+    w.wcs.crval = crval
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    return w
+
+
+def get_pix_coords(cat, map_wcs):
+    """get the pixel coordinates of all the sources in the catalog
+       according to the given wcs"""
+    world = np.column_stack((cat['RA'], cat['DEC']))
+    print('working on converting ra, dec to pix x,y')
+    pixcrd = map_wcs.wcs_world2pix(world, 1)
+    pix_x = pixcrd[:, 0]
+    pix_y = pixcrd[:, 1]
+    return pix_x, pix_y
 
 
 if __name__ == '__main__':
