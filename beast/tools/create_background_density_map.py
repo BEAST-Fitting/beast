@@ -20,7 +20,8 @@ from matplotlib.collections import PatchCollection
 import numpy as np
 import photutils as pu
 import os
-from .density_map import DensityMap
+from density_map import DensityMap
+
 
 def main():
     parser = argparse.ArgumentParser()

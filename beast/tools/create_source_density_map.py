@@ -15,7 +15,7 @@ from astropy import wcs
 from astropy.io import fits
 from astropy.table import Table
 
-from .density_map import DensityMap
+from density_map import DensityMap
 
 def make_source_dens_map(catfile,
                          pix_size = 10.,
