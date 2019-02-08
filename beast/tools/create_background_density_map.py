@@ -117,19 +117,19 @@ def main():
             image_fig, image_ax, patch_col = plot_on_image(
                 image, map_values_array, ra_grid, dec_grid, mask=mask)
 
-        if args.colorbar is not None:
-            cb = image_fig.colorbar(patch_col)
-            cb.set_alpha(1)
-            cb.draw_all()
+            if args.colorbar is not None:
+                cb = image_fig.colorbar(patch_col)
+                cb.set_alpha(1)
+                cb.draw_all()
 
-            if len(args.colorbar) == 0:
-                label = 'background (arbitrary units)'
-            else:
-                label = args.colorbar
+                if len(args.colorbar) == 0:
+                    label = 'background (arbitrary units)'
+                else:
+                    label = args.colorbar
 
-            cb.set_label(label)
+                cb.set_label(label)
 
-        image_fig.savefig('{}_plot_overlay.pdf'.format(output_base))
+            image_fig.savefig('{}_plot_overlay.pdf'.format(output_base))
 
     # Save a file describing the properties of the bins in a handy format
     bin_details = astropy.table.Table(
