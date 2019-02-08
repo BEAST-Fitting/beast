@@ -25,17 +25,38 @@ from density_map import DensityMap
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('catfile', type=str, help='catalog FITS file')
-    parser.add_argument('reference', type=str, help='reference image (FITS)')
-    parser.add_argument('--npix', type=int, default=10, help='resolution')
-    parser.add_argument('--nointeract', action='store_true')
-    parser.add_argument('--suffix', type=str, help='which suffix to add to the output files',
-                        default='_bg')
-    parser.add_argument('--make_map_plot', action='store_true',
-                        help='plot the map using transparant colored tiles on top of the reference image')
-    parser.add_argument('--colorbar', type=str, default=None,
-                        help='put a colorbar next to the plot and label it with the given string')
+    subparsers = parser.add_subparsers(dest='map_type')
+    subparsers.required = True
+
+    # Common options for both types of map
+    commonparser = argparse.ArgumentParser(add_help=False)
+    commonparser.add_argument('-catfile', type=str, required=True,
+                              help='catalog FITS file')
+    commonparser.add_argument('--npix', type=int, default=10,
+                              help='resolution')
+
+    background_parser = subparsers.add_parser('background', parents=[commonparser],
+        help="""Create a background intensity map based on annulus
+        measurements around the sources listed in the catalog""")
+    sourcedens_parser = subparsers.add_parser('sourcedens', parents=[commonparser],
+        help="""Create a source density map, counting the number of
+        sources in each tile of the map""")
+
+    background_parser.add_argument('-reference', type=str,  metavar='FITSIMAGE', required=True,
+                                   help='reference image (FITS)')
+    background_parser.add_argument('--suffix', type=str, default='_bg',
+                                   help='which suffix to add to the output files')
+    background_parser.add_argument('--nointeract', action='store_true')
+    background_parser.add_argument('--plot_map_on_image', action='store_true',
+                                   help='plot the map using transparant colored tiles on top of the reference image')
+    background_parser.add_argument('--colorbar', type=str, default=None, metavar='LABEL',
+                                   help='put a colorbar next to the plot and label it with the given string')
+
     args = parser.parse_args()
+
+    if args.map_type != 'background':
+        print('not implemented yet')
+        exit()
 
     hdul = astropy.io.fits.open(args.reference)
     image = hdul[1]
@@ -63,7 +84,7 @@ def main():
     plt.savefig('{}{}_and_npts.png'.format(catfile_base, args.suffix))
 
     # Overplot the map on the image used for the calculation
-    if image and args.make_map_plot:
+    if args.plot_map_on_image:
         image_fig, image_ax, patch_col = plot_on_image(
             image, bg_map, ra_grid, dec_grid, mask=mask)
 
