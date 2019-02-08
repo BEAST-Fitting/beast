@@ -61,17 +61,22 @@ def main():
     for name in cat.colnames:
         cat.rename_column(name, name.upper())
 
-    if args.npix is not None:
-        n_x, n_y = args.npix, args.npix
-    elif args.pixsize is not None:
-        n_x, n_y = calc_nx_ny_from_pixsize(cat, args.pixsize)
-    else:
-        n_x, n_y = 10, 10
-
     ra = cat['RA']
     dec = cat['DEC']
-    ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
-    dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
+
+    if args.npix is not None:
+        n_x, n_y = args.npix, args.npix
+        ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
+        dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
+    elif args.pixsize is not None:
+        pixsize_degrees = args.pixsize / 3600
+        n_x, n_y = calc_nx_ny_from_pixsize(cat, pixsize_degrees)
+        ra_grid = ra.min() + pixsize_degrees * np.arange(0, n_x + 1, dtype=float)
+        dec_grid = dec.min() + pixsize_degrees * np.arange(0, n_y + 1, dtype=float)
+    else:
+        n_x, n_y = 10, 10
+        ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
+        dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
 
     output_base=os.path.basename(args.catfile).replace('.fits', '')
 
@@ -548,18 +553,19 @@ def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None):
     patch_col.set_array(np.array(values))
     return image_fig, image_ax, patch_col
 
-def calc_nx_ny_from_pixsize(cat, pix_size):
+
+def calc_nx_ny_from_pixsize(cat, pixsize_degrees):
     min_ra = cat['RA'].min()
     max_ra = cat['RA'].max()
     min_dec = cat['DEC'].min()
     max_dec = cat['DEC'].max()
 
     # Compute number of pixel alog each axis pix_size in arcsec
-    dec_delt = pix_size/3600.
-    n_y = np.fix(np.round((max_dec - min_dec)/dec_delt))
+    dec_delt = pixsize_degrees
+    n_y = np.fix(np.round((max_dec - min_dec) / dec_delt))
     ra_delt = dec_delt
-    n_x = np.fix(np.round(math.cos(0.5*(max_dec+min_dec)*math.pi/180.)
-                          * (max_ra-min_ra)/ra_delt))
+    n_x = np.fix(np.round(math.cos(0.5 * (max_dec + min_dec) * math.pi / 180.)
+                          * (max_ra - min_ra) / ra_delt))
     n_x = int(np.max([n_x, 1]))
     n_y = int(np.max([n_y, 1]))
     print('# of x & y pixels = ', n_x, n_y)
