@@ -36,10 +36,9 @@ def main():
                               help='catalog FITS file')
 
     npix_or_pixsize = commonparser.add_mutually_exclusive_group()
-    npix_or_pixsize.add_argument('--npix', type=int, default=10,
+    npix_or_pixsize.add_argument('--npix', type=int, default=None,
                                  help='resolution')
-    npix_or_pixsize.add_argument('--pixsize', type=float, default=10.)
-    npix_or_pixsize.set_defaults(type='npix')
+    npix_or_pixsize.add_argument('--pixsize', type=float, default=None)
 
     background_parser = subparsers.add_parser('background', parents=[commonparser],
         help="""Create a background intensity map based on annulus
@@ -64,8 +63,10 @@ def main():
 
     if args.npix is not None:
         n_x, n_y = args.npix, args.npix
-    else:
+    elif args.pixsize is not None:
         n_x, n_y = calc_nx_ny_from_pixsize(cat, args.pixsize)
+    else:
+        n_x, n_y = 10, 10
 
     ra = cat['RA']
     dec = cat['DEC']
