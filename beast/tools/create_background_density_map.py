@@ -299,6 +299,10 @@ def measure_backgrounds(cat_table, ref_im):
     source_masks = circles.to_pixel(w).to_mask()
     mask_union = np.zeros(shp)
     for i, ap_mask in enumerate(source_masks):
+        # the masks have a bounding box which we need to take into
+        # account. Here we will calculate the overlap between the mask
+        # and the image (important if the mask is near the edge, so that
+        # the box might go outside of it).
         data_slices = list(ap_mask.bbox.slices)
         # These slices go outside of the box sometimes! In that case we
         # will override the slices on both sides.
@@ -306,7 +310,7 @@ def measure_backgrounds(cat_table, ref_im):
         # Default slices (go over the whole mask)
         mask_slices = [slice(None, None), slice(None, None)]
 
-        # Adjust the slices for x and y if necessary
+        # Adjust the slices in each dimension
         for j in range(2):
             # DATA: . . a b c d e f
             # index - - 0 1 2 3 4 5
@@ -333,7 +337,7 @@ def measure_backgrounds(cat_table, ref_im):
                 mask_slices[j] = slice(mask_slices[j].start, -overflow)
                 # --> slice over the part that falls below the maximum
 
-        mask_union[data_slices] += ap_mask.data[mask_slices]
+        mask_union[tuple(data_slices)] += ap_mask.data[tuple(mask_slices)]
 
     # Threshold
     mask_union = mask_union > 0
