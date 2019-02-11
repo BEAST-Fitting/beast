@@ -448,23 +448,12 @@ def make_source_dens_map(cat,
                         npts_band_zero_map[i, j, k] = len(zindxs)
 
             # save the source density as an entry for each source
-            source_dens[indxs] = npts_map[i, j]
+            source_dens[indxs_for_SD] = npts_map[i, j]
 
-    # Save to FITS file
-    header = w.to_header()
-    hdu = fits.PrimaryHDU(npts_map.T, header=header)
-    hdu.writeto(output_base + '_source_den_image.fits', overwrite=True)
-
-    # Save to FITS file (zero flux sources)
-    header = w.to_header()
-    hdu = fits.PrimaryHDU(npts_zero_map.T, header=header)
-    hdu.writeto(output_base + '_npts_zero_fluxes_image.fits', overwrite=True)
-
+    save_map_fits(npts_map, w, output_base + '_source_den_image.fits')
+    save_map_fits(npts_zero_map, w, output_base + '_npts_zero_fluxes_image.fits')
     for k, cur_rate in enumerate(rate_cols):
-        # Save to FITS file (zero flux sources)
-        header = w.to_header()
-        hdu = fits.PrimaryHDU(npts_band_zero_map[:, :, k].T, header=header)
-        hdu.writeto(output_base + cur_rate + '_image.fits', overwrite=True)
+        save_map_fits(npts_band_zero_map[:, :, k], w, output_base + cur_rate + '_image.fits')
 
     # Save the source density for individual stars in a new catalog file
     cat['SourceDensity'] = source_dens
@@ -617,6 +606,12 @@ def get_pix_coords(cat, map_wcs):
     pix_x = pixcrd[:, 0]
     pix_y = pixcrd[:, 1]
     return pix_x, pix_y
+
+
+def save_map_fits(map_data_xy, map_wcs, file_name):
+    header = map_wcs.to_header()
+    hdu = fits.PrimaryHDU(map_data_xy.T, header=header)
+    hdu.writeto(file_name, overwrite=True)
 
 
 if __name__ == '__main__':
