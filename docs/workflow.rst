@@ -274,9 +274,12 @@ trimming.
 This code sets up batch files for submission to the 'at' queue on linux
 (or similar) systems.  The projectname (e.g., 'PHAT') provides a portion
 of the batch file names.  The datafile and astfile are the observed photometry
-file (not sub files) and file with the ASTs in them.  A subdirectory in the
-project directory is created with a joblist file for submission to the batch
-queue and smaller files used by the trimming code.
+file (not sub files) and file with the ASTs in them.  The optional input
+seds_fname can be used to specify the file with the physics model grid,
+which overrides the default filename when you wish to use one model grid
+for multiple fields. A subdirectory in the project directory is created with
+a joblist file for submission to the batch queue and smaller files used by
+the trimming code.
 
 The joblist file can be split into smaller files if submission to multiple
 cores is desired.  Use the 'split' commandline tool.  The optional 'nice'

@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     project = file_lines[0].rstrip()
     
-    modelfile = "%s/%s_seds.grid.hd5"%(project,project)
+    modelfile = file_lines[1].rstrip()
 
     print('Reading the model grid files = ', modelfile)
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     ext_brick = ''
     
     old_noisefile = ''
-    for k in range(1,len(file_lines)):
+    for k in range(2,len(file_lines)):
         line = file_lines[k]
         line_bits = line.split()
 
