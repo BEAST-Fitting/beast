@@ -52,8 +52,8 @@ def split_obs_by_source_density(catfile, bin_width=1, sort_col='F475W_RATE',
     for ek, ok in enumerate(uinds):
         ii, = np.where(inds == ok)
         cc = SD_cut[ii]
-        print(ok,ok+1, cc.min(), cc.max())
-        assert((cc.min() >= ok) & (cc.max() < ok+1))   # checking we are in the right bin
+        print(bins[ok], bins[ok]+bin_width, cc.min(), cc.max())
+        assert((cc.min() >= bins[ok]) & (cc.max() < bins[ok]+bin_width))   # checking we are in the right bin
         aa = np.str(bins[ok])                          # lower value in bin (string naming purpose)
         bb = np.str(bins[ok] + bin_width)              # higher value in bin (string naming purpose)
         print('SD ' + aa + '-' + bb + ' # sources = ' + str(len(ii)))
