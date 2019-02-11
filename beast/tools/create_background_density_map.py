@@ -422,7 +422,9 @@ def make_source_dens_map(cat,
     for i in range(n_x):
         print('x = %s out of %s' % (str(i+1), str(n_x)))
         for j in range(n_y):
-            indxs_for_SD = indices_for_pixel(pix_x, pix_y, i, j)
+            indxs = indices_for_pixel(pix_x, pix_y, i, j)
+            indxs_for_SD, = np.where(np.logical_and(cat[mag_name][indxs] >= mag_cut[0],
+                                                   cat[mag_name][indxs] <= mag_cut[1]))
             n_indxs = len(indxs_for_SD)
             if n_indxs > 0:
                 pix_area = (ra_grid[i + 1] - ra_grid[i]) * (dec_grid[j + 1] - dec_grid[j]) * 3600 ** 2
