@@ -350,8 +350,8 @@ def indices_for_pixel(pix_x, pix_y, x, y):
     Return the indices of the sources for which the coordinates lie in
     the x, y pixel
     """
-    indxs, = np.where(np.logical_and.reduce(pix_x > x, pix_x <= x + 1,
-                                            pix_y > y, pix_y <= y + 1))
+    indxs, = np.where(np.logical_and.reduce([pix_x > x, pix_x <= x + 1,
+                                             pix_y > y, pix_y <= y + 1]))
     return indxs
 
 
