@@ -184,54 +184,32 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
     # built up. Mask used is also returned.
     individual_backgrounds, mask = measure_backgrounds(cat, ref_im)
 
-    # Dictionary indexed on (x,y). Contains lists of indices and
-    # measurements for each bin.
+    w = make_wcs_for_map(ra_grid, dec_grid)
+    pix_x, pix_y = get_pix_coords(cat, w)
+
     n_x = len(ra_grid)
     n_y = len(dec_grid)
-    sources_foreach_bin = {}
-    for x, y in xyrange(n_x, n_y):
-        sources_foreach_bin[x, y] = {'indices': [], 'measurements': []}
-
-    # Indexed on source nr i. Will contain [x,y] for each source
-    bin_foreach_source = [None] * len(cat)
-
-    # Go over all the sources, and put them in the right bins
-    ra = cat['RA']
-    dec = cat['DEC']
-    for i in range(len(cat)):
-        # Find the correct bin in the map, based on the left sides of
-        # the bins. With side='right', the points that are exactly on
-        # the min or max get assigned the next insertion point. When we
-        # do minus one, we are sure that we have the point to the left
-        # of the value.
-        x = np.searchsorted(ra_grid[:-1], ra[i], side='right') - 1
-        y = np.searchsorted(dec_grid[:-1], dec[i], side='right') - 1
-
-        sources_foreach_bin[x, y]['indices'].append(i)
-        sources_foreach_bin[x, y]['measurements'].append(
-            individual_backgrounds[i])
-        bin_foreach_source[i] = [x, y]
 
     background_map = np.zeros((n_x, n_y))
     nsources_map = np.zeros((n_x, n_y))
+    median_backgrounds = np.zeros((len(cat),))
     for x, y in xyrange(n_x, n_y):
-        # For plotting the number sources in each bin
-        n = len(sources_foreach_bin[x, y]['indices'])
+        idxs = indices_for_pixel(pix_x, pix_y, x, y)
+        n = len(idxs)
         nsources_map[x, y] = n
-        # Get the median background of all the sources in each bin
         if n:
-            background_map[x, y] = np.median(
-                sources_foreach_bin[x, y]['measurements'])
+            background_map[x, y] = np.median(individual_backgrounds[idxs])
         if n == 1:
             print('Only 1 source in bin {},{}'.format(x, y))
+
+        # store the median background for each source
+        median_backgrounds[idxs] = background_map[x, y]
 
     background_map[nsources_map == 0] = 0
 
     # Save the catalog with extra density info
-    median_background_foreach_source = [
-        background_map[xy_bin[0], xy_bin[1]] for xy_bin in bin_foreach_source]
     extra_columns = {'indiv_bg': individual_backgrounds,
-                     'bin_median_bg': median_background_foreach_source}
+                     'bin_median_bg': median_backgrounds}
     for k in extra_columns:
         c = astropy.table.Column(extra_columns[k], name=k)
         cat.add_column(c)
