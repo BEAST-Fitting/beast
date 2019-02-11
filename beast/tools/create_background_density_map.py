@@ -345,6 +345,16 @@ def measure_backgrounds(cat_table, ref_im):
     return phot['aperture_sum'] / area, mask_union
 
 
+def indices_for_pixel(pix_x, pix_y, x, y):
+    """
+    Return the indices of the sources for which the coordinates lie in
+    the x, y pixel
+    """
+    indxs, = np.where(np.logical_and.reduce(pix_x > x, pix_x <= x + 1,
+                                            pix_y > y, pix_y <= y + 1))
+    return indxs
+
+
 def make_source_dens_map(cat,
                          ra_grid, dec_grid,
                          output_base,
@@ -412,11 +422,7 @@ def make_source_dens_map(cat,
     for i in range(n_x):
         print('x = %s out of %s' % (str(i+1), str(n_x)))
         for j in range(n_y):
-            indxs, = np.where((pix_x > i) & (pix_x <= i+1)
-                              & (pix_y > j) & (pix_y <= j+1))
-            n_indxs = len(indxs)
-            indxs_for_SD, = np.where((cat[mag_name][indxs] >= mag_cut[0])
-                                     & (cat[mag_name][indxs] <= mag_cut[1]))
+            indxs_for_SD = indices_for_pixel(pix_x, pix_y, i, j)
             n_indxs = len(indxs_for_SD)
             if n_indxs > 0:
                 pix_area = (ra_grid[i + 1] - ra_grid[i]) * (dec_grid[j + 1] - dec_grid[j]) * 3600 ** 2
