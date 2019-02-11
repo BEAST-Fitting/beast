@@ -387,38 +387,36 @@ def make_source_dens_map(cat,
     npts_band_zero_map = np.zeros([n_x, n_y, n_filters], dtype=float)
     source_dens = np.zeros(N_stars, dtype=float)
 
-    for i in range(n_x):
-        print('x = %s out of %s' % (str(i+1), str(n_x)))
-        for j in range(n_y):
-            indxs = indices_for_pixel(pix_x, pix_y, i, j)
-            indxs_for_SD, = np.where(np.logical_and(cat[mag_name][indxs] >= mag_cut[0],
+    for i, j in xyrange(n_x, n_y):
+        indxs = indices_for_pixel(pix_x, pix_y, i, j)
+        indxs_for_SD, = np.where(np.logical_and(cat[mag_name][indxs] >= mag_cut[0],
                                                    cat[mag_name][indxs] <= mag_cut[1]))
-            n_indxs = len(indxs_for_SD)
-            if n_indxs > 0:
-                pix_area = (ra_grid[i + 1] - ra_grid[i]) * (dec_grid[j + 1] - dec_grid[j]) * 3600 ** 2
-                npts_map[i, j] = n_indxs / pix_area
+        n_indxs = len(indxs_for_SD)
+        if n_indxs > 0:
+            pix_area = (ra_grid[i + 1] - ra_grid[i]) * (dec_grid[j + 1] - dec_grid[j]) * 3600 ** 2
+            npts_map[i, j] = n_indxs / pix_area
 
-                # now make a map of the sources with zero fluxes in
-                #   at least one band
-                zindxs, = np.where((pix_x[zero_indxs] > i)
-                                   & (pix_x[zero_indxs] <= i+1)
-                                   & (pix_y[zero_indxs] > j)
-                                   & (pix_y[zero_indxs] <= j+1))
+            # now make a map of the sources with zero fluxes in
+            #   at least one band
+            zindxs, = np.where((pix_x[zero_indxs] > i)
+                               & (pix_x[zero_indxs] <= i+1)
+                               & (pix_y[zero_indxs] > j)
+                               & (pix_y[zero_indxs] <= j+1))
+            if len(zindxs) > 0:
+                npts_zero_map[i, j] = len(zindxs)
+
+            # do the same for each band
+            for k, cur_rate in enumerate(rate_cols):
+                tindxs = band_zero_indxs[cur_rate]
+                zindxs, = np.where((pix_x[tindxs] > i)
+                                   & (pix_x[tindxs] <= i+1)
+                                   & (pix_y[tindxs] > j)
+                                   & (pix_y[tindxs] <= j+1))
                 if len(zindxs) > 0:
-                    npts_zero_map[i, j] = len(zindxs)
+                    npts_band_zero_map[i, j, k] = len(zindxs)
 
-                # do the same for each band
-                for k, cur_rate in enumerate(rate_cols):
-                    tindxs = band_zero_indxs[cur_rate]
-                    zindxs, = np.where((pix_x[tindxs] > i)
-                                       & (pix_x[tindxs] <= i+1)
-                                       & (pix_y[tindxs] > j)
-                                       & (pix_y[tindxs] <= j+1))
-                    if len(zindxs) > 0:
-                        npts_band_zero_map[i, j, k] = len(zindxs)
-
-            # save the source density as an entry for each source
-            source_dens[indxs_for_SD] = npts_map[i, j]
+        # save the source density as an entry for each source
+        source_dens[indxs_for_SD] = npts_map[i, j]
 
     save_map_fits(npts_map, w, output_base + '_source_den_image.fits')
     save_map_fits(npts_zero_map, w, output_base + '_npts_zero_fluxes_image.fits')
@@ -497,22 +495,23 @@ def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None):
     height /= len(dec_grid)
     width /= len(ra_grid)
 
-    for ix in range(len(ra_grid) - 1):
-        for iy in range(len(dec_grid) - 1):
-            # Current, one to the right, and one upwards. Remember
-            # that the x and xup can be different because of the
-            # orientation of the WCS.
-            [x], [y] = image_wcs.wcs_world2pix(
-                [ra_grid[ix]], [dec_grid[iy]], 0)
+    n_x = len(ra_grid) - 1
+    n_y = len(dec_grid) - 1
+    for ix, iy in xyrange(n_x, n_y):
+        # Current, one to the right, and one upwards. Remember
+        # that the x and xup can be different because of the
+        # orientation of the WCS.
+        [x], [y] = image_wcs.wcs_world2pix(
+        [ra_grid[ix]], [dec_grid[iy]], 0)
 
-            rec = Rectangle((x, y), width, height)
-            rot = mpl.transforms.Affine2D().rotate_around(x, y, rotation)
-            rec.set_transform(rot)
-            rectangles.append(rec)
-            values.append(background_map[ix, iy])
+        rec = Rectangle((x, y), width, height)
+        rot = mpl.transforms.Affine2D().rotate_around(x, y, rotation)
+        rec.set_transform(rot)
+        rectangles.append(rec)
+        values.append(background_map[ix, iy])
 
-            patch_col = PatchCollection(rectangles, cmap='viridis')
-            patch_col.set_alpha(0.3)
+        patch_col = PatchCollection(rectangles, cmap='viridis')
+        patch_col.set_alpha(0.3)
 
     # Associate the values with the patches. They will be used to
     # pick colors from the colorbar. By passing the patch collection
