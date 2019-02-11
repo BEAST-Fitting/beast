@@ -323,16 +323,6 @@ def measure_backgrounds(cat_table, ref_im):
     return phot['aperture_sum'] / area, mask_union
 
 
-def indices_for_pixel(pix_x, pix_y, x, y):
-    """
-    Return the indices of the sources for which the coordinates lie in
-    the x, y pixel
-    """
-    indxs, = np.where(np.logical_and.reduce([pix_x > x, pix_x <= x + 1,
-                                             pix_y > y, pix_y <= y + 1]))
-    return indxs
-
-
 def make_source_dens_map(cat,
                          ra_grid, dec_grid,
                          output_base,
@@ -553,6 +543,16 @@ def calc_nx_ny_from_pixsize(cat, pixsize_degrees):
 
 def xyrange(n_x, n_y):
     return it.product(range(n_x), range(n_y))
+
+
+def indices_for_pixel(pix_x, pix_y, x, y):
+    """
+    Return the indices of the sources for which the coordinates lie in
+    the x, y pixel
+    """
+    indxs, = np.where(np.logical_and.reduce([pix_x > x, pix_x <= x + 1,
+                                             pix_y > y, pix_y <= y + 1]))
+    return indxs
 
 
 def make_wcs_for_map(ra_grid, dec_grid):
