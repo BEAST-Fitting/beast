@@ -17,7 +17,7 @@ from astropy.io import fits
 import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import numpy as np
 import photutils as pu
@@ -501,34 +501,28 @@ def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None):
     plt.imshow(imdata, cmap='gray_r', interpolation='none', vmin=vmin,
                vmax=vmax)
 
-    # If we want to rotate the rectangles so they align with the WCS
-    rotation = (90. - image.header['ORIENTAT']) * math.pi / 180.
-
     # Make a rectangular patch for each grid point
-    rectangles = []
-    values = []
-
-    height, width = imdata.shape
-    height /= len(dec_grid)
-    width /= len(ra_grid)
-
     n_x = len(ra_grid) - 1
     n_y = len(dec_grid) - 1
+    rectangles = []
+    values = []
     for ix, iy in xyrange(n_x, n_y):
-        # Current, one to the right, and one upwards. Remember
-        # that the x and xup can be different because of the
-        # orientation of the WCS.
-        [x], [y] = image_wcs.wcs_world2pix(
-        [ra_grid[ix]], [dec_grid[iy]], 0)
-
-        rec = Rectangle((x, y), width, height)
-        rot = mpl.transforms.Affine2D().rotate_around(x, y, rotation)
-        rec.set_transform(rot)
+        # bottom left, bottom right, upper left and upper right in the RA, DEC grid
+        l = ix
+        r = ix + 1
+        b = iy
+        u = iy + 1
+        ra_corners = [ra_grid[i] for i in [l, r, r, l]]
+        dec_corners = [dec_grid[i] for i in [b, b, u, u]]
+        ra_dec_corners = np.column_stack((ra_corners, dec_corners))
+        pix_corners = image_wcs.wcs_world2pix(ra_dec_corners, 0)
+        rec = Polygon(pix_corners, closed=True)
         rectangles.append(rec)
+
         values.append(background_map[ix, iy])
 
-        patch_col = PatchCollection(rectangles, cmap='viridis')
-        patch_col.set_alpha(0.3)
+    patch_col = PatchCollection(rectangles, cmap='viridis')
+    patch_col.set_alpha(0.3)
 
     # Associate the values with the patches. They will be used to
     # pick colors from the colorbar. By passing the patch collection
