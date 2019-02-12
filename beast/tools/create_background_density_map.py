@@ -15,7 +15,6 @@ from astropy.table import Table
 from astropy import units
 from astropy.io import fits
 import math
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
