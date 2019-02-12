@@ -225,6 +225,10 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
         cat.add_column(c)
     cat.write(output_base + '_with_bg.fits', format='fits', overwrite=True)
 
+    # Save the map as a fits file here. The map in hd5 format is written
+    # by some common code, in the main() function .
+    save_map_fits(background_map, w, output_base + '_background.fits')
+    save_map_fits(nsources_map, w, output_base + '_nsources.fits')
     # Return a bunch of stuff, to be used for plots
     return {'background_map': background_map,
             'nsources_map': nsources_map,
