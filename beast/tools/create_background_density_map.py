@@ -50,7 +50,7 @@ def main():
     background_parser.add_argument('-reference', type=str,  metavar='FITSIMAGE', required=True,
                                    help='reference image (FITS)')
     background_parser.add_argument('--plot_map_on_image', action='store_true',
-                                   help='plot the map using transparant colored tiles on top of the reference image')
+                                   help='plot the map using transparent colored tiles on top of the reference image')
     background_parser.add_argument('--colorbar', type=str, default=None, metavar='LABEL',
                                    help='put a colorbar next to the plot and label it with the given string')
 
