@@ -405,13 +405,15 @@ def make_source_dens_map(cat,
     npts_band_zero_map = np.zeros([n_x, n_y, n_filters], dtype=float)
     source_dens = np.zeros(N_stars, dtype=float)
 
+    # area of one pixel in square degrees
+    pix_area = w.wcs.cdelt[0] * w.wcs.cdelt[1] * 3600 ** 2
+
     for i, j in xyrange(n_x, n_y):
         indxs = indices_for_pixel(pix_x, pix_y, i, j)
         indxs_for_SD, = np.where(np.logical_and(cat[mag_name][indxs] >= mag_cut[0],
                                                    cat[mag_name][indxs] <= mag_cut[1]))
         n_indxs = len(indxs_for_SD)
         if n_indxs > 0:
-            pix_area = (ra_grid[i + 1] - ra_grid[i]) * (dec_grid[j + 1] - dec_grid[j]) * 3600 ** 2
             npts_map[i, j] = n_indxs / pix_area
 
             # now make a map of the sources with zero fluxes in
