@@ -71,9 +71,11 @@ def main():
         dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
     elif args.pixsize is not None:
         pixsize_degrees = args.pixsize / 3600
-        n_x, n_y = calc_nx_ny_from_pixsize(cat, pixsize_degrees)
-        ra_grid = ra.min() + pixsize_degrees * np.arange(0, n_x + 1, dtype=float)
-        dec_grid = dec.min() + pixsize_degrees * np.arange(0, n_y + 1, dtype=float)
+        n_x, n_y, ra_delt, dec_delt = calc_nx_ny_from_pixsize(cat, pixsize_degrees)
+        # the ra spacing needs to be larger, as 1 degree of RA ==
+        # cos(DEC) degrees on the great circle
+        ra_grid = ra.min() + ra_delt * np.arange(0, n_x + 1, dtype=float)
+        dec_grid = dec.min() + dec_delt * np.arange(0, n_y + 1, dtype=float)
     else:
         n_x, n_y = 10, 10
         ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
@@ -539,16 +541,20 @@ def calc_nx_ny_from_pixsize(cat, pixsize_degrees):
     min_dec = cat['DEC'].min()
     max_dec = cat['DEC'].max()
 
-    # Compute number of pixel alog each axis pix_size in arcsec
+    # Compute the required width of the bins expressed in RA and DEC to
+    # reach the requested physical pixel size on the sky
     dec_delt = pixsize_degrees
+    cos_avg_dec = math.cos((max_dec + min_dec) / 2 * math.pi / 180)
+    # ra_delt * cos(dec) = requested physical size
+    # --> ra_delt \approx requested physical size / cos(avg dec)
+    ra_delt = dec_delt / cos_avg_dec
+
+    n_x = np.fix(np.round((max_ra - min_ra) / ra_delt))
     n_y = np.fix(np.round((max_dec - min_dec) / dec_delt))
-    ra_delt = dec_delt
-    n_x = np.fix(np.round(math.cos(0.5 * (max_dec + min_dec) * math.pi / 180.)
-                          * (max_ra - min_ra) / ra_delt))
     n_x = int(np.max([n_x, 1]))
     n_y = int(np.max([n_y, 1]))
     print('# of x & y pixels = ', n_x, n_y)
-    return n_x, n_y
+    return n_x, n_y, ra_delt, dec_delt
 
 
 def xyrange(n_x, n_y):
@@ -567,22 +573,17 @@ def indices_for_pixel(pix_x, pix_y, x, y):
 
 def make_wcs_for_map(ra_grid, dec_grid):
     """make wcs corresponding to a linear ra_grid and dec_grid"""
-    ra_delt = ra_grid[1] - ra_grid[0]
-    dec_delt = dec_grid[1] - dec_grid[0]
-    cdelt = [ra_delt, dec_delt]
-
     n_x = len(ra_grid) - 1
     n_y = len(dec_grid) - 1
-    crpix = np.asarray([n_x, n_y], dtype=float) / 2.
-
-    min_ra, max_ra = ra_grid.min(), ra_grid.max()
-    min_dec, max_dec = dec_grid.min(), dec_grid.max()
-    crval = np.asarray([(min_ra + max_ra), (min_dec + max_dec)]) / 2.
+    center_ra = (ra_grid.min() + ra_grid.max()) / 2.
+    center_dec = (dec_grid.min() + dec_grid.max()) / 2.
+    ra_delt = ra_grid[1] - ra_grid[0]
+    dec_delt = dec_grid[1] - dec_grid[0]
 
     w = wcs.WCS(naxis=2)
-    w.wcs.crpix = crpix
-    w.wcs.cdelt = cdelt
-    w.wcs.crval = crval
+    w.wcs.crpix = np.asarray([n_x, n_y], dtype=float) / 2.
+    w.wcs.crval = np.array([center_ra, center_dec])
+    w.wcs.cdelt = [ra_delt * math.cos(center_dec), dec_delt]
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     return w
 
