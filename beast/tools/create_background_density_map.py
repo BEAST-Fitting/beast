@@ -543,7 +543,7 @@ def calc_nx_ny_from_pixsize(cat, pixsize_degrees):
     # Compute the required width of the bins expressed in RA and DEC to
     # reach the requested physical pixel size on the sky
     dec_delt = pixsize_degrees
-    cos_avg_dec = math.cos((max_dec + min_dec) / 2 * math.pi / 180)
+    cos_avg_dec = math.cos(math.radians((max_dec + min_dec) / 2))
     # ra_delt * cos(dec) = requested physical size
     # --> ra_delt \approx requested physical size / cos(avg dec)
     ra_delt = dec_delt / cos_avg_dec
@@ -577,12 +577,13 @@ def make_wcs_for_map(ra_grid, dec_grid):
     center_ra = (ra_grid.min() + ra_grid.max()) / 2.
     center_dec = (dec_grid.min() + dec_grid.max()) / 2.
     ra_delt = ra_grid[1] - ra_grid[0]
+    phys_ra_delt = ra_delt * math.cos(math.radians(center_dec))
     dec_delt = dec_grid[1] - dec_grid[0]
 
     w = wcs.WCS(naxis=2)
     w.wcs.crpix = np.asarray([n_x, n_y], dtype=float) / 2.
     w.wcs.crval = np.array([center_ra, center_dec])
-    w.wcs.cdelt = [ra_delt * math.cos(center_dec), dec_delt]
+    w.wcs.cdelt = np.abs([phys_ra_delt, dec_delt])
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     return w
 
