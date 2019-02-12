@@ -258,10 +258,6 @@ def measure_backgrounds(cat_table, ref_im):
         an array containing a bool for each pixel of the image, True if
         the pixel was ignored for the background calculations
     """
-    if not ref_im:
-        # Return a dumb value
-        return cat_table['F814W_CHI']
-
     w = wcs.WCS(ref_im.header)
     shp = ref_im.data.shape
 
