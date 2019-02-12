@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""
-Create a background density map based on an input catalog and a fits
-image. The results are saved to disk, and can be used to make sure that
-areas of different background densities are properly sampled when
-sampling SEDs and positions for the AST input file.
+"""Create a background map or a source density map, depending on the
+subcommand given. The background map is based on an input catalog and a
+fits image on which the backgrounds are measured for each source using
+extended source photometry. Several files are are saved to disk, and the
+resulting map in *hd5 format can later be loaded and reused using the
+tools.DensityMap class in other parts of the BEAST.
 
 """
 
@@ -145,6 +146,8 @@ def main():
     bin_details.meta['ra_grid'] = ra_grid
     bin_details.meta['dec_grid'] = dec_grid
 
+    # This works for both the background density map or the source
+    # density map
     dm = DensityMap(bin_details)
     dm.write('{}_{}_map.hd5'.format(output_base, args.map_type))
 
@@ -160,15 +163,22 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
 
     Parameters
     ----------
-    catfile: str
+    cat: astropy Table
         The photometry catalog. The positions of the sources will be
         used to measure the backgrounds, and mask the sources
         themselves.
+
+    ra_grid: 1D array-like of float
+        the edges of the RA bins
+
+    dec_grid: 1D array-like of float
+        the edges of the DEC bins
 
     ref_im: imageHDU
         image which will be used for the background measurements
 
     output_base: string
+        base name (without extension) to be used for the output files
 
     Returns
     -------
@@ -334,10 +344,17 @@ def make_source_dens_map(cat,
 
     INPUTS:
     -------
-    catfile: observed catalog
-    ra_grid, dec_grid: the edges of the bins in ra and dec space
+    cat: astropy Table
+        the photometry catalog
+
+    ra_grid, dec_grid: 1D array-like of float
+        the edges of the bins in RA and DEC space
+
+    output_base: string
+
     mag_name: string
          name of magnitude column in table
+
     mag_cut: 2-element list
          magnitude range on which the source density is computed
 
