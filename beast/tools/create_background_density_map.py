@@ -27,19 +27,19 @@ import os
 
 def main():
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(dest='map_type')
+    subparsers = parser.add_subparsers(dest='subcommand')
     subparsers.required = True
 
-    # Common options for both types of map
+    # common options for both types of map
     commonparser = argparse.ArgumentParser(add_help=False)
     commonparser.add_argument('-catfile', type=str, required=True,
                               help='catalog FITS file')
-
     npix_or_pixsize = commonparser.add_mutually_exclusive_group()
     npix_or_pixsize.add_argument('--npix', type=int, default=None,
                                  help='resolution')
     npix_or_pixsize.add_argument('--pixsize', type=float, default=None)
 
+    # map making subcommands
     background_parser = subparsers.add_parser('background', parents=[commonparser],
         help="""Create a background intensity map based on annulus
         measurements around the sources listed in the catalog""")
@@ -47,15 +47,31 @@ def main():
         help="""Create a source density map, counting the number of
         sources in each tile of the map""")
 
+    # plot subcommand
+    plot_parser = subparsers.add_parser('tileplot',
+        help="""Plot the given map using transparent colored tiles on
+        top of a given reference image""")
+
+    # arguments unique to background map
     background_parser.add_argument('-reference', type=str,  metavar='FITSIMAGE', required=True,
                                    help='reference image (FITS)')
-    background_parser.add_argument('--plot_map_on_image', action='store_true',
-                                   help='plot the map using transparent colored tiles on top of the reference image')
-    background_parser.add_argument('--colorbar', type=str, default=None, metavar='LABEL',
-                                   help='put a colorbar next to the plot and label it with the given string')
+
+    # options unique to plot command
+    plot_parser.add_argument('densitymap', metavar='MAP.HD5',
+                             help='the map to plot (e.g. the output of this script)')
+    plot_parser.add_argument('-image', metavar='IM.FITS', type=str, required=True,
+                             help='image to overplot the tiles onto')
+    plot_parser.add_argument('--colorbar', metavar='LABEL', type=str,
+                             help='use colorbar, and use the given string as label')
 
     args = parser.parse_args()
+    if args.subcommand in ['background', 'sourceden']:
+        main_make_map(args)
+    elif args.subcommand == 'tileplot':
+        main_plot(args)
 
+
+def main_make_map(args):
     # Common actions: load the catalog and set up the grid
     cat = Table.read(args.catfile)
     for name in cat.colnames:
@@ -80,58 +96,18 @@ def main():
         ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
         dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
 
-    output_base=os.path.basename(args.catfile).replace('.fits', '')
+    output_base = os.path.basename(args.catfile).replace('.fits', '')
 
-    if args.map_type == 'sourceden':
+    if args.subcommand == 'sourceden':
         map_values_array = make_source_dens_map(cat, ra_grid, dec_grid,
                                                 output_base)
 
-    if args.map_type == 'background':
+    if args.subcommand == 'background':
         hdul = astropy.io.fits.open(args.reference)
-        image = hdul[1]
-        result = make_background_map(cat, ra_grid, dec_grid, ref_im=image,
-                                     output_base=output_base)
-        map_values_array = result['background_map']
-
-        # Parts of the plotting which depend on command line arguments.
-        # Maybe make this kind of plot possible for the sourceden map
-        # too.
-        n_map = result['nsources_map']
-        ra_grid = result['ra_grid']
-        dec_grid = result['dec_grid']
-        mask = result['mask']
-
-        # Plot the maps directly
-        _, ax = plt.subplots(1, 2)
-        figs = []
-        figs.append(ax[0].imshow(map_values_array))
-        ax[0].set_title('bg_density_estimate')
-        figs.append(ax[1].imshow(n_map))
-        ax[1].set_title('number of sources')
-        for f, a in zip(figs, ax):
-            plt.colorbar(f, ax=a)
-            plt.tight_layout()
-
-        plt.savefig('{}_plot_bg_and_npts.png'.format(output_base))
-
-        # Overplot the map on the image used for the calculation
-        if args.plot_map_on_image:
-            image_fig, image_ax, patch_col = plot_on_image(
-                image, map_values_array, ra_grid, dec_grid, mask=mask)
-
-            if args.colorbar is not None:
-                cb = image_fig.colorbar(patch_col)
-                cb.set_alpha(1)
-                cb.draw_all()
-
-                if len(args.colorbar) == 0:
-                    label = 'background (arbitrary units)'
-                else:
-                    label = args.colorbar
-
-                cb.set_label(label)
-
-            image_fig.savefig('{}_plot_overlay.pdf'.format(output_base))
+        image = hdul['SCI']
+        map_values_array, n_map = make_background_map(cat, ra_grid, dec_grid,
+                                                      ref_im=image,
+                                                      output_base=output_base)
 
     # Save a file describing the properties of the bins in a handy format
     bin_details = astropy.table.Table(
@@ -150,7 +126,31 @@ def main():
     # This works for both the background density map or the source
     # density map
     dm = DensityMap(bin_details)
-    dm.write('{}_{}_map.hd5'.format(output_base, args.map_type))
+    dm.write('{}_{}_map.hd5'.format(output_base, args.subcommand))
+
+
+def main_plot(args):
+    dm = DensityMap(args.densitymap)
+
+    hdul = astropy.io.fits.open(args.image)
+    image = hdul['SCI']
+
+    image_fig, image_ax, patch_col = plot_on_image(dm, image)
+
+    if args.colorbar is not None:
+        cb = image_fig.colorbar(patch_col)
+        cb.set_alpha(1)
+        cb.draw_all()
+
+        if len(args.colorbar) == 0:
+            label = 'background (arbitrary units)'
+        else:
+            label = args.colorbar
+
+        cb.set_label(label)
+
+    output_base = os.path.basename(args.densitymap).replace('.hd5', '')
+    image_fig.savefig('{}_plot_overlay.pdf'.format(output_base))
 
 
 def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
@@ -183,17 +183,12 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
 
     Returns
     -------
-    results: dict
-        this dict contains:
-        'background_map': 2d ndarray,
-        'nsources_map': 2d ndarray,
-        'ra_grid': list of ra bin edges,
-        'dec_grid': list of dec bin edges,
-        'mask': 2d ndarray the pixels in ref_im that were ignored
+    results: background_map, nsources_map: 2d ndarray, 2d ndarray
+
     """
     # A list of background values for each source of the catalog will be
     # built up. Mask used is also returned.
-    individual_backgrounds, mask = measure_backgrounds(cat, ref_im)
+    individual_backgrounds = measure_backgrounds(cat, ref_im)
 
     w = make_wcs_for_map(ra_grid, dec_grid)
     pix_x, pix_y = get_pix_coords(cat, w)
@@ -230,12 +225,7 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
     # by some common code, in the main() function .
     save_map_fits(background_map, w, output_base + '_background.fits')
     save_map_fits(nsources_map, w, output_base + '_nsources.fits')
-    # Return a bunch of stuff, to be used for plots
-    return {'background_map': background_map,
-            'nsources_map': nsources_map,
-            'ra_grid': ra_grid,
-            'dec_grid': dec_grid,
-            'mask': mask}
+    return background_map, nsources_map
 
 
 def measure_backgrounds(cat_table, ref_im):
@@ -259,9 +249,6 @@ def measure_backgrounds(cat_table, ref_im):
         a metric for the background intensity at the star's position
         (photometry / area)
 
-    mask: 2d ndarray of bool
-        an array containing a bool for each pixel of the image, True if
-        the pixel was ignored for the background calculations
     """
     w = wcs.WCS(ref_im.header)
     shp = ref_im.data.shape
@@ -330,8 +317,14 @@ def measure_backgrounds(cat_table, ref_im):
 
     # Threshold
     mask_union = mask_union > 0
+
+    # Save the masked reference image
+    hdu = fits.PrimaryHDU(np.where(mask_union, 0, ref_im.data), header=ref_im.header)
+    hdu.writeto('masked_reference_image.fits', overwrite=True)
+
+    # Do the measurements
     phot = pu.aperture_photometry(ref_im.data, annuli, wcs=w, mask=mask_union)
-    return phot['aperture_sum'] / area, mask_union
+    return phot['aperture_sum'] / area
 
 
 def make_source_dens_map(cat,
@@ -456,28 +449,18 @@ def make_source_dens_map(cat,
     return npts_map
 
 
-def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None):
+def plot_on_image(densitymap, image):
     """
     Plot the density grid as a collection of colored rectangles layered
     over the given fits image.
 
     Parameters
     ----------
+    densitymap: DensityMap
+        the density map instance
+
     image: imageHDU
         the fits image, which should include a WCS
-
-    background_map: 2d ndarray
-        the values for the bins (indexed on [ra_index,dec_index])
-
-    ra_grid: list of float
-        edges of the right ascension bins in degrees
-
-    dec_grid: list of float
-        edges of the declination bins in degrees
-
-    mask: 2d ndarray of bool
-        Mask that blacks out pixels. Needs to be of same dimensions as
-        image.data (indexed on y,x).
 
     Returns
     -------
@@ -499,40 +482,28 @@ def plot_on_image(image, background_map, ra_grid, dec_grid, mask=None):
     imdata = image.data.astype(float)
     vmin = np.percentile(imdata, 16)
     vmax = np.percentile(imdata, 99)
-    if mask is not None:
-        imdata = np.where(mask, vmin, imdata)
     plt.imshow(imdata, cmap='gray_r', interpolation='none', vmin=vmin,
                vmax=vmax)
 
-    # Make a rectangular patch for each grid point
-    n_x = len(ra_grid) - 1
-    n_y = len(dec_grid) - 1
+    # Make a rectangular patch for each tile of the map
     rectangles = []
-    values = []
-    for ix, iy in xyrange(n_x, n_y):
-        # bottom left, bottom right, upper left and upper right in the RA, DEC grid
-        l = ix
-        r = ix + 1
-        b = iy
-        u = iy + 1
-        ra_corners = [ra_grid[i] for i in [l, r, r, l]]
-        dec_corners = [dec_grid[i] for i in [b, b, u, u]]
-        ra_dec_corners = np.column_stack((ra_corners, dec_corners))
+    for row in densitymap.tile_data:
+        l = row['min_ra'] # left
+        r = row['max_ra'] # right
+        b = row['min_dec'] # bottom
+        t = row['max_dec'] # top
+        ra_dec_corners = np.array([[l, b], [r, b], [r, t], [l, t]])
         pix_corners = image_wcs.wcs_world2pix(ra_dec_corners, 0)
         rec = Polygon(pix_corners, closed=True)
         rectangles.append(rec)
 
-        values.append(background_map[ix, iy])
-
+    # This will give each tile a color according to the given values.
+    # Some of the plt.scatter functionality works with PatchCollection
+    # under the hood, apparently.
     patch_col = PatchCollection(rectangles, cmap='viridis')
     patch_col.set_alpha(0.3)
-
-    # Associate the values with the patches. They will be used to
-    # pick colors from the colorbar. By passing the patch collection
-    # as an argument, the patch collection will be treated as a
-    # 'mappable', which works because we did set_array.
+    patch_col.set_array(densitymap.tile_vals())
     image_ax.add_collection(patch_col)
-    patch_col.set_array(np.array(values))
     return image_fig, image_ax, patch_col
 
 
