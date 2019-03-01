@@ -223,7 +223,11 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
     return (spec_fname, g)
 
 
-def add_stellar_priors(project, specgrid, verbose=True,
+def add_stellar_priors(project, specgrid,
+                       age_prior_model={'name': 'flat'},
+                       mass_prior_model={'name': 'kroupa'},
+                       met_prior_model={'name': 'flat'},
+                       verbose=True,
                        priors_fname=None,
                        **kwargs):
     """
@@ -236,6 +240,15 @@ def add_stellar_priors(project, specgrid, verbose=True,
 
     specgrid: grid.SpectralGrid object
         spectral grid to transform
+
+    age_prior_model: dict
+        dict including prior model name and parameters
+
+    mass_prior_model: dict
+        dict including prior model name and parameters
+
+    met_prior_model: dict
+        dict including prior model name and parameters
 
     priors_fname: str
         full filename to which to save the spectral grid with priors
@@ -304,20 +317,20 @@ def make_extinguished_sed_grid(project,
     av: sequence
         sequence of Av values to sample
 
-    av_prior_model: list
-        list including prior model name and parameters
+    av_prior_model: dict
+        dict including prior model name and parameters
 
     rv: sequence
         sequence of Rv values to sample
 
-    rv_prior_model: list
-        list including prior model name and parameters
+    rv_prior_model: dict
+        dict including prior model name and parameters
 
     fA: sequence (optional)
         sequence of fA values to sample (depending on extLaw definition)
 
-    fA_prior_model: list
-        list including prior model name and parameters
+    fA_prior_model: dict
+        dict including prior model name and parameters
 
     extLaw: extinction.ExtLaw
         extinction law to use during the process

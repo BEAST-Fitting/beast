@@ -21,14 +21,19 @@ from .grid_weights import compute_age_grid_weights
 from .grid_weights import compute_mass_grid_weights
 from .grid_weights import compute_metallicity_grid_weights
 
-from .prior_weights import compute_age_prior_weights
-from .prior_weights import compute_mass_prior_weights
-from .prior_weights import compute_metallicity_prior_weights
+from .prior_weights_stars import compute_age_prior_weights
+from .prior_weights_stars import compute_mass_prior_weights
+from .prior_weights_stars import compute_metallicity_prior_weights
 
 __all__ = ['compute_age_mass_metallicity_weights']
 
 
-def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
+def compute_age_mass_metallicity_weights(
+        _tgrid,
+        age_prior_model={'name': 'flat'},
+        mass_prior_model={'name': 'kroupa'},
+        met_prior_model={'name': 'flat'},
+        **kwargs):
     """
     Computes the age-mass-metallicity grid and prior weights
     on the BEAST model spectra grid
@@ -36,6 +41,15 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
     Keywords
     --------
     _tgrid : BEAST model spectra grid.
+
+    age_prior_model: dict
+        dict including prior model name and parameters
+
+    mass_prior_model: dict
+        dict including prior model name and parameters
+
+    met_prior_model: dict
+        dict including prior model name and parameters
 
     Returns
     -------
