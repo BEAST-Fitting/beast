@@ -77,7 +77,8 @@ def compute_age_mass_metallicity_weights(
 
         # compute the age weights
         age_grid_weights = compute_age_grid_weights(uniq_ages, **kwargs)
-        age_prior_weights = compute_age_prior_weights(uniq_ages)
+        age_prior_weights = compute_age_prior_weights(
+            uniq_ages, age_prior_model)
 
         for ak, age_val in enumerate(uniq_ages):
             # get the grid for a single age
@@ -116,7 +117,8 @@ def compute_age_mass_metallicity_weights(
         # get the metallicity weights
         met_grid_weights = compute_metallicity_grid_weights(uniq_Zs)
         met_grid_weights /= np.sum(met_grid_weights)
-        met_prior_weights = compute_metallicity_prior_weights(uniq_Zs)
+        met_prior_weights = compute_metallicity_prior_weights(
+            uniq_Zs, met_prior_model)
         met_prior_weights /= np.sum(met_prior_weights)
         met_weights = met_grid_weights*met_prior_weights
 

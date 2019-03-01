@@ -161,12 +161,16 @@ velocity = -300 * units.km / units.s  # M31 velocity from SIMBAD
 
 # log10(Age) -- [min,max,step] to generate the isochrones in years
 #   example [6.0, 10.13, 1.0]
-logt = [6.0, 10.13, 1.0]
-age_prior_model = {"name": "flat"}
+logt = [6.0, 10.13, 0.25]
+# age_prior_model = {'name': 'flat'}
+# age_prior_model = {'name': 'bins',
+#                   'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
+#                   'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
+age_prior_model = {"name": "exp", "A": 1.0, "tau": 1000.0}
 
 # note: Mass is not sampled, instead the isochrone supplied
 #       mass spacing is used instead
-mass_prior_model = {'name': 'salpeter'}
+mass_prior_model = {"name": "salpeter"}
 
 # Metallicity : list of floats
 #   Here: Z == Z_initial, NOT Z(t) surface abundance
@@ -174,7 +178,7 @@ mass_prior_model = {'name': 'salpeter'}
 #   example z = [0.03, 0.019, 0.008, 0.004]
 #   can they be set as [min, max, step]?
 z = [0.03, 0.019, 0.008, 0.004]
-met_prior_model = {'name': 'flat'}
+met_prior_model = {"name": "flat"}
 
 # Isochrone Model Grid
 #   Current Choices: Padova or MIST

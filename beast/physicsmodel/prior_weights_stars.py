@@ -17,26 +17,39 @@ __all__ = ['compute_age_prior_weights',
            'compute_metallicity_prior_weights']
 
 
-def compute_age_prior_weights(logages):
-    """ Computes the age weights to provide constant star formation rate
-    (in linear age)
+def compute_age_prior_weights(logages,
+                              age_prior_model):
+    """
+    Computes the age proper for the specified model
 
     Keywords
     --------
     logages : numpy vector
        log(ages)
 
+    age_prior_model: dict
+        dict including prior model name and parameters
+
     Returns
     -------
     age_weights : numpy vector
        total masses at each age for a constant SFR in linear age
     """
-    # initialize the age weights to one
-    #   for a flat prior, nothing else is needed
-    #   non-uniform grid spacing is handled in the grid_weights code
-    age_weights = np.full(len(logages), 1.0)
-
-    # code will be needed here for non-flat priors
+    if age_prior_model['name'] == 'flat':
+        age_weights = np.full(len(logages), 1.0)
+    elif age_prior_model['name'] == 'bins':
+        # interpolate model to grid ages
+        age_weights = np.interp(
+            logages,
+            np.array(age_prior_model['logages']),
+            np.array(age_prior_model['values']))
+    elif age_prior_model['name'] == 'exp':
+        vals = (10**logages)/(age_prior_model['tau']*1e6)
+        vals = vals/age_prior_model['A']
+        age_weights = np.exp(-1.0*vals)
+    else:
+        print('input age prior function not supported')
+        exit()
 
     # return in the order that logages was passed
     return age_weights
@@ -118,7 +131,8 @@ def compute_mass_prior_weights(masses,
     elif mass_prior_model['name'] == 'salpeter':
         imf_func = imf_salpeter
     else:
-        ValueError('input mass prior function not supported')
+        print('input mass prior function not supported')
+        exit()
 
     for i in range(len(masses)):
         mass_weights[sindxs[i]] = (quad(imf_func,
@@ -128,22 +142,28 @@ def compute_mass_prior_weights(masses,
     return mass_weights
 
 
-def compute_metallicity_prior_weights(mets):
-    """ Computes the metallicity weights to provide a default flat prior
+def compute_metallicity_prior_weights(mets,
+                                      met_prior_model):
+    """
+    Computes the metallicity prior for the specified model
 
     Keywords
     --------
     mets : numpy vector
         metallicities
 
+    met_prior_model: dict
+        dict including prior model name and parameters
+
     Returns
     -------
     metallicity_weights : numpy vector
        weights to provide a flat metallicity
     """
-    # initialize the metalicity weights to one
-    #   for a flat prior, nothing else is needed
-    #   non-uniform grid spacing is handled in the grid_weights code
-    met_weights = np.full(len(mets), 1.0)
+    if met_prior_model['name'] == 'flat':
+        met_weights = np.full(len(mets), 1.0)
+    else:
+        print('input metallicity prior function not supported')
+        exit()
 
     return met_weights

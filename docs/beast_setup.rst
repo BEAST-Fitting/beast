@@ -61,7 +61,9 @@ from datamodel.py. See <beast_grid_inputs.rst> for details on model libraries.
 * ``avs``: dust column in magnitudes (A_V) grid range parameters (min, max, step).
 * ``rvs``: average dust grain size grid (R_V) range parameters (min, max, step).
 * ``fAs``: mixture factor between "MW" and "SMCBar" extinction curves (f_A) grid range parameters (min, max, step).
-* ``*_prior_model``: prior model definitions for dust parameters (A_V, R_V, f_A). Default: flat prior.
+
+* ``*_prior_model``: prior model definitions for stellar and dust parameters.
+     For more on setting up priors see :ref:`BEAST priors <beast_priors>`.
 
 Optional Features
 -----------------
@@ -77,29 +79,6 @@ Skip verify_params exit
 Add ``noexit=True`` keyword to ``verify_input_format()`` call in run_beast.py:
 
 ``verify_params.verify_input_format(datamodel, noexit=True)``
-
-Remove constant SFH prior
-^^^^^^^^^^^^^^^^^^^^^^^^^
-Add ``prior_kwargs`` to datamodel.py:
-
-``prior_kwargs = dict(constantSFR=False)``
-
-Add kwargs defining code block before ``add_stellar_priors()`` call in run_beast.py:
-
-.. code-block:: python
-
-  if hasattr(datamodel, 'prior_kwargs'):
-    prior_kwargs = datamodel.prior_kwargs
-  else:
-    prior_kwargs = {}
-
-Enable Exponential Av Prior
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Set ``av_prior_model`` in datamodel.py:
-
-``av_prior_model = {'name': 'exponential', 'a': 2.0, 'N': 4.0}``
-
 
 BEAST Filters
 =============
