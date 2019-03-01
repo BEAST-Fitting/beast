@@ -268,7 +268,12 @@ def add_stellar_priors(project, specgrid,
         if verbose:
             print('Make Prior Weights')
 
-        compute_age_mass_metallicity_weights(specgrid.grid, **kwargs)
+        compute_age_mass_metallicity_weights(
+            specgrid.grid,
+            age_prior_model=age_prior_model,
+            mass_prior_model=mass_prior_model,
+            met_prior_model=met_prior_model,
+            **kwargs)
 
         # write to disk
         if hasattr(specgrid, 'writeHDF'):

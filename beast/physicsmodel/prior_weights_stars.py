@@ -84,13 +84,18 @@ def imf_salpeter(x):
     return x**(-2.35)
 
 
-def compute_mass_prior_weights(masses):
-    """ Computes the mass weights for a kroupa IMF
+def compute_mass_prior_weights(masses,
+                               mass_prior_model):
+    """
+    Computes the mass prior for the specificed model
 
     Keywords
     --------
     masses : numpy vector
         masses
+
+    mass_prior_model: dict
+        dict including prior model name and parameters
 
     Returns
     -------
@@ -108,8 +113,15 @@ def compute_mass_prior_weights(masses):
     mass_weights = np.empty(len(masses))
 
     # integrate the IMF over each bin
+    if mass_prior_model['name'] == 'kroupa':
+        imf_func = imf_kroupa
+    elif mass_prior_model['name'] == 'salpeter':
+        imf_func = imf_salpeter
+    else:
+        ValueError('input mass prior function not supported')
+
     for i in range(len(masses)):
-        mass_weights[sindxs[i]] = (quad(imf_kroupa,
+        mass_weights[sindxs[i]] = (quad(imf_func,
                                         mass_bounds[i],
                                         mass_bounds[i+1]))[0]
 

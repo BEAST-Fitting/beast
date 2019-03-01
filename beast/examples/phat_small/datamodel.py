@@ -166,6 +166,7 @@ age_prior_model = {"name": "flat"}
 
 # note: Mass is not sampled, instead the isochrone supplied
 #       mass spacing is used instead
+mass_prior_model = {'name': 'salpeter'}
 
 # Metallicity : list of floats
 #   Here: Z == Z_initial, NOT Z(t) surface abundance
@@ -173,6 +174,7 @@ age_prior_model = {"name": "flat"}
 #   example z = [0.03, 0.019, 0.008, 0.004]
 #   can they be set as [min, max, step]?
 z = [0.03, 0.019, 0.008, 0.004]
+met_prior_model = {'name': 'flat'}
 
 # Isochrone Model Grid
 #   Current Choices: Padova or MIST
