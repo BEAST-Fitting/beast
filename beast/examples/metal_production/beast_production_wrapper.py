@@ -1,11 +1,9 @@
 import numpy as np
 import glob
-import subprocess
-import sys
 import os
+import types
 
 from run_beast_production import run_beast_production
-from beast.tools import create_source_density_map
 from beast.tools import create_background_density_map
 from beast.tools import subdivide_obscat_by_source_density
 from beast.tools import merge_beast_stats
@@ -113,8 +111,12 @@ def beast_production_wrapper():
         if not os.path.isfile(gst_file.replace('.fits','_source_den_image.fits')):
             # - pixel size of 10 arcsec
             # - use F475W between vega mags of 17 and 27
-            create_source_density_map.make_source_dens_map(gst_file, pix_size=10,
-                                                            mag_name='F475W_VEGA', mag_cut=[17,27])
+            sourceden_args = \
+                types.SimpleNamespace(subcommand='sourceden',
+                                      catfile=gst_file, pixsize=10,
+                                      mag_name='F475W_VEGA',
+                                      mag_cut=[17,27])
+            create_background_density_map.make_map_main(sourceden_args)
 
         # new file name with the source density column
         gst_file_new = gst_file.replace('.fits', '_with_sourceden.fits')
@@ -130,8 +132,11 @@ def beast_production_wrapper():
         
         if not os.path.isfile(gst_file_new.replace('.fits','_F475W_bg_map.hd5')):
             # - pixel dimensions: 15x15
-            create_background_density_map.create_background_density_map(gst_file_new, npix=15,
-                                                      reference=im_file, filebase='F475W')
+            background_args = \
+                types.SimpleNamespace(subcommand='background',
+                                      catfile=gst_file, npix=15,
+                                      reference=im_file)
+            create_background_density_map.main_make_map(background_args)
 
         # new file name with the background column
         #gst_file_new = gst_file_new.replace('.fits', '_with_bg.fits')
