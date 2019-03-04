@@ -56,6 +56,13 @@ def main():
     background_parser.add_argument('-reference', type=str,  metavar='FITSIMAGE', required=True,
                                    help='reference image (FITS)')
 
+    # arguments unique to sourceden map
+    sourceden_parser.add_argument('--mag_cut', type=float, nargs=2,
+                                  metavar='MIN MAX', default=[24.5, 27],
+                                  help='magnitude range on which the source density is computed')
+    sourceden_parser.add_argument('--mag_name', type=str, default='F475W_VEGA', metavar='FILTER',
+                                  help='name of magnitude column in table')
+
     # options unique to plot command
     plot_parser.add_argument('densitymap', metavar='MAP.HD5',
                              help='the map to plot (e.g. the output of this script)')
@@ -101,7 +108,10 @@ def main_make_map(args):
 
     if args.subcommand == 'sourceden':
         map_values_array = make_source_dens_map(cat, ra_grid, dec_grid,
-                                                output_base)
+                                                output_base,
+                                                mag_name=args.mag_name,
+                                                mag_cut=args.mag_cut)
+
 
     if args.subcommand == 'background':
         hdul = astropy.io.fits.open(args.reference)
@@ -332,8 +342,8 @@ def measure_backgrounds(cat_table, ref_im):
 def make_source_dens_map(cat,
                          ra_grid, dec_grid,
                          output_base,
-                         mag_name='F475W_VEGA',
-                         mag_cut=[24.5, 27]):
+                         mag_name,
+                         mag_cut):
     """
     Computes the source density map and store it in a pyfits HDU
     Also writes a text file storing the source density for each source
