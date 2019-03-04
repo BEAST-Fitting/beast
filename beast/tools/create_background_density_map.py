@@ -568,7 +568,7 @@ def make_wcs_for_map(ra_grid, dec_grid):
     w = wcs.WCS(naxis=2)
     w.wcs.crpix = np.asarray([n_x, n_y], dtype=float) / 2.
     w.wcs.crval = np.array([center_ra, center_dec])
-    w.wcs.cdelt = np.abs([phys_ra_delt, dec_delt])
+    w.wcs.cdelt = np.abs([-phys_ra_delt, dec_delt])
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     return w
 
