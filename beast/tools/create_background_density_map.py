@@ -494,7 +494,7 @@ def plot_on_image(densitymap, image):
     imdata = image.data.astype(float)
     vmin = np.percentile(imdata, 16)
     vmax = np.percentile(imdata, 99)
-    plt.imshow(imdata, cmap='gray_r', interpolation='none', vmin=vmin,
+    plt.imshow(imdata, cmap='gray_r', interpolation='mitchell', vmin=vmin,
                vmax=vmax)
 
     # Make a rectangular patch for each tile of the map
