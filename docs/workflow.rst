@@ -111,8 +111,8 @@ for the observation model (scatter and bias) to be strongly dependent
 on source density due to crowding/confusion noise.  The background may
 also be important in some situations, so there is code to calculate it as well.
 
-Adding source density to observations
-=====================================
+Adding source density or background to observations
+===================================================
 
 Create a new version of the observations that includes a column with the
 source density.  The new observation file includes only sources that have
@@ -130,7 +130,7 @@ a pixel scale of 5 arcsec using the 'datafile.fits' catalog.
 
   .. code:: shell
 
-     $ ./beast/tools/create_source_density_map.py --pixsize 5. datafile.fits
+     $ ./beast/tools/create_background_density_map.py sourceden -catfile datafile.fits --pixsize 5.
 
 Split up observations by source density
 ---------------------------------------
@@ -167,9 +167,17 @@ Command to create the observed catalog with background column with a 15x15 pixel
 
   .. code:: shell
 
-     $ ./beast/tools/create_background_density_map.py --npix 15 \
-             --reference image.fits --nointeract True datafile.fits
+     $ ./beast/tools/create_background_density_map.py background -catfile datafile.fits --npix 15 \
+	     -reference image.fits
 
+Plotting the background map onto a reference image
+--------------------------------------------------
+
+To check if the background (or source density) map makes sense, the 'tileplot' subcommand of the
+same script can be used. If the output of one of the previous commands was 'map_name.hd5', then use
+
+  .. code:: shell
+     $ ./beast/tools/create_background_density_map.py tileplot map_name.hd5 -image image.fits --colorbar 'background'
 
 *****
 Model
