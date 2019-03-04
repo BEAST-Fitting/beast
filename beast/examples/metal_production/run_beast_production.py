@@ -7,13 +7,10 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 
 # system imports
 from __future__ import (absolute_import, division, print_function)
-import sys
 import argparse
 import time
-import string
 import numpy as np
 
-from astropy import units
 from astropy import constants as const
 
 # BEAST imports
@@ -170,23 +167,11 @@ def run_beast_production(basename,
             filename = datamodel.project + '/' + datamodel.project + '_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
-                # With reference image, use one of these options
-                if datamodel.ast_source_density_table is not None:
+                # With reference image, use the background or source density map if available
+                if datamodel.ast_density_table is not None:
                     pick_positions_from_map(obsdata,
                                             chosen_seds,
-                                            datamodel.ast_source_density_table,
-                                            datamodel.ast_N_bins,
-                                            datamodel.ast_realization_per_model,
-                                            outfile=filename,
-                                            refimage=datamodel.ast_reference_image,
-                                            refimage_hdu=0,
-                                            Nrealize=1,
-                                            set_coord_boundary=datamodel.ast_coord_boundary)
-
-                elif datamodel.ast_background_table is not None:
-                    pick_positions_from_map(obsdata,
-                                            chosen_seds,
-                                            datamodel.ast_background_table,
+                                            datamodel.ast_density_table,
                                             datamodel.ast_N_bins,
                                             datamodel.ast_realization_per_model,
                                             outfile=filename,
@@ -196,15 +181,14 @@ def run_beast_production(basename,
                                             set_coord_boundary=datamodel.ast_coord_boundary)
                 else:
                     pick_positions(obsdata, filename, separation,
-                               	   refimage=datamodel.ast_reference_image)
+                                   refimage=datamodel.ast_reference_image)
 
             else:
                 # Without reference image, we can only use this function
-                if (datamodel.ast_source_density_table is None and
-                  datamodel.ast_background_table is None):
+                if datamodel.ast_density_table is None:
                     pick_positions(obsdata, filename, separation)
                 else:
-                    print("To use ast_source_density_table or ast_background_table, ast_reference_image must be specified.")
+                    print("To use ast_density_table, ast_reference_image must be specified.")
 
     if observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
