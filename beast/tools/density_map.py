@@ -9,10 +9,9 @@ class DensityMap:
     """
     Class which helps with using a density map consistently, and allows
     for reliable writing and reading. The file format in question is the
-    one produced by create_background_density_map or
-    create_source_density_map. It should readable as an astropy Table,
-    where every entry represents a tile of the background map, with the
-    following tile properties as columns:
+    one produced by create_background_density_map. It should readable as
+    an astropy Table, where every entry represents a tile of the
+    background map, with the following tile properties as columns:
     'i_ra': right ascencion (RA) index
     'i_dec': declination (DEC) index
     'value': the density value

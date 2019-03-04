@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Split a catalog and a set of AST results, by source or background
-density bin. Uses the map created by 'create_background_density_map' or
-'create_source_density_map'. From the split AST catalog, inidividual
+density bin. Uses one of the maps created by
+'create_background_density_map'. From the split AST catalog, individual
 noise models for different regions can be made, which can then be used
 to fit the stars of the observed catalog which also fall in those
 regions.
@@ -14,13 +14,15 @@ import numpy as np
 from astropy.table import Table
 from density_map import BinnedDensityMap
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('catfile', type=str, help='catalog FITS file')
     parser.add_argument('astfile', type=str, help='ast results fits file')
     parser.add_argument('mapfile', type=str,
                         help='background or source density map file')
-    parser.add_argument('n', type=int, help='Number of parts to split the catalog in == number of tile groups == number of density bins')
+    parser.add_argument('n', type=int,
+                        help='Number of regions to split the catalog in, the number of density bins')
     args = parser.parse_args()
 
     # Create a binned density map, so both the observed and the ast
