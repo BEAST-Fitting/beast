@@ -63,6 +63,7 @@ def main():
                              help='image to overplot the tiles onto')
     plot_parser.add_argument('--colorbar', metavar='LABEL', type=str,
                              help='use colorbar, and use the given string as label')
+    plot_parser.add_argument('--dpi', type=float, help='dpi for the resulting pdf')
 
     args = parser.parse_args()
     if args.subcommand in ['background', 'sourceden']:
@@ -150,7 +151,8 @@ def main_plot(args):
         cb.set_label(label)
 
     output_base = os.path.basename(args.densitymap).replace('.hd5', '')
-    image_fig.savefig('{}_plot_overlay.pdf'.format(output_base))
+    image_fig.savefig('{}_plot_overlay.pdf'.format(output_base),
+                      dpi=args.dpi)
 
 
 def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
