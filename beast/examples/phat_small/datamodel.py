@@ -88,21 +88,17 @@ ast_maglimit = [1.]
 # If False, the ast list is produced with only magnitudes.
 ast_with_positions = True
 
-# ast_source_density_table :  (string,optional)
-# Name of source density table from tools/create_source_density_map.py
-# If supplied, the ASTs will be repeated for each source density bin in the table
-ast_source_density_table = None
-# ast_source_density_table = 'data/b15_4band_det_27_A_sourcedens_map.hd5'
+# ast_density_table :  (string,optional)
+# Name of density table created by
+# tools/create_background_density_map.py, containing either the source
+# density map or the background density map. If supplied, the ASTs will
+# be repeated for each density bin in the table
+ast_density_table = None
+# ast_density_table = 'data/b15_4band_det_27_A_sourcedens_map.hd5'
 
-# ast_background_table :  (string,optional)
-# Name of background table from tools/create_background_density_map.py
-# If supplied, the ASTs will be repeated for each background level bin in the table
-ast_background_table = None
-
-#ast_N_bins : (int, optional)
-#Number of source or background bins that you want ASTs repeated over
-#ast_N_bins = 8
-
+# ast_N_bins : (int, optional)
+# Number of source or background bins that you want ASTs repeated over
+# ast_N_bins = 8
                          
 # ast_pixel_distribution : float (optional)
 # (Used if ast_with_positions is True), minimum pixel separation between AST
