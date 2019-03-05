@@ -177,6 +177,7 @@ To check if the background (or source density) map makes sense, the 'tileplot' s
 same script can be used. If the output of one of the previous commands was 'map_name.hd5', then use
 
   .. code:: shell
+
      $ ./beast/tools/create_background_density_map.py tileplot map_name.hd5 -image image.fits --colorbar 'background'
 
 *****
