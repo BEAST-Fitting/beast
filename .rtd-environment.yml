@@ -13,6 +13,6 @@ dependencies:
     - pytables
     - pytest-mpl
     - sphinx-astropy
-    - dust_extinction>=0.7
+    - dust_extinction
 #   - pip:
 #       - dependency_from_pip
