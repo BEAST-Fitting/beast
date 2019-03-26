@@ -20,7 +20,8 @@ def setup_batch_beast_fit(projectname,
                               datafile,
                               num_percore=5,
                               nice=None,
-                              overwrite_logfile=True):
+                              overwrite_logfile=True,
+                              prefix=None):
     """
     Sets up batch files for submission to the 'at' queue on linux (or similar) systems
 
@@ -41,6 +42,10 @@ def setup_batch_beast_fit(projectname,
 
     overwrite_logfile : boolean (default = True)
         if True, will overwrite the log file; if False, will append to existing log file
+
+    prefix : string (default=None)
+        Set this to a string (such as 'source activate astroconda') to prepend
+        to each batch file (use '\n's to make multiple lines)
 
     Returns
     -------
@@ -172,6 +177,10 @@ def setup_batch_beast_fit(projectname,
                 pf = open(joblist_file,'w')
                 run_info_dict['files_to_run'].append(joblist_file)
                 
+
+            # write out anything at the beginning of the file
+            if prefix is not None:
+                pf.write(prefix+'\n')
 
             ext_str = ''
             if reg_run:
