@@ -13,10 +13,10 @@ from functools import reduce
 from beastplotlib import initialize_parser
 
 
-def plot(fitsfile, mag1_filter='F475W', mag2_filter='F814W', 
+def plot(fitsfile, mag1_filter='F475W', mag2_filter='F814W',
          mag3_filter='F475W'):
-    """ 
-    Read in flux from real or simulated data in fitsfile and plot a 
+    """
+    Read in flux from real or simulated data in fitsfile and plot a
     color-magnitude diagram based on specified filters.
 
     fitsfile:           str
@@ -41,7 +41,7 @@ def plot(fitsfile, mag1_filter='F475W', mag2_filter='F814W',
     m1_pos_inds = np.where(mag1_flux > 0.0)
     m2_pos_inds = np.where(mag2_flux > 0.0)
     m_pos_inds = np.where(mag_flux > 0.0)
-    pos_inds = reduce(np.intersect1d, (m1_pos_inds, m2_pos_inds, m_pos_inds))    
+    pos_inds = reduce(np.intersect1d, (m1_pos_inds, m2_pos_inds, m_pos_inds))
     mag1_flux_pos = mag1_flux[pos_inds]
     mag2_flux_pos = mag2_flux[pos_inds]
     mag_flux_pos = mag_flux[pos_inds]
@@ -53,7 +53,7 @@ def plot(fitsfile, mag1_filter='F475W', mag2_filter='F814W',
 
     col = mag1 - mag2
 
-    fig = plt.figure(figsize=(9,9))
+    fig = plt.figure(figsize=(9, 9))
     plt.plot(col, mag, '.')
 
     plt.gca().invert_yaxis()
@@ -68,29 +68,18 @@ if __name__ == '__main__':
     parser = initialize_parser()
     parser.add_argument('filename', type=str,
                         help='Path to FITS file to plot')
-
-    params=['F275W','F336W','F475W','F814W','F110W','F160W']
     parser.add_argument('--mag1', action='store', default='F475W',
-                        choices=params,
-                        help='Choose filter for mag1 (color=mag1-mag2) \
-                        Must be one of: "{}"'.format('", "'.join(params))
-                        )
+                        help='Choose filter for mag1 (color=mag1-mag2)')
     parser.add_argument('--mag2', action='store', default='F814W',
-                        choices=params,
-                        help='Choose filter for mag2 (color=mag1-mag2) \
-                        Must be one of: "{}"'.format('", "'.join(params))
-                        )
+                        help='Choose filter for mag2 (color=mag1-mag2)')
     parser.add_argument('--magy', action='store', default='F475W',
-                        choices=params,
-                        help='Choose filter for the magnitude \
-                        Must be one of: "{}"'.format('", "'.join(params))
-                        )
+                        help='Choose filter for the magnitude')
 
     args = parser.parse_args()
 
     # plot the CMD
-    fig = plot(args.filename, mag1_filter=args.mag1, 
-                   mag2_filter=args.mag2, mag3_filter=args.magy)
+    fig = plot(args.filename, mag1_filter=args.mag1,
+               mag2_filter=args.mag2, mag3_filter=args.magy)
 
     # figname
     basename = args.filename.replace('.fits', '_plot')
