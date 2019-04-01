@@ -216,9 +216,8 @@ def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
 
     # the combined prior and grid weights
     # using both as the grid weight needed to account for the finite size
-    # of each grid bin
+    #   of each grid bin
     # if we change to interpolating between grid points, need to rethink this
-    # ***still need to include completeness
     gridweights = sedgrid['weight']*model_compl[:, filter_k]
     # need to sum to 1
     gridweights = gridweights/np.sum(gridweights)
