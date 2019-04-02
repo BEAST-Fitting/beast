@@ -81,8 +81,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # do the merge
-    n_objs = remove_filters_from_files(args.catfile,
-                                       args.physgrid,
-                                       args.obsgrid,
-                                       args.outbase,
-                                       args.rm_filters)
+    remove_filters_from_files(args.catfile,
+                              args.physgrid,
+                              args.obsgrid,
+                              args.outbase,
+                              args.rm_filters)
