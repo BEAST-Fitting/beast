@@ -22,7 +22,7 @@ def split_obs_by_source_density(catfile, bin_width=1, sort_col='F475W_RATE',
 
     !!! Note: This function uses the updated catalog file containing the
     source density for each star in the brick 
-    (check for create_source_density_map.py) !!!
+    (check for create_background_density_map.py) !!!
 
     INPUTS:
     -------
