@@ -58,6 +58,9 @@ if __name__ == '__main__':
         astfile = line_bits[3]
     
         noisefile = "%s/%s_noisemodel.hd5"%(project,project)
+        # if the noisefile doesn't exist, it's because it's divided into source density bins
+        if not os.path.isfile(noisefile):
+            noisefile = "%s/%s_noisemodel_SD_%s.hd5"%(project,project,source_density)
 
         stats_filebase = "%s/%s_sd%s_sub%s"%(project,
                                              project,
