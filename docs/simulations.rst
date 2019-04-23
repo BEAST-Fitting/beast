@@ -51,7 +51,7 @@ been done yet.
 Plotting
 ********
 
-To plot a color-magnitide diagram of the simulated observations, a
+To plot a color-magnitude diagram of the simulated observations, a
 sample call from the command line may be:
 
 .. code:: shell
@@ -62,3 +62,29 @@ where `outfile.fits` may be the output from `tools/simulate_obs.py`.
 `mag1`-`mag2` is the color, and `magy` the magnitude.
 By default the figure is saved as `outfile_plot.png` in the directory
 of outfile.fits.
+
+**************
+Remove Filters
+**************
+
+One use case for simulations is to test the impact of specific filters
+on the BEAST results.  One solution is to create multiple physics/observation
+model grids, create simulations from each set of grids, and then fit the
+simulations with the BEAST.  A quicker way to do this is to create the
+physics/observation grid set with the full set of desired filters, create
+the desired simulations, remove filters from the model and simulations as
+needed, and then fit with the BEAST.  This has the benefit of the simulations
+with different filter sets are exactly the same expect for the removed filters.
+
+As an example, to remove the filters F275W and F336W from the simulated
+observations contained in 'catfile' and the 'physgrid'/'obsgrid' set of models
+use the following command.
+
+.. code:: shell
+
+   $ python remove_filters.py catfile physgrid obsgrid outbase \
+                --rm_filters F275W F336W
+
+New physics/observation model grids and simulated observation files are
+created as 'outbase_sed.grid.hd5', 'outbase_noisemodel.grid.hd5', and
+'outbase_cat.fits'.
