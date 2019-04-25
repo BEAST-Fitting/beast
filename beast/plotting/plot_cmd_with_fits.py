@@ -5,7 +5,6 @@ import argparse
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-import re
 import copy
 
 import pdb
@@ -77,8 +76,6 @@ def plot(data_fits_file, beast_fits_file, mag1_filter='F475W', mag2_filter='F814
     if plot_all == False:
         # exclude any that have mag = 0 (indicating either no coverage in
         # that band or sub-optimal sharpness+concentration values)
-        #filter_list = list(set( [re.search('[F]...[W]',col).group(0) for col in beast_table.columns.names if
-        #                             re.search('[F]...[W]',col) is not None] ))
         temp = [copy.copy(data_table[filt+'_VEGA']) for filt in set([mag1_filter, mag2_filter, mag3_filter])]
         for col in temp:
             col[col > 99] = np.nan

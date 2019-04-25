@@ -1,11 +1,9 @@
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
 from astropy.io import fits
 import re
 
-import pdb
 
 def plot(beast_stats_file, n_bins=50):
     """
@@ -29,13 +27,12 @@ def plot(beast_stats_file, n_bins=50):
     # - chi2
     chi2 = beast_table['chi2min']
     # - filters
-    filter_list = list(set( [re.search('[F]...[W]',col).group(0) for col in beast_table.columns.names if
-                                 re.search('[F]...[W]',col) is not None] ))
-    n_filter = len(filter_list)
+    #filter_list = list(set( [re.search('[F]...[W]',col).group(0) for col in beast_table.columns.names if
+    #                             re.search('[F]...[W]',col) is not None] ))
+    #n_filter = len(filter_list)
     # - fit parameters
-    param_list = [col[:-4] for col in beast_table.columns.names if 'p50' in col and '_F' not in col]
-    n_param = 6
-    #pdb.set_trace()
+    #param_list = [col[:-4] for col in beast_table.columns.names if 'p50' in col and '_F' not in col]
+    #n_param = 6
 
     # figure
     fig = plt.figure(figsize=(5,4))
