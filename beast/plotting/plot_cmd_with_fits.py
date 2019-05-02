@@ -5,12 +5,13 @@ import argparse
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy import units as u
+import copy
 
 import pdb
 
 
 def plot(data_fits_file, beast_fits_file, mag1_filter='F475W', mag2_filter='F814W', 
-         mag3_filter='F475W', param='chi2min', log_param=False):
+         mag3_filter='F475W', param='chi2min', log_param=False, plot_all=False):
     """ 
     Make a CMD with the data, and color-code points by some other fitted quantity
 
@@ -40,6 +41,11 @@ def plot(data_fits_file, beast_fits_file, mag1_filter='F475W', mag2_filter='F814
     log_param : boolean (default=False)
         choose whether to take the log of `param` for assigning color
 
+    plot_all : boolean (default=False)
+        If True, plot all points by converting the fluxes into magnitudes.
+        If False, only plot sources with Vega mags that are <99 in the
+        mag1/mag2/mag3 filters 
+
     """
 
     # read in data
@@ -63,8 +69,18 @@ def plot(data_fits_file, beast_fits_file, mag1_filter='F475W', mag2_filter='F814
     # read in parameter for color-coding
     color_data = beast_table[param]
 
-    # Exclude negative or 0 fluxes
-    good_ind = np.where((mag1_flux > 0.0) & (mag2_flux > 0.0) & (mag_flux > 0.0))[0]
+    # choose whether to plot all or some of the pointss
+    if plot_all == True:
+        # exclude negative or 0 fluxes
+        good_ind = np.where((mag1_flux > 0.0) & (mag2_flux > 0.0) & (mag_flux > 0.0))[0]
+    if plot_all == False:
+        # exclude any that have mag = 0 (indicating either no coverage in
+        # that band or sub-optimal sharpness+concentration values)
+        temp = [copy.copy(data_table[filt+'_VEGA']) for filt in set([mag1_filter, mag2_filter, mag3_filter])]
+        for col in temp:
+            col[col > 99] = np.nan
+        good_ind = np.where(np.isfinite(np.sum(temp, axis=0)))[0]
+
     mag1_flux_pos = mag1_flux[good_ind]
     mag2_flux_pos = mag2_flux[good_ind]
     mag_flux_pos = mag_flux[good_ind]
