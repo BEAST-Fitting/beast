@@ -1,10 +1,7 @@
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
 from astropy.io import fits
-from astropy.coordinates import SkyCoord
-from astropy import units as u
 
 
 def plot_mag_hist(data_file, n_bins=50):
@@ -72,6 +69,6 @@ def plot_mag_hist(data_file, n_bins=50):
 
     plt.tight_layout()
 
-    fig.savefig(data_file.replace('.fits', '_fluxhist.pdf'))
+    fig.savefig(data_file.replace('.fits', '_maghist.pdf'))
     plt.close(fig)
 

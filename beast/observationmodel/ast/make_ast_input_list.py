@@ -3,7 +3,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 
-import h5py
 import numpy as np
 from astropy.io import ascii
 from astropy.table import Table
@@ -125,10 +124,8 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
     with Vega() as v:
         vega_f, vega_flux, lambd = v.getFlux(filters)
 
-    #gridf = h5py.File(sedgrid_fname)
     modelsedgrid = FileSEDGrid(sedgrid_fname)
 
-    #sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
     Nf = sedsMags.shape[1]
 
