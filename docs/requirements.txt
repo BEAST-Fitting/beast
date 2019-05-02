@@ -2,3 +2,10 @@ astropy-helpers
 sphinx
 gitpython
 sphinx-astropy
+astropy
+Cython
+matplotlib
+numpy
+scipy
+pytables
+pytest-mpl
