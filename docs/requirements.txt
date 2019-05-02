@@ -7,5 +7,5 @@ Cython
 matplotlib
 numpy
 scipy
-pytables
+tables
 pytest-mpl
