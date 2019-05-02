@@ -3,7 +3,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 
-import h5py
 import numpy as np
 from astropy.io import ascii
 from astropy.table import Table
@@ -62,7 +61,8 @@ def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
 
 def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
                                 N_fluxes, min_N_per_flux,
-                                outfile=None, bins_outfile=None, bright_cut=None):
+                                outfile=None, outfile_params=None,
+                                bins_outfile=None, bright_cut=None):
     """
     Creates a fake star catalog from a BEAST model grid. The chosen seds
     are optimized for the toothpick model, by working with a given
@@ -96,6 +96,10 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
         Output path for the models (optional). If this file already
         exists, the chosen seds are loaded from this file instead.
 
+    outfile_params: string (default=None)
+        If a file name is given, the physical parameters associated with
+        each model will be written to disk
+
     bins_outfile: string
         Output path for a file containing the flux bin limits for each
         filter, and the number of samples for each (optional)
@@ -120,12 +124,13 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
     with Vega() as v:
         vega_f, vega_flux, lambd = v.getFlux(filters)
 
-    gridf = h5py.File(sedgrid_fname)
+    modelsedgrid = FileSEDGrid(sedgrid_fname)
 
-    sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
+    sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
     Nf = sedsMags.shape[1]
 
-    idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
+    #idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
+    idxs = np.where(modelsedgrid.grid['logL'] > -9)[0]
     sedsMags_cut = sedsMags[idxs]
 
     # Note that i speak of fluxes, but I've recently modified this to
@@ -207,6 +212,14 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
     if outfile is not None:
         ascii.write(sedsMags, outfile, overwrite=True,
                     formats={k: '%.5f' for k in sedsMags.colnames})
+
+    # if chosen, save the corresponding model parameters
+    if outfile_params is not None:
+        grid_dict = {}
+        for key in list(modelsedgrid.grid.keys()):
+            grid_dict[key] = modelsedgrid.grid[key][chosen_idxs]
+        ast_params = Table(grid_dict)
+        ast_params.write(outfile_params, overwrite=True)
 
     if bins_outfile is not None:
         bin_info_table = Table()
