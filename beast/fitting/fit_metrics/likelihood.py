@@ -122,7 +122,7 @@ def N_chi2_NM(flux, fluxmod_wbias, ivar, mask=None):
     chi2:    np.ndarray[float, ndim=1]
         array of chi2 values (nmodels)
     """
-    if (mask is None) or np.all(mask==False):
+    if (mask is None) or np.all(mask == False):
         temp = flux - fluxmod_wbias
         _ie = ivar
     else:
@@ -327,7 +327,7 @@ def N_logLikelihood_NM(flux, fluxmod_wbias, ivar, mask=None,
         \\chi ^ 2 = \\sum_{k} (flux_{obs,k} - flux_{pred,k} - \mu_k) ^ 2 /
                     \sigma^2_{pred,k}
     """
-    ni, nj = np.shape(fluxmod)
+    ni, nj = np.shape(fluxmod_wbias)
 
     #compute the quality factor
     # lnQ = -0.5 * nj *  ln( 2 * pi) - sum_j {ln( err[j] ) }
@@ -387,7 +387,7 @@ def N_covar_logLikelihood(flux, fluxmod_wbias,
     chi2:    np.ndarray[float, ndim=1]
             array of chi-squared values (Nmodels)
     """
-    n_models, n_filters = np.shape(fluxmod)
+    n_models, n_filters = np.shape(fluxmod_wbias)
 
     #compute the pi normalization term
     n_good_filters = n_filters
