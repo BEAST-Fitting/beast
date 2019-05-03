@@ -76,3 +76,30 @@ def test_extinction_Cardelli89_values(Rv):
 
     tlaw_vals = tlaw(1e4/x, Av=1., Rv=Rv, Alambda=True)
     np.testing.assert_allclose(tlaw_vals, cor_vals)
+
+
+def test_extinction_generalRvFA_initialize():
+    tlaw = extinction.Generalized_RvFALaw()
+    assert type(tlaw) == extinction.Generalized_RvFALaw
+
+    lam = np.linspace(2.e3,1.e4,10)
+    tlaw_vals = tlaw(lam, Av=1., Rv=4.0, f_A=0.8)
+    orig = extinction.Gordon16_RvFALaw()
+    orig_vals = orig(lam, Av=1., Rv=4.0, f_A=0.8)
+    np.testing.assert_allclose(tlaw_vals, orig_vals)
+
+
+@pytest.mark.parametrize("curve", ["F04", "G03_LMCAvg"])
+def test_extinction_dustextpkg_initialize(curve):
+    tlaw = extinction.Generalized_DustExt(curve)
+    assert type(tlaw) == extinction.Generalized_DustExt
+
+@pytest.mark.parametrize("curve,origExtLaw",
+                         [("G03_SMCBar","Gordon03_SMCBar"),
+                          ("F99","Fitzpatrick99")])
+def test_extinction_dustextpkg_datacomp(curve, origExtLaw):
+    tlaw = extinction.Generalized_DustExt(curve)
+    olaw = getattr(extinction, origExtLaw)()
+
+    lam = np.linspace(2.e3,1.e4,10)
+    np.testing.assert_allclose(tlaw(lam), olaw(lam), rtol=1e-03)

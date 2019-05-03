@@ -9,11 +9,15 @@ from scipy import interpolate, interp
 
 from astropy import units
 
+import dust_extinction.parameter_averages as dustext_par
+import dust_extinction.averages as dustext_avg
+
 from ...observationmodel import phot
 from ...config import __ROOT__
 
 __all__ = ['ExtinctionLaw', 'Cardelli89', 'Fitzpatrick99',
-           'Gordon03_SMCBar', 'Gordon16_RvFALaw']
+           'Gordon03_SMCBar', 'Gordon16_RvFALaw',
+           'Generalized_RvFALaw', 'Generalized_DustExt']
 
 libdir = __ROOT__
 
@@ -567,3 +571,87 @@ class Gordon16_RvFALaw(ExtinctionLaw):
 
         Rv_B = self.BLaw.Rv
         return 1. / (f_A / Rv_A + (1 - f_A) / Rv_B)
+
+
+class Generalized_RvFALaw(Gordon16_RvFALaw):
+    """
+    Generalized RvFA extinction law
+
+    Mixture of R(V) dependent extinction law (`ALaw`) and
+    average extinction curve (`BLaw`).
+
+    This extinction curve model encompasses the average behavior of
+    measured extinction curves in the Milky Way, LMC, and SMC.
+
+    Implemented as ALaw=Fitzpatrick99() and BLaw=Gordon03_SMCBar()
+    by default.
+    """
+    def __init__(self, ALaw=Fitzpatrick99(), BLaw=Gordon03_SMCBar()):
+        self.ALaw = ALaw
+        self.BLaw = BLaw
+        self.name = 'Generalized_RvFALaw:'+ALaw.name+'+'+BLaw.name
+
+
+class Generalized_DustExt(ExtinctionLaw):
+    """
+    Generalized extinction curve class to import classes from
+    dust_extinction package.
+
+    Accepts class name as string input (`curve`) for all `average` and
+    Rv-dependent `parameter_averages` extinction curve classes.
+    """
+    def __init__(self, curve='F04'):
+        self.name = 'dustextpkg_'+curve
+        if curve in dustext_par.__all__:
+            self.extcurve_class = getattr(dustext_par, curve)
+            self.hasRvParam = True
+        elif curve in dustext_avg.__all__:
+            self.extcurve_class = getattr(dustext_avg, curve)
+            self.hasRvParam = False
+        else:
+            raise ValueError(curve + ' class not found. \n' +
+                             'Valid dust_extinction package classes: '+
+                             ' '.join(dustext_par.__all__+dustext_avg.__all__))
+
+    def function(self, lamb, Av=1, Rv=3.1, Alambda=True,
+                 **kwargs):
+        """
+        Generalized Extinction Law
+
+        Parameters
+        ----------
+        lamb: float or ndarray(dtype=float)
+            wavelength [in Angstroms] at which evaluate the law.
+
+        Av: float
+            desired A(V) (default 1.0)
+
+        Rv: float
+            desired R(V) (default 3.1)
+
+        Alambda: bool
+            if set returns +2.5*1./log(10.)*tau, tau otherwise
+
+        Returns
+        -------
+        r: float or ndarray(dtype=float)
+            attenuation as a function of wavelength
+            depending on Alambda option +2.5*1./log(10.)*tau,  or tau
+        """
+        # ensure the units are in angstrom
+        _lamb = units.Quantity(lamb, units.angstrom).value
+
+        if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
+            _lamb = np.asarray([lamb])
+        else:
+            _lamb = lamb[:]
+
+        if self.hasRvParam:
+            extcurve_obj = self.extcurve_class(Rv=Rv)
+        else:
+            extcurve_obj = self.extcurve_class()
+
+        if (Alambda):
+            return extcurve_obj(_lamb*units.angstrom) * Av
+        else:
+            return extcurve_obj(_lamb*units.angstrom) * Av * (np.log(10.)*0.4)
