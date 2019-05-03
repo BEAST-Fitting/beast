@@ -39,13 +39,14 @@ from the physicsgrid file.  The names of the observed columns are
 `band_rate` and the units are normalized Vega fluxes (to match how
 the observed data are given).
 
-********
-Trunchen
-********
+*********
+Truncheon
+*********
 
-The code does not handle the trunchen model at this point.  It is
-straightforward to extend the code for this model, but it has not
-been done yet.
+The code does not handle the truncheon model at this point.  While this model
+is doable in the BEAST, it has not been done yet due to several potentially
+complex modeling questions for actually using it that might impact how the model
+is implemented.
 
 ********
 Plotting
