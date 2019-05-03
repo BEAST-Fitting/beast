@@ -88,6 +88,19 @@ ast_maglimit = [1.]
 # If True, the ast list is produced with X,Y positions.
 # If False, the ast list is produced with only magnitudes.
 ast_with_positions = True
+
+# ast_density_table :  (string,optional)
+# Name of density table created by
+# tools/create_background_density_map.py, containing either the source
+# density map or the background density map. If supplied, the ASTs will
+# be repeated for each density bin in the table
+ast_density_table = None
+# ast_density_table = 'data/b15_4band_det_27_A_sourcedens_map.hd5'
+
+#ast_N_bins : (int, optional)
+#Number of source or background bins that you want ASTs repeated over
+#ast_N_bins = 8
+
                          
 # ast_pixel_distribution : float (optional)
 # (Used if ast_with_positions is True), minimum pixel separation between AST
@@ -99,6 +112,13 @@ ast_pixel_distribution = 10.0
 # Name of the reference image used by DOLPHOT when running the measured 
 # photometry.	            
 ast_reference_image = None
+
+# ast_coord_boundary : None, or list of two arrays (optional)
+# If supplied, these RA/Dec coordinates will be used to limit the region
+# over which ASTs are generated.  Input should be list of two arrays, the
+# first RA and the second Dec, ordered sequentially around the region
+# (either CW or CCW).
+ast_coord_boundary = None
 
 
 #-------------------------------------------
@@ -122,6 +142,8 @@ absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
 # Distances: distance to the galaxy [min, max, step] or [fixed number]
 distances = [18.5]
+
+# Distance unit (any length or units.mag)
 distance_unit = units.mag
 
 # velocity of galaxy
@@ -152,9 +174,9 @@ z = [0.03, 0.019, 0.008, 0.004]
 #   MISTWeb() -- `rotation` param (choices: vvcrit0.0=default, vvcrit0.4)
 #
 # Default: PARSEC+CALIBRI
-#oiso = isochrone.PadovaWeb()
+oiso = isochrone.PadovaWeb()
 # Alternative: PARSEC1.2S -- old grid parameters
-oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)
+#oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)
 # Alternative: MIST -- v1, no rotation
 #oiso = isochrone.MISTWeb()
 

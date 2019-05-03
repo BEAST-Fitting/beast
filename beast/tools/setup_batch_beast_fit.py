@@ -17,13 +17,14 @@ from astropy.io import fits
 
 
 def setup_batch_beast_fit(projectname,
-                              datafile,
-                              num_percore=5,
-                              nice=None,
-                              overwrite_logfile=True):
+                          datafile,
+                          num_percore=5,
+                          nice=None,
+                          overwrite_logfile=True,
+                          prefix=None):
     """
-    Sets up batch files for submission to the 'at' queue on linux (or similar) systems
-
+    Sets up batch files for submission to the 'at' queue on
+    linux (or similar) systems
 
     Parameters
     ----------
@@ -31,31 +32,37 @@ def setup_batch_beast_fit(projectname,
         project name to use (basename for files)
 
     datafile : string
-        file with the observed data (FITS file) - the observed photometry, not the sub-files
+        file with the observed data (FITS file) - the observed photometry,
+        not the sub-files
 
     num_percore : int (default = 5)
         number of fitting runs per core
 
     nice : int (default = None)
-        set this to an integer (-20 to 20) to prepend a "nice" level to the fitting command
+        set this to an integer (-20 to 20) to prepend a "nice" level
+        to the fitting command
 
     overwrite_logfile : boolean (default = True)
-        if True, will overwrite the log file; if False, will append to existing log file
+        if True, will overwrite the log file; if False, will append to
+        existing log file
+
+    prefix : string (default=None)
+        Set this to a string (such as 'source activate astroconda') to prepend
+        to each batch file (use '\n's to make multiple lines)
 
     Returns
     -------
     run_info_dict : dict
         Dictionary indicating which catalog files have complete modeling, and
         which job files need to be run
-  
-    """
-    
 
+    """
     project = projectname
 
-    cat_files = np.array(sorted(glob.glob(datafile.replace('.fits','*_sub*.fits'))))
+    cat_files = np.array(sorted(glob.glob(datafile.replace('.fits',
+                                                           '*_sub*.fits'))))
 
-    datafile_basename = datafile.split('/')[-1].replace('.fits','')
+    datafile_basename = datafile.split('/')[-1].replace('.fits', '')
 
     n_cat_files = len(cat_files)
     n_pernode_files = num_percore
@@ -75,10 +82,11 @@ def setup_batch_beast_fit(projectname,
     j = -1
 
     # keep track of which files are done running
-    run_info_dict = {'cat_file':cat_files, 'done':np.full(n_cat_files, False),
-                         'files_to_run':[]}
+    run_info_dict = {'cat_file': cat_files,
+                     'done': np.full(n_cat_files, False),
+                     'files_to_run': []}
 
-    #cat_files = cat_files[0:2]
+    # cat_files = cat_files[0:2]
 
     for i, cat_file in enumerate(cat_files):
         # get the sd number
@@ -89,8 +97,8 @@ def setup_batch_beast_fit(projectname,
         sub_num = cat_file[spos+3:ppos]
 
         # read the stats file and see if this subregion is done yet
-        results_path = project + '/'
-        basename = "%s/%s_sd%s_sub%s"%(project,project,sd_num,sub_num)
+        # results_path = project + '/'
+        basename = "%s/%s_sd%s_sub%s" % (project, project, sd_num, sub_num)
 
         stats_file = basename + '_stats.fits'
         pdf1d_file = basename + '_pdf1d.fits'
@@ -111,7 +119,8 @@ def setup_batch_beast_fit(projectname,
         # first check if the pdf1d mass spacing is correct
         if not reg_run:
             hdulist = fits.open(pdf1d_file)
-            delta1 = hdulist['M_ini'].data[-1,1] - hdulist['M_ini'].data[-1,0]
+            delta1 = (hdulist['M_ini'].data[-1, 1]
+                      - hdulist['M_ini'].data[-1, 0])
             if delta1 > 1.0:  # old linear spacing
                 print('pdf1d lin mass spacing - full refitting needed')
                 old_mass_spacing = True
@@ -123,7 +132,7 @@ def setup_batch_beast_fit(projectname,
                 run_done = False
                 reg_run = True
 
-        # now check if the number of results is the same as 
+        # now check if the number of results is the same as
         #    the number of observations
         if not reg_run:
             # get the observed catalog
@@ -139,7 +148,7 @@ def setup_batch_beast_fit(projectname,
             nlnp = f.root._v_nchildren - 2
             f.close()
 
-            print('# obs, stats, lnp = ',len(obs), len(indxs), nlnp)
+            print('# obs, stats, lnp = ', len(obs), len(indxs), nlnp)
             if (len(indxs) == len(obs)) & (nlnp == len(obs)):
 
                 # final check, is the pdf1d file correctly populated
@@ -155,33 +164,36 @@ def setup_batch_beast_fit(projectname,
         else:
 
             j += 1
-            if j%n_pernode_files == 0:
+            if j % n_pernode_files == 0:
                 cur_f += 1
 
                 # close previous files
                 if j != 0:
                     pf.close()
-                    print('total sed_trim size [Gb] = ', 
+                    print('total sed_trim size [Gb] = ',
                           cur_total_size/(1024.*1024.*1024.))
                     cur_total_size = 0.0
 
                 # open the slurm and param files
                 pf_open = True
-                joblist_file = job_path+'beast_batch_fit_'+str(cur_f) \
-                               +'.joblist'
-                pf = open(joblist_file,'w')
+                joblist_file = (job_path + 'beast_batch_fit_' + str(cur_f)
+                                + '.joblist')
+                pf = open(joblist_file, 'w')
                 run_info_dict['files_to_run'].append(joblist_file)
-                
+
+            # write out anything at the beginning of the file
+            if prefix is not None:
+                pf.write(prefix+'\n')
 
             ext_str = ''
             if reg_run:
-                print(stats_file 
-                      + ' does not exist ' + 
+                print(stats_file
+                      + ' does not exist ' +
                       '- adding job as a regular fit job (not resume job)')
             else:
-                print(stats_file 
-                      + ' not done - adding to continue fitting list (' + \
-                      str(len(indxs)) + '/' + str(len(t['Pmax'])) + ')')
+                print(stats_file
+                      + ' not done - adding to continue fitting list ('
+                      + str(len(indxs)) + '/' + str(len(t['Pmax'])) + ')')
                 ext_str = '-r'
 
             nice_str = ''
@@ -192,16 +204,16 @@ def setup_batch_beast_fit(projectname,
             if not overwrite_logfile:
                 pipe_str = ' >> '
 
-            job_command = nice_str + 'python run_beast_production.py -f ' + ext_str + ' ' + \
-                          datafile_basename + ' ' + sd_num + ' '+sub_num + pipe_str \
-                          + log_path+'beast_fit' + \
-                          '_sd'+sd_num+'_sub'+sub_num+'.log'
+            job_command = (nice_str + 'python run_beast_production.py -f '
+                           + ext_str + ' ' + datafile_basename + ' '
+                           + sd_num + ' '+sub_num + pipe_str
+                           + log_path+'beast_fit'
+                           + '_sd'+sd_num+'_sub'+sub_num+'.log')
 
             pf.write(job_command+'\n')
 
     if pf_open:
         pf.close()
-
 
     # return the info about completed modeling
     return run_info_dict
@@ -223,4 +235,4 @@ if __name__ == '__main__':
     datafile = args.datafile
     n_pernode_files = args.num_percore
 
-    setup_batch_beast_fit(project, datafile, n_pernode_files=5)
+    setup_batch_beast_fit(project, datafile, num_percore=n_pernode_files)

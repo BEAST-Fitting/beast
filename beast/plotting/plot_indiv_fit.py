@@ -22,7 +22,7 @@ from astropy.io import fits
 from astropy import units as ap_units
 from astropy.coordinates import SkyCoord as ap_SkyCoord
 
-from beastplotlib import initialize_parser
+from beast.plotting.beastplotlib import initialize_parser
 
 
 def inverse_symlog(y):
@@ -86,8 +86,13 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
     ax.xaxis.set_major_locator(MaxNLocator(4))
     xlim = [xvals.min(), xvals.max()]
     xlim_delta = xlim[1] - xlim[0]
-    ax.set_xlim(xlim[0] - 0.05 * xlim_delta, xlim[1] + 0.05 * xlim_delta)
-    # ax.set_ylim(0.0,1.1*pdf.max())
+    if ~np.isnan(xlim[0]):
+        ax.set_xlim(xlim[0] - 0.05 * xlim_delta, xlim[1] + 0.05 * xlim_delta)
+    else:
+        bestval = stats[tagname + '_Best'][starnum]
+        if tagname == 'distance':
+            bestval /= 1000.
+        ax.set_xlim(0.95 * bestval, 1.05 * bestval)
     ax.set_ylim(0.0, 1.1)
 
     if stats is not None:
@@ -96,6 +101,8 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
         y1 = ylim[0] + 0.5 * (ylim[1] - ylim[0])
         y2 = ylim[0] + 0.7 * (ylim[1] - ylim[0])
         pval = stats[tagname + '_Best'][starnum]
+        if tagname == 'distance':
+            pval /= 1000.
         if logx:
             pval = np.log10(pval)
         ax.plot(np.full((2), pval), [y1, y2],
@@ -117,7 +124,7 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
         ax.plot(pvals[1:3], [ym, ym], '-', color='m')
 
 
-def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
+def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
 
     # setup the plot grid
     gridNrow, gridNcol = 5, 12
@@ -129,7 +136,7 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     # axes for the big SED plot. Leave empty columns right of the plot to
     # put the legend and values.
     sed_height = 2
-    free_cols = 2
+    free_cols = 3
     index_sedplot = len(ax)
     ax.append(plt.subplot(gs[0:sed_height, 0:-1 - free_cols]))
 
@@ -203,16 +210,17 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     sed_ax.fill_between(waves, mod_flux_nd[:, 1], mod_flux_nd[:, 2],
                         color='y', alpha=0.1)
 
-    sed_ax.legend(loc='upper right', bbox_to_anchor=(1.25, 1.025))
+    #sed_ax.legend(loc='upper right', bbox_to_anchor=(1.25, 1.025), fontsize=8)
+    sed_ax.legend(loc='lower right', fontsize=9)
 
     sed_ax.set_ylabel(r'Flux [ergs s$^{-1}$ cm$^{-2}$ $\AA^{-1}$]')
     sed_ax.set_yscale('log')
 
     sed_ax.set_xscale('log')
-    sed_ax.text(0.5, -0.01, r'$\lambda$ [$\AA$]',
+    sed_ax.text(0.5, -0.07, r'$\lambda$ [$\AA$]',
                 transform=sed_ax.transAxes, va='top')
     sed_ax.set_xlim(0.2, 2.0)
-    sed_ax.set_xticks([0.2, 0.3, 0.4, 0.5, 0.8, 0.9, 1.0, 2.0])
+    sed_ax.set_xticks([0.2, 0.3, 0.4, 0.5, 0.8, 1.0, 2.0])
     sed_ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
     sed_ax.text(0.05, 0.95, corname, transform=sed_ax.transAxes,
@@ -221,19 +229,19 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     # add the text results
     keys = ['Av', 'M_ini', 'logA', 'distance',
             'Rv', 'f_A', 'Z', 'logT', 'logg', 'logL']
-    dispnames = ['A(V)', 'log(M)', 'log(t)', 'distance(pc)', 'R(V)', r'f$_\mathcal{A}$', 'Z',
+    dispnames = ['A(V)', 'log(M)', 'log(t)', 'd(kpc)', 'R(V)', r'f$_\mathcal{A}$', 'Z',
                  r'log(T$_\mathrm{eff})$', 'log(g)', 'log(L)']
     startprim, stopprim = 0, nprim - 1  # 0 1 2 3
     startsec, stopsec = stopprim + 1, stopprim + nsec  # 4 5 6
     startderiv, stopderiv = stopsec + 1, stopsec + nderiv  # 7 8 9
-    laby = 0.72
-    ty = np.linspace(laby - 0.07, 0.1, num=len(keys))
-    ty[startsec:] -= 0.025
-    ty[startderiv:] -= 0.025
-    tx = [1.12, 1.2, 1.3]
+    laby = 0.96
+    ty = np.linspace(laby - 0.1, 0.1, num=len(keys))
+    ty[startsec:] -= 0.04
+    ty[startderiv:] -= 0.04
+    tx = [1.14, 1.3, 1.47]
     for i in range(len(keys)):
         sed_ax.text(tx[0], ty[i], dispnames[i],
-                    ha='right',
+                    ha='center',
                     transform=sed_ax.transAxes)
         sed_ax.text(tx[1], ty[i], disp_str(stats, starnum, keys[i]),
                     ha='center', color='m',
@@ -249,14 +257,14 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
                     ha='center', color='c',
                     transform=sed_ax.transAxes)
     sed_ax.text(tx[0], laby, 'Param',
-                ha='right',
-                transform=sed_ax.transAxes)
-    sed_ax.text(tx[1], laby, '50%$\pm$33%',
+                ha='center',
+                transform=sed_ax.transAxes, fontsize=10)
+    sed_ax.text(tx[1], laby, '50$\pm$33%',
                 ha='center', color='k',
-                transform=sed_ax.transAxes)
+                transform=sed_ax.transAxes, fontsize=10)
     sed_ax.text(tx[2], laby, 'Best', color='k',
                 ha='center',
-                transform=sed_ax.transAxes)
+                transform=sed_ax.transAxes, fontsize=10)
 
     # now draw boxes around the different kinds of parameters
     tax = sed_ax
@@ -299,7 +307,7 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu):
     plot_1dpdf(next(ax_iter), pdf1d_hdu, 'logA', 'log(t)', starnum,
                stats=stats)
     last_primary_ax = next(ax_iter)
-    plot_1dpdf(last_primary_ax, pdf1d_hdu, 'distance', 'distance(pc)', starnum,
+    plot_1dpdf(last_primary_ax, pdf1d_hdu, 'distance', 'd(kpc)', starnum,
                stats=stats)
 
     # plot the secondary parameter 1D PDFs
@@ -420,7 +428,7 @@ if __name__ == '__main__':
     fig, ax = plt.subplots(figsize=(8, 8))
 
     # make the plot!
-    plot_beast_ifit(filters, waves, stats, pdf1d_hdu)
+    plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum)
 
     # show or save
     basename = filebase + '_ifit_starnum_' + str(starnum)

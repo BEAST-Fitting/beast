@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     project = file_lines[0].rstrip()
     
-    modelfile = "%s/%s_seds.grid.hd5"%(project,project)
+    modelfile = file_lines[1].rstrip()
 
     print('Reading the model grid files = ', modelfile)
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     ext_brick = ''
     
     old_noisefile = ''
-    for k in range(1,len(file_lines)):
+    for k in range(2,len(file_lines)):
         line = file_lines[k]
         line_bits = line.split()
 
@@ -58,6 +58,9 @@ if __name__ == '__main__':
         astfile = line_bits[3]
     
         noisefile = "%s/%s_noisemodel.hd5"%(project,project)
+        # if the noisefile doesn't exist, it's because it's divided into source density bins
+        if not os.path.isfile(noisefile):
+            noisefile = "%s/%s_noisemodel_SD_%s.hd5"%(project,project,source_density)
 
         stats_filebase = "%s/%s_sd%s_sub%s"%(project,
                                              project,

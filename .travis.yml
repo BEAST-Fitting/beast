@@ -32,7 +32,7 @@ env:
         - ASTROPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - PIP_DEPENDENCIES=''
+        - PIP_DEPENDENCIES='pytest-faulthandler pytest-mpl'
         - EVENT_TYPE='pull_request push'
         # - PYTEST_VERSION=3.2
 
@@ -40,6 +40,7 @@ env:
         # so Cython is required for testing. If your package does not include
         # Cython code, you can set CONDA_DEPENDENCIES=''
         - CONDA_DEPENDENCIES='Cython scipy h5py matplotlib pytables hdf5'
+        - CONDA_DEPENDENCIES_DOC='sphinx-astropy sip<4.19 Cython scipy h5py matplotlib pytables hdf5'
 
         # Conda packages for affiliated packages are hosted in channel
         # "astropy" while builds for astropy LTS with recent numpy versions
@@ -51,6 +52,7 @@ env:
         # If there are matplotlib or other GUI tests, uncomment the following
         # line to use the X virtual framebuffer.
         # - SETUP_XVFB=True
+        - export MPLBACKEND=Agg
 
     matrix:
         # Make sure that egg_info works without dependencies
@@ -71,7 +73,7 @@ matrix:
 
         # Try MacOS X including the remote data tests
         - os: osx
-          env: SETUP_CMD='test --remote-data'
+          env: SETUP_CMD='test -a "--mpl" --remote-data'
 
         # Do a coverage test.
         - os: linux
@@ -81,19 +83,22 @@ matrix:
         # may run for a long time
         - os: linux
           env: SETUP_CMD='build_docs -w'
+               CONDA_DEPENDENCIES=$CONDA_DEPENDENCIES_DOC
 
         # Now try Astropy dev and LTS vesions with the latest 3.x and 2.7.
         - os: linux
           env: ASTROPY_VERSION=development
                EVENT_TYPE='pull_request push cron'
+        - os: linux
+          env: PYTHON_VERSION=2.7 ASTROPY_VERSION=lts
+        - os: linux
+          env: ASTROPY_VERSION=lts
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
         # time.
 
-        - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.12
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.12
         - os: linux
@@ -106,25 +111,28 @@ matrix:
           env: NUMPY_VERSION=prerelease
                EVENT_TYPE='pull_request push cron'
 
-        # Do a PEP8 test with pycodestyle
+        # Do a PEP8 test with flake8
         - os: linux
-          env: MAIN_CMD='pycodestyle beast --count' SETUP_CMD=''
+          env: MAIN_CMD='flake8 beast --count --show-source --statistics $FLAKE8_OPT' SETUP_CMD=''
 
     allow_failures:
         # Try MacOS X including the remote data tests
+        # fails due to some issue with numerical precision
         - os: osx
-          env: SETUP_CMD='test --remote-data'
+          env: SETUP_CMD='test -a "--mpl" --remote-data'
 
         - os: linux
           env: ASTROPY_VERSION=development
                EVENT_TYPE='pull_request push cron'
+
         - os: linux
           env: NUMPY_VERSION=prerelease
                EVENT_TYPE='pull_request push cron'
-        # Do a PEP8 test with pycodestyle
+
+        # Do a PEP8 test with flake8
         # (allow to fail unless your code completely compliant)
         - os: linux
-          env: MAIN_CMD='pycodestyle beast --count' SETUP_CMD=''
+          env: MAIN_CMD='flake8 beast --count --show-source --statistics $FLAKE8_OPT' SETUP_CMD=''
 
 install:
 

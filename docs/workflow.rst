@@ -59,6 +59,7 @@ should edit several items in the file:
   * beast_filter_names: the corresponding long names used by the BEAST
   * settings for the source density map: pixel size, filter, magnitude
     range
+  * settings for the background map: pixel dimensions, reference image
   * settings for splitting the catalog by source density: filter,
     number of sources per file
   * settings for the trimming/fitting batch scripts: number of files, nice level
@@ -107,10 +108,11 @@ Data
 
 The data need to have source density information added as it is common
 for the observation model (scatter and bias) to be strongly dependent
-on source density due to crowding/confusion noise.
+on source density due to crowding/confusion noise.  The background may
+also be important in some situations, so there is code to calculate it as well.
 
-Adding source density to observations
-=====================================
+Adding source density or background to observations
+===================================================
 
 Create a new version of the observations that includes a column with the
 source density.  The new observation file includes only sources that have
@@ -128,7 +130,7 @@ a pixel scale of 5 arcsec using the 'datafile.fits' catalog.
 
   .. code:: shell
 
-     $ ./beast/tools/create_source_density_map.py --pixsize 5. datafile.fits
+     $ ./beast/tools/create_background_density_map.py sourceden -catfile datafile.fits --pixsize 5.
 
 Split up observations by source density
 ---------------------------------------
@@ -149,6 +151,34 @@ Command to create the the source density split files
 
     $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 \
              --sort_col F475W_RATE datafile_with_sourceden.fits
+
+
+
+Adding background to observations
+=================================
+
+Create a new version of the observations that includes a column with the
+background level.  This is done by calculating the median background for
+stars that fall in each spatial bin.  The code will output a new catalog, an
+hdf5 file with the background maps and grid information, and some
+diagnostic plots. 
+
+Command to create the observed catalog with background column with a 15x15 pixel array using the 'datafile.fits' catalog and the 'image.fits' reference image.
+
+  .. code:: shell
+
+     $ ./beast/tools/create_background_density_map.py background -catfile datafile.fits --npix 15 \
+	     -reference image.fits
+
+Plotting the background map onto a reference image
+--------------------------------------------------
+
+To check if the background (or source density) map makes sense, the 'tileplot' subcommand of the
+same script can be used. If the output of one of the previous commands was 'map_name.hd5', then use
+
+  .. code:: shell
+
+     $ ./beast/tools/create_background_density_map.py tileplot map_name.hd5 -image image.fits --colorbar 'background'
 
 *****
 Model
@@ -253,9 +283,12 @@ trimming.
 This code sets up batch files for submission to the 'at' queue on linux
 (or similar) systems.  The projectname (e.g., 'PHAT') provides a portion
 of the batch file names.  The datafile and astfile are the observed photometry
-file (not sub files) and file with the ASTs in them.  A subdirectory in the
-project directory is created with a joblist file for submission to the batch
-queue and smaller files used by the trimming code.
+file (not sub files) and file with the ASTs in them.  The optional input
+seds_fname can be used to specify the file with the physics model grid,
+which overrides the default filename when you wish to use one model grid
+for multiple fields. A subdirectory in the project directory is created with
+a joblist file for submission to the batch queue and smaller files used by
+the trimming code.
 
 The joblist file can be split into smaller files if submission to multiple
 cores is desired.  Use the 'split' commandline tool.  The optional 'nice'

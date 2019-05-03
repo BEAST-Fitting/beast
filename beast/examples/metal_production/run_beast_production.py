@@ -7,13 +7,10 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 
 # system imports
 from __future__ import (absolute_import, division, print_function)
-import sys
 import argparse
 import time
-import string
 import numpy as np
 
-from astropy import units
 from astropy import constants as const
 
 # BEAST imports
@@ -61,9 +58,9 @@ def run_beast_production(basename,
 
     # update the filenames as needed for production
     # - photometry sub-file
-    datamodel.obsfile = 'data/' + basename + '_with_sourceden' \
-                        + '_SD_' + source_density.replace('_','-') \
-                        + '_sub' + sub_source_density + '.fits'
+    datamodel.obsfile = basename.replace('.fits','_with_sourceden'
+                        + '_SD_' + source_density.replace('_','-')
+                        + '_sub' + sub_source_density + '.fits')
     # - stats files
     stats_filebase = "%s/%s"%(datamodel.project,datamodel.project) \
                      + '_sd' + source_density.replace('_','-') \
@@ -72,8 +69,9 @@ def run_beast_production(basename,
     # - trimmed noise model
     noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
     # - SED grid
-    modelsedgrid_filename = "%s/%s_seds.grid.hd5"%(datamodel.project,
-                                                   datamodel.project)
+    #modelsedgrid_filename = "%s/%s_seds.grid.hd5"%(datamodel.project,
+    #                                               datamodel.project)
+    modelsedgrid_filename = "METAL_seds.grid.hd5"
 
     print("***run information***")
     print("  project = " + datamodel.project)
@@ -84,10 +82,10 @@ def run_beast_production(basename,
     print("trimmed noisefiles = " + noisemodel_trimname)
     print("    stats filebase = " + stats_filebase)
 
-    if physicsmodel:
+    # make sure the project directory exists
+    pdir = create_project_dir(datamodel.project)
 
-        # make sure the project directory exists
-        pdir = create_project_dir(datamodel.project)
+    if physicsmodel:
 
         # download and load the isochrones
         (iso_fname, oiso) = make_iso_table(datamodel.project,
@@ -136,18 +134,16 @@ def run_beast_production(basename,
             rv_prior_model=datamodel.rv_prior_model,
             av_prior_model=datamodel.av_prior_model,
             fA_prior_model=datamodel.fA_prior_model,
+            spec_fname=modelsedgrid_filename,
             add_spectral_properties_kwargs=extra_kwargs)
 
     if ast:
-        # get the modesedgrid on which to grab input AST
-        modelsedgridfile = datamodel.project + '/' + datamodel.project + \
-                       '_seds.grid.hd5'
 
         N_models = datamodel.ast_models_selected_per_age
         Nfilters = datamodel.ast_bands_above_maglimit
         Nrealize = datamodel.ast_realization_per_model
         mag_cuts = datamodel.ast_maglimit
-        obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.filters)
+        obsdata = datamodel.get_obscat(basename, datamodel.filters)
 
         if len(mag_cuts) == 1:
             tmp_cuts = mag_cuts
@@ -163,18 +159,38 @@ def run_beast_production(basename,
             mag_cuts = min_mags + tmp_cuts
 
         outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
-        pick_models(modelsedgridfile, datamodel.filters, mag_cuts, Nfilter=Nfilters,
-                    N_stars=N_models, Nrealize=Nrealize, outfile=outfile)
+        outfile_params = './' + datamodel.project + '/' + datamodel.project + '_ASTparams.fits'
+        chosen_seds = pick_models(modelsedgrid_filename, datamodel.filters,
+                                  mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize,
+                                  outfile=outfile, outfile_params=outfile_params)
 
         if datamodel.ast_with_positions == True:
             separation = datamodel.ast_pixel_distribution
-            filename = datamodel.project+'/'+datamodel.project+'_inputAST.txt'
+            filename = datamodel.project + '/' + datamodel.project + '_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
-                pick_positions(obsdata, filename, separation,
-                               refimage=datamodel.ast_reference_image)
+                # With reference image, use the background or source density map if available
+                if datamodel.ast_density_table is not None:
+                    pick_positions_from_map(obsdata,
+                                            chosen_seds,
+                                            datamodel.ast_density_table,
+                                            datamodel.ast_N_bins,
+                                            datamodel.ast_realization_per_model,
+                                            outfile=filename,
+                                            refimage=datamodel.ast_reference_image,
+                                            refimage_hdu=0,
+                                            Nrealize=1,
+                                            set_coord_boundary=datamodel.ast_coord_boundary)
+                else:
+                    pick_positions(obsdata, filename, separation,
+                                   refimage=datamodel.ast_reference_image)
+
             else:
-                pick_positions(obsdata, filename, separation)
+                # Without reference image, we can only use this function
+                if datamodel.ast_density_table is None:
+                    pick_positions(obsdata, filename, separation)
+                else:
+                    print("To use ast_density_table, ast_reference_image must be specified.")
 
     if observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
@@ -194,7 +210,7 @@ def run_beast_production(basename,
         print('Trimming the model and noise grids')
 
         # read in the observed data
-        obsdata = datamodel.get_obscat(datamodel.obsfile,
+        obsdata = datamodel.get_obscat(basename,
                                        datamodel.filters)
 
         # get the modesedgrid on which to generate the noisemodel

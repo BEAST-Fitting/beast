@@ -53,8 +53,11 @@ class pdf1d():
                 self.min_val = math.log10(self.min_val)
                 self.max_val = math.log10(self.max_val)
                 tgridvals = np.log10(tgridvals)
-        
-            self.bin_delta = (self.max_val - self.min_val)/(self.nbins-1)
+
+            if (self.nbins > 1):
+                self.bin_delta = (self.max_val - self.min_val)/(self.nbins-1)
+            else:
+                self.bin_delta = 1
             self.bin_vals = self.min_val + np.arange(self.nbins)*self.bin_delta
             self.bin_edges = self.min_val + \
                              (np.arange(self.nbins+1) - 0.5)*self.bin_delta

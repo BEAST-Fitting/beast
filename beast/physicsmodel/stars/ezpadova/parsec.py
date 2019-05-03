@@ -236,8 +236,12 @@ def __query_website(d):
     """ Communicate with the CMD website """
     webserver = 'http://stev.oapd.inaf.it'
     print('Interrogating {0}...'.format(webserver))
-    # url = webserver + '/cgi-bin/cmd_2.8'
-    url = webserver + '/cgi-bin/cmd'
+
+    # OPTION: Use fixed version for stability (CURRENT CHOICE)
+    url = webserver + '/cgi-bin/cmd_3.1'
+    # OPTION: Use current version for most recent models
+    # url = webserver + '/cgi-bin/cmd'
+
     q = urlencode(d)
     # print('Query content: {0}'.format(q))
     if py3k:

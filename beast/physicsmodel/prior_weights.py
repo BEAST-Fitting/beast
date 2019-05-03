@@ -16,6 +16,7 @@ __all__ = ['compute_age_prior_weights',
            'compute_mass_prior_weights',
            'compute_metallicity_prior_weights']
 
+
 def compute_age_prior_weights(logages):
     """ Computes the age weights to provide constant star formation rate
     (in linear age)
@@ -33,12 +34,13 @@ def compute_age_prior_weights(logages):
     # initialize the age weights to one
     #   for a flat prior, nothing else is needed
     #   non-uniform grid spacing is handled in the grid_weights code
-    age_weights = np.full(len(logages),1.0)
+    age_weights = np.full(len(logages), 1.0)
 
     # code will be needed here for non-flat priors
-    
+
     # return in the order that logages was passed
-    return age_weights    
+    return age_weights
+
 
 def imf_kroupa(x):
     """ Computes a Kroupa IMF
@@ -53,19 +55,19 @@ def imf_kroupa(x):
     imf : numpy vector
       unformalized IMF
     """
-    m0 = 0.01
     m1 = 0.08
     m2 = 0.5
     alpha0 = -0.3
     alpha1 = -1.3
     alpha2 = -2.3
-    if (x < m1):
+    if x < m1:
         return x**alpha0
-    elif (x >= m1) and (x < m2):
-        return x**alpha1
-    elif (x>=m2):
+    elif x >= m2:
         return x**alpha2
-    
+    else:
+        return x**alpha1
+
+
 def imf_salpeter(x):
     """ Computes a Salpeter IMF
 
@@ -80,6 +82,7 @@ def imf_salpeter(x):
       unformalized IMF
     """
     return x**(-2.35)
+
 
 def compute_mass_prior_weights(masses):
     """ Computes the mass weights for a kroupa IMF
@@ -97,13 +100,13 @@ def compute_mass_prior_weights(masses):
     """
     # sort the initial mass along this isochrone
     sindxs = np.argsort(masses)
-    
+
     # Compute the mass bin boundaries
-    mass_bounds = compute_bin_boundaries(masses[sindxs])      
+    mass_bounds = compute_bin_boundaries(masses[sindxs])
 
     # compute the weights = mass bin widths
     mass_weights = np.empty(len(masses))
-    
+
     # integrate the IMF over each bin
     for i in range(len(masses)):
         mass_weights[sindxs[i]] = (quad(imf_kroupa,
@@ -111,6 +114,7 @@ def compute_mass_prior_weights(masses):
                                         mass_bounds[i+1]))[0]
 
     return mass_weights
+
 
 def compute_metallicity_prior_weights(mets):
     """ Computes the metallicity weights to provide a default flat prior
@@ -128,6 +132,6 @@ def compute_metallicity_prior_weights(mets):
     # initialize the metalicity weights to one
     #   for a flat prior, nothing else is needed
     #   non-uniform grid spacing is handled in the grid_weights code
-    met_weights = np.full(len(mets),1.0)
+    met_weights = np.full(len(mets), 1.0)
 
     return met_weights

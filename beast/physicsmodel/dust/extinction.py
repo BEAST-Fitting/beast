@@ -17,6 +17,7 @@ __all__ = ['ExtinctionLaw', 'Cardelli89', 'Fitzpatrick99',
 
 libdir = __ROOT__
 
+
 class ExtinctionLaw(object):
     """
     Extinction Law Template Class
@@ -26,7 +27,7 @@ class ExtinctionLaw(object):
 
     Attributes
     ----------
-    name : 'string'
+    name : string
        Name identifying the extinction law
     """
     def __init__(self):
@@ -50,7 +51,8 @@ class ExtinctionLaw(object):
             color such as 'U-B'
 
         filterLib: filepath
-            path to the filter library hd5 file (default is the internal library)
+            path to the filter library hd5 file
+            (default is the internal library)
 
         Returns
         -------
@@ -62,7 +64,7 @@ class ExtinctionLaw(object):
                 _filters = phot.load_filters(names.replace(' ', '').split('-'),
                                              interp=True, filterLib=filterLib)
                 return float(self.function(_filters[0].cl, *args, **kwargs) -
-                             self.function(_filters[1].cl,*args, **kwargs))
+                             self.function(_filters[1].cl, *args, **kwargs))
             else:
                 _filters = phot.load_filters([names], interp=True,
                                              filterLib=filterLib)
@@ -74,15 +76,15 @@ class ExtinctionLaw(object):
                 lst = np.unique(' '.join(names).replace('-', ' ').split())
                 _filters = phot.load_filters(lst, interp=True,
                                              filterLib=filterLib)
-                #in case of python 2.6xx, explicit loop
+                # in case of python 2.6xx, explicit loop
                 d = {}
                 for lk, fk in zip(lst, _filters):
                     d[lk] = self.function(fk.cl, *args, **kwargs)
-                return np.asarray([ float(eval(lk, d)) for lk in names ])
+                return np.asarray([float(eval(lk, d)) for lk in names])
             else:
                 # assumes list of Filter instances
-                return np.asarray([ float(self.function(fk.cl, *args, **kwargs))
-                                    for fk in names ])
+                return np.asarray([float(self.function(fk.cl, *args, **kwargs))
+                                   for fk in names])
 
     def __call__(self, *args, **kwargs):
         return self.function(*args, **kwargs)
@@ -93,6 +95,7 @@ class ExtinctionLaw(object):
         Must be redefined if any restriction applies to the law
         """
         return True
+
 
 class Cardelli89(ExtinctionLaw):
     """
@@ -133,7 +136,6 @@ class Cardelli89(ExtinctionLaw):
         """
         # ensure the units are in angstrom
         _lamb = units.Quantity(lamb, units.angstrom).value
-        #_lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
 
         if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])
@@ -146,28 +148,28 @@ class Cardelli89(ExtinctionLaw):
         b = np.zeros(np.size(x))
         # Infrared (Eq 2a,2b)
         ind = np.where((x >= 0.3) & (x < 1.1))
-        a[ind] =  0.574 * x[ind] ** 1.61
+        a[ind] = 0.574 * x[ind] ** 1.61
         b[ind] = -0.527 * x[ind] ** 1.61
         # Optical & Near IR
         # Eq 3a, 3b
         ind = np.where((x >= 1.1) & (x < 3.3))
         y = x[ind] - 1.82
-        a[ind] = 1. + 0.17699 * y - 0.50447 * y ** 2 - 0.02427 * y ** 3 + \
-                 0.72085 * y ** 4 + 0.01979 * y ** 5 - 0.77530 * y ** 6 + \
-                 0.32999 * y ** 7
-        b[ind] = 1.41338 * y + 2.28305 * y ** 2 + 1.07233 * y ** 3 - \
-                 5.38434 * y ** 4 - 0.62251 * y ** 5 + 5.30260 * y ** 6 - \
-                 2.09002 * y ** 7
+        a[ind] = (1. + 0.17699 * y - 0.50447 * y ** 2 - 0.02427 * y ** 3 +
+                  0.72085 * y ** 4 + 0.01979 * y ** 5 - 0.77530 * y ** 6 +
+                  0.32999 * y ** 7)
+        b[ind] = (1.41338 * y + 2.28305 * y ** 2 + 1.07233 * y ** 3 -
+                  5.38434 * y ** 4 - 0.62251 * y ** 5 + 5.30260 * y ** 6 -
+                  2.09002 * y ** 7)
         # UV
         # Eq 4a, 4b
         ind = np.where((x >= 3.3) & (x <= 8.0))
-        a[ind] =  1.752 - 0.316 * x[ind] - 0.104 / ((x[ind] - 4.67) ** 2 + 0.341)
-        b[ind] = -3.090 + 1.825 * x[ind] + 1.206 / ((x[ind] - 4.62) ** 2 + 0.263)
+        a[ind] = 1.752 - 0.316 * x[ind] - 0.104 / ((x[ind] - 4.67)**2 + 0.341)
+        b[ind] = -3.090 + 1.825 * x[ind] + 1.206 / ((x[ind] - 4.62)**2 + 0.263)
 
         ind = np.where((x >= 5.9) & (x <= 8.0))
         y = x[ind] - 5.9
-        Fa     = -0.04473 * y ** 2 - 0.009779 * y ** 3
-        Fb     =  0.21300 * y ** 2 + 0.120700 * y ** 3
+        Fa = -0.04473 * y ** 2 - 0.009779 * y ** 3
+        Fb = 0.21300 * y ** 2 + 0.120700 * y ** 3
         a[ind] = a[ind] + Fa
         b[ind] = b[ind] + Fb
         # Far UV
@@ -186,10 +188,10 @@ class Cardelli89(ExtinctionLaw):
         # Return Extinction vector
         # Eq 1
         if (Alambda):
-            return( ( a + b / Rv ) * Av)
+            return((a + b / Rv)*Av)
         else:
             # return( 1./(2.5 * 1. / np.log(10.)) * ( a + b / Rv ) * Av)
-            return( 0.4 * np.log(10.) * ( a + b / Rv ) * Av)
+            return(0.4 * np.log(10.) * (a + b / Rv) * Av)
 
 
 class Fitzpatrick99(ExtinctionLaw):
@@ -237,7 +239,6 @@ class Fitzpatrick99(ExtinctionLaw):
         """
         # ensure the units are in angstrom
         _lamb = units.Quantity(lamb, units.angstrom).value
-        #_lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
 
         if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])
@@ -261,12 +262,12 @@ class Fitzpatrick99(ExtinctionLaw):
 
         if np.size(ind) > 0:
             k[ind] = c1 + (c2 * x[ind]) + \
-                     c3 * ((x[ind]) ** 2) / ( ((x[ind]) ** 2 -
-                                               (x0 ** 2)) ** 2 +
-                                              (gamma ** 2) * ((x[ind]) ** 2 ))
-            yspluv = c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) / \
-                     ( ((xspluv) ** 2 - (x0 ** 2)) ** 2 +
-                       (gamma ** 2) * ((xspluv) ** 2 ))
+                     c3 * ((x[ind]) ** 2) / (((x[ind]) ** 2 -
+                                              (x0 ** 2)) ** 2 +
+                                             (gamma ** 2) * ((x[ind]) ** 2))
+            yspluv = (c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) /
+                      (((xspluv) ** 2 - (x0 ** 2)) ** 2 +
+                       (gamma ** 2) * ((xspluv) ** 2)))
 
             # FUV portion
             if not draine_extend:
@@ -295,9 +296,9 @@ class Fitzpatrick99(ExtinctionLaw):
                                                   -5.13540e-02])(Rv),
                                        np.poly1d([-3.32598e-05, 1.00184,
                                                   7.00127e-01])(Rv),
-                                       np.poly1d([ 1.19456, 1.01707,
-                                                   -5.46959e-03, 7.97809e-04,
-                                       -4.45636e-05][::-1])(Rv)])
+                                       np.poly1d([1.19456, 1.01707,
+                                                  -5.46959e-03, 7.97809e-04,
+                                                  -4.45636e-05][::-1])(Rv)])
 
             tck = interpolate.splrep(np.hstack([xsplopir, xspluv]),
                                      np.hstack([ysplopir, yspluv]), k=3)
@@ -309,27 +310,27 @@ class Fitzpatrick99(ExtinctionLaw):
         # FUV portion from Draine curves
         if draine_extend:
             fuvind = np.where(x >= 5.9)
-            tmprvs = np.arange(2.,6.1,0.1)
+            tmprvs = np.arange(2., 6.1, 0.1)
             diffRv = Rv - tmprvs
             if min(abs(diffRv)) < 1e-8:
                 dfname = libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv))
-                l_draine, k_draine = np.loadtxt(dfname, usecols=(0,1),
+                l_draine, k_draine = np.loadtxt(dfname, usecols=(0, 1),
                                                 unpack=True)
             else:
                 add, = np.where(diffRv < 0.)
                 Rv1 = tmprvs[add[0]-1]
                 Rv2 = tmprvs[add[0]]
                 dfname = libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv1))
-                l_draine, k_draine1 = np.loadtxt(dfname, usecols=(0,1),
+                l_draine, k_draine1 = np.loadtxt(dfname, usecols=(0, 1),
                                                  unpack=True)
                 dfname = libdir+'MW_Rv%s_ext.txt' % ("{0:.1f}".format(Rv2))
-                l_draine, k_draine2 = np.loadtxt(dfname, usecols=(0,1),
+                l_draine, k_draine2 = np.loadtxt(dfname, usecols=(0, 1),
                                                  unpack=True)
                 frac = diffRv[add[0]-1]/(Rv2-Rv1)
                 k_draine = (1. - frac)*k_draine1 + frac*k_draine2
 
             dind = np.where((1./l_draine) >= 5.9)
-            k[fuvind] = interp(x[fuvind],1./l_draine[dind][::-1],
+            k[fuvind] = interp(x[fuvind], 1./l_draine[dind][::-1],
                                k_draine[dind][::-1])
 
         # setup the output
@@ -380,7 +381,6 @@ class Gordon03_SMCBar(ExtinctionLaw):
         """
         # ensure the units are in angstrom
         _lamb = units.Quantity(lamb, units.angstrom).value
-        #_lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
 
         if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
             _lamb = np.asarray([lamb])
@@ -407,20 +407,22 @@ class Gordon03_SMCBar(ExtinctionLaw):
         ind = np.where(x >= xcutuv)
         if np.size(ind) > 0:
             k[ind] = 1.0 + c1 + (c2 * x[ind]) + c3 * ((x[ind]) ** 2) / \
-                     ( ((x[ind]) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) *
-                       ((x[ind]) ** 2 ))
-            yspluv = 1.0 + c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) / \
-                     ( ((xspluv) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) *
-                       ((xspluv) ** 2 ))
+                     (((x[ind]) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) *
+                      ((x[ind]) ** 2))
+            yspluv = (1.0 + c1 + (c2 * xspluv) + c3 * ((xspluv) ** 2) /
+                      (((xspluv) ** 2 - (x0 ** 2)) ** 2 + (gamma ** 2) *
+                       ((xspluv) ** 2)))
 
         # FUV portion
         ind = np.where(x >= 5.9)
         if np.size(ind) > 0:
             if draine_extend:
                 dfname = libdir+'SMC_Rv2.74_norm.txt'
-                l_draine, k_draine = np.loadtxt(dfname,usecols=(0,1),unpack=True)
+                l_draine, k_draine = np.loadtxt(dfname,
+                                                usecols=(0, 1),
+                                                unpack=True)
                 dind = np.where((1./l_draine) >= 5.9)
-                k[ind] = interp(x[ind],1./l_draine[dind][::-1],
+                k[ind] = interp(x[ind], 1./l_draine[dind][::-1],
                                 k_draine[dind][::-1])
             else:
                 k[ind] += c4 * (0.5392 * ((x[ind] - 5.9) ** 2) +
@@ -435,7 +437,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
                                               0.65, 0.55, 0.44, 0.37])
 
             # Values directly from Gordon et al. (2003)
-            #ysplopir =  np.array([0.0,0.016,0.169,0.131,0.567,0.801,
+            # ysplopir =  np.array([0.0,0.016,0.169,0.131,0.567,0.801,
             #                      1.00,1.374,1.672])
             # K & J values adjusted to provide a smooth,
             #      non-negative cubic spline interpolation
@@ -449,7 +451,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
         if (Alambda):
             return(k * Av)
         else:
-            return(k * Av * (np.log(10.) * 0.4 ))
+            return(k * Av * (np.log(10.) * 0.4))
 
 
 class Gordon16_RvFALaw(ExtinctionLaw):
@@ -499,7 +501,6 @@ class Gordon16_RvFALaw(ExtinctionLaw):
         """
         # ensure the units are in angstrom
         _lamb = units.Quantity(lamb, units.angstrom).value
-        #_lamb = val_in_unit('lamb', lamb, 'angstrom').magnitude
 
         # get the R(V) value for the A component
         Rv_A = self.get_Rv_A(Rv, f_A)
@@ -566,7 +567,3 @@ class Gordon16_RvFALaw(ExtinctionLaw):
 
         Rv_B = self.BLaw.Rv
         return 1. / (f_A / Rv_A + (1 - f_A) / Rv_B)
-
-if __name__ == "__main__":
-
-    pass

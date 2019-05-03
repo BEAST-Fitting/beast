@@ -3,13 +3,13 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 
-import h5py
 import numpy as np
 from astropy.io import ascii
 from astropy.table import Table
 from astropy.table import Column
 
 from ..vega import Vega
+from beast.physicsmodel.grid import FileSEDGrid
 
 
 def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
@@ -50,7 +50,7 @@ def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
     # limits
     if bright_cut is not None:
         for i, limit in enumerate(bright_cut):
-            flag[:,i] = np.logical_and(flag[:, i], seds[:, i] > limit)
+            flag[:, i] = np.logical_and(flag[:, i], seds[:, i] > limit)
 
     # Keep index where model is brighter than the limit in N filters
     s = np.sum(flag, axis=1)
@@ -61,7 +61,8 @@ def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
 
 def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
                                 N_fluxes, min_N_per_flux,
-                                outfile=None, bins_outfile=None, bright_cut=None):
+                                outfile=None, outfile_params=None,
+                                bins_outfile=None, bright_cut=None):
     """
     Creates a fake star catalog from a BEAST model grid. The chosen seds
     are optimized for the toothpick model, by working with a given
@@ -95,6 +96,10 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
         Output path for the models (optional). If this file already
         exists, the chosen seds are loaded from this file instead.
 
+    outfile_params: string (default=None)
+        If a file name is given, the physical parameters associated with
+        each model will be written to disk
+
     bins_outfile: string
         Output path for a file containing the flux bin limits for each
         filter, and the number of samples for each (optional)
@@ -119,12 +124,13 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
     with Vega() as v:
         vega_f, vega_flux, lambd = v.getFlux(filters)
 
-    gridf = h5py.File(sedgrid_fname)
+    modelsedgrid = FileSEDGrid(sedgrid_fname)
 
-    sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
+    sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
     Nf = sedsMags.shape[1]
 
-    idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
+    #idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
+    idxs = np.where(modelsedgrid.grid['logL'] > -9)[0]
     sedsMags_cut = sedsMags[idxs]
 
     # Note that i speak of fluxes, but I've recently modified this to
@@ -139,8 +145,8 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
         bin_edges[:, f] = np.linspace(mins[f], maxes[f], N_fluxes + 1)
     bin_mins = bin_edges[:-1, :]
     bin_maxs = bin_edges[1:, :]
-    assert(len(bin_mins) == N_fluxes)
-    assert(len(bin_maxs) == N_fluxes)
+    assert (len(bin_mins) == N_fluxes)
+    assert (len(bin_maxs) == N_fluxes)
 
     bin_count = np.zeros((N_fluxes, Nf))
     chosen_idxs = []
@@ -207,6 +213,14 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
         ascii.write(sedsMags, outfile, overwrite=True,
                     formats={k: '%.5f' for k in sedsMags.colnames})
 
+    # if chosen, save the corresponding model parameters
+    if outfile_params is not None:
+        grid_dict = {}
+        for key in list(modelsedgrid.grid.keys()):
+            grid_dict[key] = modelsedgrid.grid[key][chosen_idxs]
+        ast_params = Table(grid_dict)
+        ast_params.write(outfile_params, overwrite=True)
+
     if bins_outfile is not None:
         bin_info_table = Table()
         col_bigarrays = [bin_mins, bin_maxs, bin_count]
@@ -221,7 +235,7 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
 
 
 def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
-                outfile=None, bright_cut=None):
+                outfile=None, outfile_params=None, bright_cut=None, vega_fname=None, ranseed=None):
     """Creates a fake star catalog from a BEAST model grid
 
     Parameters
@@ -250,27 +264,49 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
         If a file name is given, the selected models will be written to
         disk
 
+    outfile_params: str
+        If a file name is given, the physical parameters associated with
+        each model will be written to disk
+
     bright_cut: list of float
         Same as mag_cuts, but for the bright end
+
+    vega_fname: str
+        filename of vega file
+
+    ranseed : int
+        used to set the seed to make the results reproducable
+        useful for testing
 
     Returns
     -------
     astropy Table of selected models
     - and optionally -
     ascii file: A list of selected models, written to 'outfile'
+    fits file: the corresponding physical parameters, written to 'outfile_params'
     """
 
-    with Vega() as v:               # Get the vega fluxes
+    with Vega(source=vega_fname) as v:  # Get the vega fluxes
         vega_f, vega_flux, lamb = v.getFlux(filters)
 
-    gridf = h5py.File(sedgrid_fname)
+    # gridf = h5py.File(sedgrid_fname)
+    modelsedgrid = FileSEDGrid(sedgrid_fname)
 
     # Convert to Vega mags
-    sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
+    # sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
+    sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
+
+    # make sure Nfilters isn't larger than the total number of filters
+    if Nfilter > len(filters):
+        Nfilter = len(filters)
 
     # Select the models above the magnitude limits in N filters
     idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
-    grid_cut = gridf['grid'][list(idxs)]
+    # grid_cut = gridf['grid'][list(idxs)]
+    cols = {}
+    for key in list(modelsedgrid.grid.keys()):
+        cols[key] = modelsedgrid.grid[key][idxs]
+    grid_cut = Table(cols)
 
     # Sample the model grid uniformly
     prime_params = np.column_stack(
@@ -278,16 +314,27 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
     search_age = np.unique(prime_params[:, 0])
 
     N_sample = N_stars
-    models = []
+    model_ind = []  # indices for the model grid
+    ast_params = grid_cut[[]]  # the corresponding model parameters
+
+    # set the random seed - mainly for testing
+    if not None:
+        np.random.seed(ranseed)
+
     for iage in search_age:
         tmp, = np.where(prime_params[:, 0] == iage)
-        models.append(np.random.choice(tmp, N_sample))
+        new_ind = np.random.choice(tmp, N_sample)
+        model_ind.append(new_ind)
+        [ast_params.add_row(grid_cut[new_ind[i]]) for i in range(len(new_ind))]
 
-    index = np.repeat(idxs[np.array(models).reshape((-1))], Nrealize)
+    index = np.repeat(idxs[np.array(model_ind).reshape((-1))], Nrealize)
     sedsMags = Table(sedsMags[index, :], names=filters)
 
     if outfile is not None:
         ascii.write(sedsMags, outfile, overwrite=True,
                     formats={k: '%.5f' for k in sedsMags.colnames})
+
+    if outfile_params is not None:
+        ast_params.write(outfile_params, overwrite=True)
 
     return sedsMags

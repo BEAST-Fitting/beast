@@ -31,6 +31,10 @@ from beast.observationmodel.noisemodel import absflux_covmat
 #   the name of the output results directory
 project = 'multidistance'
 
+# name of the survey
+#  used for the creation of the unique name for each source
+surveyname = 'PHAT'
+
 # filters : list of strings
 #   full filter names in BEAST filter database
 filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W',

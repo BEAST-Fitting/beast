@@ -1,11 +1,10 @@
 import numpy as np
 import glob
-import subprocess
-import sys
 import os
+import types
 
 from run_beast_production import run_beast_production
-from beast.tools import create_source_density_map
+from beast.tools import create_background_density_map
 from beast.tools import subdivide_obscat_by_source_density
 from beast.tools import merge_beast_stats
 from beast.tools import setup_batch_beast_trim
@@ -36,6 +35,7 @@ def beast_production_wrapper():
         - datamodel_template.py: setting up the file with desired parameters
         - here: list the catalog filter names with the corresponding BEAST names
         - here: choose settings (pixel size, filter, mag range) for the source density map
+        - here: choose settings (pixel size, reference image) for the background map
         - here: choose settings (filter, number per file) for dividing catalog by source density
         - here: choose settings (# files, nice level) for the trimming/fitting batch scripts
     * process the ASTs, as described in BEAST documentation
@@ -83,7 +83,8 @@ def beast_production_wrapper():
         # paths for the data/AST files
         gst_file = './data/' + field_names[b]+'.gst.fits'
         ast_file = './data/' + field_names[b]+'.gst.fake.fits'
-
+        # path for the reference image (if using for the background map)
+        im_file = './data/'+field_names[b]+'_F475W.fits.gz'
         
         # -----------------
         # make datamodel file
@@ -110,10 +111,37 @@ def beast_production_wrapper():
         if not os.path.isfile(gst_file.replace('.fits','_source_den_image.fits')):
             # - pixel size of 10 arcsec
             # - use F475W between vega mags of 17 and 27
-            create_source_density_map.make_source_dens_map(gst_file, pix_size=10,
-                                                            mag_name='F475W_VEGA', mag_cut=[17,27])
+            sourceden_args = \
+                types.SimpleNamespace(subcommand='sourceden',
+                                      catfile=gst_file, pixsize=10,
+                                      mag_name='F475W_VEGA',
+                                      mag_cut=[17,27])
+            create_background_density_map.make_map_main(sourceden_args)
+
+        # new file name with the source density column
+        gst_file_new = gst_file.replace('.fits', '_with_sourceden.fits')
 
         
+        # -----------------
+        # make a background map
+        # -----------------
+
+        print('')
+        print('making background map')
+        print('')
+        
+        if not os.path.isfile(gst_file_new.replace('.fits','_F475W_bg_map.hd5')):
+            # - pixel dimensions: 15x15
+            background_args = \
+                types.SimpleNamespace(subcommand='background',
+                                      catfile=gst_file, npix=15,
+                                      reference=im_file)
+            create_background_density_map.main_make_map(background_args)
+
+        # new file name with the background column
+        #gst_file_new = gst_file_new.replace('.fits', '_with_bg.fits')
+
+
         # -----------------
         # split observations by source density
         # -----------------
@@ -122,10 +150,7 @@ def beast_production_wrapper():
         print('splitting observations by source density')
         print('')
 
-        # new file name with the source density column
-        gst_file_new = gst_file.replace('.fits', '_with_sourceden.fits')
-
-        if not os.path.isfile(gst_file_new):
+        if len(glob.glob(gst_file_new.replace('.fits','*sub*fits') )) == 0:
 
             # a smaller value for Ns_file will mean more individual files/runs,
             # but each run will take a shorter amount of time
@@ -148,7 +173,8 @@ def beast_production_wrapper():
         print('')
 
         # the file name for the model grid
-        physics_model_file = './' + field_names[b] + '_beast/' + field_names[b] + '_beast_seds.grid.hd5'
+        #physics_model_file = './' + field_names[b] + '_beast/' + field_names[b] + '_beast_seds.grid.hd5'
+        physics_model_file = 'METAL_seds.grid.hd5'
 
         # only make the physics model if it doesn't already exist
         if not os.path.isfile(physics_model_file):
@@ -160,8 +186,15 @@ def beast_production_wrapper():
         # -----------------
 
         # only create an AST input list if the ASTs don't already exist
+        ast_input_file = './' + field_names[b] + '_beast/' + field_names[b] + '_inputAST.txt'
+            
         if not os.path.isfile(ast_file):
-            run_beast_production(gst_file, ast=True)
+            if not os.path.isfile(ast_input_file):
+                print('')
+                print('creating artificial stars')
+                print('')
+                run_beast_production(gst_file, ast=True)
+                
             print('\n**** go run ASTs for '+field_names[b]+'! ****\n')
             continue
        
@@ -202,7 +235,8 @@ def beast_production_wrapper():
 
             setup_batch_beast_trim.setup_batch_beast_trim(field_names[b] + '_beast',
                                                             gst_file, ast_file,
-                                                            num_subtrim=1, nice=19)
+                                                            num_subtrim=1, nice=19,
+                                                            seds_fname=physics_model_file)
 
             print('\n**** go run trimming code for '+field_names[b]+'! ****')
             print('Here is the command to run:')

@@ -1,19 +1,21 @@
-""" Defines a generic interface to observation catalog
-    This enables to handle non detections, (upper limits one day?), flux and
-    magnitude conversions to avoid painful preparation of the dataset
-
-    Data model v2 with limited quantity units handling
+"""
+Defines a generic interface to observation catalog
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-from scipy.interpolate import interp1d
 
-__all__ = ['Observations', 'FakeObs', 'PhotCharact']
+from astropy.table import Table, Column
+
+from beast.observationmodel.vega import Vega
+
+__all__ = ['Observations', 'gen_SimObs_from_sedgrid']
+
 
 class Observations(object):
-    """ A generic class that interfaces observation catalog in a standardized way
+    """
+    A generic class that interfaces observation catalog in a standardized way
 
     Attributes
     ----------
@@ -36,10 +38,10 @@ class Observations(object):
     def __init__(self, inputFile, desc=None):
         """ Generate a data interface object """
         self.inputFile = inputFile
-        self.filters   = None
-        self.desc      = desc
+        self.filters = None
+        self.desc = desc
         self.readData()
-        self.badvalue  = None
+        self.badvalue = None
 
     @property
     def nObs(self):
@@ -99,11 +101,11 @@ class Observations(object):
 
     def getMags(self, num, filters):
         raise Exception('Do not use as magnitudes')
-        return np.array([ self.data[tt][num] for tt in filters])
+        return np.array([self.data[tt][num] for tt in filters])
 
     def getErrors(self, num, filters):
         raise Exception('Do not use as magnitudes')
-        return np.array([ self.data[tt + 'err'][num] for tt in filters])
+        return np.array([self.data[tt + 'err'][num] for tt in filters])
 
     def getFlux(self, num):
         """returns the flux of an observation from the number of counts"""
@@ -115,7 +117,8 @@ class Observations(object):
         return flux
 
     def getFluxerr(self, num):
-        """returns the error on the flux of an observation from the number of counts (not used in the analysis)"""
+        """returns the error on the flux of an observation from the number of
+        counts (not used in the analysis)"""
 
         fluxerr = np.empty(len(self.filters), dtype=float)
 
@@ -132,19 +135,6 @@ class Observations(object):
         flux = self.getFlux(num, self.filters)
 
         return flux
-
-    def getObsWithUncertainties(self, num=0):
-        """ returns the flux and uncertainties and the mask of bad values"""
-        assert ( not self.filters is None), "No filter set."
-        mags = self.getMags(num, self.filters)
-        errs = self.getErrors(num, self.filters)
-
-        if not self.badvalue is None:
-            mask = (mags >= self.badvalue)
-        else:
-            mask = np.zeros(len(mags), dtype=bool)
-
-        return mags, errs, mask
 
     def readData(self):
         """ read the dataset from the original source file """
@@ -163,164 +153,98 @@ class Observations(object):
         for k in range(self.nObs):
             yield k, self.getObs(k)
 
-#******************
-# Code below is not tested/used for sometime (KDG - Jul 2017)
-# Not clear if any of this code is needed any longer.
-#******************
-            
-class FakeObs(Observations):
 
-    def getObs(self, num=0, err=0.05):
-        assert ( self.filters is not None), "No filter set."
-        mags = self.getMags(num, self.filters)
-        #errs = np.ones(len(mags), dtype=float) * err
-        errs = self.getErrors(num, self.filters)
-        if self.badvalue is not None:
-            mask = (mags >= self.badvalue)
-        else:
-            mask = np.zeros(len(mags), dtype=bool)
+def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
+                            nsim=100, compl_filter='F475W',
+                            ranseed=None, vega_fname=None):
+    """
+    Generate simulated observations using the physics and observation grids.
+    The priors are sampled as they give the ensemble model for the stellar
+    and dust distributions (IMF, Av distribution etc.).
+    The physics model gives the SEDs based on the priors.
+    The observation model gives the noise, bias, and completeness all of
+    which are used in simulating the observations.
 
-        return mags, errs, mask
+    Currently written to only work for the toothpick noisemodel.
 
-    def readData(self):
-        """ read the dataset from the original source file """
-        from ..external.eztables import Table
-        self.data = Table(self.inputFile)
+    Parameters
+    ----------
+    sedgrid: grid.SEDgrid instance
+        model grid
 
+    sedgrid_noisemodel: beast noisemodel instance
+        noise model data
 
-def gen_FakeObs_from_sedgrid(sedgrid, nrows, err=0.05, 
-                             filters=None, save=False):
-    from ..external.eztables import Table
-    from . import grid
-    if type(sedgrid) == str:
-        sedgrid = grid.FileSEDGrid(sedgrid)
+    nsim : int
+        number of observations to simulate
 
-    inds = np.random.randint(0, high=sedgrid.grid.nrows, size=nrows)
-    obsTab = Table()
-    if filters is None:
-        filters = sedgrid.grid.header.FILTERS.split()
-    for e, filt in enumerate(filters):
-        errs = np.random.normal(loc=0., scale=err, size=nrows)
-        obsTab.addCol(filt, (1. + errs) * sedgrid.seds[inds, e])
-        obsTab.addCol(filt + 'err', err * sedgrid.seds[inds, e])
-    for key in list(sedgrid.grid.keys()):
-        obsTab.addCol(key, sedgrid.grid[key][inds])
+    compl_filter : str
+        filter to use for completeness (required for toothpick model)
 
-    if save is True:
-        return obsTab
-    else:
-        obsTab.write(save, clobber=True, append=False)
+    ranseed : int
+        used to set the seed to make the results reproducable
+        useful for testing
 
+    vega_fname : string
+        filename for the vega info
+        usefule for testing
 
-class PhotCharact(object):
-    def __init__(self, fname, filters):
-        self.inputFile = fname
-        self.filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W',
-                        'HST_ACS_WFC_F475W', 'HST_ACS_WFC_F814W',
-                        'HST_WFC3_F110W', 'HST_WFC3_F160W']
+    Returns
+    -------
+    simtable : astropy Table
+        table giving the simulated observed fluxes as well as the
+        physics model parmaeters
+    """
+    flux = sedgrid.seds
+    n_models, n_filters = flux.shape
 
-        self.pars = { 'magin': 'magin',
-                      'comp': 'comp',
-                      'bias': 'bias',
-                      'berr': 'bias_err',
-                      'join': '_'}
+    # hack to get things to run for now
+    short_filters = [filter.split(sep='_')[-1].lower()
+                     for filter in sedgrid.filters]
+    if compl_filter.lower() not in short_filters:
+        print('requested completeness filter not present')
+        print('%s requested' % compl_filter.lower())
+        print('possible filters', short_filters)
+        exit()
+    filter_k = short_filters.index(compl_filter.lower())
+    print('Completeness from %s' % sedgrid.filters[filter_k])
 
-        self.interp_bias = { 'kind': 'linear',
-                             'axis': -1,
-                             'copy': False,
-                             'bounds_error': False,
-                             'fill_value': 0.0 }
+    # cache the noisemodel values
+    model_bias = sedgrid_noisemodel.root.bias[:]
+    model_unc = np.fabs(sedgrid_noisemodel.root.error[:])
+    model_compl = sedgrid_noisemodel.root.completeness[:]
 
-        self.interp_bias_error = { 'kind': 'linear',
-                                   'axis': -1,
-                                   'copy': False,
-                                   'bounds_error': False,
-                                   'fill_value': 0.0 }
+    # the combined prior and grid weights
+    # using both as the grid weight needed to account for the finite size
+    #   of each grid bin
+    # if we change to interpolating between grid points, need to rethink this
+    gridweights = sedgrid['weight']*model_compl[:, filter_k]
+    # need to sum to 1
+    gridweights = gridweights/np.sum(gridweights)
 
-        self.interp_comp = { 'kind': 'linear',
-                             'axis': -1,
-                             'copy': False,
-                             'bounds_error': False,
-                             'fill_value': 0.0 }
+    # set the random seed - mainly for testing
+    if not None:
+        np.random.seed(ranseed)
 
-        self.readData()
-        self._funcs = [ self.getCharactFilterFunctions(k, output='flux') for k in self.filters ]
+    # sample to get the indexes of the picked models
+    indx = range(n_models)
+    sim_indx = np.random.choice(indx, size=nsim, p=gridweights)
 
-    def readData(self):
-        """ read the dataset from the original source file """
-        from ..external.eztables import AstroTable
-        from .vega import Vega
+    # get the vega fluxes for the filters
+    _, vega_flux, _ = Vega(source=vega_fname).getFlux(sedgrid.filters)
 
-        self.data = AstroTable(self.inputFile)
+    # setup the output table
+    ot = Table()
+    qnames = list(sedgrid.keys())
+    # simulated data
+    for k, filter in enumerate(sedgrid.filters):
+        colname = '%s_rate' % filter.split(sep='_')[-1].lower()
+        simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
+        simflux = np.random.normal(loc=simflux_wbias,
+                                   scale=model_unc[sim_indx, k])
+        ot[colname] = Column(simflux/vega_flux[k])
+    # model parmaeters
+    for qname in qnames:
+        ot[qname] = Column(sedgrid[qname][sim_indx])
 
-        #data_filters = [ k.split(self.pars['join'])[0] for k in self.data.keys() if k[-5:] == self.pars['magin'] ]
-
-        #Data are in Vega magnitudes
-        #  Need to use Vega
-        with Vega() as v:
-            #self.vega = vega_f, vega_mag, lamb = v.getMag(self.filters)
-            self.vega = v.getMag(self.filters)
-
-    def get_filter_index(self, fname):
-        for e, k in enumerate(self.filters):
-            if k == fname:
-                return e
-
-    def getCharactFilterFunctions(self, fname, output='flux'):
-        if type(fname) == int:
-            _fname = self.filters[fname]
-        else:
-            _fname = fname
-
-        if output not in ['mag', 'flux']:
-            raise ValueError("interfrom must be either mag or flux")
-
-        join = self.pars['join']
-        bkey = self.pars['bias']
-        ekey = self.pars['berr']
-        mkey = self.pars['magin']
-
-        m_val = self.data[join.join([_fname, mkey])]
-        b_val = self.data[join.join([_fname, bkey])]
-        e_val = self.data[join.join([_fname, ekey])]
-
-        if output == 'mag':
-            #interp from mags
-            bias_mag_fn = interp1d(m_val, b_val, **self.interp_bias)
-            bias_err_mag_fn  = interp1d(m_val, e_val, **self.interp_bias_error)
-
-            return (bias_mag_fn, bias_err_mag_fn)
-        else:
-            #vegamag to fluxes
-            #b_val is a delta_mag, does not need to check the vega ref.
-            vega_mag = self.vega[1][self.get_filter_index(_fname)]
-            flux_in = np.power(10., -0.4 * (m_val + vega_mag))
-            flux_bias = np.power(10., -0.4 * (b_val))
-            flux_err = b_val * ( 1. - np.power(10., -0.4 * e_val) )
-            bias_flux_fn = interp1d(flux_in, flux_bias, **self.interp_bias)
-            bias_err_flux_fn  = interp1d(flux_in, flux_err, **self.interp_bias_error)
-            self.flux_in = flux_in
-            self.flux_bias = flux_bias
-            self.flux_err = flux_err
-
-            return (bias_flux_fn, bias_err_flux_fn)
-
-    def get_bias_of_sed(self, sed, **kwargs):
-        if np.ndim(sed) > 1:
-            nlamb = np.shape(sed)[1]
-            if nlamb != len(self.filters):
-                raise ValueError('expecting {0} values per sed, got {1}'.format(len(self.filters), nlamb))
-            biases = np.empty(sed.shape, dtype=float)
-            errors = np.empty(sed.shape, dtype=float)
-
-            for e, fk in enumerate(self._funcs):
-                biases[e, :] = fk[0](sed[e, :])
-                errors[e, :] = fk[1](sed[e, :])
-        else:
-            biases = np.empty(sed.shape, dtype=float)
-            errors = np.empty(sed.shape, dtype=float)
-            for e, fk in enumerate(self._funcs):
-                biases[e] = fk[0](sed[e])
-                errors[e] = fk[1](sed[e])
-
-        return biases, errors
+    return ot

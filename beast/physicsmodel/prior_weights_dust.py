@@ -8,9 +8,9 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import numpy as np
-#from scipy.integrate import quad
 
 __all__ = ['PriorWeightsDust']
+
 
 def _lognorm(x, max_pos, sigma=0.5, N=1.):
     """
@@ -44,14 +44,15 @@ def _lognorm(x, max_pos, sigma=0.5, N=1.):
 
     log_x = np.log(x[indxs])
     normalization = sqrt_2pi / (x[indxs] * sigma)
-    
-    lnorm[indxs] = (N * normalization 
+
+    lnorm[indxs] = (N * normalization
                     * np.exp(-0.5 * ((log_x - mu) / sigma)**2))
     return lnorm
 
-def _two_lognorm(xs, 
-                 max_pos1, max_pos2, 
-                 sigma1=0.5, sigma2=0.5, 
+
+def _two_lognorm(xs,
+                 max_pos1, max_pos2,
+                 sigma1=0.5, sigma2=0.5,
                  N1=1., N2=1.):
     """
     Mixture of 2 lognormal functions
@@ -85,6 +86,7 @@ def _two_lognorm(xs,
     normalization = np.trapz(pointwise, x=xs)
     return pointwise / normalization
 
+
 def _exponential(x, a=2.0, N=1.):
     """
     Exponential distribution
@@ -102,6 +104,7 @@ def _exponential(x, a=2.0, N=1.):
     exponential computed on the x grid
     """
     return N * np.exp(-1. * a * x)
+
 
 class PriorWeightsDust():
     """
@@ -142,7 +145,7 @@ class PriorWeightsDust():
            weight fo the point
         """
         indx, = np.where(av == self.av_vals)
-        
+
         return np.asscalar(self.av_priors[indx])
 
     def get_rv_weight(self, rv):
@@ -151,7 +154,7 @@ class PriorWeightsDust():
 
         Parameters
         ----------
-        rv: float 
+        rv: float
            R(V) of point
 
         Returns
@@ -160,7 +163,7 @@ class PriorWeightsDust():
            weight fo the point
         """
         indx, = np.where(rv == self.rv_vals)
-        
+
         return np.asscalar(self.rv_priors[indx])
 
     def get_fA_weight(self, fA):
@@ -178,7 +181,7 @@ class PriorWeightsDust():
            weight fo the point
         """
         indx, = np.where(fA == self.fA_vals)
-        
+
         return np.asscalar(self.fA_priors[indx])
 
     def get_weight(self, av, rv, fA):
@@ -189,7 +192,7 @@ class PriorWeightsDust():
         ----------
         av: float
            A(V) of point
-        rv: float 
+        rv: float
            R(V) of point
         fA: float
            f_A of point
@@ -200,7 +203,7 @@ class PriorWeightsDust():
            weight fo the point
         """
         return(self.get_av_weight(av)*self.get_rv_weight(rv)
-               *self.get_fA_weight(fA))
+               * self.get_fA_weight(fA))
 
     def set_av_weights(self, model={'name': 'flat'}):
         """
@@ -216,7 +219,7 @@ class PriorWeightsDust():
           exponential = exponential prior on linear A(V)
         """
         if model['name'] == 'flat':
-            self.av_priors = np.full(self.av_vals.shape,1.0)
+            self.av_priors = np.full(self.av_vals.shape, 1.0)
         elif model['name'] == 'lognormal':
             self.av_priors = _lognorm(self.av_vals,
                                       model['max_pos'],
@@ -238,7 +241,7 @@ class PriorWeightsDust():
             print('**error in setting the A(V) dust prior weights!**')
             print('**model ' + model['name'] + ' not supported**')
             exit()
-    
+
     def set_rv_weights(self, model={'name': 'flat'}):
         """
         Weights on R(V) based on input model choice
@@ -252,7 +255,7 @@ class PriorWeightsDust():
           two_lognormal = two lognormal prior on linear R(V)
         """
         if model['name'] == 'flat':
-            self.rv_priors = np.full(self.rv_vals.shape,1.0)
+            self.rv_priors = np.full(self.rv_vals.shape, 1.0)
         elif model['name'] == 'lognormal':
             self.rv_priors = _lognorm(self.rv_vals,
                                       model['max_pos'],
@@ -270,7 +273,7 @@ class PriorWeightsDust():
             print('**error in setting the R(V) dust prior weights!**')
             print('**model ' + model['name'] + ' not supported**')
             exit()
-    
+
     def set_fA_weights(self, model={'name': 'flat'}):
         """
         Weights on f_A based on input model choice
@@ -284,7 +287,7 @@ class PriorWeightsDust():
           two_lognormal = two lognormal prior on linear f_A
         """
         if model['name'] == 'flat':
-            self.fA_priors = np.full(self.fA_vals.shape,1.0)
+            self.fA_priors = np.full(self.fA_vals.shape, 1.0)
         elif model['name'] == 'lognormal':
             self.fA_priors = _lognorm(self.fA_vals,
                                       model['max_pos'],
@@ -302,4 +305,3 @@ class PriorWeightsDust():
             print('**error in setting the f_A dust prior weights!**')
             print('**model ' + model['name'] + ' not supported**')
             exit()
-    

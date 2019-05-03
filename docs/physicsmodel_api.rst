@@ -8,13 +8,11 @@ Stars
 .. automodapi:: beast.physicsmodel.stars.stellib
 
 .. automodapi:: beast.physicsmodel.stars.isochrone
-		
+
 Dust
 ====
 
-.. automodapi:: beast.physicsmodel.dust.extinction      
-
-.. automodapi:: beast.physicsmodel.dust.attenuation 
+.. automodapi:: beast.physicsmodel.dust.extinction       
 
 Grid
 ====
@@ -22,5 +20,3 @@ Grid
 .. automodapi:: beast.physicsmodel.grid
 
 .. automodapi:: beast.physicsmodel.creategrid
-
-   

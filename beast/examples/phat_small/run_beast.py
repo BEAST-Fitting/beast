@@ -142,32 +142,21 @@ if __name__ == '__main__':
             mag_cuts = min_mags + tmp_cuts
         print(modelsedgrid)
         outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
+        outfile_params = './' + datamodel.project + '/' + datamodel.project + '_ASTparams.fits'
         chosen_seds = pick_models(modelsedgridfile, datamodel.filters,
                                   mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize,
-                                  outfile=outfile)
+                                  outfile=outfile, outfile_params=outfile_params)
 
         if datamodel.ast_with_positions == True:
             separation = datamodel.ast_pixel_distribution
             filename = datamodel.project + '/' + datamodel.project + '_inputAST.txt'
 
             if datamodel.ast_reference_image is not None:
-                # With reference image, use one of these options
-                if datamodel.ast_source_density_table is not None:
+                # With reference image, use the background or source density map if available
+                if datamodel.ast_density_table is not None:
                     pick_positions_from_map(obsdata,
                                             chosen_seds,
-                                            datamodel.ast_source_density_table,
-                                            datamodel.ast_N_bins,
-                                            datamodel.ast_realization_per_model,
-                                            outfile=filename,
-                                            refimage=datamodel.ast_reference_image,
-                                            refimage_hdu=0,
-                                            Nrealize=1,
-                                            set_coord_boundary=datamodel.ast_coord_boundary)
-
-                elif datamodel.ast_background_table is not None:
-                    pick_positions_from_map(obsdata,
-                                            chosen_seds,
-                                            datamodel.ast_background_table,
+                                            datamodel.ast_density_table,
                                             datamodel.ast_N_bins,
                                             datamodel.ast_realization_per_model,
                                             outfile=filename,
@@ -181,11 +170,10 @@ if __name__ == '__main__':
 
             else:
                 # Without reference image, we can only use this function
-                if (datamodel.ast_source_density_table is None and
-                  datamodel.ast_background_table is None):
+                if datamodel.ast_density_table is None:
                     pick_positions(obsdata, filename, separation)
                 else:
-                    print("To use ast_source_density_table or ast_background_table, ast_reference_image must be specified.")
+                    print("To use ast_density_table, ast_reference_image must be specified.")
 
     if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
