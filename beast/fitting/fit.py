@@ -128,8 +128,8 @@ def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
     for k, qname in enumerate(qnames):
         hdu = fits.PrimaryHDU(save_pdf1d_vals[k])
         pheader = hdu.header
-        pheader.set('XTENSION','IMAGE') 
-        pheader.set('EXTNAME',qname) 
+        pheader.set('XTENSION','IMAGE')
+        pheader.set('EXTNAME',qname)
         fits.append(pdf1d_outname, save_pdf1d_vals[k], header=pheader)
 
 def save_lnp(lnp_outname, save_lnp_vals, resume):
@@ -150,7 +150,7 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
     # code needed if hdf5 is corrupted - usually due to job ending in the
     #    middle of the writing of the lnp file
     #  should be rare (not originally as the lnp file was open and
-    #    written to continuously - 
+    #    written to continuously -
     #                  should be fixed with the new code where the lnp
     #                  is saved every n stars instead)
     try:
@@ -160,7 +160,7 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
               + string.replace(lnp_outname,'lnp','lnp_partial'))
         outfile = tables.open_file(string.replace(lnp_outname,'lnp',
                                                  'lnp_partial'), 'a')
-            
+
     for lnp_val in save_lnp_vals:
         e = lnp_val[0]
         try:
@@ -283,7 +283,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
     # get the names of all the children in the ast structure
     ast_children = []
-    for label, node in list(ast.root._v_children.items()): 
+    for label, node in list(ast.root._v_children.items()):
         ast_children.append(label)
 
     # links to errors and biases
@@ -297,9 +297,11 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         ('icov_diag' in ast_children) &
         ('icov_offdiag' in ast_children)):
         full_cov_mat = True
-        ast_q_norm = ast.root.q_norm[:]
-        ast_icov_diag = ast.root.icov_diag[:]
-        ast_icov_offdiag = ast.root.icov_offdiag[:]
+        ast_q_norm = np.asfortranarray(ast.root.q_norm[:])
+        ast_icov_diag = np.asfortranarray(ast.root.icov_diag[:])
+        two_ast_icov_offdiag = 2.0 * np.asfortranarray(ast.root.icov_offdiag)
+    else:
+        ast_ivar = 1. / np.asfortranarray(ast_error)**2
 
     if full_cov_mat:
         print('using full covariance matrix')
@@ -318,10 +320,11 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
     # create the full model fluxes for later use
     #   save as symmetric log, since the fluxes can be negative
-    full_model_flux = _seds + ast_bias
-    logtempseds = np.array(full_model_flux)
+    model_seds_with_bias = np.asfortranarray(_seds + ast_bias)
     #full_model_flux = np.sign(logtempseds) * np.log10(1 + np.abs(logtempseds * math.log(10)))
-    full_model_flux = np.sign(logtempseds) * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
+    full_model_flux = (np.sign(model_seds_with_bias)
+                       * np.log1p(np.abs(model_seds_with_bias * math.log(10)))
+                       /math.log(10))
 
     # setup the arrays to temp store the results
     n_qnames = len(qnames)
@@ -338,7 +341,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
     # variable to save the lnp files
     save_lnp_vals = []
-    
+
     # setup the mapping for the 1D PDFs
     fast_pdf1d_objs = []
     save_pdf1d_vals = []
@@ -358,10 +361,10 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
             n_uniq = grid_info_dict[qname]['num_unique']
         else:
             n_uniq = len(np.unique(q))
-        
+
         if n_uniq > max_nbins:
             # limit the number of bins in the 1D likelihood for speed
-            nbins = max_nbins  
+            nbins = max_nbins
         else:
             nbins = n_uniq
 
@@ -390,7 +393,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                         logspacing=logspacing, minval=minval,
                         maxval=maxval)
         fast_pdf1d_objs.append(_tpdf1d)
-        
+
         # setup the arrays to save the 1d PDFs
         save_pdf1d_vals.append(np.zeros((nobs+1, nbins)))
         save_pdf1d_vals[-1][nobs,:] = _tpdf1d.bin_vals
@@ -400,14 +403,14 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     # also - find the start position for the resumed run
     if resume:
         stats_table = Table.read(stats_outname)
-        
+
         for k, qname in enumerate(qnames):
             best_vals[:,k] = stats_table['{0:s}_Best'.format(qname)]
             exp_vals[:,k] = stats_table['{0:s}_Exp'.format(qname)]
             for i, pval in enumerate(p):
                 per_vals[:,k,i] = stats_table['{0:s}_p{1:d}'.format(qname,
                                                                     int(pval))]
-                
+
         chi2_vals = stats_table['chi2min']
         chi2_indx = stats_table['chi2min_indx']
         lnp_vals = stats_table['Pmax']
@@ -455,19 +458,21 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         # valid values in the observed SED (KDG 29 Jan 2016)
         # currently, set mask to False always
         cur_mask[:] = False
-        
+
         if full_cov_mat:
-            (lnp, chi2) = N_covar_logLikelihood(sed, _seds,
-                                                ast_bias,
+            (lnp, chi2) = N_covar_logLikelihood(sed,
+                                                model_seds_with_bias,
                                                 ast_q_norm,
                                                 ast_icov_diag,
-                                                ast_icov_offdiag,
+                                                two_ast_icov_offdiag,
                                                 lnp_threshold=abs(threshold))
         else:
-            (lnp,chi2) = N_logLikelihood_NM(sed,_seds,ast_error,ast_bias,
+            (lnp,chi2) = N_logLikelihood_NM(sed,
+                                            model_seds_with_bias,
+                                            ast_ivar,
                                             mask=cur_mask,
                                             lnp_threshold=abs(threshold) )
-            
+
         lnp = lnp[g0_indxs]
         chi2 = chi2[g0_indxs]
         #lnp = numexpr.evaluate('lnp + g0_weights')
@@ -520,9 +525,9 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
         # index to the full model grid for the best fit values
         best_full_indx = g0_indxs[indx[weights.argmax()]]
 
-        # index to the spectral grid 
+        # index to the spectral grid
         best_specgrid_indx[e] = g0_specgrid_indx[best_full_indx]
-            
+
         # goodness of fit quantities
         chi2_vals[e] = chi2s.min()
         chi2_indx[e] = g0_indxs[indx[chi2s.argmin()]]
@@ -548,7 +553,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
 
             save_pdf1d_vals[k][e,:] = pdf1d_vals
             if pdf1d_vals.max() > 0:
-                # remove normalization to allow for post processing with 
+                # remove normalization to allow for post processing with
                 #   different distance runs (needed for the SMIDGE-SMC)
                 #pdf1d_vals /= pdf1d_vals.max()
                 per_vals[e,k,:] = percentile(pdf1d_bins, _p,
@@ -563,7 +568,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
                 # save the 1D PDFs
                 if pdf1d_outname is not None:
                     save_pdf1d(pdf1d_outname,save_pdf1d_vals, qnames)
-    
+
                 # save the stats/catalog
                 if stats_outname is not None:
                     save_stats(stats_outname, prev_result, best_vals,
@@ -581,7 +586,7 @@ def Q_all_memory(prev_result, obs, sedgrid, ast, qnames_in, p=[16., 50., 84.],
     # save the 1D PDFs
     if pdf1d_outname is not None:
         save_pdf1d(pdf1d_outname,save_pdf1d_vals, qnames)
-    
+
     # save the stats/catalog
     if stats_outname is not None:
         save_stats(stats_outname, prev_result, best_vals, exp_vals,
@@ -607,7 +612,7 @@ def IAU_names_and_extra_info(obsdata, surveyname='PHAT',extraInfo=False):
 
     returns
     -------
-    r: dict 
+    r: dict
         returns a dict with a (name, ndarray) pair
     """
     r = {}
@@ -630,10 +635,10 @@ def IAU_names_and_extra_info(obsdata, surveyname='PHAT',extraInfo=False):
             c = ap_SkyCoord(ra=obsdata.data[ra_str][i]*ap_units.degree,
                             dec=obsdata.data[dec_str][i]*ap_units.degree,
                             frame='icrs')
-            _tnames.append(surveyname + ' J' + 
-                           c.ra.to_string(unit=ap_units.hourangle, 
+            _tnames.append(surveyname + ' J' +
+                           c.ra.to_string(unit=ap_units.hourangle,
                                           sep="",precision=2,
-                                          alwayssign=False,pad=True) + 
+                                          alwayssign=False,pad=True) +
                            c.dec.to_string(sep="",precision=2,
                                            alwayssign=True,pad=True))
             r['Name'] = _tnames
@@ -649,9 +654,9 @@ def IAU_names_and_extra_info(obsdata, surveyname='PHAT',extraInfo=False):
         r['Name'] = ["noname" for x in range(len(obsdata))]
 
     # include the observed filter fluxes
-    for k, filtername in enumerate(obsdata.filters): 
+    for k, filtername in enumerate(obsdata.filters):
         r[filtername] = (obsdata.data[filtername]*
-                         obsdata.vega_flux[k]).astype(float) 
+                         obsdata.vega_flux[k]).astype(float)
 
     return r
 
@@ -752,7 +757,7 @@ def summary_table_memory(obs, noisemodel, sedgrid, keys=None,
             raise KeyError('Key "{0}" not recognized'.format(key))
 
     # generate an IAU complient name for each source and add other inform
-    res = IAU_names_and_extra_info(obs, 
+    res = IAU_names_and_extra_info(obs,
                                    surveyname=surveyname,
                                    extraInfo=False)
 
