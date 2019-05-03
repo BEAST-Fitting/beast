@@ -99,7 +99,7 @@ def SN_chi2(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None):
     return (temp ** 2).sum(axis=1)
 
 
-def N_chi2_NM(flux, fluxmod, fluxerr, fluxbias, mask=None):
+def N_chi2_NM(flux, fluxmod_wbias, ivar, mask=None):
     """ compute the non-reduced chi2 between data and model taking into account
     the noise model computed from ASTs.
 
@@ -108,14 +108,11 @@ def N_chi2_NM(flux, fluxmod, fluxerr, fluxbias, mask=None):
     flux:    np.ndarray[float, ndim=1]
         array of fluxes
 
-    fluxmod: np.ndarray[float, ndim=2]
-        array of modeled fluxes (nfilters , nmodels)
+    fluxmod_wbias: np.ndarray[float, ndim=2]
+        array of modeled fluxes + ast-derived biases (nfilters , nmodels)
 
-    fluxerr: np.ndarray[float, ndim=2]
-        array of dispersions per model (nfilters , nmodels)
-
-    fluxbias: np.ndarray[float, ndim=2]
-        array of fluxes biases per model (nfilters , nmodels)
+    ivar: np.ndarray[float, ndim=2]
+        array of ast-derived inverse variances (nfilters , nmodels)
 
     mask:    np.ndarray[bool, ndim=1]
         mask array to apply during the calculations mask.shape = flux.shape
@@ -125,24 +122,18 @@ def N_chi2_NM(flux, fluxmod, fluxerr, fluxbias, mask=None):
     chi2:    np.ndarray[float, ndim=1]
         array of chi2 values (nmodels)
     """
-    if mask is None:
-        temp = flux[None, :] - (fluxmod + fluxbias)
-        #tflux = flux[None, :]
-        #temp = numexpr.evaluate('tflux - fluxmod + fluxbias')
-        _e = fluxerr
+    if (mask is None) or np.all(mask == False):
+        temp = flux - fluxmod_wbias
+        _ie = ivar
     else:
         _m = ~mask.astype(bool)
-        temp = flux[_m]
-        temp = temp[None, :] - (fluxmod[:, _m] + fluxbias[:,_m])
-        _e = fluxerr[:,_m]
+        temp = flux[_m] - fluxmod_wbias[:, _m]
+        _ie = ivar[:, _m]
 
-    for j in range(np.shape(_e)[1]):
-        temp[:,j] /= _e[:,j]
-
-    return (temp ** 2).sum(axis=1)
+    return np.einsum('ij,ij,ij->i', temp, temp, _ie)
 
 
-def N_covar_chi2(flux, fluxmod, fluxbias, icov_diag, icov_offdiag):
+def N_covar_chi2(flux, fluxmod_wbias, icov_diag, two_icov_offdiag):
     """ compute the non-reduced chi2 between data and model using
     the full covariance matrix information computed from ASTs.
 
@@ -151,17 +142,14 @@ def N_covar_chi2(flux, fluxmod, fluxbias, icov_diag, icov_offdiag):
     flux:    np.ndarray[float, ndim=1]
         array of fluxes
 
-    fluxmod: np.ndarray[float, ndim=2]
+    fluxmod_wbias: np.ndarray[float, ndim=2]
         array of modeled fluxes (nfilters , nmodels)
-
-    fluxbias: np.ndarray[float, ndim=2]
-        array of fluxes biases per model (nfilters , nmodels)
 
     icov_diag: np.ndarray[float, ndim=2]
         array giving the diagnonal terms of the covariance matrix inverse
 
-    icov_offdiag: np.ndarray[float, ndim=2]
-        array giving the off diagnonal terms of the covariance matrix inverse
+    two_icov_offdiag: np.ndarray[float, ndim=2]
+        array giving 2x the off diagonal terms of the covariance matrix inverse
 
     Returns
     -------
@@ -174,28 +162,29 @@ def N_covar_chi2(flux, fluxmod, fluxbias, icov_diag, icov_offdiag):
     covariance matrix.  (KDG 29 Jan 2016)
     """
     # get the number of models and filters
-    n_models, n_filters = fluxmod.shape
-    
-    # compute the difference in fluxes
-    #    take into account the bias term from the AST results
-    fluxdiff = flux[None, :] - (fluxmod + fluxbias)
+    n_models, n_filters = fluxmod_wbias.shape
 
-    chisqr = icov_diag[:,n_filters-1]*np.square(fluxdiff[:,n_filters-1])
-            
-    m = 0
+    # compute the difference in fluxes
+    fluxdiff = flux[None, :] - fluxmod_wbias
+
+    #diagonal terms
+    chisqr = np.einsum('ij,ij,ij->i', fluxdiff, fluxdiff, icov_diag)
+
+    #off-diagonal terms
+    m_start = 0
     for k in range(n_filters-1):
-        tchisqr = icov_diag[:,k]*fluxdiff[:,k]
-        for l in range(k+1,n_filters):
-            tchisqr += (2.0*icov_offdiag[:,m])*fluxdiff[:,l]
-            m += 1
-        chisqr += tchisqr*fluxdiff[:,k]
-        
+        m_end = m_start + n_filters - k - 1
+        tchisqr = np.einsum('ij,ij->i', two_icov_offdiag[:, m_start:m_end], fluxdiff[:, k+1:])
+        tchisqr *= fluxdiff[:, k]
+        chisqr += tchisqr
+        m_start = m_end
+
     return chisqr
 
 
-def SN_logLikelihood(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None, 
+def SN_logLikelihood(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None,
                      lnp_threshold=1000.):
-    """ Compute the log of the chi2 likelihood between data with 
+    """ Compute the log of the chi2 likelihood between data with
     uncertainties and perfectly known models
     with split errors (or non symmetric errors)
 
@@ -250,7 +239,7 @@ def SN_logLikelihood(flux, fluxerr_m, fluxerr_p, fluxmod, mask=None,
 
 
 def N_logLikelihood(flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
-    """ Compute the log of the chi2 likelihood between data with 
+    """ Compute the log of the chi2 likelihood between data with
     uncertainties and perfectly known models
 
     Parameters
@@ -301,7 +290,7 @@ def N_logLikelihood(flux, fluxerr, fluxmod, mask=None, lnp_threshold=1000.):
     return lnP
 
 
-def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None,
+def N_logLikelihood_NM(flux, fluxmod_wbias, ivar, mask=None,
                        lnp_threshold=1000.):
     """ Computes the log of the chi2 likelihood between data and model taking
     into account the noise model.
@@ -311,14 +300,11 @@ def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None,
     flux: np.ndarray[float, ndim=1]
         array of fluxes
 
-    fluxmod: np.ndarray[float, ndim=2]
-        array of modeled fluxes (nfilters , nmodels)
+    fluxmod_wbias: np.ndarray[float, ndim=2]
+        array of modeled fluxes + ast-derived biases (nfilters, nmodels)
 
-    fluxerr: np.ndarray[float, ndim=2]
-        array of modeled fluxes (nfilters , nmodels)
-
-    fluxbias: np.ndarray[float, ndim=2]
-        array of modeled fluxes (nfilters , nmodels)
+    ivar: np.ndarray[float, ndim=2]
+        array of ast-derived inverse variances (nfilters , nmodels)
 
     mask:    np.ndarray[bool, ndim=1]
         mask array to apply during the calculations mask.shape = flux.shape
@@ -341,33 +327,33 @@ def N_logLikelihood_NM(flux, fluxmod, fluxerr, fluxbias, mask=None,
         \\chi ^ 2 = \\sum_{k} (flux_{obs,k} - flux_{pred,k} - \mu_k) ^ 2 /
                     \sigma^2_{pred,k}
     """
-    ni, nj = np.shape(fluxmod)
+    ni, nj = np.shape(fluxmod_wbias)
 
     #compute the quality factor
     # lnQ = -0.5 * nj *  ln( 2 * pi) - sum_j {ln( err[j] ) }
     temp = 0.5 * np.log( 2. * np.pi )
     if mask is None:
-        temp1 = fluxerr
+        temp1 = ivar #fluxerr
     else:
         _m = ~mask.astype(bool)
-        temp1 = fluxerr[:,_m]
+        temp1 = ivar[:, _m] #fluxerr[:,_m]
 
     # By definition errors computed from ASTs are positive.
-    n = np.shape(temp1)[1]  
+    n = np.shape(temp1)[1]
     # lnQ different for each model
-    lnQ = n * temp + np.sum(np.log(temp1),axis=1)
+    lnQ = n * temp - 0.5 * np.sum(np.log(temp1),axis=1)
     #lnQ is to be used * -1
 
     #compute the lnp = -lnQ - 0.5 * chi2
-    _chi2 = N_chi2_NM(flux, fluxmod, fluxerr, fluxbias, mask=mask)
+    _chi2 = N_chi2_NM(flux, fluxmod_wbias, ivar, mask=mask)
 
     lnP = -lnQ - 0.5 * _chi2
 
     return (lnP, _chi2)
 
 
-def N_covar_logLikelihood(flux, fluxmod, fluxbias,
-                          q_norm, icov_diag, icov_offdiag,
+def N_covar_logLikelihood(flux, fluxmod_wbias,
+                          q_norm, icov_diag, two_icov_offdiag,
                           lnp_threshold=1000.):
     """ Computes the log of the chi2 likelihood between data and model taking
     into account the noise model.
@@ -377,11 +363,8 @@ def N_covar_logLikelihood(flux, fluxmod, fluxbias,
     flux: np.ndarray[float, ndim=1]
         array of fluxes
 
-    fluxmod: np.ndarray[float, ndim=2]
-        array of modeled fluxes (nfilters , nmodels)
-
-    fluxbias: np.ndarray[float, ndim=2]
-        array of modeled fluxes (nfilters , nmodels)
+    fluxmod_wbias: np.ndarray[float, ndim=2]
+        array of modeled fluxes + ast-derived biases (nfilters , nmodels)
 
     q_norm: np.ndarray[float, ndim=2]
         array givign the q normalization of the likelihood
@@ -390,8 +373,8 @@ def N_covar_logLikelihood(flux, fluxmod, fluxbias,
     icov_diag: np.ndarray[float, ndim=2]
         array giving the diagnonal terms of the covariance matrix inverse
 
-    icov_offdiag: np.ndarray[float, ndim=2]
-        array giving the off diagnonal terms of the covariance matrix inverse
+    two_icov_offdiag: np.ndarray[float, ndim=2]
+        array giving 2x the off diagonal terms of the covariance matrix inverse
 
     lnp_threshold:  float
         cut the values outside -x, x in lnp
@@ -404,16 +387,16 @@ def N_covar_logLikelihood(flux, fluxmod, fluxbias,
     chi2:    np.ndarray[float, ndim=1]
             array of chi-squared values (Nmodels)
     """
-    n_models, n_filters = np.shape(fluxmod)
+    n_models, n_filters = np.shape(fluxmod_wbias)
 
     #compute the pi normalization term
     n_good_filters = n_filters
-        
+
     pi_term = -0.5*n_good_filters*np.log(2.0*np.pi)
 
     # get the chi2 value
-    _chi2 = N_covar_chi2(flux, fluxmod, fluxbias,
-                         icov_diag, icov_offdiag)
+    _chi2 = N_covar_chi2(flux, fluxmod_wbias,
+                         icov_diag, two_icov_offdiag)
 
     # compute the lnp = pi_term + q_norm - 0.5*chi2
     lnP = pi_term + q_norm - (0.5*_chi2)
