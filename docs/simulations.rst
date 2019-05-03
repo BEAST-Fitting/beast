@@ -43,9 +43,10 @@ the observed data are given).
 Truncheon
 *********
 
-The code does not handle the truncheon model at this point.  It is
-doable the code for this model, but it has not been done yet due to
-several potentially complex modeling questions.
+The code does not handle the truncheon model at this point.  While this model
+is doable in the BEAST, it has not been done yet due to several potentially
+complex modeling questions for actually using it that might impact how the model
+is implemented.
 
 ********
 Plotting
