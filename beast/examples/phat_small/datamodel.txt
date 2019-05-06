@@ -1,6 +1,5 @@
-""" Data Model interface v2.0
-BEAST datamodel for the example based on M31 PHAT data
-"""
+# Data Model interface v3.0
+# BEAST datamodel for the example based on M31 PHAT data
 
 #-----------------------------------------------------------------
 # User inputs                                   [sec:conf]
