@@ -11,9 +11,6 @@ from __future__ import (absolute_import, division, print_function,
 from os.path import exists
 import numpy as np
 from sys import exit
-import copy
-import ast
-from astropy.table import Table
 from astropy import units
 
 from beast.physicsmodel.stars import isochrone

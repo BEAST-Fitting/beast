@@ -2,15 +2,9 @@ from __future__ import (absolute_import, division, print_function)
 
 import numpy as np
 
-from astropy import units
-
 # BEAST imports
-from beast.physicsmodel.stars import isochrone
-from beast.physicsmodel.stars import stellib
-from beast.physicsmodel.dust import extinction
 from beast.observationmodel.observations import Observations
 from beast.observationmodel.vega import Vega
-from beast.observationmodel.noisemodel import absflux_covmat
 
 
 
