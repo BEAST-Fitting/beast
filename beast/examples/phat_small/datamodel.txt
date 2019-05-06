@@ -1,21 +1,6 @@
 """ Data Model interface v2.0
 BEAST datamodel for the example based on M31 PHAT data
 """
-from __future__ import (absolute_import, division, print_function)
-
-import numpy as np
-
-from astropy import units
-
-# BEAST imports
-from beast.physicsmodel.stars import isochrone
-from beast.physicsmodel.stars import stellib
-from beast.physicsmodel.dust import extinction
-from beast.observationmodel.observations import Observations
-from beast.observationmodel.vega import Vega
-from beast.observationmodel.noisemodel import absflux_covmat
-
-#from extra_filters import make_integration_filter, make_top_hat_filter
 
 #-----------------------------------------------------------------
 # User inputs                                   [sec:conf]
@@ -37,13 +22,11 @@ surveyname = 'PHAT'
 
 # filters : list of strings
 #   full filter names in BEAST filter database
-filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W',
-           'HST_ACS_WFC_F814W', 'HST_WFC3_F110W','HST_WFC3_F160W']
+filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W', 'HST_ACS_WFC_F814W', 'HST_WFC3_F110W','HST_WFC3_F160W']
 
 # basefilters : list of strings
 #   short names for filters
-basefilters = ['F275W','F336W','F475W',
-               'F814W','F110W','F160W']
+basefilters = ['F275W','F336W','F475W', 'F814W','F110W','F160W']
 
 # obs_colnames : list of strings
 #   names of columns for filters in the observed catalog
@@ -194,28 +177,19 @@ extLaw = extinction.Gordon16_RvFALaw()
 #   example [min, max, step] = [0.0, 10.055, 1.0]
 avs = [0.0, 10.055, 1.0]
 av_prior_model = {'name': 'flat'}
-#av_prior_model = {'name': 'lognormal',
-#                  'max_pos': 2.0,
-#                  'sigma': 1.0,
-#                  'N': 10.}
+#av_prior_model = {'name': 'lognormal', 'max_pos': 2.0, 'sigma': 1.0, 'N': 10.}
 
 # R(V): dust average grain size
 #   example [min, max, step] = [2.0,6.0,1.0]
 rvs = [2.0,6.0,1.0]
 rv_prior_model = {'name': 'flat'}
-#rv_prior_model = {'name': 'lognormal',
-#                  'max_pos': 2.0,
-#                  'sigma': 1.0,
-#                  'N': 10.}
+#rv_prior_model = {'name': 'lognormal', 'max_pos': 2.0, 'sigma': 1.0, 'N': 10.}
 
 # fA: mixture factor between "MW" and "SMCBar" extinction curves
 #   example [min, max, step] = [0.0,1.0, 0.25]
 fAs = [0.0,1.0, 0.25]
 fA_prior_model = {'name': 'flat'}
-#fA_prior_model = {'name': 'lognormal',
-#                  'max_pos': 0.5,
-#                  'sigma': 0.2,
-#                  'N': 10.}
+#fA_prior_model = {'name': 'lognormal', 'max_pos': 0.5, 'sigma': 0.2, 'N': 10.}
 
 ################
 
@@ -223,98 +197,3 @@ fA_prior_model = {'name': 'flat'}
 # for the observed fitlers (AC)
 add_spectral_properties_kwargs = dict(filternames=filters)
 
-################
-# The following code does not require user's attention (AC)
-################
-
-class GenFluxCatalog(Observations):
-    """Generic n band filter photometry
-    This class implements a direct access to the Generic HST measured fluxes.
-
-    ..note::
-        it does not implement uncertainties as in this model, the noise is
-        given through artificial star tests
-    """
-    def __init__(self, inputFile, filters=filters):
-        """ Construct the interface """
-        desc = 'GENERIC star: %s' % inputFile
-        Observations.__init__(self, inputFile, desc=desc)
-        self.setFilters( filters )
-        #some bad values smaller than expected
-        # in physical flux units
-        self.setBadValue(6e-40)
-
-        # rate column needed as this is the *flux* column
-        for ik,k in enumerate(filters):
-            self.data.set_alias(k, obs_colnames[ik])
-
-    def getFlux(self, num, units=False):
-        """returns the absolute flux of an observation 
-
-        Parameters
-        ----------
-        num: int
-            index of the star in the catalog to get measurement from
-
-        units: bool
-            if set returns the fluxes with a unit capsule
-
-        Returns
-        -------
-        flux: ndarray[dtype=float, ndim=1]
-            Measured integrated flux values throughout the filters 
-            in erg/s/cm^2/A
-        """
-
-        # case for using '_flux' result
-        d = self.data[num]
-        
-        flux = np.array([ d[self.data.resolve_alias(ok)] 
-                          for ok in self.filters ]) * self.vega_flux
-        
-        if units is True:
-            return flux * units.erg / (units.s*units.cm*units.cm*units.angstrom)
-        else:
-            return flux
-
-    def setFilters(self, filters):
-        """ set the filters and update the vega reference for the conversions
-
-        Parameters
-        ----------
-        filters: sequence
-            list of filters using the internally normalized namings
-        """
-        self.filters = filters
-
-        #Data "rates" are normalized to Vega already, fits are not using vega
-
-        # for optimization purpose: pre-compute
-        #   getting vega mags, require to open and read the content of one file.
-        #   since getObs, calls getFlux, for each star you need to do this
-        #   expensive operation
-        with Vega() as v:
-            _, vega_flux, _ = v.getFlux(filters)
-
-        self.vega_flux = vega_flux
-
-
-def get_obscat(obsfile=obsfile, filters=filters, *args, **kwargs):
-    """ Function that generates a data catalog object with the correct
-    arguments
-
-    Parameters
-    ----------
-    obsfile: str, optional (default datamodel.obsfile)
-        observation file
-
-    filters: sequence(str), optional, datamodel.filters
-        seaquence of filters of the data
-
-    returns
-    -------
-    obs: GenFluxCatalog
-        observation catalog
-    """
-    obs = GenFluxCatalog(obsfile, filters=filters)
-    return obs
