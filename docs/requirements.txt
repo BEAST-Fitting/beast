@@ -9,3 +9,4 @@ numpy
 scipy
 tables
 pytest-mpl
+dust_extinction
