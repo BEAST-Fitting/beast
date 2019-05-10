@@ -37,7 +37,8 @@ def test_toothpick_noisemodel():
                             asts_fname,
                             modelsedgrid,
                             absflux_a_matrix=absflux_a_matrix,
-                            vega_fname=vega_fname)
+                            vega_fname=vega_fname,
+                            use_rate=False)
 
     # compare the new to the cached version
     compare_hdf5(noise_fname_cache, noise_fname)
