@@ -43,7 +43,7 @@ class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
 
 
 def make_toothpick_noise_model(outname, astfile, sedgrid,
-                               use_rate=False, vega_fname=None,
+                               use_rate=True, vega_fname=None,
                                absflux_a_matrix=None, **kwargs):
     """ toothpick noise model assumes that every filter is independent with
     any other.
