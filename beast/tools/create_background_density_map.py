@@ -20,7 +20,7 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import numpy as np
 import photutils as pu
-from density_map import DensityMap
+from .density_map import DensityMap
 import itertools as it
 import os
 
@@ -104,7 +104,7 @@ def main_make_map(args):
         ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
         dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
 
-    output_base = os.path.basename(args.catfile).replace('.fits', '')
+    output_base = args.catfile.replace('.fits', '')
 
     if args.subcommand == 'sourceden':
         map_values_array = make_source_dens_map(cat, ra_grid, dec_grid,
