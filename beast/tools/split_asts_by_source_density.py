@@ -24,8 +24,8 @@ def split_asts(ast_file, sd_map_file):
     sd_data = Table.read(sd_map_file)
 
     # define SD bins
-    sd_bins = np.arange(np.floor(np.min(sd_data['sourcedens'])),
-                            np.ceil(np.max(sd_data['sourcedens']))+1,
+    sd_bins = np.arange(np.floor(np.min(sd_data['value'])),
+                            np.ceil(np.max(sd_data['value']))+1,
                             dtype=int)
 
 
@@ -38,8 +38,8 @@ def split_asts(ast_file, sd_map_file):
         ast_all_ind = []
 
         # indices for this bin
-        sd_ind = np.where((sd_data['sourcedens'] >= sd_bins[i]) &
-                              (sd_data['sourcedens'] < sd_bins[i+1]))[0]
+        sd_ind = np.where((sd_data['value'] >= sd_bins[i]) &
+                              (sd_data['value'] < sd_bins[i+1]))[0]
 
         # for each index, grab the ASTs within that RA/Dec box
         for j,ind in enumerate(sd_ind):
