@@ -55,6 +55,10 @@ def main():
     # arguments unique to background map
     background_parser.add_argument('-reference', type=str,  metavar='FITSIMAGE', required=True,
                                    help='reference image (FITS)')
+    background_parser.add_argument('--mask_radius', type=float,  metavar='RADIUS', default=30,
+                                   help='radius (in pixels) of mask for catalog sources')
+    background_parser.add_argument('--ann_width', type=float,  metavar='ANNULUS_WIDTH', default=20,
+                                   help='width of annulus (in pixels) for calculating bkgd around each catalog source')
 
     # arguments unique to sourceden map
     sourceden_parser.add_argument('--mag_cut', type=float, nargs=2,
@@ -118,6 +122,8 @@ def main_make_map(args):
         image = hdul['SCI']
         map_values_array, n_map = make_background_map(cat, ra_grid, dec_grid,
                                                       ref_im=image,
+                                                      mask_radius=args.mask_radius,
+                                                      ann_width=args.ann_width,
                                                       output_base=output_base)
 
     # Save a file describing the properties of the bins in a handy format
@@ -165,7 +171,8 @@ def main_plot(args):
                       dpi=args.dpi)
 
 
-def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
+def make_background_map(cat, ra_grid, dec_grid, ref_im,
+                            mask_radius, ann_width, output_base):
     """
     Divide the image into a number of bins, and calculate the median
     background for the stars that fall within each bin. Create a new
@@ -190,6 +197,12 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
     ref_im: imageHDU
         image which will be used for the background measurements
 
+    mask_radius : float
+        radius (in pixels) of mask for catalog sources
+
+    ann_width : float
+        width of annulus (in pixels) for calculating background around each catalog source    
+
     output_base: string
         base name (without extension) to be used for the output files
 
@@ -200,7 +213,7 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
     """
     # A list of background values for each source of the catalog will be
     # built up. Mask used is also returned.
-    individual_backgrounds = measure_backgrounds(cat, ref_im)
+    individual_backgrounds = measure_backgrounds(cat, ref_im, mask_radius, ann_width)
 
     w = make_wcs_for_map(ra_grid, dec_grid)
     pix_x, pix_y = get_pix_coords(cat, w)
@@ -240,7 +253,7 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
     return background_map, nsources_map
 
 
-def measure_backgrounds(cat_table, ref_im):
+def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width):
     """
     Measure the background for all the sources in cat_table, using
     ref_im.
@@ -254,6 +267,12 @@ def measure_backgrounds(cat_table, ref_im):
     ref_im: imageHDU
         fits image which will be used to estimate the background
 
+    mask_radius : float
+        radius (in pixels) of mask for catalog sources
+
+    ann_width : float
+        width of annulus (in pixels) for calculating background around each catalog source    
+
     Returns
     -------
 
@@ -265,8 +284,8 @@ def measure_backgrounds(cat_table, ref_im):
     w = wcs.WCS(ref_im.header)
     shp = ref_im.data.shape
 
-    inner_rad = 30 * units.pixel
-    outer_rad = inner_rad + 20 * units.pixel
+    inner_rad = mask_radius * units.pixel
+    outer_rad = inner_rad + ann_width * units.pixel
     mask_rad = inner_rad
 
     # More elaborate way using an actual image (do not care about the
