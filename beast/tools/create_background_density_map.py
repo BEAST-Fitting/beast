@@ -59,6 +59,9 @@ def main():
                                    help='radius (in pixels) of mask for catalog sources')
     background_parser.add_argument('--ann_width', type=float,  metavar='ANNULUS_WIDTH', default=20,
                                    help='width of annulus (in pixels) for calculating bkgd around each catalog source')
+    background_parser.add_argument('--cat_filter', type=str, nargs=2,
+                                   metavar='FILTER MAG', default=None,
+                                   help='catalog entries with FILTER_VEGA > MAG will not be masked')
 
     # arguments unique to sourceden map
     sourceden_parser.add_argument('--mag_cut', type=float, nargs=2,
@@ -124,6 +127,7 @@ def main_make_map(args):
                                                       ref_im=image,
                                                       mask_radius=args.mask_radius,
                                                       ann_width=args.ann_width,
+                                                      cat_filter=args.cat_filter,
                                                       output_base=output_base)
 
     # Save a file describing the properties of the bins in a handy format
@@ -172,7 +176,8 @@ def main_plot(args):
 
 
 def make_background_map(cat, ra_grid, dec_grid, ref_im,
-                            mask_radius, ann_width, output_base):
+                            mask_radius, ann_width,
+                            cat_filter, output_base):
     """
     Divide the image into a number of bins, and calculate the median
     background for the stars that fall within each bin. Create a new
@@ -201,7 +206,13 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im,
         radius (in pixels) of mask for catalog sources
 
     ann_width : float
-        width of annulus (in pixels) for calculating background around each catalog source    
+        width of annulus (in pixels) for calculating background around each catalog source
+
+    cat_filter : list or None
+        If list: Two elements in which the first is a filter (e.g. 'F475W') and
+        the second is a magnitude.  Catalog entries with [filter]_VEGA > mag
+        will not be masked.
+        If None: all catalog entries will be considered.
 
     output_base: string
         base name (without extension) to be used for the output files
@@ -213,7 +224,7 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im,
     """
     # A list of background values for each source of the catalog will be
     # built up. Mask used is also returned.
-    individual_backgrounds = measure_backgrounds(cat, ref_im, mask_radius, ann_width)
+    individual_backgrounds = measure_backgrounds(cat, ref_im, mask_radius, ann_width, cat_filter)
 
     w = make_wcs_for_map(ra_grid, dec_grid)
     pix_x, pix_y = get_pix_coords(cat, w)
@@ -253,7 +264,7 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im,
     return background_map, nsources_map
 
 
-def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width):
+def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
     """
     Measure the background for all the sources in cat_table, using
     ref_im.
@@ -272,6 +283,13 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width):
 
     ann_width : float
         width of annulus (in pixels) for calculating background around each catalog source    
+
+    cat_filter : list or None
+        If list: Two elements in which the first is a filter (e.g. 'F475W') and
+        the second is a magnitude.  Catalog entries with [filter]_VEGA > mag
+        will not be masked.
+        If None: all catalog entries will be considered.
+
 
     Returns
     -------
@@ -302,7 +320,10 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width):
 
     # A mask to make sure that no sources end up in the background
     # calculation
-    circles = pu.SkyCircularAperture(c, mask_rad)
+    if cat_filter is None:
+        circles = pu.SkyCircularAperture(c, mask_rad)
+    else:
+        circles = pu.SkyCircularAperture(c[ cat_table[cat_filter[0]+'_VEGA'] < float(cat_filter[1]) ], mask_rad)
     source_masks = circles.to_pixel(w).to_mask()
     mask_union = np.zeros(shp)
     for i, ap_mask in enumerate(source_masks):
