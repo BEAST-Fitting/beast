@@ -606,7 +606,7 @@ def make_wcs_for_map(ra_grid, dec_grid):
     dec_delt = dec_grid[1] - dec_grid[0]
 
     w = wcs.WCS(naxis=2)
-    w.wcs.crpix = np.asarray([n_x, n_y], dtype=float) / 2.
+    w.wcs.crpix = np.asarray([n_x, n_y], dtype=float) / 2. + 1
     w.wcs.crval = np.array([center_ra, center_dec])
     w.wcs.cdelt = np.abs([-phys_ra_delt, dec_delt])
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
@@ -618,7 +618,7 @@ def get_pix_coords(cat, map_wcs):
        according to the given wcs"""
     world = np.column_stack((cat['RA'], cat['DEC']))
     print('working on converting ra, dec to pix x,y')
-    pixcrd = map_wcs.wcs_world2pix(world, 1)
+    pixcrd = map_wcs.wcs_world2pix(world, 1) - 0.5
     pix_x = pixcrd[:, 0]
     pix_y = pixcrd[:, 1]
     return pix_x, pix_y
