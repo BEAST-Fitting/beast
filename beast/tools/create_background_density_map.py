@@ -370,6 +370,9 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
     # Threshold
     mask_union = mask_union > 0
 
+    # also mask NaNs
+    mask_union[np.isnan(ref_im.data)] = True
+
     # Save the masked reference image
     hdu = fits.PrimaryHDU(np.where(mask_union, 0, ref_im.data), header=ref_im.header)
     hdu.writeto('masked_reference_image.fits', overwrite=True)
