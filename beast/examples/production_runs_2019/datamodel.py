@@ -164,7 +164,7 @@ velocity = 262.2 * units.km / units.s # LMC velocity from SIMBAD
 
 # log10(Age) -- [min,max,step] to generate the isochrones in years
 #   example [6.0, 10.13, 1.0]
-logt = [6.0, 10.13, 0.15]
+logt = [6.0, 10.13, 0.1]
 
 # note: Mass is not sampled, instead the isochrone supplied
 #       mass spacing is used instead
@@ -174,7 +174,7 @@ logt = [6.0, 10.13, 0.15]
 #   PARSECv1.2S accepts values 1.e-4 < Z < 0.06
 #   example z = [0.03, 0.019, 0.008, 0.004]
 #   can they be set as [min, max, step]?
-z = [0.03, 0.019, 0.008, 0.004]
+z = [-2.3, -2.0, -1.7, -1.4, -1.1, -0.8, -0.5, -0.2,  0.1]
 
 # Isochrone Model Grid
 #   Current Choices: Padova or MIST
@@ -200,7 +200,7 @@ extLaw = extinction.Gordon16_RvFALaw()
 # A(V): dust column in magnitudes
 #   acceptable avs > 0.0
 #   example [min, max, step] = [0.0, 10.055, 1.0]
-avs = [0.01, 10.055, 0.1]
+avs = [0.01, 10.0, 0.05]
 av_prior_model = {'name': 'flat'}
 #av_prior_model = {'name': 'lognormal',
 #                  'max_pos': 2.0,
@@ -218,7 +218,7 @@ rv_prior_model = {'name': 'flat'}
 
 # fA: mixture factor between "MW" and "SMCBar" extinction curves
 #   example [min, max, step] = [0.0,1.0, 0.25]
-fAs = [0.0,1.0, 0.25]
+fAs = [0.0,1.0, 0.2]
 fA_prior_model = {'name': 'flat'}
 #fA_prior_model = {'name': 'lognormal',
 #                  'max_pos': 0.5,
