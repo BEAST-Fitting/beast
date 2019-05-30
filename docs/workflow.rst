@@ -24,18 +24,19 @@ Create a conda environment.  Here we name it to include the BEAST version.
 
   .. code:: shell
 
-    $ conda create -n beast_v1.2 python=3.6
+    $ conda create -n beast_v1.3 python=3.6
 
 Activate the environment after all the packages are finished installing.
 
   .. code:: shell
 
-    $ source activate beast
+    $ source activate beast_v1.3
 
 Next, use pip to install the production version of the beast (currently v1.2)
 
   .. code:: shell
 
+    $ conda install astropy scipy h5py matplotlib cython
     $ pip install beast
 
 The BEAST production version is now ready for use.  Note, you need to
