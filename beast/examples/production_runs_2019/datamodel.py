@@ -174,7 +174,7 @@ logt = [6.0, 10.13, 0.1]
 #   PARSECv1.2S accepts values 1.e-4 < Z < 0.06
 #   example z = [0.03, 0.019, 0.008, 0.004]
 #   can they be set as [min, max, step]?
-z = [-2.3, -2.0, -1.7, -1.4, -1.1, -0.8, -0.5, -0.2,  0.1]
+z = (10**np.array([-2.3, -2.0, -1.7, -1.4, -1.1, -0.8, -0.5, -0.2,  0.1])).tolist()
 
 # Isochrone Model Grid
 #   Current Choices: Padova or MIST
