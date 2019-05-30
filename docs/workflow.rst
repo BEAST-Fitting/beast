@@ -32,12 +32,23 @@ Activate the environment after all the packages are finished installing.
 
     $ source activate beast_v1.3
 
-Next, use pip to install the production version of the beast (currently v1.2)
+Install dependencies using conda (better for speed)
+
+.. code:: shell
+
+  $ conda install astropy scipy h5py matplotlib cython
+
+Next, use pip to install the production version of the beast (currently v1.3)
 
   .. code:: shell
 
-    $ conda install astropy scipy h5py matplotlib cython
     $ pip install beast
+
+or
+
+  .. code:: shell
+
+    $ pip install git+https://github.com/BEAST-Fitting/beast.git@v1.x
 
 The BEAST production version is now ready for use.  Note, you need to
 activate this conda environment every time you want to use this installed
