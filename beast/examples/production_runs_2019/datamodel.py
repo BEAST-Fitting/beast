@@ -195,7 +195,8 @@ osl = stellib.Tlusty() + stellib.Kurucz()
 ################
 
 ### Dust extinction grid definition
-extLaw = extinction.Gordon16_RvFALaw()
+extLaw = extLaw = extinction.Generalized_RvFALaw(ALaw=extinction.Generalized_DustExt(curve='F20'),
+                                                 BLaw=extinction.Generalized_DustExt(curve='G03_SMCBar'))
 
 # A(V): dust column in magnitudes
 #   acceptable avs > 0.0
