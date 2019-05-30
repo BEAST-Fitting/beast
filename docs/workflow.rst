@@ -10,6 +10,38 @@ for the refitting, fixing issues, etc without rerunning everything.  This
 workflow has been tested on large (e.g., PHAT) and small (e.g. METAL)
 datasets.
 
+****************************
+Production Conda Environment
+****************************
+
+Using a dedicated conda environment for production BEAST runs may be
+desirable.  Such an environment provides a way to ensure that
+production runs are reproducible by fixing the versions of all the
+software used.  The instructions below assume that the `astroconda channel
+<https://astroconda.readthedocs.io/>`_\ is being used.
+
+Create a conda environment.  Here we name it to include the BEAST version.
+
+  .. code:: shell
+
+    $ conda create -n beast_v1.2 python=3.6
+
+Activate the environment after all the packages are finished installing.
+
+  .. code:: shell
+
+    $ source activate beast
+
+Next, use pip to install the production version of the beast (currently v1.2)
+
+  .. code:: shell
+
+    $ pip install beast
+
+The BEAST production version is now ready for use.  Note, you need to
+activate this conda environment every time you want to use this installed
+version.
+
 *****
 Setup
 *****
@@ -101,7 +133,7 @@ and you want to start the batch fitting script for field_B, re-run the
 wrapper for field_B to make sure that datamodel.py refers to the
 information for field_B.
 
-    
+
 ****
 Data
 ****
@@ -161,7 +193,7 @@ Create a new version of the observations that includes a column with the
 background level.  This is done by calculating the median background for
 stars that fall in each spatial bin.  The code will output a new catalog, an
 hdf5 file with the background maps and grid information, and some
-diagnostic plots. 
+diagnostic plots.
 
 Command to create the observed catalog with background column with a 15x15 pixel array using the 'datafile.fits' catalog and the 'image.fits' reference image.
 
