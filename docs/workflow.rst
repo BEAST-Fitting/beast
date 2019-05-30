@@ -34,17 +34,17 @@ Activate the environment after all the packages are finished installing.
 
 Install dependencies using conda (better for speed)
 
-.. code:: shell
+  .. code:: shell
 
-  $ conda install astropy scipy h5py matplotlib cython
+    $ conda install astropy scipy h5py matplotlib cython
 
 Next, use pip to install the production version of the beast (currently v1.3)
 
   .. code:: shell
 
-    $ pip install beast
+    $ pip install beast==1.3
 
-or
+or (to get the latest production branch, can be ahead of pipy version)
 
   .. code:: shell
 
