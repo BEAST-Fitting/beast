@@ -446,8 +446,8 @@ def make_source_dens_map(cat,
     w = make_wcs_for_map(ra_grid, dec_grid)
     pix_x, pix_y = get_pix_coords(cat, w)
 
-    n_x = len(ra_grid) - 1
-    n_y = len(dec_grid) - 1
+    n_x = len(ra_grid)
+    n_y = len(dec_grid)
     npts_map = np.zeros([n_x, n_y], dtype=float)
     npts_zero_map = np.zeros([n_x, n_y], dtype=float)
     npts_band_zero_map = np.zeros([n_x, n_y, n_filters], dtype=float)
