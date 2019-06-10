@@ -18,7 +18,8 @@ def setup_batch_beast_trim(project,
                            astfile,
                            num_subtrim=5,
                            nice=None,
-                           seds_fname=None):
+                           seds_fname=None,
+                           prefix=None):
     """
     Sets up batch files for submission to the 'at' queue on
     linux (or similar) systems
@@ -45,6 +46,10 @@ def setup_batch_beast_trim(project,
 
     seds_fname : string (default = None)
         full filename to the SED grid
+
+    prefix : string (default=None)
+        Set this to a string (such as 'source activate astroconda') to prepend
+        to each batch file (use '\n's to make multiple lines)
 
     """
     ast_file = astfile
@@ -99,6 +104,11 @@ def setup_batch_beast_trim(project,
     joblist_file = job_path+'beast_batch_trim.joblist'
     pf = open(joblist_file, 'w')
 
+    # write out anything at the beginning of the file
+    if prefix is not None:
+        pf.write(prefix+'\n')
+
+    
     bt_f = []
     for i in range(n_subtrim_files):
         trimfile = job_path+'BEAST_' + str(i+1)
