@@ -484,7 +484,7 @@ def make_source_dens_map(cat,
                     npts_band_zero_map[i, j, k] = len(zindxs)
 
         # save the source density as an entry for each source
-        source_dens[indxs_for_SD] = npts_map[i, j]
+        source_dens[indxs] = npts_map[i, j]
 
     save_map_fits(npts_map, w, output_base + '_source_den_image.fits')
     save_map_fits(npts_zero_map, w, output_base + '_npts_zero_fluxes_image.fits')
