@@ -3,7 +3,7 @@ from __future__ import print_function
 import numpy as np
 from astropy.table import Table
 
-def split_asts(ast_file, sd_map_file):
+def split_asts(ast_file, sd_map_file, bin_width=1.):
     """
     Split the ASTs into sub-files for each source density bin.
 
@@ -14,6 +14,9 @@ def split_asts(ast_file, sd_map_file):
 
     sd_map_file : string
         Name of the fits file that contains the source densities
+
+    bin_width : float
+        Width of source density bin in star/arcsec
 
     """
 
@@ -26,6 +29,7 @@ def split_asts(ast_file, sd_map_file):
     # define SD bins
     sd_bins = np.arange(np.floor(np.min(sd_data['value'])),
                             np.ceil(np.max(sd_data['value']))+1,
+                            bin_width,
                             dtype=int)
 
 
