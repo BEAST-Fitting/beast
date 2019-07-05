@@ -60,88 +60,44 @@ def setup_batch_beast_trim(project,
     else:
         full_model_filename = seds_fname
 
-    cat_files = np.array(glob.glob(datafile.replace('.fits', '*_sub*.fits')))
-
+    # photometry files
+    cat_files = sorted(glob.glob(datafile.replace('.fits', '*_sub*.fits')))
     n_cat_files = len(cat_files)
 
-    # make sure n_subtrim_files isn't larger than the number of
-    # catalog sub-files
-    if n_subtrim_files > n_cat_files:
-        n_subtrim_files = n_cat_files
-
-    # max number of files per process
-    n_per_subtrim = int(n_cat_files/n_subtrim_files)
-    if n_cat_files % n_subtrim_files != 0:
-        n_per_subtrim += 1
-
-    print('# trim files per process = ', n_per_subtrim)
 
     # setup the subdirectory for the batch and log files
     job_path = project+'/trim_batch_jobs/'
-    if not os.path.isdir(job_path):
-        os.mkdir(job_path)
 
-    log_path = job_path+'logs/'
-    if not os.path.isdir(log_path):
-        os.mkdir(log_path)
-
-    sd_nums = np.empty(n_cat_files, dtype=int)
-    for i, cat_file in enumerate(cat_files):
-        # get the sd number
-        dpos = cat_file.find('SD_')
-        ddpos = cat_file.find('-', dpos+4)
-        sd_nums[i] = int(cat_file[dpos+3:ddpos])
-
-    # now sort on sd num
-    sindxs = np.argsort(sd_nums)
-    cat_files = cat_files[sindxs]
-
-    # prepend nice
-    nice_str = ''
-    if nice is not None:
-        nice_str = 'nice -n' + str(int(nice)) + ' '
-
-    joblist_file = job_path+'beast_batch_trim.joblist'
-    pf = open(joblist_file, 'w')
-
-    # write out anything at the beginning of the file
-    if prefix is not None:
-        pf.write(prefix+'\n')
-
-    
-    bt_f = []
-    for i in range(n_subtrim_files):
-        trimfile = job_path+'BEAST_' + str(i+1)
-        bt_f.append(open(trimfile, 'w'))
-        bt_f[-1].write(project + '\n')
-        bt_f[-1].write(full_model_filename + '\n')
-        # bt_f[-1].write(full_model_filename + '\n')
-        pf.write(nice_str + 'python -m beast.tools.trim_many_via_obsdata '
-                 + trimfile + ' > '
-                 + log_path + 'beast_trim_tr'+str(i+1)+'.log\n')
-    pf.close()
-
-    k = 0
-    n_cur = 0
-    for i, cat_file in enumerate(cat_files):
-        # get the sd number
+    # construct file bases
+    filebase_list = []
+    for cat_file in cat_files:
+        # get the sd/sub number
         dpos = cat_file.find('SD_')
         spos = cat_file.find('sub')
         ppos = cat_file.rfind('.')
-        sd_num = cat_file[dpos+3:spos-1]
-        sub_num = cat_file[spos+3:ppos]
+        curr_sd = cat_file[dpos+3:spos-1]
+        curr_sub = cat_file[spos+3:ppos]
 
-        bt_f[k].write(sd_num + ' ' + sub_num)
-        bt_f[k].write(' ' + cat_file)
-        bt_f[k].write(' ' + ast_file)
-        bt_f[k].write('\n')
-        n_cur += 1
-        if n_cur >= n_per_subtrim:
-            n_cur = 0
-            k += 1
+        filebase_list.append("%s/%s_sd%s_sub%s"%(project,
+                                                 project,
+                                                 curr_sd,
+                                                 curr_sub))
 
-    for i in range(n_subtrim_files):
-        bt_f[i].close()
+        
+    # call the generic batch trim code
+    generic_batch_trim(full_model_filename,
+                       ["%s/%s_noisemodel.hd5"%(project,project)] * n_cat_files,
+                       cat_files,
+                       [ast_file] * n_cat_files,
+                       filebase_list,
+                       job_path=job_path,
+                       file_prefix='BEAST',
+                       num_subtrim=num_subtrim,
+                       nice=nice,
+                       prefix=prefix)
+                       
+                           
+ 
 
 def generic_batch_trim(model_grid_file,
                            noise_model_files,
