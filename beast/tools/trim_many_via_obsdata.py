@@ -15,7 +15,9 @@ import time
 # BEAST imports
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel 
 from beast.fitting import trim_grid
-from beast.physicsmodel.grid import FileSEDGrid  
+from beast.physicsmodel.grid import FileSEDGrid
+
+from astropy.table import Table
 
 # datamodel only needed for the get_obscat function
 # would be good to remove this dependence
@@ -30,44 +32,29 @@ if __name__ == '__main__':
 
     start_time = time.clock()
 
+    # read in trim file
     f = open(args.trimfile, 'r')
     file_lines = list(f)
 
-    project = file_lines[0].rstrip()
-    
-    modelfile = file_lines[1].rstrip()
-
-    print('Reading the model grid files = ', modelfile)
+    # physics model grid name
+    modelfile = file_lines[0].rstrip()
 
     # get the modesedgrid on which to generate the noisemodel  
-    modelsedgrid = FileSEDGrid(modelfile)  
+    print('Reading the model grid files = ', modelfile)
+    modelsedgrid = FileSEDGrid(modelfile)
 
     new_time = time.clock()
     print('time to read: ',(new_time - start_time)/60., ' min')
-
-    ext_brick = ''
     
     old_noisefile = ''
-    for k in range(2,len(file_lines)):
-        line = file_lines[k]
-        line_bits = line.split()
+    for k in range(1,len(file_lines)):
 
-        source_density = line_bits[0]
-        sub_source_density = line_bits[1]
-        obsfile = line_bits[2]
-        astfile = line_bits[3]
-    
-        noisefile = "%s/%s_noisemodel.hd5"%(project,project)
-        # if the noisefile doesn't exist, it's because it's divided into source density bins
-        if not os.path.isfile(noisefile):
-            noisefile = "%s/%s_noisemodel_SD_%s.hd5"%(project,project,source_density)
+        # file names
+        noisefile, obsfile, astfile, filebase = file_lines[k].split()
 
-        stats_filebase = "%s/%s_sd%s_sub%s"%(project,
-                                             project,
-                                             source_density,
-                                             sub_source_density)
-        sed_trimname = stats_filebase + '_sed_trim.grid.hd5'
-        noisemodel_trimname = stats_filebase + '_noisemodel_trim.hd5'
+        # construct trimmed file names
+        sed_trimname = filebase + '_sed_trim.grid.hd5'
+        noisemodel_trimname = filebase + '_noisemodel_trim.hd5'
 
         print('working on ' + sed_trimname)
         
