@@ -1,11 +1,6 @@
 import numpy as np
-import os.path
-import os
 
-from astropy.io import fits
 from astropy.table import Table
-
-import pdb
 
 
 

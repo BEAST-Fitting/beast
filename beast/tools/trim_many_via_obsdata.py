@@ -17,7 +17,6 @@ import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import FileSEDGrid
 
-from astropy.table import Table
 
 # datamodel only needed for the get_obscat function
 # would be good to remove this dependence

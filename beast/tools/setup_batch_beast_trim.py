@@ -53,7 +53,6 @@ def setup_batch_beast_trim(project,
 
     """
     ast_file = astfile
-    n_subtrim_files = num_subtrim
 
     if seds_fname is None:
         full_model_filename = "%s/%s_seds.grid.hd5" % (project, project)
