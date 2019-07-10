@@ -49,8 +49,14 @@ if __name__ == '__main__':
     old_noisefile = ''
     for k in range(1,len(file_lines)):
 
+        print('/n/n')
+
         # file names
         noisefile, obsfile, astfile, filebase = file_lines[k].split()
+
+        # make sure the proper directories exist
+        if not os.path.isdir(os.path.dirname(filebase)):
+            os.makedirs(os.path.dirname(filebase))
 
         # construct trimmed file names
         sed_trimname = filebase + '_sed_trim.grid.hd5'
