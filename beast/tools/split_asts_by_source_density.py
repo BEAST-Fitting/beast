@@ -63,7 +63,7 @@ def split_asts(ast_file, sd_map_file, bin_width=1.):
         if len(ast_all_ind) > 0:
             print('   writing new table')
             ast_table = ast_data[ast_all_ind]
-            new_filename = ast_file.replace('.fits','_SD_'+str(sd_bins[i])+'-'+str(sd_bins[i+1])+'.fits')
+            new_filename = ast_file.replace('.fits','_SD'+str(sd_bins[i])+'-'+str(sd_bins[i+1])+'.fits')
             ast_table.write(new_filename, overwrite=True)
         
 
