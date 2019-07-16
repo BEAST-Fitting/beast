@@ -7,7 +7,7 @@ Requirements
 
 Running the BEAST requires:
 
-- Python >=3.4 (recommended) or 2.7 (still possible)
+- Python >=3.4
 - Astropy >=1.3
 
 In turn, Astropy depends on
@@ -34,10 +34,6 @@ One easy way to obtain the above is through the AstroConda Python stack:
 - Install AstroConda with Python 3 (recommended)::
 
     $conda create -n astroconda stsci
-
-- Install AstroConda with Python 2.7 (still possible)::
-
-    $ conda create -n iraf27 python=2.7 stsci pyraf iraf
 
 - Make sure that the ``PyTables`` and ``hdf5`` packages are installed:
 
