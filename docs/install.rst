@@ -33,12 +33,13 @@ One easy way to obtain the above is through the AstroConda Python stack:
 
 - Install AstroConda with Python 3 (recommended)::
 
-    $conda create -n astroconda stsci
+    $ conda create -n astroconda stsci
 
-- Make sure that the ``PyTables`` and ``hdf5`` packages are installed:
+- Make sure that the ``PyTables`` and ``hdf5`` packages are installed::
 
-    $ conda install -n astroconda (or iraf27) pytables
-    $ conda install -n astroconda (or iraf27) hdf5
+    $ conda install -n astroconda pytables
+
+    $ conda install -n astroconda hdf5
 
 
 Installing the BEAST
