@@ -119,7 +119,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
         if len(indxs) > 0:
             noise[indxs, k] *= -1.0
 
-    print('Writting to disk into {0:s}'.format(outname))
+    print('Writing to disk into {0:s}'.format(outname))
     with tables.open_file(outname, 'w') as outfile:
         outfile.create_array(outfile.root, 'bias', bias)
         outfile.create_array(outfile.root, 'error', noise)

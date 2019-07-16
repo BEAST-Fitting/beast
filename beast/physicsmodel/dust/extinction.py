@@ -608,6 +608,7 @@ class Generalized_DustExt(ExtinctionLaw):
         elif curve in dustext_avg.__all__:
             self.extcurve_class = getattr(dustext_avg, curve)
             self.hasRvParam = False
+            self.Rv = self.extcurve_class.Rv
         else:
             raise ValueError(curve + ' class not found. \n' +
                              'Valid dust_extinction package classes: '+
@@ -628,6 +629,7 @@ class Generalized_DustExt(ExtinctionLaw):
 
         Rv: float
             desired R(V) (default 3.1)
+            ignored if self.hasRvParam=False; defaults to self.Rv
 
         Alambda: bool
             if set returns +2.5*1./log(10.)*tau, tau otherwise

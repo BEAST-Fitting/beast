@@ -147,7 +147,7 @@ If the beast has not been installed (only downloaded from github), then
 In the 'phat_small' directory, place a soft link named 'beast' to where the
 beast code is located.  Specifically::
 
-    $ cd beast-examples/phat_small
+    $ cd examples/phat_small
 
     $ ln -s beast_code_loc/beast/beast beast
 
