@@ -1,0 +1,13 @@
+channels:
+  - defaults
+dependencies:
+  - pip
+  - astropy
+  - numpy
+  - scipy
+  - matplotlib
+  - h5py
+  - pip:
+    - dust-extinction
+    - tables
+
