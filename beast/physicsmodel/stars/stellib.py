@@ -34,7 +34,7 @@ config = {
     'tlusty': __ROOT__ + 'tlusty.lowres.grid.fits',
     'btsettl': __ROOT__ + 'bt-settl.lowres.grid.fits',
     'btsettl_medres': __ROOT__ + 'bt-settl.medres.grid.fits',
-    'munari': __ROOT__ + 'atlas9-munari.hires.grid.fits'
+    'munari': __ROOT__ + 'atlas9-munari.hires.grid.fits',
     'aringer': __ROOT__ + 'Aringer.AGB.grid.fits'
 }
 
