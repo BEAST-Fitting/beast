@@ -67,7 +67,7 @@ def split_obs_by_source_density(catfile, bin_width=1, sort_col='F475W_RATE',
         bb = np.str(bins[ok] + bin_width)
         print('SD ' + aa + '-' + bb + ' # sources = ' + str(len(ii)))
         sdobs = obs[ii]
-        sdfile = catfile.replace('.fits', '_SD_' + aa + '-' + bb + '.fits')
+        sdfile = catfile.replace('.fits', '_SD' + aa + '-' + bb + '.fits')
         sdobs.write(sdfile, overwrite=True)
 
         # Sort the stars
