@@ -18,7 +18,7 @@ Using a dedicated conda environment for production BEAST runs may be
 desirable.  Such an environment provides a way to ensure that
 production runs are reproducible by fixing the versions of all the
 software used.  The instructions below assume that the `astroconda channel
-<https://astroconda.readthedocs.io/>`_\ is being used.
+<https://astroconda.readthedocs.io/>`_ is being used.
 
 Create a conda environment.  Here we name it to include the BEAST version.
 
