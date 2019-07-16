@@ -127,7 +127,7 @@ matrix:
     allow_failures:
         # Do a PEP8 test with flake8
         # (do allow to fail unless your code completely compliant)
-        -  os: linux
+        - os: linux
           stage: Initial tests
           env: MAIN_CMD='flake8 beast --count --show-source --statistics $FLAKE8_OPT' SETUP_CMD=''
 
