@@ -20,7 +20,7 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import numpy as np
 import photutils as pu
-from density_map import DensityMap
+from .density_map import DensityMap
 import itertools as it
 import os
 
@@ -55,6 +55,13 @@ def main():
     # arguments unique to background map
     background_parser.add_argument('-reference', type=str,  metavar='FITSIMAGE', required=True,
                                    help='reference image (FITS)')
+    background_parser.add_argument('--mask_radius', type=float,  metavar='RADIUS', default=30,
+                                   help='radius (in pixels) of mask for catalog sources')
+    background_parser.add_argument('--ann_width', type=float,  metavar='ANNULUS_WIDTH', default=20,
+                                   help='width of annulus (in pixels) for calculating bkgd around each catalog source')
+    background_parser.add_argument('--cat_filter', type=str, nargs=2,
+                                   metavar='FILTER MAG', default=None,
+                                   help='catalog entries with FILTER_VEGA > MAG will not be masked')
 
     # arguments unique to sourceden map
     sourceden_parser.add_argument('--mag_cut', type=float, nargs=2,
@@ -104,7 +111,7 @@ def main_make_map(args):
         ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
         dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
 
-    output_base = os.path.basename(args.catfile).replace('.fits', '')
+    output_base = args.catfile.replace('.fits', '')
 
     if args.subcommand == 'sourceden':
         map_values_array = make_source_dens_map(cat, ra_grid, dec_grid,
@@ -118,6 +125,9 @@ def main_make_map(args):
         image = hdul['SCI']
         map_values_array, n_map = make_background_map(cat, ra_grid, dec_grid,
                                                       ref_im=image,
+                                                      mask_radius=args.mask_radius,
+                                                      ann_width=args.ann_width,
+                                                      cat_filter=args.cat_filter,
                                                       output_base=output_base)
 
     # Save a file describing the properties of the bins in a handy format
@@ -165,7 +175,9 @@ def main_plot(args):
                       dpi=args.dpi)
 
 
-def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
+def make_background_map(cat, ra_grid, dec_grid, ref_im,
+                            mask_radius, ann_width,
+                            cat_filter, output_base):
     """
     Divide the image into a number of bins, and calculate the median
     background for the stars that fall within each bin. Create a new
@@ -190,6 +202,18 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
     ref_im: imageHDU
         image which will be used for the background measurements
 
+    mask_radius : float
+        radius (in pixels) of mask for catalog sources
+
+    ann_width : float
+        width of annulus (in pixels) for calculating background around each catalog source
+
+    cat_filter : list or None
+        If list: Two elements in which the first is a filter (e.g. 'F475W') and
+        the second is a magnitude.  Catalog entries with [filter]_VEGA > mag
+        will not be masked.
+        If None: all catalog entries will be considered.
+
     output_base: string
         base name (without extension) to be used for the output files
 
@@ -200,7 +224,7 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
     """
     # A list of background values for each source of the catalog will be
     # built up. Mask used is also returned.
-    individual_backgrounds = measure_backgrounds(cat, ref_im)
+    individual_backgrounds = measure_backgrounds(cat, ref_im, mask_radius, ann_width, cat_filter)
 
     w = make_wcs_for_map(ra_grid, dec_grid)
     pix_x, pix_y = get_pix_coords(cat, w)
@@ -240,7 +264,7 @@ def make_background_map(cat, ra_grid, dec_grid, ref_im, output_base):
     return background_map, nsources_map
 
 
-def measure_backgrounds(cat_table, ref_im):
+def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
     """
     Measure the background for all the sources in cat_table, using
     ref_im.
@@ -254,6 +278,19 @@ def measure_backgrounds(cat_table, ref_im):
     ref_im: imageHDU
         fits image which will be used to estimate the background
 
+    mask_radius : float
+        radius (in pixels) of mask for catalog sources
+
+    ann_width : float
+        width of annulus (in pixels) for calculating background around each catalog source    
+
+    cat_filter : list or None
+        If list: Two elements in which the first is a filter (e.g. 'F475W') and
+        the second is a magnitude.  Catalog entries with [filter]_VEGA > mag
+        will not be masked.
+        If None: all catalog entries will be considered.
+
+
     Returns
     -------
 
@@ -265,8 +302,8 @@ def measure_backgrounds(cat_table, ref_im):
     w = wcs.WCS(ref_im.header)
     shp = ref_im.data.shape
 
-    inner_rad = 30 * units.pixel
-    outer_rad = inner_rad + 20 * units.pixel
+    inner_rad = mask_radius * units.pixel
+    outer_rad = inner_rad + ann_width * units.pixel
     mask_rad = inner_rad
 
     # More elaborate way using an actual image (do not care about the
@@ -283,7 +320,10 @@ def measure_backgrounds(cat_table, ref_im):
 
     # A mask to make sure that no sources end up in the background
     # calculation
-    circles = pu.SkyCircularAperture(c, mask_rad)
+    if cat_filter is None:
+        circles = pu.SkyCircularAperture(c, mask_rad)
+    else:
+        circles = pu.SkyCircularAperture(c[ cat_table[cat_filter[0]+'_VEGA'] < float(cat_filter[1]) ], mask_rad)
     source_masks = circles.to_pixel(w).to_mask()
     mask_union = np.zeros(shp)
     for i, ap_mask in enumerate(source_masks):
@@ -329,6 +369,9 @@ def measure_backgrounds(cat_table, ref_im):
 
     # Threshold
     mask_union = mask_union > 0
+
+    # also mask NaNs
+    mask_union[np.isnan(ref_im.data)] = True
 
     # Save the masked reference image
     hdu = fits.PrimaryHDU(np.where(mask_union, 0, ref_im.data), header=ref_im.header)
@@ -403,8 +446,8 @@ def make_source_dens_map(cat,
     w = make_wcs_for_map(ra_grid, dec_grid)
     pix_x, pix_y = get_pix_coords(cat, w)
 
-    n_x = len(ra_grid) - 1
-    n_y = len(dec_grid) - 1
+    n_x = len(ra_grid)
+    n_y = len(dec_grid)
     npts_map = np.zeros([n_x, n_y], dtype=float)
     npts_zero_map = np.zeros([n_x, n_y], dtype=float)
     npts_band_zero_map = np.zeros([n_x, n_y, n_filters], dtype=float)
@@ -441,7 +484,7 @@ def make_source_dens_map(cat,
                     npts_band_zero_map[i, j, k] = len(zindxs)
 
         # save the source density as an entry for each source
-        source_dens[indxs_for_SD] = npts_map[i, j]
+        source_dens[indxs] = npts_map[i, j]
 
     save_map_fits(npts_map, w, output_base + '_source_den_image.fits')
     save_map_fits(npts_zero_map, w, output_base + '_npts_zero_fluxes_image.fits')
@@ -566,7 +609,7 @@ def make_wcs_for_map(ra_grid, dec_grid):
     dec_delt = dec_grid[1] - dec_grid[0]
 
     w = wcs.WCS(naxis=2)
-    w.wcs.crpix = np.asarray([n_x, n_y], dtype=float) / 2.
+    w.wcs.crpix = np.asarray([n_x, n_y], dtype=float) / 2. + 1
     w.wcs.crval = np.array([center_ra, center_dec])
     w.wcs.cdelt = np.abs([-phys_ra_delt, dec_delt])
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
@@ -578,7 +621,7 @@ def get_pix_coords(cat, map_wcs):
        according to the given wcs"""
     world = np.column_stack((cat['RA'], cat['DEC']))
     print('working on converting ra, dec to pix x,y')
-    pixcrd = map_wcs.wcs_world2pix(world, 1)
+    pixcrd = map_wcs.wcs_world2pix(world, 1) - 0.5
     pix_x = pixcrd[:, 0]
     pix_y = pixcrd[:, 1]
     return pix_x, pix_y
