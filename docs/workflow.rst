@@ -38,17 +38,29 @@ Install dependencies using conda (better for speed)
 
     $ conda install astropy scipy h5py matplotlib cython
 
-Next, use pip to install the production version of the beast (currently v1.3)
+Next, install the BEAST.  You have three options:
+
+Option 1: Use pip to install the production version of the beast (currently v1.3)
 
   .. code:: shell
 
     $ pip install beast==1.3
 
-or (to get the latest production branch, can be ahead of pipy version)
+Option 2: Get the latest production branch, which can be ahead of pipy version
 
   .. code:: shell
 
     $ pip install git+https://github.com/BEAST-Fitting/beast.git@v1.x
+
+Option 3: If you'll be doing development, fork the beast (as described
+`here <https://beast.readthedocs.io/en/latest/beast_development.html>`_\),
+navigate into the first `beast` folder, and do this command.  Any changes
+you make will be immediately reflected in your calls to the BEAST code. Note that
+you can make separate environments for development and production modes.
+
+  .. code:: shell
+
+    $ python setup.py develop
 
 The BEAST production version is now ready for use.  Note, you need to
 activate this conda environment every time you want to use this installed
