@@ -68,10 +68,24 @@ Using pip
 From source
 -----------
 
-``beast`` can be installed from the source code in the normal
-python fashion after downloading it from the git repo::
+If you are happy with your current environment, ``beast`` can be installed from
+the source code in the normal python fashion after cloning from the git repo or
+downloading from Github::
 
      $ python setup.py install
+
+If you are using conda, you may wish to create a conda environment with the
+dependencies before doing the install::
+
+     $ conda env create -n beast --file conda-environment.yml
+     $ conda activate beast
+     $ python setup.py install
+
+If you would like to modify beast, you may want to use links instead of
+installing, which is best done by replacing the last line with::
+
+     $ python setup.py develop
+
 
 For developers
 --------------
