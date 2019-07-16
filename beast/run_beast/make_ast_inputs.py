@@ -7,26 +7,19 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 
 # system imports
 from __future__ import (absolute_import, division, print_function)
-import sys
 import argparse
-import time
-import string
 import numpy as np
-
-from astropy import units
-from astropy import constants as const
 
 # BEAST imports
 from beast.observationmodel.ast.make_ast_input_list import (pick_models,
                                                             pick_models_toothpick_style)
 from beast.observationmodel.ast.make_ast_xy_list import pick_positions
-from beast.physicsmodel.grid import FileSEDGrid
 from beast.tools import verify_params
 
 import datamodel
 import importlib
 
-import pdb
+#import pdb
 
 
 def make_ast_inputs(flux_bin_method=True):

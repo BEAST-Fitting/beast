@@ -33,7 +33,7 @@ import importlib
 
 import pdb
 
-def create_physicsmodel(nsubs=1, nprocs=1, subset=[None,None])
+def create_physicsmodel(nsubs=1, nprocs=1, subset=[None,None]):
     """
     Create the physics model grid.  If nsubs > 1, this will make sub-grids.
 
