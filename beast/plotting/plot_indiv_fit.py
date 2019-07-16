@@ -69,6 +69,7 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
 
     if (n_bins == 1) or (n_bins == 0):
         ax.text(0.5, 0.5, 'unused', transform=ax.transAxes, va='center', ha='center')
+        ax.set_yticklabels([])
         return
 
     if logx:
@@ -82,7 +83,6 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
         ax.plot(xvals, pdf/max(pdf), color='k')
 
     ax.yaxis.set_major_locator(MaxNLocator(6))
-    ax.set_yticklabels([])
     ax.xaxis.set_major_locator(MaxNLocator(4))
     xlim = [xvals.min(), xvals.max()]
     xlim_delta = xlim[1] - xlim[0]
@@ -94,6 +94,7 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum,
             bestval /= 1000.
         ax.set_xlim(0.95 * bestval, 1.05 * bestval)
     ax.set_ylim(0.0, 1.1)
+    ax.set_yticklabels([])
 
     if stats is not None:
         ylim = ax.get_ylim()
@@ -216,12 +217,14 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
     sed_ax.set_ylabel(r'Flux [ergs s$^{-1}$ cm$^{-2}$ $\AA^{-1}$]')
     sed_ax.set_yscale('log')
 
-    sed_ax.set_xscale('log')
     sed_ax.text(0.5, -0.07, r'$\lambda$ [$\AA$]',
                 transform=sed_ax.transAxes, va='top')
     sed_ax.set_xlim(0.2, 2.0)
+    sed_ax.set_xscale('log')
+    sed_ax.minorticks_off()
     sed_ax.set_xticks([0.2, 0.3, 0.4, 0.5, 0.8, 1.0, 2.0])
     sed_ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    sed_ax.get_xaxis().set_minor_formatter(matplotlib.ticker.ScalarFormatter())
 
     sed_ax.text(0.05, 0.95, corname, transform=sed_ax.transAxes,
                 va='top', ha='left')
