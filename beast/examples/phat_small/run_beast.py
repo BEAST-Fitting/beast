@@ -188,7 +188,8 @@ if __name__ == '__main__':
            datamodel.noisefile,
            datamodel.astfile,
            modelsedgrid,
-           absflux_a_matrix=datamodel.absflux_a_matrix)
+           absflux_a_matrix=datamodel.absflux_a_matrix,
+           use_rate=False)
 
         # in the absence of ASTs, the splinter noise model can be used
         # instead of the toothpick model above
