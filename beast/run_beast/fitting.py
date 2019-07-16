@@ -428,11 +428,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
-    create_obsmodel(use_sd=args.use_sd,
-                        nsubs=args.nsubs,
-                        nprocs=args.nprocs
-                        subset=args.subset)
-
+    fitting(use_sd=args.use_sd,
+                nsubs=args.nsubs,
+                nprocs=args.nprocs
+                choose_sd_sub=args.choose_sd_sub,
+                choose_subgrid=args.choose_subgrid,
+                resume=args.resume)
+    
     # print help if no arguments
     if not any(vars(args).values()):
         parser.print_help()
