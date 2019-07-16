@@ -36,7 +36,7 @@ Install dependencies using conda (better for speed)
 
   .. code:: shell
 
-    $ conda install astropy scipy h5py matplotlib cython photutils tqdm
+    $ conda install astropy scipy h5py matplotlib cython
 
 Next, install the BEAST.  You have three options:
 
