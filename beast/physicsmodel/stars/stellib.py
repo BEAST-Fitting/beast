@@ -35,10 +35,11 @@ config = {
     'btsettl': __ROOT__ + 'bt-settl.lowres.grid.fits',
     'btsettl_medres': __ROOT__ + 'bt-settl.medres.grid.fits',
     'munari': __ROOT__ + 'atlas9-munari.hires.grid.fits'
+    'aringer': __ROOT__ + 'Aringer.AGB.grid.fits'
 }
 
 __all__ = ['Stellib', 'CompositeStellib', 'Kurucz', 'Tlusty',
-           'BTSettl', 'Munari', 'Elodie', 'BaSeL']
+           'BTSettl', 'Munari', 'Elodie', 'BaSeL', 'Aringer']
 
 
 def isNestedInstance(obj, cl):
@@ -1683,3 +1684,99 @@ class Munari(Stellib):
     @property
     def logZ(self):
         return self.grid['logZ']
+
+
+class Aringer(Stellib):
+    """Aringer C+M+K giants Library
+
+    References
+    ----------
+
+    Paper 2016: https://ui.adsabs.harvard.edu/abs/2016MNRAS.457.3611A/abstract
+
+    Note that the 2016 paper/models *includes* an update of the C stars 
+    described in the following 2009 paper.
+    Paper 2009: https://ui.adsabs.harvard.edu/abs/2009A%26A...503..913A/abstract
+
+    Note that these files will be continuously updated. A 2019 paper
+    details an increase in oxygen and nitrogen abundance. The 2019
+    version is currently NOT implemented here.
+    Paper 2019: https://ui.adsabs.harvard.edu/abs/2019MNRAS.487.2133A/abstract
+
+    Files available at: 
+    http://starkey.astro.unipd.it/atm/
+
+    """
+    def __init__(self, *args, **kwargs):
+        self.name = 'Aringer'
+        self.source = config['aringer']
+        self._load_()
+
+    def _load_(self):
+        g = SpectralGrid(self.source, backend='memory')
+        self.wavelength = g.lamb
+        self.grid = g.grid
+        self.grid.header['NAME'] = self.name
+        self.spectra = g.seds
+
+    def bbox(self, dlogT=0.05, dlogg=0.25):
+        """ Boundary of Aringer library for C+M+K giants
+
+        Parameters
+        ----------
+        dlogT: float
+            log-temperature tolerance before extrapolation limit
+
+        dlogg: float
+            log-g tolerance before extrapolation limit
+
+        Returns
+        -------
+        bbox: ndarray
+            (logT, logg) edges of the bounding polygon
+            Excludes excess isochrone models (red/green lines in Fig. 4 of Aringer+2016)
+        """
+        bbox = [(3.41497 - dlogT,  5.00 + dlogg),
+                (3.69897 + dlogT,  5.00 + dlogg),
+                (3.69897 + dlogT,  3.50 + dlogg),
+                (3.71600 + dlogT,  3.50 + dlogg),
+                (3.71600 + dlogT,  2.50 - dlogg),
+                (3.69897 + dlogT,  2.50 - dlogg),
+                (3.69897 + dlogT,  0.00 - dlogg),
+                (3.57978 + dlogT,  0.00 - dlogg),
+                (3.57978 + dlogT, -0.50 - dlogg),
+                (3.51851 + dlogT, -0.50 - dlogg),
+                (3.51851 + dlogT, -0.80 - dlogg),
+                (3.50515 + dlogT, -0.70 - dlogg),
+                (3.47712 + dlogT, -0.70 - dlogg),
+                (3.47712 + dlogT, -0.80 - dlogg),
+                (3.46240 + dlogT, -0.85 - dlogg),
+                (3.44716 + dlogT, -1.00 - dlogg),
+                (3.39794 - dlogT, -1.00 - dlogg),
+                (3.39794 - dlogT,  2.00 + dlogg),
+                (3.41497 - dlogT,  2.00 + dlogg),
+                (3.41497 - dlogT,  5.00 + dlogg)]
+
+        return np.array(bbox)
+
+    @property
+    def logT(self):
+        return self.grid['logT']
+
+    @property
+    def logg(self):
+        return self.grid['logg']
+
+    @property
+    def Teff(self):
+        return self.grid['Teff']
+
+    @property
+    def Z(self):
+        return self.grid['Z']
+
+    @property
+    def logZ(self):
+        return self.grid['logz']
+
+
