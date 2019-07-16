@@ -132,9 +132,7 @@ will be downloaded into the location specified in :ref:`library_loc`::
 Running Example
 ===============
 
-You can find examples of BEAST runs in the
-<https://github.com/BEAST-Fitting/beast-examples>
-repository.
+You can find examples of BEAST runs in the ``beast/examples/`` directory.
 
 Inside each example, there is a run_beast*.py script.
 
