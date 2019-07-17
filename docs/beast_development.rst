@@ -110,6 +110,15 @@ Adding Branches
      $ git checkout master
 
 
+Development Install
+==============================
+
+To perform development, and see your changes reflected immediately in your
+installed copy of the BEAST, you can perform a development install::
+
+    $ python setup.py develop
+
+
 Making Changes
 ==============
 
