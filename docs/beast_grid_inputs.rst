@@ -30,8 +30,7 @@ Choices:
      pre-main sequence stars (M < 12 Msun).
    * Details = age: 0 to 13.5 Gyr; metallicity: [M/H] from -2.2 to +0.5
      (0.0001≤Z≤0.02; 122 pts), also super-solar available (Z = 0.03,0.04,0.06);
-     solar abundance: Caffau+11 (Z_photo=0.0153), initial by calibration
-     (Z_initial=0.0177)
+     solar abundance: Z_sun=0.0152 based on Caffau+11.
 
 * MIST
    * The MIST models (Choi+16) are computed using MESA (Paxton+11,13,15).
@@ -43,8 +42,8 @@ Choices:
      of 0.4 x critical rotation].
    * Details = age: log(Age) from 5.0 to 10.3 (default sample = 0.05 dex);
      metallicity: [Fe/H] from -4 to +0.5 (default sample = 0.25 dex), all
-     solar scaled in Version 1.2; solar abundance: Asplund+09 (Z_proto=0.0142,
-     Z_photo=0.0134)
+     solar scaled in Version 1.2; solar abundance: Z_sun=0.0142 based on 
+     Asplund+09 (Z_proto=0.0142, Z_photo=0.0134).
 
 Spectral Models
 ===============
