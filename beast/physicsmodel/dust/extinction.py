@@ -11,6 +11,7 @@ from astropy import units
 
 import dust_extinction.parameter_averages as dustext_par
 import dust_extinction.averages as dustext_avg
+from dust_extinction.helpers import _test_valid_x_range
 
 from ...observationmodel import phot
 from ...config import __ROOT__
@@ -113,6 +114,7 @@ class Cardelli89(ExtinctionLaw):
     """
     def __init__(self):
         self.name = 'Cardelli89'
+        self.x_range = [0.3, 10.0] # inverse microns
 
     def function(self, lamb, Av=1., Rv=3.1, Alambda=True, **kwargs):
         """
@@ -146,8 +148,15 @@ class Cardelli89(ExtinctionLaw):
         else:
             _lamb = lamb[:]
 
+
+        # convert to wavenumbers
+        x = 1.e4 / _lamb
+
+        # check that the wavenumbers are within the defined range
+        _test_valid_x_range(x, self.x_range, self.name)
+
+
         # init variables
-        x = 1.e4 / _lamb  # wavenumber in um^-1
         a = np.zeros(np.size(x))
         b = np.zeros(np.size(x))
         # Infrared (Eq 2a,2b)
@@ -212,6 +221,7 @@ class Fitzpatrick99(ExtinctionLaw):
     """
     def __init__(self):
         self.name = 'Fitzpatrick99'
+        self.x_range = [0.3, 10.0]
 
     def function(self, lamb, Av=1, Rv=3.1, Alambda=True,
                  draine_extend=False, **kwargs):
@@ -249,6 +259,13 @@ class Fitzpatrick99(ExtinctionLaw):
         else:
             _lamb = lamb[:]
 
+        # convert to wavenumbers
+        x = 1.e4 / _lamb
+
+        # check that the wavenumbers are within the defined range
+        _test_valid_x_range(x, self.x_range, self.name)
+
+        # initialize values
         c2 = -0.824 + 4.717 / Rv
         c1 = 2.030 - 3.007 * c2
         c3 = 3.23
@@ -256,7 +273,6 @@ class Fitzpatrick99(ExtinctionLaw):
         x0 = 4.596
         gamma = 0.99
 
-        x = 1.e4 / _lamb
         k = np.zeros(np.size(x))
 
         # compute the UV portion of A(lambda)/E(B-V)
@@ -357,6 +373,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
     def __init__(self):
         self.name = 'Gordon03_SMCBar'
         self.Rv = 2.74
+        self.x_range = [0.3, 10.0]
 
     def function(self, lamb, Av=1, Rv=2.74, Alambda=True,
                  draine_extend=False,  **kwargs):
@@ -391,6 +408,12 @@ class Gordon03_SMCBar(ExtinctionLaw):
         else:
             _lamb = lamb[:]
 
+        # convert to wavenumbers
+        x = 1.e4 / _lamb
+
+        # check that the wavenumbers are within the defined range
+        _test_valid_x_range(x, self.x_range, self.name)
+
         # set Rv explicitly to the fixed value
         Rv = self.Rv
 
@@ -401,7 +424,6 @@ class Gordon03_SMCBar(ExtinctionLaw):
         x0 = 4.6
         gamma = 1.0
 
-        x = 1.e4 / _lamb
         k = np.zeros(np.size(x))
 
         # UV part
