@@ -107,7 +107,7 @@ class Cardelli89(ExtinctionLaw):
 
     From Cardelli, Clayton, and Mathis (1989, ApJ, 345, 245).
 
-    Fitzpatrick99 should be used instead except for historical puposes
+    Fitzpatrick99 should be used instead except for historical purposes
     as this newer law is based on 10x more observations and a better
     treatment of the optical/NIR photometry based portion of the curves.
     """
@@ -121,7 +121,7 @@ class Cardelli89(ExtinctionLaw):
         Parameters
         ----------
         lamb: float or ndarray(dtype=float)
-            wavelength [in Angstroms] at which evaluate the law.
+            wavelength [in Angstroms] at which to evaluate the law.
 
         Av: float
             desired A(V) (default: 1.0)
@@ -221,7 +221,7 @@ class Fitzpatrick99(ExtinctionLaw):
         Parameters
         ----------
         lamb: float or ndarray(dtype=float)
-            wavelength [in Angstroms] at which evaluate the law.
+            wavelength [in Angstroms] at which to evaluate the law.
 
         Av: float
             desired A(V) (default 1.0)
@@ -366,7 +366,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
         Parameters
         ----------
         lamb: float or ndarray(dtype=float)
-            wavelength [in Angstroms] at which evaluate the law.
+            wavelength [in Angstroms] at which to evaluate the law.
 
         Av: float
             desired A(V) (default 1.0)
@@ -483,7 +483,7 @@ class Gordon16_RvFALaw(ExtinctionLaw):
         Parameters
         ----------
         lamb: float or ndarray(dtype=float)
-            wavelength [in Angstroms] at which evaluate the law.
+            wavelength [in Angstroms] at which to evaluate the law.
 
         Av: float
             desired A(V) (default 1.0)
@@ -622,7 +622,7 @@ class Generalized_DustExt(ExtinctionLaw):
         Parameters
         ----------
         lamb: float or ndarray(dtype=float)
-            wavelength [in Angstroms] at which evaluate the law.
+            wavelength [in Angstroms] at which to evaluate the law.
 
         Av: float
             desired A(V) (default 1.0)
