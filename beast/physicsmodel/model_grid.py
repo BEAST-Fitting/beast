@@ -75,7 +75,9 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                        distance=10, distance_unit=units.pc,
                        redshift=0.,
                        filterLib=None,
-                       add_spectral_properties_kwargs=None, **kwargs):
+                       add_spectral_properties_kwargs=None,
+                       extLaw=None,
+                       **kwargs):
     """
     The spectral grid is generated using the stellar parameters by
     interpolation of the isochrones and the generation of spectra into the
@@ -112,6 +114,10 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
 
     filterLib:  str
         full filename to the filter library hd5 file
+
+    extLaw: extinction.ExtLaw (default=None)
+        if set, only save the spectrum for the wavelengths over which the
+        extinction law is valid
 
     add_spectral_properties_kwargs: dict
         keyword arguments to call :func:`add_spectral_properties`
@@ -196,6 +202,18 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                 gk.writeHDF(spec_fname, append=True)
 
     g = grid.FileSpectralGrid(spec_fname, backend='memory')
+
+    # if extLaw is set, remove wavelengths where the extinction curve
+    # isn't valid
+    if extLaw is not None:
+
+        ext_law_range_A = 1e4 / np.array(extLaw.x_range)
+        valid_lambda = np.where((g.lamb > np.min(ext_law_range_A)) &
+                                (g.lamb < np.max(ext_law_range_A)) )[0]
+        
+        g.lamb = g.lamb[valid_lambda]
+        g.seds = g.seds[:,valid_lambda]
+        
 
     return (spec_fname, g)
 
