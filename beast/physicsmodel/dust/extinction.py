@@ -498,6 +498,9 @@ class Gordon16_RvFALaw(ExtinctionLaw):
         self.BLaw = Gordon03_SMCBar()
         self.name = 'Gordon16_RvFALaw'
 
+        self.x_range = [np.max([self.ALaw.x_range[0], self.BLaw.x_range[0]]),
+                        np.min([self.ALaw.x_range[1], self.BLaw.x_range[1]]) ]
+
     def function(self, lamb, Av=1, Rv=3.1, Alambda=True, f_A=0.5, **kwargs):
         """
         Gordon16_RvFALaw
@@ -613,6 +616,9 @@ class Generalized_RvFALaw(Gordon16_RvFALaw):
         self.BLaw = BLaw
         self.name = 'Generalized_RvFALaw:'+ALaw.name+'+'+BLaw.name
 
+        self.x_range = [np.max([self.ALaw.x_range[0], self.BLaw.x_range[0]]),
+                        np.min([self.ALaw.x_range[1], self.BLaw.x_range[1]]) ]
+
 
 class Generalized_DustExt(ExtinctionLaw):
     """
@@ -635,6 +641,8 @@ class Generalized_DustExt(ExtinctionLaw):
             raise ValueError(curve + ' class not found. \n' +
                              'Valid dust_extinction package classes: '+
                              ' '.join(dustext_par.__all__+dustext_avg.__all__))
+
+        self.x_range = self.extcurve_class.x_range
 
     def function(self, lamb, Av=1, Rv=3.1, Alambda=True,
                  **kwargs):
