@@ -33,12 +33,13 @@ One easy way to obtain the above is through the AstroConda Python stack:
 
 - Install AstroConda with Python 3 (recommended)::
 
-    $conda create -n astroconda stsci
+    $ conda create -n astroconda stsci
 
-- Make sure that the ``PyTables`` and ``hdf5`` packages are installed:
+- Make sure that the ``PyTables`` and ``hdf5`` packages are installed::
 
-    $ conda install -n astroconda (or iraf27) pytables
-    $ conda install -n astroconda (or iraf27) hdf5
+    $ conda install -n astroconda pytables
+
+    $ conda install -n astroconda hdf5
 
 
 Installing the BEAST
@@ -117,10 +118,14 @@ Manual download
 
 <https://stsci.box.com/v/beastlibs>
 
+Note that the archive at this link contains a folder called `files`. The
+_contents_ of this folder are the library files required by beast. It is these
+files that need to be places within (any of) the possible locations given above.
+
 Script download
 ---------------
 
-After installing the `beast`, run the following script and the library files
+After installing the BEAST, run the following script and the library files
 will be downloaded into the location specified in :ref:`library_loc`::
 
      $ python -m beast.tools.get_libfiles
@@ -135,7 +140,7 @@ Inside each example, there is a run_beast*.py script.
 phat_small example
 ------------------
 
-This example is based on a *very* small amount of PHAT old data.
+This example is based on a *very* small amount of old PHAT data.
 
 If the beast has not been installed (only downloaded from github), then
 In the 'phat_small' directory, place a soft link named 'beast' to where the
@@ -154,15 +159,12 @@ Verify that the current default Python is version 3::
 
     $ python --version
 
-Now try a sample BEAST run::
+Next, bring up the BEAST help message, which describes the available switch
+options, with::
 
-    $ ./run_beast.py
+    $ ./run_beast.py -h
 
-or::
-
-    $ python run_beast.py::
-
-Optionally, you can run BEAST with one, or a combination, of these arguments
+You should be presented with the following options::
 
   -h, --help              show this help message and exit
   -p, --physicsmodel      Generate the model grid
@@ -171,9 +173,13 @@ Optionally, you can run BEAST with one, or a combination, of these arguments
   -f, --fit               Fit the observed data
   -r, --resume            Resume a run
 
-For example: ``$ ./run_beast.py -h`` or ``$ ./run_beast.py -potf``
+Now launch a sample BEAST run (with flags set to run through the full
+sequence of generation of physics model, observation model generation, trimming
+of the grid, and fitting to the observed data) using::
 
-If the BEAST is running correctly the second command should run without errors
+  $ ./run_beast.py -potf
+
+If the BEAST is running correctly, this command should run without errors
 and should have written the output files into 'beast_example_phat/'. The result
 can be plotted using::
 
