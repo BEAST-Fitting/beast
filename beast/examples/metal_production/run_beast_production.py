@@ -113,6 +113,7 @@ def run_beast_production(basename,
             redshift=redshift,
             distance=datamodel.distances,
             distance_unit=datamodel.distance_unit,
+            extLaw=datamodel.extLaw,
             add_spectral_properties_kwargs=extra_kwargs)
 
         # add the stellar priors as weights

@@ -207,7 +207,7 @@ def generic_batch_trim(model_grid_file,
         trimfile = job_path+file_prefix+'_' + str(i+1)
         bt_f.append(open(trimfile, 'w'))
         bt_f[-1].write(model_grid_file + '\n')
-        pf.write(nice_str + 'python -m beast_lh.tools.trim_many_via_obsdata '
+        pf.write(nice_str + 'python -m beast.tools.trim_many_via_obsdata '
                  + trimfile + ' > '
                  + log_path + file_prefix+'_trim_tr'+str(i+1)+'.log\n')
     pf.close()

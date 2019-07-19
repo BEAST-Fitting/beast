@@ -155,6 +155,7 @@ if __name__ == '__main__':
             osl=datamodel.osl,
             distance=datamodel.distances,
             distance_unit=datamodel.distance_unit,
+            extLaw=datamodel.extLaw,
             add_spectral_properties_kwargs=extra_kwargs)
 
         # Work with the whole grid up to here (otherwise, priors need a

@@ -4,6 +4,7 @@ from astropy import constants as const
 
 from ...stars import stellib
 from ...stars.isochrone import ezIsoch
+from ...dust import extinction
 from ... import grid
 from ...model_grid import (make_spectral_grid,
                            add_stellar_priors)
@@ -39,6 +40,10 @@ def test_make_kurucz_tlusty_spectral_grid():
     osl = stellib.Tlusty(filename=tlusty_fname) \
         + stellib.Kurucz(filename=kurucz_fname)
 
+    # define the extinction curve to use
+    extLaw = extinction.Gordon16_RvFALaw()
+
+
     filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
                'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
     add_spectral_properties_kwargs = dict(filternames=filters)
@@ -53,6 +58,7 @@ def test_make_kurucz_tlusty_spectral_grid():
         distance_unit=distance_unit,
         spec_fname=spec_fname,
         filterLib=filter_fname,
+        extLaw=extLaw,
         add_spectral_properties_kwargs=add_spectral_properties_kwargs)
 
     # compare the new to the cached version
