@@ -22,19 +22,19 @@ software used.  The instructions below assume that the `astroconda channel
 
 Create a conda environment.  Here we name it to include the BEAST version.
 
-  .. code:: shell
+  .. code-block:: console
 
     $ conda create -n beast_v1.3 python=3.6
 
 Activate the environment after all the packages are finished installing.
 
-  .. code:: shell
+  .. code-block:: console
 
     $ source activate beast_v1.3
 
 Install dependencies using conda (better for speed)
 
-  .. code:: shell
+  .. code-block:: console
 
     $ conda install astropy scipy h5py matplotlib cython
 
@@ -42,13 +42,13 @@ Next, install the BEAST.  You have three options:
 
 Option 1: Use pip to install the production version of the beast (currently v1.3)
 
-  .. code:: shell
+  .. code-block:: console
 
     $ pip install beast==1.3
 
 Option 2: Get the latest production branch, which can be ahead of pipy version
 
-  .. code:: shell
+  .. code-block:: console
 
     $ pip install git+https://github.com/BEAST-Fitting/beast.git@v1.x
 
@@ -58,7 +58,7 @@ navigate into the first `beast` folder, and do this command.  Any changes
 you make will be immediately reflected in your calls to the BEAST code. Note that
 you can make separate environments for development and production modes.
 
-  .. code:: shell
+  .. code-block:: console
 
     $ python setup.py develop
 
@@ -85,7 +85,7 @@ In this location, at a minimum you will need the following files:
     will have name/filter fields automatically filled in by beast_production_wrapper
   * symbolic link to the beast directory in the beast repository
 
-  .. code:: shell
+  .. code-block:: console
 
      $ ln -s /location/beast/beast/ beast
 
@@ -123,7 +123,7 @@ should edit several items in the file:
 You can (and should!) read about the individual functions below before
 running beast_production_wrapper:
 
-  .. code:: shell
+  .. code-block:: console
 
      $ run beast_production_wrapper.py
 
@@ -184,7 +184,7 @@ that map the source density of objects with zero fluxes in different bands
 Command to create the observed catalog with source density column with
 a pixel scale of 5 arcsec using the 'datafile.fits' catalog.
 
-  .. code:: shell
+  .. code-block:: console
 
      $ ./beast/tools/create_background_density_map.py sourceden -catfile datafile.fits --pixsize 5.
 
@@ -203,7 +203,7 @@ on a different core.
 
 Command to create the the source density split files
 
- .. code:: shell
+ .. code-block:: console
 
     $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 \
              --sort_col F475W_RATE datafile_with_sourceden.fits
@@ -221,7 +221,7 @@ diagnostic plots.
 
 Command to create the observed catalog with background column with a 15x15 pixel array using the 'datafile.fits' catalog and the 'image.fits' reference image.
 
-  .. code:: shell
+  .. code-block:: console
 
      $ ./beast/tools/create_background_density_map.py background -catfile datafile.fits --npix 15 \
 	     -reference image.fits
@@ -232,7 +232,7 @@ Plotting the background map onto a reference image
 To check if the background (or source density) map makes sense, the 'tileplot' subcommand of the
 same script can be used. If the output of one of the previous commands was 'map_name.hd5', then use
 
-  .. code:: shell
+  .. code-block:: console
 
      $ ./beast/tools/create_background_density_map.py tileplot map_name.hd5 -image image.fits --colorbar 'background'
 
@@ -246,7 +246,7 @@ Physics model
 Generate the full physics model grid.  Needed for the fitting and generation of
 the artificial star test (AST) inputs.  The '0 0' arguments are dummy values.
 
-  .. code:: shell
+  .. code-block:: console
 
      $ ./run_beast_production.py -p obscat.fits 0 0
 
@@ -310,7 +310,7 @@ density.  This could be a good approximation if the source density does
 not change much over the observation area or is low everywhere.
 The '0 0' arguments are dummy values.
 
-  .. code:: shell
+  .. code-block:: console
 
      $ ./run_beast_production.py -o datafile.fits 0 0
 
@@ -351,7 +351,7 @@ cores is desired.  Use the 'split' commandline tool.  The optional 'nice'
 input allows you to prepend a 'nice' option, expecially useful if
 you're utilizing shared computing resources.
 
-  .. code:: shell
+  .. code-block:: console
 
      $ ./beast/tools/setup_batch_beast_trim.py projectname datafile.fits \
           astfile.fits --num_subtrim 5 --nice 19
@@ -361,7 +361,7 @@ queue.  The beast/tools/trim_many_via_obsdata.py code is called and trimmed
 versions of the physics and observation models are created in the project
 directory.
 
-  .. code:: shell
+  .. code-block:: console
 
      $ at -f project/trim_batch_jobs/XX_joblist now
 
@@ -377,14 +377,14 @@ where the fitting was interrupted will be added to the batch files.  The number
 of sub files to be run on each core is a command line argument (the runs will
 are serial on the core).
 
-  .. code:: shell
+  .. code-block:: console
 
      $ ./beast/tools/setup_batch_beast_fit.py projectname datafile.fits \
        --num_percore 2 --nice 19
 
 The jobs can be submitted to the batch queue via:
 
-  .. code:: shell
+  .. code-block:: console
 
      $ at -f projectname/fit_batch_jobs/beast_batch_fit_X.joblist now
 
@@ -399,7 +399,7 @@ The stats (catalog of fit parameters) files can then be merged into a single
 file for the region.  This only merges the stats output files, but not the
 pdf1d or lnp files (see the next section).
 
-  .. code:: shell
+  .. code-block:: console
 
      $ beast/tools/merge_stats_file.py filebase
 
@@ -422,7 +422,7 @@ minimal set (stats, pdf1d, and lnp).
 Divide each source density/brightness file into files of spatial regions
 with 10"x10" pixels.
 
-  .. code:: shell
+  .. code-block:: console
 
      $ beast/tools/reorder_beast_results_spatial.py
         --stats_filename filebase_stats.fits
@@ -434,7 +434,7 @@ Condense the multiple files for each spatial region into the minimal set.
 Each spatial region will have files containing the stats, pdf1d, and lnp
 results for the stars in that region.
 
-  .. code:: shell
+  .. code-block:: console
 
      $ beast/tools/condense_beast_results_spatial.py
         --filedir spatial

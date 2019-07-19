@@ -28,7 +28,7 @@ The number of observations to simulate is given by the `--nsim` parameter.
 The filter to use for the completeness function is given by the
 `--compl_filter` parameter.
 
-.. code:: shell
+.. code-block:: console
 
    $ python simulate_obs.py physicsgrid obsgrid outfile \
                 --nsim 200 --compl_filter f475w
@@ -55,7 +55,7 @@ Plotting
 To plot a color-magnitude diagram of the simulated observations, a
 sample call from the command line may be:
 
-.. code:: shell
+.. code-block:: console
 
    $ python plot_cmd.py outfile.fits --mag1 F475W --mag2 F814W --magy F475W
 
@@ -81,7 +81,7 @@ As an example, to remove the filters F275W and F336W from the simulated
 observations contained in 'catfile' and the 'physgrid'/'obsgrid' set of models
 use the following command.
 
-.. code:: shell
+.. code-block:: console
 
    $ python remove_filters.py catfile physgrid obsgrid outbase \
                 --rm_filters F275W F336W
