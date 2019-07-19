@@ -182,16 +182,30 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
         # TODO: Applying the distances might have to happen in chunks
         # for larger grids.
         def apply_distance_and_spectral_props(g):
+            # distance
             g = creategrid.apply_distance_grid(g, distances,
                                                redshift=redshift)
 
+            # spectral props
             if add_spectral_properties_kwargs is not None:
                 g = creategrid.add_spectral_properties(
                     g, nameformat=nameformat, filterLib=filterLib,
                     **add_spectral_properties_kwargs)
 
+            # extinction
+            if extLaw is not None:
+
+                ext_law_range_A = 1e4 / np.array(extLaw.x_range)
+                valid_lambda = np.where((g.lamb > np.min(ext_law_range_A)) &
+                                        (g.lamb < np.max(ext_law_range_A)) )[0]
+        
+                g.lamb = g.lamb[valid_lambda]
+                g.seds = g.seds[:,valid_lambda]
+
             return g
 
+        # if extLaw is set, remove wavelengths where the extinction curve
+        # isn't valid
         # Perform the extensions defined above and Write to disk
         if hasattr(g, 'writeHDF'):
             g = apply_distance_and_spectral_props(g)
@@ -203,17 +217,8 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
 
     g = grid.FileSpectralGrid(spec_fname, backend='memory')
 
-    # if extLaw is set, remove wavelengths where the extinction curve
-    # isn't valid
-    if extLaw is not None:
 
-        ext_law_range_A = 1e4 / np.array(extLaw.x_range)
-        valid_lambda = np.where((g.lamb > np.min(ext_law_range_A)) &
-                                (g.lamb < np.max(ext_law_range_A)) )[0]
-        
-        g.lamb = g.lamb[valid_lambda]
-        g.seds = g.seds[:,valid_lambda]
-        
+
 
     return (spec_fname, g)
 
