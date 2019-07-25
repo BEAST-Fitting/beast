@@ -11,10 +11,12 @@ import pickle
 # BEAST imports
 from beast.fitting import fit
 from beast.physicsmodel.grid import FileSEDGrid
+import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.tools import verify_params
 from beast.run_beast.helper_functions import (subcatalog_fname,
                                                  parallel_wrapper,
                                                  get_modelsubgridfiles)
+from beast.tools import subgridding_tools
 
 
 import datamodel
@@ -71,7 +73,6 @@ def run_fitting(use_sd=True, nsubs=1, nprocs=1,
 
     # keep track of time
     start_time = time.clock()
-
 
 
     # --------------------
@@ -380,7 +381,7 @@ def create_filenames(use_sd=True, nsubs=1,
 
 def fit_submodel(photometry_file, modelsedgrid_file, noise_file,
                      stats_file, pdf_file, lnp_file,
-                     grid_info_dict=None, resume=False):
+                     grid_info_file=None, resume=False):
     """
     Code to run the SED fitting
 
@@ -425,7 +426,7 @@ def fit_submodel(photometry_file, modelsedgrid_file, noise_file,
     # check if it's a subgrid run by looking in the file name
     if 'gridsub' in modelsedgrid_file:
         subgrid_run = True
-        print('loading grid_info_dict from ' + gridpickle_files[i])
+        print('loading grid_info_dict from ' + grid_info_file)
         with open(grid_info_file, 'rb') as p:
             grid_info_dict = pickle.loads(p.read())
     else:
