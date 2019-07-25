@@ -138,6 +138,8 @@ def setup_batch_beast_fit(num_percore=5,
 
     for i, phot_file in enumerate(photometry_files):
 
+        print('')
+
         # check if this is a full run
         reg_run = False
         run_done = False
@@ -171,7 +173,7 @@ def setup_batch_beast_fit(num_percore=5,
         #    the number of observations
         if not reg_run:
             # get the observed catalog
-            obs = Table.read(phot_files[i])
+            obs = Table.read(photometry_files[i])
 
             # get the fit results catalog
             t = Table.read(stats_files[i])
@@ -179,7 +181,7 @@ def setup_batch_beast_fit(num_percore=5,
             indxs, = np.where(t['Pmax'] != 0.0)
 
             # get the number of entries in the lnp file
-            f = tables.open_file(lnp_file, 'r')
+            f = tables.open_file(lnp_files[i], 'r')
             nlnp = f.root._v_nchildren - 2
             f.close()
 
@@ -216,9 +218,10 @@ def setup_batch_beast_fit(num_percore=5,
                 pf = open(joblist_file, 'w')
                 run_info_dict['files_to_run'].append(joblist_file)
 
-            # write out anything at the beginning of the file
-            if prefix is not None:
-                pf.write(prefix+'\n')
+                # write out anything at the beginning of the file
+                if prefix is not None:
+                    pf.write(prefix+'\n')
+
 
             # flag for resuming
             resume_str = ''
