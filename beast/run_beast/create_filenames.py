@@ -16,9 +16,32 @@ import importlib
 def create_filenames(use_sd=True, nsubs=1,
                      choose_sd_sub=None, choose_subgrid=None):
     """
-    Helper function to make all of the filenames.  Arguments are same as run_fitting.
+    Helper function to make all of the filenames.  SED grid and noise model
+    are trimmed versions.
 
-    Returns dictionary with the lists of filenames.
+    Parameters
+    ----------
+    use_sd : boolean (default=True)
+        If True, create source density dependent noise models (determined by
+        finding matches to datamodel.astfile with SD info)
+
+    nsubs : int (default=1)
+        number of subgrids used for the physics model
+
+    choose_sd_sub : list of two strings (default=None)
+        If this is set, the fitting will just be for this combo of SD+sub,
+        rather than all of them.  Overrides use_sd.
+        format of the list: ['#-#','#']
+
+    choose_subgrid : int (default=None)
+        If this is set, the fitting with just be for this subgrid index.
+        If nsubs=1, this is ignored.
+
+    Returns
+    -------
+    dictionary with the lists of filenames, plus the corresponding SD+sub and
+    gridsub values for easy referencing
+
     """
 
     # before doing ANYTHING, force datamodel to re-import (otherwise, any
