@@ -29,20 +29,20 @@ from beast.observationmodel.noisemodel import absflux_covmat
 
 # project : string
 #   the name of the output results directory
-project = 'LMC-5665ne-12232_beast_small'
+project = '15275_IC1613_beast'
 
 # name of the survey
 #  used for the creation of the unique name for each source
-surveyname = 'METAL'
+surveyname = 'LUVIT'
 
 # filters : list of strings
 #   full filter names in BEAST filter database
-filters = ['HST_WFC3_F225W','HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W','HST_ACS_WFC_F814W','HST_WFC3_F110W','HST_WFC3_F160W'] 
+filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_WFC3_F390M','HST_WFC3_F555W','HST_WFC3_F814W','HST_WFC3_F110W','HST_WFC3_F160W'] 
 
 
 # basefilters : list of strings
 #   short names for filters
-basefilters = ['F225W','F275W','F336W','F475W','F814W','F110W','F160W'] 
+basefilters = ['F275W','F336W','F390M','F555W','F814W','F110W','F160W'] 
 
 # obs_colnames : list of strings
 #   names of columns for filters in the observed catalog
@@ -53,7 +53,7 @@ obs_colnames = [ f.upper() + '_RATE' for f in basefilters ]
 
 # obsfile : string 
 #   pathname of the observed catalog
-obsfile = 'data/14675_LMC-5665ne-12232.gst.fits'
+obsfile = "./data/15275_IC1613.gst.fits"
 
 #------------------------------------------------------
 # Artificial Star Test Input File Generation Parameters
@@ -150,13 +150,13 @@ noisefile = project + '/' + project + '_noisemodel.hd5'
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
 # Distances: distance to the galaxy [min, max, step] or [fixed number]
-distances = [18.5]
+distances = [24.36] 
 
 # Distance unit (any length or units.mag)
 distance_unit = units.mag
 
 # velocity of galaxy
-velocity = 262.2 * units.km / units.s # LMC velocity from SIMBAD
+velocity = -236 * units.km / units.s 
 
 ################
 
@@ -174,7 +174,7 @@ logt = [6.0, 10.13, 0.1]
 #   PARSECv1.2S accepts values 1.e-4 < Z < 0.06
 #   example z = [0.03, 0.019, 0.008, 0.004]
 #   can they be set as [min, max, step]?
-z = (10**np.array([-2.3, -2.0, -1.7, -1.4, -1.1, -0.8, -0.5, -0.2,  0.1])).tolist()
+z = (10**np.array([-2.1, -1.8, -1.5, -1.2, -0.9, -0.6, -0.3,  0.0,  0.3]) * 0.0152)).tolist()
 
 # Isochrone Model Grid
 #   Current Choices: Padova or MIST
