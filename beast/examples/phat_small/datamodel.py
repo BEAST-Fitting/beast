@@ -136,7 +136,7 @@ ast_colnames = np.array(basefilters)
 
 # noisefile : string
 #   create a name for the noise model
-noisefile = project + '/' + project + '_noisemodel.hd5'
+noisefile = project + '/' + project + '_noisemodel.grid.hd5'
 
 # absflux calibration covariance matrix for HST specific filters (AC)
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
