@@ -224,8 +224,7 @@ def fit_submodel(photometry_file, modelsedgrid_file, noise_file,
 
 
     if subgrid_run == True:
-        try:
-            fit.summary_table_memory(obsdata, noisemodel_vals,
+        fit.summary_table_memory(obsdata, noisemodel_vals,
                                          modelsedgrid,
                                          resume=resume,
                                          threshold=-10.,
@@ -237,10 +236,8 @@ def fit_submodel(photometry_file, modelsedgrid_file, noise_file,
                                          lnp_outname=lnp_file,
                                          do_not_normalize=True,
                                          surveyname=datamodel.surveyname)
-            print("Done fitting on grid " + modelsedgrid_file)
-        except Exception as e:
-            if not args.ignore_missing_subresults:
-                raise e
+        print("Done fitting on grid " + modelsedgrid_file)
+
 
     if subgrid_run == False:
         

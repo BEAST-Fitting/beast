@@ -77,7 +77,7 @@ def create_filenames(use_sd=True, nsubs=1,
 
             photometry_files.append( datamodel.obsfile.replace('.fits',
                 '_SD{0}_sub{1}.fits'.format(choose_sd_sub[0], choose_sd_sub[1])) )
-            modelsedgrid_files.append( '{0}/{0}_SD{1}_sub{2}_seds_trim.grid.hd5'.format(
+            modelsedgrid_files.append( '{0}/{0}_SD{1}_sub{2}_sed_trim.grid.hd5'.format(
                 datamodel.project, choose_sd_sub[0], choose_sd_sub[1]) )
             noise_files.append( '{0}/{0}_SD{1}_sub{2}_noisemodel_trim.hd5'.format(
                 datamodel.project, choose_sd_sub[0], choose_sd_sub[1]) )
@@ -94,7 +94,7 @@ def create_filenames(use_sd=True, nsubs=1,
         # -- using source density info
         elif use_sd == True:
 
-            photometry_files = sorted( glob.glob(data.obsfile.replace('.fits','_SD*_sub*.fits')) )
+            photometry_files = sorted( glob.glob(datamodel.obsfile.replace('.fits','_SD*_sub*.fits')) )
 
             for phot_file in photometry_files:
                 # get the sd/sub number
@@ -104,7 +104,7 @@ def create_filenames(use_sd=True, nsubs=1,
                 curr_sd = phot_file[dpos+2:spos-1]
                 curr_sub = phot_file[spos+3:ppos]
                 # construct other file names
-                modelsedgrid_files.append( '{0}/{0}_SD{1}_sub{2}_seds_trim.grid.hd5'.format(
+                modelsedgrid_files.append( '{0}/{0}_SD{1}_sub{2}_sed_trim.grid.hd5'.format(
                     datamodel.project, curr_sd, curr_sub) )
                 noise_files.append( '{0}/{0}_SD{1}_sub{2}_noisemodel_trim.hd5'.format(
                     datamodel.project, curr_sd, curr_sub) )
@@ -123,7 +123,7 @@ def create_filenames(use_sd=True, nsubs=1,
         else:
     
             photometry_files.append( datamodel.obsfile )
-            modelsedgrid_files.append( '{0}/{0}_seds_trim.grid.hd5'.format(datamodel.project) )
+            modelsedgrid_files.append( '{0}/{0}_sed_trim.grid.hd5'.format(datamodel.project) )
             noise_files.append( '{0}/{0}_noisemodel_trim.hd5'.format(datamodel.project) )
 
             stats_files.append( '{0}/{0}_stats.fits'.format(datamodel.project) )
