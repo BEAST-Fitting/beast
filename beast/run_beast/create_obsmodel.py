@@ -23,7 +23,8 @@ import pdb
 
 
 
-def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None,None]):
+def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None,None],
+                        use_rate=True):
     """
     Create the observation models.  If nsubs > 1, this will find existing
     subgrids.  If use_sd is True, will also incorporate source density
@@ -46,6 +47,12 @@ def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None,None]):
     subset : list of two ints (default=[None,None])
         Only process subgrids in the range [start,stop].
         (only relevant if nsubs > 1)
+
+    use_rate : boolean (default=True)
+        Choose whether to use the rate or magnitude when creating the noise
+        model.  This should always be True, but is currently an option to be
+        compatible with the phat_small example (which has no rate info).
+        When that gets fixed, please remove this option!
 
     """
     
@@ -95,7 +102,7 @@ def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None,None]):
         # if we're not splitting by source density
         if use_sd == False:
 
-            input_list = [(modelsedgridfile)]
+            input_list = [(modelsedgridfile, None, use_rate)]
             
             parallel_wrapper(gen_obsmodel, input_list, nprocs=nprocs)
 
@@ -125,7 +132,7 @@ def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None,None]):
         # if we're not splitting by source density
         if use_sd == False:
 
-            input_list = [(sedfile) for sedfile in modelsedgridfiles]
+            input_list = [(sedfile, None) for sedfile in modelsedgridfiles]
             
             parallel_wrapper(gen_obsmodel, input_list, nprocs=nprocs)
 
@@ -134,7 +141,7 @@ def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None,None]):
 
 
 
-def gen_obsmodel(modelsedgridfile, source_density=None):
+def gen_obsmodel(modelsedgridfile, source_density=None, use_rate=True):
     """
     Code to create filenames and run the toothpick noise model
 
@@ -146,6 +153,12 @@ def gen_obsmodel(modelsedgridfile, source_density=None):
     source_density : string (default=None)
         set to None if there's no source density info, otherwise set to
         a string of the form "#-#"
+
+    use_rate : boolean (default=True)
+        Choose whether to use the rate or magnitude when creating the noise
+        model.  This should always be True, but is currently an option to be
+        compatible with the phat_small example (which has no rate info).
+        When that gets fixed, please remove this option!
 
     Returns
     -------
@@ -179,7 +192,8 @@ def gen_obsmodel(modelsedgridfile, source_density=None):
                     noisefile,
                     astfile,
                     modelsedgrid,
-                    absflux_a_matrix=datamodel.absflux_a_matrix)
+                    absflux_a_matrix=datamodel.absflux_a_matrix,
+                    use_rate=use_rate)
 
     else:
         print(noisefile+' already exists')
