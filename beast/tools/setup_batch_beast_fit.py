@@ -16,7 +16,7 @@ from astropy.io import fits
 #####
 
 from beast.tools import verify_params
-from beast.run_beast import run_fitting
+from beast.run_beast import create_filenames
 import datamodel
 import importlib
 
@@ -86,7 +86,7 @@ def setup_batch_beast_fit(num_percore=5,
 
     
     # get file name lists (to check if they exist and/or need to be resumed)
-    file_dict = run_fitting.create_filenames(use_sd=use_sd, nsubs=nsubs)    
+    file_dict = create_filenames.create_filenames(use_sd=use_sd, nsubs=nsubs)    
 
     # - input files
     photometry_files = file_dict['photometry_files']
