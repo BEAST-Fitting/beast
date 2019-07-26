@@ -2,8 +2,6 @@
 from __future__ import (absolute_import, division, print_function)
 import os
 import argparse
-import time
-import numpy as np
 import glob
 
 
@@ -11,15 +9,14 @@ import glob
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.physicsmodel.grid import FileSEDGrid
 from beast.tools import verify_params
-from beast.run_beast.helper_functions import (subcatalog_fname,
-                                              parallel_wrapper,
+from beast.run_beast.helper_functions import (parallel_wrapper,
                                               get_modelsubgridfiles)
 
 
 import datamodel
 import importlib
 
-import pdb
+#import pdb
 
 
 
@@ -198,7 +195,7 @@ def gen_obsmodel(modelsedgridfile, source_density=None, use_rate=True):
     else:
         print(noisefile+' already exists')
         
-    return noisefile # (same as outname)
+    return outname # (same as noisefile)
 
 
 

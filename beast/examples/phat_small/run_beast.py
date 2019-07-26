@@ -11,12 +11,9 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 from __future__ import (absolute_import, division, print_function)
 import sys
 import argparse
-import time
 import string
-import numpy as np
 
 from astropy import units
-from astropy import constants as const
 
 # BEAST imports
 from beast.run_beast import (create_physicsmodel,

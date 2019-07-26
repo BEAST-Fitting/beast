@@ -3,7 +3,6 @@ from __future__ import (absolute_import, division, print_function)
 import os
 import argparse
 import time
-import numpy as np
 import glob
 import pickle
 
@@ -13,9 +12,7 @@ from beast.fitting import fit
 from beast.physicsmodel.grid import FileSEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.tools import verify_params
-from beast.run_beast.helper_functions import (subcatalog_fname,
-                                                 parallel_wrapper,
-                                                 get_modelsubgridfiles)
+from beast.run_beast.helper_functions import parallel_wrapper
 from beast.tools import subgridding_tools
 from beast.run_beast import create_filenames
 
@@ -23,7 +20,7 @@ from beast.run_beast import create_filenames
 import datamodel
 import importlib
 
-import pdb
+#import pdb
 
 
 

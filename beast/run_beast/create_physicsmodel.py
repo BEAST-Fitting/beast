@@ -9,13 +9,8 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 from __future__ import (absolute_import, division, print_function)
 import os
 import argparse
-import numpy as np
-import copy
-from multiprocessing import Pool
 
-from astropy import units
 from astropy import constants as const
-import pickle
 
 # BEAST imports
 from beast.physicsmodel.create_project_dir import create_project_dir
@@ -32,7 +27,8 @@ from beast.tools import subgridding_tools
 import datamodel
 import importlib
 
-import pdb
+#import pdb
+
 
 def create_physicsmodel(nsubs=1, nprocs=1, subset=[None,None]):
     """
@@ -70,7 +66,7 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None,None]):
 
 
     # make sure the project directory exists
-    pdir = create_project_dir(datamodel.project)
+    create_project_dir(datamodel.project)
 
 
     
@@ -173,7 +169,6 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None,None]):
 
 
         # run the above function
-        subset_slice = slice(subset[0], subset[1])
         par_tuples = [(i, sub_name)
                       for i, sub_name in enumerate(custom_sub_pspec)][subset_slice]
 
