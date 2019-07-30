@@ -1,10 +1,7 @@
 import numpy as np
 import glob
-import subprocess
-import sys
 import os
 import types
-import re
 
 from beast.run_beast import (create_physicsmodel,
                              make_ast_inputs,
@@ -18,13 +15,8 @@ from beast.tools import create_background_density_map
 from beast.tools import subdivide_obscat_by_source_density
 from beast.tools import cut_catalogs
 from beast.tools import split_asts_by_source_density
-from beast.tools import merge_beast_stats
 from beast.tools import setup_batch_beast_trim
 from beast.tools import setup_batch_beast_fit
-from beast.tools import reorder_beast_results_spatial
-from beast.tools import condense_beast_results_spatial
-from beast.plotting import plot_chi2_hist
-from beast.plotting import plot_cmd_with_fits
 
 import importlib
 importlib.reload(create_physicsmodel)
@@ -36,7 +28,7 @@ importlib.reload(merge_files)
 importlib.reload(create_filenames)
 
 from astropy.table import Table
-from astropy.coordinates import SkyCoord, Angle
+from astropy.coordinates import Angle
 from astropy import units as u
 
 
@@ -114,9 +106,9 @@ def beast_production_wrapper():
                               'HST_WFC3_F814W', 'HST_WFC3_F110W','HST_WFC3_F160W']
 
 
-        
-    #for b in range(n_field):
-    for b in [0]:
+
+    for b in range(n_field):
+    #for b in [0]:
 
         print('********')
         print('field ' + field_names[b])
@@ -135,30 +127,7 @@ def beast_production_wrapper():
 
 
         # region file with catalog stars
-        if False:
-            with open(gst_file.replace('.fits','.reg'),'w') as ds9_file:
-                ds9_file.write('global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\n')
-                ds9_file.write('fk5\n')
-
-                cat = Table.read(gst_file)
-                for i in range(len(cat)):
-                    #if cat['F555W_RATE'][i] != 0:
-                    #if cat[flag_filter[b]+'_FLAG'][i] < 99:
-                    if cat[ref_filter[b]+'_VEGA'][i] < 26.65:
-                        ds9_file.write('circle(' +
-                                        Angle(cat['RA'][i], u.deg).to_string(unit=u.hour, sep=':')
-                                        + ',' +
-                                        Angle(cat['DEC'][i], u.deg).to_string(unit=u.deg, sep=':')
-                                        + ',0.1")\n' )
-                    else:
-                        ds9_file.write('circle(' +
-                                        Angle(cat['RA'][i], u.deg).to_string(unit=u.hour, sep=':')
-                                        + ',' +
-                                        Angle(cat['DEC'][i], u.deg).to_string(unit=u.deg, sep=':')
-                                        + ',0.1") # color=magenta \n' )
-                         
-        
-            pdb.set_trace()
+        #make_region_file(gst_file)
 
         # -----------------
         # 0. make datamodel file
@@ -185,7 +154,7 @@ def beast_production_wrapper():
 
         #if not os.path.isfile('./data/'+field_names[b]+'.gst_maghist.pdf'):
         peak_mags = plot_mag_hist.plot_mag_hist(gst_file, stars_per_bin=70, max_bins=75)
-        test = plot_mag_hist.plot_mag_hist(ast_file, stars_per_bin=200, max_bins=30)
+        #test = plot_mag_hist.plot_mag_hist(ast_file, stars_per_bin=200, max_bins=30)
 
 
         # -----------------
@@ -198,7 +167,9 @@ def beast_production_wrapper():
 
 
         # not currently doing background density bins
-        if False:
+        #use_bg_info = True
+        use_bg_info = False        
+        if use_bg_info:
             background_args = types.SimpleNamespace(subcommand='background',
                                                     catfile=gst_file, pixsize=5, npix=None,
                                                     reference=im_file,
@@ -291,7 +262,7 @@ def beast_production_wrapper():
         cut_catalogs.cut_catalogs(ast_file, ast_file_cut, partial_overlap=True,
                                       flagged=True, flag_filter=flag_filter[b],
                                       region_file=True)
-        test = plot_mag_hist.plot_mag_hist(ast_file_cut, stars_per_bin=200, max_bins=30)
+        #test = plot_mag_hist.plot_mag_hist(ast_file_cut, stars_per_bin=200, max_bins=30)
 
         # edit the datamodel.py file to have the correct photometry file name
         # (AST file name is already automatically the cut version)
@@ -327,9 +298,6 @@ def beast_production_wrapper():
         if len(ast_files) == 0:
             split_asts_by_source_density.split_asts(ast_file_cut,
                                                     gst_file.replace('.fits','_sourceden_map.hd5'))
-
-        # now there's a list of files
-        ast_file_list = sorted(glob.glob(ast_file_cut.replace('.fits','_SD_*.fits')))
         
         
         # -- at this point, we can run the code to create lists of filenames
@@ -360,10 +328,6 @@ def beast_production_wrapper():
 
             # current SD bin
             curr_sd = unique_sd_sub[i][0]
-
-            # corresponding noise file
-            noise_model_file = './' + field_names[b] + '_beast/' + \
-                               field_names[b] + '_beast_noisemodel_SD'+curr_sd+'.hd5'
 
             # create it (this code will check if it exists)
             create_obsmodel.create_obsmodel(use_sd=True,
@@ -593,6 +557,36 @@ def create_datamodel(gst_file, ast_file, gst_filter_label, beast_filter_label,
         
     new_file.close()
 
+
+
+
+def make_region_file(gst_file):
+    """
+    Make a region file out of the catalog file
+    """
+
+    with open(gst_file.replace('.fits','.reg'),'w') as ds9_file:
+        ds9_file.write('global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\n')
+        ds9_file.write('fk5\n')
+
+        cat = Table.read(gst_file)
+        for i in range(len(cat)):
+            #if cat['F555W_RATE'][i] != 0:
+            #if cat[flag_filter[b]+'_FLAG'][i] < 99:
+            if cat[ref_filter[b]+'_VEGA'][i] < 26.65:
+                ds9_file.write('circle(' +
+                                   Angle(cat['RA'][i], u.deg).to_string(unit=u.hour, sep=':')
+                                   + ',' +
+                                   Angle(cat['DEC'][i], u.deg).to_string(unit=u.deg, sep=':')
+                                   + ',0.1")\n' )
+            else:
+                ds9_file.write('circle(' +
+                                   Angle(cat['RA'][i], u.deg).to_string(unit=u.hour, sep=':')
+                                   + ',' +
+                                   Angle(cat['DEC'][i], u.deg).to_string(unit=u.deg, sep=':')
+                                   + ',0.1") # color=magenta \n' )
+                         
+        
 
             
         
