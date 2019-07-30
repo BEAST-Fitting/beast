@@ -185,7 +185,7 @@ def gen_obsmodel(modelsedgridfile, source_density=None, use_rate=True):
             
         modelsedgrid = FileSEDGrid(modelsedgridfile)
 
-        outname = noisemodel.make_toothpick_noise_model(
+        noisemodel.make_toothpick_noise_model(
                     noisefile,
                     astfile,
                     modelsedgrid,
@@ -195,7 +195,7 @@ def gen_obsmodel(modelsedgridfile, source_density=None, use_rate=True):
     else:
         print(noisefile+' already exists')
         
-    return outname # (same as noisefile)
+    return noisefile # (same as noisefile)
 
 
 
