@@ -11,12 +11,13 @@ from beast.run_beast import (create_physicsmodel,
                              create_filenames)
 
 from beast.plotting import plot_mag_hist
-from beast.tools import create_background_density_map
-from beast.tools import subdivide_obscat_by_source_density
-from beast.tools import cut_catalogs
-from beast.tools import split_asts_by_source_density
-from beast.tools import setup_batch_beast_trim
-from beast.tools import setup_batch_beast_fit
+from beast.tools import (create_background_density_map,
+                             split_ast_input_file,
+                             subdivide_obscat_by_source_density,
+                             cut_catalogs,
+                             split_asts_by_source_density,
+                             setup_batch_beast_trim,
+                             setup_batch_beast_fit)
 
 import importlib
 importlib.reload(create_physicsmodel)
@@ -31,9 +32,6 @@ from astropy.table import Table
 from astropy.coordinates import Angle
 from astropy import units as u
 
-
-
-import pdb
 
 
 def beast_production_wrapper():
@@ -88,10 +86,6 @@ def beast_production_wrapper():
     # number of fields
     n_field = len(field_names)
 
-    # choose number of subgrids (1 = no subgrids)
-    tot_subgrid_files = 10
-
-    
     # Need to know what the correspondence is between filter names in the
     # catalog and the BEAST filter names.
     #
@@ -143,6 +137,8 @@ def beast_production_wrapper():
         create_datamodel(gst_file, ast_file, gst_filter_names, beast_filter_names,
                              dist_mod[b], velocity[b], ref_image=im_file)
 
+        # load in datamodel to get number of subgrids
+        import datamodel; importlib.reload(datamodel)
 
         # -----------------
         # 1a. make magnitude histograms
@@ -191,9 +187,6 @@ def beast_production_wrapper():
         gst_file_sd = gst_file.replace('.fits', '_with_sourceden.fits')
 
 
-        #pdb.set_trace()
-
-
         
         # -----------------
         # 2. make physics model
@@ -205,15 +198,15 @@ def beast_production_wrapper():
 
         # see which subgrid files already exist
         gs_str = ''
-        if tot_subgrid_files > 1:
+        if datamodel.n_subgrid > 1:
             gs_str = 'sub*'
     
         spec_files = glob.glob('./' + field_names[b] + '_beast/' + field_names[b]
                                 + '_beast_spec_w_priors.grid'+gs_str+'.hd5')
 
         # only make the physics model they don't already exist
-        if len(spec_files) < tot_subgrid_files:
-            create_physicsmodel.create_physicsmodel(nprocs=1, nsubs=tot_subgrid_files)
+        if len(spec_files) < datamodel.n_subgrid:
+            create_physicsmodel.create_physicsmodel(nprocs=1, nsubs=datamodel.n_subgrid)
 
         # list of SED files
         model_grid_files = sorted(glob.glob('./' + field_names[b] + '_beast/' + field_names[b]
@@ -234,7 +227,8 @@ def beast_production_wrapper():
                 print('')
                 make_ast_inputs.make_ast_inputs(flux_bin_method=True)
 
-            split_asts(field_names[b] + '_beast', ast_input_file, 2000)
+            split_ast_input_file.split_asts(
+                field_names[b] + '_beast', ast_input_file, 2000)
                 
             print('\n**** go run ASTs for '+field_names[b]+'! ****\n')
             continue
@@ -302,7 +296,7 @@ def beast_production_wrapper():
         
         # -- at this point, we can run the code to create lists of filenames
         file_dict = create_filenames.create_filenames(use_sd=True,
-                                                      nsubs=tot_subgrid_files)
+                                                      nsubs=datamodel.n_subgrid)
         
         # figure out how many files there are
         sd_sub_info = file_dict['sd_sub_info']
@@ -322,17 +316,10 @@ def beast_production_wrapper():
         print('making noise models')
         print('')
 
-        # iterate through each source density
-        # (use the whole subgrid label list for ease)
-        for i in range(tot_subgrid_files):
-
-            # current SD bin
-            curr_sd = unique_sd_sub[i][0]
-
-            # create it (this code will check if it exists)
-            create_obsmodel.create_obsmodel(use_sd=True,
-                                            nsubs=tot_subgrid_files,
-                                            nprocs=1)
+        # create the noise model (this code will check if it exists)
+        create_obsmodel.create_obsmodel(use_sd=True,
+                                        nsubs=datamodel.n_subgrid,
+                                        nprocs=1)
                 
         
         # -----------------
@@ -348,7 +335,7 @@ def beast_production_wrapper():
         at_list = []
 
         # iterate through each model grid
-        for i in range(tot_subgrid_files):
+        for i in range(datamodel.n_subgrid):
             
             # gst list
             temp = file_dict['photometry_files']
@@ -368,12 +355,12 @@ def beast_production_wrapper():
 
                 # create file names
                 ast_input_list.append(ast_file_cut.replace('.fits','_SD'+curr_sd+'.fits'))
-                if tot_subgrid_files > 1:
+                if datamodel.n_subgrid > 1:
                     noise_files.append('./' + field_names[b] + '_beast/' + field_names[b]
                                        + '_beast_noisemodel_SD'+curr_sd+'.gridsub'+str(i)+'.hd5')
                     trim_prefix.append('./'+field_names[b]+'_beast/'+subfolder+'/'+field_names[b]+'_beast_'
                                        +subfolder+ '_gridsub'+str(i))
-                if tot_subgrid_files == 1:
+                if datamodel.n_subgrid == 1:
                     noise_files.append('./' + field_names[b] + '_beast/' + field_names[b]
                                        + '_beast_noisemodel_SD'+curr_sd+'.hd5')
                     trim_prefix.append('./'+field_names[b]+'_beast/'+field_names[b]+'_beast_'
@@ -382,10 +369,10 @@ def beast_production_wrapper():
 
            
             # check if the trimmed grids exist before moving on
-            if tot_subgrid_files > 1:
+            if datamodel.n_subgrid > 1:
                 trim_files = sorted(glob.glob('./' + field_names[b] + '_beast/SD*_sub*/'+field_names[b] +
                                        '_beast_*_gridsub'+str(i)+'_sed_trim.grid.hd5') )
-            if tot_subgrid_files == 1:
+            if datamodel.n_subgrid == 1:
                 trim_files = sorted(glob.glob('./' + field_names[b] + '_beast/'+field_names[b] +
                                        '_beast_*_sub*_sed_trim.grid.hd5') )
 
@@ -393,13 +380,12 @@ def beast_production_wrapper():
             if len(trim_files) < len(gst_input_list):
 
                 job_path = './' + field_names[b] + '_beast/trim_batch_jobs/'
-                if tot_subgrid_files > 1:
+                if datamodel.n_subgrid > 1:
                     file_prefix='BEAST_gridsub'+str(i)
-                if tot_subgrid_files == 1:
+                if datamodel.n_subgrid == 1:
                     file_prefix='BEAST'
                 
                 # generate trimming at-queue commands
-                pdb.set_trace()
                 setup_batch_beast_trim.generic_batch_trim(model_grid_files[i],
                                                           noise_files,
                                                           gst_input_list,
@@ -437,7 +423,7 @@ def beast_production_wrapper():
                 num_percore=1, nice=19,
                 overwrite_logfile=False,
                 prefix='source activate b13',
-                use_sd=True, nsubs=tot_subgrid_files, nprocs=1)
+                use_sd=True, nsubs=datamodel.n_subgrid, nprocs=1)
 
 
         # check if the fits exist before moving on
@@ -460,7 +446,7 @@ def beast_production_wrapper():
         print('merging stats files')
         print('')
 
-        merge_files.merge_files(use_sd=True, nsubs=tot_subgrid_files)
+        merge_files.merge_files(use_sd=True, nsubs=datamodel.n_subgrid)
         
 
 

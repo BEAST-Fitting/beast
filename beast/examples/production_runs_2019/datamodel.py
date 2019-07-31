@@ -149,6 +149,20 @@ noisefile = project + '/' + project + '_noisemodel.hd5'
 # absflux calibration covariance matrix for HST specific filters (AC)
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
 
+#-------------------------------------------
+#Grid
+#-------------------------------------------
+
+# n_subgrid : integer
+#     Number of sub-grids to use (1 means no subgrids).  These are
+#     useful when the physics model grid is too large to read into
+#     memory.
+n_subgrid = 10
+
+################
+
+### Distance/Velocity
+
 # Distances: distance to the galaxy [min, max, step] or [fixed number]
 distances = [24.36] 
 
