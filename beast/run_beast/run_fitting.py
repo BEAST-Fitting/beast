@@ -100,25 +100,44 @@ def run_fitting(use_sd=True, nsubs=1, nprocs=1,
     gridsub_info = file_dict['gridsub_info']
 
 
+    
+    # if using subgrids, make the grid dictionary file:
+    # File where the ranges and number of unique values for the grid
+    # will be stored (this can take a while to calculate)
+    
     if nsubs > 1:
 
         gridpickle_files = file_dict['gridpickle_files']
 
-        # make the grid dictionary file:
-        # File where the ranges and number of unique values for the grid
-        # will be stored (this can take a while to calculate)
         for i in range(len(gridpickle_files)):
             if not os.path.isfile(gridpickle_files[i]):
+                
                 # list of corresponding SED grids and noise models
-                modelsedgrid_list = sorted(glob.glob(
-                    os.path.join(datamodel.project, '**/*gridsub'+str(gridsub_info[i])+'_sed_trim*' ) ))
-                noise_list = sorted(glob.glob(
-                    os.path.join(datamodel.project, '**/*gridsub'+str(gridsub_info[i])+'_noisemodel_trim*' ) ))
+                
+                # - with SD+sub: get file list for ALL subgrids at current SD+sub
+                if (use_sd == True) or (choose_sd_sub is not None):
+                    temp = create_filenames.create_filenames(
+                               nsubs=nsubs,
+                               choose_sd_sub=sd_sub_info[i],
+                               choose_subgrid=None)
+                    modelsedgrid_list = temp['modelsedgrid_files']
+                    noise_list = temp['noise_files']
+
+                # - no SD info: get file list for ALL subgrids
+                else:
+                    temp = create_filenames.create_filenames(
+                               use_sd=False, nsubs=nsubs,
+                               choose_subgrid=None)
+                    modelsedgrid_list = temp['modelsedgrid_files']
+                    noise_list = temp['noise_files']
+                
+ 
+                # create the grid info dictionary
                 print('creating grid_info_dict for ' + gridpickle_files[i])
                 grid_info_dict = subgridding_tools.reduce_grid_info(
                     modelsedgrid_list,
                     noise_list, nprocs=nprocs)
-
+                # save it
                 with open(gridpickle_files[i], 'wb') as p:
                     pickle.dump(grid_info_dict, p)
                 print('wrote grid_info_dict to ' + gridpickle_files[i])
