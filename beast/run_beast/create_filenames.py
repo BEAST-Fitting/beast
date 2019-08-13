@@ -151,10 +151,11 @@ def create_filenames(use_sd=True, nsubs=1,
         # -- SD+sub specified
         if choose_sd_sub is not None:
 
-            photometry_files.append( datamodel.obsfile.replace('.fits',
-                '_SD{0}_sub{1}.fits'.format(choose_sd_sub[0], choose_sd_sub[1])) )
-
             for gridsub in gridsub_list:
+                
+                photometry_files.append( datamodel.obsfile.replace('.fits',
+                    '_SD{0}_sub{1}.fits'.format(choose_sd_sub[0], choose_sd_sub[1])) )
+
                 modelsedgrid_files.append(
                     '{0}/SD{1}_sub{2}/{0}_SD{1}_sub{2}_gridsub{3}_sed_trim.grid.hd5'.format(
                     datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub) )
@@ -172,8 +173,8 @@ def create_filenames(use_sd=True, nsubs=1,
                     '{0}/SD{1}_sub{2}/{0}_SD{1}_sub{2}_gridsub{3}_lnp.hd5'.format(
                     datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub) )
 
-                gridpickle_files.append('{0}/grid_info_dict_gridsub{1}.pkl'.format(
-                    datamodel.project, gridsub) )
+                gridpickle_files.append('{0}/SD{1}_sub{2}/grid_info_dict.pkl'.format(
+                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]) )
 
                 sd_sub_info.append([choose_sd_sub[0], choose_sd_sub[1]])
                 gridsub_info.append(gridsub)
@@ -211,8 +212,8 @@ def create_filenames(use_sd=True, nsubs=1,
                         '{0}/SD{1}_sub{2}/{0}_SD{1}_sub{2}_gridsub{3}_lnp.hd5'.format(
                         datamodel.project, curr_sd, curr_sub, gridsub) )
                     
-                    gridpickle_files.append('{0}/grid_info_dict_gridsub{1}.pkl'.format(
-                        datamodel.project, gridsub) )
+                    gridpickle_files.append('{0}/SD{1}_sub{2}/grid_info_dict.pkl'.format(
+                        datamodel.project, curr_sd, curr_sub) )
 
                     sd_sub_info.append([curr_sd, curr_sub])
                     gridsub_info.append(gridsub)
@@ -234,8 +235,8 @@ def create_filenames(use_sd=True, nsubs=1,
                 lnp_files.append( '{0}/{0}_gridsub{1}_lnp.hd5'.format(
                     datamodel.project, gridsub) )
     
-                gridpickle_files.append('{0}/grid_info_dict_gridsub{1}.pkl'.format(
-                    datamodel.project, gridsub) )
+                gridpickle_files.append('{0}/grid_info_dict.pkl'.format(
+                    datamodel.project) )
 
                 gridsub_info.append(gridsub)
             
