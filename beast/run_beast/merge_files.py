@@ -1,25 +1,18 @@
 # system imports
 from __future__ import (absolute_import, division, print_function)
-import os
-import argparse
-import time
-import numpy as np
-import glob
-import pickle
 
 
 # BEAST imports
 from beast.tools import (verify_params,
                          subgridding_tools,
                          merge_beast_stats)
-from beast.run_beast import (create_filenames,
-                             run_fitting)
+from beast.run_beast import create_filenames
 
 
 import datamodel
 import importlib
 
-import pdb
+#import pdb
 
 def merge_files(use_sd=True, nsubs=1):
     """
@@ -55,20 +48,17 @@ def merge_files(use_sd=True, nsubs=1):
 
     # - input files
     photometry_files = file_dict['photometry_files']
-    modelsedgrid_files = file_dict['modelsedgrid_files']
-    noise_files = file_dict['noise_files']
+    #modelsedgrid_files = file_dict['modelsedgrid_files']
+    #noise_files = file_dict['noise_files']
 
     # - output files
     stats_files = file_dict['stats_files']
     pdf_files = file_dict['pdf_files']
-    lnp_files = file_dict['lnp_files']
-
-    # - total number of files
-    n_files = len(photometry_files)
+    #lnp_files = file_dict['lnp_files']
 
     # - other useful info
     sd_sub_info = file_dict['sd_sub_info']
-    gridsub_info = file_dict['gridsub_info']
+    #gridsub_info = file_dict['gridsub_info']
     # the unique sets of gridsub
     unique_sd_sub = [x for i, x in enumerate(sd_sub_info) if i == sd_sub_info.index(x)]
 

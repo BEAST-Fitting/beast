@@ -89,8 +89,8 @@ def setup_batch_beast_fit(num_percore=5,
 
     # - input files
     photometry_files = file_dict['photometry_files']
-    modelsedgrid_files = file_dict['modelsedgrid_files']
-    noise_files = file_dict['noise_files']
+    #modelsedgrid_files = file_dict['modelsedgrid_files']
+    #noise_files = file_dict['noise_files']
 
     # - output files
     stats_files = file_dict['stats_files']

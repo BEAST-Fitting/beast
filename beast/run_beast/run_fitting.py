@@ -3,7 +3,6 @@ from __future__ import (absolute_import, division, print_function)
 import os
 import argparse
 import time
-import glob
 import pickle
 
 
@@ -97,7 +96,7 @@ def run_fitting(use_sd=True, nsubs=1, nprocs=1,
 
     # other potentially useful info
     sd_sub_info = file_dict['sd_sub_info']
-    gridsub_info = file_dict['gridsub_info']
+    #gridsub_info = file_dict['gridsub_info']
 
 
     

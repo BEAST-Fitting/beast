@@ -112,7 +112,7 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None,None]):
         # generate the SED grid by integrating the filter response functions
         #   effect of dust extinction applied before filter integration
         #   also computes the dust priors as weights
-        (seds_fname, g_seds) = make_extinguished_sed_grid(
+        make_extinguished_sed_grid(
             datamodel.project,
             g_pspec,
             datamodel.filters,
