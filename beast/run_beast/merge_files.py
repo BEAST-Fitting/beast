@@ -47,7 +47,7 @@ def merge_files(use_sd=True, nsubs=1):
     file_dict = create_filenames.create_filenames(use_sd=use_sd, nsubs=nsubs)    
 
     # - input files
-    photometry_files = file_dict['photometry_files']
+    #photometry_files = file_dict['photometry_files']
     #modelsedgrid_files = file_dict['modelsedgrid_files']
     #noise_files = file_dict['noise_files']
 
