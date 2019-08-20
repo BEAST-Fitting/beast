@@ -9,7 +9,7 @@ import glob
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.physicsmodel.grid import FileSEDGrid
 from beast.tools import verify_params
-from beast.run_beast.helper_functions import (parallel_wrapper,
+from beast.tools.run.helper_functions import (parallel_wrapper,
                                               get_modelsubgridfiles)
 
 

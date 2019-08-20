@@ -16,7 +16,7 @@ import string
 from astropy import units
 
 # BEAST imports
-from beast.run_beast import (create_physicsmodel,
+from beast.tools.run import (create_physicsmodel,
                              make_ast_inputs,
                              create_obsmodel,
                              run_fitting)

@@ -19,7 +19,7 @@ from beast.physicsmodel.model_grid import (make_iso_table,
                                            add_stellar_priors,
                                            make_extinguished_sed_grid)
 from beast.physicsmodel.grid import FileSEDGrid
-from beast.run_beast.helper_functions import parallel_wrapper
+from beast.tools.run.helper_functions import parallel_wrapper
 
 from beast.tools import verify_params
 from beast.tools import subgridding_tools
