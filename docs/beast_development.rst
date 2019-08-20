@@ -195,7 +195,7 @@ be viewed in a web browser by pointing to files in the `htmlconv` subdirectory.
     $ python setup.py test --remote-data --coverage
 
 Make sure the documentation can be created.  The resulting files can be viewed
-in a web browser by point to files in the `docs/docs/_build/html subdirectory`.
+in a web browser by point to files in the `docs/_build/html subdirectory`.
 
     .. code:: shell
 
