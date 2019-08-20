@@ -6,7 +6,7 @@ import glob
 
 # BEAST imports
 from beast.tools import verify_params
-from beast.run_beast.helper_functions import get_modelsubgridfiles
+from beast.tools.run.helper_functions import get_modelsubgridfiles
 
 import datamodel
 import importlib
