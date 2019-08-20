@@ -10,20 +10,41 @@ from astropy.table import Table, Column, vstack
 
 
 def merge_stats_files(stats_files,
-                      out_stats_filebase):
+                      out_stats_filebase,
+                      reorder_tag_list=None):
+    """
+    Merge stats files.
+
+    Parameters
+    ----------
+    stats_files : list of strings
+        names of the stats files to be merged
+
+    out_stats_filebase : string
+        base name of the output file ('_stats.fits' will be appended)
+
+    reorder_tag_list : list of strings (default=None)
+        If set, these tags will be used in the output stats file.  If not
+        set, the tag names will be derived from the stats file names.
+    """
 
     # loop through the stats files, building up the output table
     cats_list = []
-    for cur_stat in stats_files:
+    for i,cur_stat in enumerate(stats_files):
+
+        # read in current catalog
         cur_cat = Table.read(cur_stat)
 
-        # get the source density and subregion name
-        #  in other words, the reordering tag
-        #  bpos is the location after the 2nd underscore of pix coords
-        #  epos is before the _stats.fits ending string
-        bpos = cur_stat.find('_sd') + 1
-        epos = cur_stat.find('_stats')
-        reorder_tag = cur_stat[bpos:epos]
+        if reorder_tag_list is None:
+            # get the source density and subregion name
+            #  in other words, the reordering tag
+            #  bpos is the location after the 2nd underscore of pix coords
+            #  epos is before the _stats.fits ending string
+            bpos = cur_stat.find('_sd') + 1
+            epos = cur_stat.find('_stats')
+            reorder_tag = cur_stat[bpos:epos]
+        else:
+            reorder_tag = reorder_tag_list[i]
 
         # add the reorder tag to each entry in the current catalog
         n_entries = len(cur_cat)

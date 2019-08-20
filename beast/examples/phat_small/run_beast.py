@@ -11,27 +11,18 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 from __future__ import (absolute_import, division, print_function)
 import sys
 import argparse
-import time
 import string
-import numpy as np
 
 from astropy import units
-from astropy import constants as const
 
 # BEAST imports
-from beast.physicsmodel.create_project_dir import create_project_dir
-from beast.physicsmodel.model_grid import (make_iso_table,
-                                           make_spectral_grid,
-                                           add_stellar_priors,
-                                           make_extinguished_sed_grid)
-
-import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
-from beast.observationmodel.ast.make_ast_input_list import pick_models
-from beast.observationmodel.ast.make_ast_xy_list import pick_positions
-from beast.observationmodel.ast.make_ast_xy_list import pick_positions_from_map
-from beast.fitting import fit
-from beast.fitting import trim_grid
+from beast.run_beast import (create_physicsmodel,
+                             make_ast_inputs,
+                             create_obsmodel,
+                             run_fitting)
 from beast.physicsmodel.grid import FileSEDGrid
+import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
+from beast.fitting import trim_grid
 from beast.tools import verify_params
 
 
@@ -63,139 +54,28 @@ if __name__ == '__main__':
 
     if args.physicsmodel:
 
-        # make sure the project directory exists
-        pdir = create_project_dir(datamodel.project)
-
-        # download and load the isochrones
-        (iso_fname, oiso) = make_iso_table(datamodel.project,
-                                           oiso=datamodel.oiso,
-                                           logtmin=datamodel.logt[0],
-                                           logtmax=datamodel.logt[1],
-                                           dlogt=datamodel.logt[2],
-                                           z=datamodel.z)
-
-        if hasattr(datamodel, 'add_spectral_properties_kwargs'):
-            extra_kwargs = datamodel.add_spectral_properties_kwargs
-        else:
-            extra_kwargs = None
-
-        if hasattr(datamodel, 'velocity'):
-            redshift = (datamodel.velocity / const.c).decompose().value
-        else:
-            redshift = 0
-
-        # generate the spectral library (no dust extinction)
-        (spec_fname, g_spec) = make_spectral_grid(
-            datamodel.project,
-            oiso,
-            osl=datamodel.osl,
-            redshift=redshift,
-            distance=datamodel.distances,
-            distance_unit=datamodel.distance_unit,
-            extLaw=datamodel.extLaw,
-            add_spectral_properties_kwargs=extra_kwargs)
-
-        # add the stellar priors as weights
-        #   also computes the grid weights for the stellar part
-        (pspec_fname, g_pspec) = add_stellar_priors(datamodel.project,
-                                                    g_spec)
-
-        # generate the SED grid by integrating the filter response functions
-        #   effect of dust extinction applied before filter integration
-        #   also computes the dust priors as weights
-        (seds_fname, g_seds) = make_extinguished_sed_grid(
-            datamodel.project,
-            g_pspec,
-            datamodel.filters,
-            extLaw=datamodel.extLaw,
-            av=datamodel.avs,
-            rv=datamodel.rvs,
-            fA=datamodel.fAs,
-            rv_prior_model=datamodel.rv_prior_model,
-            av_prior_model=datamodel.av_prior_model,
-            fA_prior_model=datamodel.fA_prior_model,
-            add_spectral_properties_kwargs=extra_kwargs)
+        create_physicsmodel.create_physicsmodel(nsubs=1, nprocs=1)
 
     if args.ast:
-        # get the modesedgrid on which to grab input AST
-        modelsedgridfile = './' + datamodel.project + '/' + datamodel.project + '_seds.grid.hd5'
-        modelsedgrid = FileSEDGrid(modelsedgridfile)
-        modelsedgridfile = datamodel.project + '/' + datamodel.project + '_seds.grid.hd5'
 
-        N_models = datamodel.ast_models_selected_per_age
-        Nfilters = datamodel.ast_bands_above_maglimit
-        Nrealize = datamodel.ast_realization_per_model
-        mag_cuts = datamodel.ast_maglimit
-        obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.filters)
-
-        if len(mag_cuts) == 1:
-            tmp_cuts = mag_cuts
-
-            min_mags = np.zeros(len(datamodel.filters))
-            for k, filtername in enumerate(obsdata.filters):
-                sfiltername = obsdata.data.resolve_alias(filtername)
-                sfiltername = sfiltername.replace('rate', 'vega')
-                sfiltername = sfiltername.replace('RATE', 'VEGA')
-                keep, = np.where(obsdata[sfiltername] < 99.)
-                min_mags[k] = np.percentile(obsdata[keep][sfiltername], 90.)
-
-            # max. mags from the gst observation cat.
-            mag_cuts = min_mags + tmp_cuts
-        print(modelsedgrid)
-        outfile = './' + datamodel.project + '/' + datamodel.project + '_inputAST.txt'
-        outfile_params = './' + datamodel.project + '/' + datamodel.project + '_ASTparams.fits'
-        chosen_seds = pick_models(modelsedgridfile, datamodel.filters,
-                                  mag_cuts, Nfilter=Nfilters, N_stars=N_models, Nrealize=Nrealize,
-                                  outfile=outfile, outfile_params=outfile_params)
-
-        if datamodel.ast_with_positions == True:
-            separation = datamodel.ast_pixel_distribution
-            filename = datamodel.project + '/' + datamodel.project + '_inputAST.txt'
-
-            if datamodel.ast_reference_image is not None:
-                # With reference image, use the background or source density map if available
-                if datamodel.ast_density_table is not None:
-                    pick_positions_from_map(obsdata,
-                                            chosen_seds,
-                                            datamodel.ast_density_table,
-                                            datamodel.ast_N_bins,
-                                            datamodel.ast_realization_per_model,
-                                            outfile=filename,
-                                            refimage=datamodel.ast_reference_image,
-                                            refimage_hdu=0,
-                                            Nrealize=1,
-                                            set_coord_boundary=datamodel.ast_coord_boundary)
-                else:
-                    pick_positions(obsdata, filename, separation,
-                               	   refimage=datamodel.ast_reference_image)
-
-            else:
-                # Without reference image, we can only use this function
-                if datamodel.ast_density_table is None:
-                    pick_positions(obsdata, filename, separation)
-                else:
-                    print("To use ast_density_table, ast_reference_image must be specified.")
+        make_ast_inputs.make_ast_inputs(flux_bin_method=False)
 
     if args.observationmodel:
         print('Generating noise model from ASTs and absflux A matrix')
 
-        # get the modesedgrid on which to generate the noisemodel
-        modelsedgridfile = datamodel.project + '/' + datamodel.project + \
-            '_seds.grid.hd5'
-        modelsedgrid = FileSEDGrid(modelsedgridfile)
-
-        # generate the AST noise model using the toothpick model
-        noisemodel.make_toothpick_noise_model(
-           datamodel.noisefile,
-           datamodel.astfile,
-           modelsedgrid,
-           absflux_a_matrix=datamodel.absflux_a_matrix,
-           use_rate=False)
+        create_obsmodel.create_obsmodel(use_sd=False,
+                                            nsubs=1,
+                                            nprocs=1,
+                                            use_rate=False)
 
         # in the absence of ASTs, the splinter noise model can be used
         # instead of the toothpick model above
         #  **warning** not very realistic
         # import beast.observationmodel.noisemodel.splinter as noisemodel
+        #
+        # modelsedgridfile = datamodel.project + '/' + datamodel.project + \
+        #    '_seds.grid.hd5'
+        # modelsedgrid = FileSEDGrid(modelsedgridfile)
         #
         # noisemodel.make_splinter_noise_model(
         #    datamodel.noisefile,
@@ -218,44 +98,22 @@ if __name__ == '__main__':
         noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
 
         # trim the model sedgrid
-        sed_trimname = modelsedgridfile.replace('_seds', '_seds_trim')
-        noisemodel_trimname = sed_trimname.replace('_seds', '_noisemodel')
+        sed_trimname = '{0}/{0}_sed_trim.grid.hd5'.format(datamodel.project)
+        noisemodel_trimname = '{0}/{0}_noisemodel_trim.hd5'.format(datamodel.project)
 
         trim_grid.trim_models(modelsedgrid, noisemodel_vals, obsdata,
                               sed_trimname, noisemodel_trimname, sigma_fac=3.)
 
     if args.fit:
-        start_time = time.clock()
+        
+        run_fitting.run_fitting(use_sd=False, nsubs=1, nprocs=1)
 
-        # the files for the trimmed model grid and noisemodel grid
-        modelsedgrid = datamodel.project + '/' + datamodel.project + \
-            '_seds_trim.grid.hd5'
-        noisemodelfile = modelsedgrid.replace('_seds', '_noisemodel')
 
-        # read in the the AST noise model
-        noisemodel_vals = noisemodel.get_noisemodelcat(noisemodelfile)
+    if args.resume:
 
-        # read in the observed data
-        obsdata = datamodel.get_obscat(datamodel.obsfile,
-                                       datamodel.filters)
+        run_fitting.run_fitting(use_sd=False, nsubs=1, nprocs=1,
+                                    resume=True)
 
-        # output files
-        print(datamodel.project)
-        statsfile = datamodel.project + '/' + datamodel.project + \
-            '_stats.fits'
-        pdf1dfile = statsfile.replace('stats.fits', 'pdf1d.fits')
-        lnpfile = statsfile.replace('stats.fits', 'lnp.hd5')
-
-        fit.summary_table_memory(obsdata, noisemodel_vals, modelsedgrid,
-                                 resume=args.resume,
-                                 threshold=-10., save_every_npts=100,
-                                 lnp_npts=60,
-                                 stats_outname=statsfile,
-                                 pdf1d_outname=pdf1dfile,
-                                 lnp_outname=lnpfile)
-
-        new_time = time.clock()
-        print('time to fit: ', (new_time - start_time) / 60., ' min')
 
     # print help if no arguments
     if not any(vars(args).values()):
