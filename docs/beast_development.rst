@@ -114,7 +114,17 @@ Development Install
 ==============================
 
 To perform development, and see your changes reflected immediately in your
-installed copy of the BEAST, you can perform a development install::
+installed copy of the BEAST, you can perform a development install. This can
+either be performed via a pip development install, by navigating to the
+directory that contains `setup.py` and running:
+
+  .. code:: shell
+
+    $ pip install -e .
+
+or by doing a development install directly though Python with:
+
+  .. code:: shell
 
 .. code-block:: console
 
@@ -196,12 +206,14 @@ be viewed in a web browser by pointing to files in the `htmlconv` subdirectory.
 
     $ python setup.py test --remote-data --coverage
 
-Make sure the documentation can be created.  The resulting files can be viewed
-in a web browser by point to files in the `docs/docs/_build/html subdirectory`.
+Make sure the documentation can be created.
 
     .. code-block:: console
 
       $ python setup.py build_docs
+
+The resulting HTML files are placed in `docs/_build/html` subdirectory, and
+can be viewed in a web browser.
 
 Collaborating and Contributing
 ==============================
