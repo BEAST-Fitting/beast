@@ -114,7 +114,17 @@ Development Install
 ==============================
 
 To perform development, and see your changes reflected immediately in your
-installed copy of the BEAST, you can perform a development install::
+installed copy of the BEAST, you can perform a development install. This can
+either be performed via a pip development install, by navigating to the
+directory that contains `setup.py` and running:
+
+  .. code:: shell
+
+    $ pip install -e .
+
+or by doing a development install directly though Python with:
+
+  .. code:: shell
 
     $ python setup.py develop
 
