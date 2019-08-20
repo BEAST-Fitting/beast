@@ -84,7 +84,7 @@ matrix:
         # Do a coverage test.
         - os: linux
           stage: Initial tests
-          env: SETUP_CMD='test --remote-data --coverage'
+          env: SETUP_CMD='test -a "--mpl" --remote-data --coverage'
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
@@ -95,6 +95,7 @@ matrix:
         # Now try Astropy dev with the latest Python and LTS with and 3.x.
         - os: linux
           env: ASTROPY_VERSION=development
+               SETUP_CMD='test -a "--mpl" --remote-data'
                EVENT_TYPE='pull_request push cron'
         # - os: linux
         #  env: PYTHON_VERSION=3.6 ASTROPY_VERSION=lts NUMPY_VERSION=1.13
@@ -105,6 +106,7 @@ matrix:
         - os: linux
           stage: Cron tests
           env: ASTROPY_VERSION=development NUMPY_VERSION=development
+               SETUP_CMD='test -a "--mpl" --remote-data'
                EVENT_TYPE='cron'
 
         # Try all python versions and Numpy versions. Since we can assume that
@@ -114,10 +116,13 @@ matrix:
 
         - os: linux
           env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
+               SETUP_CMD='test -a "--mpl" --remote-data'
         - os: linux
-          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.14
+          env: PYTHON_VERSION=3.7 NUMPY_VERSION=1.14
+               SETUP_CMD='test -a "--mpl" --remote-data'
         - os: linux
           env: NUMPY_VERSION=1.15
+               SETUP_CMD='test -a "--mpl" --remote-data'
 
         # Do a PEP8 test with flake8
         - os: linux
@@ -125,6 +130,12 @@ matrix:
           env: MAIN_CMD='flake8 beast --count --show-source --statistics $FLAKE8_OPT' SETUP_CMD=''
 
     allow_failures:
+        # allow to fail as this is a dev version
+        - os: linux
+          env: ASTROPY_VERSION=development
+               SETUP_CMD='test -a "--mpl" --remote-data'
+               EVENT_TYPE='pull_request push cron'
+
         # Do a PEP8 test with flake8
         # (do allow to fail unless your code completely compliant)
         - os: linux
