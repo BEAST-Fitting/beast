@@ -13,6 +13,14 @@ The full details of the BEAST are provide by
 Gordon et al. (2016, ApJ, 826, 104).
 <http://adsabs.harvard.edu/abs/2016ApJ...826..104G>
 
+Installation
+============
+
+.. toctree::
+   :maxdepth: 2
+
+   How to install <install.rst>
+
 User Documentation
 ==================
 
@@ -28,14 +36,6 @@ User Documentation
    Format of BEAST grid files <beast_grid_format.rst>
    Details on BEAST libraries for grid <beast_grid_inputs.rst>
    Known issues <beast_issues.rst>
-   
-Installation
-============
-
-.. toctree::
-   :maxdepth: 2
-
-   How to install <install.rst>
 
 Developer Documentation
 =======================
