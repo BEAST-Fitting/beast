@@ -194,12 +194,14 @@ be viewed in a web browser by pointing to files in the `htmlconv` subdirectory.
 
     $ python setup.py test --remote-data --coverage
 
-Make sure the documentation can be created.  The resulting files can be viewed
-in a web browser by point to files in the `docs/_build/html subdirectory`.
+Make sure the documentation can be created.
 
     .. code:: shell
 
       $ python setup.py build_docs
+
+The resulting HTML files are placed in `docs/_build/html` subdirectory, and
+can be viewed in a web browser.
 
 Collaborating and Contributing
 ==============================
