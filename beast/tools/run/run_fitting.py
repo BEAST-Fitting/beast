@@ -11,9 +11,9 @@ from beast.fitting import fit
 from beast.physicsmodel.grid import FileSEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.tools import verify_params
-from beast.run_beast.helper_functions import parallel_wrapper
+from beast.tools.run.helper_functions import parallel_wrapper
 from beast.tools import subgridding_tools
-from beast.run_beast import create_filenames
+from beast.tools.run import create_filenames
 
 
 import datamodel

@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function)
 from beast.tools import (verify_params,
                          subgridding_tools,
                          merge_beast_stats)
-from beast.run_beast import create_filenames
+from beast.tools.run import create_filenames
 
 
 import datamodel
