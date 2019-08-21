@@ -29,7 +29,6 @@ __all__ = [
     "keywords_first",
     "kfpartial",
     "merge_records",
-    "missing_units_warning",
     "nbytes",
     "path_of_module",
     "pretty_size_print",
@@ -287,7 +286,7 @@ class Pipegroup(object):
         elif mode in ["multi", "|"]:
             return self.multi_call(val, *args, **kwargs)
         else:
-            raise NotImplemented
+            raise NotImplementedError
 
     def __ror__(self, other):
         return self(other)
@@ -313,7 +312,7 @@ class Pipegroup(object):
 
 def keywords_first(f):
     """ Decorator that enables to access any argument or keyword as a keyword """
-    ## http://code.activestate.com/recipes/577922/ (r2)
+    # http://code.activestate.com/recipes/577922/ (r2)
     @wraps(f)
     def wrapper(*a, **k):
         a = list(a)
