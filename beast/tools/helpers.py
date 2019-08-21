@@ -1,8 +1,7 @@
 """
 This is a first collection of tools making the design easier
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import sys
 from functools import partial, wraps, update_wrapper
@@ -11,22 +10,36 @@ import warnings
 import numpy as np
 import itertools
 
-#replace the common range by the generator
+# replace the common range by the generator
 try:
     range = xrange
 except NameError:
     pass
 
 
-__all__ = ['NameSpace', 'Pipe', 'Pipeable', 'Pipegroup', 'chunks',
-           'deprecated', 'generator', 'isNestedInstance', 'keywords_first',
-           'kfpartial', 'merge_records', 'missing_units_warning', 'nbytes',
-           'path_of_module', 'pretty_size_print', 'type_checker']
+__all__ = [
+    "NameSpace",
+    "Pipe",
+    "Pipeable",
+    "Pipegroup",
+    "chunks",
+    "deprecated",
+    "generator",
+    "isNestedInstance",
+    "keywords_first",
+    "kfpartial",
+    "merge_records",
+    "nbytes",
+    "path_of_module",
+    "pretty_size_print",
+    "type_checker",
+]
 
 
 class NameSpace(dict):
     """A dict subclass that exposes its items as attributes.
     """
+
     def __init__(self, name, *args, **kwargs):
         self.__name__ = name
         dict.__init__(self, *args, **kwargs)
@@ -35,7 +48,7 @@ class NameSpace(dict):
         return tuple(self)
 
     def __repr__(self):
-        names = ', '.join([k for k in dir(self) if k[0] != '_'])
+        names = ", ".join([k for k in dir(self) if k[0] != "_"])
         return "{s.__name__:s}: {r:s}".format(s=self, r=names)
 
     def __getattribute__(self, name):
@@ -63,19 +76,23 @@ def generator(func):
     It allow to explicitly mark a function as generator (yielding values)
     and does nothing more than calling the initial function
     """
+
     @wraps(func)
     def deco(*args, **kwargs):
         return func(*args, **kwargs)
+
     return deco
 
 
 def deprecated(func):
     """ A dummy decorator that warns against using a deprecated function """
+
     @wraps(func)
     def deco(*args, **kwargs):
-        txt = 'Function {0:s} is deprecated. You should avoid its usage'
+        txt = "Function {0:s} is deprecated. You should avoid its usage"
         warnings.warn(txt.format(func.__name__))
         return func(*args, **kwargs)
+
     return deco
 
 
@@ -102,7 +119,8 @@ def chunks(l, n):
         if chunk:
             yield chunk
         else:
-            raise StopIteration
+            return
+            # raise StopIteration
 
 
 def isNestedInstance(obj, cl):
@@ -122,10 +140,10 @@ def isNestedInstance(obj, cl):
     r: bool
         True if obj is indeed an instance or subclass instance of cl
     """
-    tree = [ cl ]
-    if hasattr(cl, '__subclasses'):
+    tree = [cl]
+    if hasattr(cl, "__subclasses"):
         for k in cl.__subclasses():
-            if hasattr(k, '__subclasses'):
+            if hasattr(k, "__subclasses"):
                 tree += k.__subclasses__()
     return issubclass(obj.__class__, tuple(tree))
 
@@ -195,6 +213,7 @@ class Pipe(object):
 
     Used with keywords_first make this a powerful Task
     """
+
     def __init__(self, func, *args, **kwargs):
         self.func = func
         self.args = args
@@ -203,27 +222,27 @@ class Pipe(object):
 
     def __or__(self, other):
         if isinstance(other, Pipe):
-            return Pipegroup( (self, other), mode='multi' )
+            return Pipegroup((self, other), mode="multi")
 
     def __and__(self, other):
         if isinstance(other, Pipe):
-            return Pipegroup( (self, other) )
+            return Pipegroup((self, other))
 
     def __ror__(self, other):
-            return self.func(other, *self.args, **self.kwargs)
+        return self.func(other, *self.args, **self.kwargs)
 
     def __call__(self, *args, **kwargs):
         return Pipeable(self.func, *args, **kwargs)
 
     def __repr__(self):
-        return 'Pipe: {}'.format(self.func.__repr__())
+        return "Pipe: {}".format(self.func.__repr__())
 
     def __str__(self):
-        return '{}'.format(self.func.__name__)
+        return "{}".format(self.func.__name__)
 
 
 class Pipegroup(object):
-    def __init__(self, pipes, mode='sequential'):
+    def __init__(self, pipes, mode="sequential"):
         self.pipes = list(pipes)
         self.mode = mode
         self.func = self
@@ -243,59 +262,61 @@ class Pipegroup(object):
 
     def __or__(self, other):
         if isinstance(other, Pipe):
-            if self.mode in ['multi', '|']:
+            if self.mode in ["multi", "|"]:
                 self.append(other)
                 return self
             else:
-                return Pipegroup( (self, other), mode='multi')
+                return Pipegroup((self, other), mode="multi")
 
     def __and__(self, other):
         if isinstance(other, Pipe):
-            if self.mode in ['sequential', '&']:
+            if self.mode in ["sequential", "&"]:
                 self.append(other)
                 return self
             else:
-                return Pipegroup( (self, other), mode='sequential')
+                return Pipegroup((self, other), mode="sequential")
 
     def multi_call(self, vals, iter=True):
-        return [ pk.func(vals) for pk in self.pipes ]
+        return [pk.func(vals) for pk in self.pipes]
 
     def __call__(self, val, *args, **kwargs):
-        mode = kwargs.get('mode', self.mode).lower()
-        if mode in ['sequential', '&']:
+        mode = kwargs.get("mode", self.mode).lower()
+        if mode in ["sequential", "&"]:
             return self.seq_call(val, *args, **kwargs)
-        elif mode in ['multi', '|']:
+        elif mode in ["multi", "|"]:
             return self.multi_call(val, *args, **kwargs)
         else:
-            raise NotImplemented
+            raise NotImplementedError
 
     def __ror__(self, other):
         return self(other)
 
     def __repr__(self):
-        txt = 'Pipegroup: mode={},\n\t | '.format(self.mode)
+        txt = "Pipegroup: mode={},\n\t | ".format(self.mode)
 
-        if self.mode == 'sequential':
-            txt += ' & '.join([str(pk) for pk in self.pipes])
+        if self.mode == "sequential":
+            txt += " & ".join([str(pk) for pk in self.pipes])
         else:
-            txt += '\n\t | '.join([str(pk) for pk in self.pipes])
+            txt += "\n\t | ".join([str(pk) for pk in self.pipes])
         return txt
 
     def __str__(self):
-        if self.mode == 'sequential':
-            delim = ' & '
+        if self.mode == "sequential":
+            delim = " & "
         else:
-            delim = ' | '
-        return '({})'.format(delim.join([str(pk) for pk in self.pipes])).replace('Pipe: ', '')
+            delim = " | "
+        return "({})".format(delim.join([str(pk) for pk in self.pipes])).replace(
+            "Pipe: ", ""
+        )
 
 
 def keywords_first(f):
     """ Decorator that enables to access any argument or keyword as a keyword """
-    ## http://code.activestate.com/recipes/577922/ (r2)
+    # http://code.activestate.com/recipes/577922/ (r2)
     @wraps(f)
     def wrapper(*a, **k):
         a = list(a)
-        #for idx, arg in enumerate(f.func_code.co_varnames[:f.func_code.co_argcount], -ismethod(f)):
+        # for idx, arg in enumerate(f.func_code.co_varnames[:f.func_code.co_argcount], -ismethod(f)):
         for idx, arg in enumerate(getargspec(f).args, -ismethod(f)):  # or [0] in 2.5
             if arg in k:
                 if idx < len(a):
@@ -303,6 +324,7 @@ def keywords_first(f):
                 else:
                     break
         return f(*a, **k)
+
     return wrapper
 
 
@@ -312,7 +334,9 @@ def kfpartial(fun, *args, **kwargs):
 
 
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
-    return " {0:s}:{1:d} {2:s}:{3:s}".format(filename, lineno, category.__name__, message)
+    return " {0:s}:{1:d} {2:s}:{3:s}".format(
+        filename, lineno, category.__name__, message
+    )
 
 
 def merge_records(lst):
@@ -361,7 +385,7 @@ def path_of_module(mod=None):
 
     if mod is None:
         mod = inspect.currentframe()
-    return '/'.join(os.path.abspath(inspect.getfile(mod)).split('/')[:-1])
+    return "/".join(os.path.abspath(inspect.getfile(mod)).split("/")[:-1])
 
 
 def pretty_size_print(num_bytes):
@@ -391,23 +415,23 @@ def pretty_size_print(num_bytes):
     YiB = KiB * ZiB
 
     if num_bytes > YiB:
-        output = '%.3g YB' % (num_bytes / YiB)
+        output = "%.3g YB" % (num_bytes / YiB)
     elif num_bytes > ZiB:
-        output = '%.3g ZB' % (num_bytes / ZiB)
+        output = "%.3g ZB" % (num_bytes / ZiB)
     elif num_bytes > EiB:
-        output = '%.3g EB' % (num_bytes / EiB)
+        output = "%.3g EB" % (num_bytes / EiB)
     elif num_bytes > PiB:
-        output = '%.3g PB' % (num_bytes / PiB)
+        output = "%.3g PB" % (num_bytes / PiB)
     elif num_bytes > TiB:
-        output = '%.3g TB' % (num_bytes / TiB)
+        output = "%.3g TB" % (num_bytes / TiB)
     elif num_bytes > GiB:
-        output = '%.3g GB' % (num_bytes / GiB)
+        output = "%.3g GB" % (num_bytes / GiB)
     elif num_bytes > MiB:
-        output = '%.3g MB' % (num_bytes / MiB)
+        output = "%.3g MB" % (num_bytes / MiB)
     elif num_bytes > KiB:
-        output = '%.3g KB' % (num_bytes / KiB)
+        output = "%.3g KB" % (num_bytes / KiB)
     else:
-        output = '%.3g Bytes' % (num_bytes)
+        output = "%.3g Bytes" % (num_bytes)
 
     return output
 
@@ -429,7 +453,10 @@ def nbytes(obj, pprint=False):
     num_bytes: int or str
         total number of bytes or human readable corresponding string
     """
-    num_bytes = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in list(obj.__dict__.values()))
+    num_bytes = sum(
+        k.nbytes if hasattr(k, "nbytes") else sys.getsizeof(k)
+        for k in list(obj.__dict__.values())
+    )
     if pprint:
         return pretty_size_print(num_bytes)
     else:
