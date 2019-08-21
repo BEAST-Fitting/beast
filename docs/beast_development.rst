@@ -126,8 +126,8 @@ Making Changes
 
 It is recommended that branches have a single purpose; for example, if you are working
 on adding a test suite, on improving the fitting algorithm and on speeding up some task,
-those should be in separate branches (e.g.) 'add-test-suite', 'improve-fitting-algorithm'
-and 'beast-dev1'.
+those should be in separate branches (e.g.) `add-test-suite`, `improve-fitting-algorithm`
+and `beast-dev1`.
 
 - Anywhere below 'beast-YourName', switch to the branch you wish to work off of:
 
@@ -194,14 +194,14 @@ be viewed in a web browser by pointing to files in the `htmlconv` subdirectory.
 
   .. code-block:: console
 
-    $ python setup.py test --remote-data --coverage
+     $ python setup.py test --remote-data --coverage
 
 Make sure the documentation can be created.  The resulting files can be viewed
 in a web browser by point to files in the `docs/docs/_build/html subdirectory`.
 
-    .. code-block:: console
+  .. code-block:: console
 
-      $ python setup.py build_docs
+     $ python setup.py build_docs
 
 Collaborating and Contributing
 ==============================
