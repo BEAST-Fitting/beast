@@ -24,13 +24,13 @@ Create a conda environment.  Here we name it to include the BEAST version.
 
   .. code-block:: console
 
-    $ conda create -n beast_v1.3 python=3.6
+    $ conda create -n beast_v1.3.1 python=3.6
 
 Activate the environment after all the packages are finished installing.
 
   .. code-block:: console
 
-    $ source activate beast_v1.3
+    $ source activate beast_v1.3.1
 
 Install dependencies using conda (better for speed)
 
@@ -40,11 +40,11 @@ Install dependencies using conda (better for speed)
 
 Next, install the BEAST.  You have three options:
 
-Option 1: Use pip to install the production version of the beast (currently v1.3)
+Option 1: Use pip to install the production version of the beast (currently v1.3.1)
 
   .. code-block:: console
 
-    $ pip install beast==1.3
+    $ pip install beast==1.3.1
 
 Option 2: Get the latest production branch, which can be ahead of pipy version
 
