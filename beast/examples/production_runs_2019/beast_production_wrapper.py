@@ -74,7 +74,7 @@ def beast_production_wrapper():
     # http://adsabs.harvard.edu/abs/2013AJ....146...86T
     dist_mod = [24.36]
     velocity = [-236]
-    
+
     # the path+file for a reference image
     im_path = ['../beast_dwarfs/images/15275_IC1613_F555W_drz.fits.gz']
     ref_filter = ['F555W']
@@ -82,7 +82,7 @@ def beast_production_wrapper():
     # choose a filter to use for removing artifacts
     # (remove catalog sources with filter_FLAG > 99)
     flag_filter = ['F555W']
-    
+
     # number of fields
     n_field = len(field_names)
 
@@ -164,7 +164,7 @@ def beast_production_wrapper():
 
         # not currently doing background density bins
         #use_bg_info = True
-        use_bg_info = False        
+        use_bg_info = False
         if use_bg_info:
             background_args = types.SimpleNamespace(subcommand='background',
                                                     catfile=gst_file, pixsize=5, npix=None,
@@ -187,7 +187,7 @@ def beast_production_wrapper():
         gst_file_sd = gst_file.replace('.fits', '_with_sourceden.fits')
 
 
-        
+
         # -----------------
         # 2. make physics model
         # -----------------
@@ -200,7 +200,7 @@ def beast_production_wrapper():
         gs_str = ''
         if datamodel.n_subgrid > 1:
             gs_str = 'sub*'
-    
+
         spec_files = glob.glob('./' + field_names[b] + '_beast/' + field_names[b]
                                 + '_beast_spec_w_priors.grid'+gs_str+'.hd5')
 
@@ -212,14 +212,14 @@ def beast_production_wrapper():
         model_grid_files = sorted(glob.glob('./' + field_names[b] + '_beast/' + field_names[b]
                                             + '_beast_seds.grid'+gs_str+'.hd5'))
 
-            
+
         # -----------------
         # 3. make ASTs
         # -----------------
 
         # only create an AST input list if the ASTs don't already exist
         ast_input_file = './' + field_names[b] + '_beast/' + field_names[b] + '_beast_inputAST.txt'
-        
+
         if not os.path.isfile(ast_file):
             if not os.path.isfile(ast_input_file):
                 print('')
@@ -229,14 +229,14 @@ def beast_production_wrapper():
 
             split_ast_input_file.split_asts(
                 field_names[b] + '_beast', ast_input_file, 2000)
-                
+
             print('\n**** go run ASTs for '+field_names[b]+'! ****\n')
             continue
 
         # -----------------
         # 4/5. edit photometry/AST catalogs
         # -----------------
-        
+
         # remove sources that are
         # - in regions without full imaging coverage,
         # - flagged in flag_filter
@@ -250,7 +250,7 @@ def beast_production_wrapper():
         cut_catalogs.cut_catalogs(gst_file_sd, gst_file_cut, partial_overlap=True,
                                       flagged=True, flag_filter=flag_filter[b],
                                       region_file=True)
-        
+
         # - ASTs
         ast_file_cut = ast_file.replace('.fits', '_cut.fits')
         cut_catalogs.cut_catalogs(ast_file, ast_file_cut, partial_overlap=True,
@@ -263,7 +263,7 @@ def beast_production_wrapper():
         create_datamodel(gst_file_cut, ast_file_cut, gst_filter_names, beast_filter_names,
                              dist_mod[b], velocity[b], ref_image=im_file)
 
-            
+
         # -----------------
         # 6. split observations by source density
         # -----------------
@@ -273,12 +273,12 @@ def beast_production_wrapper():
         print('')
 
         # - photometry
-        
+
         if len(glob.glob(gst_file_cut.replace('.fits','*sub*fits') )) == 0:
 
             # a smaller value for Ns_file will mean more individual files/runs,
             # but each run will take a shorter amount of time
-            
+
             subdivide_obscat_by_source_density.split_obs_by_source_density(gst_file_cut, bin_width=1,
                                                                            sort_col=ref_filter[b]+'_RATE',
                                                                            Ns_file=6250)
@@ -292,12 +292,12 @@ def beast_production_wrapper():
         if len(ast_files) == 0:
             split_asts_by_source_density.split_asts(ast_file_cut,
                                                     gst_file.replace('.fits','_sourceden_map.hd5'))
-        
-        
+
+
         # -- at this point, we can run the code to create lists of filenames
         file_dict = create_filenames.create_filenames(use_sd=True,
                                                       nsubs=datamodel.n_subgrid)
-        
+
         # figure out how many files there are
         sd_sub_info = file_dict['sd_sub_info']
         # - number of SD bins
@@ -307,11 +307,11 @@ def beast_production_wrapper():
         unique_sd_sub = [x for i, x in enumerate(sd_sub_info) if i == sd_sub_info.index(x)]
         print('** total SD subfiles: '+str(len(unique_sd_sub)) )
 
-        
+
         # -----------------
         # 7. make noise models
         # -----------------
-      
+
         print('')
         print('making noise models')
         print('')
@@ -320,8 +320,8 @@ def beast_production_wrapper():
         create_obsmodel.create_obsmodel(use_sd=True,
                                         nsubs=datamodel.n_subgrid,
                                         nprocs=1)
-                
-        
+
+
         # -----------------
         # 8. make script to trim models
         # -----------------
@@ -336,7 +336,7 @@ def beast_production_wrapper():
 
         # iterate through each model grid
         for i in range(datamodel.n_subgrid):
-            
+
             # gst list
             temp = file_dict['photometry_files']
             gst_input_list = [x for i, x in enumerate(temp) if i == temp.index(x)]
@@ -365,9 +365,9 @@ def beast_production_wrapper():
                                        + '_beast_noisemodel_SD'+curr_sd+'.hd5')
                     trim_prefix.append('./'+field_names[b]+'_beast/'+field_names[b]+'_beast_'
                                        +subfolder)
-                     
 
-           
+
+
             # check if the trimmed grids exist before moving on
             if datamodel.n_subgrid > 1:
                 trim_files = sorted(glob.glob('./' + field_names[b] + '_beast/SD*_sub*/'+field_names[b] +
@@ -384,7 +384,7 @@ def beast_production_wrapper():
                     file_prefix='BEAST_gridsub'+str(i)
                 if datamodel.n_subgrid == 1:
                     file_prefix='BEAST'
-                
+
                 # generate trimming at-queue commands
                 setup_batch_beast_trim.generic_batch_trim(model_grid_files[i],
                                                           noise_files,
@@ -398,7 +398,7 @@ def beast_production_wrapper():
 
 
                 at_list.append('at -f '+job_path+file_prefix+'_batch_trim.joblist now')
-                
+
 
         if len(at_list) > 0:
             print('\n**** go run trimming code for '+field_names[b]+'! ****')
@@ -437,7 +437,7 @@ def beast_production_wrapper():
         else:
             print('all fits are complete for '+field_names[b])
 
-        
+
         # -----------------
         # 10. merge stats files from each fit
         # -----------------
@@ -447,11 +447,11 @@ def beast_production_wrapper():
         print('')
 
         merge_files.merge_files(use_sd=True, nsubs=datamodel.n_subgrid)
-        
 
 
 
-    
+
+
 def create_datamodel(gst_file, ast_file, gst_filter_label, beast_filter_label,
                          dist_mod, velocity, ref_image='None'):
     """
@@ -540,7 +540,7 @@ def create_datamodel(gst_file, ast_file, gst_filter_label, beast_filter_label,
         # none of those -> write line as-is
         else:
             new_file.write(datamodel_lines[i])
-        
+
     new_file.close()
 
 
@@ -571,11 +571,11 @@ def make_region_file(gst_file):
                                    + ',' +
                                    Angle(cat['DEC'][i], u.deg).to_string(unit=u.deg, sep=':')
                                    + ',0.1") # color=magenta \n' )
-                         
-        
 
-            
-        
+
+
+
+
 if __name__ == '__main__':
 
     beast_production_wrapper()
