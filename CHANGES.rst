@@ -1,9 +1,5 @@
-2.0 (unreleased)
-================
 
-- No changes yet
-
-1.3 (2019-08-20)
+1.3.1 (2019-09-5)
 ================
 
 - python 2 support dropped
