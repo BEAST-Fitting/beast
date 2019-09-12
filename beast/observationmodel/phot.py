@@ -20,10 +20,9 @@ import numpy
 import tables
 from scipy.integrate import trapz
 
-from ..tools.decorators import timeit
 from ..config import __ROOT__
 
-__default__      = __ROOT__ + '/filters.hd5'
+__default__ = __ROOT__ + '/filters.hd5'
 __default_vega__ = __ROOT__ + '/vega.hd5'
 
 # this is used to convert from bolometric luminosities to abs fluxes
@@ -33,13 +32,13 @@ distc = 4. * numpy.pi * (3.0856775e19) ** 2
 __all__ = ['Filter', 'IntegrationFilter', 'load_all_filters', 'load_filters',
            'load_Integrationfilters', 'extractPhotometry', 'extractSEDs',
            'STmag_to_flux', 'STmag_from_flux', 'fluxToMag', 'fluxErrTomag',
-           'magToFlux','magErrToFlux', 'append_filter', 'appendVegaFilter']
+           'magToFlux', 'magErrToFlux', 'append_filter', 'appendVegaFilter']
+
 
 class Filter(object):
     """Class filter
     Define a filter by its name, wavelength and transmission
     """
-    #----------------------------------------------------------------------
     def info(self):
 
         print("""
@@ -80,8 +79,8 @@ Filter object information:
         ifT = numpy.interp(slamb, self.wavelength, self.transmit, left=0., right=0.)
         if True in (ifT > 0.):
             ind = numpy.where(ifT > 0.)
-            a = numpy.trapz( slamb[ind] * ifT[ind] * sflux[ind], slamb[ind] )
-            b = numpy.trapz( slamb[ind] * ifT[ind], slamb[ind] )
+            a = numpy.trapz(slamb[ind] * ifT[ind] * sflux[ind], slamb[ind])
+            b = numpy.trapz(slamb[ind] * ifT[ind], slamb[ind])
             if (numpy.isinf(a) | numpy.isinf(b)):
                 print(self.name, "Warn for inf value")
             return a / b
@@ -137,7 +136,6 @@ class IntegrationFilter(object):
     pivot wavelength: {s.lpivot:f}
     definition contains {s.transmit.size:d} points""".format(s=self))
         """ display information about the current filter"""
-
 
     def __repr__(self):
         return "Filter: %s, %s" % (self.name, object.__repr__(self))
@@ -215,8 +213,6 @@ class IntegrationFilter(object):
         self.cl         = self.lT / self.norm
 
 
-
-
 def __load__(fname, ftab, interp=True, lamb=None, integrationFilter=False):
     """ Load a given filter from the library
 
@@ -256,7 +252,6 @@ def __load__(fname, ftab, interp=True, lamb=None, integrationFilter=False):
             return Filter( lamb, ifT, name=fnode.name )
         else:
             return Filter( flamb, transmit, name=fnode.name )
-
 
 
 def load_all_filters(interp=True, lamb=None, filterLib=None):
@@ -336,7 +331,6 @@ def load_Integrationfilters(flist, interp=True, lamb=None):
     """
     filters = [ __load__(fname, ftab=None, interp=interp, lamb=lamb, integrationFilter=True) for fname in flist ]
     return(filters)
-
 
 
 def extractPhotometry(lamb, spec, flist, absFlux=True):
@@ -419,8 +413,6 @@ def extractSEDs(g0, flist, absFlux=True):
         seds[:, e] = a / k.lT
         cls[e] = k.cl
 
-    #memgrid = grid.MemoryGrid(cls, seds, g0.grid)
-    #return memgrid
     return cls, seds, g0.grid
 
 

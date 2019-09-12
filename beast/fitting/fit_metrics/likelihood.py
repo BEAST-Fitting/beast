@@ -11,7 +11,14 @@ getNorm_lnP       Compute the norm of a log-likelihood (overflow robust)
 """
 import numpy as np
 
-__all__ = []
+__all__ = [
+    "N_chi2_NM",
+    "N_covar_chi2",
+    "N_logLikelihood_NM",
+    "N_covar_logLikelihood",
+    "N_covar_logLikelihood_cholesky",
+    "getNorm_lnP",
+]
 
 
 def N_chi2_NM(flux, fluxmod_wbias, ivar, mask=None):

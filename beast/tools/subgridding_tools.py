@@ -56,7 +56,7 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
 
     """
 
-    g = grid.FileSEDGrid(grid_fname, backend='hdf')
+    g = grid.FileSEDGrid(grid_fname, backend="hdf")
 
     fnames = []
 
@@ -64,22 +64,26 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
     slices = uniform_slices(num_seds, num_subgrids)
     for i, slc in enumerate(slices):
 
-        subgrid_fname = grid_fname.replace('.hd5', 'sub{}.hd5'.format(i))
+        subgrid_fname = grid_fname.replace(".hd5", "sub{}.hd5".format(i))
         fnames.append(subgrid_fname)
         if os.path.isfile(subgrid_fname):
             if overwrite:
                 os.remove(subgrid_fname)
             else:
-                print('{} already exists. Skipping.'.format(subgrid_fname))
+                print("{} already exists. Skipping.".format(subgrid_fname))
                 continue
 
-        print('constructing subgrid ' + str(i))
+        print("constructing subgrid " + str(i))
 
         # Load a slice as a SpectralGrid object
-        sub_g = grid.SpectralGrid(g.lamb[:], seds=g.seds[slc],
-                                  grid=eztables.Table(g.grid[slc]), backend='memory')
+        sub_g = grid.SpectralGrid(
+            g.lamb[:],
+            seds=g.seds[slc],
+            grid=eztables.Table(g.grid[slc]),
+            backend="memory",
+        )
         if g.filters is not None:
-            sub_g.grid.header['filters'] = ' '.join(g.filters)
+            sub_g.grid.header["filters"] = " ".join(g.filters)
 
         # Save it to a new file
         sub_g.writeHDF(subgrid_fname, append=False)
@@ -103,11 +107,11 @@ def merge_grids(seds_fname, sub_names):
 
     if not os.path.isfile(seds_fname):
         for n in sub_names:
-            print('Appending {} to {}'.format(n, seds_fname))
+            print("Appending {} to {}".format(n, seds_fname))
             g = grid.FileSEDGrid(n)
             g.writeHDF(seds_fname, append=True)
     else:
-        print('{} already exists'.format(seds_fname))
+        print("{} already exists".format(seds_fname))
 
 
 def subgrid_info(grid_fname, noise_fname=None):
@@ -132,7 +136,7 @@ def subgrid_info(grid_fname, noise_fname=None):
     """
 
     # Use the HDFStore (pytables) backend
-    sedgrid = grid.FileSEDGrid(grid_fname, backend='hdf')
+    sedgrid = grid.FileSEDGrid(grid_fname, backend="hdf")
     seds = sedgrid.seds
 
     info_dict = {}
@@ -144,9 +148,9 @@ def subgrid_info(grid_fname, noise_fname=None):
         qmax = np.amax(qvals)
         qunique = np.unique(qvals)
         info_dict[q] = {}
-        info_dict[q]['min'] = qmin
-        info_dict[q]['max'] = qmax
-        info_dict[q]['unique'] = qunique
+        info_dict[q]["min"] = qmin
+        info_dict[q]["max"] = qmax
+        info_dict[q]["unique"] = qunique
 
     if noise_fname is not None:
         noisemodel = get_noisemodelcat(noise_fname)
@@ -156,8 +160,11 @@ def subgrid_info(grid_fname, noise_fname=None):
         # ranges for these values.
         full_model_flux = seds[:] + noisemodel.root.bias[:]
         logtempseds = np.array(full_model_flux)
-        full_model_flux = np.sign(logtempseds)\
-            * np.log1p(np.abs(logtempseds * math.log(10)))/math.log(10)
+        full_model_flux = (
+            np.sign(logtempseds)
+            * np.log1p(np.abs(logtempseds * math.log(10)))
+            / math.log(10)
+        )
 
         filters = sedgrid.filters
         for i, f in enumerate(filters):
@@ -167,13 +174,13 @@ def subgrid_info(grid_fname, noise_fname=None):
             qmax = np.amax(f_fluxes)
             qunique = np.unique(qvals)
 
-            q = 'symlog' + f + '_wd_bias'
+            q = "symlog" + f + "_wd_bias"
             info_dict[q] = {}
-            info_dict[q]['min'] = qmin
-            info_dict[q]['max'] = qmax
-            info_dict[q]['unique'] = qunique
+            info_dict[q]["min"] = qmin
+            info_dict[q]["max"] = qmax
+            info_dict[q]["unique"] = qunique
 
-    print('Gathered grid info for {}'.format(grid_fname))
+    print("Gathered grid info for {}".format(grid_fname))
     return info_dict
 
 
@@ -223,7 +230,7 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1, cap_unique=1000):
 
     # Use generators here for memory efficiency
     parallel = nprocs > 1
-    if (parallel):
+    if parallel:
         p = Pool(nprocs)
         info_dicts_generator = p.imap(unpack_and_subgrid_info, arguments)
     else:
@@ -243,30 +250,34 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1, cap_unique=1000):
 
     for q in qs:
         # Combine the values of the first subgrid
-        union_min[q] = first_info_dict[q]['min']
-        union_max[q] = first_info_dict[q]['max']
-        union_unique[q] = first_info_dict[q]['unique']
+        union_min[q] = first_info_dict[q]["min"]
+        union_max[q] = first_info_dict[q]["max"]
+        union_unique[q] = first_info_dict[q]["unique"]
 
     # And all the other subgrids (the generator just continues)
     for individual_dict in info_dicts_generator:
         for q in qs:
-            union_min[q] = min(union_min[q], individual_dict[q]['min'])
-            union_max[q] = max(union_max[q], individual_dict[q]['max'])
+            union_min[q] = min(union_min[q], individual_dict[q]["min"])
+            union_max[q] = max(union_max[q], individual_dict[q]["max"])
             if len(union_unique[q]) < cap_unique:
-                union_unique[q] = np.union1d(union_unique[q],
-                                             individual_dict[q]['unique'])
+                union_unique[q] = np.union1d(
+                    union_unique[q], individual_dict[q]["unique"]
+                )
 
     result_dict = {}
     for q in qs:
-        result_dict[q] = {'min': union_min[q],
-                          'max': union_max[q],
-                          'num_unique': len(union_unique[q])}
+        result_dict[q] = {
+            "min": union_min[q],
+            "max": union_max[q],
+            "num_unique": len(union_unique[q]),
+        }
 
     return result_dict
 
 
-def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames,
-                          re_run=False, output_fname_base=None):
+def merge_pdf1d_stats(
+    subgrid_pdf1d_fnames, subgrid_stats_fnames, re_run=False, output_fname_base=None
+):
     """
     Merge a set of 1d pdfs that were generated by fits on different
     grids. It is necessary (and checked) that all the 1d pdfs have the
@@ -301,7 +312,6 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames,
         created by this function)
     """
 
-
     # -------------
     # before running, check if the files already exist
     # (unless the user wants to re-create them regardless)
@@ -314,19 +324,22 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames,
 
     # stats
     if output_fname_base is None:
-        stats_fname = 'combined_stats.fits'
+        stats_fname = "combined_stats.fits"
     else:
-        stats_fname = output_fname_base + '_stats.fits'
+        stats_fname = output_fname_base + "_stats.fits"
 
-    if os.path.isfile(pdf1d_fname) and os.path.isfile(stats_fname) and (re_run == False):
-        print(str(len(subgrid_pdf1d_fnames))+' files already merged, skipping')
+    if (
+        os.path.isfile(pdf1d_fname)
+        and os.path.isfile(stats_fname)
+        and (re_run is False)
+    ):
+        print(str(len(subgrid_pdf1d_fnames)) + " files already merged, skipping")
         return pdf1d_fname, stats_fname
 
     # -------------
-    
 
     nsubgrids = len(subgrid_pdf1d_fnames)
-    assert(len(subgrid_stats_fnames) == nsubgrids)
+    assert len(subgrid_stats_fnames) == nsubgrids
 
     nbins = {}
     with fits.open(subgrid_pdf1d_fnames[0]) as hdul_0:
@@ -344,15 +357,17 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames,
                     pdf1d_0 = hdul_0[q].data
                     pdf1d = hdul[q].data
                     # the number of bins
-                    assert(pdf1d_0.shape[1] == pdf1d.shape[1])
+                    assert pdf1d_0.shape[1] == pdf1d.shape[1]
                     # the number of stars + 1
-                    assert(pdf1d_0.shape[0] == pdf1d.shape[0])
+                    assert pdf1d_0.shape[0] == pdf1d.shape[0]
                     # the bin centers (stored in the last row of the
                     # image) should be equal (or both nan)
-                    bin_centers_ok = \
-                        np.isnan(pdf1d_0[-1, 0]) and np.isnan(pdf1d[-1, 0]) \
+                    bin_centers_ok = (
+                        np.isnan(pdf1d_0[-1, 0])
+                        and np.isnan(pdf1d[-1, 0])
                         or (pdf1d_0[-1, :] == pdf1d[-1, :]).all()
-                    assert(bin_centers_ok)
+                    )
+                    assert bin_centers_ok
 
     # Load all the stats files
     stats = [Table.read(f) for f in subgrid_stats_fnames]
@@ -361,7 +376,7 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames,
     # of weights, containing one weight for each source).
     logweight = np.zeros((nobs, nsubgrids))
     for i, s in enumerate(stats):
-        logweight[:, i] = s['total_log_norm']
+        logweight[:, i] = s["total_log_norm"]
 
     # Best grid for each star (take max along grid axis)
     maxweight_index_per_star = np.argmax(logweight, axis=1)
@@ -411,21 +426,23 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames,
     # Grid with highest Pmax, for each star
     pmaxes = np.zeros((nobs, nsubgrids))
     for gridnr in range(nsubgrids):
-        pmaxes[:, gridnr] = stats[gridnr]['Pmax']
+        pmaxes[:, gridnr] = stats[gridnr]["Pmax"]
     max_pmax_index_per_star = pmaxes.argmax(axis=1)
 
     # Rebuild the stats
     stats_dict = {}
     for col in stats[0].colnames:
-        suffix = col.split('_')[-1]
+        suffix = col.split("_")[-1]
 
-        if suffix == 'Best':
+        if suffix == "Best":
             # For the best values, we take the 'Best' value of the grid
             # with the highest Pmax
-            stats_dict[col] = [stats[gridnr][col][e] for e, gridnr in
-                               enumerate(max_pmax_index_per_star)]
+            stats_dict[col] = [
+                stats[gridnr][col][e]
+                for e, gridnr in enumerate(max_pmax_index_per_star)
+            ]
 
-        elif suffix == 'Exp':
+        elif suffix == "Exp":
             # Sum and weigh the expectation values
             stats_dict[col] = np.zeros(nobs)
             total_weight_per_star = np.zeros(nobs)
@@ -435,14 +452,14 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames,
                 total_weight_per_star += grid_weight_per_star
             stats_dict[col] /= total_weight_per_star
 
-        elif re.compile('p\d{1,2}$').match(suffix):
+        elif re.compile("p\d{1,2}$").match(suffix):
             # Grab the percentile value
             digits = suffix[1:]
             p = int(digits)
 
             # Find the correct quantity (the col name without the
             # '_'+suffix), and its position in save_pdf1d_vals.
-            qname = col[:-len(suffix) - 1]
+            qname = col[: -len(suffix) - 1]
             qindex = qnames.index(qname)
 
             # Recalculate the new percentiles from the newly obtained
@@ -456,20 +473,20 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames,
                 else:
                     stats_dict[col][e] = 0
 
-        elif col == 'chi2min':
+        elif col == "chi2min":
             # Take the lowest chi2 over all the grids
             all_chi2s = np.zeros((nobs, nsubgrids))
             for gridnr, s in enumerate(stats):
                 all_chi2s[:, gridnr] = s[col]
             stats_dict[col] = np.amin(all_chi2s, axis=1)
 
-        elif col == 'Pmax':
+        elif col == "Pmax":
             all_pmaxs = np.zeros((nobs, nsubgrids))
-            for gridnr, s, in enumerate(stats):
+            for gridnr, s in enumerate(stats):
                 all_pmaxs[:, gridnr] = s[col]
             stats_dict[col] = np.amax(all_pmaxs, axis=1)
 
-        elif col == 'total_log_norm':
+        elif col == "total_log_norm":
             stats_dict[col] = np.log(weight.sum(axis=1)) + max_logweight
 
         # For anything else, just copy the values from grid 0. Except
@@ -479,15 +496,17 @@ def merge_pdf1d_stats(subgrid_pdf1d_fnames, subgrid_stats_fnames,
         # this. Actually specgrid_indx might make sense, since in my
         # particular case I'm splitting after the spec grid has been
         # created. Still leaving this out though.
-        elif not col == 'chi2min_indx' and \
-                not col == 'Pmax_indx' and \
-                not col == 'specgrid_indx':
+        elif (
+            not col == "chi2min_indx"
+            and not col == "Pmax_indx"
+            and not col == "specgrid_indx"
+        ):
             stats_dict[col] = stats[0][col]
 
     summary_tab = Table(stats_dict)
     summary_tab.write(stats_fname, overwrite=True)
 
-    print('Saved combined 1dpdfs in ' + pdf1d_fname)
-    print('Saved combined stats in ' + stats_fname)
+    print("Saved combined 1dpdfs in " + pdf1d_fname)
+    print("Saved combined stats in " + stats_fname)
 
     return pdf1d_fname, stats_fname
