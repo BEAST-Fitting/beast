@@ -14,9 +14,6 @@ This also include functions to keep libraries up to date
     edges, the error due to this "interpolation" are extremely large in
     comparison to the uncertainties induced by trapeze integration.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import sys
 import numpy
 

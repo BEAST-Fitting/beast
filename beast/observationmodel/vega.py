@@ -1,7 +1,4 @@
 """ Handle vega spec/mags/fluxes manipulations """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 from functools import wraps
 import numpy
 
@@ -21,7 +18,9 @@ class Vega(object):
 
         filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_WFC3_F475W', \
                    'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
-        with Vega() as v:
+        with Vega() as v:rom __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
             vega_f, vega_mag, flamb = v.getSed(filters)
         print vega_f, vega_mag, flamb
 
@@ -40,9 +39,9 @@ class Vega(object):
             self.hdf = tables.open_file(self.source)
         return self
 
-    def __exit__(self,  *exc_info):
+    def __exit__(self, *exc_info):
         """ end context """
-        if not self.hdf is None:
+        if self.hdf is not None:
             self.hdf.close()
             self.hdf = None
         return False
@@ -50,21 +49,21 @@ class Vega(object):
     def getFlux(self, filters):
         """ Return vega abs. fluxes in filters """
         with self as s:
-            FNAME  = s.hdf.root.sed.cols.FNAME[:]
-            LUM    = s.hdf.root.sed.cols.LUM[:]
-            CWAVE  = s.hdf.root.sed.cols.CWAVE[:]
-        idx = numpy.asarray([ numpy.where( FNAME == k.encode('utf-8') )
-                              for k in filters ])
+            FNAME = s.hdf.root.sed.cols.FNAME[:]
+            LUM = s.hdf.root.sed.cols.LUM[:]
+            CWAVE = s.hdf.root.sed.cols.CWAVE[:]
+        idx = numpy.asarray([numpy.where(FNAME == k.encode('utf-8'))
+                             for k in filters])
         return numpy.ravel(FNAME[idx]), numpy.ravel(LUM[idx]), numpy.ravel(CWAVE[idx])
 
     def getMag(self, filters):
         """ Return vega abs. magnitudes in filters """
         with self as s:
-            FNAME  = s.hdf.root.sed.cols.FNAME[:]
-            MAG    = s.hdf.root.sed.cols.MAG[:]
-            CWAVE  = s.hdf.root.sed.cols.CWAVE[:]
-        idx = numpy.asarray([ numpy.where( FNAME == k.encode('utf-8') )
-                              for k in filters ])
+            FNAME = s.hdf.root.sed.cols.FNAME[:]
+            MAG = s.hdf.root.sed.cols.MAG[:]
+            CWAVE = s.hdf.root.sed.cols.CWAVE[:]
+        idx = numpy.asarray([numpy.where(FNAME == k.encode('utf-8'))
+                             for k in filters])
         return numpy.ravel(FNAME[idx]), numpy.ravel(MAG[idx]), numpy.ravel(CWAVE[idx])
 
 
@@ -82,13 +81,13 @@ def from_Vegamag_to_Flux(lamb, vega_mag):
     def deco(f):
         def vegamagtoFlux(mag, err, mask):
             f = numpy.power(10, -0.4 * (mag + vega_mag))
-            e = f * ( 1. - numpy.power(10, -0.4 * err) )
+            e = f * (1. - numpy.power(10, -0.4 * err))
             return f, e, mask
 
         @wraps(f)
         def wrapper(*args, **kwargs):
             mag, err, mask = f(args[0], args[1], **kwargs)
-            return vegamagtoFlux( mag, err, mask )
+            return vegamagtoFlux(mag, err, mask)
 
         return wrapper
     return deco
@@ -106,7 +105,7 @@ def from_Vegamag_to_Flux_SN_errors(lamb, vega_mag):
         @wraps(f)
         def wrapper(*args, **kwargs):
             mag, errp, errm, mask = f(args[0], args[1], **kwargs)
-            return vegamagtoFlux( mag, errp, errm, mask )
+            return vegamagtoFlux(mag, errp, errm, mask)
 
         return wrapper
     return deco
