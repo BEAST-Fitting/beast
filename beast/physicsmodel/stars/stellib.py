@@ -7,15 +7,13 @@ sources.
 The interpolation is implemented from the pegase.2 fortran converted algorithm.
 (this may not be pythonic though)
 """
-from __future__ import (absolute_import, division, print_function)
-
 import numpy as np
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
 from astropy import constants
 
 from ..grid import SpectralGrid
-from ..helpers import Path
+from matplotlib.path import Path
 
 from ...external.eztables import Table
 from ...config import __ROOT__, __NTHREADS__
@@ -28,18 +26,27 @@ sig_stefan = constants.sigma_sb.value
 rsun = constants.R_sun.value
 
 config = {
-    'basel_2.2_pegase': __ROOT__ + 'BaSeL_v2.2.pegase.grid.fits',
-    'elodie_3.1': __ROOT__ + 'Elodie_v3.1.grid.fits',
-    'kurucz': __ROOT__ + 'kurucz2004.grid.fits',
-    'tlusty': __ROOT__ + 'tlusty.lowres.grid.fits',
-    'btsettl': __ROOT__ + 'bt-settl.lowres.grid.fits',
-    'btsettl_medres': __ROOT__ + 'bt-settl.medres.grid.fits',
-    'munari': __ROOT__ + 'atlas9-munari.hires.grid.fits',
-    'aringer': __ROOT__ + 'Aringer.AGB.grid.fits'
+    "basel_2.2_pegase": __ROOT__ + "BaSeL_v2.2.pegase.grid.fits",
+    "elodie_3.1": __ROOT__ + "Elodie_v3.1.grid.fits",
+    "kurucz": __ROOT__ + "kurucz2004.grid.fits",
+    "tlusty": __ROOT__ + "tlusty.lowres.grid.fits",
+    "btsettl": __ROOT__ + "bt-settl.lowres.grid.fits",
+    "btsettl_medres": __ROOT__ + "bt-settl.medres.grid.fits",
+    "munari": __ROOT__ + "atlas9-munari.hires.grid.fits",
+    "aringer": __ROOT__ + "Aringer.AGB.grid.fits",
 }
 
-__all__ = ['Stellib', 'CompositeStellib', 'Kurucz', 'Tlusty',
-           'BTSettl', 'Munari', 'Elodie', 'BaSeL', 'Aringer']
+__all__ = [
+    "Stellib",
+    "CompositeStellib",
+    "Kurucz",
+    "Tlusty",
+    "BTSettl",
+    "Munari",
+    "Elodie",
+    "BaSeL",
+    "Aringer",
+]
 
 
 def isNestedInstance(obj, cl):
@@ -67,12 +74,34 @@ def isNestedInstance(obj, cl):
 
 
 def __interpSingle__(args):
-    return np.asarray(interp(args[0], args[1], args[2], args[3], args[4],
-                             args[5], args[6], args[7], args[8], args[9])).T
+    return np.asarray(
+        interp(
+            args[0],
+            args[1],
+            args[2],
+            args[3],
+            args[4],
+            args[5],
+            args[6],
+            args[7],
+            args[8],
+            args[9],
+        )
+    ).T
 
 
-def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06,
-                   weights=None, pool=None, nthreads=__NTHREADS__):
+def __interpMany__(
+    oSL,
+    logT,
+    logg,
+    Z,
+    logL,
+    dT_max=0.1,
+    eps=1e-06,
+    weights=None,
+    pool=None,
+    nthreads=__NTHREADS__,
+):
     """ run interp on a list of inputs and returns reduced results
 
     Interpolation of the T,g grid at Z0 metallicity
@@ -121,16 +150,43 @@ def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06,
     """
     if (pool is None) & (nthreads > 0):
         import multiprocessing as mp
+
         pool = mp.Pool(nthreads)
 
     if weights is None:
-        seq = [(logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg,
-                oSL.Z, dT_max, eps, 1.) for k in range(len(logT))]
+        seq = [
+            (
+                logT[k],
+                logg[k],
+                Z[k],
+                logL[k],
+                oSL.Teff,
+                oSL.logg,
+                oSL.Z,
+                dT_max,
+                eps,
+                1.0,
+            )
+            for k in range(len(logT))
+        ]
     else:
-        seq = [(logT[k], logg[k], Z[k], logL[k], oSL.Teff, oSL.logg,
-                oSL.Z, dT_max, eps, weights[k]) for k in range(len(logT))]
+        seq = [
+            (
+                logT[k],
+                logg[k],
+                Z[k],
+                logL[k],
+                oSL.Teff,
+                oSL.logg,
+                oSL.Z,
+                dT_max,
+                eps,
+                weights[k],
+            )
+            for k in range(len(logT))
+        ]
 
-    if (pool is not None):
+    if pool is not None:
         r = pool.map(__interpSingle__, seq)
     else:
         r = list(map(__interpSingle__, seq))
@@ -138,7 +194,7 @@ def __interpMany__(oSL, logT, logg, Z, logL, dT_max=0.1, eps=1e-06,
     return np.vstack(r)
 
 
-def interp(T0, g0, Z0, L0, T, g, Z, dT_max=0.1, eps=1e-6, weight=1.):
+def interp(T0, g0, Z0, L0, T, g, Z, dT_max=0.1, eps=1e-6, weight=1.0):
     """ Interpolation of the T,g grid
 
     Interpolate on the grid and returns star indices and
@@ -185,43 +241,43 @@ def interp(T0, g0, Z0, L0, T, g, Z, dT_max=0.1, eps=1e-6, weight=1.):
 
     bZ_m = True in (_Zv == Z0)  # Z_match bool
     r = np.where((_Zv < Z0))[0]
-    Z_inf = _Zv[r.max()] if len(r) > 0 else -1.
+    Z_inf = _Zv[r.max()] if len(r) > 0 else -1.0
     r = np.where((_Zv > Z0))[0]
-    Z_sup = _Zv[r.min()] if len(r) > 0 else -1.
+    Z_sup = _Zv[r.min()] if len(r) > 0 else -1.0
 
     index = np.zeros(4 * 3) - 1
     weights = np.zeros(4 * 3)
     Z = np.zeros(4 * 3)
 
     if weight is None:
-        weight = 1.
+        weight = 1.0
 
-    if (bZ_m):
+    if bZ_m:
         ind = np.where(_Z == Z0)
         i, w = __interp__(T0, g0, _T[ind], _g[ind], dT_max, eps)
         index[8:] = ind[0][i]
         weights[8:] = w
         Z[8:] = [Z0] * 4
     else:
-        if (Z_inf > 0.):
+        if Z_inf > 0.0:
             ind = np.where(_Z == Z_inf)
             i, w = __interp__(T0, g0, _T[ind], _g[ind], dT_max, eps)
             index[:4] = ind[0][i]
             weights[:4] = w
             Z[:4] = [Z_inf] * 4
 
-        if (Z_sup > 0.):
+        if Z_sup > 0.0:
             ind = np.where(_Z == Z_sup)
             i, w = __interp__(T0, g0, _T[ind], _g[ind], dT_max, eps)
             index[4:8] = ind[0][i]
             weights[4:8] = w
             Z[4:8] = [Z_sup] * 4
 
-        if ((Z_inf > 0.) & (Z_sup > 0.)):
-            if (Z_sup - Z_inf) > 0.:
+        if (Z_inf > 0.0) & (Z_sup > 0.0):
+            if (Z_sup - Z_inf) > 0.0:
                 fz = (Z0 - Z_inf) / (Z_sup - Z_inf)
                 weights[:4] *= fz
-                weights[4:8] *= (1. - fz)
+                weights[4:8] *= 1.0 - fz
             else:
                 weights[:8] *= 0.5
 
@@ -231,6 +287,7 @@ def interp(T0, g0, Z0, L0, T, g, Z, dT_max=0.1, eps=1e-6, weight=1.):
 
 class Stellib(object):
     """ Basic stellar library class """
+
     def __init__(self, *args, **kargs):
         """ Contructor """
         pass
@@ -284,12 +341,22 @@ class Stellib(object):
         TODO: compute new weights accounting for Z
         """
         _Z = self.Z
-        _T = np.asarray(self.grid['logT'], dtype=np.double)
-        _g = np.asarray(self.grid['logg'], dtype=np.double)
+        _T = np.asarray(self.grid["logT"], dtype=np.double)
+        _g = np.asarray(self.grid["logg"], dtype=np.double)
         return interp(T0, g0, Z0, L0, _T, _g, _Z, dT_max=0.1, eps=1e-6)
 
-    def interpMany(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6,
-                   weights=None, pool=None, nthreads=__NTHREADS__):
+    def interpMany(
+        self,
+        T0,
+        g0,
+        Z0,
+        L0,
+        dT_max=0.1,
+        eps=1e-6,
+        weights=None,
+        pool=None,
+        nthreads=__NTHREADS__,
+    ):
         """ run interp on a list of inputs and returns reduced results
 
         Interpolation of the T,g grid at Z0 metallicity
@@ -340,13 +407,22 @@ class Stellib(object):
 
         TODO: compute new weights accounting for Z
         """
-        r = __interpMany__(self, T0, g0, Z0, L0, dT_max=0.1,
-                           eps=1e-06, weights=weights, pool=pool,
-                           nthreads=nthreads)
+        r = __interpMany__(
+            self,
+            T0,
+            g0,
+            Z0,
+            L0,
+            dT_max=0.1,
+            eps=1e-06,
+            weights=weights,
+            pool=pool,
+            nthreads=nthreads,
+        )
         idx = np.unique(r[:, 0])
         d = {}
         for idxk in idx:
-            d[idxk] = 0.
+            d[idxk] = 0.0
         for k in range(len(r)):
             d[r[k, 0]] += r[k, 1]
         del r, idx
@@ -402,9 +478,11 @@ class Stellib(object):
         radii: ndarray[float, ndim=1]
             array of radii in m (SI units)
         """
-        return np.sqrt(np.power(10., logl) * lsun
-                       / (4.0 * np.pi * sig_stefan
-                       * np.power(np.power(10., logt), 4.)))
+        return np.sqrt(
+            np.power(10.0, logl)
+            * lsun
+            / (4.0 * np.pi * sig_stefan * np.power(np.power(10.0, logt), 4.0))
+        )
 
     def get_boundaries(self, dlogT=0.1, dlogg=0.3, **kwargs):
         """ Returns the closed boundary polygon around the stellar library with
@@ -432,22 +510,26 @@ class Stellib(object):
             the object and only recomputed when parameters are updated
         """
         # if bbox is defined then assumes it is more precise and use it instead
-        if hasattr(self, 'bbox'):
+        if hasattr(self, "bbox"):
             return Path(self.bbox(dlogT, dlogg))
 
-        if getattr(self, '_bound', None) is not None:
+        if getattr(self, "_bound", None) is not None:
             # check if recomputing is needed
-            if ((self._bound[1] - dlogT) < 1e-3) and (abs(self._bound[2]
-                                                          - dlogg) < 1e-3):
+            if ((self._bound[1] - dlogT) < 1e-3) and (
+                abs(self._bound[2] - dlogg) < 1e-3
+            ):
                 return self._bound[0]
 
-        leftb = [(np.max(self.logT[self.logg == k]) + dlogT, k)
-                 for k in np.unique(self.logg)]
+        leftb = [
+            (np.max(self.logT[self.logg == k]) + dlogT, k) for k in np.unique(self.logg)
+        ]
         leftb += [(leftb[-1][1], leftb[-1][0] + dlogg)]
         leftb = [(leftb[0][1], leftb[0][0] - dlogg)] + leftb
 
-        rightb = [(np.min(self.logT[self.logg == k]) - dlogT, k)
-                  for k in np.unique(self.logg)[::-1]]
+        rightb = [
+            (np.min(self.logT[self.logg == k]) - dlogT, k)
+            for k in np.unique(self.logg)[::-1]
+        ]
         rightb += [(rightb[-1][1], rightb[-1][0] - dlogg)]
         rightb = [(rightb[0][1], rightb[0][0] + dlogg)] + rightb
 
@@ -508,18 +590,18 @@ class Stellib(object):
             an array containing the composite spectrum
         """
         if Z0 is not None:
-            if hasattr(T0, '__iter__'):
+            if hasattr(T0, "__iter__"):
                 _r = self.interpMany(T0, g0, Z0, weights=weights, **kwargs)
             else:
-                _r = np.asarray(self.interp(T0, g0, Z0, weight=weights,
-                                            **kwargs))
+                _r = np.asarray(self.interp(T0, g0, Z0, weight=weights, **kwargs))
         else:
-            assert(T0.ndim == 2), 'error expecting 2d-array'
+            assert T0.ndim == 2, "error expecting 2d-array"
             _r = T0
         return (((self.spectra[_r[:, 0].astype(int)].T) * _r[:, 1])).sum(1)
 
-    def gen_spectral_grid_from_given_points(self, pts, bounds=dict(dlogT=0.1,
-                                                                   dlogg=0.3)):
+    def gen_spectral_grid_from_given_points(
+        self, pts, bounds=dict(dlogT=0.1, dlogg=0.3)
+    ):
         """
         Reinterpolate a given stellar spectral library on to an Isochrone grid
 
@@ -550,63 +632,67 @@ class Stellib(object):
         # SEDs are kept into a ndarray
         ndata = len(pts)
         _grid = {}
-        _grid['radius'] = np.empty(ndata, dtype=float)
+        _grid["radius"] = np.empty(ndata, dtype=float)
 
         # stores the grid+prior weights (initialize to 1)
-        _grid['weight'] = np.full(ndata, 1.0, dtype=float)
+        _grid["weight"] = np.full(ndata, 1.0, dtype=float)
 
         # stores the prior weights separately (initialize to 1)
         #   This will allow for adjustable priors and
         #   visualization of the priors themselves as weights include
         #   the grid weights to correct for the non-uniform grid spacing
-        _grid['prior_weight'] = np.full(ndata, 1.0, dtype=float)
+        _grid["prior_weight"] = np.full(ndata, 1.0, dtype=float)
 
         # stores the grid weights separately (initialize to 1)
         #   these weights alone provide flat priors on all fit parameters
-        _grid['grid_weight'] = np.full(ndata, 1.0, dtype=float)
+        _grid["grid_weight"] = np.full(ndata, 1.0, dtype=float)
 
         # index to the grid
         # useful to setup here as it will then be cleanly propagated
         #   to the SED grid
-        _grid['specgrid_indx'] = np.full(ndata, 0.0, dtype=float)
+        _grid["specgrid_indx"] = np.full(ndata, 0.0, dtype=float)
 
         specs = np.empty((ndata, len(self.wavelength)), dtype=float)
 
         # copy meta data of pts into the resulting structure
-        if hasattr(pts, 'keys'):
+        if hasattr(pts, "keys"):
             for key in list(pts.keys()):
                 _grid[key] = np.asarray(pts[key])
-        elif hasattr(pts, 'dtype'):
+        elif hasattr(pts, "dtype"):
             if pts.dtype.names is not None:
                 for key in pts.dtype.names:
                     _grid[key] = pts[key]
             else:
-                raise AttributeError('pts is expected to have named items \
-                                     (keys or dtype.names)')
+                raise AttributeError(
+                    "pts is expected to have named items \
+                                     (keys or dtype.names)"
+                )
 
         # Step 1: Avoid Extrapolation
         # ===========================
         # check boundary conditions, keep the data but do not compute the sed
         #    if not needed
-        bound_cond = self.points_inside(list(zip(pts['logT'], pts['logg'])))
+        bound_cond = self.points_inside(list(zip(pts["logT"], pts["logg"])))
 
         # Step 2: radii
         # =============
         # Stellar library models are given in cm^-2  ( 4 pi R)
         # Compute radii of each point using log(T) and log(L)
-        radii = self.get_radius(pts['logL'], pts['logT'])
-        _grid['radius'] = radii[:] / rsun
+        radii = self.get_radius(pts["logL"], pts["logT"])
+        _grid["radius"] = radii[:] / rsun
 
         # weights to apply during the interpolation
         # note that radii must be in cm
-        weights = 4. * np.pi * (radii * 1e2) ** 2
+        weights = 4.0 * np.pi * (radii * 1e2) ** 2
 
         # Step 3: Interpolation
         # =====================
         # Do the actual interpolation, avoiding exptrapolations
-        for mk, (rT, rg, rZ) in Pbar(ndata, desc='spectral grid').iterover(enumerate(zip(pts['logT'], pts['logg'], pts['Z']))):
+        for mk, (rT, rg, rZ) in Pbar(ndata, desc="spectral grid").iterover(
+            enumerate(zip(pts["logT"], pts["logg"], pts["Z"]))
+        ):
             if bound_cond[mk]:
-                s = np.array(self.interp(rT, rg, rZ, 0.)).T
+                s = np.array(self.interp(rT, rg, rZ, 0.0)).T
                 specs[mk, :] = self.genSpectrum(s) * weights[mk]
 
         # Step 4: filter points without spectrum
@@ -616,25 +702,27 @@ class Stellib(object):
         lamb = self.wavelength[:]
         specs = specs.compress(idx, axis=0)
         for k in list(_grid.keys()):
-                _grid[k] = _grid[k].compress(idx, axis=0)
+            _grid[k] = _grid[k].compress(idx, axis=0)
 
         # Step 5: Ship
         # ============
-        header = {'stellib': self.source,
-                  'comment': 'radius in Rsun',
-                  'name': 'Reinterpolated stellib grid'}
+        header = {
+            "stellib": self.source,
+            "comment": "radius in Rsun",
+            "name": "Reinterpolated stellib grid",
+        }
 
         # populate the specgrid index
-        _grid['specgrid_indx'] = np.arange(len(_grid['specgrid_indx']),
-                                           dtype=np.int64)
+        _grid["specgrid_indx"] = np.arange(len(_grid["specgrid_indx"]), dtype=np.int64)
 
         # ship
-        g = SpectralGrid(lamb, seds=specs, grid=Table(_grid),
-                         header=header, backend='memory')
+        g = SpectralGrid(
+            lamb, seds=specs, grid=Table(_grid), header=header, backend="memory"
+        )
 
         return g
 
-    def plot_boundary(self, ax=None, dlogT=0., dlogg=0., **kwargs):
+    def plot_boundary(self, ax=None, dlogT=0.0, dlogg=0.0, **kwargs):
         """
         Parameters
         ----------
@@ -681,6 +769,7 @@ class Stellib(object):
         """
         import matplotlib.patches as patches
         from pylab import gca
+
         if ax is None:
             ax = gca()
         p = self.get_boundaries(dlogT=dlogT, dlogg=dlogg)
@@ -689,31 +778,32 @@ class Stellib(object):
 
     def __add__(self, other):
         if not isNestedInstance(other, Stellib):
-            raise ValueError('expecting a Stellib object, got {0}'.format(type(other)))
+            raise ValueError("expecting a Stellib object, got {0}".format(type(other)))
 
         return CompositeStellib([self, other])
 
     def __repr__(self):
-        return "{0:s}, ({1:s})\n{2:s}".format(self.name,
-                                              nbytes(self, pprint=True),
-                                              object.__repr__(self))
+        return "{0:s}, ({1:s})\n{2:s}".format(
+            self.name, nbytes(self, pprint=True), object.__repr__(self)
+        )
 
 
 class CompositeStellib(Stellib):
     """ Generates an object from the union of multiple individual libraries """
+
     def __init__(self, osllist, *args, **kwargs):
         self._olist = osllist
 
     def __add__(self, other):
         if not isNestedInstance(other, Stellib):
-            raise ValueError('expecting a Stellib object, got {0}'.format(type(other)))
+            raise ValueError("expecting a Stellib object, got {0}".format(type(other)))
 
         lst = [k for k in self._olist] + [other]
         return CompositeStellib(lst)
 
     def __radd__(self, other):
         if not isNestedInstance(other, Stellib):
-            raise ValueError('expecting a Stellib object, got {0}'.format(type(other)))
+            raise ValueError("expecting a Stellib object, got {0}".format(type(other)))
 
         lst = [other] + [k for k in self._olist]
         return CompositeStellib(lst)
@@ -723,15 +813,14 @@ class CompositeStellib(Stellib):
         """ return a common wavelength sampling to all libraries. This can be
         used to reinterpolate any spectrum onto a common definition """
 
-        lambs = np.unique(np.asarray([osl.wavelength[:]
-                                      for osl in self._olist]))
+        lambs = np.unique(np.asarray([osl.wavelength[:] for osl in self._olist]))
         return lambs
 
     @property
     def source(self):
-        return ' + '.join([k.name for k in self._olist])
+        return " + ".join([k.name for k in self._olist])
 
-    def which_osl(self, xypoints, dlogT=0., dlogg=0.):
+    def which_osl(self, xypoints, dlogT=0.0, dlogg=0.0):
         """
         Returns the library indice that contains each point in xypoints
 
@@ -774,8 +863,7 @@ class CompositeStellib(Stellib):
         #                                       dlogg=dlogg).astype(int)
         res_temp = np.zeros(len(xy), dtype=int)
         for ek, ok in enumerate(self._olist):
-            res_temp += ok.points_inside(xy, dlogT=dlogT,
-                                         dlogg=dlogg).astype(int)
+            res_temp += ok.points_inside(xy, dlogT=dlogT, dlogg=dlogg).astype(int)
 
         ind = res_temp > 0
         res = np.zeros(len(xy), dtype=int)
@@ -800,7 +888,7 @@ class CompositeStellib(Stellib):
         for ek, ok in enumerate(self._olist):
             if 0 in res:
                 ind = np.atleast_1d(np.squeeze(np.where(res == 0)))
-                r = ok.points_inside(xy[ind], dlogT=0., dlogg=0.)
+                r = ok.points_inside(xy[ind], dlogT=0.0, dlogg=0.0)
                 res[ind[r]] = ek + 1
 
         # Relaxed mode
@@ -817,9 +905,9 @@ class CompositeStellib(Stellib):
         return res
 
     def __repr__(self):
-        return "CompositeStellib, {0}\n{1}".format(object.__repr__(self),
-                                                   [k.name
-                                                    for k in self._olist])
+        return "CompositeStellib, {0}\n{1}".format(
+            object.__repr__(self), [k.name for k in self._olist]
+        )
 
     def get_boundaries(self, dlogT=0.1, dlogg=0.3, **kwargs):
         """ Returns the closed boundary polygon around the stellar library with
@@ -846,13 +934,16 @@ class CompositeStellib(Stellib):
             as computing the boundary could take time, it is saved in the
             object and only recomputed when parameters are updated
         """
-        if getattr(self, '_bound', None) is not None:
-            if (((self._bound[1] - dlogT) < 1e-3) and
-                    (abs(self._bound[2] - dlogg) < 1e-3)):
+        if getattr(self, "_bound", None) is not None:
+            if ((self._bound[1] - dlogT) < 1e-3) and (
+                abs(self._bound[2] - dlogg) < 1e-3
+            ):
                 return self._bound[0]
 
-        b = [osl.get_boundaries(dlogT=dlogT, dlogg=dlogg, **kwargs)
-             for osl in self._olist]
+        b = [
+            osl.get_boundaries(dlogT=dlogT, dlogg=dlogg, **kwargs)
+            for osl in self._olist
+        ]
         self._bound = (Path.make_compound_path(*b), dlogT, dlogg)
         return self._bound[0]
 
@@ -898,21 +989,34 @@ class CompositeStellib(Stellib):
             r: is the result from interp call on the corresponding library.
             a 3 to 12 star indexes and associated weights
         """
-        dlogT = bounds.get('dlogT', 0.1)
-        dlogg = bounds.get('dlogg', 0.3)
+        dlogT = bounds.get("dlogT", 0.1)
+        dlogg = bounds.get("dlogg", 0.3)
 
-        osl_index = self.which_osl(np.atleast_2d([T0, g0]),
-                                   dlogT=dlogT, dlogg=dlogg)[0]
+        osl_index = self.which_osl(np.atleast_2d([T0, g0]), dlogT=dlogT, dlogg=dlogg)[0]
 
         if osl_index > 0:
-            return (osl_index,
-                    self._olist[osl_index - 1].interp(self, T0, g0, Z0, L0,
-                                                      dT_max=0.1, eps=1e-6))
+            return (
+                osl_index,
+                self._olist[osl_index - 1].interp(
+                    self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6
+                ),
+            )
         else:
             return [(0, None)]
 
-    def interpMany(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6, weights=None,
-                   bounds={}, pool=None, nthreads=__NTHREADS__):
+    def interpMany(
+        self,
+        T0,
+        g0,
+        Z0,
+        L0,
+        dT_max=0.1,
+        eps=1e-6,
+        weights=None,
+        bounds={},
+        pool=None,
+        nthreads=__NTHREADS__,
+    ):
         """ run interp on a list of inputs and returns reduced results
 
         Interpolation of the T,g grid at Z0 metallicity
@@ -965,8 +1069,8 @@ class CompositeStellib(Stellib):
             r is the result from interp call on the corresponding library.
             a 3 to 12 star indexes and associated weights
         """
-        dlogT = bounds.get('dlogT', 0.1)
-        dlogg = bounds.get('dlogg', 0.3)
+        dlogT = bounds.get("dlogT", 0.1)
+        dlogg = bounds.get("dlogg", 0.3)
 
         osl_index = self.which_osl(list(zip(T0, g0)), dlogT=dlogT, dlogg=dlogg)
 
@@ -975,12 +1079,22 @@ class CompositeStellib(Stellib):
             # make a generator to avoid keeping all in memory
             ind = np.where(osl_index - 1 == oslk)
             if np.squeeze(ind).size is not 0:
-                g.append([oslk + 1, osl.interpMany(T0[ind], g0[ind],
-                                                   Z0[ind], L0[ind],
-                                                   dT_max=dT_max, eps=eps,
-                                                   weights=weights,
-                                                   pool=pool,
-                                                   nthreads=nthreads)])
+                g.append(
+                    [
+                        oslk + 1,
+                        osl.interpMany(
+                            T0[ind],
+                            g0[ind],
+                            Z0[ind],
+                            L0[ind],
+                            dT_max=dT_max,
+                            eps=eps,
+                            weights=weights,
+                            pool=pool,
+                            nthreads=nthreads,
+                        ),
+                    ]
+                )
 
         return g
 
@@ -1003,7 +1117,7 @@ class CompositeStellib(Stellib):
         q: float
             value (from weighted sum)
         """
-        vals = 0.
+        vals = 0.0
         for _osl, _r in r:
             if _osl > 0:
                 vals += self._olist[_osl - 1].genQ(qname, _r, **kwargs)
@@ -1043,11 +1157,10 @@ class CompositeStellib(Stellib):
             if T0 and g0 are iterable, it calls interpMany
         """
         if Z0 is not None:
-            if hasattr(T0, '__iter__'):
+            if hasattr(T0, "__iter__"):
                 _r = self.interpMany(T0, g0, Z0, weights=weights, **kwargs)
             else:
-                _r = np.asarray(self.interp(T0, g0, Z0, weight=weights,
-                                            **kwargs))
+                _r = np.asarray(self.interp(T0, g0, Z0, weight=weights, **kwargs))
         else:
             _r = T0
 
@@ -1055,14 +1168,16 @@ class CompositeStellib(Stellib):
         s = np.zeros(len(l0), dtype=float)
         for osl, _rk in _r:
             if osl > 0:
-                sp = (((self._olist[osl - 1].spectra[_r[:, 0].astype(int)].T)
-                       * _r[:, 1])).sum(1)
+                sp = (
+                    ((self._olist[osl - 1].spectra[_r[:, 0].astype(int)].T) * _r[:, 1])
+                ).sum(1)
                 lamb = self._olist[osl - 1].wavelength
                 s += np.interp(l0, lamb, sp)
         return s
 
-    def gen_spectral_grid_from_given_points(self, pts,
-                                            bounds=dict(dlogT=0.1, dlogg=0.3)):
+    def gen_spectral_grid_from_given_points(
+        self, pts, bounds=dict(dlogT=0.1, dlogg=0.3)
+    ):
         """
         Reinterpolate a given stellar spectral library on to an Isochrone grid
 
@@ -1086,11 +1201,12 @@ class CompositeStellib(Stellib):
             Spectral grid (in memory) containing the requested list of stars
             and associated spectra
         """
-        dlogT = bounds.get('dlogT', 0.1)
-        dlogg = bounds.get('dlogg', 0.3)
+        dlogT = bounds.get("dlogT", 0.1)
+        dlogg = bounds.get("dlogg", 0.3)
 
-        osl_index = self.which_osl(list(zip(pts['logT'], pts['logg'])),
-                                   dlogT=dlogT, dlogg=dlogg)
+        osl_index = self.which_osl(
+            list(zip(pts["logT"], pts["logg"])), dlogT=dlogT, dlogg=dlogg
+        )
 
         seds = []
         grid = []
@@ -1099,40 +1215,46 @@ class CompositeStellib(Stellib):
             # make a generator to avoid keeping all in memory
             _pts = {}
             # oslk + 1 since 0 corresponds to "not covered by any osl"
-            ind = (osl_index == (oslk + 1))
+            ind = osl_index == (oslk + 1)
             # print sum(ind)
             if np.sum(ind) > 0:
-                if hasattr(pts, 'keys'):
+                if hasattr(pts, "keys"):
                     keys = list(pts.keys())
-                elif hasattr(pts, 'dtype'):
+                elif hasattr(pts, "dtype"):
                     keys = pts.dtypes.names
                 else:
-                    raise AttributeError('Input pts is expected to have \
-                                         named fields')
+                    raise AttributeError(
+                        "Input pts is expected to have \
+                                         named fields"
+                    )
                 for k in keys:
                     _pts[k] = pts[k][ind]
                 # keep track of the spectra library that is selected
-                _pts['osl'] = osl_index[ind]
+                _pts["osl"] = osl_index[ind]
                 _pts = Table(_pts)
                 gk = osl.gen_spectral_grid_from_given_points(
-                    _pts, bounds=dict(dlogT=0.1, dlogg=0.3))
+                    _pts, bounds=dict(dlogT=0.1, dlogg=0.3)
+                )
                 gk.seds = interp1d(gk.lamb, gk.seds, axis=1)(l0)
                 seds.append(gk.seds)
                 grid.append(gk.grid)
 
-        header = {'stellib': self.source,
-                  'comment': 'radius in Rsun',
-                  'name': 'Reinterpolated stellib grid'}
+        header = {
+            "stellib": self.source,
+            "comment": "radius in Rsun",
+            "name": "Reinterpolated stellib grid",
+        }
 
-        _grid = recfunctions.stack_arrays(grid, defaults=None,
-                                          usemask=False, asrecarray=True)
+        _grid = recfunctions.stack_arrays(
+            grid, defaults=None, usemask=False, asrecarray=True
+        )
 
         # populate the specgrid index
-        _grid['specgrid_indx'] = np.arange(len(_grid['specgrid_indx']),
-                                           dtype=np.int64)
+        _grid["specgrid_indx"] = np.arange(len(_grid["specgrid_indx"]), dtype=np.int64)
 
-        g = SpectralGrid(l0, seds=np.vstack(seds), grid=Table(_grid),
-                         header=header, backend='memory')
+        g = SpectralGrid(
+            l0, seds=np.vstack(seds), grid=Table(_grid), header=header, backend="memory"
+        )
 
         return g
 
@@ -1146,16 +1268,17 @@ class Elodie(Stellib):
     ----------
     Prugniel et al 2007, astro-ph/703658
     """
+
     def __init__(self, *args, **kwargs):
-        self.name = 'ELODIE v3.1'
-        self.source = config['elodie_3.1']
+        self.name = "ELODIE v3.1"
+        self.source = config["elodie_3.1"]
         self._load_()
 
     def _load_(self):
-        g = SpectralGrid(self.source, backend='memory')
+        g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header['NAME'] = self.name
+        self.grid.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1174,68 +1297,70 @@ class Elodie(Stellib):
         bbox: ndarray
             (logT, logg) edges of the bounding polygon
         """
-        bbox = [(3.301 - dlogT, 5.500 + dlogg),
-                (3.301 - dlogT, 3.500 - dlogg),
-                (3.544 - dlogT, 3.500 - dlogg),
-                (3.544 - dlogT, 1.000),
-                (3.477, 0.600 + dlogg),
-                (3.447 - dlogT, 0.600 + dlogg),
-                (3.398 - dlogT, 0.280 + dlogg),
-                (3.398 - dlogT, -1.020 - dlogg),
-                (3.398, -1.020 - dlogg),
-                (3.447, -1.020 - dlogg),
-                (3.505 + dlogT, -0.700 - dlogg),
-                (3.544 + dlogT, -0.510 - dlogg),
-                (3.574 + dlogT, -0.290 - dlogg),
-                (3.602 + dlogT, 0.000 - dlogg),
-                (3.778, 0.000 - dlogg),
-                (3.778 + dlogT, 0.000),
-                (3.875 + dlogT, 0.500),
-                (3.929 + dlogT, 1.000),
-                (3.954 + dlogT, 1.500),
-                (4.021 + dlogT, 2.000 - dlogg),
-                (4.146, 2.000 - dlogg),
-                (4.146 + dlogT, 2.000),
-                (4.279 + dlogT, 2.500),
-                (4.415 + dlogT, 3.000),
-                (4.491 + dlogT, 3.500),
-                (4.544 + dlogT, 4.000),
-                (4.602 + dlogT, 4.500),
-                (4.699 + dlogT, 5.000 - dlogg),
-                (4.699 + dlogT, 5.000 + dlogg),
-                (3.525 + dlogT, 5.000 + dlogg),
-                (3.525 + dlogT, 5.500 + dlogg),
-                (3.301 - dlogT, 5.500 + dlogg)]
+        bbox = [
+            (3.301 - dlogT, 5.500 + dlogg),
+            (3.301 - dlogT, 3.500 - dlogg),
+            (3.544 - dlogT, 3.500 - dlogg),
+            (3.544 - dlogT, 1.000),
+            (3.477, 0.600 + dlogg),
+            (3.447 - dlogT, 0.600 + dlogg),
+            (3.398 - dlogT, 0.280 + dlogg),
+            (3.398 - dlogT, -1.020 - dlogg),
+            (3.398, -1.020 - dlogg),
+            (3.447, -1.020 - dlogg),
+            (3.505 + dlogT, -0.700 - dlogg),
+            (3.544 + dlogT, -0.510 - dlogg),
+            (3.574 + dlogT, -0.290 - dlogg),
+            (3.602 + dlogT, 0.000 - dlogg),
+            (3.778, 0.000 - dlogg),
+            (3.778 + dlogT, 0.000),
+            (3.875 + dlogT, 0.500),
+            (3.929 + dlogT, 1.000),
+            (3.954 + dlogT, 1.500),
+            (4.021 + dlogT, 2.000 - dlogg),
+            (4.146, 2.000 - dlogg),
+            (4.146 + dlogT, 2.000),
+            (4.279 + dlogT, 2.500),
+            (4.415 + dlogT, 3.000),
+            (4.491 + dlogT, 3.500),
+            (4.544 + dlogT, 4.000),
+            (4.602 + dlogT, 4.500),
+            (4.699 + dlogT, 5.000 - dlogg),
+            (4.699 + dlogT, 5.000 + dlogg),
+            (3.525 + dlogT, 5.000 + dlogg),
+            (3.525 + dlogT, 5.500 + dlogg),
+            (3.301 - dlogT, 5.500 + dlogg),
+        ]
 
         return np.array(bbox)
 
     @property
     def logg(self):
-        return self.grid['logg']
+        return self.grid["logg"]
 
     @property
     def logT(self):
-        return self.grid['logT']
+        return self.grid["logT"]
 
     @property
     def Teff(self):
-        return self.grid['Teff']
+        return self.grid["Teff"]
 
     @property
     def Z(self):
-        return self.grid['Z']
+        return self.grid["Z"]
 
     @property
     def NHI(self):
-        return self.grid['NHI']
+        return self.grid["NHI"]
 
     @property
     def NHeI(self):
-        return self.grid['NHeI']
+        return self.grid["NHeI"]
 
     @property
     def NHeII(self):
-        return self.grid['NHeII']
+        return self.grid["NHeII"]
 
 
 class BaSeL(Stellib):
@@ -1254,16 +1379,17 @@ class BaSeL(Stellib):
     * Lejeune, Cuisiner, and Buser, 1998 A&AS, 130, 65
     * can be downloaded http://www.astro.unibas.ch/BaSeL_files/BaSeL2_2.tar.gz
     """
+
     def __init__(self, *args, **kwargs):
-        self.name = 'BaSeL 2.2 (Pegase.2 version)'
-        self.source = config['basel_2.2_pegase']
+        self.name = "BaSeL 2.2 (Pegase.2 version)"
+        self.source = config["basel_2.2_pegase"]
         self._load_()
 
     def _load_(self):
-        g = SpectralGrid(self.source, backend='memory')
+        g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header['NAME'] = 'Basel 2.2 (pegase)'
+        self.grid.header["NAME"] = "Basel 2.2 (pegase)"
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1282,72 +1408,74 @@ class BaSeL(Stellib):
         bbox: ndarray
             (logT, logg) edges of the bounding polygon
         """
-        bbox = [(3.301 - dlogT, 5.500 + dlogg),
-                (3.301 - dlogT, 3.500 - dlogg),
-                (3.544 - dlogT, 3.500 - dlogg),
-                (3.544 - dlogT, 1.000),
-                (3.477, 0.600 + dlogg),
-                (3.447 - dlogT, 0.600 + dlogg),
-                (3.398 - dlogT, 0.280 + dlogg),
-                (3.398 - dlogT, -1.020 - dlogg),
-                (3.398, -1.020 - dlogg),
-                (3.447, -1.020 - dlogg),
-                (3.505 + dlogT, -0.700 - dlogg),
-                (3.544 + dlogT, -0.510 - dlogg),
-                (3.574 + dlogT, -0.290 - dlogg),
-                (3.602 + dlogT, 0.000 - dlogg),
-                (3.778, 0.000 - dlogg),
-                (3.778 + dlogT, 0.000),
-                (3.875 + dlogT, 0.500),
-                (3.929 + dlogT, 1.000),
-                (3.954 + dlogT, 1.500),
-                (4.021 + dlogT, 2.000 - dlogg),
-                (4.146, 2.000 - dlogg),
-                (4.146 + dlogT, 2.000),
-                (4.279 + dlogT, 2.500),
-                (4.415 + dlogT, 3.000),
-                (4.491 + dlogT, 3.500),
-                (4.544 + dlogT, 4.000),
-                (4.602 + dlogT, 4.500),
-                (4.699 + dlogT, 5.000 - dlogg),
-                (4.699 + dlogT, 5.000 + dlogg),
-                (3.525 + dlogT, 5.000 + dlogg),
-                (3.525 + dlogT, 5.500 + dlogg),
-                (3.301 - dlogT, 5.500 + dlogg)]
+        bbox = [
+            (3.301 - dlogT, 5.500 + dlogg),
+            (3.301 - dlogT, 3.500 - dlogg),
+            (3.544 - dlogT, 3.500 - dlogg),
+            (3.544 - dlogT, 1.000),
+            (3.477, 0.600 + dlogg),
+            (3.447 - dlogT, 0.600 + dlogg),
+            (3.398 - dlogT, 0.280 + dlogg),
+            (3.398 - dlogT, -1.020 - dlogg),
+            (3.398, -1.020 - dlogg),
+            (3.447, -1.020 - dlogg),
+            (3.505 + dlogT, -0.700 - dlogg),
+            (3.544 + dlogT, -0.510 - dlogg),
+            (3.574 + dlogT, -0.290 - dlogg),
+            (3.602 + dlogT, 0.000 - dlogg),
+            (3.778, 0.000 - dlogg),
+            (3.778 + dlogT, 0.000),
+            (3.875 + dlogT, 0.500),
+            (3.929 + dlogT, 1.000),
+            (3.954 + dlogT, 1.500),
+            (4.021 + dlogT, 2.000 - dlogg),
+            (4.146, 2.000 - dlogg),
+            (4.146 + dlogT, 2.000),
+            (4.279 + dlogT, 2.500),
+            (4.415 + dlogT, 3.000),
+            (4.491 + dlogT, 3.500),
+            (4.544 + dlogT, 4.000),
+            (4.602 + dlogT, 4.500),
+            (4.699 + dlogT, 5.000 - dlogg),
+            (4.699 + dlogT, 5.000 + dlogg),
+            (3.525 + dlogT, 5.000 + dlogg),
+            (3.525 + dlogT, 5.500 + dlogg),
+            (3.301 - dlogT, 5.500 + dlogg),
+        ]
 
         return np.array(bbox)
 
     @property
     def logg(self):
-        return self.grid['logg']
+        return self.grid["logg"]
 
     @property
     def logT(self):
-        return self.grid['logT']
+        return self.grid["logT"]
 
     @property
     def Teff(self):
-        return self.grid['Teff']
+        return self.grid["Teff"]
 
     @property
     def Z(self):
-        return self.grid['Z']
+        return self.grid["Z"]
 
     @property
     def logZ(self):
-        return self.grid['logZ']
+        return self.grid["logZ"]
 
     @property
     def NHI(self):
-        return self.grid['NHI']
+        return self.grid["NHI"]
 
     @property
     def NHeI(self):
-        return self.grid['NHeI']
+        return self.grid["NHeI"]
 
     @property
     def NHeII(self):
-        return self.grid['NHeII']
+        return self.grid["NHeII"]
 
 
 class Kurucz(Stellib):
@@ -1358,19 +1486,20 @@ class Kurucz(Stellib):
     * PP
     * line blanketing
     """
+
     def __init__(self, filename=None, *args, **kwargs):
-        self.name = 'Kurucz 2004'
+        self.name = "Kurucz 2004"
         if filename is None:
-            self.source = config['kurucz']
+            self.source = config["kurucz"]
         else:
             self.source = filename
         self._load_()
 
     def _load_(self,):
-        g = SpectralGrid(self.source, backend='memory')
+        g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header['NAME'] = self.name
+        self.grid.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1389,44 +1518,46 @@ class Kurucz(Stellib):
         bbox: ndarray
             (logT, logg) edges of the bounding polygon
         """
-        bbox = [(3.54406 - dlogT, 5.000 + dlogg),
-                (3.55403 - dlogT, 0.000 - dlogg),
-                (3.778, 0.000 - dlogg),
-                (3.778 + dlogT, 0.000),
-                (3.875 + dlogT, 0.500),
-                (3.929 + dlogT, 1.000),
-                (3.954 + dlogT, 1.500),
-                (4.146, 2.000 - dlogg),
-                (4.146 + dlogT, 2.000),
-                (4.279 + dlogT, 2.500),
-                (4.415 + dlogT, 3.000),
-                (4.491 + dlogT, 3.500),
-                (4.591 + dlogT, 4.000),
-                (4.689 + dlogT, 4.500),
-                (4.699 + dlogT, 5.000 + dlogg),
-                (3.544 - dlogT, 5.000 + dlogg)]
+        bbox = [
+            (3.54406 - dlogT, 5.000 + dlogg),
+            (3.55403 - dlogT, 0.000 - dlogg),
+            (3.778, 0.000 - dlogg),
+            (3.778 + dlogT, 0.000),
+            (3.875 + dlogT, 0.500),
+            (3.929 + dlogT, 1.000),
+            (3.954 + dlogT, 1.500),
+            (4.146, 2.000 - dlogg),
+            (4.146 + dlogT, 2.000),
+            (4.279 + dlogT, 2.500),
+            (4.415 + dlogT, 3.000),
+            (4.491 + dlogT, 3.500),
+            (4.591 + dlogT, 4.000),
+            (4.689 + dlogT, 4.500),
+            (4.699 + dlogT, 5.000 + dlogg),
+            (3.544 - dlogT, 5.000 + dlogg),
+        ]
 
         return np.array(bbox)
 
     @property
     def logT(self):
-        return self.grid['logT']
+        return self.grid["logT"]
 
     @property
     def logg(self):
-        return self.grid['logg']
+        return self.grid["logg"]
 
     @property
     def Teff(self):
-        return self.grid['Teff']
+        return self.grid["Teff"]
 
     @property
     def Z(self):
-        return self.grid['Z']
+        return self.grid["Z"]
 
     @property
     def logZ(self):
-        return self.grid['logz']
+        return self.grid["logz"]
 
 
 class Tlusty(Stellib):
@@ -1453,19 +1584,20 @@ class Tlusty(Stellib):
     O and B stars rebinned to nearly 20,000 frequency points (for CLOUDY usage)
     http://nova.astro.umd.edu/Tlusty2002/database/obstar_merged_3d.ascii.gz
     """
+
     def __init__(self, filename=None, *args, **kwargs):
-        self.name = 'Tlusty'
+        self.name = "Tlusty"
         if filename is None:
-            self.source = config['tlusty']
+            self.source = config["tlusty"]
         else:
             self.source = filename
         self._load_()
 
     def _load_(self):
-        g = SpectralGrid(self.source, backend='memory')
+        g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header['NAME'] = 'tlusty'
+        self.grid.header["NAME"] = "tlusty"
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1484,38 +1616,40 @@ class Tlusty(Stellib):
         bbox: ndarray
             (logT, logg) edges of the bounding polygon
         """
-        bbox = [(4.176 - dlogT, 4.749 + dlogg),
-                (4.176 - dlogT, 1.750 - dlogg),
-                (4.176 + dlogT, 1.750 - dlogg),
-                (4.255 + dlogT, 2.000 - dlogg),
-                (4.447 + dlogT, 2.750 - dlogg),
-                (4.478 + dlogT, 3.000 - dlogg),
-                (4.544 + dlogT, 3.250 - dlogg),
-                (4.740 + dlogT, 4.000 - dlogg),
-                (4.740 + dlogT, 4.749 + dlogg),
-                (4.176 - dlogT, 4.749 + dlogg)]
+        bbox = [
+            (4.176 - dlogT, 4.749 + dlogg),
+            (4.176 - dlogT, 1.750 - dlogg),
+            (4.176 + dlogT, 1.750 - dlogg),
+            (4.255 + dlogT, 2.000 - dlogg),
+            (4.447 + dlogT, 2.750 - dlogg),
+            (4.478 + dlogT, 3.000 - dlogg),
+            (4.544 + dlogT, 3.250 - dlogg),
+            (4.740 + dlogT, 4.000 - dlogg),
+            (4.740 + dlogT, 4.749 + dlogg),
+            (4.176 - dlogT, 4.749 + dlogg),
+        ]
 
         return np.array(bbox)
 
     @property
     def logT(self):
-        return self.grid['logT']
+        return self.grid["logT"]
 
     @property
     def logg(self):
-        return self.grid['logg']
+        return self.grid["logg"]
 
     @property
     def Teff(self):
-        return self.grid['Teff']
+        return self.grid["Teff"]
 
     @property
     def Z(self):
-        return self.grid['Z']
+        return self.grid["Z"]
 
     @property
     def logZ(self):
-        return self.grid['logZ']
+        return self.grid["logZ"]
 
 
 class BTSettl(Stellib):
@@ -1537,19 +1671,20 @@ class BTSettl(Stellib):
     Current Library: AGSS2009 Abundances (due to grid availability)
     Spectra rebinned to match Kurucz, and custom 2 Ang medium resolution
     """
+
     def __init__(self, medres=True, *args, **kwargs):
-        self.name = 'BTSettl'
+        self.name = "BTSettl"
         if medres:
-            self.source = config['btsettl_medres']
+            self.source = config["btsettl_medres"]
         else:
-            self.source = config['btsettl']
+            self.source = config["btsettl"]
         self._load_()
 
     def _load_(self):
-        g = SpectralGrid(self.source, backend='memory')
+        g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header['NAME'] = self.name
+        self.grid.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1568,48 +1703,50 @@ class BTSettl(Stellib):
         bbox: ndarray
             (logT, logg) edges of the bounding polygon
         """
-        bbox = [(3.41497 - dlogT, 6.0 + dlogg),
-                (3.41497 - dlogT, -0.5 - dlogg),
-                (3.84510 + dlogT, -0.5 - dlogg),
-                (4.07918 + dlogT, 0.0 - dlogg),
-                (4.17609 + dlogT, 0.5 - dlogg),
-                (4.30103 + dlogT, 1.0 - dlogg),
-                (4.39794 + dlogT, 1.5 - dlogg),
-                (4.47712 + dlogT, 2.0 - dlogg),
-                (4.60206 + dlogT, 2.5 - dlogg),
-                (4.60206 + dlogT, 3.0 - dlogg),
-                (4.69897 + dlogT, 3.5 - dlogg),
-                (4.84510 + dlogT, 4.0 - dlogg),
-                (4.84510 + dlogT, 4.5 + dlogg),
-                (4.00000 + dlogT, 4.5 + dlogg),
-                (4.00000 + dlogT, 5.0 + dlogg),
-                (3.69897 + dlogT, 5.0 + dlogg),
-                (3.69897 + dlogT, 5.5 + dlogg),
-                (3.60206 + dlogT, 5.5 + dlogg),
-                (3.60206 + dlogT, 6.0 + dlogg),
-                (3.41497 - dlogT, 6.0 + dlogg)]
+        bbox = [
+            (3.41497 - dlogT, 6.0 + dlogg),
+            (3.41497 - dlogT, -0.5 - dlogg),
+            (3.84510 + dlogT, -0.5 - dlogg),
+            (4.07918 + dlogT, 0.0 - dlogg),
+            (4.17609 + dlogT, 0.5 - dlogg),
+            (4.30103 + dlogT, 1.0 - dlogg),
+            (4.39794 + dlogT, 1.5 - dlogg),
+            (4.47712 + dlogT, 2.0 - dlogg),
+            (4.60206 + dlogT, 2.5 - dlogg),
+            (4.60206 + dlogT, 3.0 - dlogg),
+            (4.69897 + dlogT, 3.5 - dlogg),
+            (4.84510 + dlogT, 4.0 - dlogg),
+            (4.84510 + dlogT, 4.5 + dlogg),
+            (4.00000 + dlogT, 4.5 + dlogg),
+            (4.00000 + dlogT, 5.0 + dlogg),
+            (3.69897 + dlogT, 5.0 + dlogg),
+            (3.69897 + dlogT, 5.5 + dlogg),
+            (3.60206 + dlogT, 5.5 + dlogg),
+            (3.60206 + dlogT, 6.0 + dlogg),
+            (3.41497 - dlogT, 6.0 + dlogg),
+        ]
 
         return np.array(bbox)
 
     @property
     def logT(self):
-        return self.grid['logT']
+        return self.grid["logT"]
 
     @property
     def logg(self):
-        return self.grid['logg']
+        return self.grid["logg"]
 
     @property
     def Teff(self):
-        return self.grid['Teff']
+        return self.grid["Teff"]
 
     @property
     def Z(self):
-        return self.grid['Z']
+        return self.grid["Z"]
 
     @property
     def logZ(self):
-        return self.grid['logZ']
+        return self.grid["logZ"]
 
 
 class Munari(Stellib):
@@ -1625,16 +1762,17 @@ class Munari(Stellib):
 
     Files available at: http://archives.pd.astro.it/2500-10500/
     """
+
     def __init__(self, *args, **kwargs):
-        self.name = 'Munari'
-        self.source = config['munari']
+        self.name = "Munari"
+        self.source = config["munari"]
         self._load_()
 
     def _load_(self):
-        g = SpectralGrid(self.source, backend='memory')
+        g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header['NAME'] = self.name
+        self.grid.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1653,37 +1791,39 @@ class Munari(Stellib):
         bbox: ndarray
             (logT, logg) edges of the bounding polygon
         """
-        bbox = [(3.54407 - dlogT, 5.0 + dlogg),
-                (3.54407 - dlogT, 0.0 - dlogg),
-                (3.77815 + dlogT, 0.0 - dlogg),
-                (3.87506 + dlogT, 0.5 - dlogg),
-                (3.91645 + dlogT, 1.0 - dlogg),
-                (3.95424 + dlogT, 1.5 - dlogg),
-                (3.98900 + dlogT, 2.0 - dlogg),
-                (3.98900 + dlogT, 5.0 + dlogg),
-                (3.54407 - dlogT, 5.0 + dlogg)]
+        bbox = [
+            (3.54407 - dlogT, 5.0 + dlogg),
+            (3.54407 - dlogT, 0.0 - dlogg),
+            (3.77815 + dlogT, 0.0 - dlogg),
+            (3.87506 + dlogT, 0.5 - dlogg),
+            (3.91645 + dlogT, 1.0 - dlogg),
+            (3.95424 + dlogT, 1.5 - dlogg),
+            (3.98900 + dlogT, 2.0 - dlogg),
+            (3.98900 + dlogT, 5.0 + dlogg),
+            (3.54407 - dlogT, 5.0 + dlogg),
+        ]
 
         return np.array(bbox)
 
     @property
     def logT(self):
-        return self.grid['logT']
+        return self.grid["logT"]
 
     @property
     def logg(self):
-        return self.grid['logg']
+        return self.grid["logg"]
 
     @property
     def Teff(self):
-        return self.grid['Teff']
+        return self.grid["Teff"]
 
     @property
     def Z(self):
-        return self.grid['Z']
+        return self.grid["Z"]
 
     @property
     def logZ(self):
-        return self.grid['logZ']
+        return self.grid["logZ"]
 
 
 class Aringer(Stellib):
@@ -1694,7 +1834,7 @@ class Aringer(Stellib):
 
     Paper 2016: https://ui.adsabs.harvard.edu/abs/2016MNRAS.457.3611A/abstract
 
-    Note that the 2016 paper/models *includes* an update of the C stars 
+    Note that the 2016 paper/models *includes* an update of the C stars
     described in the following 2009 paper.
     Paper 2009: https://ui.adsabs.harvard.edu/abs/2009A%26A...503..913A/abstract
 
@@ -1703,20 +1843,21 @@ class Aringer(Stellib):
     version is currently NOT implemented here.
     Paper 2019: https://ui.adsabs.harvard.edu/abs/2019MNRAS.487.2133A/abstract
 
-    Files available at: 
+    Files available at:
     http://starkey.astro.unipd.it/atm/
 
     """
+
     def __init__(self, *args, **kwargs):
-        self.name = 'Aringer'
-        self.source = config['aringer']
+        self.name = "Aringer"
+        self.source = config["aringer"]
         self._load_()
 
     def _load_(self):
-        g = SpectralGrid(self.source, backend='memory')
+        g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header['NAME'] = self.name
+        self.grid.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1736,47 +1877,47 @@ class Aringer(Stellib):
             (logT, logg) edges of the bounding polygon
             Excludes excess isochrone models (red/green lines in Fig. 4 of Aringer+2016)
         """
-        bbox = [(3.41497 - dlogT,  5.00 + dlogg),
-                (3.69897 + dlogT,  5.00 + dlogg),
-                (3.69897 + dlogT,  3.50 + dlogg),
-                (3.71600 + dlogT,  3.50 + dlogg),
-                (3.71600 + dlogT,  2.50 - dlogg),
-                (3.69897 + dlogT,  2.50 - dlogg),
-                (3.69897 + dlogT,  0.00 - dlogg),
-                (3.57978 + dlogT,  0.00 - dlogg),
-                (3.57978 + dlogT, -0.50 - dlogg),
-                (3.51851 + dlogT, -0.50 - dlogg),
-                (3.51851 + dlogT, -0.80 - dlogg),
-                (3.50515 + dlogT, -0.70 - dlogg),
-                (3.47712 + dlogT, -0.70 - dlogg),
-                (3.47712 + dlogT, -0.80 - dlogg),
-                (3.46240 + dlogT, -0.85 - dlogg),
-                (3.44716 + dlogT, -1.00 - dlogg),
-                (3.39794 - dlogT, -1.00 - dlogg),
-                (3.39794 - dlogT,  2.00 + dlogg),
-                (3.41497 - dlogT,  2.00 + dlogg),
-                (3.41497 - dlogT,  5.00 + dlogg)]
+        bbox = [
+            (3.41497 - dlogT, 5.00 + dlogg),
+            (3.69897 + dlogT, 5.00 + dlogg),
+            (3.69897 + dlogT, 3.50 + dlogg),
+            (3.71600 + dlogT, 3.50 + dlogg),
+            (3.71600 + dlogT, 2.50 - dlogg),
+            (3.69897 + dlogT, 2.50 - dlogg),
+            (3.69897 + dlogT, 0.00 - dlogg),
+            (3.57978 + dlogT, 0.00 - dlogg),
+            (3.57978 + dlogT, -0.50 - dlogg),
+            (3.51851 + dlogT, -0.50 - dlogg),
+            (3.51851 + dlogT, -0.80 - dlogg),
+            (3.50515 + dlogT, -0.70 - dlogg),
+            (3.47712 + dlogT, -0.70 - dlogg),
+            (3.47712 + dlogT, -0.80 - dlogg),
+            (3.46240 + dlogT, -0.85 - dlogg),
+            (3.44716 + dlogT, -1.00 - dlogg),
+            (3.39794 - dlogT, -1.00 - dlogg),
+            (3.39794 - dlogT, 2.00 + dlogg),
+            (3.41497 - dlogT, 2.00 + dlogg),
+            (3.41497 - dlogT, 5.00 + dlogg),
+        ]
 
         return np.array(bbox)
 
     @property
     def logT(self):
-        return self.grid['logT']
+        return self.grid["logT"]
 
     @property
     def logg(self):
-        return self.grid['logg']
+        return self.grid["logg"]
 
     @property
     def Teff(self):
-        return self.grid['Teff']
+        return self.grid["Teff"]
 
     @property
     def Z(self):
-        return self.grid['Z']
+        return self.grid["Z"]
 
     @property
     def logZ(self):
-        return self.grid['logz']
-
-
+        return self.grid["logz"]

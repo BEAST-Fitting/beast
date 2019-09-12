@@ -10,7 +10,6 @@ import dust_extinction.parameter_averages as dustext_par
 import dust_extinction.averages as dustext_avg
 from dust_extinction.helpers import _test_valid_x_range
 
-from ...observationmodel import phot
 from ...config import __ROOT__
 
 __all__ = [
