@@ -48,55 +48,6 @@ class ExtinctionLaw(object):
         """
         raise NotImplementedError
 
-    def inFilter(self, names, filterLib=None, *args, **kwargs):
-        """
-        Calculates the extinction for a given filter band or filter color
-        colors (e.g. U, U-B ...)
-
-        Parameters
-        ----------
-        names: str or list(str) or list(filters)
-            filter names or filter instances to evaluate. a name can be a
-            color such as 'U-B'
-
-        filterLib: filepath
-            path to the filter library hd5 file
-            (default is the internal library)
-
-        Returns
-        -------
-        r: float or ndarray(dtype=float)
-            attenuation value or array of values
-        """
-        if type(names) == str:
-            if "-" in names:
-                _filters = phot.load_filters(
-                    names.replace(" ", "").split("-"), interp=True, filterLib=filterLib
-                )
-                return float(
-                    self.function(_filters[0].cl, *args, **kwargs)
-                    - self.function(_filters[1].cl, *args, **kwargs)
-                )
-            else:
-                _filters = phot.load_filters([names], interp=True, filterLib=filterLib)
-                return float(self.function(_filters[0].cl, *args, **kwargs))
-
-        elif hasattr(names, "__iter__"):
-            if type(names[0]) == str:
-                # assumes all entires are str
-                lst = np.unique(" ".join(names).replace("-", " ").split())
-                _filters = phot.load_filters(lst, interp=True, filterLib=filterLib)
-                # in case of python 2.6xx, explicit loop
-                d = {}
-                for lk, fk in zip(lst, _filters):
-                    d[lk] = self.function(fk.cl, *args, **kwargs)
-                return np.asarray([float(eval(lk, d)) for lk in names])
-            else:
-                # assumes list of Filter instances
-                return np.asarray(
-                    [float(self.function(fk.cl, *args, **kwargs)) for fk in names]
-                )
-
     def __call__(self, *args, **kwargs):
         return self.function(*args, **kwargs)
 
