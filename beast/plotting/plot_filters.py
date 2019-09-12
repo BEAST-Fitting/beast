@@ -2,8 +2,6 @@
 """ Make a nice plot of the filter response functions
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt

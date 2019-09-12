@@ -2,8 +2,6 @@
 """
 Show diagnostic plots for a square region in two parameters
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import matplotlib.pyplot as plt
 from astropy.table import Table
 from matplotlib.colors import LogNorm

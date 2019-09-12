@@ -32,8 +32,6 @@ Examples::
     # export the initial subtable to a new file
 
 """
-from __future__ import absolute_import, division, print_function
-
 __version__ = "3.0"
 __all__ = ["AstroHelpers", "AstroTable", "SimpleTable", "stats"]
 
@@ -51,7 +49,7 @@ try:
     from astropy.io import fits as pyfits
 except ImportError:
     import pyfits
-except:
+except Exception:
     pyfits = None
 
 try:
@@ -793,7 +791,7 @@ def _latex_writeto(filename, tab, comments="%"):
 
     # add notes if any
     if len(tab._desc) > 0:
-        txt += "\% notes \n\\begin{scriptsize}\n"
+        txt += r"\% notes \n\\begin{scriptsize}\n"
         for e, (k, v) in enumerate(tab._desc.items()):
             if v not in (None, "None", "none", ""):
                 txt += "{0:d} {1:s}: {2:s} \\\\\n".format(e, k, v)
@@ -2043,7 +2041,7 @@ class SimpleTable(object):
     def __getattr__(self, k):
         try:
             return self.data.__getitem__(self.resolve_alias(k))
-        except:
+        except Exception:
             return object.__getattribute__(self, k)
 
     def __iter__(self):
@@ -2602,7 +2600,7 @@ class SimpleTable(object):
             for fnk in fn:
                 try:
                     val = fnk(self[k])
-                except:
+                except Exception:
                     val = fill
                 d[fnk.__name__].append(val)
 
