@@ -260,7 +260,7 @@ def __query_website(d):
         c = urlopen(req).read().decode("utf8")
     else:
         c = urlopen(url, q).read()
-    aa = re.compile("output\d+")
+    aa = re.compile(r"output\d+")
     fname = aa.findall(c)
     if len(fname) > 0:
         url = "{0}/tmp/{1}.dat".format(webserver, fname[0])

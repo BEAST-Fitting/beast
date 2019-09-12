@@ -281,11 +281,11 @@ class MemoryBackend(GridBackend):
                 self.lamb = s["/lamb"].read()
                 try:
                     self.cov_diag = s["/covdiag"].read()
-                except:
+                except Exception:
                     self.cov_diag = None
                 try:
                     self.cov_offdiag = s["/covoffdiag"].read()
-                except:
+                except Exception:
                     self.cov_offdiag = None
             self.grid = Table(fname, tablename="/grid")
 
@@ -339,7 +339,7 @@ class MemoryBackend(GridBackend):
                     try:
                         node = hd.get_node("/seds")
                         node.append(self.seds[:])
-                    except:
+                    except Exception:
                         hd["/seds"] = self.seds[:]
                         hd["/lamb"] = self.lamb[:]
                         if self.cov_diag is not None:
@@ -568,7 +568,7 @@ class CacheBackend(GridBackend):
                     try:
                         node = hd.get_node("/seds")
                         node.append(self.seds[:])
-                    except:
+                    except Exception:
                         hd["/seds"] = self.seds[:]
                         hd["/lamb"] = self.lamb[:]
             if getattr(self, "filters", None) is not None:
@@ -674,7 +674,7 @@ class HDFBackend(GridBackend):
                     try:
                         node = hd.get_node("/seds")
                         node.append(self.seds[:])
-                    except:
+                    except Exception:
                         hd["/seds"] = self.seds[:]
                         hd["/lamb"] = self.lamb[:]
                 hd.write(

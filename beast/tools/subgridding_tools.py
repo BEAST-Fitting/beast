@@ -452,7 +452,7 @@ def merge_pdf1d_stats(
                 total_weight_per_star += grid_weight_per_star
             stats_dict[col] /= total_weight_per_star
 
-        elif re.compile("p\d{1,2}$").match(suffix):
+        elif re.compile(r"p\d{1,2}$").match(suffix):
             # Grab the percentile value
             digits = suffix[1:]
             p = int(digits)

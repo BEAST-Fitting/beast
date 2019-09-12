@@ -614,11 +614,11 @@ def plot_on_image(densitymap, image):
     # Make a rectangular patch for each tile of the map
     rectangles = []
     for row in densitymap.tile_data:
-        l = row["min_ra"]  # left
+        ll = row["min_ra"]  # left
         r = row["max_ra"]  # right
         b = row["min_dec"]  # bottom
         t = row["max_dec"]  # top
-        ra_dec_corners = np.array([[l, b], [r, b], [r, t], [l, t]])
+        ra_dec_corners = np.array([[ll, b], [r, b], [r, t], [ll, t]])
         pix_corners = image_wcs.wcs_world2pix(ra_dec_corners, 0)
         rec = Polygon(pix_corners, closed=True)
         rectangles.append(rec)

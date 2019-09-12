@@ -1,36 +1,47 @@
-""" Latex export """
+"""
+Latex export
+"""
 
-import os, inspect, sys
-localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
-import numpy as np
+import os
+import inspect
+
 from .basebackend import BaseBackend
-from ..core.tableheader import TableHeader
-from ..table import Table
+
+localpath = "/".join(
+    os.path.abspath(inspect.getfile(inspect.currentframe())).split("/")[:-1]
+)
+
 
 class LatexBackend(BaseBackend):
-	def __init__(self):
-		""" constructor """
-		BaseBackend.__init__(self, tableType='tex')
+    def __init__(self):
+        """ constructor """
+        BaseBackend.__init__(self, tableType="tex")
 
-	def read(self, filename, *args, **kwargs):
-		raise Exception('Latex reading not implemented')
+    def read(self, filename, *args, **kwargs):
+        raise Exception("Latex reading not implemented")
 
+    def writeData(self, unit, data, fmt, delimiter="&"):
+        """ Write data part into the opened unit """
+        size = data.shape[0]
+        for ik in range(size):
+            unit.write(fmt % data[ik].tolist())
+            unit.write("\\\\\n")
 
-	def writeData(self, unit, data, fmt, delimiter='&'):
-		""" Write data part into the opened unit """
-		size = data.shape[0]
-		for ik in range(size):
-			unit.write( fmt % data[ik].tolist() )
-			unit.write("\\\\\n")
-
-	def write(self, tab, output='exportedData.tex', header=True,
-			comments='%', verbose=False, **kwargs):
-		"""
+    def write(
+        self,
+        tab,
+        output="exportedData.tex",
+        header=True,
+        comments="%",
+        verbose=False,
+        **kwargs
+    ):
+        """
 		export data to a latex Table
 
 		inputs:
 			data -- data dictionnary to export
-		
+
 		outputs:
 			output -- output file (def: exportedData.dat)
 
@@ -39,60 +50,60 @@ class LatexBackend(BaseBackend):
 			delimiter -- delimiter to use (def: ',')
 			comment   -- comment character for header (def: '#')
 			keep      -- keeps unit opened
-			unit	  -- uses opened stream, if provided 
+			unit	  -- uses opened stream, if provided
 		"""
-		
-		if hasattr(output, 'write'):
-			unit = output
-		else:
-			unit = open(output, 'w')
 
-		unit.write('\\begin{table}\n \\begin{center}\n')
-		if 'NAME' in tab.header:
-			if tab.header['NAME'] not in ['', None, 'None']:
-				unit.write('\\caption{%s}\n' % tab.header['NAME'])
+		if hasattr(output, "write"):
+            unit = output
+        else:
+            unit = open(output, "w")
 
-		aligntxt = ''.join(['c']*tab.ncols)
+        unit.write("\\begin{table}\n \\begin{center}\n")
+        if "NAME" in tab.header:
+            if tab.header["NAME"] not in ["", None, "None"]:
+                unit.write("\\caption{%s}\n" % tab.header["NAME"])
 
-		unit.write('\\begin{tabular}{%s}\n' % aligntxt)
+        aligntxt = "".join(["c"] * tab.ncols)
 
-		# write tab header
-		unit.write('\\hline\\hline\n')
-		colDefTxt = ''	
-		_Notes = []
-		for k in tab.columns:
-			colDefTxt += ' & %s' % k
-			if tab.columns[k].description not in ['', 'None', None]:
-				_Notes.append(tab.columns[k].description)
-				colDefTxt += "$^{\\rm{(%s)}}$" % len(_Notes)
-		colDefTxt = colDefTxt[2:]
-		unit.write('%s\\\\ \n' % colDefTxt )
+        unit.write("\\begin{tabular}{%s}\n" % aligntxt)
 
-		units = [ tab.columns[k].unit for k in list(tab.keys()) ]
+        # write tab header
+        unit.write("\\hline\\hline\n")
+        colDefTxt = ""
+        _Notes = []
+        for k in tab.columns:
+            colDefTxt += " & %s" % k
+            if tab.columns[k].description not in ["", "None", None]:
+                _Notes.append(tab.columns[k].description)
+                colDefTxt += "$^{\\rm{(%s)}}$" % len(_Notes)
+        colDefTxt = colDefTxt[2:]
+        unit.write("%s\\\\ \n" % colDefTxt)
 
-		#Add units if present
-		if ''.join(units).replace('None','') != '':
-			units = ' & '.join(units).replace('None', '')
-			unit.write('%s \\\\\n' % units)
-		unit.write('\\hline\n')
+        units = [tab.columns[k].unit for k in list(tab.keys())]
 
-		fmt  = ' & '.join(['%'+tab.columns[k].format for k in tab.columns])
-		self.writeData(unit, tab.data, fmt, delimiter=' & ')	
+        # Add units if present
+        if "".join(units).replace("None", "") != "":
+            units = " & ".join(units).replace("None", "")
+            unit.write("%s \\\\\n" % units)
+        unit.write("\\hline\n")
 
-		unit.write('\\hline\n')
+        fmt = " & ".join(["%" + tab.columns[k].format for k in tab.columns])
+        self.writeData(unit, tab.data, fmt, delimiter=" & ")
 
-		# add column coments
-		if len(_Notes) > 0:
-			unit.write('\\begin{scriptsize}\n')
-			for k in range(len(_Notes)):
-				unit.write("$^{\\rm(%d)}$ %s\\\\\n" % (k+1, _Notes[k]))
-			unit.write('\\end{scriptsize}\n')
-		unit.write('\\end{tabular}\n\\end{center}\n\\end{table}\n%end of table')
+        unit.write("\\hline\n")
 
-		if hasattr(output, 'write') :
-			return unit
-		else:
-			unit.close()
+        # add column coments
+        if len(_Notes) > 0:
+            unit.write("\\begin{scriptsize}\n")
+            for k in range(len(_Notes)):
+                unit.write("$^{\\rm(%d)}$ %s\\\\\n" % (k + 1, _Notes[k]))
+            unit.write("\\end{scriptsize}\n")
+        unit.write("\\end{tabular}\n\\end{center}\n\\end{table}\n%end of table")
 
-		if verbose: print("Data exported into %s" % output)
+        if hasattr(output, "write"):
+            return unit
+        else:
+            unit.close()
 
+        if verbose:
+            print("Data exported into %s" % output)

@@ -454,7 +454,7 @@ class Stellib(object):
         return p.contains_points(xypoints)
 
     def get_radius(self, logl, logt):
-        """ Returns the radius of a star given its luminosity and temperature
+        r""" Returns the radius of a star given its luminosity and temperature
 
         Assuming a black body, it comes:
                 R ^ 2 = L / ( 4 \pi \sigma T ^ 4 ),
@@ -1078,7 +1078,7 @@ class CompositeStellib(Stellib):
         for oslk, osl in enumerate(self._olist):
             # make a generator to avoid keeping all in memory
             ind = np.where(osl_index - 1 == oslk)
-            if np.squeeze(ind).size is not 0:
+            if np.squeeze(ind).size != 0:
                 g.append(
                     [
                         oslk + 1,

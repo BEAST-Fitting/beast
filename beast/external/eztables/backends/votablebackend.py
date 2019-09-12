@@ -53,39 +53,39 @@ class Node(object):
             return
 
         for nk in node.childNodes:
-            if nk.nodeName not in ['#text']:
+            if nk.nodeName not in ["#text"]:
                 suf = 1
-                key = '%s' % (nk.nodeName)
+                key = "%s" % (nk.nodeName)
                 while key in list(self.__dict__.keys()):
-                    key = '%s_%d' % (nk.nodeName, suf)
+                    key = "%s_%d" % (nk.nodeName, suf)
                     suf += 1
-                setattr( self, key, Node(nk) )
+                setattr(self, key, Node(nk))
             else:
                 txt = nk.nodeValue
-                if txt not in ['', '\n', '\n\n']:
-                    setattr( self, 'text', nk.nodeValue )
+                if txt not in ["", "\n", "\n\n"]:
+                    setattr(self, "text", nk.nodeValue)
 
     @property
     def childrenNames(self):
-        return [ k for k, v in list(self.__dict__.items()) if isinstance(v, Node) ]
+        return [k for k, v in list(self.__dict__.items()) if isinstance(v, Node)]
 
     @property
     def children(self):
-        return [ v for k, v in list(self.__dict__.items()) if isinstance(v, Node) ]
+        return [v for k, v in list(self.__dict__.items()) if isinstance(v, Node)]
 
     def items(self):
-        return [ (k, v) for k, v in list(self.__dict__.items()) if isinstance(v, Node) ]
+        return [(k, v) for k, v in list(self.__dict__.items()) if isinstance(v, Node)]
 
     def __repr__(self):
-        txt = 'XML Node: %s \n' % object.__repr__(self)
-        txt += 'children:   %s \n' % ', '.join(self.childrenNames)
-        if (self.attributes is not None):
-            if (len(self.attributes) > 0):
-                txt += 'attributes:\n'
+        txt = "XML Node: %s \n" % object.__repr__(self)
+        txt += "children:   %s \n" % ", ".join(self.childrenNames)
+        if self.attributes is not None:
+            if len(self.attributes) > 0:
+                txt += "attributes:\n"
                 for k, v in list(self.attributes.items()):
-                    txt += '   %s: %s\n' % (k, v)
+                    txt += "   %s: %s\n" % (k, v)
         if self.value is not None:
-            txt += 'value:\n  %s' % str(self.value)
+            txt += "value:\n  %s" % str(self.value)
         return txt
 
     def tree(self, level=0):
@@ -93,18 +93,18 @@ class Node(object):
         KEYWORDS:
             level   int     defines the initial indentation
         """
-        txt = ''
+        txt = ""
         if level > 0:
-            indent = ' ' * 3 * ( level - 1 ) + ' +--'
+            indent = " " * 3 * (level - 1) + " +--"
         else:
-            indent = ' ' * 2 * (level)
+            indent = " " * 2 * (level)
         for name, node in list(self.items()):
-            txt += '{}{}\n'.format(indent, name)
-            txt += '{}'.format(node.tree(level + 1))
+            txt += "{}{}\n".format(indent, name)
+            txt += "{}".format(node.tree(level + 1))
         return txt
 
 
-def genericMissing(_type, val=0, repr='nan'):
+def genericMissing(_type, val=0, repr="nan"):
     """
     This function create a class of missing data respecting the requested types
     Instances will act as traditional np.nan (in particular when using int)
@@ -118,9 +118,9 @@ def genericMissing(_type, val=0, repr='nan'):
         repr    str     the representation of the value
     """
     try:
-        return _type('nan')
+        return _type("nan")
     except TypeError:
-        return type(_type)('nan')
+        return type(_type)("nan")
     except ValueError:
 
         class NA(_type):
@@ -160,7 +160,7 @@ def genericMissing(_type, val=0, repr='nan'):
 
 def parse(str):
     """ Return a Node-tree from a xml str """
-    return Node( minidom.parseString(str) )
+    return Node(minidom.parseString(str))
 
 
 def votable(obj):
@@ -174,11 +174,20 @@ def votable(obj):
         header  dict    dictionary containing votable descriptions
         meta    tuple   (ucds, units, description) of individual columns
     """
-    if type(obj) in [str, np.str, np.unicode0, np.unicode_, str, np.string_, np.str_, np.string0]:
+    if type(obj) in [
+        str,
+        np.str,
+        np.unicode0,
+        np.unicode_,
+        str,
+        np.string_,
+        np.str_,
+        np.string0,
+    ]:
         node = parse(obj)
     else:
         node = obj
-    assert('VOTABLE' in node.childrenNames), 'Expected XML tree root named VOTABLE'
+    assert "VOTABLE" in node.childrenNames, "Expected XML tree root named VOTABLE"
 
     header = {}
     for k, v in list(node.VOTABLE.attributes.items()):
@@ -187,54 +196,54 @@ def votable(obj):
     for k, v in list(node.VOTABLE.RESOURCE.attributes.items()):
         header[k] = v
 
-    if 'DESCRIPTION' in node.VOTABLE.RESOURCE.TABLE.childrenNames:
-        header['DESCRIPTION'] = node.VOTABLE.RESOURCE.TABLE.DESCRIPTION.text
+    if "DESCRIPTION" in node.VOTABLE.RESOURCE.TABLE.childrenNames:
+        header["DESCRIPTION"] = node.VOTABLE.RESOURCE.TABLE.DESCRIPTION.text
 
-    cols = [ k for k in node.VOTABLE.RESOURCE.TABLE.childrenNames if k[:5] == 'FIELD' ]
-    idx  = list(range(len(cols)))
+    cols = [k for k in node.VOTABLE.RESOURCE.TABLE.childrenNames if k[:5] == "FIELD"]
+    idx = list(range(len(cols)))
     for k, v in list(node.VOTABLE.RESOURCE.TABLE.items()):
-        if len(k.split('_')) > 1:
-            idx = int(k.split('_')[-1])
+        if len(k.split("_")) > 1:
+            idx = int(k.split("_")[-1])
         else:
             idx = 0
         cols[idx] = v
 
-    colnames  = [ str(v.attributes.get('ID')) for v in cols ]
-    coltypes  = [ str(v.attributes.get('datatype')) for v in cols ]
-    colwidths = [ int(v.attributes.get('width')) for v in cols ]
-    colucds   = [ str(v.attributes.get('ucd')) for v in cols ]
-    colunits  = [ str(v.attributes.get('unit')) for v in cols ]
-    coldescs  = [ v.DESCRIPTION.text for v in cols if 'DESCRIPTION' in v.childrenNames ]
+    colnames = [str(v.attributes.get("ID")) for v in cols]
+    coltypes = [str(v.attributes.get("datatype")) for v in cols]
+    colwidths = [int(v.attributes.get("width")) for v in cols]
+    colucds = [str(v.attributes.get("ucd")) for v in cols]
+    colunits = [str(v.attributes.get("unit")) for v in cols]
+    coldescs = [v.DESCRIPTION.text for v in cols if "DESCRIPTION" in v.childrenNames]
     for e, ktype in enumerate(coltypes):
-            #the width on decimals needs to be odd, and does not matter on strings
-            if ktype in ['char', 'str', 'string']:
-                coltypes[e] = '|S%d' % colwidths[e]
-            else:
-                coltypes[e] = np.typeDict[ktype]
+        # the width on decimals needs to be odd, and does not matter on strings
+        if ktype in ["char", "str", "string"]:
+            coltypes[e] = "|S%d" % colwidths[e]
+        else:
+            coltypes[e] = np.typeDict[ktype]
 
-    data  = node.VOTABLE.RESOURCE.TABLE.DATA.TABLEDATA
-    dtype = np.dtype( [ (colnames[e], ktype) for e, ktype in enumerate(coltypes) ])
-    rtab = np.zeros( len(data.childrenNames), dtype=dtype )
+    data = node.VOTABLE.RESOURCE.TABLE.DATA.TABLEDATA
+    dtype = np.dtype([(colnames[e], ktype) for e, ktype in enumerate(coltypes)])
+    rtab = np.zeros(len(data.childrenNames), dtype=dtype)
 
     for nk, line in list(data.items()):
-        if nk[:2] == 'TR':
+        if nk[:2] == "TR":
             lidx = 0
-            if len(nk.split('_')) > 1:
-                lidx = int(nk.split('_')[-1])
+            if len(nk.split("_")) > 1:
+                lidx = int(nk.split("_")[-1])
 
             for lk, v in list(line.items()):
-                if lk[:2] == 'TD':
+                if lk[:2] == "TD":
                     cidx = 0
-                    if len(lk.split('_')) > 1:
-                        cidx = int(lk.split('_')[-1])
-                    if hasattr(v, 'text'):
+                    if len(lk.split("_")) > 1:
+                        cidx = int(lk.split("_")[-1])
+                    if hasattr(v, "text"):
                         rtab[lidx][cidx] = v.text
                     else:
                         rtab[lidx][cidx] = genericMissing(coltypes[cidx])
 
-    if 'DEFINITIONS' in node.VOTABLE.childrenNames:
-        if 'COOSYS' in node.VOTABLE.DEFINITIONS.childrenNames:
-            header['EPOCH'] = node.VOTABLE.DEFINITIONS.COOSYS.attributes['epoch']
-            header['COORDS'] = node.VOTABLE.DEFINITIONS.COOSYS.attributes['system']
+    if "DEFINITIONS" in node.VOTABLE.childrenNames:
+        if "COOSYS" in node.VOTABLE.DEFINITIONS.childrenNames:
+            header["EPOCH"] = node.VOTABLE.DEFINITIONS.COOSYS.attributes["epoch"]
+            header["COORDS"] = node.VOTABLE.DEFINITIONS.COOSYS.attributes["system"]
 
     return rtab, header, (colucds, colunits, coldescs)

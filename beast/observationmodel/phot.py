@@ -446,7 +446,7 @@ def extractSEDs(g0, flist, absFlux=True):
 
 
 def STmag_to_flux(v):
-    """
+    r"""
     Convert an ST magnitude to erg/s/cm2/AA (Flambda)
 
         mag = -2.5 \log_{10}(F) - 21.10
@@ -469,7 +469,7 @@ def STmag_to_flux(v):
 
 
 def STmag_from_flux(v):
-    """
+    r"""
     Convert to ST magnitude from erg/s/cm2/AA (Flambda)
 
         mag = -2.5 \log_{10}(F) - 21.10

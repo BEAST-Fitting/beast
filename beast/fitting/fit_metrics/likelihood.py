@@ -107,7 +107,7 @@ def N_covar_chi2(flux, fluxmod_wbias, icov_diag, two_icov_offdiag):
 
 
 def N_logLikelihood_NM(flux, fluxmod_wbias, ivar, mask=None, lnp_threshold=1000.0):
-    """ Computes the log of the chi2 likelihood between data and model taking
+    r""" Computes the log of the chi2 likelihood between data and model taking
     into account the noise model.
 
     Parameters

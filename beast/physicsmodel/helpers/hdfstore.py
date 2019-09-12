@@ -249,7 +249,7 @@ def __write__(
                 t = __createTable__(hd5, tab, group, tablename)
                 try:
                     t = __createTable__(hd5, tab, group, tablename)
-                except:
+                except Exception:
                     if not silent:
                         print(
                             "Warning: Table creation exception. Table may already exist."

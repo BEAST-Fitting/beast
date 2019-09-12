@@ -14,7 +14,7 @@ class NoiseModel(object):
         self.data = Table(self.astfile)
 
     def fit(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     def __call__(self, sedgrid):
-        raise NotImplemented
+        raise NotImplementedError

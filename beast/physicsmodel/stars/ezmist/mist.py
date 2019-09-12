@@ -198,7 +198,7 @@ def _read_mist_iso_filecontent(data):
 
     try:
         f = data.decode("utf8").split("\n")
-    except:
+    except Exception:
         f = data.split("\n")
 
     content = [line.split() for line in f]

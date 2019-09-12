@@ -7,7 +7,7 @@ try:
     raise ImportError
 
     def __interp__(T0, g0, T, g, dT_max=0.1, eps=1e-6):
-        """ interp.pyx
+        r""" interp.pyx
         Interpolation of the (T,g) grid at fixed Z
 
         Translated from Pegase.2 fortran version
@@ -84,7 +84,7 @@ except ImportError:
     # print "Using python code instead of c, because %s"  % e
 
     def __interp__(T0, g0, T, g, dT_max=0.1, eps=1e-6):
-        """
+        r"""
         Interpolation of the (T,g) grid at fixed Z
         Translated from Pegase.2 fortran version
         (this may not be pythonic though)

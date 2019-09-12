@@ -196,7 +196,7 @@ def setup_batch_beast_fit(
             print(stats_files[i] + " done")
             run_info_dict["done"][i] = True
         else:
-
+            pf = None
             j += 1
             if j % num_percore == 0:
                 cur_f += 1
