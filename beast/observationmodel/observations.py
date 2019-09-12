@@ -1,8 +1,7 @@
 """
 Defines a generic interface to observation catalog
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
 
@@ -10,7 +9,7 @@ from astropy.table import Table, Column
 
 from beast.observationmodel.vega import Vega
 
-__all__ = ['Observations', 'gen_SimObs_from_sedgrid']
+__all__ = ["Observations", "gen_SimObs_from_sedgrid"]
 
 
 class Observations(object):
@@ -35,6 +34,7 @@ class Observations(object):
     nObs: int
         number of observations in the catalog
     """
+
     def __init__(self, inputFile, desc=None):
         """ Generate a data interface object """
         self.inputFile = inputFile
@@ -73,9 +73,9 @@ class Observations(object):
             txt += "\t {0:s}\n".format(k)
 
         if self.filters is None:
-            txt += '\n No filters given yet!'
+            txt += "\n No filters given yet!"
         else:
-            txt += '\n Using Filters: {s.filters}\n'
+            txt += "\n Using Filters: {s.filters}\n"
 
         print(txt.format(s=self))
 
@@ -100,12 +100,12 @@ class Observations(object):
         self.filters = filters
 
     def getMags(self, num, filters):
-        raise Exception('Do not use as magnitudes')
+        raise Exception("Do not use as magnitudes")
         return np.array([self.data[tt][num] for tt in filters])
 
     def getErrors(self, num, filters):
-        raise Exception('Do not use as magnitudes')
-        return np.array([self.data[tt + 'err'][num] for tt in filters])
+        raise Exception("Do not use as magnitudes")
+        return np.array([self.data[tt + "err"][num] for tt in filters])
 
     def getFlux(self, num):
         """returns the flux of an observation from the number of counts"""
@@ -123,14 +123,14 @@ class Observations(object):
         fluxerr = np.empty(len(self.filters), dtype=float)
 
         for ek, ok in enumerate(self.filters):
-            fluxerr[ek] = self.data[ok + '_err'][num]
+            fluxerr[ek] = self.data[ok + "_err"][num]
 
         return fluxerr
 
     def getObs(self, num=0):
         """ returns the flux"""
         if self.filters is None:
-            raise AttributeError('No filter set provided.')
+            raise AttributeError("No filter set provided.")
 
         flux = self.getFlux(num, self.filters)
 
@@ -139,6 +139,7 @@ class Observations(object):
     def readData(self):
         """ read the dataset from the original source file """
         from ..external.eztables import AstroTable
+
         if type(self.inputFile) == str:
             self.data = AstroTable(self.inputFile)
         else:
@@ -154,9 +155,14 @@ class Observations(object):
             yield k, self.getObs(k)
 
 
-def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
-                            nsim=100, compl_filter='F475W',
-                            ranseed=None, vega_fname=None):
+def gen_SimObs_from_sedgrid(
+    sedgrid,
+    sedgrid_noisemodel,
+    nsim=100,
+    compl_filter="F475W",
+    ranseed=None,
+    vega_fname=None,
+):
     """
     Generate simulated observations using the physics and observation grids.
     The priors are sampled as they give the ensemble model for the stellar
@@ -199,15 +205,14 @@ def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
     n_models, n_filters = flux.shape
 
     # hack to get things to run for now
-    short_filters = [filter.split(sep='_')[-1].lower()
-                     for filter in sedgrid.filters]
+    short_filters = [filter.split(sep="_")[-1].lower() for filter in sedgrid.filters]
     if compl_filter.lower() not in short_filters:
-        print('requested completeness filter not present')
-        print('%s requested' % compl_filter.lower())
-        print('possible filters', short_filters)
+        print("requested completeness filter not present")
+        print("%s requested" % compl_filter.lower())
+        print("possible filters", short_filters)
         exit()
     filter_k = short_filters.index(compl_filter.lower())
-    print('Completeness from %s' % sedgrid.filters[filter_k])
+    print("Completeness from %s" % sedgrid.filters[filter_k])
 
     # cache the noisemodel values
     model_bias = sedgrid_noisemodel.root.bias[:]
@@ -218,9 +223,9 @@ def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
     # using both as the grid weight needed to account for the finite size
     #   of each grid bin
     # if we change to interpolating between grid points, need to rethink this
-    gridweights = sedgrid['weight']*model_compl[:, filter_k]
+    gridweights = sedgrid["weight"] * model_compl[:, filter_k]
     # need to sum to 1
-    gridweights = gridweights/np.sum(gridweights)
+    gridweights = gridweights / np.sum(gridweights)
 
     # set the random seed - mainly for testing
     if not None:
@@ -238,11 +243,10 @@ def gen_SimObs_from_sedgrid(sedgrid, sedgrid_noisemodel,
     qnames = list(sedgrid.keys())
     # simulated data
     for k, filter in enumerate(sedgrid.filters):
-        colname = '%s_rate' % filter.split(sep='_')[-1].lower()
+        colname = "%s_rate" % filter.split(sep="_")[-1].lower()
         simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
-        simflux = np.random.normal(loc=simflux_wbias,
-                                   scale=model_unc[sim_indx, k])
-        ot[colname] = Column(simflux/vega_flux[k])
+        simflux = np.random.normal(loc=simflux_wbias, scale=model_unc[sim_indx, k])
+        ot[colname] = Column(simflux / vega_flux[k])
     # model parmaeters
     for qname in qnames:
         ot[qname] = Column(sedgrid[qname][sim_indx])

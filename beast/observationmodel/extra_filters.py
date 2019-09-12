@@ -2,10 +2,9 @@ import numpy as np
 from .phot import IntegrationFilter, Filter
 
 
-def make_integration_filter(startlam, endlam, dlamb, name,
-                            observatory='SUDO',
-                            instrument='FAKE',
-                            comment=None):
+def make_integration_filter(
+    startlam, endlam, dlamb, name, observatory="SUDO", instrument="FAKE", comment=None
+):
     """
     Creates a constant-filter with transmission 100%
     in the energy range [startlam:endlam].
@@ -47,8 +46,8 @@ def make_integration_filter(startlam, endlam, dlamb, name,
     flam = np.ones_like(lam)
     mask_i = lam < startlam
     mask_f = lam > endlam
-    flam[mask_i] = 0.
-    flam[mask_f] = 0.
+    flam[mask_i] = 0.0
+    flam[mask_f] = 0.0
 
     # Check what are actual boundaries, based on lam grid
     lam0 = lam[np.invert(mask_i)][0]
@@ -56,19 +55,20 @@ def make_integration_filter(startlam, endlam, dlamb, name,
 
     bandwidth = lam1 - lam0
 
-    _name = '{obs:s}_{inst:s}_{name:s}'.format(obs=observatory, inst=instrument, name=name)
+    _name = "{obs:s}_{inst:s}_{name:s}".format(
+        obs=observatory, inst=instrument, name=name
+    )
     filt = IntegrationFilter(lam, flam, name=_name)
     filt.bandwidth = bandwidth
-    filt.comment = 'Multiply values by integral{lamb*dlamb}/hc'
+    filt.comment = "Multiply values by integral{lamb*dlamb}/hc"
     if comment is not None:
-        filt.comment += '\n' + comment
+        filt.comment += "\n" + comment
     return filt
 
 
-def make_top_hat_filter(startlam, endlam, dlamb, name,
-                        observatory='SUDO',
-                        instrument='FAKE',
-                        comment=None):
+def make_top_hat_filter(
+    startlam, endlam, dlamb, name, observatory="SUDO", instrument="FAKE", comment=None
+):
     """
     Creates a psudo-filter with transmission 100%
     in the energy range [startlam:endlam].
@@ -108,8 +108,8 @@ def make_top_hat_filter(startlam, endlam, dlamb, name,
     flam = np.ones_like(lam)
     mask_i = lam < startlam
     mask_f = lam > endlam
-    flam[mask_i] = 0.
-    flam[mask_f] = 0.
+    flam[mask_i] = 0.0
+    flam[mask_f] = 0.0
 
     # Check what are actual boundaries, based on lam grid
     lam0 = lam[np.invert(mask_i)][0]
@@ -124,15 +124,19 @@ def make_top_hat_filter(startlam, endlam, dlamb, name,
     # integral ( lambda T F dlambda ) = integral (lambda G / lambda F dlambda)
     flam_ph = flam / lam
 
-    _name = '{obs:s}_{inst:s}_{name:s}'.format(obs=observatory, inst=instrument, name=name)
+    _name = "{obs:s}_{inst:s}_{name:s}".format(
+        obs=observatory, inst=instrument, name=name
+    )
     filt = Filter(lam, flam_ph, name=_name)
     filt.bandwidth = bandwidth
-    filt.comment = 'Multiply values by bandwidth'
+    filt.comment = "Multiply values by bandwidth"
     if comment is not None:
-        filt.comment += '\n' + comment
+        filt.comment += "\n" + comment
     return filt
 
 
 def test():
-    f = make_integration_filter(90., 913., 1, 'QION', observatory='SUDO', instrument='Fake')
+    f = make_integration_filter(
+        90.0, 913.0, 1, "QION", observatory="SUDO", instrument="Fake"
+    )
     return f

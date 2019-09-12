@@ -6,7 +6,7 @@ import tables
 from ..config import __ROOT__
 
 
-__all__ = ['Vega', 'from_Vegamag_to_Flux']
+__all__ = ["Vega", "from_Vegamag_to_Flux"]
 
 
 class Vega(object):
@@ -29,7 +29,7 @@ class Vega(object):
     def __init__(self, source=None):
         """ Constructor """
         if source is None:
-            source = '{0}/vega.hd5'.format(__ROOT__)
+            source = "{0}/vega.hd5".format(__ROOT__)
         self.source = source
         self.hdf = None
 
@@ -52,8 +52,7 @@ class Vega(object):
             FNAME = s.hdf.root.sed.cols.FNAME[:]
             LUM = s.hdf.root.sed.cols.LUM[:]
             CWAVE = s.hdf.root.sed.cols.CWAVE[:]
-        idx = numpy.asarray([numpy.where(FNAME == k.encode('utf-8'))
-                             for k in filters])
+        idx = numpy.asarray([numpy.where(FNAME == k.encode("utf-8")) for k in filters])
         return numpy.ravel(FNAME[idx]), numpy.ravel(LUM[idx]), numpy.ravel(CWAVE[idx])
 
     def getMag(self, filters):
@@ -62,15 +61,20 @@ class Vega(object):
             FNAME = s.hdf.root.sed.cols.FNAME[:]
             MAG = s.hdf.root.sed.cols.MAG[:]
             CWAVE = s.hdf.root.sed.cols.CWAVE[:]
-        idx = numpy.asarray([numpy.where(FNAME == k.encode('utf-8'))
-                             for k in filters])
+        idx = numpy.asarray([numpy.where(FNAME == k.encode("utf-8")) for k in filters])
         return numpy.ravel(FNAME[idx]), numpy.ravel(MAG[idx]), numpy.ravel(CWAVE[idx])
 
 
 def xxtestUnit():
     """ Unit test and example usage """
-    filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_WFC3_F475W',
-               'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
+    filters = [
+        "HST_WFC3_F275W",
+        "HST_WFC3_F336W",
+        "HST_WFC3_F475W",
+        "HST_WFC3_F814W",
+        "HST_WFC3_F110W",
+        "HST_WFC3_F160W",
+    ]
     with Vega() as v:
         vega_f, vega_mag, flamb = v.getSed(filters)
     print(vega_f, vega_mag, flamb)
@@ -78,10 +82,11 @@ def xxtestUnit():
 
 def from_Vegamag_to_Flux(lamb, vega_mag):
     """ function decorator that transforms vega magnitudes to fluxes (without vega reference) """
+
     def deco(f):
         def vegamagtoFlux(mag, err, mask):
             f = numpy.power(10, -0.4 * (mag + vega_mag))
-            e = f * (1. - numpy.power(10, -0.4 * err))
+            e = f * (1.0 - numpy.power(10, -0.4 * err))
             return f, e, mask
 
         @wraps(f)
@@ -90,11 +95,13 @@ def from_Vegamag_to_Flux(lamb, vega_mag):
             return vegamagtoFlux(mag, err, mask)
 
         return wrapper
+
     return deco
 
 
 def from_Vegamag_to_Flux_SN_errors(lamb, vega_mag):
     """ function decorator that transforms vega magnitudes to fluxes (without vega reference) """
+
     def deco(f):
         def vegamagtoFlux(mag, errp, errm, mask):
             f = 10 ** (-0.4 * (mag + vega_mag))
@@ -108,4 +115,5 @@ def from_Vegamag_to_Flux_SN_errors(lamb, vega_mag):
             return vegamagtoFlux(mag, errp, errm, mask)
 
         return wrapper
+
     return deco
