@@ -70,40 +70,40 @@ def dms2deg(_str, delim=":"):
 
 def euler(ai_in, bi_in, select, b1950=False, dtype="f8"):
     """
-	Transform between Galactic, celestial, and ecliptic coordinates.
+    Transform between Galactic, celestial, and ecliptic coordinates.
 
-	INPUTS:
-	long_in - Input Longitude in DEGREES, scalar or vector.
-	lat_in  - Input Latitude in DEGREES
-	select  - Integer (1-6) specifying type of coordinate transformation.
+    INPUTS:
+    long_in - Input Longitude in DEGREES, scalar or vector.
+    lat_in  - Input Latitude in DEGREES
+    select  - Integer (1-6) specifying type of coordinate transformation.
 
-	select   From          To        |   select      From            To
-	1     RA-Dec (2000)  Galactic   |     4       Ecliptic      RA-Dec
-	2     Galactic       RA-DEC     |     5       Ecliptic      Galactic
-	3     RA-Dec         Ecliptic   |     6       Galactic      Ecliptic
+    select   From          To        |   select      From            To
+    1     RA-Dec (2000)  Galactic   |     4       Ecliptic      RA-Dec
+    2     Galactic       RA-DEC     |     5       Ecliptic      Galactic
+    3     RA-Dec         Ecliptic   |     6       Galactic      Ecliptic
 
-	Celestial coordinates (RA, Dec) should be given in equinox J2000
-	unless the b1950=True keyword is set.
+    Celestial coordinates (RA, Dec) should be given in equinox J2000
+    unless the b1950=True keyword is set.
 
-	OUTPUTS:
-	long_out - Output Longitude in DEGREES
-	lat_out  - Output Latitude in DEGREES
+    OUTPUTS:
+    long_out - Output Longitude in DEGREES
+    lat_out  - Output Latitude in DEGREES
 
-	KEYWORDS:
-	b1950 - If this keyword is true then input and output
-	     celestial and ecliptic coordinates should be given in equinox
-	     B1950.
+    KEYWORDS:
+    b1950 - If this keyword is true then input and output
+         celestial and ecliptic coordinates should be given in equinox
+         B1950.
 
-	REVISION HISTORY:
-	Written W. Landsman,  February 1987
-	Adapted from Fortran by Daryl Yentis NRL
-	Converted to IDL V5.0   W. Landsman   September 1997
-	Made J2000 the default, added /FK4 keyword  W. Landsman December 1998
-	Add option to specify SELECT as a keyword W. Landsman March 2003
+    REVISION HISTORY:
+    Written W. Landsman,  February 1987
+    Adapted from Fortran by Daryl Yentis NRL
+    Converted to IDL V5.0   W. Landsman   September 1997
+    Made J2000 the default, added /FK4 keyword  W. Landsman December 1998
+    Add option to specify SELECT as a keyword W. Landsman March 2003
 
-	Converted from IDL to numerical Python: Erin Sheldon, NYU, 2008-07-02
+    Converted from IDL to numerical Python: Erin Sheldon, NYU, 2008-07-02
 
-	"""
+    """
 
     # Make a copy as an array. ndmin=1 to avoid messed up scalar arrays
     ai = numpy.array(ai_in, ndmin=1, copy=True, dtype=dtype)
@@ -235,12 +235,12 @@ def euler(ai_in, bi_in, select, b1950=False, dtype="f8"):
 
 def sphdist(ra1, dec1, ra2, dec2):
     """measures the spherical distance between 2 points
-	Inputs:
-		(ra1, dec1)	in degrees
-		(ra2, dec2)	in degrees
-	Outputs:
-		returns a distance in degrees
-	"""
+    Inputs:
+    (ra1, dec1)	in degrees
+    (ra2, dec2)	in degrees
+    Outputs:
+    returns a distance in degrees
+    """
     dec1_r = deg2rad(dec1)
     dec2_r = deg2rad(dec2)
     return 2.0 * rad2deg(

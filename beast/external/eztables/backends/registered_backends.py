@@ -20,22 +20,22 @@ def register_extension(
     extensions, backend=None, readerFunction=None, writerFunction=None, override=False
 ):
     """
-	Register storage supports from either a Backend object or individual
-	read/write functions
+    Register storage supports from either a Backend object or individual
+    read/write functions
 
-	INPUTS:
-		extensions	[str or seq]    register particular extensions
+    INPUTS:
+    extensions	[str or seq]    register particular extensions
 
-	KEYWORDS:
-		backend		[Backend]	core.basebackend.BaseBackend Object
-		readerFunction 	[function]	function required for the reading part
-				  		this function should return a Table object
-		writerFunction 	[function]	function required for the writing part
-				  		this function should return a Table object
-				  		Will receive a Table object as input
-				  		and should also handle extra **kwargs
-		override 	[bool]		redefine the file manager if already registered.
-	"""
+    KEYWORDS:
+    backend		[Backend]	core.basebackend.BaseBackend Object
+    readerFunction 	[function]	function required for the reading part
+        this function should return a Table object
+    writerFunction 	[function]	function required for the writing part
+        this function should return a Table object
+        Will receive a Table object as input
+        and should also handle extra **kwargs
+    override 	[bool]		redefine the file manager if already registered.
+    """
     if not hasattr(extensions, "__iter__"):
         extensions = [extensions]
 
@@ -55,10 +55,10 @@ def register_extension(
 
 
 def determine_type(string, verbose=True):
-	"""
-	Determine the type of a table from its extension and try to give the
-	point to the appropriate registered extension
-	"""
+    """
+    Determine the type of a table from its extension and try to give the
+    point to the appropriate registered extension
+    """
     if type(string) != str:
         raise Exception("Could not determine input type (non-string input)")
 
@@ -66,7 +66,7 @@ def determine_type(string, verbose=True):
         set_defaults()
 
     s = string.lower()
-    if not "." in s:
+    if "." not in s:
         extension = s
     else:
         extension = s.split(".")[-1]
