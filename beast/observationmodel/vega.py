@@ -18,8 +18,7 @@ class Vega(object):
 
         filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_WFC3_F475W', \
                    'HST_WFC3_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
-        with Vega() as v:rom __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+        with Vega() as v:
 
             vega_f, vega_mag, flamb = v.getSed(filters)
         print vega_f, vega_mag, flamb

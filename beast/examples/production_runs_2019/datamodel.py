@@ -2,8 +2,6 @@
 Data Model interface v2.0
 BEAST datamodel for LMC METAL fields
 """
-from __future__ import absolute_import, division, print_function
-
 import numpy as np
 
 from astropy import units

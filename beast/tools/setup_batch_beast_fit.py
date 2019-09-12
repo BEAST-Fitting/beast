@@ -3,7 +3,6 @@
 """
 Code to create the batch files for fitting
 """
-from __future__ import print_function
 import os
 import argparse
 import tables
