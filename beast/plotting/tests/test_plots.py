@@ -9,11 +9,9 @@ from astropy.io import fits
 from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 
-# from beast.plotting.plot_indiv_fit import plot_indiv_fit
 from beast.plotting import plot_indiv_fit
-# from beast.plotting import plot_filters
 
-plt.switch_backend('agg')
+plt.switch_backend("agg")
 
 
 def _download_rename(filename):
@@ -22,10 +20,10 @@ def _download_rename(filename):
 
     Otherwise, downloaded file will not have an extension at all
     """
-    url_loc = 'http://www.stsci.edu/~kgordon/beast/'
-    fname_dld = download_file('%s%s' % (url_loc, filename))
-    extension = filename.split('.')[-1]
-    fname = '%s.%s' % (fname_dld, extension)
+    url_loc = "http://www.stsci.edu/~kgordon/beast/"
+    fname_dld = download_file("%s%s" % (url_loc, filename))
+    extension = filename.split(".")[-1]
+    fname = "%s.%s" % (fname_dld, extension)
     os.rename(fname_dld, fname)
     return fname
 
@@ -36,8 +34,8 @@ def _download_rename(filename):
 def test_indiv_plot():
 
     # download cached version of fitting results
-    stats_fname_cache = _download_rename('beast_example_phat_stats.fits')
-    pdf1d_fname_cache = _download_rename('beast_example_phat_pdf1d.fits')
+    stats_fname_cache = _download_rename("beast_example_phat_stats.fits")
+    pdf1d_fname_cache = _download_rename("beast_example_phat_pdf1d.fits")
 
     # results_dir = '../../examples/phat_small/beast_example_phat/'
     # stats_fname_cache = results_dir + 'beast_example_phat_stats.fits'
@@ -50,10 +48,24 @@ def test_indiv_plot():
     # open 1D PDF file
     pdf1d_hdu = fits.open(pdf1d_fname_cache)
 
-    filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
-               'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
-    waves = np.asarray([2722.05531502, 3366.00507206, 4763.04670013,
-                        8087.36760191, 11672.35909295, 15432.7387546])
+    filters = [
+        "HST_WFC3_F275W",
+        "HST_WFC3_F336W",
+        "HST_ACS_WFC_F475W",
+        "HST_ACS_WFC_F814W",
+        "HST_WFC3_F110W",
+        "HST_WFC3_F160W",
+    ]
+    waves = np.asarray(
+        [
+            2722.05531502,
+            3366.00507206,
+            4763.04670013,
+            8087.36760191,
+            11672.35909295,
+            15432.7387546,
+        ]
+    )
 
     fig, ax = plt.subplots(figsize=(8, 8))
 

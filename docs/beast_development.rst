@@ -118,18 +118,15 @@ installed copy of the BEAST, you can perform a development install. This can
 either be performed via a pip development install, by navigating to the
 directory that contains `setup.py` and running:
 
-  .. code:: shell
+  .. code-block:: console
 
-    $ pip install -e .
+     $ pip install -e .
 
 or by doing a development install directly though Python with:
 
-  .. code:: shell
+  .. code-block:: console
 
-.. code-block:: console
-
-    $ python setup.py develop
-
+     $ python setup.py develop
 
 Making Changes
 ==============

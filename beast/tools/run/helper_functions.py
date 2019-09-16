@@ -1,9 +1,5 @@
-# system imports
-from __future__ import (absolute_import, division, print_function)
-
 # other imports
 from multiprocessing import Pool
-
 
 
 def subcatalog_fname(full_cat_fname, source_density, sub_source_density):
@@ -27,10 +23,11 @@ def subcatalog_fname(full_cat_fname, source_density, sub_source_density):
         the file name of the sub-catalog
 
     """
-    
-    return full_cat_fname.replace('.fits', '_SD{}_sub{}.fits'.format(
-            source_density.replace('_','-'), sub_source_density))
 
+    return full_cat_fname.replace(
+        ".fits",
+        "_SD{}_sub{}.fits".format(source_density.replace("_", "-"), sub_source_density),
+    )
 
 
 def parallel_wrapper(function, arg_tuples, nprocs=1):
@@ -55,7 +52,7 @@ def parallel_wrapper(function, arg_tuples, nprocs=1):
 
     """
 
-    if (nprocs > 1):
+    if nprocs > 1:
         p = Pool(nprocs)
         for r in p.starmap(gen_subgrid, arg_tuples):
             print(r)
@@ -63,9 +60,6 @@ def parallel_wrapper(function, arg_tuples, nprocs=1):
         for a in arg_tuples:
             r = function(*a)
             print(r)
-
-
-
 
 
 def get_modelsubgridfiles(subgrid_names_file):
@@ -85,8 +79,7 @@ def get_modelsubgridfiles(subgrid_names_file):
 
     """
 
-
-    with open(subgrid_names_file, 'r') as f:
-        modelsedgridfiles = f.read().split('\n')[:-1]
+    with open(subgrid_names_file, "r") as f:
+        modelsedgridfiles = f.read().split("\n")[:-1]
 
     return modelsedgridfiles

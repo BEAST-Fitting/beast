@@ -10,41 +10,43 @@ more accurate results with smaller uncertainties on fit parameters
 can be achieved using the trunchen method.  The trunchen method
 requires significantly more complicated ASTs and many more of them.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 import tables
 
 from . import toothpick
 
-__all__ = ['Generic_ToothPick_Noisemodel', 'make_toothpick_noise_model',
-           'get_noisemodelcat']
+__all__ = [
+    "Generic_ToothPick_Noisemodel",
+    "make_toothpick_noise_model",
+    "get_noisemodelcat",
+]
 
 
 class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
-
     def set_data_mappings(self):
         """
         hard code mapping directly with the interface to ASTs format
         """
         for k in self.filters:
             try:
-                self.data.set_alias(k + '_out',
-                                    k.split('_')[-1].upper() + '_VEGA')
+                self.data.set_alias(k + "_out", k.split("_")[-1].upper() + "_VEGA")
                 # self.data.set_alias(k + '_rate',
                 #                    k.split('_')[-1].upper() + '_RATE')
-                self.data.set_alias(k + '_in',
-                                    k.split('_')[-1].upper() + '_IN')
+                self.data.set_alias(k + "_in", k.split("_")[-1].upper() + "_IN")
             except Exception as e:
                 print(e)
-                print('Warning: Mapping failed. This could lead to ' +
-                      'wrong results')
+                print("Warning: Mapping failed. This could lead to " + "wrong results")
 
 
-def make_toothpick_noise_model(outname, astfile, sedgrid,
-                               use_rate=True, vega_fname=None,
-                               absflux_a_matrix=None, **kwargs):
+def make_toothpick_noise_model(
+    outname,
+    astfile,
+    sedgrid,
+    use_rate=True,
+    vega_fname=None,
+    absflux_a_matrix=None,
+    **kwargs
+):
     """ toothpick noise model assumes that every filter is independent with
     any other.
 
@@ -74,25 +76,18 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
     """
 
     # read in AST results
-    model = Generic_ToothPick_Noisemodel(astfile, sedgrid.filters,
-                                         vega_fname=vega_fname)
+    model = Generic_ToothPick_Noisemodel(
+        astfile, sedgrid.filters, vega_fname=vega_fname
+    )
 
     # compute binned biases and uncertainties as a function of flux
     if use_rate:
         # change the mappings for the out column to the rate column
         for cfilt in sedgrid.filters:
-            model.data.set_alias(cfilt + '_out',
-                                 cfilt.split('_')[-1].upper() + '_RATE')
+            model.data.set_alias(cfilt + "_out", cfilt.split("_")[-1].upper() + "_RATE")
         model.fit_bins(nbins=30, completeness_mag_cut=-10)
     else:
         model.fit_bins(nbins=30, completeness_mag_cut=80)
-
-    # for k in range(len(model.filters)):
-    #    print(model.filters[k])
-    #    print(model._fluxes[:,k])
-    #    print(model._sigmas[:,k]/model._fluxes[:,k])
-    #    print(model._biases[:,k]/model._fluxes[:,k])
-    #    print(model._compls[:,k])
 
     # evaluate the noise model for all the models in sedgrid
     bias, sigma, compl = model(sedgrid)
@@ -102,7 +97,7 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
     if absflux_a_matrix is not None:
         if absflux_a_matrix.ndim == 1:
             abs_calib_2 = absflux_a_matrix[:] ** 2
-        else:   # assumes a cov matrix
+        else:  # assumes a cov matrix
             abs_calib_2 = np.diag(absflux_a_matrix)
 
         noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma ** 2)
@@ -119,11 +114,11 @@ def make_toothpick_noise_model(outname, astfile, sedgrid,
         if len(indxs) > 0:
             noise[indxs, k] *= -1.0
 
-    print('Writing to disk into {0:s}'.format(outname))
-    with tables.open_file(outname, 'w') as outfile:
-        outfile.create_array(outfile.root, 'bias', bias)
-        outfile.create_array(outfile.root, 'error', noise)
-        outfile.create_array(outfile.root, 'completeness', compl)
+    print("Writing to disk into {0:s}".format(outname))
+    with tables.open_file(outname, "w") as outfile:
+        outfile.create_array(outfile.root, "bias", bias)
+        outfile.create_array(outfile.root, "error", noise)
+        outfile.create_array(outfile.root, "completeness", compl)
 
     return outname
 
@@ -143,8 +138,3 @@ def get_noisemodelcat(filename):
         table containing the elements of the noise model
     """
     return tables.open_file(filename)
-
-
-if __name__ == '__main__':
-
-    pass
