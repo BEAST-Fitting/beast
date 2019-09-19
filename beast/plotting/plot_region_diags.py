@@ -150,8 +150,8 @@ if __name__ == "__main__":
         suffix=args.suffix,
         xparam=args.xparam,
         yparam=args.yparam,
-        xrange=args.xrange,
-        yrange=args.yrange,
+        pxrange=args.xrange,
+        pyrange=args.yrange,
     )
 
     if args.savefig:

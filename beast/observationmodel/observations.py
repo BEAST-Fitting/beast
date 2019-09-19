@@ -130,7 +130,7 @@ class Observations(object):
         if self.filters is None:
             raise AttributeError("No filter set provided.")
 
-        flux = self.getFlux(num, self.filters)
+        flux = self.getFlux(num)
 
         return flux
 

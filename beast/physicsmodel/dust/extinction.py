@@ -70,6 +70,7 @@ class Cardelli89(ExtinctionLaw):
     """
 
     def __init__(self):
+        super().__init__()
         self.name = "Cardelli89"
         self.x_range = [0.3, 10.0]  # inverse microns
 
@@ -189,6 +190,7 @@ class Fitzpatrick99(ExtinctionLaw):
     """
 
     def __init__(self):
+        super().__init__()
         self.name = "Fitzpatrick99"
         self.x_range = [0.3, 10.0]
 
@@ -352,6 +354,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
     """
 
     def __init__(self):
+        super().__init__()
         self.name = "Gordon03_SMCBar"
         self.Rv = 2.74
         self.x_range = [0.3, 10.0]
@@ -490,6 +493,7 @@ class Gordon16_RvFALaw(ExtinctionLaw):
     """
 
     def __init__(self):
+        super().__init__()
         self.ALaw = Fitzpatrick99()
         self.BLaw = Gordon03_SMCBar()
         self.name = "Gordon16_RvFALaw"
@@ -611,6 +615,7 @@ class Generalized_RvFALaw(Gordon16_RvFALaw):
     """
 
     def __init__(self, ALaw=Fitzpatrick99(), BLaw=Gordon03_SMCBar()):
+        super().__init__()
         self.ALaw = ALaw
         self.BLaw = BLaw
         self.name = "Generalized_RvFALaw:" + ALaw.name + "+" + BLaw.name
@@ -631,6 +636,7 @@ class Generalized_DustExt(ExtinctionLaw):
     """
 
     def __init__(self, curve="F04"):
+        super().__init__()
         self.name = "dustextpkg_" + curve
         if curve in dustext_par.__all__:
             self.extcurve_class = getattr(dustext_par, curve)

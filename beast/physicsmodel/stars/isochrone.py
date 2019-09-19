@@ -129,6 +129,7 @@ class Isochrone(object):
 
 class padova2010(Isochrone):
     def __init__(self):
+        super().__init__()
         self.name = "Padova 2010 (Marigo 2008 + Girardi 2010)"
         self.source = __ROOT__ + "/padova2010.iso.fits"
         self._load_table_(self.source)
@@ -222,6 +223,7 @@ class padova2010(Isochrone):
 
 class pegase(Isochrone):
     def __init__(self):
+        super().__init__()
         self.name = "Pegase.2 (Fioc+1997)"
         self.source = __ROOT__ + "/pegase.iso.hd5"
         self.data = tables.openFile(self.source)
@@ -319,6 +321,7 @@ class ezIsoch(Isochrone):
     """
 
     def __init__(self, source, interp=False):
+        super().__init__()
         self.name = "<auto>"
         self.source = source
         self._load_table_(self.source)
@@ -460,6 +463,7 @@ class PadovaWeb(Isochrone):
         *args,
         **kwargs
     ):
+        super().__init__(*args, **kwargs)
         self.name = "Padova CMD isochrones"
         if Zref is None:
             if modeltype.startswith("parsec"):
@@ -643,6 +647,7 @@ class PadovaWeb(Isochrone):
 
 class MISTWeb(Isochrone):
     def __init__(self, Zref=0.0142, rotation="vvcrit0.0", *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = "MESA/MIST isochrones"
         self.Zref = Zref
         self.rotation = rotation
