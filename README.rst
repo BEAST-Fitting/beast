@@ -27,6 +27,10 @@ Build Status/Checks
     :target: https://coveralls.io/github/BEAST-Fitting/beast?branch=master
     :alt: Coverage Status
 
+.. image:: https://img.shields.io/lgtm/grade/python/g/BEAST-Fitting/beast.svg?logo=lgtm&logoWidth=18
+    :target: https://lgtm.com/projects/g/BEAST-Fitting/beast/context:python
+    :alt: Language grade: Python
+
 Packaging
 ---------
 
@@ -47,7 +51,7 @@ Documentation
 Details of installing, running, and contributing to the BEAST are at
 <http://beast.readthedocs.io>.
 
-.. image:: http://img.shields.io/badge/ApJ-2016-826-104-orange.svg?style=flat
+.. image:: https://img.shields.io/badge/ApJ-Gordon%20et%20al.%202016,%20ApJ,%20826,%20104-brightgreen
     :target: https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G/abstract
     :alt: ApJ paper
 
