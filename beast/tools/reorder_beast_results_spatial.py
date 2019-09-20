@@ -165,10 +165,10 @@ def reorder_beast_results_spatial(
             hdulist = fits.HDUList([fits.PrimaryHDU()])
 
             # generate the extensions
-            for k, qname in enumerate(cur_pdf1d_name):
+            for kk, qname in enumerate(cur_pdf1d_name):
                 # get the 1D PDFs for the cur objects
                 #   plus the last column giving the values of the bins
-                cur_reg_pdf1d = cur_pdf1d_vals[k][np.append(indxs, n_objs), :]
+                cur_reg_pdf1d = cur_pdf1d_vals[kk][np.append(indxs, n_objs), :]
 
                 chdu = fits.PrimaryHDU(cur_reg_pdf1d)
                 chdu.header.set("XTENSION", "IMAGE")

@@ -669,8 +669,8 @@ class MISTWeb(Isochrone):
         if (metal is not None) & (FeH is not None):
             print("Warning: both Z & [Fe/H] provided, ignoring [Fe/H].")
 
-        if metal is None:
-            metal = self.FeHtometal(FeH)
+        if FeH is None:
+            FeH = self.metaltoFeH(metal)
 
         iso_table = mist.get_one_isochrone(
             _age, FeH, v_div_vcrit=self.rotation, age_scale="log10", ret_table=True

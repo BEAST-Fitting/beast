@@ -46,7 +46,6 @@ def hdf5diff(fname1, fname2):
         else:
             is_dataset = isinstance(hdfa[sname], h5py.Dataset)
             if is_dataset:
-                cvalue = hdfa[sname]
                 all_names = hdfa[sname].dtype.names
                 all_namesb = hdfb[sname].dtype.names
                 if all_names is None:
