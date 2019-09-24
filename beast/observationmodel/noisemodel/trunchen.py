@@ -297,7 +297,7 @@ class MultiFilterASTs(NoiseModel):
         flux = sedgrid.seds
         if generic_absflux_a_matrix is not None:
             model_absflux_cov = False
-            print("not using any absflux cov matrix")
+            print("using model independent absflux cov matrix")
         elif (sedgrid.cov_diag is not None) & (sedgrid.cov_offdiag is not None):
             model_absflux_cov = True
             absflux_cov_diag = sedgrid.cov_diag
