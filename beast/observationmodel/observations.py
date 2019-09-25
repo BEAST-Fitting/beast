@@ -99,11 +99,11 @@ class Observations(object):
 
     def getMags(self, num, filters):
         raise Exception("Do not use as magnitudes")
-        return np.array([self.data[tt][num] for tt in filters])
+        # return np.array([self.data[tt][num] for tt in filters])
 
     def getErrors(self, num, filters):
         raise Exception("Do not use as magnitudes")
-        return np.array([self.data[tt + "err"][num] for tt in filters])
+        # return np.array([self.data[tt + "err"][num] for tt in filters])
 
     def getFlux(self, num):
         """returns the flux of an observation from the number of counts"""
@@ -130,7 +130,7 @@ class Observations(object):
         if self.filters is None:
             raise AttributeError("No filter set provided.")
 
-        flux = self.getFlux(num, self.filters)
+        flux = self.getFlux(num)
 
         return flux
 

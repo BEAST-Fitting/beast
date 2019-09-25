@@ -163,11 +163,11 @@ class BinnedDensityMap(DensityMap):
                 N_bins + 1,
             )
 
-        # Find which bin each tile belongs to
-        # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
-        # We have purposely chosen our bin boundaries so that no points fall
-        # outside (or on the edge) of the [1,5] range
-        bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
+            # Find which bin each tile belongs to
+            # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
+            # We have purposely chosen our bin boundaries so that no points fall
+            # outside (or on the edge) of the [1,5] range
+            bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
 
         # Upgrade to this subclass, and return
         return BinnedDensityMap(binned_density_map.tile_data, bins)

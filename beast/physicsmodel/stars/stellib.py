@@ -593,7 +593,7 @@ class Stellib(object):
             if hasattr(T0, "__iter__"):
                 _r = self.interpMany(T0, g0, Z0, weights=weights, **kwargs)
             else:
-                _r = np.asarray(self.interp(T0, g0, Z0, weight=weights, **kwargs))
+                _r = np.asarray(self.interp(T0, g0, Z0, **kwargs))
         else:
             assert T0.ndim == 2, "error expecting 2d-array"
             _r = T0
@@ -792,6 +792,7 @@ class CompositeStellib(Stellib):
     """ Generates an object from the union of multiple individual libraries """
 
     def __init__(self, osllist, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._olist = osllist
 
     def __add__(self, other):
@@ -1160,7 +1161,7 @@ class CompositeStellib(Stellib):
             if hasattr(T0, "__iter__"):
                 _r = self.interpMany(T0, g0, Z0, weights=weights, **kwargs)
             else:
-                _r = np.asarray(self.interp(T0, g0, Z0, weight=weights, **kwargs))
+                _r = np.asarray(self.interp(T0, g0, Z0, **kwargs))
         else:
             _r = T0
 
@@ -1270,6 +1271,7 @@ class Elodie(Stellib):
     """
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = "ELODIE v3.1"
         self.source = config["elodie_3.1"]
         self._load_()
@@ -1381,6 +1383,7 @@ class BaSeL(Stellib):
     """
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = "BaSeL 2.2 (Pegase.2 version)"
         self.source = config["basel_2.2_pegase"]
         self._load_()
@@ -1488,6 +1491,7 @@ class Kurucz(Stellib):
     """
 
     def __init__(self, filename=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = "Kurucz 2004"
         if filename is None:
             self.source = config["kurucz"]
@@ -1586,6 +1590,7 @@ class Tlusty(Stellib):
     """
 
     def __init__(self, filename=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = "Tlusty"
         if filename is None:
             self.source = config["tlusty"]
@@ -1673,6 +1678,7 @@ class BTSettl(Stellib):
     """
 
     def __init__(self, medres=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = "BTSettl"
         if medres:
             self.source = config["btsettl_medres"]
@@ -1764,6 +1770,7 @@ class Munari(Stellib):
     """
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = "Munari"
         self.source = config["munari"]
         self._load_()
@@ -1849,6 +1856,7 @@ class Aringer(Stellib):
     """
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = "Aringer"
         self.source = config["aringer"]
         self._load_()

@@ -107,7 +107,7 @@ def pick_positions_from_map(
             y_positions = catalog.data["y"][:]
 
     else:
-        if "RA" or "ra" in colnames:
+        if ("RA" in colnames) or ("ra" in colnames):
             if "RA" in colnames:
                 ra_positions = catalog.data["RA"][:]
                 dec_positions = catalog.data["DEC"][:]
@@ -290,7 +290,7 @@ def pick_positions(catalog, filename, separation, refimage=None):
             y_positions = catalog.data["y"][:]
     else:
         if refimage:
-            if "RA" or "ra" in colnames:
+            if ("RA" in colnames) or ("ra" in colnames):
                 if "RA" in colnames:
                     ra_positions = catalog.data["RA"][:]
                     dec_positions = catalog.data["DEC"][:]
