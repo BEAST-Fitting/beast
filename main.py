@@ -13,7 +13,6 @@ def main():
                         help='some global thingie')
 
     subparsers = parser.add_subparsers(help='sub-command help')
-    subparsers_plot = parser.add_subparsers(dest='plot', help='plot help')
 
     # create the subparsers and populate them with the correct arguments
     func_run = inspect.getmembers(run_beast, inspect.isfunction)
