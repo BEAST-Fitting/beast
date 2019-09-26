@@ -18,12 +18,12 @@ import numpy as np
 import copy
 
 from astropy import units
+from tqdm import tqdm
 
 from .stars import stellib
 from .grid import SpectralGrid
 from .prior_weights_dust import PriorWeightsDust
 from ..external.eztables import Table
-from ..tools.pbar import Pbar
 from ..tools.helpers import generator
 from ..tools import helpers
 
@@ -189,9 +189,7 @@ def apply_distance_grid(specgrid, distances, redshift=0):
     n_sed_points = g0.seds.shape[1]
     new_seds = np.empty((N, n_sed_points), dtype=float)
 
-    for count, distance in Pbar(len(_distances), desc="grid with distances").iterover(
-        enumerate(_distances)
-    ):
+    for count, distance in enumerate(tqdm(_distances, desc="Distance grid")):
 
         # The range where the current distance points will live
         distance_slice = slice(N0 * count, N0 * (count + 1))
@@ -392,7 +390,7 @@ def make_extinguished_grid(
             _cov_diag = np.empty((N, n_filters), dtype=float)
             _cov_offdiag = np.empty((N, n_offdiag), dtype=float)
 
-        for count, pt in Pbar(npts, desc="SED grid").iterover(enumerate(chunk_pts)):
+        for count, pt in enumerate(tqdm(chunk_pts, desc="SED grid")):
 
             if with_fA:
                 Av, Rv, f_A = pt
