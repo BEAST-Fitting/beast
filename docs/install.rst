@@ -57,7 +57,7 @@ See :ref:`library-files`.
 Using pip
 ---------
 
-``beast`` can also be installed using pip
+``beast`` can be installed using pip
 
 .. code-block:: console
 
@@ -78,7 +78,7 @@ from the master trunk on the repository, considered developmental code
 From source
 -----------
 
-If you are happy with your current environment, ``beast`` can be installed from
+If you are happy with your current environment, ``beast`` can also be installed from
 the source code in the normal python fashion after cloning from the git repo or
 downloading from Github
 
