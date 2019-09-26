@@ -12,7 +12,7 @@ def main():
     parser.add_argument('--global-setting', action='store_true',
                         help='some global thingie')
 
-    subparsers_run = parser.add_subparsers(dest='run', help='run help')
+    subparsers = parser.add_subparsers(help='sub-command help')
     subparsers_plot = parser.add_subparsers(dest='plot', help='plot help')
 
     # create the subparsers and populate them with the correct arguments
