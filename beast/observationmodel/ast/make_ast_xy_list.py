@@ -1,12 +1,12 @@
 import numpy as np
 from matplotlib.path import Path
 from scipy.spatial import ConvexHull
+from tqdm import tqdm
 
 from astropy.io import ascii, fits
 from astropy.table import Column, Table
 from astropy.wcs import WCS
 
-from ...tools.pbar import Pbar
 from ...tools import density_map
 
 
@@ -176,11 +176,9 @@ def pick_positions_from_map(
     tile_ra_min, tile_dec_min = bdm.min_ras_decs()
     tile_ra_delta, tile_dec_delta = bdm.delta_ras_decs()
 
-    pbar = Pbar(
-        len(tile_sets),
-        desc="{} models per map bin".format(Nseds_per_region / Npermodel),
-    )
-    for bin_index, tile_set in pbar.iterover(enumerate(tile_sets)):
+    for bin_index, tile_set in enumerate(tqdm(tile_sets,
+        desc="{:.2f} models per map bin".format(Nseds_per_region / Npermodel)
+    )):
         start = bin_index * Nseds_per_region
         stop = start + Nseds_per_region
         bin_indices[start:stop] = bin_index
