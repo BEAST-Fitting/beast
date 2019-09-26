@@ -8,7 +8,7 @@ from matplotlib.colors import LogNorm
 import numpy as np
 
 # local imports
-from .beastplotlib import initialize_parser, plot_generic, set_params
+from beast.beastplotlib import initialize_parser, plot_generic, set_params
 
 
 def make_region_diag_plots(
