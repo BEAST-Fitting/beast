@@ -110,38 +110,39 @@ For the BEAST to work properly, you need to place a set of files in a
 directory.  These files contain information related to filters,
 stellar atmospheres, and in the future stellar evolution models.
 
-.. _library_loc:
-
-Location
---------
-
-There are 3 possible locations for these files (in the order the code
-will search for them):
-
-1. in a directory designated by the BEAST_LIBS environment variable
-2. in the '.beast' directory in the home directory of the current user
-3. in the source code in 'beast/beast/libs'
-
-Whichever of the options used, the directory needs to be manually created.
-
 Manual download
 ---------------
 
-<https://stsci.box.com/v/beastlibs>
+The required library files can be manually acquired from:
+
+https://stsci.box.com/v/beastlibs
 
 Note that the archive at this link contains a folder called `files`. The
-_contents_ of this folder are the library files required by beast. It is these
-files that need to be places within (any of) the possible locations given above.
+*contents* of this folder are the library files required by beast. It is these
+files that need to be placed within (any of) the possible locations specified in :ref:`library_loc`.
 
 Script download
 ---------------
 
-After installing the BEAST, run the following script and the library files
+Alternatively, after installing the BEAST, run the following script and the library files
 will be downloaded into the location specified in :ref:`library_loc`
 
 .. code-block:: console
 
      $ python -m beast.tools.get_libfiles
+
+.. _library_loc:
+
+Location
+--------
+
+There are 3 possible locations for the required library files. Whichever of the options used,
+the directory needs to be manually created. The possible locations are
+(in the order the code will search for them):
+
+1. In a directory designated by a BEAST_LIBS environment variable
+2. In the '.beast' directory in the home directory of the current user (ie, ''~/.beast'); this is usually the easiest
+3. In the source code in 'beast/beast/libs'
 
 
 Running Example
