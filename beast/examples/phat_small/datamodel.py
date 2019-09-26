@@ -178,12 +178,6 @@ mass_prior_model = {"name": "salpeter"}
 z = [0.03, 0.019, 0.008, 0.004]
 met_prior_model = {"name": "flat"}
 
-# Isochrone Model Gridlogt = [6.0, 10.13, 0.25]
-# age_prior_model = {'name': 'flat'}
-# age_prior_model = {'name': 'bins',
-#                   'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
-#                   'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
-age_prior_model = {"name": "exp", "A": 1.0, "tau": 1000.0}
 #   Current Choices: Padova or MIST
 #   PadovaWeb() -- `modeltype` param for iso sets from ezpadova
 #      (choices: parsec12s_r14, parsec12s, 2010, 2008, 2002)

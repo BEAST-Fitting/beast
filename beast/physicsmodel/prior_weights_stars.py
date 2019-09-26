@@ -7,7 +7,7 @@ in the posterior calculations.
 import numpy as np
 from scipy.integrate import quad
 
-from .grid_weights import compute_bin_boundaries
+from beast.physicsmodel.grid_weights import compute_bin_boundaries
 
 __all__ = [
     "compute_age_prior_weights",
@@ -131,16 +131,16 @@ def compute_mass_prior_weights(masses, mass_prior_model):
         print("input mass prior function not supported")
         exit()
 
+    # calculate the average prior in each mass bin
     for i in range(len(masses)):
         mass_weights[sindxs[i]] = (quad(imf_func, mass_bounds[i], mass_bounds[i + 1]))[
             0
-        ]
+        ] / (mass_bounds[i + 1] - mass_bounds[i])
 
     return mass_weights
 
 
-def compute_metallicity_prior_weights(mets,
-                                      met_prior_model):
+def compute_metallicity_prior_weights(mets, met_prior_model):
     """
     Computes the metallicity prior for the specified model
     Keywords
@@ -154,10 +154,10 @@ def compute_metallicity_prior_weights(mets,
     metallicity_weights : numpy vector
        weights to provide a flat metallicity
     """
-    if met_prior_model['name'] == 'flat':
+    if met_prior_model["name"] == "flat":
         met_weights = np.full(len(mets), 1.0)
     else:
-        print('input metallicity prior function not supported')
+        print("input metallicity prior function not supported")
         exit()
 
     return met_weights
