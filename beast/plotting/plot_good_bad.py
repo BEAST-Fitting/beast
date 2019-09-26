@@ -11,8 +11,8 @@ from matplotlib.colors import LogNorm
 from matplotlib import rc
 
 # local imports
-from .beastplotlib import (fancify_colname, initialize_parser,
-                          plot_generic, set_params)
+from beast.plotting.beastplotlib import (fancify_colname, initialize_parser,
+                                         plot_generic, set_params)
 
 def make_good_bad_plots(stats, xparam='logT', yparam='logL',
                         suffix='Exp', chi2min=10., figsize=(15,10)):
@@ -55,7 +55,7 @@ def make_good_bad_plots(stats, xparam='logT', yparam='logL',
         plot_generic(stats, pair[0], pair[1], fig, ax[j],
                      thresh_col='chi2min', thresh=chicut, thresh_op='less',
                      plot_kwargs={'norm':LogNorm()})
-        plot_generic(stats, pair[0], pair[1], fig, ax[j+1], 
+        plot_generic(stats, pair[0], pair[1], fig, ax[j+1],
                      thresh_col='chi2min', thresh=chicut, thresh_op='greater',
                      plot_kwargs={'norm':LogNorm()})
     fig.tight_layout()

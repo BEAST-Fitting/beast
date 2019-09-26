@@ -12,8 +12,8 @@ from matplotlib import rc
 import numpy as np
 
 # local imports
-from .beastplotlib import (fancify_colname, initialize_parser,
-                          plot_generic, set_params)
+from beat.plotting.beastplotlib import (fancify_colname, initialize_parser,
+                                        plot_generic, set_params)
 
 def make_region_diag_plots(stats, xparam='logT', yparam='logL',
                            suffix='Exp', pxrange=[3.8,4.0], pyrange=[1.0,6.0],

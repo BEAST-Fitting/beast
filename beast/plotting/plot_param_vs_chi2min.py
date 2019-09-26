@@ -12,8 +12,8 @@ from matplotlib.colors import LogNorm
 from matplotlib import rc
 
 # local imports
-from .beastplotlib import (fancify_colname, initialize_parser,
-                          plot_generic, set_params)
+from beat.plottling.beastplotlib import (fancify_colname, initialize_parser,
+                                         plot_generic, set_params)
 
 def make_param_vs_chi2min_plots(stats, suffix='Exp', figsize=(20,10)):
     '''Makes a set of 6 diagnostic 2D histograms for BEAST output.

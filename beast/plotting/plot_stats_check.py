@@ -15,7 +15,7 @@ from astropy.table import Table
 from matplotlib.colors import LogNorm
 
 # local imports
-from .beastplotlib import fancify_colname, initialize_parser, plot_generic
+from beast.plotting.beastplotlib import fancify_colname, initialize_parser, plot_generic
 
 def make_diagnostic_plots(statsfile, suffix='Exp', figsize=(10,5.5)):
     '''Makes a set of 6 diagnostic 2D histograms for BEAST output.
@@ -23,7 +23,7 @@ def make_diagnostic_plots(statsfile, suffix='Exp', figsize=(10,5.5)):
     Parameters
     ----------
     statsfile : str, file-like, list, pathlib.Path object
-        File with BEAST output; see astropy.io.ascii.read docs for full 
+        File with BEAST output; see astropy.io.ascii.read docs for full
         description of allowed input types.
     suffix : str, optional
         Column type ('Exp', 'Best', 'p16', 'p50', 'p84').
@@ -49,7 +49,7 @@ def make_diagnostic_plots(statsfile, suffix='Exp', figsize=(10,5.5)):
     fig, axes = plt.subplots(2, 3, figsize=figsize)
     ax = axes.ravel()
     for i, pair in enumerate(plot_pairs):
-        plot_generic(stats, pair[0], pair[1], fig, ax[i], 
+        plot_generic(stats, pair[0], pair[1], fig, ax[i],
                      plot_kwargs={'norm':LogNorm()})
     fig.tight_layout()
     return fig
