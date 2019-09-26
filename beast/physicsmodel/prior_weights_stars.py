@@ -7,7 +7,7 @@ in the posterior calculations.
 import numpy as np
 from scipy.integrate import quad
 
-from beast.physicsmodel.grid_weights import compute_bin_boundaries
+from beast.physicsmodel.grid_weights_stars import compute_bin_boundaries
 
 __all__ = [
     "compute_age_prior_weights",
@@ -53,12 +53,12 @@ def compute_age_prior_weights(logages, age_prior_model):
     return age_weights
 
 
-def imf_kroupa(x):
+def imf_kroupa(in_x):
     """ Computes a Kroupa IMF
 
     Keywords
     ----------
-    x : numpy vector
+    in_x : numpy vector
       masses
 
     Returns
@@ -66,17 +66,31 @@ def imf_kroupa(x):
     imf : numpy vector
       unformalized IMF
     """
+    # allows for single float or an array
+    x = np.atleast_1d(in_x)
+
     m1 = 0.08
     m2 = 0.5
     alpha0 = -0.3
     alpha1 = -1.3
     alpha2 = -2.3
-    if x < m1:
-        return x ** alpha0
-    elif x >= m2:
-        return x ** alpha2
-    else:
-        return x ** alpha1
+    imf = np.full((len(x)), 0.0)
+
+    indxs, = np.where(x >= m2)
+    if len(indxs) > 0:
+        imf[indxs] = (x[indxs] ** alpha2)
+
+    indxs, = np.where((x >= m1) & (x < m2))
+    fac1 = (m2 ** alpha2) / (m2 ** alpha1)
+    if len(indxs) > 0:
+        imf[indxs] = (x[indxs] ** alpha1) * fac1
+
+    indxs, = np.where(x < m1)
+    fac2 = fac1 * ((m1 ** alpha1) / (m1 ** alpha0))
+    if len(indxs) > 0:
+        imf[indxs] = (x[indxs] ** alpha0) * fac2
+
+    return imf
 
 
 def imf_salpeter(x):
