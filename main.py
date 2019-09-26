@@ -32,7 +32,7 @@ def main():
         return subparser
 
     add_func(func_run, subparsers)
-    add_func(func_plot, subparsers_plot)
+    add_func(func_plot, subparsers)
 
     # now actually parse the arguments
     args = parser.parse_args()
