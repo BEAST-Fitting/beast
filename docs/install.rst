@@ -103,14 +103,6 @@ installing, which is best done by replacing the last line with
      $ python setup.py develop
 
 
-For developers
---------------
-
-This option is suitable if you *plan to make code contributions* to the BEAST.
-See the :ref:`beast_development` for details.
-
-.. _library-files:
-
 BEAST Library Files
 ===================
 
@@ -150,6 +142,7 @@ will be downloaded into the location specified in :ref:`library_loc`
 .. code-block:: console
 
      $ python -m beast.tools.get_libfiles
+
 
 Running Example
 ===============
