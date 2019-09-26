@@ -171,8 +171,6 @@ beast code is located.  Specifically
 
     $ cd examples/phat_small
 
-    $ ln -s beast_code_loc/beast/beast beast
-
 If you installed Python through AstroConda, first activate the correct
 AstroConda environment
 
