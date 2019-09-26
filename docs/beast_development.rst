@@ -114,20 +114,27 @@ Development Install
 ==============================
 
 To perform development, and see your changes reflected immediately in your
-installed copy of the BEAST, you can perform a development install::
+installed copy of the BEAST, you can perform a development install. This can
+either be performed via a pip development install, by navigating to the
+directory that contains `setup.py` and running:
 
-.. code-block:: console
+  .. code-block:: console
 
-    $ python setup.py develop
+     $ pip install -e .
 
+or by doing a development install directly though Python with:
+
+  .. code-block:: console
+
+     $ python setup.py develop
 
 Making Changes
 ==============
 
 It is recommended that branches have a single purpose; for example, if you are working
 on adding a test suite, on improving the fitting algorithm and on speeding up some task,
-those should be in separate branches (e.g.) 'add-test-suite', 'improve-fitting-algorithm'
-and 'beast-dev1'.
+those should be in separate branches (e.g.) `add-test-suite`, `improve-fitting-algorithm`
+and `beast-dev1`.
 
 - Anywhere below 'beast-YourName', switch to the branch you wish to work off of:
 
@@ -194,14 +201,16 @@ be viewed in a web browser by pointing to files in the `htmlconv` subdirectory.
 
   .. code-block:: console
 
-    $ python setup.py test --remote-data --coverage
+     $ python setup.py test --remote-data --coverage
 
-Make sure the documentation can be created.  The resulting files can be viewed
-in a web browser by point to files in the `docs/docs/_build/html subdirectory`.
+Make sure the documentation can be created.
 
-    .. code-block:: console
+  .. code-block:: console
 
-      $ python setup.py build_docs
+     $ python setup.py build_docs
+
+The resulting HTML files are placed in `docs/_build/html` subdirectory, and
+can be viewed in a web browser.
 
 Collaborating and Contributing
 ==============================

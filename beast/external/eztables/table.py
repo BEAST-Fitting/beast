@@ -1,9 +1,6 @@
 """
 This module contains the base of any table regardless of their storage
 """
-
-from __future__ import (absolute_import, division, print_function)
-
 import numpy as np
 from .core.odict import odict
 from .core.helpers import *
@@ -25,7 +22,7 @@ except NameError:
     str = str
     unicode = str
     bytes = bytes
-    basestring = (str,bytes)
+    basestring = (str, bytes)
 else:
     # 'unicode' exists, must be Python 2
     str = str
@@ -43,7 +40,7 @@ a table is
 
 """
 
-__all__ = ['Table', 'ColumnHeader', 'TableHeader']
+__all__ = ["Table", "ColumnHeader", "TableHeader"]
 
 
 def pretty_size_print(num_bytes):
@@ -63,28 +60,28 @@ def pretty_size_print(num_bytes):
     YiB = KiB * ZiB
 
     if num_bytes > YiB:
-        output = '%.3g YB' % (num_bytes / YiB)
+        output = "%.3g YB" % (num_bytes / YiB)
     elif num_bytes > ZiB:
-        output = '%.3g ZB' % (num_bytes / ZiB)
+        output = "%.3g ZB" % (num_bytes / ZiB)
     elif num_bytes > EiB:
-        output = '%.3g EB' % (num_bytes / EiB)
+        output = "%.3g EB" % (num_bytes / EiB)
     elif num_bytes > PiB:
-        output = '%.3g PB' % (num_bytes / PiB)
+        output = "%.3g PB" % (num_bytes / PiB)
     elif num_bytes > TiB:
-        output = '%.3g TB' % (num_bytes / TiB)
+        output = "%.3g TB" % (num_bytes / TiB)
     elif num_bytes > GiB:
-        output = '%.3g GB' % (num_bytes / GiB)
+        output = "%.3g GB" % (num_bytes / GiB)
     elif num_bytes > MiB:
-        output = '%.3g MB' % (num_bytes / MiB)
+        output = "%.3g MB" % (num_bytes / MiB)
     elif num_bytes > KiB:
-        output = '%.3g KB' % (num_bytes / KiB)
+        output = "%.3g KB" % (num_bytes / KiB)
     else:
-        output = '%.3g Bytes' % (num_bytes)
+        output = "%.3g Bytes" % (num_bytes)
 
     return output
 
 
-#================================================================================
+# ================================================================================
 class Table(object):
     """ This class implements a Table object which aims at being able to
     manage dataset table independently of its storage format.
@@ -102,7 +99,8 @@ class Table(object):
     apart using TableManager objects that are then registered with the
     "register_extension" function.
     """
-#================================================================================
+
+    # ================================================================================
     def __init__(self, *args, **kwargs):
         """
         Create a table instance
@@ -124,14 +122,14 @@ class Table(object):
         if len(args) > 0:
             if isinstance(args[0], self.__class__):
                 self.__set_from_table__(from_Table(*args, **kwargs))
-            elif (type(args[0]) in [ np.core.records.recarray, np.ndarray]):
+            elif type(args[0]) in [np.core.records.recarray, np.ndarray]:
                 self.__set_from_table__(from_ndArray(*args, **kwargs))
-            elif hasattr(args[0], 'iteritems') or isinstance(args[0], dict):
+            elif hasattr(args[0], "iteritems") or isinstance(args[0], dict):
                 self.__set_from_table__(from_dict(*args, **kwargs))
             else:
                 self.read(*args, **kwargs)
-        self.set_name( kwargs.get('name', None) )
-        self.caseless = kwargs.get('caseless', False)
+        self.set_name(kwargs.get("name", None))
+        self.caseless = kwargs.get("caseless", False)
 
     def read(self, filename, type=None, manager=None, silent=False, **kwargs):
         """ This function is a general function aiming at reading files.
@@ -157,10 +155,10 @@ class Table(object):
             manager = determine_type(type, verbose=False)
 
         t = manager().read(filename, **kwargs)
-        self.data     = t.data
-        self.header   = t.header
+        self.data = t.data
+        self.header = t.header
         self._aliases = t._aliases
-        self.columns  = t.columns
+        self.columns = t.columns
 
     def write(self, filename, type=None, manager=None, silent=False, **kwargs):
         """ This function is a general function aiming at reading files.
@@ -198,12 +196,12 @@ class Table(object):
         """
         Empty the table
         """
-        self.header       = TableHeader()
-        self.columns      = odict()
-        self._aliases     = dict()
-        self.data         = None
+        self.header = TableHeader()
+        self.columns = odict()
+        self._aliases = dict()
+        self.data = None
         self._primary_key = None
-        self.caseless     = False
+        self.caseless = False
 
     def __call__(self, args=None):
         if args is None:
@@ -236,7 +234,10 @@ class Table(object):
     @property
     def nbytes(self):
         """ return the number of bytes of the object """
-        n = sum(k.nbytes if hasattr(k, 'nbytes') else sys.getsizeof(k) for k in list(self.__dict__.values()))
+        n = sum(
+            k.nbytes if hasattr(k, "nbytes") else sys.getsizeof(k)
+            for k in list(self.__dict__.values())
+        )
         return n
 
     def __len__(self):
@@ -248,9 +249,9 @@ class Table(object):
         name: [ string ] The table name
 
         """
-        self.header['NAME'] = name
+        self.header["NAME"] = name
 
-    def ravel(self, order='C'):
+    def ravel(self, order="C"):
         """Return a flattened array.
             see np.ravel
         """
@@ -270,10 +271,19 @@ class Table(object):
         OUTPUS:
             tuple of both indices list where the two columns match.
         """
-        return np.where( np.equal.outer( self[key], r2[key] ) )
+        return np.where(np.equal.outer(self[key], r2[key]))
 
-    def join_by(self, r2, key, jointype='inner', r1postfix='1', r2postfix='2',
-                defaults=None, asrecarray=False, asTable=True):
+    def join_by(
+        self,
+        r2,
+        key,
+        jointype="inner",
+        r1postfix="1",
+        r2postfix="2",
+        defaults=None,
+        asrecarray=False,
+        asTable=True,
+    ):
         """
         Join arrays `r1` and `r2` on key `key`.
 
@@ -312,13 +322,20 @@ class Table(object):
           duplicates...
 
         """
-        #TODO: return a Table by default
+        # TODO: return a Table by default
         if asTable:
             asrecarray = True
-        arr = recfunctions.join_by(key, self, r2, jointype=jointype,
-                                   r1postfix=r1postfix, r2postfix=r2postfix,
-                                   defaults=defaults, usemask=False,
-                                   asrecarray=asrecarray)
+        arr = recfunctions.join_by(
+            key,
+            self,
+            r2,
+            jointype=jointype,
+            r1postfix=r1postfix,
+            r2postfix=r2postfix,
+            defaults=defaults,
+            usemask=False,
+            asrecarray=asrecarray,
+        )
 
         return arr
 
@@ -332,7 +349,7 @@ class Table(object):
         OUTPUTS:
             dtype   [ np.dtype ]
         """
-        return np.dtype([ (name, self.columns[name].dtype) for name in cols ])
+        return np.dtype([(name, self.columns[name].dtype) for name in cols])
 
     def tolist(self):
         return self.data.tolist()
@@ -345,7 +362,7 @@ class Table(object):
         alias   [ string ]   The new alias of the column
         colname [ string ]   The column being aliased
         """
-        assert (colname in self.colnames), "Column %s does not exist" % colname
+        assert colname in self.colnames, "Column %s does not exist" % colname
         self._aliases[alias] = colname
 
     def reverse_alias(self, colname):
@@ -359,7 +376,7 @@ class Table(object):
         # User aliases
         assert _colname in self.colnames
 
-        return tuple([ k for k, v in self._aliases.items() if (v == _colname) ])
+        return tuple([k for k, v in self._aliases.items() if (v == _colname)])
 
     def resolve_alias(self, colname):
         """
@@ -371,19 +388,31 @@ class Table(object):
         Aliases are defined by using .define_alias()
         """
         # User aliases
-        if hasattr(colname, '__iter__') and not isinstance(colname, basestring):
-            return [ self.resolve_alias(k) for k in colname ]
+        if hasattr(colname, "__iter__") and not isinstance(colname, basestring):
+            return [self.resolve_alias(k) for k in colname]
         else:
             if self.caseless is True:
-                maps = dict( [ (k.lower(), v) for k, v in list(self._aliases.items()) ] )
-                maps.update( (k.lower(), k) for k in list(self.keys()) )
+                maps = dict([(k.lower(), v) for k, v in list(self._aliases.items())])
+                maps.update((k.lower(), k) for k in list(self.keys()))
                 return maps.get(colname.lower(), colname)
             else:
                 return self._aliases.get(colname, colname)
 
-    def add_empty_column(self, name, dtype, unit='', null='', description='', format=None,
-                         shape=None, before=None, after=None, position=None, col_hdr=None):
-        '''
+    def add_empty_column(
+        self,
+        name,
+        dtype,
+        unit="",
+        null="",
+        description="",
+        format=None,
+        shape=None,
+        before=None,
+        after=None,
+        position=None,
+        col_hdr=None,
+    ):
+        """
         Add an empty column to the table. This only works if there
         are already existing columns in the table.
 
@@ -405,26 +434,47 @@ class Table(object):
             Metadata includes the unit, null value, description,
             format, and dtype.  For example, to create a column 'b'
             with identical metadata to column 'a' in table 't', use::
-        
+
                 t.add_column('b', column_header=t.columns[a])
 
-        '''
+        """
         if shape:
             data = np.empty(shape, dtype=name2dtype(dtype))
         elif self.__len__() > 0:
             data = np.empty(self.__len__(), dtype=name2dtype(dtype))
         else:
-            raise Exception("Table is empty, shape keyword is required for the first column")
+            raise Exception(
+                "Table is empty, shape keyword is required for the first column"
+            )
 
-        self.add_column(name, data, unit=unit, null=null,
-                        description=description, format=format,
-                        before=before, after=after, position=position,
-                        col_hdr=col_hdr)
+        self.add_column(
+            name,
+            data,
+            unit=unit,
+            null=null,
+            description=description,
+            format=format,
+            before=before,
+            after=after,
+            position=position,
+            col_hdr=col_hdr,
+        )
 
-    def add_column(self, name, data, unit='', null='',
-                   description='', format=None, dtype=None,
-                   before=None, after=None, position=None, fill=None,
-                   col_hdr=None ):
+    def add_column(
+        self,
+        name,
+        data,
+        unit="",
+        null="",
+        description="",
+        format=None,
+        dtype=None,
+        before=None,
+        after=None,
+        position=None,
+        fill=None,
+        col_hdr=None,
+    ):
         """
         Add a column to the table
 
@@ -470,7 +520,7 @@ class Table(object):
                 longest = 0
             else:
                 longest = len(max(data, key=len))
-                data = np.asarray(data, dtype='|%iS' % longest)
+                data = np.asarray(data, dtype="|%iS" % longest)
 
         dtype = data.dtype
 
@@ -483,12 +533,12 @@ class Table(object):
         if before:
             try:
                 position = list(self.colnames).index(before)
-            except:
+            except Exception:
                 raise Exception("Column %s does not exist" % before)
         elif after:
             try:
                 position = list(self.colnames).index(after) + 1
-            except:
+            except Exception:
                 raise Exception("Column %s does not exist" % before)
 
         if len(self.columns) > 0:
@@ -496,17 +546,19 @@ class Table(object):
         else:
             self.data = np.array(data, dtype=[newdtype])
 
-        if not format or format in ['e', 'g', 'f']:
+        if not format or format in ["e", "g", "f"]:
             format = default_format[dtype.type]
 
         # Backward compatibility with tuple-style format
         if type(format) in [tuple, list]:
             format = string.join([str(x) for x in format], "")
 
-        if format == 's':
-            format = '%is' % data.itemsize
+        if format == "s":
+            format = "%is" % data.itemsize
 
-        column = ColumnHeader(dtype, unit=unit, description=description, null=null, format=format)
+        column = ColumnHeader(
+            dtype, unit=unit, description=description, null=null, format=format
+        )
 
         if not np.equal(position, None):
             self.columns.insert(position, name, column)
@@ -534,7 +586,7 @@ class Table(object):
         """
         Append set of rows in this table.
         """
-        assert( len(iterable) == self.ncols ), 'Expecting as many items as columns'
+        assert len(iterable) == self.ncols, "Expecting as many items as columns"
         r = self.empty_row
         for k, v in enumerate(iterable):
             r[0][k] = v
@@ -550,19 +602,42 @@ class Table(object):
         """
         Superposes arrays fields by fields
         """
-        self.data = recfunctions.stack_arrays( [self.data, r], defaults, usemask=False, asrecarray=True)
+        self.data = recfunctions.stack_arrays(
+            [self.data, r], defaults, usemask=False, asrecarray=True
+        )
 
-    def addCol(self, name, data, unit='', null='',
-               description='', format=None, dtype=None,
-               before=None, after=None, position=None, fill=None,
-               col_hdr=None ):
+    def addCol(
+        self,
+        name,
+        data,
+        unit="",
+        null="",
+        description="",
+        format=None,
+        dtype=None,
+        before=None,
+        after=None,
+        position=None,
+        fill=None,
+        col_hdr=None,
+    ):
         """ Add individual column to the table
             See add_column
         """
-        self.add_column(name, data, unit=unit, null=null,
-                        description=description, format=format, dtype=dtype,
-                        before=before, after=after, position=position, fill=fill,
-                        col_hdr=col_hdr)
+        self.add_column(
+            name,
+            data,
+            unit=unit,
+            null=null,
+            description=description,
+            format=format,
+            dtype=dtype,
+            before=before,
+            after=after,
+            position=position,
+            fill=fill,
+            col_hdr=col_hdr,
+        )
 
     def delCol(self, name):
         """ Delete Table column
@@ -599,7 +674,7 @@ class Table(object):
         _names = []
         for k in names:
             _k = self.resolve_alias(k)
-            if (_k in self._aliases):
+            if _k in self._aliases:
                 self._aliases.pop(_k)
             else:
                 list(map(self._aliases.pop, self.reverse_alias(_k)))
@@ -622,8 +697,8 @@ class Table(object):
         dup = []
         idd = []
         for i in range(len(self.data)):
-            if (self.data[i] in self.data[i + 1:]):
-                if (self.data[i] not in dup):
+            if self.data[i] in self.data[i + 1 :]:
+                if self.data[i] not in dup:
                     dup.append(self.data[i])
                     idd.append(i)
         if index_only:
@@ -642,11 +717,11 @@ class Table(object):
     def __getattr__(self, k):
         try:
             return object.__getattribute__(self, k)
-        except:
+        except Exception:
             try:
                 return self[k]
-            except:
-                raise AttributeError('Attribute {} not found'.format(k))
+            except Exception:
+                raise AttributeError("Attribute {} not found".format(k))
 
     def __deepcopy__(self, memo):
         return copyTable(self)
@@ -663,34 +738,34 @@ class Table(object):
         if fields is None:
             fields = list(self.keys())
         if isinstance(fields, str):
-            fields = fields.split(',')
+            fields = fields.split(",")
 
         nfields = len(fields)
 
-        fields = list(map( self.resolve_alias, fields ))
+        fields = list(map(self.resolve_alias, fields))
 
         if idx is None:
             if self.nrows < 10:
-                rows = [ [ str(self[k][rk]) for k in fields ] for rk in range(self.nrows)]
+                rows = [[str(self[k][rk]) for k in fields] for rk in range(self.nrows)]
             else:
                 _idx = list(range(6))
-                rows = [ [ str(self[k][rk]) for k in fields ] for rk in range(5) ]
+                rows = [[str(self[k][rk]) for k in fields] for rk in range(5)]
                 if nfields > 1:
-                    rows += [ ['...' for k in range(len(fields)) ] ]
+                    rows += [["..." for k in range(len(fields))]]
                 else:
-                    rows += [ ['...' for k in range(len(fields)) ] ]
-                rows += [ [ str(self[k][rk]) for k in fields ] for rk in range(-5, 0)]
+                    rows += [["..." for k in range(len(fields))]]
+                rows += [[str(self[k][rk]) for k in fields] for rk in range(-5, 0)]
         elif isinstance(idx, slice):
             _idx = list(range(idx.start, idx.stop, idx.step or 1))
-            rows = [ [ str(self[k][rk]) for k in fields ] for rk in _idx]
+            rows = [[str(self[k][rk]) for k in fields] for rk in _idx]
         else:
-            rows = [ [ str(self[k][rk]) for k in fields ] for rk in idx]
-        units = [ '(' + str( self.columns[k].unit or '') + ')' for k in fields ]
-        #fmt   = [ '%' + self.columns[k].format for k in self.keys() ]
+            rows = [[str(self[k][rk]) for k in fields] for rk in idx]
+        units = ["(" + str(self.columns[k].unit or "") + ")" for k in fields]
+        # fmt   = [ '%' + self.columns[k].format for k in self.keys() ]
 
-        #if nfields == 1:
+        # if nfields == 1:
         #   fields = [fields]
-        if (''.join(units) == ''.join(['()'] * len(fields)) ):
+        if "".join(units) == "".join(["()"] * len(fields)):
             out = __indent__([fields] + rows, hasHeader=True, hasUnits=False)
         else:
             out = __indent__([fields] + [units] + rows, hasHeader=True, hasUnits=True)
@@ -704,7 +779,12 @@ class Table(object):
 
     def __repr__(self):
         s = object.__repr__(self)
-        s += '\nTable: %s,\n  nrows=%i, ncols=%i (%s)' % (self.header['NAME'], self.nrows, self.ncols, pretty_size_print(self.nbytes))
+        s += "\nTable: %s,\n  nrows=%i, ncols=%i (%s)" % (
+            self.header["NAME"],
+            self.nrows,
+            self.ncols,
+            pretty_size_print(self.nbytes),
+        )
         return s
 
     def __getslice__(self, i, j):
@@ -729,28 +809,40 @@ class Table(object):
             if len(self._aliases) > 0:
                 print("Table contains alias(es):")
                 for k, v in self._aliases.items():
-                    print('\t %s --> %s' % (k, v))
-                print('')
-        fields = 'columns unit format description'.split()
-        row    = [ (k, self.columns[k].unit, self.columns[k].format, self.columns[k].description) for k in list(self.keys()) ]
-        out    = __indent__([fields] + row, hasHeader=True, hasUnits=False, delim=' ')
+                    print("\t %s --> %s" % (k, v))
+                print("")
+        fields = "columns unit format description".split()
+        row = [
+            (
+                k,
+                self.columns[k].unit,
+                self.columns[k].format,
+                self.columns[k].description,
+            )
+            for k in list(self.keys())
+        ]
+        out = __indent__([fields] + row, hasHeader=True, hasUnits=False, delim=" ")
         print(out)
 
-    def evalexpr(self, expr, exprvars=None, start=None, stop=None, step=None, dtype=float):
+    def evalexpr(
+        self, expr, exprvars=None, start=None, stop=None, step=None, dtype=float
+    ):
         """ evaluate expression based on the data and external variables
             all np function can be used (log, exp, pi...)
         """
         _globals = {}
-        for k in ( list(self.keys()) + list(self._aliases.keys()) ):
+        for k in list(self.keys()) + list(self._aliases.keys()):
             _globals[k] = self[k]
 
         if exprvars is not None:
-            assert(hasattr(exprvars, 'keys') & hasattr(exprvars, '__getitem__' )), "Expecting a dictionary-like as condvars"
-            for k, v in ( list(exprvars.items()) ):
+            assert hasattr(exprvars, "keys") & hasattr(
+                exprvars, "__getitem__"
+            ), "Expecting a dictionary-like as condvars"
+            for k, v in list(exprvars.items()):
                 _globals[k] = v
 
         # evaluate expression, to obtain the final filter
-        r    = np.empty( self.nrows, dtype=dtype)
+        r = np.empty(self.nrows, dtype=dtype)
         r[:] = eval(expr, _globals, np.__dict__)
 
         return r
@@ -766,7 +858,12 @@ class Table(object):
 
             Additional arguments are forwarded to np.where
         """
-        ind = np.where(self.evalexpr(condition, condvars, start=start, stop=stop, step=step, dtype=bool ), *args)
+        ind = np.where(
+            self.evalexpr(
+                condition, condvars, start=start, stop=stop, step=step, dtype=bool
+            ),
+            *args
+        )
         return ind
 
     def selectWhere(self, fields, condition, condvars=None, **kwargs):
@@ -776,22 +873,22 @@ class Table(object):
         # make a copy without the data itself (memory gentle)
         tab = self.__class__()
         for k in list(self.__dict__.keys()):
-            if k != 'data':
+            if k != "data":
                 setattr(tab, k, deepcopy(self.__dict__[k]))
 
-        if fields.count(',') > 0:
-            _fields = fields.split(',')
-        elif fields.count(' ') > 0:
+        if fields.count(",") > 0:
+            _fields = fields.split(",")
+        elif fields.count(" ") > 0:
             _fields = fields.split()
         else:
             _fields = fields
 
-        if condition in [True, 'True', None]:
+        if condition in [True, "True", None]:
             ind = None
         else:
             ind = self.where(condition, condvars, **kwargs)
 
-        if _fields == '*':
+        if _fields == "*":
             if ind is not None:
                 tab.data = self.data[ind]
             else:
@@ -802,7 +899,7 @@ class Table(object):
             else:
                 tab.data = self.data[tab.resolve_alias(_fields)]
             names = tab.data.dtype.names
-            #cleanup aliases and columns
+            # cleanup aliases and columns
             for k in list(self.keys()):
                 if k not in names:
                     al = self.reverse_alias(k)
@@ -811,7 +908,11 @@ class Table(object):
                     if k in list(tab.keys()):
                         tab.delCol(k)
 
-        tab.header['COMMENT'] = 'SELECT %s FROM %s WHERE %s' % (','.join(_fields), self.header['NAME'], condition)
+        tab.header["COMMENT"] = "SELECT %s FROM %s WHERE %s" % (
+            ",".join(_fields),
+            self.header["NAME"],
+            condition,
+        )
         return tab
 
     def setUnit(self, colName, unit):
@@ -834,8 +935,18 @@ class Table(object):
         return k in self
 
 
-def __indent__(rows, hasHeader=False, hasUnits=False, headerChar='-', delim=' | ', justify='left',
-               separateRows=False, prefix='', postfix='', wrapfunc=lambda x: x):
+def __indent__(
+    rows,
+    hasHeader=False,
+    hasUnits=False,
+    headerChar="-",
+    delim=" | ",
+    justify="left",
+    separateRows=False,
+    prefix="",
+    postfix="",
+    wrapfunc=lambda x: x,
+):
     """Indents a table by column.
 
     INPUTS:
@@ -854,26 +965,36 @@ def __indent__(rows, hasHeader=False, hasUnits=False, headerChar='-', delim=' | 
     """
     # closure for breaking logical rows to physical, using wrapfunc
     def rowWrapper(row):
-        newRows = [wrapfunc(item).split('\n') for item in row]
-        return [[substr or '' for substr in item] for item in map(None, *newRows)]
+        newRows = [wrapfunc(item).split("\n") for item in row]
+        return [[substr or "" for substr in item] for item in map(None, *newRows)]
+
     # break each logical row into one or more physical ones
     logicalRows = [rowWrapper(row) for row in rows]
     # columns of physical rows
     columns = map(None, *reduce(operator.add, logicalRows))
     # get the maximum of each column by the string length of its items
     maxWidths = [max([len(str(item)) for item in column]) for column in columns]
-    rowSeparator = headerChar * (len(prefix) + len(postfix) + sum(maxWidths) + len(delim) * (len(maxWidths) - 1))
+    rowSeparator = headerChar * (
+        len(prefix) + len(postfix) + sum(maxWidths) + len(delim) * (len(maxWidths) - 1)
+    )
 
     # select the appropriate justify method
-    justify = {'center': str.center, 'right': str.rjust, 'left': str.ljust}[justify.lower()]
+    justify = {"center": str.center, "right": str.rjust, "left": str.ljust}[
+        justify.lower()
+    ]
     output = io.StringIO()
     if separateRows:
         print(rowSeparator, file=output)
     for physicalRows in logicalRows:
         for row in physicalRows:
-            print(prefix \
-                + delim.join([justify(str(item), width) for (item, width) in zip(row, maxWidths)]) \
-                + postfix, file=output)
+            print(
+                prefix
+                + delim.join(
+                    [justify(str(item), width) for (item, width) in zip(row, maxWidths)]
+                )
+                + postfix,
+                file=output,
+            )
         if separateRows:
             print(rowSeparator, file=output)
         elif hasHeader & (not hasUnits):
@@ -886,55 +1007,57 @@ def __indent__(rows, hasHeader=False, hasUnits=False, headerChar='-', delim=' | 
     return output.getvalue()
 
 
-#==============================================================================
+# ==============================================================================
 def from_dict(obj, **kwargs):
     """ Generate a table from a recArray or numpy array """
-#==============================================================================
-    assert( hasattr(obj, 'iteritems') or hasattr(obj, 'items') ), "expecting obj has iteritem attribute (dict-like)"
+    # ==============================================================================
+    assert hasattr(obj, "iteritems") or hasattr(
+        obj, "items"
+    ), "expecting obj has iteritem attribute (dict-like)"
 
     tab = Table()
     for k, v in obj.items():
-            _v = np.asarray(v)
-            tab.add_column( k, _v, dtype=_v.dtype )
+        _v = np.asarray(v)
+        tab.add_column(k, _v, dtype=_v.dtype)
     return tab
 
 
-#==============================================================================
+# ==============================================================================
 def from_ndArray(obj, **kwargs):
     """ Generate a table from a recArray or numpy array """
-#==============================================================================
-    supported_types = [ np.core.records.recarray, np.ndarray ]
-    assert( type(obj) in supported_types ), "expecting recArray, got %s " % type(obj)
+    # ==============================================================================
+    supported_types = [np.core.records.recarray, np.ndarray]
+    assert type(obj) in supported_types, "expecting recArray, got %s " % type(obj)
     tab = Table()
 
     if obj.dtype.names is not None:
         for k in obj.dtype.names:
-            tab.add_column( k, obj[k], dtype=obj.dtype[k] )
+            tab.add_column(k, obj[k], dtype=obj.dtype[k])
     else:
         for i in range(obj.shape[1]):
-            tab.add_column( 'f%d' % i, obj[:, i], dtype=obj.dtype )
+            tab.add_column("f%d" % i, obj[:, i], dtype=obj.dtype)
 
     return tab
 
 
-#==============================================================================
+# ==============================================================================
 def from_Table(obj, **kwargs):
     """ Generate a new table fr om a Table obj """
-#==============================================================================
-    assert( isinstance(obj, Table)), "Expecting Table object, got %s" % type(obj)
+    # ==============================================================================
+    assert isinstance(obj, Table), "Expecting Table object, got %s" % type(obj)
     return copyTable(obj)
 
 
-#==============================================================================
+# ==============================================================================
 def copyTable(obj, **kwargs):
     """ Copy a Table """
-#==============================================================================
+    # ==============================================================================
     t = obj.__class__()
     for k in list(obj.__dict__.keys()):
         setattr(t, k, deepcopy(obj.__dict__[k]))
-    return (t)
+    return t
 
 
-@warning(message='Deprecated function. Use Table class constructor instead.')
+@warning(message="Deprecated function. Use Table class constructor instead.")
 def load(*args, **kwargs):
     return Table(*args, **kwargs)

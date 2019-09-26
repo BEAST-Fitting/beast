@@ -30,9 +30,10 @@ class timeit(object):
     KEYWORDS:
         f   function
     """
+
     def __init__(self, f=None, verbose=True, text=None):
         self.f = f
-        if not self.f is None:
+        if self.f is not None:
             if type(self.f) != str:
                 functools.update_wrapper(self, f)
                 self.text = self.__name__
@@ -40,7 +41,7 @@ class timeit(object):
                 self.text = f
 
         else:
-            self.text = text or ''
+            self.text = text or ""
         self.verbose = verbose
 
     def __enter__(self):
@@ -52,7 +53,7 @@ class timeit(object):
         print(self.time)
 
     def __pretty_print(self, t):
-        units = ["s", "ms", 'us', "ns"]
+        units = ["s", "ms", "us", "ns"]
         scaling = [1, 1e3, 1e6, 1e9]
         if t > 0.0 and t < 1000.0:
             order = min(-int(math.floor(math.log10(t)) // 3), 3)
@@ -61,7 +62,11 @@ class timeit(object):
         else:
             order = 3
 
-        return "%s Execution time: %.3g %s" % (self.text, t * scaling[order], units[order])
+        return "%s Execution time: %.3g %s" % (
+            self.text,
+            t * scaling[order],
+            units[order],
+        )
 
     @property
     def time(self):
@@ -77,11 +82,12 @@ class timeit(object):
 
 
 class memoize(dict):
-    '''Decorator. Caches a function's return value each time it is called.
+    """Decorator. Caches a function's return value each time it is called.
     If called later with the same arguments, the cached value is returned
     (not reevaluated).
     Fastest implementation according to http://code.activestate.com/recipes/578231/
-    '''
+    """
+
     def __init__(self, func):
         self.func = func
         functools.update_wrapper(self, func)
@@ -96,7 +102,7 @@ class memoize(dict):
     __call__ = __getitem__
 
     def __repr__(self):
-        '''Return the function's docstring.'''
+        """Return the function's docstring."""
         return self.func.__doc__
 
 
@@ -138,26 +144,36 @@ def deprecated(message=None, stacklevel=2):
     This is a decorator which can be used to mark functions as deprecated. It
     will result in a warning being emitted when the function is used.
     """
+
     def deco(func):
         @wraps(func)
         def new_func(*args, **kwargs):
-            warnings.warn("Call to deprecated function {}. {}".format(func.__name__, message or ''),
-                        category=DeprecationWarning, stacklevel=stacklevel)
+            warnings.warn(
+                "Call to deprecated function {}. {}".format(
+                    func.__name__, message or ""
+                ),
+                category=DeprecationWarning,
+                stacklevel=stacklevel,
+            )
             return func(*args, **kwargs)
+
         return new_func
+
     return deco
 
 
 def elementwise(func):
     """ Quick and dirty elementwise function decorator it provides a quick way
     to apply a function either on one element or a sequence of elements """
+
     @wraps(func)
     def wrapper(it, **kwargs):
-        if hasattr(it, '__iter__'):  # is a Sequence
+        if hasattr(it, "__iter__"):  # is a Sequence
             _f = partial(func, **kwargs)
             return list(map(_f, it))
         else:
             return func(it, **kwargs)
+
     return wrapper
 
 
@@ -166,11 +182,17 @@ def warning(message=None, category=UserWarning, stacklevel=2):
     This is a decorator which can be used to mark functions with warnings. It
     will result in a warning being emitted when the function is used.
     """
+
     def deco(func):
         @wraps(func)
         def new_func(*args, **kwargs):
-            warnings.warn("Call to function {}. {}".format(func.__name__, message or ''),
-                        category=category, stacklevel=stacklevel)
+            warnings.warn(
+                "Call to function {}. {}".format(func.__name__, message or ""),
+                category=category,
+                stacklevel=stacklevel,
+            )
             return func(*args, **kwargs)
+
         return new_func
+
     return deco

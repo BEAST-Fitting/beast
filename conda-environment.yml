@@ -7,6 +7,7 @@ dependencies:
   - scipy
   - matplotlib
   - h5py
+  - tqdm
   - pip:
     - dust-extinction
     - tables

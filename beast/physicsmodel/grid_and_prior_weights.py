@@ -12,9 +12,6 @@ Basically, we want the maginalization using these grid weights to provide
 flat priors on all the fit parameters.  Non-flat priors will be implemented
 with prior weights.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 
 from .grid_weights import compute_age_grid_weights
@@ -25,7 +22,7 @@ from .prior_weights import compute_age_prior_weights
 from .prior_weights import compute_mass_prior_weights
 from .prior_weights import compute_metallicity_prior_weights
 
-__all__ = ['compute_age_mass_metallicity_weights']
+__all__ = ["compute_age_mass_metallicity_weights"]
 
 
 def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
@@ -44,7 +41,7 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
     """
 
     # get the unique metallicities
-    uniq_Zs = np.unique(_tgrid['Z'])
+    uniq_Zs = np.unique(_tgrid["Z"])
 
     # setup the vector to hold the z weight vector
     total_z_grid_weight = np.zeros(len(uniq_Zs))
@@ -52,14 +49,13 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
     total_z_weight = np.zeros(len(uniq_Zs))
 
     for az, z_val in enumerate(uniq_Zs):
-        print('computing the age-mass-metallicity grid weight for Z = ',
-              z_val)
+        print("computing the age-mass-metallicity grid weight for Z = ", z_val)
 
         # get the grid for a single metallicity
-        zindxs, = np.where(_tgrid['Z'] == z_val)
+        zindxs, = np.where(_tgrid["Z"] == z_val)
 
         # get the unique ages for this metallicity
-        uniq_ages = np.unique(_tgrid[zindxs]['logA'])
+        uniq_ages = np.unique(_tgrid[zindxs]["logA"])
 
         # compute the age weights
         age_grid_weights = compute_age_grid_weights(uniq_ages, **kwargs)
@@ -67,13 +63,12 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
 
         for ak, age_val in enumerate(uniq_ages):
             # get the grid for a single age
-            aindxs, = np.where((_tgrid['logA'] == age_val) &
-                               (_tgrid['Z'] == z_val))
+            aindxs, = np.where((_tgrid["logA"] == age_val) & (_tgrid["Z"] == z_val))
             _tgrid_single_age = _tgrid[aindxs]
 
             # compute the mass weights
             if len(aindxs) > 1:
-                cur_masses = _tgrid_single_age['M_ini']
+                cur_masses = _tgrid_single_age["M_ini"]
                 mass_grid_weights = compute_mass_grid_weights(cur_masses)
                 mass_prior_weights = compute_mass_prior_weights(cur_masses)
             else:
@@ -84,17 +79,16 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
 
             # apply both the mass and age weights
             for i, k in enumerate(aindxs):
-                _tgrid[k]['grid_weight'] *= (mass_grid_weights[i]
-                                             * age_grid_weights[ak])
-                _tgrid[k]['prior_weight'] *= (mass_prior_weights[i]
-                                              * age_prior_weights[ak])
-                _tgrid[k]['weight'] *= (mass_prior_weights[i]
-                                        * age_grid_weights[ak])
+                _tgrid[k]["grid_weight"] *= mass_grid_weights[i] * age_grid_weights[ak]
+                _tgrid[k]["prior_weight"] *= (
+                    mass_prior_weights[i] * age_prior_weights[ak]
+                )
+                _tgrid[k]["weight"] *= mass_prior_weights[i] * age_grid_weights[ak]
 
         # compute the current total weight at each metallicity
-        total_z_grid_weight[az] = np.sum(_tgrid[zindxs]['grid_weight'])
-        total_z_prior_weight[az] = np.sum(_tgrid[zindxs]['prior_weight'])
-        total_z_weight[az] = np.sum(_tgrid[zindxs]['weight'])
+        total_z_grid_weight[az] = np.sum(_tgrid[zindxs]["grid_weight"])
+        total_z_prior_weight[az] = np.sum(_tgrid[zindxs]["prior_weight"])
+        total_z_weight[az] = np.sum(_tgrid[zindxs]["weight"])
 
     # ensure that the metallicity prior is uniform
     if len(uniq_Zs) > 1:
@@ -103,7 +97,7 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
         met_grid_weights /= np.sum(met_grid_weights)
         met_prior_weights = compute_metallicity_prior_weights(uniq_Zs)
         met_prior_weights /= np.sum(met_prior_weights)
-        met_weights = met_grid_weights*met_prior_weights
+        met_weights = met_grid_weights * met_prior_weights
 
         # correct for any non-unformity in the number size of the
         # age-mass grids between metallicity points
@@ -113,10 +107,11 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
 
         for i, z_val in enumerate(uniq_Zs):
             # get the grid for this metallicity
-            zindxs, = np.where(_tgrid['Z'] == z_val)
-            _tgrid[zindxs]['grid_weight'] *= (met_grid_weights[i]
-                                              * total_z_grid_weight[i])
-            _tgrid[zindxs]['prior_weight'] *= (met_prior_weights[i]
-                                               * total_z_prior_weight[i])
-            _tgrid[zindxs]['weight'] *= (met_weights[i]
-                                         * total_z_weight[i])
+            zindxs, = np.where(_tgrid["Z"] == z_val)
+            _tgrid[zindxs]["grid_weight"] *= (
+                met_grid_weights[i] * total_z_grid_weight[i]
+            )
+            _tgrid[zindxs]["prior_weight"] *= (
+                met_prior_weights[i] * total_z_prior_weight[i]
+            )
+            _tgrid[zindxs]["weight"] *= met_weights[i] * total_z_weight[i]

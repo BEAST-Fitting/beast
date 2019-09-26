@@ -1,23 +1,23 @@
 """ sqllite, mysql, psql """
 
-import os, inspect, sys
-localpath = '/'.join(os.path.abspath(inspect.getfile(inspect.currentframe())).split('/')[:-1])
+import os
+import inspect
 
-from .basebackend import BaseBackend
-#from ..core.tableheader import TableHeader
-#from ..core.helpers import default_format
-from ..table import Table
-#from basebackend import BaseBackend
+import numpy as np
+
+localpath = "/".join(
+    os.path.abspath(inspect.getfile(inspect.currentframe())).split("/")[:-1]
+)
+
+# from basebackend import BaseBackend
 
 # SQLite
 try:
     import sqlite3
     sqlite3_installed = True
-except:
+except Exception:
     sqlite3_installed = False
 
-import numpy as np
-    
 # Type conversion dictionary
 type_dict = {}
 type_dict[np.bool_] = "BOOL"
@@ -35,6 +35,3 @@ type_dict[np.float64] = "DOUBLE PRECISION"
 type_dict[np.str] = "TEXT"
 type_dict[np.string_] = "TEXT"
 type_dict[str] = "TEXT"
-
-
-

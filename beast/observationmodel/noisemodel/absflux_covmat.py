@@ -2,20 +2,17 @@
 Function to generate fractional absolute flux covariance matrix for
 HST and (potentially other) photometric filters
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 from astropy.io.fits import getdata
+from tqdm import tqdm
 
 from .. import phot
 from ...config import __ROOT__
 
-from ...tools.pbar import Pbar
 
-
-def hst_frac_matrix(filters, spectrum=None, progress=True,
-                    hst_fname=None, filterLib=None):
+def hst_frac_matrix(
+    filters, spectrum=None, progress=True, hst_fname=None, filterLib=None
+):
     """ Uses the Bohlin et al. (2013) provided spectroscopic
     absolute flux covariance matrix to generate the covariance matrix
     for the input set of HST filters.
@@ -52,12 +49,12 @@ def hst_frac_matrix(filters, spectrum=None, progress=True,
 
     # get the HST fractional covariance matrix at spectroscopic resolution
     if hst_fname is None:
-        hst_fname = __ROOT__+'/hst_whitedwarf_frac_covar.fits'
+        hst_fname = __ROOT__ + "/hst_whitedwarf_frac_covar.fits"
 
     hst_data = getdata(hst_fname, 1)
 
-    waves = hst_data['WAVE'][0]
-    frac_spec_covar = hst_data['COVAR'][0]
+    waves = hst_data["WAVE"][0]
+    frac_spec_covar = hst_data["COVAR"][0]
     n_waves = len(waves)
 
     # define a flat spectrum if it does not exist
@@ -65,8 +62,7 @@ def hst_frac_matrix(filters, spectrum=None, progress=True,
         spectrum = (waves, np.full((n_waves), 1.0))
 
     # read in the filter response functions
-    flist = phot.load_filters(filters, filterLib=filterLib,
-                              interp=True, lamb=waves)
+    flist = phot.load_filters(filters, filterLib=filterLib, interp=True, lamb=waves)
 
     # setup multiplication images to make it easy to compute the results
     n_filters = len(filters)
@@ -76,7 +72,7 @@ def hst_frac_matrix(filters, spectrum=None, progress=True,
     # band_ones = np.full((n_filters, n_filters), 1.0)
 
     for i in range(n_filters):
-        mult_image[:, :, i] = image_ones*flist[i].transmit
+        mult_image[:, :, i] = image_ones * flist[i].transmit
 
     # handle single spectrum or many spectra
     if len(spectrum[1].shape) > 1:
@@ -88,8 +84,7 @@ def hst_frac_matrix(filters, spectrum=None, progress=True,
 
     # setup the progress bar
     if progress is True:
-        it = Pbar(desc='Calculating AbsFlux Covariance '
-                  + 'Matrices').iterover(list(range(n_models)))
+        it = tqdm(list(range(n_models)), desc="Calculating absolute flux covariance matrices")
     else:
         it = list(range(n_models))
 
@@ -101,15 +96,18 @@ def hst_frac_matrix(filters, spectrum=None, progress=True,
             interp_spectrum = np.interp(waves, spectrum[0], spectrum[1][k, :])
 
         for i in range(n_filters):
-            mult_image_spec[:, :, i] = mult_image[:, :, i]*interp_spectrum
+            mult_image_spec[:, :, i] = mult_image[:, :, i] * interp_spectrum
 
         for i in range(n_filters):
             for j in range(i, n_filters):
-                frac_covar_bands[i, j] = np.sum(frac_spec_covar
-                                                * mult_image_spec[:, :, i]
-                                                * mult_image_spec[:, :, j].T)
-                frac_covar_bands[i, j] /= np.sum(mult_image_spec[:, :, i]
-                                                 * mult_image_spec[:, :, j].T)
+                frac_covar_bands[i, j] = np.sum(
+                    frac_spec_covar
+                    * mult_image_spec[:, :, i]
+                    * mult_image_spec[:, :, j].T
+                )
+                frac_covar_bands[i, j] /= np.sum(
+                    mult_image_spec[:, :, i] * mult_image_spec[:, :, j].T
+                )
 
         # fill in the symmetric terms
         for i in range(n_filters):

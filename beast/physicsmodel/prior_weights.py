@@ -4,17 +4,16 @@ Prior Weights
 The priors on age, mass, and metallicty are computed as weights to use
 in the posterior calculations.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 from scipy.integrate import quad
 
 from .grid_weights import compute_bin_boundaries
 
-__all__ = ['compute_age_prior_weights',
-           'compute_mass_prior_weights',
-           'compute_metallicity_prior_weights']
+__all__ = [
+    "compute_age_prior_weights",
+    "compute_mass_prior_weights",
+    "compute_metallicity_prior_weights",
+]
 
 
 def compute_age_prior_weights(logages):
@@ -61,11 +60,11 @@ def imf_kroupa(x):
     alpha1 = -1.3
     alpha2 = -2.3
     if x < m1:
-        return x**alpha0
+        return x ** alpha0
     elif x >= m2:
-        return x**alpha2
+        return x ** alpha2
     else:
-        return x**alpha1
+        return x ** alpha1
 
 
 def imf_salpeter(x):
@@ -81,7 +80,7 @@ def imf_salpeter(x):
     imf : numpy vector
       unformalized IMF
     """
-    return x**(-2.35)
+    return x ** (-2.35)
 
 
 def compute_mass_prior_weights(masses):
@@ -109,9 +108,9 @@ def compute_mass_prior_weights(masses):
 
     # integrate the IMF over each bin
     for i in range(len(masses)):
-        mass_weights[sindxs[i]] = (quad(imf_kroupa,
-                                        mass_bounds[i],
-                                        mass_bounds[i+1]))[0]
+        mass_weights[sindxs[i]] = (
+            quad(imf_kroupa, mass_bounds[i], mass_bounds[i + 1])
+        )[0]
 
     return mass_weights
 

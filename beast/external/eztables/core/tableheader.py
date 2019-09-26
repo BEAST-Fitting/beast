@@ -1,10 +1,9 @@
 import numpy as np
 
 
-#==============================================================================
 class TableHeader(object):
     """ this class defines the context of a Table """
-#==============================================================================
+
     def __init__(self, dic=None, *args, **kwargs):
         """ constructor """
         for k, v in kwargs:
@@ -12,13 +11,15 @@ class TableHeader(object):
         if (isinstance(dic, dict)) or (isinstance(dic, TableHeader)):
             for k, v in dic.items():
                 self.__setattr__(k, v)
-        if not 'NAME' in kwargs:
-            self.__setattr__('NAME', 'Noname')
+        if "NAME" not in kwargs:
+            self.__setattr__("NAME", "Noname")
 
     def __setattr__(self, attribute, value):
         """ set attribute """
-        if (attribute.lower() in ['description', 'comment', 'history']) & (attribute in self):
-                self.__dict__[attribute] = str(self[attribute]) + '\n' + str(value)
+        if (attribute.lower() in ["description", "comment", "history"]) & (
+            attribute in self
+        ):
+            self.__dict__[attribute] = str(self[attribute]) + "\n" + str(value)
         else:
             self.__dict__[attribute] = value
 
@@ -35,22 +36,22 @@ class TableHeader(object):
 
     def __repr__(self):
         """ representation """
-        s = 'Table Header\n'
+        s = "Table Header\n"
         if len(self.__dict__) == 0:
             s += "(Empty)"
         else:
             keys = np.sort(list(self.keys()))
             for k in keys:
                 if self[k] is not None:
-                    vals = str(self[k]).split('\n')
+                    vals = str(self[k]).split("\n")
                     if len(vals) == 1:
-                        s += '%20s\t%s\n' % (k.upper(), self[k])
+                        s += "%20s\t%s\n" % (k.upper(), self[k])
                     else:
-                        s += '%20s\t%s\n' % (k.upper(), vals[0])
+                        s += "%20s\t%s\n" % (k.upper(), vals[0])
                         for kval in vals[1:]:
-                            s += '%20s\t%s\n' % ('', kval)
+                            s += "%20s\t%s\n" % ("", kval)
                 else:
-                    s += '%20s\t%s\n' % (k.upper(), None)
+                    s += "%20s\t%s\n" % (k.upper(), None)
 
         return s
 

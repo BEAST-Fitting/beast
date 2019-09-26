@@ -12,14 +12,13 @@ Basically, we want the maginalization using these grid weights to provide
 flat priors on all the fit parameters.  Non-flat priors will be implemented
 with prior weights.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 
-__all__ = ['compute_age_grid_weights',
-           'compute_mass_grid_weights',
-           'compute_metallicity_grid_weights']
+__all__ = [
+    "compute_age_grid_weights",
+    "compute_mass_grid_weights",
+    "compute_metallicity_grid_weights",
+]
 
 
 def compute_bin_boundaries(tab):
@@ -41,10 +40,10 @@ def compute_bin_boundaries(tab):
     At the two edges, 1/2 of the bin width is subtractted/added to the
     min/max of tab.
     """
-    temp = tab[1:]-np.diff(tab)/2.
-    tab2 = np.empty(len(tab)+1)
-    tab2[0] = tab[0]-np.diff(tab)[0]/2.
-    tab2[-1] = tab[-1]+np.diff(tab)[-1]/2.
+    temp = tab[1:] - np.diff(tab) / 2.0
+    tab2 = np.empty(len(tab) + 1)
+    tab2[0] = tab[0] - np.diff(tab)[0] / 2.0
+    tab2[-1] = tab[-1] + np.diff(tab)[-1] / 2.0
     tab2[1:-1] = temp
     return tab2
 
@@ -77,7 +76,7 @@ def compute_age_grid_weights(logages, constantSFR=True):
         age_weights = np.full(len(aindxs), 0.0)
 
         # Returns the age weight as a numpy array
-        age_weights[aindxs] = np.diff(10**(logages_bounds))
+        age_weights[aindxs] = np.diff(10 ** (logages_bounds))
 
     else:
         # Returns the age weight as a numpy array
