@@ -129,7 +129,7 @@ def trim_models(
 
     print("number of original models = ", len(sedgrid.seds[:, 0]))
     print("number of ast trimmed models = ", n_ast_indxs)
-    print(" number of trimmed models = ", len(indxs))
+    print("number of trimmed models = ", len(indxs))
 
     # Save the grid
     print("Writing trimmed sedgrid to disk into {0:s}".format(sed_outname))
