@@ -4,12 +4,12 @@ import os
 import numpy as np
 from astropy import units
 
-from . import grid
-from . import creategrid
-from .stars import (isochrone, stellib)
-from .stars.isochrone import ezIsoch
-from .dust import extinction
-from .grid_and_prior_weights import compute_age_mass_metallicity_weights
+from beast.physicsmodel import grid
+from beast.physicsmodel import creategrid
+from beast.physicsmodel.stars import (isochrone, stellib)
+from beast.physicsmodel.stars.isochrone import ezIsoch
+from beast.physicsmodel.dust import extinction
+from beast.physicsmodel.grid_and_prior_weights import compute_age_mass_metallicity_weights
 
 __all__ = ['make_iso_table', 'make_spectral_grid', 'add_stellar_priors',
            'make_extinguished_sed_grid']
@@ -198,7 +198,7 @@ def make_spectral_grid(project, oiso, osl=None, bounds={},
                 ext_law_range_A = 1e4 / np.array(extLaw.x_range)
                 valid_lambda = np.where((g.lamb > np.min(ext_law_range_A)) &
                                         (g.lamb < np.max(ext_law_range_A)) )[0]
-        
+
                 g.lamb = g.lamb[valid_lambda]
                 g.seds = g.seds[:,valid_lambda]
 

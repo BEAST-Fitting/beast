@@ -43,9 +43,9 @@ import numpy
 import astropy.io.fits as pyfits
 import copy
 
-from ...external.eztables import Table
-from .hdfstore import HDFStore
-from .gridhelpers import isNestedInstance, pretty_size_print
+from beast.external.eztables import Table
+from beast.physicsmodel.helpers.hdfstore import HDFStore
+from beast.physicsmodel.helpers.gridhelpers import isNestedInstance, pretty_size_print
 
 try:
     unicode = unicode
@@ -120,7 +120,7 @@ class GridBackend(object):
         #        hdulist = pyfits.open(fname)
         #        rtype = 'fits'
         #    except:
-        #        print('An error occured trying to read the file.')            
+        #        print('An error occured trying to read the file.')
         #else:
         rtype = types[fname.split('.')[-1]]
         return rtype

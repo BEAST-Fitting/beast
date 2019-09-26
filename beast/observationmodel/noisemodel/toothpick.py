@@ -20,11 +20,11 @@ import math
 
 import numpy as np
 
-from .noisemodel import NoiseModel
-from ..vega import Vega
+from beast.observationmodel.noisemodel import NoiseModel
+from beast.observationmodel.vega import Vega
 
-from .helpers import convert_dict_to_structured_ndarray
-from ...tools.pbar import Pbar
+from beast.observationmodel.noisemodel.helpers import convert_dict_to_structured_ndarray
+from beast.tools.pbar import Pbar
 
 __all__ = ['MultiFilterASTs']
 

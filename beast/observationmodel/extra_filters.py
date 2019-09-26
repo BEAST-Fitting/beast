@@ -1,5 +1,5 @@
 import numpy as np
-from phot import IntegrationFilter
+from beast.observationmodel.phot import IntegrationFilter
 import astropy.io.fits as pyfits
 
 
@@ -73,7 +73,7 @@ def make_top_hat_filter(startlam, endlam, dlamb, name,
     """
     Creates a psudo-filter with transmission 100%
     in the energy range [startlam:endlam].
-    
+
 
     Parmeters
     ---------

@@ -16,7 +16,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 import tables
 
-from . import toothpick
+from beast.observationmodel.noisemodel import toothpick
 
 __all__ = ['Generic_ToothPick_Noisemodel', 'make_toothpick_noise_model',
            'get_noisemodelcat']

@@ -12,7 +12,7 @@ regions.
 import argparse
 import numpy as np
 from astropy.table import Table
-from density_map import BinnedDensityMap
+from beast.tools.density_map import BinnedDensityMap
 
 
 def main():
@@ -45,12 +45,12 @@ def split_catalog_using_map(catfile, binned_density_map, n, ra_colname='RA', dec
         bin_foreach_source[i] = binned_density_map.bin_for_position(ras[i], decs[i])
 
     binnrs = np.unique(bin_foreach_source)
-        
+
     for b in binnrs:
         sources_for_bin = np.where(bin_foreach_source == b)
         subcat = cat[sources_for_bin]
         subcat.write(catfile.replace('.fits', '_bin{}.fits'.format(b)))
-    
+
 
 if __name__ == '__main__':
     main()

@@ -40,15 +40,15 @@ from astropy.coordinates import SkyCoord as ap_SkyCoord
 from astropy.io import fits
 from astropy.table import Table
 
-from ..physicsmodel import grid
-from ..tools.pbar import Pbar
+from beat.physicsmodel import grid
+from beat.tools.pbar import Pbar
 
-from .fit_metrics.likelihood import (N_covar_logLikelihood,
-                                     N_logLikelihood_NM,
-                                     getNorm_lnP)
-from .fit_metrics import expectation, percentile
+from beast.fitting.fit_metrics.likelihood import (N_covar_logLikelihood,
+                                                  N_logLikelihood_NM, getNorm_lnP)
 
-from .pdf1d import pdf1d
+from beast.fitting.fit_metrics import expectation, percentile
+
+from beast.fitting.pdf1d import pdf1d
 
 __all__ = ['summary_table_memory',
            'Q_all_memory',

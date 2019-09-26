@@ -23,8 +23,8 @@ import numpy
 import tables
 from scipy.integrate import trapz
 
-from ..tools.decorators import timeit
-from ..config import __ROOT__
+from beast.tools.decorators import timeit
+from beast.config import __ROOT__
 
 __default__      = __ROOT__ + '/filters.hd5'
 __default_vega__ = __ROOT__ + '/vega.hd5'

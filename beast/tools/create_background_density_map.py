@@ -20,7 +20,7 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import numpy as np
 import photutils as pu
-from .density_map import DensityMap
+from beast.tools.density_map import DensityMap
 import itertools as it
 import os
 
@@ -282,7 +282,7 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
         radius (in pixels) of mask for catalog sources
 
     ann_width : float
-        width of annulus (in pixels) for calculating background around each catalog source    
+        width of annulus (in pixels) for calculating background around each catalog source
 
     cat_filter : list or None
         If list: Two elements in which the first is a filter (e.g. 'F475W') and
