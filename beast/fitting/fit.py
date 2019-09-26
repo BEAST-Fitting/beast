@@ -31,9 +31,9 @@ from astropy.coordinates import SkyCoord as ap_SkyCoord
 
 from astropy.io import fits
 from astropy.table import Table
+from tqdm import tqdm
 
 from ..physicsmodel import grid
-from ..tools.pbar import Pbar
 
 from .fit_metrics.likelihood import N_covar_logLikelihood, N_logLikelihood_NM
 from .fit_metrics import expectation, percentile
@@ -474,8 +474,9 @@ def Q_all_memory(
     g0_specgrid_indx = g0["specgrid_indx"]
     _p = np.asarray(p, dtype=float)
 
-    it = Pbar(len(obs) - start_pos, desc="Calculating Lnp/Stats").iterover(
-        islice(obs.enumobs(), int(start_pos), None)
+    it = tqdm(islice(obs.enumobs(), int(start_pos), None),
+        total=len(obs) - start_pos,
+        desc="Calculating Lnp/Stats"
     )
     for e, obj in it:
         # calculate the full nD posterior
