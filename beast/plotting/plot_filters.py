@@ -6,8 +6,8 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-from ..observationmodel import phot
-from .beastplotlib import initialize_parser
+from beast.observationmodel import phot
+from beast.plotting.beastplotlib import initialize_parser
 
 
 def plot_filters(

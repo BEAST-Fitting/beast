@@ -7,7 +7,7 @@ from astropy.table import Table
 from matplotlib.colors import LogNorm
 
 # local imports
-from .beastplotlib import initialize_parser, plot_generic, set_params
+from beast.plotting.beastplotlib import initialize_parser, plot_generic, set_params
 
 
 def make_good_bad_plots(

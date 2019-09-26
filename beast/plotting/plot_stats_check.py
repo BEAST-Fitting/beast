@@ -12,7 +12,7 @@ from astropy.table import Table
 from matplotlib.colors import LogNorm
 
 # local imports
-from .beastplotlib import initialize_parser, plot_generic
+from beast.plotting.beastplotlib import initialize_parser, plot_generic
 
 
 def make_diagnostic_plots(statsfile, suffix="Exp", figsize=(10, 5.5)):
