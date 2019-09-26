@@ -18,14 +18,19 @@ from .grid_weights import compute_age_grid_weights
 from .grid_weights import compute_mass_grid_weights
 from .grid_weights import compute_metallicity_grid_weights
 
-from .prior_weights import compute_age_prior_weights
-from .prior_weights import compute_mass_prior_weights
-from .prior_weights import compute_metallicity_prior_weights
+from .prior_weights_stars import compute_age_prior_weights
+from .prior_weights_stars import compute_mass_prior_weights
+from .prior_weights_stars import compute_metallicity_prior_weights
 
 __all__ = ["compute_age_mass_metallicity_weights"]
 
 
-def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
+def compute_age_mass_metallicity_weights(
+        _tgrid,
+        age_prior_model={'name': 'flat'},
+        mass_prior_model={'name': 'kroupa'},
+        met_prior_model={'name': 'flat'},
+        **kwargs):
     """
     Computes the age-mass-metallicity grid and prior weights
     on the BEAST model spectra grid
@@ -33,6 +38,13 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
     Keywords
     --------
     _tgrid : BEAST model spectra grid.
+
+    age_prior_model: dict
+        dict including prior model name and parameters
+     mass_prior_model: dict
+        dict including prior model name and parameters
+     met_prior_model: dict
+        dict including prior model name and parameters
 
     Returns
     -------
@@ -59,7 +71,8 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
 
         # compute the age weights
         age_grid_weights = compute_age_grid_weights(uniq_ages, **kwargs)
-        age_prior_weights = compute_age_prior_weights(uniq_ages)
+        age_prior_weights = compute_age_prior_weights(
+            uniq_ages, age_prior_model)
 
         for ak, age_val in enumerate(uniq_ages):
             # get the grid for a single age
@@ -70,7 +83,8 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
             if len(aindxs) > 1:
                 cur_masses = _tgrid_single_age["M_ini"]
                 mass_grid_weights = compute_mass_grid_weights(cur_masses)
-                mass_prior_weights = compute_mass_prior_weights(cur_masses)
+                mass_prior_weights = compute_mass_prior_weights(
+                    cur_masses, mass_prior_model)
             else:
                 # must be a single mass for this age,z combination
                 # set mass weight to zero to remove this point from the grid
@@ -95,7 +109,8 @@ def compute_age_mass_metallicity_weights(_tgrid, **kwargs):
         # get the metallicity weights
         met_grid_weights = compute_metallicity_grid_weights(uniq_Zs)
         met_grid_weights /= np.sum(met_grid_weights)
-        met_prior_weights = compute_metallicity_prior_weights(uniq_Zs)
+        met_prior_weights = compute_metallicity_prior_weights(
+            uniq_Zs, met_prior_model)
         met_prior_weights /= np.sum(met_prior_weights)
         met_weights = met_grid_weights * met_prior_weights
 

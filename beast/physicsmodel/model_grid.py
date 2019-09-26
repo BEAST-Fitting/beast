@@ -242,7 +242,13 @@ def make_spectral_grid(
     return (spec_fname, g)
 
 
-def add_stellar_priors(project, specgrid, verbose=True, priors_fname=None, **kwargs):
+def add_stellar_priors(project, specgrid,
+                       age_prior_model={'name': 'flat'},
+                       mass_prior_model={'name': 'kroupa'},
+                       met_prior_model={'name': 'flat'},
+                       verbose=True,
+                       priors_fname=None,
+                       **kwargs):
     """
     make_priors -- compute the weights for the stellar priors
 
@@ -253,6 +259,15 @@ def add_stellar_priors(project, specgrid, verbose=True, priors_fname=None, **kwa
 
     specgrid: grid.SpectralGrid object
         spectral grid to transform
+
+    age_prior_model: dict
+        dict including prior model name and parameters
+
+    mass_prior_model: dict
+        dict including prior model name and parameters
+
+    met_prior_model: dict
+        dict including prior model name and parameters
 
     priors_fname: str
         full filename to which to save the spectral grid with priors
@@ -272,7 +287,12 @@ def add_stellar_priors(project, specgrid, verbose=True, priors_fname=None, **kwa
         if verbose:
             print("Make Prior Weights")
 
-        compute_age_mass_metallicity_weights(specgrid.grid, **kwargs)
+        compute_age_mass_metallicity_weights(
+            specgrid.grid,
+            age_prior_model=age_prior_model,
+            mass_prior_model=mass_prior_model,
+            met_prior_model=met_prior_model,
+            **kwargs)
 
         # write to disk
         if hasattr(specgrid, "writeHDF"):
@@ -323,20 +343,20 @@ def make_extinguished_sed_grid(
     av: sequence
         sequence of Av values to sample
 
-    av_prior_model: list
-        list including prior model name and parameters
+    av_prior_model: dict
+        dict including prior model name and parameters
 
     rv: sequence
         sequence of Rv values to sample
 
-    rv_prior_model: list
-        list including prior model name and parameters
+    rv_prior_model: dict
+        dict including prior model name and parameters
 
     fA: sequence (optional)
         sequence of fA values to sample (depending on extLaw definition)
 
-    fA_prior_model: list
-        list including prior model name and parameters
+    fA_prior_model: dict
+        dict including prior model name and parameters
 
     extLaw: extinction.ExtLaw
         extinction law to use during the process

@@ -16,28 +16,40 @@ __all__ = [
 ]
 
 
-def compute_age_prior_weights(logages):
-    """ Computes the age weights to provide constant star formation rate
-    (in linear age)
+def compute_age_prior_weights(logages, age_prior_model):
+    """
+    Computes the age proper for the specified model
 
     Keywords
     --------
     logages : numpy vector
        log(ages)
 
+    age_prior_model: dict
+        dict including prior model name and parameters
+
     Returns
     -------
     age_weights : numpy vector
-       total masses at each age for a constant SFR in linear age
+       weights needed according to the prior model
     """
-    # initialize the age weights to one
-    #   for a flat prior, nothing else is needed
-    #   non-uniform grid spacing is handled in the grid_weights code
-    age_weights = np.full(len(logages), 1.0)
+    if age_prior_model["name"] == "flat":
+        age_weights = np.full(len(logages), 1.0)
+    elif age_prior_model["name"] == "bins":
+        # interpolate model to grid ages
+        age_weights = np.interp(
+            logages,
+            np.array(age_prior_model["logages"]),
+            np.array(age_prior_model["values"]),
+        )
+    elif age_prior_model["name"] == "exp":
+        vals = (10 ** logages) / (age_prior_model["tau"] * 1e6)
+        vals = vals / age_prior_model["A"]
+        age_weights = np.exp(-1.0 * vals)
+    else:
+        print("input age prior function not supported")
+        exit()
 
-    # code will be needed here for non-flat priors
-
-    # return in the order that logages was passed
     return age_weights
 
 
@@ -83,13 +95,17 @@ def imf_salpeter(x):
     return x ** (-2.35)
 
 
-def compute_mass_prior_weights(masses):
-    """ Computes the mass weights for a kroupa IMF
+def compute_mass_prior_weights(masses, mass_prior_model):
+    """
+    Computes the mass prior for the specificed model
 
     Keywords
     --------
     masses : numpy vector
         masses
+
+    mass_prior_model: dict
+        dict including prior model name and parameters
 
     Returns
     -------
@@ -107,30 +123,41 @@ def compute_mass_prior_weights(masses):
     mass_weights = np.empty(len(masses))
 
     # integrate the IMF over each bin
+    if mass_prior_model["name"] == "kroupa":
+        imf_func = imf_kroupa
+    elif mass_prior_model["name"] == "salpeter":
+        imf_func = imf_salpeter
+    else:
+        print("input mass prior function not supported")
+        exit()
+
     for i in range(len(masses)):
-        mass_weights[sindxs[i]] = (
-            quad(imf_kroupa, mass_bounds[i], mass_bounds[i + 1])
-        )[0]
+        mass_weights[sindxs[i]] = (quad(imf_func, mass_bounds[i], mass_bounds[i + 1]))[
+            0
+        ]
 
     return mass_weights
 
 
-def compute_metallicity_prior_weights(mets):
-    """ Computes the metallicity weights to provide a default flat prior
-
+def compute_metallicity_prior_weights(mets,
+                                      met_prior_model):
+    """
+    Computes the metallicity prior for the specified model
     Keywords
     --------
     mets : numpy vector
         metallicities
-
+    met_prior_model: dict
+        dict including prior model name and parameters
     Returns
     -------
     metallicity_weights : numpy vector
        weights to provide a flat metallicity
     """
-    # initialize the metalicity weights to one
-    #   for a flat prior, nothing else is needed
-    #   non-uniform grid spacing is handled in the grid_weights code
-    met_weights = np.full(len(mets), 1.0)
+    if met_prior_model['name'] == 'flat':
+        met_weights = np.full(len(mets), 1.0)
+    else:
+        print('input metallicity prior function not supported')
+        exit()
 
     return met_weights
