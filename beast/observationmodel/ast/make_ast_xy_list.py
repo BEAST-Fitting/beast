@@ -8,6 +8,10 @@ from astropy.wcs import WCS
 
 from ...tools.pbar import Pbar
 from ...tools import density_map
+from beast.tools import cut_catalogs
+
+import datamodel
+import importlib
 
 
 def pick_positions_from_map(
@@ -21,6 +25,7 @@ def pick_positions_from_map(
     refimage_hdu=1,
     Nrealize=1,
     set_coord_boundary=None,
+    region_from_filters=None,
 ):
     """
     Spreads a set of fake stars across regions of similar values,
@@ -79,6 +84,16 @@ def pick_positions_from_map(
         around the region (either CW or CCW).  Requires a refimage to
         convert the RA/Dec to x/y.
 
+    region_from_filters : None, list of filter name(s), or 'all'
+        If provided, ASTs will only be placed in regions with this particular
+        combination of filter(s).  Or, if 'all' is chosen, ASTs will only be
+        placed where there is overlap with all filters.  In practice, this
+        means creating a convex hull around the catalog RA/DEC of sources with
+        valid values in these filters.  Note that if the region in question is
+        a donut, this will put ASTs in the hole.  This will also only work
+        properly if the region is a convex polygon.  A solution to these needs
+        to be figured out at some point.
+
     Returns
     -------
     astropy Table: List of fake stars, with magnitudes and positions
@@ -91,8 +106,9 @@ def pick_positions_from_map(
     if refimage is None:
         wcs = None
     else:
-        imagehdu = fits.open(refimage)[refimage_hdu]
-        wcs = WCS(imagehdu.header)
+        with fits.open(refimage) as hdu:
+            imagehdu = hdu[refimage_hdu]
+            wcs = WCS(imagehdu.header)
 
     # if appropriate information is given, extract the x/y positions so that
     # there are no ASTs generated outside of the catalog footprint
@@ -147,6 +163,30 @@ def pick_positions_from_map(
                 "If using set_coord_boundary, you must also provide a refimage"
             )
 
+    # if region_from_filters is set, define an additional boundary for ASTs
+    if region_from_filters is not None:
+        # need catalog file from datamodel
+        importlib.reload(datamodel)
+
+        if type(region_from_filters) == list:
+            # good stars with user-defined partial overlap
+            _, good_stars = cut_catalogs.cut_catalogs(datamodel.obsfile, 'N/A',
+                                      flagged=True, flag_filter=region_from_filters,
+                                      no_write=True)
+        elif region_from_filters == 'all':
+            # good stars only with fully overlapping region
+            _, good_stars = cut_catalogs.cut_catalogs(datamodel.obsfile, 'N/A', partial_overlap=True,
+                                      no_write=True)
+        else:
+            raise RuntimeError('Invalid argument for region_from_filters')
+        
+        coords = np.array(
+            [x_positions[good_stars == 1], y_positions[good_stars == 1]]
+        ).T  # there's a weird astropy datatype issue that requires numpy coercion
+        hull = ConvexHull(coords)
+        bounds_x, bounds_y = coords[hull.vertices, 0], coords[hull.vertices, 1]
+        filt_reg_boundary = Path(np.array([bounds_x, bounds_y]).T)
+   
     # Load the background map
     print(Npermodel, " repeats of each model in each map bin")
 
@@ -159,6 +199,8 @@ def pick_positions_from_map(
     # Remove empty bins
     tile_sets = [tile_set for tile_set in tiles_foreach_bin if len(tile_set)]
     print(len(tile_sets), " non-empty map bins found between ", min_val, "and", max_val)
+
+    
 
     # Repeat the seds Nrealize times (sample each on at Nrealize
     # different positions, in each region)
@@ -221,6 +263,12 @@ def pick_positions_from_map(
                         within_bounds = coord_boundary.contains_points([[x, y]])
                         if within_bounds is False:
                             x = -1
+                    if region_from_filters is not None:
+                        within_bounds = filt_reg_boundary.contains_points([[x, y]])
+                        if within_bounds is False:
+                            x = -1
+                    import pdb; pdb.set_trace()
+                            
             j = bin_index * Nseds_per_region + i
             xs[j] = x
             ys[j] = y
