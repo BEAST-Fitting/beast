@@ -260,20 +260,19 @@ def pick_positions_from_map(
                     # check that this x/y is within the catalog footprint
                     within_bounds = catalog_boundary.contains_points(
                         [[x, y]]
-                    )  # N,2 array of AST X and Y positions
-                    if within_bounds is False:
+                    )[0]  # N,2 array of AST X and Y positions
+                    if within_bounds == False:
                         x = -1
                     # check that this x/y is with any input boundary
                     # (only relevant if there's a wcs from a refimage)
                     if set_coord_boundary is not None:
-                        within_bounds = coord_boundary.contains_points([[x, y]])
-                        if within_bounds is False:
+                        within_bounds = coord_boundary.contains_points([[x, y]])[0]
+                        if within_bounds == False:
                             x = -1
                     if region_from_filters is not None:
-                        within_bounds = filt_reg_boundary.contains_points([[x, y]])
-                        if within_bounds is False:
+                        within_bounds = filt_reg_boundary.contains_points([[x, y]])[0]
+                        if within_bounds == False:
                             x = -1
-                    import pdb; pdb.set_trace()
                             
             j = bin_index * Nseds_per_region + i
             xs[j] = x
