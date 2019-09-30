@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import numpy as np
-import photutils as pu
+#import photutils as pu
 from .density_map import DensityMap
 import itertools as it
 import os
@@ -511,8 +511,8 @@ def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut)
     w = make_wcs_for_map(ra_grid, dec_grid)
     pix_x, pix_y = get_pix_coords(cat, w)
 
-    n_x = len(ra_grid)
-    n_y = len(dec_grid)
+    n_x = len(ra_grid) - 1
+    n_y = len(dec_grid) - 1
     npts_map = np.zeros([n_x, n_y], dtype=float)
     npts_zero_map = np.zeros([n_x, n_y], dtype=float)
     npts_band_zero_map = np.zeros([n_x, n_y, n_filters], dtype=float)
@@ -647,8 +647,8 @@ def calc_nx_ny_from_pixsize(cat, pixsize_degrees):
     # --> ra_delt \approx requested physical size / cos(avg dec)
     ra_delt = dec_delt / cos_avg_dec
 
-    n_x = np.fix(np.round((max_ra - min_ra) / ra_delt))
-    n_y = np.fix(np.round((max_dec - min_dec) / dec_delt))
+    n_x = np.ceil((max_ra - min_ra) / ra_delt)
+    n_y = np.ceil((max_dec - min_dec) / dec_delt)
     n_x = int(np.max([n_x, 1]))
     n_y = int(np.max([n_y, 1]))
     print("# of x & y pixels = ", n_x, n_y)
@@ -681,10 +681,11 @@ def make_wcs_for_map(ra_grid, dec_grid):
     dec_delt = dec_grid[1] - dec_grid[0]
 
     w = wcs.WCS(naxis=2)
-    w.wcs.crpix = np.asarray([n_x, n_y], dtype=float) / 2.0 + 1
+    w.wcs.crpix = np.asarray([n_x, n_y], dtype=float) / 2.0 + 0.5
     w.wcs.crval = np.array([center_ra, center_dec])
     w.wcs.cdelt = np.abs([-phys_ra_delt, dec_delt])
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+
     return w
 
 
