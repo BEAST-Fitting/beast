@@ -16,7 +16,7 @@ concepts using one or more of these guides:
 Here is the recommended work-flow for contributing to the BEAST project.
 Details follow.
 
-- Create your own 'fork' of the official BEAST release
+- Create your own 'fork' of the official ``beast`` repository
 
 - Create purpose-specific 'branches' off your 'fork'
 

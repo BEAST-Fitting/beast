@@ -11,14 +11,6 @@ phat_small Example
 
 This example is based on a *very* small amount of old PHAT data.
 
-If the beast has not been installed (only downloaded from github), then
-In the 'phat_small' directory, place a soft link named 'beast' to where the
-beast code is located.  Specifically
-
-.. code-block:: console
-
-    $ cd examples/phat_small
-
 If you installed Python through AstroConda, first activate the correct
 AstroConda environment
 

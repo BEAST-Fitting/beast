@@ -102,6 +102,7 @@ installing, which is best done by replacing the last line with
 
      $ python setup.py develop
 
+.. _library-files:
 
 BEAST Library Files
 ===================
