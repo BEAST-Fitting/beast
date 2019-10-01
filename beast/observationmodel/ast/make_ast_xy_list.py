@@ -202,6 +202,64 @@ def pick_positions_from_map(
     min_val = np.amin(tile_vals)
     tiles_foreach_bin = bdm.tiles_foreach_bin()
 
+    # Remove any of the tiles that aren't contained within user-imposed
+    # constraints (if any)
+    if (set_coord_boundary is not None) or (region_from_filters is not None):
+
+        tile_ra_min, tile_dec_min = bdm.min_ras_decs()
+        tile_ra_delta, tile_dec_delta = bdm.delta_ras_decs()
+
+        for i,tile_set in enumerate(tiles_foreach_bin):
+
+            # keep track of which indices to discard
+            keep_tile = np.ones(len(tile_set), dtype=bool)
+
+            for j,tile in enumerate(tile_set):
+
+                # corners of the tile
+                bounds_ra = [tile_ra_min[tile],
+                                 tile_ra_min[tile] + tile_ra_delta[tile],
+                                 tile_ra_min[tile] + tile_ra_delta[tile],
+                                 tile_ra_min[tile]]
+                bounds_dec = [tile_dec_min[tile],
+                                  tile_dec_min[tile],
+                                  tile_dec_min[tile] + tile_dec_delta[tile],
+                                  tile_dec_min[tile] + tile_dec_delta[tile]]
+                if wcs is None:
+                    bounds_x, bounds_y = bounds_ra, bounds_dec
+                else:
+                    [bounds_x], [bounds_y] = wcs.all_world2pix(
+                        np.array([bounds_ra]), np.array([bounds_dec]), 0)
+
+                # make a Path object for the tile
+                tile_path = Path(np.array([bounds_x, bounds_y]).T)
+
+                # discard tile if:
+                # 1. corners of tile are not contained within user-imposed path
+                # - and -
+                # 2. tile path does not intersect user-imposed path
+                #
+                # Both of these conditions are required; only (1) would miss a
+                # piece of the user path that juts in between tile corners, and
+                # only (2) could select tiles fully contained with the path.
+
+                # do the check for set_coord_boundary
+                if set_coord_boundary is not None:
+                    if (tile_path.intersects_path(coord_boundary) == False) and \
+                        np.sum((coord_boundary.contains_points(np.array([bounds_x, bounds_y]).T)) == 0):
+
+                        keep_tile[j] = False
+
+                # do the check for region_from_filters
+                if region_from_filters is not None:
+                    if (tile_path.intersects_path(filt_reg_boundary) == False) and \
+                        np.sum((filt_reg_boundary.contains_points(np.array([bounds_x, bounds_y]).T)) == 0):
+
+                        keep_tile[j] = False
+
+            # remove anything that needs to be discarded
+            tiles_foreach_bin[i] = tile_set[keep_tile]
+
     # Remove empty bins
     tile_sets = [tile_set for tile_set in tiles_foreach_bin if len(tile_set)]
     print(len(tile_sets), " non-empty map bins found between ", min_val, "and", max_val)
