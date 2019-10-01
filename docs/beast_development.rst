@@ -24,7 +24,7 @@ Some other useful guides are:
 In short, the fork-branch-pull workflow for contributing to the ``beast``
 project is:
 
-- Create your own 'fork' of the official ``beast`` release
+- Create your own 'fork' of the official ``beast`` repository
 
 - Create purpose-specific 'branches' off your 'fork'
 
