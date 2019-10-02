@@ -159,12 +159,8 @@ velocity = -300 * units.km / units.s  # M31 velocity from SIMBAD
 
 # log10(Age) -- [min,max,step] to generate the isochrones in years
 #   example [6.0, 10.13, 1.0]
-logt = [6.0, 10.13, 0.25]
-age_prior_model = {'name': 'flat_log'}
-# age_prior_model = {'name': 'bins',
-#                   'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
-#                   'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
-# age_prior_model = {"name": "exp", "A": 1.0, "tau": 1000.0}
+logt = [6.0, 10.13, 1.0]
+age_prior_model = {'name': 'flat'}
 
 # note: Mass is not sampled, instead the isochrone supplied
 #       mass spacing is used instead
@@ -203,28 +199,16 @@ extLaw = extinction.Gordon16_RvFALaw()
 #   example [min, max, step] = [0.0, 10.055, 1.0]
 avs = [0.0, 10.055, 1.0]
 av_prior_model = {"name": "flat"}
-# av_prior_model = {'name': 'lognormal',
-#                  'max_pos': 2.0,
-#                  'sigma': 1.0,
-#                  'N': 10.}
 
 # R(V): dust average grain size
 #   example [min, max, step] = [2.0,6.0,1.0]
 rvs = [2.0, 6.0, 1.0]
 rv_prior_model = {"name": "flat"}
-# rv_prior_model = {'name': 'lognormal',
-#                  'max_pos': 2.0,
-#                  'sigma': 1.0,
-#                  'N': 10.}
 
 # fA: mixture factor between "MW" and "SMCBar" extinction curves
 #   example [min, max, step] = [0.0,1.0, 0.25]
 fAs = [0.0, 1.0, 0.25]
 fA_prior_model = {"name": "flat"}
-# fA_prior_model = {'name': 'lognormal',
-#                  'max_pos': 0.5,
-#                  'sigma': 0.2,
-#                  'N': 10.}
 
 ################
 
