@@ -11,7 +11,7 @@ regions.
 import argparse
 import numpy as np
 from astropy.table import Table
-from density_map import BinnedDensityMap
+from beast.tools.density_map import BinnedDensityMap
 
 
 def main():
@@ -21,26 +21,36 @@ def main():
     parser.add_argument(
         "mapfile", type=str, help="background or source density map file"
     )
-    parser.add_argument(
-        "n",
+
+    nbin_or_binwidth = parser.add_mutually_exclusive_group()
+    nbin_or_binwidth.add_argument(
+        "--n",
         type=int,
         help="Number of regions to split the catalog in, the number of density bins",
     )
+    nbin_or_binwidth.add_argument("--bin_width", type=float, default=None,
+                                      help="Width of the density bins for splitting catalog")
+
     args = parser.parse_args()
+
+    split_main(args.catfile, args.astfile, args.mapfile, args.n, args.bin_width)
+
+
+def split_main(catfile, astfile, mapfile, n_bin=None, bin_width=None):
 
     # Create a binned density map, so both the observed and the ast
     # catalog can be split using a consistent grouping (= binning) of
     # the tiles
-    bdm = BinnedDensityMap.create(args.mapfile, args.n)
+    bdm = BinnedDensityMap.create(mapfile, N_bins=n_bin, bin_width=bin_width)
 
-    split_catalog_using_map(args.catfile, bdm, args.n)
+    split_catalog_using_map(catfile, bdm)
     split_catalog_using_map(
-        args.astfile, bdm, args.n, ra_colname="RA_J2000", dec_colname="DEC_J2000"
+        astfile, bdm, ra_colname="RA_J2000", dec_colname="DEC_J2000"
     )
 
 
 def split_catalog_using_map(
-    catfile, binned_density_map, n, ra_colname="RA", dec_colname="DEC"
+    catfile, binned_density_map, ra_colname="RA", dec_colname="DEC"
 ):
     cat = Table.read(catfile)
 
