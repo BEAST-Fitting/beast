@@ -32,7 +32,7 @@ or
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'flat'}
+  age_prior_model = {'name': 'flat_linear'}
 
 2. Flat in log age
 
@@ -67,6 +67,44 @@ with a 1000 Myr time constant is:
                      'A': 1.0,
                      'tau': 1000.}
 
+Plot showing examples of the possible age prior models with the parameters given above.
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from beast.physicsmodel.prior_weights_stars import compute_age_prior_weights
+
+    fig, ax = plt.subplots()
+
+    # logage grid from 1 Myrs to 10 Gyrs
+    logages = np.linspace(6.0, 10.0)
+
+    age_prior_models = [
+        {"name": "flat"},
+        {"name": "flat_log"},
+        {
+            "name": "bins_histo",
+            "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
+            "values": [1.0, 2.0, 1.0, 5.0, 3.0],
+        },
+        {
+            "name": "bins_interp",
+            "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
+            "values": [1.0, 2.0, 1.0, 5.0, 3.0],
+        },
+        {"name": "exp", "A": 1.0, "tau": 100.}
+    ]
+
+    for ap_mod in age_prior_models:
+        ax.plot(logages, compute_age_prior_weights(logages, ap_mod), label=ap_mod["name"])
+
+    ax.set_ylabel("probability")
+    ax.set_xlabel("log(age)")
+    ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
 
 
 Mass
@@ -87,6 +125,36 @@ The two mass function supported are:
 
   mass_prior_model = {'name': 'salpeter'}
 
+Plot showing examples of the possible mass prior models with the parameters given above.
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from beast.physicsmodel.prior_weights_stars import compute_mass_prior_weights
+
+    fig, ax = plt.subplots()
+
+    # mass grid from 0.01 to 100 solar masses (log spacing)
+    masses = np.logspace(-2.0, 2.0)
+
+    mass_prior_models = [
+        {"name": "kroupa"},
+        {"name": "salpeter"}
+    ]
+
+    for mp_mod in mass_prior_models:
+        ax.plot(masses, compute_mass_prior_weights(masses, mp_mod), label=mp_mod["name"])
+
+    ax.set_ylabel("probability")
+    ax.set_xlabel("mass")
+    ax.set_yscale("log")
+    ax.set_xscale("log")
+    ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
+
 Metallicity
 -----------
 
@@ -97,6 +165,32 @@ The metallicity prior can be
 .. code-block:: python
 
   met_prior_model = {'name': 'flat'}
+
+Plot showing examples of the possible mass prior models with the parameters given above.
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from beast.physicsmodel.prior_weights_stars import compute_metallicity_prior_weights
+
+    fig, ax = plt.subplots()
+
+    # met grid with linear spacing
+    mets = np.linspace(0.004, 0.03)
+
+    met_prior_models = [{"name": "flat"},]
+
+    for mp_mod in met_prior_models:
+        ax.plot(mets, compute_metallicity_prior_weights(mets, mp_mod), label=mp_mod["name"])
+
+    ax.set_ylabel("probability")
+    ax.set_xlabel("metallicity")
+    ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
+
 
 Extinction
 ==========
@@ -128,19 +222,59 @@ given by sigma, and the number at max given by N.
 
   av_prior_model = {'name': 'two_lognormal',
                     'max_pos1': 0.2,
-                    'max_pos1': 2.0,
-                    'sigma1': 0.5,
-                    'sigma2': 2.0,
-                    'N1': 10.,
-                    'N2': 20.}
+                    'max_pos2': 2.0,
+                    'sigma1': 1.0,
+                    'sigma2': 0.2,
+                    'N1': 20.,
+                    'N2': 50.}
 
 4. Exponential with decay rate 'a' and amplitude 'N'
 
 .. code-block:: python
 
   av_prior_model = {'name': 'exponential',
-                    'a': 2.0,
+                    'a': 1.0,
                     'N': 10.}
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+
+    fig, ax = plt.subplots()
+
+    # met grid with linear spacing
+    avs = np.linspace(0.0, 10.0, num=200)
+
+    dust_prior_models = [
+        {"name": "flat"},
+        {"name": "lognormal", "max_pos": 2.0, "sigma": 1.0, "N": 10.0},
+        {
+            "name": "two_lognormal",
+            "max_pos1": 0.2,
+            "max_pos2": 2.0,
+            "sigma1": 1.0,
+            "sigma2": 0.5,
+            "N1": 20.,
+            "N2": 50.,
+        },
+        {"name": "exponential", "a": 1.0, "N": 10.0},
+    ]
+
+    for dmod in dust_prior_models:
+        dmodel = PriorWeightsDust(
+            avs, dmod, [1.0], {"name": "flat"}, [1.0], {"name": "flat"}
+        )
+
+        ax.plot(avs, dmodel.av_priors, label=dmod["name"])
+
+    ax.set_ylabel("probability")
+    ax.set_xlabel("A(V)")
+    ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
 
 R(V)
 ----

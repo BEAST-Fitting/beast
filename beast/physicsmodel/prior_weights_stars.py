@@ -6,7 +6,7 @@ in the posterior calculations.
 """
 import numpy as np
 from scipy.integrate import quad
-from scipy.interpolate import NearestNDInterpolator
+from scipy.interpolate import interp1d
 
 from beast.physicsmodel.grid_weights_stars import (
     compute_bin_boundaries,
@@ -37,9 +37,7 @@ def compute_age_prior_weights(logages, age_prior_model):
     age_weights : numpy vector
        weights needed according to the prior model
     """
-    if (age_prior_model["name"] == "flat") or (
-        age_prior_model["name"] == "flat_linear"
-    ):
+    if age_prior_model["name"] == "flat" or age_prior_model["name"] == "flat_linear":
         age_weights = np.full(len(logages), 1.0)
     elif age_prior_model["name"] == "flat_log":
         # flat in log space means use the native log(age) grid spacing
@@ -47,10 +45,10 @@ def compute_age_prior_weights(logages, age_prior_model):
         # assumes the logace spacing is uniform
         age_weights = 1.0 / compute_age_grid_weights(logages)
     elif age_prior_model["name"] == "bins_histo":
-        ageND = NearestNDInterpolator(
-            age_prior_model["logages"], age_prior_model["values"]
+        ageND = interp1d(
+            age_prior_model["logages"], age_prior_model["values"], kind="nearest"
         )
-        age_weights = ageND(age_prior_model["logages"])
+        age_weights = ageND(logages)
     elif age_prior_model["name"] == "bins_interp":
         # interpolate model to grid ages
         age_weights = np.interp(
@@ -69,6 +67,9 @@ def compute_age_prior_weights(logages, age_prior_model):
             )
         )
         exit()
+
+    # normalize to avoid numerical issues (too small or too large)
+    age_weights /= np.average(age_weights)
 
     return age_weights
 
@@ -171,6 +172,9 @@ def compute_mass_prior_weights(masses, mass_prior_model):
             0
         ] / (mass_bounds[i + 1] - mass_bounds[i])
 
+    # normalize to avoid numerical issues (too small or too large)
+    mass_weights /= np.average(mass_weights)
+
     return mass_weights
 
 
@@ -193,5 +197,8 @@ def compute_metallicity_prior_weights(mets, met_prior_model):
     else:
         print("input metallicity prior function not supported")
         exit()
+
+    # normalize to avoid numerical issues (too small or too large)
+    met_weights /= np.average(met_weights)
 
     return met_weights

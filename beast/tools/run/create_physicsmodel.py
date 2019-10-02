@@ -103,7 +103,13 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
 
     # add the stellar priors as weights
     #   also computes the grid weights for the stellar part
-    (pspec_fname, g_pspec) = add_stellar_priors(datamodel.project, g_spec)
+    (pspec_fname, g_pspec) = add_stellar_priors(
+        datamodel.project,
+        g_spec,
+        age_prior_model=datamodel.age_prior_model,
+        mass_prior_model=datamodel.mass_prior_model,
+        met_prior_model=datamodel.met_prior_model,
+    )
 
     # --------------------
     # no subgrids

@@ -232,6 +232,9 @@ class PriorWeightsDust:
             print("**model " + model["name"] + " not supported**")
             exit()
 
+        # normalize to avoid numerical issues (too small or too large)
+        self.av_priors /= np.average(self.av_priors)
+
     def set_rv_weights(self, model={"name": "flat"}):
         """
         Weights on R(V) based on input model choice
