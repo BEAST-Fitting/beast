@@ -17,7 +17,7 @@ def test_toothpick_noisemodel():
     seds_fname = download_rename("beast_example_phat_seds.grid.hd5")
 
     # download cached version of noisemodel on the sed grid
-    noise_fname_cache = download_rename("beast_example_phat_noisemodel.hd5")
+    noise_fname_cache = download_rename("beast_example_phat_noisemodel.grid.hd5")
 
     ################
     # get the modesedgrid on which to generate the noisemodel
@@ -37,7 +37,7 @@ def test_toothpick_noisemodel():
     )
 
     # generate the AST noise model
-    noise_fname = "/tmp/beast_example_phat_noisemodel.hd5"
+    noise_fname = "/tmp/beast_example_phat_noisemodel.grid.hd5"
     noisemodel.make_toothpick_noise_model(
         noise_fname,
         asts_fname,
