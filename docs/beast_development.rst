@@ -16,7 +16,7 @@ concepts using one or more of these guides:
 Here is the recommended work-flow for contributing to the BEAST project.
 Details follow.
 
-- Create your own 'fork' of the official BEAST release
+- Create your own 'fork' of the official ``beast`` repository
 
 - Create purpose-specific 'branches' off your 'fork'
 
@@ -68,7 +68,6 @@ Fork the BEAST distro
   .. code-block:: console
 
      $ git remote add upstream https://github.com/BEAST-Fitting/beast.git
-
 
 Adding Branches
 ===============
@@ -127,6 +126,7 @@ or by doing a development install directly though Python with:
   .. code-block:: console
 
      $ python setup.py develop
+
 
 Making Changes
 ==============
@@ -189,6 +189,7 @@ and `beast-dev1`.
 
      $ git push origin beast-dev1
 
+
 Test Changes
 ============
 
@@ -211,6 +212,7 @@ Make sure the documentation can be created.
 
 The resulting HTML files are placed in `docs/_build/html` subdirectory, and
 can be viewed in a web browser.
+
 
 Collaborating and Contributing
 ==============================
