@@ -233,4 +233,4 @@ Command to create it:
 
     .. code-block:: console
 
-        $ gource -s .06 -1280x720 --auto-skip-seconds .1 --multi-sampling  --stop-at-end --key --highlight-users --hide mouse,progress --file-idle-time 0 --max-files 0  --background-colour 000000 --font-size 22 --title "This is ``beast``" --output-ppm-stream - --output-framerate 30 | avconv -y -r 30 -f image2pipe -vcodec ppm -i - -b 65536K ``beast``_repo.mp4
+        $ gource -s .06 -1280x720 --auto-skip-seconds .1 --multi-sampling  --stop-at-end --key --highlight-users --hide mouse,progress --file-idle-time 0 --max-files 0  --background-colour 000000 --font-size 22 --title "This is ``beast``" --output-ppm-stream - --output-framerate 30 | avconv -y -r 30 -f image2pipe -vcodec ppm -i - -b 65536K beast_repo.mp4
