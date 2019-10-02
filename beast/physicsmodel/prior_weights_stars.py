@@ -6,8 +6,12 @@ in the posterior calculations.
 """
 import numpy as np
 from scipy.integrate import quad
+from scipy.interpolate import NearestNDInterpolator
 
-from beast.physicsmodel.grid_weights_stars import compute_bin_boundaries
+from beast.physicsmodel.grid_weights_stars import (
+    compute_bin_boundaries,
+    compute_age_grid_weights,
+)
 
 __all__ = [
     "compute_age_prior_weights",
@@ -33,9 +37,21 @@ def compute_age_prior_weights(logages, age_prior_model):
     age_weights : numpy vector
        weights needed according to the prior model
     """
-    if age_prior_model["name"] == "flat":
+    if (age_prior_model["name"] == "flat") or (
+        age_prior_model["name"] == "flat_linear"
+    ):
         age_weights = np.full(len(logages), 1.0)
-    elif age_prior_model["name"] == "bins":
+    elif age_prior_model["name"] == "flat_log":
+        # flat in log space means use the native log(age) grid spacing
+        # thus the priors weights are the inverse of the grid weights
+        # assumes the logace spacing is uniform
+        age_weights = 1.0 / compute_age_grid_weights(logages)
+    elif age_prior_model["name"] == "bins_histo":
+        ageND = NearestNDInterpolator(
+            age_prior_model["logages"], age_prior_model["values"]
+        )
+        age_weights = ageND(age_prior_model["logages"])
+    elif age_prior_model["name"] == "bins_interp":
         # interpolate model to grid ages
         age_weights = np.interp(
             logages,
@@ -47,7 +63,11 @@ def compute_age_prior_weights(logages, age_prior_model):
         vals = vals / age_prior_model["A"]
         age_weights = np.exp(-1.0 * vals)
     else:
-        print("input age prior function not supported")
+        print(
+            "input age prior ''{}'' function not supported".format(
+                age_prior_model["name"]
+            )
+        )
         exit()
 
     return age_weights
@@ -78,7 +98,7 @@ def imf_kroupa(in_x):
 
     indxs, = np.where(x >= m2)
     if len(indxs) > 0:
-        imf[indxs] = (x[indxs] ** alpha2)
+        imf[indxs] = x[indxs] ** alpha2
 
     indxs, = np.where((x >= m1) & (x < m2))
     fac1 = (m2 ** alpha2) / (m2 ** alpha1)

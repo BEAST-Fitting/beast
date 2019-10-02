@@ -22,21 +22,43 @@ Age
 
 The age prior is the star formation rate (SFR) and can be
 
-1. Flat in linear age [default option]
+1. Flat in linear age
 
 .. code-block:: python
 
   age_prior_model = {'name': 'flat'}
 
-2. Set by bins spaced in logage.  For example:
+or
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'bins',
+  age_prior_model = {'name': 'flat'}
+
+2. Flat in log age
+
+.. code-block:: python
+
+  age_prior_model = {'name': 'flat_log'}
+
+3. Set by bins spaced in logage.
+
+For example, step like priors can be specified by:
+
+.. code-block:: python
+
+  age_prior_model = {'name': 'bins_histo',
                      'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
                      'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
 
-3. An exponentially decreasing SFR starting at 1.0,
+For example, lines connecting the bin value of the priors can be specified by:
+
+.. code-block:: python
+
+ age_prior_model = {'name': 'bins_interp',
+                    'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
+                    'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
+
+4. An exponentially decreasing SFR starting at 1.0,
 with a 1000 Myr time constant is:
 
 .. code-block:: python
@@ -45,13 +67,15 @@ with a 1000 Myr time constant is:
                      'A': 1.0,
                      'tau': 1000.}
 
+
+
 Mass
 ----
 
 The mass prior is set by the choice of an Initial Mass Function (IMF).
 The two mass function supported are:
 
-1. Kroupa [default option] (details needed)
+1. Kroupa (details needed)
 
 .. code-block:: python
 
@@ -68,7 +92,7 @@ Metallicity
 
 The metallicity prior can be
 
-1. Flat [default option]
+1. Flat
 
 .. code-block:: python
 
@@ -82,7 +106,7 @@ A(V)
 
 The A(V) prior can be:
 
-1. Flat [default option]
+1. Flat
 
 .. code-block:: python
 
@@ -121,7 +145,7 @@ given by sigma, and the number at max given by N.
 R(V)
 ----
 
-1. Flat [default option]
+1. Flat
 
 .. code-block:: python
 
@@ -152,7 +176,7 @@ given by sigma, and the number at max given by N.
 f_A
 ---
 
-1. Flat [default option]
+1. Flat
 
 .. code-block:: python
 
