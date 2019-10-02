@@ -213,7 +213,7 @@ class PriorWeightsDust:
             self.av_priors = np.full(self.av_vals.shape, 1.0)
         elif model["name"] == "lognormal":
             self.av_priors = _lognorm(
-                self.av_vals, model["max_pos"], sigma=model["sigma"], N=model["N"]
+                self.av_vals, model["max_pos"], sigma=model["sigma"]
             )
         elif model["name"] == "two_lognormal":
             self.av_priors = _two_lognorm(
@@ -222,11 +222,11 @@ class PriorWeightsDust:
                 model["max_pos2"],
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
-                N1=model["N1"],
-                N2=model["N2"],
+                N1=model["N1_to_N2"],
+                N2=1.0,
             )
         elif model["name"] == "exponential":
-            self.av_priors = _exponential(self.av_vals, a=model["a"], N=model["N"])
+            self.av_priors = _exponential(self.av_vals, a=model["a"])
         else:
             print("**error in setting the A(V) dust prior weights!**")
             print("**model " + model["name"] + " not supported**")
@@ -251,7 +251,7 @@ class PriorWeightsDust:
             self.rv_priors = np.full(self.rv_vals.shape, 1.0)
         elif model["name"] == "lognormal":
             self.rv_priors = _lognorm(
-                self.rv_vals, model["max_pos"], sigma=model["sigma"], N=model["N"]
+                self.rv_vals, model["max_pos"], sigma=model["sigma"]
             )
         elif model["name"] == "two_lognormal":
             self.rv_priors = _two_lognorm(
@@ -260,13 +260,16 @@ class PriorWeightsDust:
                 model["max_pos2"],
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
-                N1=model["N1"],
-                N2=model["N2"],
+                N1=model["N1_to_N2"],
+                N2=1.0,
             )
         else:
             print("**error in setting the R(V) dust prior weights!**")
             print("**model " + model["name"] + " not supported**")
             exit()
+
+        # normalize to avoid numerical issues (too small or too large)
+        self.rv_priors /= np.average(self.rv_priors)
 
     def set_fA_weights(self, model={"name": "flat"}):
         """
@@ -284,7 +287,7 @@ class PriorWeightsDust:
             self.fA_priors = np.full(self.fA_vals.shape, 1.0)
         elif model["name"] == "lognormal":
             self.fA_priors = _lognorm(
-                self.fA_vals, model["max_pos"], sigma=model["sigma"], N=model["N"]
+                self.fA_vals, model["max_pos"], sigma=model["sigma"]
             )
         elif model["name"] == "two_lognormal":
             self.fA_priors = _two_lognorm(
@@ -293,10 +296,12 @@ class PriorWeightsDust:
                 model["max_pos2"],
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
-                N1=model["N1"],
-                N2=model["N2"],
+                N1=model["N1_to_N2"],
             )
         else:
             print("**error in setting the f_A dust prior weights!**")
             print("**model " + model["name"] + " not supported**")
             exit()
+
+        # normalize to avoid numerical issues (too small or too large)
+        self.fA_priors /= np.average(self.fA_priors)

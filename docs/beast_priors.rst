@@ -8,6 +8,10 @@ Priors on the parameters are set in the datamodel.py file using
 python dictionaries to give the prior model and any related
 parameters.
 
+All priors are normalized to have an average value of 1.  This is possible
+as the priors are relevant in a relative sense, not absolute and this
+avoids numerical issues with too large or small numbers.
+
 New prior models can be added in the specific code regions by defining
 a new prior model name and creating the necessary code to support it.
 The code files of interest are
@@ -59,13 +63,12 @@ For example, lines connecting the bin value of the priors can be specified by:
                     'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
 
 4. An exponentially decreasing SFR starting at 1.0,
-with a 1000 Myr time constant is:
+with a 100 Myr time constant is:
 
 .. code-block:: python
 
   age_prior_model = {'name': 'exp',
-                     'A': 1.0,
-                     'tau': 1000.}
+                     'tau': 100.}
 
 Plot showing examples of the possible age prior models with the parameters given above.
 
@@ -94,7 +97,7 @@ Plot showing examples of the possible age prior models with the parameters given
             "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
             "values": [1.0, 2.0, 1.0, 5.0, 3.0],
         },
-        {"name": "exp", "A": 1.0, "tau": 100.}
+        {"name": "exp", "tau": 100.0}
     ]
 
     for ap_mod in age_prior_models:
@@ -206,15 +209,14 @@ The A(V) prior can be:
 
   av_prior_model = {'name': 'flat'}
 
-2. Lognormal with the maximum at the A(V) given by max_pos, the width
-given by sigma, and the number at max given by N.
+2. Lognormal with the maximum at the A(V) given by max_pos and the width
+given by sigma.
 
 .. code-block:: python
 
   av_prior_model = {'name': 'lognormal',
                     'max_pos': 2.0,
-                    'sigma': 1.0,
-                    'N': 10.}
+                    'sigma': 1.0}
 
 3. Two lognormals (see above for definition of terms)
 
@@ -225,16 +227,14 @@ given by sigma, and the number at max given by N.
                     'max_pos2': 2.0,
                     'sigma1': 1.0,
                     'sigma2': 0.2,
-                    'N1': 20.,
-                    'N2': 50.}
+                    'N1_to_N2': 1.0 / 5.0}
 
-4. Exponential with decay rate 'a' and amplitude 'N'
+4. Exponential with decay rate 'a'
 
 .. code-block:: python
 
   av_prior_model = {'name': 'exponential',
-                    'a': 1.0,
-                    'N': 10.}
+                    'a': 1.0}
 
 .. plot::
 
@@ -245,22 +245,21 @@ given by sigma, and the number at max given by N.
 
     fig, ax = plt.subplots()
 
-    # met grid with linear spacing
+    # av grid with linear spacing
     avs = np.linspace(0.0, 10.0, num=200)
 
     dust_prior_models = [
         {"name": "flat"},
-        {"name": "lognormal", "max_pos": 2.0, "sigma": 1.0, "N": 10.0},
+        {"name": "lognormal", "max_pos": 2.0, "sigma": 1.0},
         {
             "name": "two_lognormal",
             "max_pos1": 0.2,
             "max_pos2": 2.0,
             "sigma1": 1.0,
             "sigma2": 0.5,
-            "N1": 20.,
-            "N2": 50.,
+            "N1_to_N2": 1.0 / 5.0
         },
-        {"name": "exponential", "a": 1.0, "N": 10.0},
+        {"name": "exponential", "a": 1.0},
     ]
 
     for dmod in dust_prior_models:
@@ -285,27 +284,63 @@ R(V)
 
   rv_prior_model = {'name': 'flat'}
 
-2. Lognormal with the maximum at the R(V) given by max_pos, the width
-given by sigma, and the number at max given by N.
+2. Lognormal with the maximum at the R(V) given by max_pos and the width
+given by sigma.
 
 .. code-block:: python
 
   rv_prior_model = {'name': 'lognormal',
-                    'max_pos': 2.0,
-                    'sigma': 1.0,
-                    'N': 10.}
+                    'max_pos': 3.1,
+                    'sigma': 0.25}
 
 3. Two lognormals (see above for definition of terms)
 
 .. code-block:: python
 
   rv_prior_model = {'name': 'two_lognormal',
-                    'max_pos1': 0.2,
-                    'max_pos1': 2.0,
-                    'sigma1': 0.5,
-                    'sigma2': 2.0,
-                    'N1': 10.,
-                    'N2': 20.}
+                    'max_pos1': 3.1,
+                    'max_pos1': 4.5,
+                    'sigma1': 0.1,
+                    'sigma2': 0.2,
+                    'N1_to_N2': 2.0 / 5.0}
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+
+    fig, ax = plt.subplots()
+
+    # rv grid with linear spacing
+    rvs = np.linspace(2.0, 6.0, num=200)
+
+    dust_prior_models = [
+        {"name": "flat"},
+        {"name": "lognormal", "max_pos": 3.1, "sigma": 0.25},
+        {
+            "name": "two_lognormal",
+            "max_pos1": 3.1,
+            "max_pos2": 4.5,
+            "sigma1": 0.1,
+            "sigma2": 0.2,
+            "N1_to_N2": 2.0 / 5.0
+        }
+    ]
+
+    for dmod in dust_prior_models:
+        dmodel = PriorWeightsDust(
+            [1.0], {"name": "flat"}, rvs, dmod, [1.0], {"name": "flat"}
+        )
+
+        ax.plot(rvs, dmodel.rv_priors, label=dmod["name"])
+
+    ax.set_ylabel("probability")
+    ax.set_xlabel("R(V)")
+    ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
 
 f_A
 ---
@@ -316,27 +351,64 @@ f_A
 
   fA_prior_model = {'name': 'flat'}
 
-2. Lognormal with the maximum at the f_A given by max_pos, the width
-given by sigma, and the number at max given by N.
+2. Lognormal with the maximum at the f_A given by max_pos and the width
+given by sigma.
 
 .. code-block:: python
 
   fA_prior_model = {'name': 'lognormal',
-                    'max_pos': 2.0,
-                    'sigma': 1.0,
-                    'N': 10.}
+                    'max_pos': 0.8,
+                    'sigma': 0.1}
 
 3. Two lognormals (see above for definition of terms)
 
 .. code-block:: python
 
   fA_prior_model = {'name': 'two_lognormal',
-                    'max_pos1': 0.2,
-                    'max_pos1': 2.0,
-                    'sigma1': 0.5,
-                    'sigma2': 2.0,
-                    'N1': 10.,
-                    'N2': 20.}
+                    'max_pos1': 0.1,
+                    'max_pos1': 0.8,
+                    'sigma1': 0.1,
+                    'sigma2': 0.2,
+                    'N1_to_N2': 2.0 / 5.0}
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+
+    fig, ax = plt.subplots()
+
+    # fA grid with linear spacing
+    fAs = np.linspace(0.0, 1.0, num=200)
+
+    dust_prior_models = [
+        {"name": "flat"},
+        {"name": "lognormal", "max_pos": 0.8, "sigma": 0.1},
+        {
+            "name": "two_lognormal",
+            "max_pos1": 0.2,
+            "max_pos2": 0.8,
+            "sigma1": 0.1,
+            "sigma2": 0.2,
+            "N1_to_N2": 2.0 / 5.0
+        }
+    ]
+
+    for dmod in dust_prior_models:
+        dmodel = PriorWeightsDust(
+            [1.0], {"name": "flat"}, [1.0], {"name": "flat"}, fAs, dmod
+        )
+
+        ax.plot(fAs, dmodel.fA_priors, label=dmod["name"])
+
+    ax.set_ylabel("probability")
+    ax.set_xlabel(r"$f_A$")
+    ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
+
 
 Distance
 ========

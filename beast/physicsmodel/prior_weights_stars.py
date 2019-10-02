@@ -58,7 +58,6 @@ def compute_age_prior_weights(logages, age_prior_model):
         )
     elif age_prior_model["name"] == "exp":
         vals = (10 ** logages) / (age_prior_model["tau"] * 1e6)
-        vals = vals / age_prior_model["A"]
         age_weights = np.exp(-1.0 * vals)
     else:
         print(
