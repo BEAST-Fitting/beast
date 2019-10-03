@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import numpy as np
-#import photutils as pu
+import photutils as pu
 from .density_map import DensityMap
 import itertools as it
 import os
@@ -107,6 +107,13 @@ def main():
         metavar="FILTER",
         help="name of magnitude column in table",
     )
+    sourceden_parser.add_argument(
+        "--flag_name",
+        type=str,
+        default=None,
+        metavar="FILTER_FLAG",
+        help="if set, ignore sources with flag >= 99",
+    )
 
     # options unique to plot command
     plot_parser.add_argument(
@@ -171,6 +178,7 @@ def main_make_map(args):
             output_base,
             mag_name=args.mag_name,
             mag_cut=args.mag_cut,
+            flag_name=args.flag_name,
         )
 
     if args.subcommand == "background":
@@ -383,7 +391,7 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
     # Annuli, of which the counts per surface area will be used as
     # background measurements
     annuli = pu.SkyCircularAnnulus(c, r_in=inner_rad, r_out=outer_rad)
-    area = annuli.to_pixel(w).area()
+    area = annuli.to_pixel(w).area
 
     # A mask to make sure that no sources end up in the background
     # calculation
@@ -451,7 +459,7 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
     return phot["aperture_sum"] / area
 
 
-def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut):
+def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut, flag_name):
     """
     Computes the source density map and store it in a pyfits HDU
     Also writes a text file storing the source density for each source
@@ -472,10 +480,14 @@ def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut)
     mag_cut: 2-element list
          magnitude range on which the source density is computed
 
+    flag_name : string or None
+        if set, ignore sources with flag >= 99
+
     OUTPUT:
     -------
     FITS files written to disk.
     """
+
     # force filter magnitude name to be upper case to match column names
     mag_name = mag_name.upper()
 
@@ -490,9 +502,11 @@ def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut)
     band_zero_indxs = {}
     print("band, good, zero")
     for cur_rate in rate_cols:
+
         cur_good_indxs, = np.where(cat[cur_rate] != 0.0)
         cur_indxs, = np.where(cat[cur_rate] == 0.0)
         print(cur_rate, len(cur_good_indxs), len(cur_indxs))
+
         if not initialize_zero:
             initialize_zero = True
             zero_indxs = cur_indxs
@@ -523,11 +537,16 @@ def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut)
 
     for i, j in xyrange(n_x, n_y):
         indxs = indices_for_pixel(pix_x, pix_y, i, j)
-        indxs_for_SD, = np.where(
-            np.logical_and(
-                cat[mag_name][indxs] >= mag_cut[0], cat[mag_name][indxs] <= mag_cut[1]
-            )
-        )
+
+        if flag_name is None:
+            indxs_for_SD, = np.where((cat[mag_name][indxs] >= mag_cut[0])
+                                        & (cat[mag_name][indxs] <= mag_cut[1]))
+        else:
+            flag_name = flag_name.upper()
+            indxs_for_SD, = np.where((cat[mag_name][indxs] >= mag_cut[0])
+                                         & (cat[mag_name][indxs] <= mag_cut[1])
+                                         & (cat[flag_name][indxs] < 99))
+
         n_indxs = len(indxs_for_SD)
         if n_indxs > 0:
             npts_map[i, j] = n_indxs / pix_area
