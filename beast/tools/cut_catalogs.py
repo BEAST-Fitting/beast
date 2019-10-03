@@ -35,15 +35,15 @@ def cut_catalogs(
     flagged : boolean (default=False)
         if True, remove sources with flag=99 in flag_filter
 
-    flag_filter : string (default=None)
-        if flagged is True, set this to the filter to use
+    flag_filter : string or list of strings (default=None)
+        if flagged is True, set this to the filter(s) to use
 
     region_file : boolean (default=False)
         if True, create a ds9 region file where good sources are green and
         removed sources are magenta
 
     no_write : boolean (default=False)
-        if True, don't write out the file.  Instead, just return it.
+        if True, don't write out the catalog file.  Instead, just return it.
 
     """
 
@@ -74,7 +74,11 @@ def cut_catalogs(
 
     # flagged sources
     if flagged is True:
-        good_stars[cat[flag_filter + "_FLAG"] >= 99] = 0
+        if type(flag_filter) == str:
+            good_stars[cat[flag_filter + "_FLAG"] >= 99] = 0
+        else:
+            for fl in flag_filter:
+                good_stars[cat[fl + "_FLAG"] >= 99] = 0
 
     # write out the sources as a ds9 region file
     if region_file is True:
@@ -115,4 +119,4 @@ def cut_catalogs(
         new_cat.write(output_file, format="fits", overwrite=True)
     # - return in
     else:
-        return new_cat
+        return new_cat, good_stars
