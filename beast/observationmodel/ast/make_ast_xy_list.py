@@ -6,6 +6,8 @@ from astropy.io import ascii, fits
 from astropy.table import Column, Table
 from astropy.wcs import WCS
 
+from shapely.geometry import box, Polygon
+
 from ...tools.pbar import Pbar
 from ...tools import density_map
 from beast.tools import cut_catalogs
@@ -217,44 +219,32 @@ def pick_positions_from_map(
             for j,tile in enumerate(tile_set):
 
                 # corners of the tile
-                bounds_ra = [tile_ra_min[tile],
-                                 tile_ra_min[tile] + tile_ra_delta[tile],
-                                 tile_ra_min[tile] + tile_ra_delta[tile],
-                                 tile_ra_min[tile]]
-                bounds_dec = [tile_dec_min[tile],
-                                  tile_dec_min[tile],
-                                  tile_dec_min[tile] + tile_dec_delta[tile],
-                                  tile_dec_min[tile] + tile_dec_delta[tile]]
+                ra_min = tile_ra_min[tile]
+                ra_max = tile_ra_min[tile] + tile_ra_delta[tile]
+                dec_min = tile_dec_min[tile]
+                dec_max = tile_dec_min[tile] + tile_dec_delta[tile]
+
+                # make a box object for the tile
                 if wcs is None:
-                    bounds_x, bounds_y = bounds_ra, bounds_dec
+                    tile_box = box(ra_min, dec_min, ra_max, dec_max)
                 else:
-                    [bounds_x], [bounds_y] = wcs.all_world2pix(
-                        np.array([bounds_ra]), np.array([bounds_dec]), 0)
+                    bounds_x, bounds_y = wcs.all_world2pix(
+                        np.array([ra_min, ra_max]),
+                        np.array([dec_min, dec_max]), 0)
 
-                # make a Path object for the tile
-                tile_path = Path(np.array([bounds_x, bounds_y]).T)
+                    tile_box = box(np.min(bounds_x), np.min(bounds_y),
+                                       np.max(bounds_x), np.max(bounds_y))
 
-                # discard tile if:
-                # 1. corners of tile are not contained within user-imposed path
-                # - and -
-                # 2. tile path does not intersect user-imposed path
-                #
-                # Both of these conditions are required; only (1) would miss a
-                # piece of the user path that juts in between tile corners, and
-                # only (2) could select tiles fully contained with the path.
+                # discard tile if there's no overlap with user-imposed regions
 
-                # do the check for set_coord_boundary
+                # - set_coord_boundary
                 if set_coord_boundary is not None:
-                    if (tile_path.intersects_path(coord_boundary) == False) and \
-                        np.sum((coord_boundary.contains_points(np.array([bounds_x, bounds_y]).T)) == 0):
-
+                    if Polygon(coord_boundary.vertices).intersection(tile_box).area == 0:
                         keep_tile[j] = False
 
-                # do the check for region_from_filters
+                # - region_from_filters
                 if region_from_filters is not None:
-                    if (tile_path.intersects_path(filt_reg_boundary) == False) and \
-                        np.sum((filt_reg_boundary.contains_points(np.array([bounds_x, bounds_y]).T)) == 0):
-
+                    if Polygon(filt_reg_boundary.vertices).intersection(tile_box).area == 0:
                         keep_tile[j] = False
 
             # remove anything that needs to be discarded
