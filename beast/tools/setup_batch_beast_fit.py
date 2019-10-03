@@ -15,7 +15,7 @@ from astropy.io import fits
 #####
 
 from beast.tools import verify_params
-from beast.run_beast import create_filenames
+from beast.tools.run import create_filenames
 import datamodel
 import importlib
 
@@ -263,7 +263,7 @@ def setup_batch_beast_fit(
 
             job_command = (
                 nice_str
-                + "python -m beast.run_beast.run_fitting "
+                + "python -m beast.tools.run.run_fitting "
                 + resume_str
                 + sd_str
                 + gs_str
