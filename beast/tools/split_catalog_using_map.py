@@ -103,7 +103,7 @@ def split_catalog_using_map(
             print("dividing into " + str(tot_subfiles) + " subfiles for later fitting speed")
 
             for i in range(tot_subfiles):
-                min_k = i * tot_subfiles
+                min_k = i * n_per_file
                 if i < tot_subfiles:
                     max_k = (i + 1) * n_per_file
                 else:
