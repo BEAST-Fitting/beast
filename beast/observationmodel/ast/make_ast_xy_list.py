@@ -8,8 +8,7 @@ from astropy.wcs import WCS
 
 from shapely.geometry import box, Polygon
 
-from ...tools import density_map
-from beast.tools import cut_catalogs
+from beast.tools import (density_map, cut_catalogs)
 
 import datamodel
 import importlib
