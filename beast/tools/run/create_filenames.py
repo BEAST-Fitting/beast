@@ -50,7 +50,9 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
     # input files
     photometry_files = []
     modelsedgrid_files = []
+    modelsedgrid_trim_files = []
     noise_files = []
+    noise_trim_files = []
 
     # output files
     stats_files = []
@@ -75,11 +77,21 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                 )
             )
             modelsedgrid_files.append(
+                "{0}/{0}_sed.grid.hd5".format(
+                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                )
+            )
+            modelsedgrid_trim_files.append(
                 "{0}/{0}_bin{1}_sub{2}_sed_trim.grid.hd5".format(
                     datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
             )
             noise_files.append(
+                "{0}/{0}_noisemodel_bin{1}.grid.hd5".format(
+                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                )
+            )
+            noise_trim_files.append(
                 "{0}/{0}_bin{1}_sub{2}_noisemodel_trim.hd5".format(
                     datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
@@ -117,13 +129,24 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                 ppos = phot_file.rfind(".")
                 curr_sd = phot_file[dpos + 4 : spos - 1]
                 curr_sub = phot_file[spos + 3 : ppos]
+
                 # construct other file names
                 modelsedgrid_files.append(
+                    "{0}/{0}_sed.grid.hd5".format(
+                        datamodel.project, curr_sd, curr_sub
+                    )
+                )
+                modelsedgrid_trim_files.append(
                     "{0}/{0}_bin{1}_sub{2}_sed_trim.grid.hd5".format(
                         datamodel.project, curr_sd, curr_sub
                     )
                 )
                 noise_files.append(
+                    "{0}/{0}_noisemodel_bin{1}.grid.hd5".format(
+                        datamodel.project, curr_sd, curr_sub
+                    )
+                )
+                noise_trim_files.append(
                     "{0}/{0}_bin{1}_sub{2}_noisemodel_trim.hd5".format(
                         datamodel.project, curr_sd, curr_sub
                     )
@@ -152,9 +175,13 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
             photometry_files.append(datamodel.obsfile)
             modelsedgrid_files.append(
+                "{0}/{0}_sed.grid.hd5".format(datamodel.project)
+            )
+            modelsedgrid_trim_files.append(
                 "{0}/{0}_sed_trim.grid.hd5".format(datamodel.project)
             )
-            noise_files.append("{0}/{0}_noisemodel_trim.hd5".format(datamodel.project))
+            noise_files.append("{0}/{0}_noisemodel.hd5".format(datamodel.project))
+            noise_trim_files.append("{0}/{0}_noisemodel_trim.hd5".format(datamodel.project))
 
             stats_files.append("{0}/{0}_stats.fits".format(datamodel.project))
             pdf_files.append("{0}/{0}_pdf1d.fits".format(datamodel.project))
@@ -190,11 +217,21 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                 )
 
                 modelsedgrid_files.append(
+                    "{0}/{0}_seds.gridsub{3}.hd5".format(
+                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                    )
+                )
+                modelsedgrid_trim_files.append(
                     "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_sed_trim.grid.hd5".format(
                         datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
                 noise_files.append(
+                    "{0}/{0}_noisemodel_bin{1}.gridsub{3}.hd5".format(
+                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                    )
+                )
+                noise_trim_files.append(
                     "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_noisemodel_trim.hd5".format(
                         datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
@@ -244,11 +281,21 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                 for gridsub in gridsub_list:
                     photometry_files.append(phot_file)
                     modelsedgrid_files.append(
+                        "{0}/{0}_seds.gridsub{3}.hd5".format(
+                            datamodel.project, curr_sd, curr_sub, gridsub
+                        )
+                    )
+                    modelsedgrid_trim_files.append(
                         "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_sed_trim.grid.hd5".format(
                             datamodel.project, curr_sd, curr_sub, gridsub
                         )
                     )
                     noise_files.append(
+                        "{0}/{0}_noisemodel_bin{1}.gridsub{3}.hd5".format(
+                            datamodel.project, curr_sd, curr_sub, gridsub
+                        )
+                    )
+                    noise_trim_files.append(
                         "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_noisemodel_trim.hd5".format(
                             datamodel.project, curr_sd, curr_sub, gridsub
                         )
@@ -285,11 +332,21 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
             for gridsub in gridsub_list:
                 photometry_files.append(datamodel.obsfile)
                 modelsedgrid_files.append(
+                    "{0}/{0}_seds.gridsub{1}.hd5".format(
+                        datamodel.project, gridsub
+                    )
+                )
+                modelsedgrid_trim_files.append(
                     "{0}/{0}_gridsub{1}_seds_trim.grid.hd5".format(
                         datamodel.project, gridsub
                     )
                 )
                 noise_files.append(
+                    "{0}/{0}_noisemodel.gridsub{1}.hd5".format(
+                        datamodel.project, gridsub
+                    )
+                )
+                noise_trim_files.append(
                     "{0}/{0}_gridsub{1}_noisemodel_trim.hd5".format(
                         datamodel.project, gridsub
                     )
@@ -317,7 +374,9 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
         for x in [
             photometry_files,
             modelsedgrid_files,
+            modelsedgrid_trim_files,
             noise_files,
+            noise_trim_files,
             stats_files,
             pdf_files,
             lnp_files,
@@ -330,7 +389,9 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
     return {
         "photometry_files": photometry_files,
         "modelsedgrid_files": modelsedgrid_files,
+        "modelsedgrid_trim_files": modelsedgrid_trim_files,
         "noise_files": noise_files,
+        "noise_trim_files": noise_trim_files,
         "stats_files": stats_files,
         "pdf_files": pdf_files,
         "lnp_files": lnp_files,
