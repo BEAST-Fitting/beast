@@ -5,11 +5,11 @@ Goal is to compute the full n-band covariance matrix for each model
 import numpy as np
 
 from scipy.spatial import cKDTree
+from tqdm import tqdm
 
 from .noisemodel import NoiseModel
 from ..vega import Vega
 
-from ...tools.pbar import Pbar
 
 __all__ = ["MultiFilterASTs"]
 
@@ -216,9 +216,7 @@ class MultiFilterASTs(NoiseModel):
         # calculate the covariance matrix using the ASTs for this model
         good_asts = np.full((n_models), True)
         if progress is True:
-            it = Pbar(desc="Calculating AST Covariance " + "Matrices").iterover(
-                list(range(n_models))
-            )
+            it = tqdm(list(range(n_models)), desc="Calculating AST covariance matrices")
         else:
             it = list(range(n_models))
         for i in it:
@@ -325,7 +323,7 @@ class MultiFilterASTs(NoiseModel):
         compls = np.empty((n_models), dtype=float)
 
         if progress is True:
-            it = Pbar(desc="Evaluating model").iterover(list(range(n_models)))
+            it = tqdm(list(range(n_models)), desc="Evaluating model")
         else:
             it = list(range(n_models))
 

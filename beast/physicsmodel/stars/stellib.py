@@ -11,6 +11,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
 from astropy import constants
+from tqdm import tqdm
 
 from ..grid import SpectralGrid
 from matplotlib.path import Path
@@ -18,7 +19,6 @@ from matplotlib.path import Path
 from ...external.eztables import Table
 from ...config import __ROOT__, __NTHREADS__
 from .include import __interp__
-from ...tools.pbar import Pbar
 from ...tools.helpers import nbytes
 
 lsun = constants.L_sun.value
@@ -688,9 +688,10 @@ class Stellib(object):
         # Step 3: Interpolation
         # =====================
         # Do the actual interpolation, avoiding exptrapolations
-        for mk, (rT, rg, rZ) in Pbar(ndata, desc="spectral grid").iterover(
-            enumerate(zip(pts["logT"], pts["logg"], pts["Z"]))
-        ):
+        for mk, (rT, rg, rZ) in enumerate(tqdm(zip(pts["logT"], pts["logg"], pts["Z"]),
+                                          total=ndata,
+                                          desc="Spectral grid",
+        )):
             if bound_cond[mk]:
                 s = np.array(self.interp(rT, rg, rZ, 0.0)).T
                 specs[mk, :] = self.genSpectrum(s) * weights[mk]

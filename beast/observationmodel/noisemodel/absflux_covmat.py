@@ -4,11 +4,10 @@ HST and (potentially other) photometric filters
 """
 import numpy as np
 from astropy.io.fits import getdata
+from tqdm import tqdm
 
 from .. import phot
 from ...config import __ROOT__
-
-from ...tools.pbar import Pbar
 
 
 def hst_frac_matrix(
@@ -85,9 +84,7 @@ def hst_frac_matrix(
 
     # setup the progress bar
     if progress is True:
-        it = Pbar(desc="Calculating AbsFlux Covariance " + "Matrices").iterover(
-            list(range(n_models))
-        )
+        it = tqdm(list(range(n_models)), desc="Calculating absolute flux covariance matrices")
     else:
         it = list(range(n_models))
 

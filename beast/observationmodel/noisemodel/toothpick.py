@@ -17,11 +17,12 @@ import math
 
 import numpy as np
 
+from tqdm import tqdm
+
 from .noisemodel import NoiseModel
 from ..vega import Vega
 
 from .helpers import convert_dict_to_structured_ndarray
-from ...tools.pbar import Pbar
 
 __all__ = ["MultiFilterASTs"]
 
@@ -275,7 +276,7 @@ class MultiFilterASTs(NoiseModel):
         self._minmax_asts = np.empty((2, shape[1]), dtype=float)
 
         if progress is True:
-            it = Pbar(desc="fitting model").iterover(self.filters)
+            it = tqdm(self.filters, desc="Fitting model")
         else:
             it = self.filters
 
@@ -338,7 +339,7 @@ class MultiFilterASTs(NoiseModel):
         compl = np.empty((N, M), dtype=float)
 
         if progress is True:
-            it = Pbar(desc="Evaluating model").iterover(list(range(M)))
+            it = tqdm(list(range(M)), desc="Evaluating model")
         else:
             it = list(range(M))
 
