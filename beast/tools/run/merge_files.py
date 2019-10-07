@@ -61,7 +61,7 @@ def merge_files(use_sd=True, nsubs=1):
     if nsubs == 1:
 
         out_filebase = "{0}/{0}".format(datamodel.project)
-        reorder_tags = ["sd{0}_sub{1}".format(x[0], x[1]) for x in unique_sd_sub]
+        reorder_tags = ["bin{0}_sub{1}".format(x[0], x[1]) for x in unique_sd_sub]
         merge_beast_stats.merge_stats_files(
             stats_files, out_filebase, reorder_tag_list=reorder_tags
         )
@@ -85,7 +85,7 @@ def merge_files(use_sd=True, nsubs=1):
                 ind = [j for j, x in enumerate(sd_sub_info) if x == sd_sub]
 
                 # merge the subgrid files for that SD+sub
-                out_filebase = "{0}/SD{1}_sub{2}/{0}_SD{1}_sub{2}".format(
+                out_filebase = "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}".format(
                     datamodel.project, sd_sub[0], sd_sub[1]
                 )
 
@@ -101,7 +101,7 @@ def merge_files(use_sd=True, nsubs=1):
 
             # merge the merged stats files
             out_filebase = "{0}/{0}".format(datamodel.project)
-            reorder_tags = ["sd{0}_sub{1}".format(x[0], x[1]) for x in unique_sd_sub]
+            reorder_tags = ["bin{0}_sub{1}".format(x[0], x[1]) for x in unique_sd_sub]
             merge_beast_stats.merge_stats_files(
                 merged_stats_files, out_filebase, reorder_tag_list=reorder_tags
             )

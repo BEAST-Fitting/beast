@@ -57,15 +57,15 @@ def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None, None], use_rat
     # figure out if there are source density bins
     # --------------------
 
-    ast_file_list = sorted(glob.glob(datamodel.astfile.replace(".fits", "*_SD*")))
+    ast_file_list = sorted(glob.glob(datamodel.astfile.replace(".fits", "*_bin*")))
 
     if use_sd and (len(ast_file_list) > 0):
 
         sd_list = []
         for ast_file in ast_file_list:
-            dpos = ast_file.find("SD")
+            dpos = ast_file.find("_bin")
             ppos = ast_file.rfind(".")
-            sd_list.append(ast_file[dpos + 2 : ppos])
+            sd_list.append(ast_file[dpos + 4 : ppos])
         print("sd list: ", sd_list)
 
     else:
@@ -161,9 +161,9 @@ def gen_obsmodel(modelsedgridfile, source_density=None, use_rate=True):
     # backgrounds/source densities separately, pick one of the
     # split ast files, and name noise file accordingly
     if source_density is not None:
-        noisefile = noisefile.replace("noisemodel", "noisemodel_SD" + source_density)
+        noisefile = noisefile.replace("noisemodel", "noisemodel_bin" + source_density)
         astfile = datamodel.astfile.replace(
-            ".fits", "_SD" + source_density.replace("_", "-") + ".fits"
+            ".fits", "_bin" + source_density.replace("_", "-") + ".fits"
         )
 
     # only create noise file if it doesn't already exist
