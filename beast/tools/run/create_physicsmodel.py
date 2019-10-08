@@ -7,6 +7,7 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 
 # system imports
 import os
+import stat
 import argparse
 
 from astropy import constants as const
@@ -195,7 +196,7 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
 
 def split_create_physicsmodel(nsubs=1, nprocs=1):
     """
-    Making the physics model grid takes a while for production runs.  This 
+    Making the physics model grid takes a while for production runs.  This
     creates scripts to run each subgrid as a separate job.
 
 
@@ -218,26 +219,37 @@ def split_create_physicsmodel(nsubs=1, nprocs=1):
 
     # make sure the project directory exists
     create_project_dir(datamodel.project)
-    
+
     # directory for scripts
-    job_path = './{0}/model_batch_jobs/'.format(datamodel.project)
+    job_path = "./{0}/model_batch_jobs/".format(datamodel.project)
     if not os.path.isdir(job_path):
         os.mkdir(job_path)
-        
-    log_path = job_path+'logs/'
+
+    log_path = job_path + "logs/"
     if not os.path.isdir(log_path):
         os.mkdir(log_path)
 
-
     for i in range(nsubs):
 
-        joblist_file = job_path+'create_physicsmodel_'+str(i)+'.job'
-        with open(joblist_file, 'w') as jf:
+        joblist_file = job_path + "create_physicsmodel_" + str(i) + ".job"
+        with open(joblist_file, "w") as jf:
 
-            jf.write('python -m beast.tools.run.create_physicsmodel '
-                 + ' --nsubs '+str(nsubs)+ ' --nprocs '+str(nprocs)
-                 + ' --subset '+str(i)+' '+str(i+1) 
-                 + ' >> ' + log_path +'create_physicsmodel_'+str(i)+'.log\n')
+            jf.write(
+                "python -m beast.tools.run.create_physicsmodel "
+                + " --nsubs "
+                + str(nsubs)
+                + " --nprocs "
+                + str(nprocs)
+                + " --subset "
+                + str(i)
+                + " "
+                + str(i + 1)
+                + " >> "
+                + log_path
+                + "create_physicsmodel_"
+                + str(i)
+                + ".log\n"
+            )
 
         # slurm needs it to be executable
         os.chmod(joblist_file, stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)

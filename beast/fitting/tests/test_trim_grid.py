@@ -145,8 +145,8 @@ def test_trim_grid():
     noisemodel_vals = noisemodel.get_noisemodelcat(noise_fname)
 
     # trim the model sedgrid
-    seds_trim_fname = "beast_example_phat_sed_trim.grid.hd5"
-    noise_trim_fname = seds_trim_fname.replace("_sed", "_noisemodel")
+    seds_trim_fname = "beast_example_phat_seds_trim.grid.hd5"
+    noise_trim_fname = seds_trim_fname.replace("_seds", "_noisemodel")
 
     trim_models(
         modelsedgrid,
