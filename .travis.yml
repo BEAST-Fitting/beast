@@ -44,8 +44,8 @@ env:
 
         # List runtime dependencies for the package that are available as conda
         # packages here.
-        - CONDA_DEPENDENCIES='Cython scipy h5py matplotlib pytables hdf5 dust_extinction tqdm'
-        - CONDA_DEPENDENCIES_DOC='sphinx-astropy sip<4.19 Cython scipy h5py matplotlib pytables hdf5 dust_extinction tqdm'
+        - CONDA_DEPENDENCIES='Cython scipy h5py matplotlib pytables hdf5 dust_extinction tqdm shapely'
+        - CONDA_DEPENDENCIES_DOC='sphinx-astropy sip<4.19 Cython scipy h5py matplotlib pytables hdf5 dust_extinction tqdm shapely'
 
         # List other runtime dependencies for the package that are available as
         # pip packages here.

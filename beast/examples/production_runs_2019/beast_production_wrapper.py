@@ -198,10 +198,11 @@ def beast_production_wrapper():
             sourceden_args = types.SimpleNamespace(
                 subcommand="sourceden",
                 catfile=gst_file,
-                pixsize=8,
+                pixsize=5,
                 npix=None,
                 mag_name=ref_filter + "_VEGA",
                 mag_cut=[15, peak_mags[ref_filter - 0.5]],
+                flag_name=flag_filter[b]+'_FLAG',
             )
             create_background_density_map.main_make_map(sourceden_args)
 
@@ -221,30 +222,23 @@ def beast_production_wrapper():
         if datamodel.n_subgrid > 1:
             gs_str = "sub*"
 
-        spec_files = glob.glob(
-            "./"
-            + field_names[b]
-            + "_beast/"
-            + field_names[b]
-            + "_beast_spec_w_priors.grid"
-            + gs_str
-            + ".hd5"
+        sed_files = glob.glob(
+            "./{0}_beast/{0}_beast_seds.grid{1}.hd5".format(field_names[b], gs_str)
         )
 
         # only make the physics model they don't already exist
-        if len(spec_files) < datamodel.n_subgrid:
-            create_physicsmodel.create_physicsmodel(nprocs=1, nsubs=datamodel.n_subgrid)
+        if len(sed_files) < datamodel.n_subgrid:
+            # directly create physics model grids
+            #create_physicsmodel.create_physicsmodel(nprocs=1, nsubs=datamodel.n_subgrid)
+            # create grids with script
+            create_physicsmodel.split_create_physicsmodel(nprocs=1, nsubs=datamodel.n_subgrid)
+            print('\n**** go run physics model code for '+field_names[b]+'! ****')
+            continue
 
         # list of SED files
         model_grid_files = sorted(
             glob.glob(
-                "./"
-                + field_names[b]
-                + "_beast/"
-                + field_names[b]
-                + "_beast_seds.grid"
-                + gs_str
-                + ".hd5"
+                "./{0}_beast/{0}_beast_seds.grid{1}.hd5".format(field_names[b], gs_str)
             )
         )
 
@@ -328,27 +322,19 @@ def beast_production_wrapper():
 
         # - photometry
 
-        if len(glob.glob(gst_file_cut.replace(".fits", "*sub*fits"))) == 0:
+        if len(glob.glob(gst_file_cut.replace('.fits','*sub*fits') )) == 0:
 
-            # a smaller value for Ns_file will mean more individual files/runs,
+            # a smaller value for n_per_file will mean more individual files/runs,
             # but each run will take a shorter amount of time
-
-            subdivide_obscat_by_source_density.split_obs_by_source_density(
+            
+            split_catalog_using_map.split_main(
                 gst_file_cut,
+                ast_file_cut,
+                gst_file.replace('.fits','_sourceden_map.hd5'),
                 bin_width=1,
-                sort_col=ref_filter + "_RATE",
-                Ns_file=6250,
+                n_per_file=6250,
             )
 
-        # - ASTs
-
-        # check if any files exist already
-        ast_files = sorted(glob.glob(ast_file_cut.replace(".fits", "_SD_*.fits")))
-
-        if len(ast_files) == 0:
-            split_asts_by_source_density.split_asts(
-                ast_file_cut, gst_file.replace(".fits", "_sourceden_map.hd5")
-            )
 
         # -- at this point, we can run the code to create lists of filenames
         file_dict = create_filenames.create_filenames(
@@ -406,76 +392,45 @@ def beast_production_wrapper():
                 # get the sd/sub number
                 curr_sd = unique_sd_sub[j][0]
                 curr_sub = unique_sd_sub[j][1]
-                subfolder = "SD{0}_sub{1}".format(curr_sd, curr_sub)
+                subfolder = "bin{0}_sub{1}".format(curr_sd, curr_sub)
 
                 # create file names
                 ast_input_list.append(
-                    ast_file_cut.replace(".fits", "_SD" + curr_sd + ".fits")
+                    ast_file_cut.replace(".fits", "_bin" + curr_sd + ".fits")
                 )
                 if datamodel.n_subgrid > 1:
                     noise_files.append(
-                        "./"
-                        + field_names[b]
-                        + "_beast/"
-                        + field_names[b]
-                        + "_beast_noisemodel_SD"
-                        + curr_sd
-                        + ".gridsub"
-                        + str(i)
-                        + ".hd5"
+                        "./{0}_beast/{0}_beast_noisemodel_bin{1}.gridsub{2}.hd5".format(
+                            field_names[b], curr_sd, i
+                        )
                     )
+                    
                     trim_prefix.append(
-                        "./"
-                        + field_names[b]
-                        + "_beast/"
-                        + subfolder
-                        + "/"
-                        + field_names[b]
-                        + "_beast_"
-                        + subfolder
-                        + "_gridsub"
-                        + str(i)
+                        "./{0}_beast/{1}/{0}_beast_{1}_gridsub{2}".format(
+                            field_names[b], subfolder, i
+                        )
                     )
+                    
                 if datamodel.n_subgrid == 1:
-                    noise_files.append(
-                        "./"
-                        + field_names[b]
-                        + "_beast/"
-                        + field_names[b]
-                        + "_beast_noisemodel_SD"
-                        + curr_sd
-                        + ".hd5"
-                    )
+                    noise_files.append(file_dict['noise_files'][j])
                     trim_prefix.append(
-                        "./"
-                        + field_names[b]
-                        + "_beast/"
-                        + field_names[b]
-                        + "_beast_"
-                        + subfolder
+                        "./{0}_beast/{0}_beast_{1}".format(field_names[b], subfolder)
                     )
+                    
 
             # check if the trimmed grids exist before moving on
             if datamodel.n_subgrid > 1:
                 trim_files = sorted(
                     glob.glob(
-                        "./"
-                        + field_names[b]
-                        + "_beast/SD*_sub*/"
-                        + field_names[b]
-                        + "_beast_*_gridsub"
-                        + str(i)
-                        + "_sed_trim.grid.hd5"
+                        "./{0}_beast/bin*_sub*/{0}_beast_*_gridsub{1}_sed_trim.grid.hd5".format(
+                            field_names[b], i
+                        )
                     )
                 )
             if datamodel.n_subgrid == 1:
                 trim_files = sorted(
                     glob.glob(
-                        "./"
-                        + field_names[b]
-                        + "_beast/"
-                        + field_names[b]
-                        + "_beast_*_sub*_sed_trim.grid.hd5"
+                        "./{0}_beast/{0}_beast_*_sub*_sed_trim.grid.hd5".format(field_names[b])
                     )
                 )
 

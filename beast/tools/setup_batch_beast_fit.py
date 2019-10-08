@@ -15,7 +15,7 @@ from astropy.io import fits
 #####
 
 from beast.tools import verify_params
-from beast.run_beast import create_filenames
+from beast.tools.run import create_filenames
 import datamodel
 import importlib
 
@@ -108,11 +108,15 @@ def setup_batch_beast_fit(
     # names of output log files
     log_files = []
 
+    # initialize a variable name (otherwise it got auto-added in the wrong
+    # place and broke the code)
+    pf = None
+
     for i in range(n_files):
 
         sd_piece = ""
         if use_sd is True:
-            sd_piece = "_SD" + sd_sub_info[i][0] + "_sub" + sd_sub_info[i][1]
+            sd_piece = "_bin" + sd_sub_info[i][0] + "_sub" + sd_sub_info[i][1]
 
         gridsub_piece = ""
         if nsubs > 1:
@@ -196,7 +200,6 @@ def setup_batch_beast_fit(
             print(stats_files[i] + " done")
             run_info_dict["done"][i] = True
         else:
-            pf = None
             j += 1
             if j % num_percore == 0:
                 cur_f += 1
@@ -263,7 +266,7 @@ def setup_batch_beast_fit(
 
             job_command = (
                 nice_str
-                + "python -m beast.run_beast.run_fitting "
+                + "python -m beast.tools.run.run_fitting "
                 + resume_str
                 + sd_str
                 + gs_str

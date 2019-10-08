@@ -84,8 +84,10 @@ def run_fitting(
 
     # input files
     photometry_files = file_dict["photometry_files"]
-    modelsedgrid_files = file_dict["modelsedgrid_files"]
-    noise_files = file_dict["noise_files"]
+    #modelsedgrid_files = file_dict["modelsedgrid_files"]
+    modelsedgrid_trim_files = file_dict["modelsedgrid_trim_files"]
+    #noise_files = file_dict["noise_files"]
+    noise_trim_files = file_dict["noise_trim_files"]
 
     # output files
     stats_files = file_dict["stats_files"]
@@ -117,21 +119,21 @@ def run_fitting(
                     temp = create_filenames.create_filenames(
                         nsubs=nsubs, choose_sd_sub=sd_sub_info[i], choose_subgrid=None
                     )
-                    modelsedgrid_list = temp["modelsedgrid_files"]
-                    noise_list = temp["noise_files"]
+                    modelsedgrid_trim_list = temp["modelsedgrid_trim_files"]
+                    noise_trim_list = temp["noise_trim_files"]
 
                 # - no SD info: get file list for ALL subgrids
                 else:
                     temp = create_filenames.create_filenames(
                         use_sd=False, nsubs=nsubs, choose_subgrid=None
                     )
-                    modelsedgrid_list = temp["modelsedgrid_files"]
-                    noise_list = temp["noise_files"]
+                    modelsedgrid_trim_list = temp["modelsedgrid_trim_files"]
+                    noise_trim_list = temp["noise_trim_files"]
 
                 # create the grid info dictionary
                 print("creating grid_info_dict for " + gridpickle_files[i])
                 grid_info_dict = subgridding_tools.reduce_grid_info(
-                    modelsedgrid_list, noise_list, nprocs=nprocs
+                    modelsedgrid_trim_list, noise_trim_list, nprocs=nprocs
                 )
                 # save it
                 with open(gridpickle_files[i], "wb") as p:
@@ -149,8 +151,8 @@ def run_fitting(
         input_list = [
             (
                 photometry_files[i],
-                modelsedgrid_files[i],
-                noise_files[i],
+                modelsedgrid_trim_files[i],
+                noise_trim_files[i],
                 stats_files[i],
                 pdf_files[i],
                 lnp_files[i],
@@ -165,8 +167,8 @@ def run_fitting(
         input_list = [
             (
                 photometry_files[i],
-                modelsedgrid_files[i],
-                noise_files[i],
+                modelsedgrid_trim_files[i],
+                noise_trim_files[i],
                 stats_files[i],
                 pdf_files[i],
                 lnp_files[i],

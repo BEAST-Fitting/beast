@@ -136,22 +136,22 @@ class BinnedDensityMap(DensityMap):
 
         self.bin_indices_used = np.sort(np.unique(bins))
 
-    def create(density_map, N_bins=None):
+    def create(density_map, N_bins=None, bin_width=None):
         """
         Creates a binned density map from a DensityMap file, or from an
         astropy table loaded from it. The tiles are grouped into
-        N_bins density bins.
-        If N_bins is none, each tile is treated as a separate bin.
+        N_bins density bins OR bins of width bin_width.
+        If N_bins and bin_width are none, each tile is treated as a separate bin.
         """
         # Use the base class to decide what to do with density_map (can
         # be file or table object)
         binned_density_map = DensityMap(density_map)
 
         # Create the extra column here
-        if N_bins is None:
+        if (N_bins is None) and (bin_width is None):
             bins = np.array(range(len(binned_density_map.tile_data)))
 
-        else:
+        elif N_bins is not None:
             # Create the density bins
             # [min, ., ., ., max]
             tile_densities = binned_density_map.tile_data[input_column]
@@ -168,6 +168,18 @@ class BinnedDensityMap(DensityMap):
             # We have purposely chosen our bin boundaries so that no points fall
             # outside (or on the edge) of the [1,5] range
             bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
+
+        elif bin_width is not None:
+            tile_densities = binned_density_map.tile_data[input_column]
+            min_density = np.amin(tile_densities)
+            max_density = np.amax(tile_densities)
+            tot_bins = np.ceil((max_density - min_density) / bin_width)
+            bin_edges = min_density + np.arange(tot_bins + 1) * bin_width
+            print('bin edges: ', bin_edges)
+
+            # Find which bin each tile belongs to
+            bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
+
 
         # Upgrade to this subclass, and return
         return BinnedDensityMap(binned_density_map.tile_data, bins)

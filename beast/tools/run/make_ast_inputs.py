@@ -14,7 +14,7 @@ from beast.observationmodel.ast.make_ast_input_list import (
     pick_models,
     pick_models_toothpick_style,
 )
-from beast.observationmodel.ast.make_ast_xy_list import pick_positions
+from beast.observationmodel.ast import make_ast_xy_list
 from beast.tools import verify_params
 
 import datamodel
@@ -77,6 +77,7 @@ def make_ast_inputs(flux_bin_method=True):
         bins_outfile = (
             "./" + datamodel.project + "/" + datamodel.project + "_ASTfluxbins.txt"
         )
+        modelsedgrid_filename = './{0}/{0}_seds.grid.hd5'.format(datamodel.project)
 
         chosen_seds = pick_models_toothpick_style(
             modelsedgrid_filename,
@@ -116,7 +117,7 @@ def make_ast_inputs(flux_bin_method=True):
         if datamodel.ast_reference_image is not None:
             # With reference image, use one of these options
             if datamodel.ast_source_density_table is not None:
-                pick_positions_from_map(
+                make_ast_xy_list.pick_positions_from_map(
                     obsdata,
                     chosen_seds,
                     datamodel.ast_source_density_table,
@@ -124,13 +125,15 @@ def make_ast_inputs(flux_bin_method=True):
                     datamodel.ast_realization_per_model,
                     outfile=filename,
                     refimage=datamodel.ast_reference_image,
-                    refimage_hdu=0,
+                    refimage_hdu=1,
+                    wcs_origin=1,
                     Nrealize=1,
                     set_coord_boundary=datamodel.ast_coord_boundary,
+                    region_from_filters='all',
                 )
 
             elif datamodel.ast_background_table is not None:
-                pick_positions_from_map(
+                make_ast_xy_list.pick_positions_from_map(
                     obsdata,
                     chosen_seds,
                     datamodel.ast_background_table,
@@ -138,12 +141,13 @@ def make_ast_inputs(flux_bin_method=True):
                     datamodel.ast_realization_per_model,
                     outfile=filename,
                     refimage=datamodel.ast_reference_image,
-                    refimage_hdu=0,
+                    refimage_hdu=1,
+                    wcs_origin=1,
                     Nrealize=1,
                     set_coord_boundary=datamodel.ast_coord_boundary,
                 )
             else:
-                pick_positions(
+                make_ast_xy_list.pick_positions(
                     obsdata,
                     filename,
                     separation,
@@ -156,7 +160,7 @@ def make_ast_inputs(flux_bin_method=True):
                 datamodel.ast_source_density_table is None
                 and datamodel.ast_background_table is None
             ):
-                pick_positions(obsdata, filename, separation)
+                make_ast_xy_list.pick_positions(obsdata, filename, separation)
             else:
                 print(
                     "To use ast_source_density_table or ast_background_table, ast_reference_image must be specified."

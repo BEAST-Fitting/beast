@@ -123,8 +123,8 @@ def generic_batch_trim(
     ast_files : list of strings
         file with ASTs
 
-    trimmed_file_bases : string
-        prefix (path+name) for the eventual trimmed model grid and noise model
+    trimmed_file_bases : list of strings
+        prefixes (path+name) for the eventual trimmed model grid and noise model
 
     job_path : string (default=None)
         path in which to store info about the jobs
