@@ -22,10 +22,10 @@ __all__ = [
 
 def compute_age_prior_weights(logages, age_prior_model):
     """
-    Computes the age proper for the specified model
+    Computes the age prior for the specified model
 
-    Keywords
-    --------
+    Parameters
+    ----------
     logages : numpy vector
        log(ages)
 
@@ -74,9 +74,10 @@ def compute_age_prior_weights(logages, age_prior_model):
 
 
 def imf_kroupa(in_x):
-    """ Computes a Kroupa IMF
+    """
+    Compute a Kroupa IMF
 
-    Keywords
+    Parameters
     ----------
     in_x : numpy vector
       masses
@@ -114,9 +115,10 @@ def imf_kroupa(in_x):
 
 
 def imf_salpeter(x):
-    """ Computes a Salpeter IMF
+    """
+    Compute a Salpeter IMF
 
-    Keywords
+    Parameters
     ----------
     x : numpy vector
       masses
@@ -131,10 +133,10 @@ def imf_salpeter(x):
 
 def compute_mass_prior_weights(masses, mass_prior_model):
     """
-    Computes the mass prior for the specificed model
+    Compute the mass prior for the specificed model
 
-    Keywords
-    --------
+    Parameters
+    ----------
     masses : numpy vector
         masses
 
@@ -180,12 +182,14 @@ def compute_mass_prior_weights(masses, mass_prior_model):
 def compute_metallicity_prior_weights(mets, met_prior_model):
     """
     Computes the metallicity prior for the specified model
-    Keywords
-    --------
+
+    Parameters
+    ----------
     mets : numpy vector
         metallicities
     met_prior_model: dict
         dict including prior model name and parameters
+
     Returns
     -------
     metallicity_weights : numpy vector
