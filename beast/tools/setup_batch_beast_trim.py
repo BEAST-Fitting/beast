@@ -4,6 +4,7 @@
 Code to setup the batch files for BEAST trim grid runs
 """
 import os
+import stat
 import glob
 
 import argparse
@@ -206,6 +207,9 @@ def generic_batch_trim(
             + ".log\n"
         )
     pf.close()
+
+    # slurm needs the job file to be executable
+    os.chmod(joblist_file, stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
 
     k = 0
     n_cur = 0
