@@ -4,6 +4,7 @@
 Code to create the batch files for fitting
 """
 import os
+import stat
 import argparse
 import tables
 
@@ -207,6 +208,9 @@ def setup_batch_beast_fit(
                 # close previous files
                 if j != 0:
                     pf.close()
+                    # slurm needs the job file to be executable
+                    os.chmod(joblist_file, stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
+
                     print(
                         "total sed_trim size [Gb] = ",
                         cur_total_size / (1024.0 * 1024.0 * 1024.0),
@@ -283,6 +287,10 @@ def setup_batch_beast_fit(
 
     if pf_open:
         pf.close()
+        
+        # slurm needs the job file to be executable
+        os.chmod(joblist_file, stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
+
 
     # return the info about completed modeling
     return run_info_dict
