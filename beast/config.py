@@ -20,13 +20,10 @@ userhome = expanduser("~")
 ploc = userhome + "/.beast/"
 if beast_envvar in os.environ:
     __ROOT__ = os.environ[beast_envvar]
-elif os.path.isdir(ploc):
-    __ROOT__ = ploc
 else:
-    __ROOT__ = "/".join(
-        os.path.abspath(inspect.getfile(inspect.currentframe())).split("/")[:-1]
-    )
-    __ROOT__ += "/libs/"
+    if not os.path.exists(ploc):
+        os.makedir(ploc)
+    __ROOT__ = ploc
 
 # Online libraries
 # will be replaced by a more flexible support (JSON is easy!)
