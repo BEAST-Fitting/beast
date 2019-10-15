@@ -1,6 +1,5 @@
 import os
 from os.path import expanduser
-import inspect
 
 # Set to use some C code instead of pure python to speed up the computations.
 # If False, only numpy and python code are used.
