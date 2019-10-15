@@ -21,7 +21,7 @@ if beast_envvar in os.environ:
     __ROOT__ = os.environ[beast_envvar]
 else:
     if not os.path.exists(ploc):
-        os.makedir(ploc)
+        os.mkdir(ploc)
     __ROOT__ = ploc
 
 # Online libraries
