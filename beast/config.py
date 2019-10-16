@@ -1,6 +1,5 @@
 import os
 from os.path import expanduser
-import inspect
 
 # Set to use some C code instead of pure python to speed up the computations.
 # If False, only numpy and python code are used.
@@ -20,13 +19,10 @@ userhome = expanduser("~")
 ploc = userhome + "/.beast/"
 if beast_envvar in os.environ:
     __ROOT__ = os.environ[beast_envvar]
-elif os.path.isdir(ploc):
-    __ROOT__ = ploc
 else:
-    __ROOT__ = "/".join(
-        os.path.abspath(inspect.getfile(inspect.currentframe())).split("/")[:-1]
-    )
-    __ROOT__ += "/libs/"
+    if not os.path.exists(ploc):
+        os.mkdir(ploc)
+    __ROOT__ = ploc
 
 # Online libraries
 # will be replaced by a more flexible support (JSON is easy!)

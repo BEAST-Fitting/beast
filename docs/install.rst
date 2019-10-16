@@ -137,10 +137,9 @@ will be downloaded into the location specified in :ref:`library_loc`
 Location
 --------
 
-There are 3 possible locations for the required library files. Whichever of the options used,
-the directory needs to be manually created. The possible locations are
+There are 2 possible locations for the required library files. The possible locations are
 (in the order the code will search for them):
 
 1. In a directory designated by a BEAST_LIBS environment variable
-2. In the '.beast' directory in the home directory of the current user (ie, ''~/.beast'); this is usually the easiest
-3. In the source code in 'beast/beast/libs'
+2. In the '.beast' directory in the home directory of the current user (ie, ''~/.beast');
+this is usually the easiest and will be automatically created if it doesn't exist.
