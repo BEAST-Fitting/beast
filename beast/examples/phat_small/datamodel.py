@@ -160,9 +160,11 @@ velocity = -300 * units.km / units.s  # M31 velocity from SIMBAD
 # log10(Age) -- [min,max,step] to generate the isochrones in years
 #   example [6.0, 10.13, 1.0]
 logt = [6.0, 10.13, 1.0]
+age_prior_model = {'name': 'flat'}
 
 # note: Mass is not sampled, instead the isochrone supplied
 #       mass spacing is used instead
+mass_prior_model = {"name": "kroupa"}
 
 # Metallicity : list of floats
 #   Here: Z == Z_initial, NOT Z(t) surface abundance
@@ -170,8 +172,8 @@ logt = [6.0, 10.13, 1.0]
 #   example z = [0.03, 0.019, 0.008, 0.004]
 #   can they be set as [min, max, step]?
 z = [0.03, 0.019, 0.008, 0.004]
+met_prior_model = {"name": "flat"}
 
-# Isochrone Model Grid
 #   Current Choices: Padova or MIST
 #   PadovaWeb() -- `modeltype` param for iso sets from ezpadova
 #      (choices: parsec12s_r14, parsec12s, 2010, 2008, 2002)
@@ -197,28 +199,16 @@ extLaw = extinction.Gordon16_RvFALaw()
 #   example [min, max, step] = [0.0, 10.055, 1.0]
 avs = [0.0, 10.055, 1.0]
 av_prior_model = {"name": "flat"}
-# av_prior_model = {'name': 'lognormal',
-#                  'max_pos': 2.0,
-#                  'sigma': 1.0,
-#                  'N': 10.}
 
 # R(V): dust average grain size
 #   example [min, max, step] = [2.0,6.0,1.0]
 rvs = [2.0, 6.0, 1.0]
 rv_prior_model = {"name": "flat"}
-# rv_prior_model = {'name': 'lognormal',
-#                  'max_pos': 2.0,
-#                  'sigma': 1.0,
-#                  'N': 10.}
 
 # fA: mixture factor between "MW" and "SMCBar" extinction curves
 #   example [min, max, step] = [0.0,1.0, 0.25]
 fAs = [0.0, 1.0, 0.25]
 fA_prior_model = {"name": "flat"}
-# fA_prior_model = {'name': 'lognormal',
-#                  'max_pos': 0.5,
-#                  'sigma': 0.2,
-#                  'N': 10.}
 
 ################
 

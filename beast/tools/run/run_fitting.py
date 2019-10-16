@@ -84,9 +84,9 @@ def run_fitting(
 
     # input files
     photometry_files = file_dict["photometry_files"]
-    #modelsedgrid_files = file_dict["modelsedgrid_files"]
+    # modelsedgrid_files = file_dict["modelsedgrid_files"]
     modelsedgrid_trim_files = file_dict["modelsedgrid_trim_files"]
-    #noise_files = file_dict["noise_files"]
+    # noise_files = file_dict["noise_files"]
     noise_trim_files = file_dict["noise_trim_files"]
 
     # output files

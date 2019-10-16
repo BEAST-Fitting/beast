@@ -104,8 +104,8 @@ if __name__ == "__main__":
         noisemodel_vals = noisemodel.get_noisemodelcat(datamodel.noisefile)
 
         # trim the model sedgrid
-        sed_trimname = "{0}/{0}_sed_trim.grid.hd5".format(datamodel.project)
-        noisemodel_trimname = "{0}/{0}_noisemodel_trim.hd5".format(datamodel.project)
+        sed_trimname = "{0}/{0}_seds_trim.grid.hd5".format(datamodel.project)
+        noisemodel_trimname = "{0}/{0}_noisemodel_trim.grid.hd5".format(datamodel.project)
 
         trim_grid.trim_models(
             modelsedgrid,

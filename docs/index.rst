@@ -30,6 +30,7 @@ User Documentation
 
    BEAST run setup details <beast_setup.rst>
    Example production run workflow <workflow.rst>
+   Stellar/Extinction Priors <beast_priors.rst>
    Running in parallel by using subgrids <subgrid_parallelism.rst>
    Generating AST inputs <generating_asts.rst>
    Simulating observations <simulations.rst>

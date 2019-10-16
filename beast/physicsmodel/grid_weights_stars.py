@@ -7,10 +7,6 @@ trick only works when the grid is uniformly spaced in all dimensions.
 
 If the grid is not uniformly spaced, weights can be used to correct
 for the non-uniform spacing.
-
-Basically, we want the maginalization using these grid weights to provide
-flat priors on all the fit parameters.  Non-flat priors will be implemented
-with prior weights.
 """
 import numpy as np
 
@@ -22,7 +18,8 @@ __all__ = [
 
 
 def compute_bin_boundaries(tab):
-    """ Computes the bin boundaries.
+    """
+    Computes bin boundaries
 
     Parameters
     ----------
@@ -48,49 +45,45 @@ def compute_bin_boundaries(tab):
     return tab2
 
 
-def compute_age_grid_weights(logages, constantSFR=True):
-    """ Computes the age weights to set prior on star formation history
+def compute_age_grid_weights(logages):
+    """
+    Computes the age weights to set a uniform prior on linear SFR
 
-    Keywords
-    --------
+    Parameters
+    ----------
     logages : numpy vector
        log(ages)
-
-    constantSFR : boolean
-       Sets assumption of star formation history: flat in log or linear age
-       Default = True (constant in linear age)
 
     Returns
     -------
     age_weights : numpy vector
        total masses at each age for a constant SFR in linear age
     """
-    if constantSFR:
-        # ages need to be monotonically increasing
-        aindxs = np.argsort(logages)
+    # ages need to be monotonically increasing
+    aindxs = np.argsort(logages)
 
-        # Computes the bin boundaries in log
-        logages_bounds = compute_bin_boundaries(logages[aindxs])
+    # Computes the bin boundaries in log
+    logages_bounds = compute_bin_boundaries(logages[aindxs])
 
-        # initialize the age weights
-        age_weights = np.full(len(aindxs), 0.0)
+    # initialize the age weights
+    age_weights = np.full(len(aindxs), 0.0)
 
-        # Returns the age weight as a numpy array
-        age_weights[aindxs] = np.diff(10 ** (logages_bounds))
+    # Returns the age weight as a numpy array
+    age_weights[aindxs] = np.diff(10 ** (logages_bounds))
 
-    else:
-        # Returns the age weight as a numpy array
-        age_weights = np.ones(len(logages))
+    # normalize to avoid numerical issues (too small or too large)
+    age_weights /= np.average(age_weights)
 
     # return in the order that logages was passed
     return age_weights
 
 
 def compute_mass_grid_weights(masses):
-    """ Computes the mass weights to provide a uniform IMF
+    """
+    Computes the mass weights to set a uniform prior on linear mass
 
-    Keywords
-    --------
+    Parameters
+    ----------
     masses : numpy vector
         masses
 
@@ -109,14 +102,18 @@ def compute_mass_grid_weights(masses):
     mass_weights = np.empty(len(masses))
     mass_weights[sindxs] = np.diff(masses_bounds)
 
+    # normalize to avoid numerical issues (too small or too large)
+    mass_weights /= np.average(mass_weights)
+
     return mass_weights
 
 
 def compute_metallicity_grid_weights(mets):
-    """ Computes the metallicity weights to provide a default flat prior
+    """
+    Computes the metallicity weights to set a uniform prior on linear metallicity
 
-    Keywords
-    --------
+    Parameters
+    ----------
     mets : numpy vector
         metallicities
 
@@ -134,5 +131,8 @@ def compute_metallicity_grid_weights(mets):
     # compute the weights = mass bin widths
     mets_weights = np.empty(len(mets))
     mets_weights[sindxs] = np.diff(mets_bounds)
+
+    # normalize to avoid numerical issues (too small or too large)
+    mets_weights /= np.average(mets_weights)
 
     return mets_weights
