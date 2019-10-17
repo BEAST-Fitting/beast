@@ -238,11 +238,26 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_subtrim", default=5, type=int, help="number of trim batch jobs"
     )
+    parser.add_argument(
+        "--nice", default=None, type=int,
+        help="set this to an integer (-20 to 20) to prepend a 'nice' level to the trimming command"
+    )
+    parser.add_argument(
+        "--seds_fname", default=None, type=str, help="full filename to the SED grid"
+    )
+    parser.add_argument(
+        "--prefix", default=None, type=str,
+        help="Set this to a string to prepend to each batch file"
+    )
+
     args = parser.parse_args()
 
-    project = args.projectname
-    datafile = args.datafile
-    ast_file = args.astfile
-    n_subtrim_files = args.num_subtrim
-
-    setup_batch_beast_trim(project, datafile, ast_file, num_subtrim=n_subtrim_files)
+    setup_batch_beast_trim(
+        args.projectname,
+        args.datafile,
+        args.astfile,
+        num_subtrim=args.num_subtrim,
+        nice=args.nice,
+        seds_fname=args.seds_fname,
+        prefix=args.prefix,
+    )
