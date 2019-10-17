@@ -9,10 +9,10 @@ import numpy as np
 
 from scipy.spatial import cKDTree
 
-from .noisemodel import NoiseModel
-from ..vega import Vega
+from beast.observationmodel.noisemodel.noisemodel import NoiseModel
+from beast.observationmodel.vega import Vega
 
-from ...tools.pbar import Pbar
+from beast.tools.pbar import Pbar
 
 __all__ = ['MultiFilterASTs']
 

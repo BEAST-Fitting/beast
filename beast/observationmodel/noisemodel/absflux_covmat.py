@@ -8,10 +8,10 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from astropy.io.fits import getdata
 
-from .. import phot
-from ...config import __ROOT__
+from beast.observationmodel import phot
+from beast.config import __ROOT__
 
-from ...tools.pbar import Pbar
+from beast.tools.pbar import Pbar
 
 
 def hst_frac_matrix(filters, spectrum=None, progress=True,

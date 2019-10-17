@@ -8,7 +8,7 @@ from astropy.io import ascii
 from astropy.table import Table
 from astropy.table import Column
 
-from ..vega import Vega
+from beast.observationmodel.vega import Vega
 from beast.physicsmodel.grid import FileSEDGrid
 
 
