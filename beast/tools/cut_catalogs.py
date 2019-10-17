@@ -139,13 +139,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--partial_overlap",
         default=False,
-        action='store_true'
+        action='store_true',
         help="if True, remove sources in regions without full imaging coverage",
     )
     parser.add_argument(
         "--flagged",
         default=False,
-        action='store_true'
+        action='store_true',
         help="if True, remove sources with flag=99 in flag_filter",
     )
     parser.add_argument(
@@ -157,14 +157,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--region_file",
         default=False,
-        action='store_true'
+        action='store_true',
         help="""if True, create a ds9 region file where good sources are green
         and removed sources are magenta""",
     )
     parser.add_argument(
         "--no_write",
         default=False,
-        action='store_true'
+        action='store_true',
         help="if True, don't write out the catalog file; instead, just return it",
     )
 
