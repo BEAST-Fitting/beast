@@ -287,7 +287,7 @@ def setup_batch_beast_fit(
 
     if pf_open:
         pf.close()
-        
+
         # slurm needs the job file to be executable
         os.chmod(joblist_file, stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
 
@@ -300,15 +300,52 @@ if __name__ == "__main__":
 
     # commandline parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("projectname", help="project name to use (basename for files)")
-    parser.add_argument("datafile", help="file with the observed data (FITS file)")
     parser.add_argument(
         "--num_percore", default=5, type=int, help="number of fitting runs per core"
     )
+    parser.add_argument(
+        "--nice", default=None, type=int,
+        help="set this to an integer (-20 to 20) to prepend a 'nice' level to the trimming command"
+    )
+    parser.add_argument(
+        "--overwrite_logfile",
+        default=0,
+        type=int,
+        help="""if True (1), will overwrite the log file; if False (0), will append
+        to existing log file""",
+    )
+    parser.add_argument(
+        "--prefix", default=None, type=str,
+        help="Set this to a string to prepend to each batch file"
+    )
+    parser.add_argument(
+        "--use_sd",
+        default=1,
+        type=int,
+        help="if True (1), remove sources with flag=99 in flag_filter",
+    )
+
+    parser.add_argument(
+        "--nsubs",
+        default=1,
+        type=int,
+        help="number of subgrids used for the physics model",
+    )
+    parser.add_argument(
+        "--nprocs",
+        default=1,
+        type=int,
+        help="Number of parallel processes to use when doing the fitting",
+    )
+
     args = parser.parse_args()
 
-    project = args.projectname
-    datafile = args.datafile
-    num_percore = args.num_percore
-
-    setup_batch_beast_fit(project, datafile, num_percore=num_percore)
+    setup_batch_beast_fit(
+        num_percore=args.num_percore,
+        nice=args.nice,
+        overwrite_logfile=args.overwrite_logfile,
+        prefix=args.prefix,
+        use_sd=args.use_sd,
+        nsubs=args.nsubs,
+        nprocs=args.nprocs,
+    )
