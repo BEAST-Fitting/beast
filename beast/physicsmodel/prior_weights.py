@@ -10,7 +10,7 @@ from __future__ import (absolute_import, division, print_function,
 import numpy as np
 from scipy.integrate import quad
 
-from .grid_weights import compute_bin_boundaries
+from beast.physicsmodel.grid_weights import compute_bin_boundaries
 
 __all__ = ['compute_age_prior_weights',
            'compute_mass_prior_weights',

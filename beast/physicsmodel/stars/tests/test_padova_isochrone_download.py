@@ -1,7 +1,7 @@
 from astropy.tests.helper import remote_data
 from astropy.table import Table
 
-from ...model_grid import make_iso_table
+from beast.physicsmodel.model_grid import make_iso_table
 from beast.tests.helpers import (download_rename, compare_tables)
 
 

@@ -3,10 +3,10 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 #from anased import grid
-from ..core import grid
-from ..core import stellib, isochrone
-from ..decorators import timeit
-from ..external.eztables import Table
+from beast.physicsmodel import grid
+from beast.physicsmodel.stars.core import stellib, isochrone
+from beast.external.eztables.core.decorators import timeit
+from beast.external.eztables.table import Table
 
 import pyfits
 import numpy as np

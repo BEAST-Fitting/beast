@@ -17,13 +17,13 @@ from __future__ import (absolute_import, division, print_function,
 
 import numpy as np
 
-from .grid_weights import compute_age_grid_weights
-from .grid_weights import compute_mass_grid_weights
-from .grid_weights import compute_metallicity_grid_weights
+from beast.physicsmodel.grid_weights import compute_age_grid_weights
+from beast.physicsmodel.grid_weights import compute_mass_grid_weights
+from beast.physicsmodel.grid_weights import compute_metallicity_grid_weights
 
-from .prior_weights import compute_age_prior_weights
-from .prior_weights import compute_mass_prior_weights
-from .prior_weights import compute_metallicity_prior_weights
+from beast.physicsmodel.prior_weights import compute_age_prior_weights
+from beast.physicsmodel.prior_weights import compute_mass_prior_weights
+from beast.physicsmodel.prior_weights import compute_metallicity_prior_weights
 
 __all__ = ['compute_age_mass_metallicity_weights']
 

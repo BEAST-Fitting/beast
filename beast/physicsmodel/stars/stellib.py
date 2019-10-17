@@ -14,14 +14,14 @@ from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
 from astropy import constants
 
-from ..grid import SpectralGrid
-from ..helpers import Path
+from beast.physicsmodel.grid import SpectralGrid
+from beast.physicsmodel.helpers import Path
 
-from ...external.eztables import Table
-from ...config import __ROOT__, __NTHREADS__
-from .include import __interp__
-from ...tools.pbar import Pbar
-from ...tools.helpers import nbytes
+from beast.external.eztables import Table
+from beast.config import __ROOT__, __NTHREADS__
+from beast.physicsmodel.stars.include import __interp__
+from beast.tools.pbar import Pbar
+from beast.tools.helpers import nbytes
 
 lsun = constants.L_sun.value
 sig_stefan = constants.sigma_sb.value

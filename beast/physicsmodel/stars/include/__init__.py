@@ -2,7 +2,7 @@
 import numpy as np
 
 try:
-    from .interp import __interp__ as __cinterp__
+    from beast.physicsmodel.stars.include.interp import __interp__ as __cinterp__
 
     raise ImportError
     def __interp__(T0, g0, T, g, dT_max=0.1, eps=1e-6):
@@ -206,7 +206,7 @@ except ImportError:
                 i2 = -1
             elif (T2 < T1 - dT_max):
                 i1 = -1
-                
+
         if ( (i3 > 0) & (i4 > 0) ):
             if (T3 > T4 + dT_max):
                 i4 = -1
@@ -448,7 +448,7 @@ except ImportError:
                   alpha2 = det2 / det0
                   alpha3 = 0.
                   alpha4 = det4 / det0
-                  
+
                   # If (T, g) is outside the triangle formed by the three used points,
                   # use only two points.
                   if ((alpha1 < 0.) | (alpha1 > 1.) | (alpha2 < 0.) | (alpha2 > 1.) |
@@ -535,7 +535,7 @@ except ImportError:
           # endif
 
         return np.asarray((i1, i2, i3, i4)), np.asarray((alpha1, alpha2, alpha3, alpha4))
-      
+
     def __det3x3__(a):
         """ compute the 3x3 determinant of an array
             8 times faster than numpy.linalg.det for a matrix 3x3

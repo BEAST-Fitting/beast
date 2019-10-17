@@ -12,8 +12,8 @@ from astropy import units
 import dust_extinction.parameter_averages as dustext_par
 import dust_extinction.averages as dustext_avg
 
-from ...observationmodel import phot
-from ...config import __ROOT__
+from beast.observationmodel import phot
+from beast.config import __ROOT__
 
 __all__ = ['ExtinctionLaw', 'Cardelli89', 'Fitzpatrick99',
            'Gordon03_SMCBar', 'Gordon16_RvFALaw',

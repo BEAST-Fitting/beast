@@ -2,10 +2,10 @@ from astropy.tests.helper import remote_data
 from astropy import units
 from astropy import constants as const
 
-from ...stars import stellib
-from ...stars.isochrone import ezIsoch
-from ... import grid
-from ...model_grid import (make_spectral_grid,
+from beast.physicsmodel.stars import stellib
+from beast.physicsmodel.stars.isochrone import ezIsoch
+from beast.physicsmodel import grid
+from beast.physicsmodel.model_grid import (make_spectral_grid,
                            add_stellar_priors)
 from beast.tests.helpers import (download_rename, compare_hdf5)
 

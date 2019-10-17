@@ -15,11 +15,11 @@ from scipy import interpolate
 from astropy import units
 
 import tables
-from ...external.eztables import Table
-from ...external.eztables.table import recfunctions
-from ...config import __ROOT__
-from .ezpadova import parsec
-from .ezmist import mist
+from beast.external.eztables import Table
+from beast.external.eztables.table import recfunctions
+from beast.config import __ROOT__
+from beast.physicsmodel.stars.ezpadova import parsec
+from beast.physicsmodel.stars.ezmist import mist
 
 __all__ = ['Isochrone', 'padova2010', 'pegase', 'ezIsoch', 'PadovaWeb',
            'MISTWeb']
