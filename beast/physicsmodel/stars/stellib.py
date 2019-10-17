@@ -688,10 +688,13 @@ class Stellib(object):
         # Step 3: Interpolation
         # =====================
         # Do the actual interpolation, avoiding exptrapolations
-        for mk, (rT, rg, rZ) in enumerate(tqdm(zip(pts["logT"], pts["logg"], pts["Z"]),
-                                          total=ndata,
-                                          desc="Spectral grid",
-        )):
+        for mk, (rT, rg, rZ) in enumerate(
+            tqdm(
+                zip(pts["logT"], pts["logg"], pts["Z"]),
+                total=ndata,
+                desc="Spectral grid",
+            )
+        ):
             if bound_cond[mk]:
                 s = np.array(self.interp(rT, rg, rZ, 0.0)).T
                 specs[mk, :] = self.genSpectrum(s) * weights[mk]
@@ -1247,18 +1250,30 @@ class CompositeStellib(Stellib):
             "name": "Reinterpolated stellib grid",
         }
 
-        _grid = recfunctions.stack_arrays(
-            grid, defaults=None, usemask=False, asrecarray=True
-        )
+        if len(grid) > 1:
+            # combine the grids returned form different stellar libraries
+            _grid = recfunctions.stack_arrays(
+                grid, defaults=None, usemask=False, asrecarray=True
+            )
 
-        # populate the specgrid index
-        _grid["specgrid_indx"] = np.arange(len(_grid["specgrid_indx"]), dtype=np.int64)
+            # populate the specgrid index
+            _grid["specgrid_indx"] = np.arange(
+                len(_grid["specgrid_indx"]), dtype=np.int64
+            )
 
-        g = SpectralGrid(
-            l0, seds=np.vstack(seds), grid=Table(_grid), header=header, backend="memory"
-        )
+            g = SpectralGrid(
+                l0,
+                seds=np.vstack(seds),
+                grid=Table(_grid),
+                header=header,
+                backend="memory",
+            )
 
-        return g
+            return g
+
+        else:
+            # only one stellar library actually used, return it
+            return gk
 
 
 class Elodie(Stellib):
