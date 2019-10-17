@@ -21,7 +21,7 @@ from astropy import units
 from tqdm import tqdm
 
 from beast.physicsmodel.stars import stellib
-from beast.physicsmodelbeast.physicsmodel.grid import SpectralGrid
+from beast.physicsmodel.grid import SpectralGrid
 from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
 from beast.external.eztables import Table
 from beast.tools.helpers import generator

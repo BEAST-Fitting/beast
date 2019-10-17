@@ -1,7 +1,7 @@
 from astropy.tests.helper import remote_data
 
 from beast.observationmodel.noisemodel.noisemodel import generic_noisemodel as noisemodel
-from beast.observationmodel.noisemodel..noisemodel.absflux_covmat import hst_frac_matrix
+from beast.observationmodel.noisemodel.noisemodel.absflux_covmat import hst_frac_matrix
 from beast.physicsmodel.grid import FileSEDGrid
 from beast.tests.helpers import download_rename, compare_hdf5
 

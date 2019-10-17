@@ -3,7 +3,7 @@ import numpy as np
 from astropy.tests.helper import remote_data
 
 from beast.physicsmodel.grid import FileSEDGrid
-from beaat.observationmodel.observations import Observations
+from beast.observationmodel.observations import Observations
 from beast.observationmodel.vega import Vega
 from beast.observationmodel.noisemodel import generic_noisemodel as noisemodel
 from beast.fitting.trim_grid import trim_models

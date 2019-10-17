@@ -387,15 +387,10 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
     the ASTs though DOLPHOT
     """
 
-<<<<<<< HEAD
-    noise = 3.0 #Spreads the ASTs in a circular annulus of 3 pixel width instead of all being
-                #precisely [separation] from an observed star.
-=======
     noise = (
         3.0
     )  # Spreads the ASTs in a circular annulus of 3 pixel width instead of all being
     # precisely [separation] from an observed star.
->>>>>>> master
 
     colnames = catalog.data.columns
 
@@ -425,11 +420,8 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
                 "You must supply a Reference Image to determine spatial AST distribution."
             )
         wcs = WCS(refimage)
-<<<<<<< HEAD
-        x_positions,y_positions = wcs.all_world2pix(ra_positions,dec_positions,0)
-=======
+
         x_positions, y_positions = wcs.all_world2pix(ra_positions, dec_positions, wcs_origin)
->>>>>>> master
 
     astmags = ascii.read(filename)
 
