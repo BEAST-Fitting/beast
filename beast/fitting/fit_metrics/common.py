@@ -47,11 +47,13 @@ import numpy as np
 try:
     from .c_common import weighted_percentile as c_wp
     from .c_common import expectation as c_expect
+
     _C_code = True
 except ImportError:
     _C_code = False
 
 _C_code = False
+
 
 def percentile(data, percentiles, weights=None):
     """Compute weighted percentiles.
@@ -87,7 +89,7 @@ def percentile(data, percentiles, weights=None):
     # check if actually weighted percentiles is needed
     if weights is None:
         return np.percentile(data, list(percentiles))
-    if np.equal(weights, 1.).all():
+    if np.equal(weights, 1.0).all():
         return np.percentile(data, list(percentiles))
 
     # make sure percentiles are fractions between 0 and 1
@@ -96,10 +98,10 @@ def percentile(data, percentiles, weights=None):
     if not np.less_equal(percentiles, 100.0).all():
         raise ValueError("Percentiles greater than 100")
 
-    #Make sure data is in correct shape
+    # Make sure data is in correct shape
     shape = np.shape(data)
     n = len(data)
-    if (len(shape) != 1):
+    if len(shape) != 1:
         raise ValueError("wrong data shape, expecting 1d")
 
     if len(weights) != n:
@@ -110,7 +112,7 @@ def percentile(data, percentiles, weights=None):
 
     _data = np.asarray(data, dtype=float)
 
-    if hasattr(percentiles, '__iter__'):
+    if hasattr(percentiles, "__iter__"):
         _p = np.asarray(percentiles, dtype=float) * 0.01
     else:
         _p = np.asarray([percentiles * 0.01], dtype=float)
@@ -145,7 +147,7 @@ def percentile(data, percentiles, weights=None):
             else:
                 f1 = (w[s] - p) / (w[s] - w[s - 1])
                 f2 = (p - w[s - 1]) / (w[s] - w[s - 1])
-                assert (f1 >= 0) and (f2 >= 0) and (f1 <= 1 ) and (f2 <= 1)
+                assert (f1 >= 0) and (f2 >= 0) and (f1 <= 1) and (f2 <= 1)
                 assert abs(f1 + f2 - 1.0) < 1e-6
                 o[pk] = sd[s - 1] * f1 + sd[s] * f2
         return o
@@ -191,7 +193,7 @@ def expectation(q, weights=None):
     else:
         if weights is None:
             return np.mean(q)
-        if np.equal(weights, 1.).all():
+        if np.equal(weights, 1.0).all():
             return np.mean(q)
         _w = np.asarray(weights, dtype=float)
         _q = np.asarray(q, dtype=float)

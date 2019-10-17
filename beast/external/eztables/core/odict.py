@@ -1,9 +1,9 @@
 """ A simpler implementation than OrderedDict which keeps ordering but allows to
 move the keys too"""
 
-__all__ = ['odict']
-__author__ = 'MF'
-__version__ = '1.0'
+__all__ = ["odict"]
+__author__ = "MF"
+__version__ = "1.0"
 
 
 try:
@@ -13,7 +13,7 @@ except NameError:
     str = str
     unicode = str
     bytes = bytes
-    basestring = (str,bytes)
+    basestring = (str, bytes)
     __strtypes__ = [str, unicode]
 else:
     # 'unicode' exists, must be Python 2
@@ -26,6 +26,7 @@ else:
 # Add Numpy str type if possible
 try:
     import numpy as __np__
+
     __strtypes__.append(__np__.string_)
 except ImportError:
     pass
@@ -36,11 +37,12 @@ class odict(object):
     This implementation aims at keeping ordering and also  at allowing to
     move the keys too
     """
+
     def __init__(self, **kwargs):
         self.__keys__ = []
         self.__values__ = []
 
-        if ( len( kwargs) > 0 ):
+        if len(kwargs) > 0:
             for k, v in list(kwargs.items()):
                 self[k] = v
 
@@ -69,7 +71,7 @@ class odict(object):
         if type(key) == int:
             return self.__values__[key]
         elif type(key) in __strtypes__:
-            if not key in self.__keys__:
+            if key not in self.__keys__:
                 raise KeyError
             index = self.__keys__.index(key)
             return self.__values__[index]
@@ -90,7 +92,7 @@ class odict(object):
 
     def pop(self, key):
         """remove specified key and return the corresponding value."""
-        if not key in self.__keys__:
+        if key not in self.__keys__:
             raise KeyError
         index = self.__keys__.index(key)
         self.__keys__.pop(index)
@@ -101,14 +103,14 @@ class odict(object):
 
     def move(self, key, position):
         """ Move a key-value position """
-        if not key in self.__keys__:
+        if key not in self.__keys__:
             raise KeyError
         v = self.pop(key)
         self.insert(position, key, v)
 
     def rename(self, oldkey, newkey):
         """ Rename a key """
-        if not oldkey in self.__keys__:
+        if oldkey not in self.__keys__:
             raise KeyError
         index = self.__keys__.index(oldkey)
         self.__keys__[index] = newkey
@@ -145,11 +147,13 @@ class odict(object):
             return default
 
     def update(self, other):
-        if hasattr(other, 'keys'):
+        if hasattr(other, "keys"):
             for e, v in list(other.items()):
                 self[e] = v
-        elif hasattr(other, '__iter__'):
+        elif hasattr(other, "__iter__"):
             for e, v in other:
                 self[e] = v
         else:
-            raise AttributeError('argument must be a dict-like object or (key, value) pairs list')
+            raise AttributeError(
+                "argument must be a dict-like object or (key, value) pairs list"
+            )

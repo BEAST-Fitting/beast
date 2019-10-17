@@ -2,9 +2,9 @@
 BEAST
 #####
 
-The Bayesian Extinction and Stellar Tool (BEAST) fits the ultraviolet to
-near-infrared photometric SEDs of stars to extract stellar and
-dust extinction parameters.
+The Bayesian Extinction and Stellar Tool (BEAST) is a Python package that fits
+the ultraviolet to near-infrared photometric SEDs of stars to extract stellar
+and dust extinction parameters.
 The stellar parameters are age (t), mass (M), metallicity (M), and distance (d).
 The dust extinction parameters are dust column (Av), average grain size (Rv),
 and mixing between type A and B extinction curves (fA).
@@ -12,6 +12,15 @@ and mixing between type A and B extinction curves (fA).
 The full details of the BEAST are provide by
 Gordon et al. (2016, ApJ, 826, 104).
 <http://adsabs.harvard.edu/abs/2016ApJ...826..104G>
+
+Installation
+============
+
+.. toctree::
+   :maxdepth: 2
+
+   How to install <install.rst>
+   Running an example <example.rst>
 
 User Documentation
 ==================
@@ -21,6 +30,7 @@ User Documentation
 
    BEAST run setup details <beast_setup.rst>
    Example production run workflow <workflow.rst>
+   Stellar/Extinction Priors <beast_priors.rst>
    Running in parallel by using subgrids <subgrid_parallelism.rst>
    Generating AST inputs <generating_asts.rst>
    Simulating observations <simulations.rst>
@@ -28,14 +38,6 @@ User Documentation
    Format of BEAST grid files <beast_grid_format.rst>
    Details on BEAST libraries for grid <beast_grid_inputs.rst>
    Known issues <beast_issues.rst>
-   
-Installation
-============
-
-.. toctree::
-   :maxdepth: 2
-
-   How to install <install.rst>
 
 Developer Documentation
 =======================
