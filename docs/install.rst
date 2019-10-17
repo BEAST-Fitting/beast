@@ -141,5 +141,5 @@ There are 2 possible locations for the required library files. The possible loca
 (in the order the code will search for them):
 
 1. In a directory designated by a BEAST_LIBS environment variable
-2. In the `.beast` directory in the home directory of the current user (ie, `~/.beast`);
+2. In the ``.beast`` directory in the home directory of the current user (ie, ``~/.beast``);
 this is usually the easiest and will be automatically created if it doesn't exist.
