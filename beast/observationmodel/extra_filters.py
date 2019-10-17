@@ -1,9 +1,9 @@
 import numpy as np
-from .phot import IntegrationFilter, Filter
+from beast.observationmodel.phot import IntegrationFilter, Filter
 
 
 def make_integration_filter(
-    startlam, endlam, dlamb, name, observatory="SUDO", instrument="FAKE", comment=None
+    startlam, endlam, dlamb, name, observatory="PSEUDO", instrument="FAKE", comment=None
 ):
     """
     Creates a constant-filter with transmission 100%
@@ -24,11 +24,10 @@ def make_integration_filter(
     name: string
         name of the filter
 
-    observato_integration_filter(90., 913., 1, 'QION', observatory='SUDO', instrument='Fake')
-    return fry: string, (default='PSEUDO')
+    observatory: string, (default='PSEUDO')
         name of the observatory
 
-    instrument: string (default='PSEUDO')
+    instrument: string (default='FAKE')
         name of the instrument
 
     comment: string (default=None)
@@ -67,10 +66,10 @@ def make_integration_filter(
 
 
 def make_top_hat_filter(
-    startlam, endlam, dlamb, name, observatory="SUDO", instrument="FAKE", comment=None
+    startlam, endlam, dlamb, name, observatory="PSEUDO", instrument="FAKE", comment=None
 ):
     """
-    Creates a psudo-filter with transmission 100%
+    Creates a pseudo-filter with transmission 100%
     in the energy range [startlam:endlam].
 
     Parmeters
@@ -90,7 +89,7 @@ def make_top_hat_filter(
     observatory: string, (default='PSEUDO')
         name of the observatory
 
-    instrument: string (default='PSEUDO')
+    instrument: string (default='FAKE')
         name of the instrument
 
     comment: string (default=None)
@@ -133,10 +132,3 @@ def make_top_hat_filter(
     if comment is not None:
         filt.comment += "\n" + comment
     return filt
-
-
-def test():
-    f = make_integration_filter(
-        90.0, 913.0, 1, "QION", observatory="SUDO", instrument="Fake"
-    )
-    return f
