@@ -10,61 +10,6 @@ for the refitting, fixing issues, etc without rerunning everything.  This
 workflow has been tested on large (e.g., PHAT) and small (e.g. METAL)
 datasets.
 
-****************************
-Production Conda Environment
-****************************
-
-Using a dedicated conda environment for production BEAST runs may be
-desirable.  Such an environment provides a way to ensure that
-production runs are reproducible by fixing the versions of all the
-software used.  The instructions below assume that the `astroconda channel
-<https://astroconda.readthedocs.io/>`_ is being used.
-
-Create a conda environment.  Here we name it to include the BEAST version.
-
-  .. code-block:: console
-
-    $ conda create -n beast_v1.3 python=3.6
-
-Activate the environment after all the packages are finished installing.
-
-  .. code-block:: console
-
-    $ source activate beast_v1.3
-
-Install dependencies using conda (better for speed)
-
-  .. code-block:: console
-
-    $ conda install astropy scipy h5py matplotlib cython
-
-Next, install the BEAST.  You have three options:
-
-Option 1: Use pip to install the production version of the beast (currently v1.3)
-
-  .. code-block:: console
-
-    $ pip install beast==1.3
-
-Option 2: Get the latest production branch, which can be ahead of pipy version
-
-  .. code-block:: console
-
-    $ pip install git+https://github.com/BEAST-Fitting/beast.git@v1.x
-
-Option 3: If you'll be doing development, fork the beast (as described
-`here <https://beast.readthedocs.io/en/latest/beast_development.html>`_\),
-navigate into the first `beast` folder, and do this command.  Any changes
-you make will be immediately reflected in your calls to the BEAST code. Note that
-you can make separate environments for development and production modes.
-
-  .. code-block:: console
-
-    $ python setup.py develop
-
-The BEAST production version is now ready for use.  Note, you need to
-activate this conda environment every time you want to use this installed
-version.
 
 *****
 Setup
