@@ -343,9 +343,9 @@ if __name__ == "__main__":
     setup_batch_beast_fit(
         num_percore=args.num_percore,
         nice=args.nice,
-        overwrite_logfile=args.overwrite_logfile,
+        overwrite_logfile=bool(args.overwrite_logfile),
         prefix=args.prefix,
-        use_sd=args.use_sd,
+        use_sd=bool(args.use_sd),
         nsubs=args.nsubs,
         nprocs=args.nprocs,
     )

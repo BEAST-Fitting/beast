@@ -172,13 +172,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--flux_bin_method",
-        help="Choose SEDs using flux bin method",
-        action="store_true",
+        default=1,
+        type=int,
+        help="Choose SEDs using flux bin method (1, default) or not (0)",
     )
 
     args = parser.parse_args()
 
-    make_ast_inputs(flux_bin_method=args.flux_bin_method)
+    make_ast_inputs(flux_bin_method=bool(args.flux_bin_method))
 
     # print help if no arguments
     if not any(vars(args).values()):
