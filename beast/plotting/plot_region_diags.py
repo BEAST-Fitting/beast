@@ -12,7 +12,7 @@ from matplotlib import rc
 import numpy as np
 
 # local imports
-from .beastplotlib import (fancify_colname, initialize_parser,
+from beast.plotting.beastplotlib import (fancify_colname, initialize_parser,
                           plot_generic, set_params)
 
 def make_region_diag_plots(stats, xparam='logT', yparam='logL',

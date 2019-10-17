@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 from functools import reduce
 
-from beastplotlib import initialize_parser
+from beast.plotting.beastplotlib import initialize_parser
 
 
 def plot(fitsfile, mag1_filter='F475W', mag2_filter='F814W',

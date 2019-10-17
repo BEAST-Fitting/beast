@@ -7,11 +7,11 @@ from __future__ import (absolute_import, division, print_function,
 
 import argparse
 import numpy as np
-import matplotlib as mpl 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-from ..observationmodel import phot
-from .beastplotlib import initialize_parser
+from beast.observationmodel import phot
+from beast.plotting.beastplotlib import initialize_parser
 
 
 def plot_filters(args, filter_names, save_name='beast_filters',
@@ -82,10 +82,9 @@ if __name__ == '__main__':
     parser = initialize_parser()
     args = parser.parse_args()
 
-    filter_names = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W', 
+    filter_names = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W',
                     'HST_ACS_WFC_F475W', 'HST_ACS_WFC_F550M',
                     'HST_ACS_WFC_F814W',
                     'HST_WFC3_F110W', 'HST_WFC3_F160W']
 
     plot_filters(args, filter_names)
-
