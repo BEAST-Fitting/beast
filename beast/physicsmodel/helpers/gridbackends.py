@@ -41,9 +41,9 @@ import numpy
 import astropy.io.fits as pyfits
 import copy
 
-from ...external.eztables import Table
-from .hdfstore import HDFStore
-from .gridhelpers import isNestedInstance, pretty_size_print
+from beast.external.eztables import Table
+from beast.physicsmodel.helpers.hdfstore import HDFStore
+from beast.physicsmodel.helpers.gridhelpers import isNestedInstance, pretty_size_print
 
 try:
     unicode = unicode

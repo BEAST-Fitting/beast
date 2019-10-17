@@ -20,14 +20,14 @@ import copy
 from astropy import units
 from tqdm import tqdm
 
-from .stars import stellib
-from .grid import SpectralGrid
-from .prior_weights_dust import PriorWeightsDust
-from ..external.eztables import Table
-from ..tools.helpers import generator
-from ..tools import helpers
+from beast.physicsmodel.stars import stellib
+from beast.physicsmodel.grid import SpectralGrid
+from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+from beast.external.eztables import Table
+from beast.tools.helpers import generator
+from beast.tools import helpers
 
-from ..observationmodel.noisemodel import absflux_covmat
+from beast.observationmodel.noisemodel import absflux_covmat
 
 __all__ = [
     "gen_spectral_grid_from_stellib_given_points",

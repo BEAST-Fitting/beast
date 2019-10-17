@@ -1,4 +1,4 @@
-from ...external.eztables import Table
+from beast.external.eztables.table import Table
 
 __all__ = ["NoiseModel"]
 

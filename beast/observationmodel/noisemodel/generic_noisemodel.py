@@ -13,7 +13,7 @@ requires significantly more complicated ASTs and many more of them.
 import numpy as np
 import tables
 
-from . import toothpick
+from beast.observationmodel.noisemodel import toothpick
 
 __all__ = [
     "Generic_ToothPick_Noisemodel",

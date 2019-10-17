@@ -33,12 +33,12 @@ from astropy.io import fits
 from astropy.table import Table
 from tqdm import tqdm
 
-from ..physicsmodel import grid
+from beast.physicsmodel import grid
 
-from .fit_metrics.likelihood import N_covar_logLikelihood, N_logLikelihood_NM
-from .fit_metrics import expectation, percentile
+from beast.fitting.fit_metrics.likelihood import N_covar_logLikelihood, N_logLikelihood_NM
+from beast.fitting.fit_metrics import expectation, percentile
 
-from .pdf1d import pdf1d
+from beast.fitting.pdf1d import pdf1d
 
 __all__ = [
     "summary_table_memory",

@@ -76,7 +76,7 @@ def pick_positions_from_map(
 
     wcs_origin : 0 or 1 (default=1)
         As described in the WCS documentation: "the coordinate in the upper
-        left corner of the image. In FITS and Fortran standards, this is 1. 
+        left corner of the image. In FITS and Fortran standards, this is 1.
         In Numpy and C standards this is 0."
 
     Nrealize: integer
@@ -186,14 +186,14 @@ def pick_positions_from_map(
                                       no_write=True)
         else:
             raise RuntimeError('Invalid argument for region_from_filters')
-        
+
         coords = np.array(
             [x_positions[good_stars == 1], y_positions[good_stars == 1]]
         ).T  # there's a weird astropy datatype issue that requires numpy coercion
         hull = ConvexHull(coords)
         bounds_x, bounds_y = coords[hull.vertices, 0], coords[hull.vertices, 1]
         filt_reg_boundary = Path(np.array([bounds_x, bounds_y]).T)
-   
+
     # Load the background map
     print(Npermodel, " repeats of each model in each map bin")
 
@@ -253,7 +253,7 @@ def pick_positions_from_map(
     tile_sets = [tile_set for tile_set in tiles_foreach_bin if len(tile_set)]
     print(len(tile_sets), " non-empty map bins found between ", min_val, "and", max_val)
 
-    
+
 
     # Repeat the seds Nrealize times (sample each on at Nrealize
     # different positions, in each region)
@@ -318,7 +318,7 @@ def pick_positions_from_map(
                         within_bounds = filt_reg_boundary.contains_points([[x, y]])[0]
                         if within_bounds == False:
                             x = -1
-                            
+
             j = bin_index * Nseds_per_region + i
             xs[j] = x
             ys[j] = y
@@ -366,7 +366,7 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
 
     wcs_origin : 0 or 1 (default=1)
         As described in the WCS documentation: "the coordinate in the upper
-        left corner of the image. In FITS and Fortran standards, this is 1. 
+        left corner of the image. In FITS and Fortran standards, this is 1.
         In Numpy and C standards this is 0."
 
     OUTPUTS:
@@ -410,6 +410,7 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
                 "You must supply a Reference Image to determine spatial AST distribution."
             )
         wcs = WCS(refimage)
+
         x_positions, y_positions = wcs.all_world2pix(ra_positions, dec_positions, wcs_origin)
 
     astmags = ascii.read(filename)
@@ -433,6 +434,7 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
     ind = ind.astype("int")
 
     # Here we generate the circular distribution of ASTs surrounding random observed stars
+
 
     separation = np.random.random(n_asts) * noise + separation
     theta = np.random.random(n_asts) * 2.0 * np.pi

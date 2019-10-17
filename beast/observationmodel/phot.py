@@ -20,7 +20,7 @@ import numpy
 import tables
 from scipy.integrate import trapz
 
-from ..config import __ROOT__
+from beast.config import __ROOT__
 
 __default__ = __ROOT__ + "/filters.hd5"
 __default_vega__ = __ROOT__ + "/vega.hd5"

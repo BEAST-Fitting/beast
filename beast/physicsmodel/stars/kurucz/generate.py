@@ -1,8 +1,8 @@
 """ This module gives tools to generate Kurucz grid from original downloads """
-from ..core import grid
-from ..core import stellib, isochrone
-from ..decorators import timeit
-from ..external.eztables import Table
+from beast.physicsmodel import grid
+from beast.physicsmodel.stars import stellib, isochrone
+from beast.external.eztables.core.decorators import timeit
+from beast.external.eztables.table import Table
 
 import pyfits
 import numpy as np
