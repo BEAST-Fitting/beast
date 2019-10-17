@@ -3,7 +3,7 @@
 # Packages may add whatever they like to this file, but
 # should keep this content at the top.
 # ----------------------------------------------------------------------------
-from beast._astropy_init import *
+from ._astropy_init import *   # noqa
 # ----------------------------------------------------------------------------
 
 # Enforce Python version check during package import.
