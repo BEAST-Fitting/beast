@@ -17,7 +17,7 @@ from io import BytesIO
 import zlib
 import re
 import json
-from ..simpletable import SimpleTable as Table
+from beast.physicsmodel.stars.simpletable import SimpleTable as Table
 
 py3k = True
 

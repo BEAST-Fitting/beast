@@ -23,10 +23,10 @@ import sys
 import numpy as np
 from copy import deepcopy
 
-from ..observationmodel import phot
-from .dust import extinction
-from .helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
-from .helpers.gridhelpers import pretty_size_print, isNestedInstance
+from beast.observationmodel import phot
+from beast.physicsmodel.dust import extinction
+from beast.physicsmodel.helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
+from beast.physicsmodel.helpers.gridhelpers import pretty_size_print, isNestedInstance
 
 try:
     unicode = unicode

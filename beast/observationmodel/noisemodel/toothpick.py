@@ -19,10 +19,10 @@ import numpy as np
 
 from tqdm import tqdm
 
-from .noisemodel import NoiseModel
-from ..vega import Vega
+from beast.observationmodel.noisemodel.noisemodel import NoiseModel
+from beast.observationmodel.vega import Vega
 
-from .helpers import convert_dict_to_structured_ndarray
+from beast.observationmodel.noisemodel.helpers import convert_dict_to_structured_ndarray
 
 __all__ = ["MultiFilterASTs"]
 

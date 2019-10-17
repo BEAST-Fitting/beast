@@ -7,8 +7,8 @@ import numpy as np
 from scipy.spatial import cKDTree
 from tqdm import tqdm
 
-from .noisemodel import NoiseModel
-from ..vega import Vega
+from beast.observationmodel.noisemodel.noisemodel import NoiseModel
+from beast.observationmodel.vega import Vega
 
 
 __all__ = ["MultiFilterASTs"]

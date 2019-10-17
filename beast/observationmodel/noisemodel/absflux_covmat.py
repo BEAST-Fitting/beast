@@ -6,8 +6,8 @@ import numpy as np
 from astropy.io.fits import getdata
 from tqdm import tqdm
 
-from .. import phot
-from ...config import __ROOT__
+from beast.observationmodel import phot
+from beast.config import __ROOT__
 
 
 def hst_frac_matrix(

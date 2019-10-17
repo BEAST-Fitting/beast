@@ -1,8 +1,8 @@
 from astropy.tests.helper import remote_data
 from astropy.table import Table
 
-from ..noisemodel import generic_noisemodel as noisemodel
-from ...physicsmodel.grid import FileSEDGrid
+from beast.observationmodel.noisemodel import generic_noisemodel as noisemodel
+from beast.physicsmodel.grid import FileSEDGrid
 from beast.observationmodel.observations import gen_SimObs_from_sedgrid
 from beast.tests.helpers import download_rename, compare_tables
 

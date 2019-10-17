@@ -2,7 +2,7 @@
 import numpy as np
 
 try:
-    from .interp import __interp__ as __cinterp__
+    from beast.physicsmodel.stars.include.interp import __interp__ as __cinterp__
 
     raise ImportError
 

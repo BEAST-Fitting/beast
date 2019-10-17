@@ -3,7 +3,7 @@ from functools import wraps
 import numpy
 
 import tables
-from ..config import __ROOT__
+from beast.config import __ROOT__
 
 
 __all__ = ["Vega", "from_Vegamag_to_Flux"]

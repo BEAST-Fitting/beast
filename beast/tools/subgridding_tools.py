@@ -7,11 +7,11 @@ import numpy as np
 from astropy.io import fits
 from astropy.table import Table
 
-from ..observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
-from ..physicsmodel import grid
-from ..external import eztables
-from ..fitting.fit import save_pdf1d
-from ..fitting.fit_metrics import percentile
+from beast.observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
+from beast.physicsmodel import grid
+from beast.external import eztables
+from beast.fitting.fit import save_pdf1d
+from beast.fitting.fit_metrics import percentile
 
 
 def uniform_slices(num_points, num_slices):

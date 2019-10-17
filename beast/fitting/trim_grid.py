@@ -1,8 +1,8 @@
 import numpy as np
 import tables
 
-from ..physicsmodel.grid import SpectralGrid
-from ..external.eztables import Table
+from beast.physicsmodel.grid import SpectralGrid
+from beast.external.eztables import Table
 
 __all__ = ["trim_models"]
 
