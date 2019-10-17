@@ -1,6 +1,6 @@
-from . import decorators
+from beast.tools import decorators
 #from . import progressbar
-from . import contextManagers
+from beast.tools import contextManagers
 #from . import ezpipeline
-from . import pbar
+from beast.tools import pbar
 __all__ = 'decorators progressbar contextManagers ezpipeline binningAxis pbar helpers'.split()
