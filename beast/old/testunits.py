@@ -7,7 +7,7 @@ import inspect
 import itertools
 import sys
 
-from .external.eztables import Table
+from beast.external.eztables import Table
 from anased import computeLogLikelihood
 from tools.decorators import timeit
 import extinction

@@ -8,7 +8,7 @@ import numpy
 
 import tables
 import sys
-from ..config import __ROOT__
+from beast.config import __ROOT__
 
 __default__      = __ROOT__ + '/libs/filters.hd5'
 __default_vega__ = __ROOT__ + '/libs/vega.hd5'

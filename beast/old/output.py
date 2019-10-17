@@ -1,6 +1,6 @@
-from ..external.eztables import Table
+from beast.external.eztables import Table
 import numpy as np
-from . import grid
+from beast.old import grid
 
 
 def weighted_percentile(data, wt, percentiles):

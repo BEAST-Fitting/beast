@@ -18,13 +18,13 @@ __version__ = '0.8dev'
 
 import numpy as np
 
-from . import stellib
-from . import isochrone
-from .grid import SpectralGrid
-from .gridhelpers import isNestedInstance
-from ..external import ezunits
-from ..external.eztables import Table
-from ..tools.pbar import Pbar
+from beast.physicsmodel.stars import stellib
+from beast.physicsmodel.stars import isochrone
+from beast.physicsmodel.grid import SpectralGrid
+from beast.physicsmodel..gridhelpers import isNestedInstance
+from beast.external import ezunits
+from beast.external.eztables import Table
+from beast.tools.pbar import Pbar
 #from .priors import KDTreeDensityEstimator
 
 

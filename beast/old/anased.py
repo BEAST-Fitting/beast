@@ -12,11 +12,11 @@ else:
 import numpy
 from numpy import log, exp
 
-from . import stellib
-from . import extinction
-from . import photometry
-from ..tools.decorators import timeit
-from ..import proba
+from beast.physicsmodel.stars import stellib
+from beast.physicsmodel.dust import extinction
+from beast.physicsmodel.stars import photometry
+from beast.tools.decorators import timeit
+from beast import proba
 
 
 def getFluxAttenuation(law, lamb, **kwargs):
