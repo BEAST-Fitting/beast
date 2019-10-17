@@ -49,14 +49,9 @@ def make_diagnostic_plots(statsfile, suffix="Exp", figsize=(10, 5.5)):
     fig, axes = plt.subplots(2, 3, figsize=figsize)
     ax = axes.ravel()
     for i, pair in enumerate(plot_pairs):
-<<<<<<< HEAD
-        plot_generic(stats, pair[0], pair[1], fig, ax[i],
-                     plot_kwargs={'norm':LogNorm()})
-=======
         plot_generic(
             stats, pair[0], pair[1], fig, ax[i], plot_kwargs={"norm": LogNorm()}
         )
->>>>>>> master
     fig.tight_layout()
     return fig
 

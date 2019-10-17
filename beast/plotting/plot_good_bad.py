@@ -47,15 +47,6 @@ def make_good_bad_plots(
     fig, axes = plt.subplots(2, 2, figsize=figsize)
     ax = axes.ravel()
     for i, pair in enumerate(plot_pairs):
-<<<<<<< HEAD
-        j = 2*i
-        plot_generic(stats, pair[0], pair[1], fig, ax[j],
-                     thresh_col='chi2min', thresh=chicut, thresh_op='less',
-                     plot_kwargs={'norm':LogNorm()})
-        plot_generic(stats, pair[0], pair[1], fig, ax[j+1],
-                     thresh_col='chi2min', thresh=chicut, thresh_op='greater',
-                     plot_kwargs={'norm':LogNorm()})
-=======
         j = 2 * i
         plot_generic(
             stats,
@@ -79,7 +70,6 @@ def make_good_bad_plots(
             thresh_op="greater",
             plot_kwargs={"norm": LogNorm()},
         )
->>>>>>> master
     fig.tight_layout()
     return fig
 

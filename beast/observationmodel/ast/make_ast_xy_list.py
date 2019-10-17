@@ -121,15 +121,6 @@ def pick_positions_from_map(
     # there are no ASTs generated outside of the catalog footprint
     colnames = catalog.data.columns
 
-<<<<<<< HEAD
-    if 'X' or 'x' in colnames:
-        if 'X' in colnames:
-           x_positions = catalog.data['X'][:]
-           y_positions = catalog.data['Y'][:]
-        if 'x' in colnames:
-           x_positions = catalog.data['x'][:]
-           y_positions = catalog.data['y'][:]
-=======
     if "X" or "x" in colnames:
         if "X" in colnames:
             x_positions = catalog.data["X"][:]
@@ -137,7 +128,6 @@ def pick_positions_from_map(
         if "x" in colnames:
             x_positions = catalog.data["x"][:]
             y_positions = catalog.data["y"][:]
->>>>>>> master
 
     else:
         if ("RA" in colnames) or ("ra" in colnames):
@@ -445,30 +435,12 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
 
     # Here we generate the circular distribution of ASTs surrounding random observed stars
 
-<<<<<<< HEAD
-    separation = np.random.random(n_asts)*noise + separation
-=======
+
     separation = np.random.random(n_asts) * noise + separation
->>>>>>> master
     theta = np.random.random(n_asts) * 2.0 * np.pi
     xvar = separation * np.cos(theta)
     yvar = separation * np.sin(theta)
 
-<<<<<<< HEAD
-    new_x = x_positions[ind]+xvar; new_y = y_positions[ind]+yvar
-    column1 = 0 * new_x
-    column2 = column1 + 1
-    column1 = Column(name='zeros',data=column1.astype('int'))
-    column2 = Column(name='ones',data=column2.astype('int'))
-    column3 = Column(name='X',data=new_x,format='%.2f')
-    column4 = Column(name='Y',data=new_y,format='%.2f')
-    astmags.add_column(column1,0)
-    astmags.add_column(column2,1)
-    astmags.add_column(column3,2)
-    astmags.add_column(column4,3)
-
-    ascii.write(astmags,filename,overwrite=True)
-=======
     new_x = x_positions[ind] + xvar
     new_y = y_positions[ind] + yvar
     column1 = 0 * new_x
@@ -483,4 +455,3 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
     astmags.add_column(column4, 3)
 
     ascii.write(astmags, filename, overwrite=True)
->>>>>>> master
