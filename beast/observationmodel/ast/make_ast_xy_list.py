@@ -167,10 +167,6 @@ def pick_positions_from_map(
     hull = ConvexHull(coords)
     bounds_x, bounds_y = coords[hull.vertices, 0], coords[hull.vertices, 1]
     catalog_boundary = Path(np.array([bounds_x, bounds_y]).T)
-<<<<<<< HEAD
-
-=======
->>>>>>> master
 
     # if coord_boundary set, define an additional boundary for ASTs
     if set_coord_boundary is not None:
@@ -180,12 +176,6 @@ def pick_positions_from_map(
             )
             coord_boundary = Path(np.array([bounds_x, bounds_y]).T)
         else:
-<<<<<<< HEAD
-            raise RuntimeError('If using set_coord_boundary, you must also provide a refimage')
-
-
-
-=======
             raise RuntimeError(
                 "If using set_coord_boundary, you must also provide a refimage"
             )
@@ -214,7 +204,6 @@ def pick_positions_from_map(
         bounds_x, bounds_y = coords[hull.vertices, 0], coords[hull.vertices, 1]
         filt_reg_boundary = Path(np.array([bounds_x, bounds_y]).T)
 
->>>>>>> master
     # Load the background map
     print(Npermodel, " repeats of each model in each map bin")
 
