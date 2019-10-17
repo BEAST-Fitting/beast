@@ -12,7 +12,7 @@ import argparse
 import astropy
 from astropy import wcs
 from astropy.table import Table
-from astropy import units
+from astropy import units as u
 from astropy.io import fits
 import math
 import matplotlib.pyplot as plt
@@ -20,7 +20,7 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import numpy as np
 import photutils as pu
-from .density_map import DensityMap
+from beast.tools.density_map import DensityMap
 import itertools as it
 import os
 
@@ -157,7 +157,8 @@ def main_make_map(args):
         ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
         dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
     elif args.pixsize is not None:
-        pixsize_degrees = args.pixsize / 3600
+        pixsize_arcsecs = args.pixsize * u.arcsec 
+        pixsize_degrees = pixsize_arcsecs.to(u.degree)
         n_x, n_y, ra_delt, dec_delt = calc_nx_ny_from_pixsize(cat, pixsize_degrees)
         # the ra spacing needs to be larger, as 1 degree of RA ==
         # cos(DEC) degrees on the great circle
@@ -377,8 +378,8 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
     w = wcs.WCS(ref_im.header)
     shp = ref_im.data.shape
 
-    inner_rad = mask_radius * units.pixel
-    outer_rad = inner_rad + ann_width * units.pixel
+    inner_rad = mask_radius * u.pixel
+    outer_rad = inner_rad + ann_width * u.pixel
     mask_rad = inner_rad
 
     # More elaborate way using an actual image (do not care about the
@@ -386,7 +387,7 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
     # command line) at face value)
     ra = cat_table["RA"]
     dec = cat_table["DEC"]
-    c = astropy.coordinates.SkyCoord(ra * units.degree, dec * units.degree)
+    c = astropy.coordinates.SkyCoord(ra * u.degree, dec * u.degree)
 
     # Annuli, of which the counts per surface area will be used as
     # background measurements
@@ -660,7 +661,7 @@ def calc_nx_ny_from_pixsize(cat, pixsize_degrees):
 
     # Compute the required width of the bins expressed in RA and DEC to
     # reach the requested physical pixel size on the sky
-    dec_delt = pixsize_degrees
+    dec_delt = pixsize_degrees.value
     cos_avg_dec = math.cos(math.radians((max_dec + min_dec) / 2))
     # ra_delt * cos(dec) = requested physical size
     # --> ra_delt \approx requested physical size / cos(avg dec)
