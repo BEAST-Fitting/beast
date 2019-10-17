@@ -7,11 +7,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
 from functools import reduce
+from beast.plotting import beastplotlib
 
-from beast.plotting.beastplotlib import initialize_parser
+# from beastplotlib import initialize_parser
 
 
-def plot(fitsfile, mag1_filter="F475W", mag2_filter="F814W", mag3_filter="F475W"):
+def plot_cmd(fitsfile, mag1_filter="F475W", mag2_filter="F814W", mag3_filter="F475W"):
     """
     Read in flux from real or simulated data in fitsfile and plot a
     color-magnitude diagram based on specified filters.
@@ -57,12 +58,18 @@ def plot(fitsfile, mag1_filter="F475W", mag2_filter="F814W", mag3_filter="F475W"
     plt.xlabel("%s - %s" % (mag1_filter, mag2_filter))
     plt.ylabel(mag3_filter)
 
+    # save or show fig
+    if args.savefig:
+        fig.savefig("{}.{}".format(basename, args.savefig))
+    else:
+        plt.show()
+
     return fig
 
 
 if __name__ == "__main__":
 
-    parser = initialize_parser()
+    parser = beastplotlib.initialize_parser()
     parser.add_argument("filename", type=str, help="Path to FITS file to plot")
     parser.add_argument(
         "--mag1",
@@ -95,9 +102,3 @@ if __name__ == "__main__":
 
     # figname
     basename = args.filename.replace(".fits", "_plot")
-
-    # save or show fig
-    if args.savefig:
-        fig.savefig("{}.{}".format(basename, args.savefig))
-    else:
-        plt.show()

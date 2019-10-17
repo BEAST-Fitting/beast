@@ -70,6 +70,6 @@ def test_indiv_plot():
     fig, ax = plt.subplots(figsize=(8, 8))
 
     # make the plot!
-    plot_indiv_fit.plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum)
+    plot_indiv_fit.plot_indiv_fit(filters, waves, stats, pdf1d_hdu, starnum)
 
     return fig

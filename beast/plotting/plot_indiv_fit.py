@@ -22,109 +22,181 @@ from astropy.coordinates import SkyCoord as ap_SkyCoord
 from beast.plotting.beastplotlib import initialize_parser
 
 
-def inverse_symlog(y):
-    return np.sign(y) / np.log(10) * np.expm1(np.abs(y) * np.log(10))
+def plot_indiv_fit(filters, waves, stats, pdf1d_hdu, starnum):
+    def inverse_symlog(y):
+        return np.sign(y) / np.log(10) * np.expm1(np.abs(y) * np.log(10))
 
+    def draw_box_around_values(start, stop, ls):
+        deltaline = ty[start] - ty[start + 1]
+        top = ty[start] + deltaline  # Draw the top border ABOVE the text
+        bottom = ty[stop]
+        rec = Rectangle(
+            (left - 0.1, bottom - 0.02),
+            right - left + 0.15,
+            top - bottom + 0.01,
+            fill=False,
+            lw=2,
+            transform=tax.transAxes,
+            ls=ls,
+        )
+        rec = tax.add_patch(rec)
+        rec.set_clip_on(False)
 
-def disp_str(stats, k, keyname):
-    dvals = [
-        stats[keyname + "_p50"][k],
-        stats[keyname + "_p84"][k],
-        stats[keyname + "_p16"][k],
-    ]
-    if keyname == "M_ini":
-        dvals = np.log10(dvals)
-    if keyname == "distance":
-        if dvals[0] > 1000:
-            dvals = [v / 1000.0 for v in dvals]
-    disp_str = (
-        "$"
-        + "{0:.2f}".format(dvals[0])
-        + "^{+"
-        + "{0:.2f}".format(dvals[1] - dvals[0])
-        + "}_{-"
-        + "{0:.2f}".format(dvals[0] - dvals[2])
-        + "}$"
-    )
-
-    return disp_str
-
-
-def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum, stats=None, logx=False):
-
-    pdf_data = pdf1d_hdu[tagname].data
-
-    if pdf_data.ndim == 2:
-        pdf = pdf_data[starnum, :]
-        xvals = pdf_data[-1, :]
-        n_objects, n_bins = pdf_data.shape
-        n_objects -= 1
-    elif pdf_data.ndim == 3:
-        pdf = pdf_data[starnum, :, 0]
-        xvals = pdf_data[starnum, :, 1]
-        n_bins = np.sum(~np.isnan(xvals))
-
-    ax.text(0.95, 0.95, xlabel, transform=ax.transAxes, va="top", ha="right")
-
-    if (n_bins == 1) or (n_bins == 0):
-        ax.text(0.5, 0.5, "unused", transform=ax.transAxes, va="center", ha="center")
-        ax.set_yticklabels([])
-        return
-
-    if logx:
-        xvals = np.log10(xvals)
-
-    if tagname == "Z":
-        gindxs, = np.where(pdf > 0.0)
-        ax.plot(xvals[gindxs], pdf[gindxs] / max(pdf[gindxs]), color="k")
-    else:
-        ax.plot(xvals, pdf / max(pdf), color="k")
-
-    ax.yaxis.set_major_locator(MaxNLocator(6))
-    ax.xaxis.set_major_locator(MaxNLocator(4))
-    xlim = [xvals.min(), xvals.max()]
-    xlim_delta = xlim[1] - xlim[0]
-    if ~np.isnan(xlim[0]):
-        ax.set_xlim(xlim[0] - 0.05 * xlim_delta, xlim[1] + 0.05 * xlim_delta)
-    else:
-        bestval = stats[tagname + "_Best"][starnum]
-        if tagname == "distance":
-            bestval /= 1000.0
-        ax.set_xlim(0.95 * bestval, 1.05 * bestval)
-    ax.set_ylim(0.0, 1.1)
-    ax.set_yticklabels([])
-
-    if stats is not None:
-        ylim = ax.get_ylim()
-
-        y1 = ylim[0] + 0.5 * (ylim[1] - ylim[0])
-        y2 = ylim[0] + 0.7 * (ylim[1] - ylim[0])
-        pval = stats[tagname + "_Best"][starnum]
-        if tagname == "distance":
-            pval /= 1000.0
-        if logx:
-            pval = np.log10(pval)
-        ax.plot(np.full((2), pval), [y1, y2], "-", color="c")
-
-        y1 = ylim[0] + 0.2 * (ylim[1] - ylim[0])
-        y2 = ylim[0] + 0.4 * (ylim[1] - ylim[0])
-        y1m = ylim[0] + 0.25 * (ylim[1] - ylim[0])
-        y2m = ylim[0] + 0.35 * (ylim[1] - ylim[0])
-        ym = 0.5 * (y1 + y2)
-        pvals = [
-            stats[tagname + "_p50"][starnum],
-            stats[tagname + "_p16"][starnum],
-            stats[tagname + "_p84"][starnum],
+    def disp_str(stats, k, keyname):
+        dvals = [
+            stats[keyname + "_p50"][k],
+            stats[keyname + "_p84"][k],
+            stats[keyname + "_p16"][k],
         ]
+        if keyname == "M_ini":
+            dvals = np.log10(dvals)
+        if keyname == "distance":
+            if dvals[0] > 1000:
+                dvals = [v / 1000.0 for v in dvals]
+        disp_str = (
+            "$"
+            + "{0:.2f}".format(dvals[0])
+            + "^{+"
+            + "{0:.2f}".format(dvals[1] - dvals[0])
+            + "}_{-"
+            + "{0:.2f}".format(dvals[0] - dvals[2])
+            + "}$"
+        )
+
+        return disp_str
+
+    def rectangle_around_axes(bottomleft_ax, topright_ax, pad, ls, label=None):
+        """
+        pad: tuple, (left, right, bottom, top)
+        """
+        left, bottom = bottomleft_ax.get_position().get_points()[0]
+        right, top = topright_ax.get_position().get_points()[1]
+        left -= pad[0]
+        right += pad[1]
+        bottom -= pad[2]
+        top += pad[3]
+        transf = plt.gcf().transFigure
+        rec = Rectangle(
+            (left, bottom),
+            right - left,
+            top - bottom,
+            transform=transf,
+            fill=False,
+            lw=2,
+            ls=ls,
+        )
+        rec = bottomleft_ax.add_patch(rec)
+        rec.set_clip_on(False)
+
+        if label:
+            middle = (top + bottom) / 2.0
+            moreleft = left  # pad[0]
+            bottomleft_ax.text(
+                moreleft,
+                middle,
+                label,
+                transform=transf,
+                rotation="vertical",
+                fontstyle="oblique",
+                va="center",
+                ha="right",
+            )
+
+    def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum, stats=None, logx=False):
+
+        pdf_data = pdf1d_hdu[tagname].data
+
+        if pdf_data.ndim == 2:
+            pdf = pdf_data[starnum, :]
+            xvals = pdf_data[-1, :]
+            n_objects, n_bins = pdf_data.shape
+            n_objects -= 1
+        elif pdf_data.ndim == 3:
+            pdf = pdf_data[starnum, :, 0]
+            xvals = pdf_data[starnum, :, 1]
+            n_bins = np.sum(~np.isnan(xvals))
+
+        ax.text(0.95, 0.95, xlabel, transform=ax.transAxes, va="top", ha="right")
+
+        if (n_bins == 1) or (n_bins == 0):
+            ax.text(
+                0.5, 0.5, "unused", transform=ax.transAxes, va="center", ha="center"
+            )
+            ax.set_yticklabels([])
+            return
+
         if logx:
-            pvals = np.log10(pvals)
-        ax.plot(np.full((2), pvals[0]), [y1m, y2m], "-", color="m")
-        ax.plot(np.full((2), pvals[1]), [y1, y2], "-", color="m")
-        ax.plot(np.full((2), pvals[2]), [y1, y2], "-", color="m")
-        ax.plot(pvals[1:3], [ym, ym], "-", color="m")
+            xvals = np.log10(xvals)
 
+        if tagname == "Z":
+            gindxs, = np.where(pdf > 0.0)
+            ax.plot(xvals[gindxs], pdf[gindxs] / max(pdf[gindxs]), color="k")
+        else:
+            ax.plot(xvals, pdf / max(pdf), color="k")
 
-def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
+        ax.yaxis.set_major_locator(MaxNLocator(6))
+        ax.xaxis.set_major_locator(MaxNLocator(4))
+        xlim = [xvals.min(), xvals.max()]
+        xlim_delta = xlim[1] - xlim[0]
+        if ~np.isnan(xlim[0]):
+            ax.set_xlim(xlim[0] - 0.05 * xlim_delta, xlim[1] + 0.05 * xlim_delta)
+        else:
+            bestval = stats[tagname + "_Best"][starnum]
+            if tagname == "distance":
+                bestval /= 1000.0
+            ax.set_xlim(0.95 * bestval, 1.05 * bestval)
+        ax.set_ylim(0.0, 1.1)
+        ax.set_yticklabels([])
+
+        if stats is not None:
+            ylim = ax.get_ylim()
+
+            y1 = ylim[0] + 0.5 * (ylim[1] - ylim[0])
+            y2 = ylim[0] + 0.7 * (ylim[1] - ylim[0])
+            pval = stats[tagname + "_Best"][starnum]
+            if tagname == "distance":
+                pval /= 1000.0
+            if logx:
+                pval = np.log10(pval)
+            ax.plot(np.full((2), pval), [y1, y2], "-", color="c")
+
+            y1 = ylim[0] + 0.2 * (ylim[1] - ylim[0])
+            y2 = ylim[0] + 0.4 * (ylim[1] - ylim[0])
+            y1m = ylim[0] + 0.25 * (ylim[1] - ylim[0])
+            y2m = ylim[0] + 0.35 * (ylim[1] - ylim[0])
+            ym = 0.5 * (y1 + y2)
+            pvals = [
+                stats[tagname + "_p50"][starnum],
+                stats[tagname + "_p16"][starnum],
+                stats[tagname + "_p84"][starnum],
+            ]
+            if logx:
+                pvals = np.log10(pvals)
+            ax.plot(np.full((2), pvals[0]), [y1m, y2m], "-", color="m")
+            ax.plot(np.full((2), pvals[1]), [y1, y2], "-", color="m")
+            ax.plot(np.full((2), pvals[2]), [y1, y2], "-", color="m")
+            ax.plot(pvals[1:3], [ym, ym], "-", color="m")
+
+    # Beginning of main function
+
+    # open 1D PDF file
+    pdf1d_hdu = fits.open(filebase + "_pdf1d.fits")
+
+    # create figure
+    fig, ax = plt.subplots(figsize=(8, 8))
+
+    # wavelengths
+    waves = np.asarray(
+        [
+            2722.05531502,
+            3366.00507206,
+            4763.04670013,
+            8087.36760191,
+            11672.35909295,
+            15432.7387546,
+        ]
+    )
+    waves *= 1e-4
 
     # setup the plot grid
     gridNrow, gridNcol = 5, 12
@@ -159,11 +231,18 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
 
     # plot the SED
     # print(np.sort(stats.colnames))
+    filters = [
+        "HST_WFC3_F275W",
+        "HST_WFC3_F336W",
+        "HST_ACS_WFC_F475W",
+        "HST_ACS_WFC_F814W",
+        "HST_WFC3_F110W",
+        "HST_WFC3_F160W",
+    ]
 
     n_filters = len(filters)
 
     # get the observations
-    waves *= 1e-4
     obs_flux = np.empty((n_filters), dtype=np.float)
     mod_flux = np.empty((n_filters, 3), dtype=np.float)
     mod_flux_nd = np.empty((n_filters, 3), dtype=np.float)
@@ -308,22 +387,6 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
     tax = sed_ax
     left, right = tx[0], tx[-1]
 
-    def draw_box_around_values(start, stop, ls):
-        deltaline = ty[start] - ty[start + 1]
-        top = ty[start] + deltaline  # Draw the top border ABOVE the text
-        bottom = ty[stop]
-        rec = Rectangle(
-            (left - 0.1, bottom - 0.02),
-            right - left + 0.15,
-            top - bottom + 0.01,
-            fill=False,
-            lw=2,
-            transform=tax.transAxes,
-            ls=ls,
-        )
-        rec = tax.add_patch(rec)
-        rec.set_clip_on(False)
-
     # primary
     draw_box_around_values(startprim, stopprim, ls="dashed")
 
@@ -387,43 +450,6 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
     # coordinates of the axes after they have been modified by
     # tight_layout.
 
-    def rectangle_around_axes(bottomleft_ax, topright_ax, pad, ls, label=None):
-        """
-        pad: tuple, (left, right, bottom, top)
-        """
-        left, bottom = bottomleft_ax.get_position().get_points()[0]
-        right, top = topright_ax.get_position().get_points()[1]
-        left -= pad[0]
-        right += pad[1]
-        bottom -= pad[2]
-        top += pad[3]
-        transf = plt.gcf().transFigure
-        rec = Rectangle(
-            (left, bottom),
-            right - left,
-            top - bottom,
-            transform=transf,
-            fill=False,
-            lw=2,
-            ls=ls,
-        )
-        rec = bottomleft_ax.add_patch(rec)
-        rec.set_clip_on(False)
-
-        if label:
-            middle = (top + bottom) / 2.0
-            moreleft = left  # pad[0]
-            bottomleft_ax.text(
-                moreleft,
-                middle,
-                label,
-                transform=transf,
-                rotation="vertical",
-                fontstyle="oblique",
-                va="center",
-                ha="right",
-            )
-
     rectanglePadding = (0.03, 0.01, 0.03, 0.01)
 
     # Box around primaries
@@ -483,6 +509,14 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
         ha="right",
     )
 
+    # show or save
+    basename = filebase + "_ifit_starnum_" + str(starnum)
+    print(basename)
+    if args.savefig:
+        fig.savefig("{}.{}".format(basename, args.savefig))
+    else:
+        plt.show()
+
 
 if __name__ == "__main__":
 
@@ -492,7 +526,6 @@ if __name__ == "__main__":
         "--starnum", type=int, default=0, help="star number in observed file"
     )
     args = parser.parse_args()
-
     starnum = args.starnum
 
     # base filename
@@ -501,45 +534,5 @@ if __name__ == "__main__":
     # read in the stats
     stats = Table.read(filebase + "_stats.fits")
 
-    # open 1D PDF file
-    pdf1d_hdu = fits.open(filebase + "_pdf1d.fits")
-
-    # filters for PHAT
-    # filters = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W',
-    #           'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M',
-    #           'HST_ACS_WFC_F658N', 'HST_ACS_WFC_F814W',
-    #           'HST_WFC3_F110W', 'HST_WFC3_F160W']
-    # waves = np.asarray([2250., 2750.0, 3360.0,
-    #                    4750., 5500., 6580., 8140.,
-    #                    11000., 16000.])
-    filters = [
-        "HST_WFC3_F275W",
-        "HST_WFC3_F336W",
-        "HST_ACS_WFC_F475W",
-        "HST_ACS_WFC_F814W",
-        "HST_WFC3_F110W",
-        "HST_WFC3_F160W",
-    ]
-    waves = np.asarray(
-        [
-            2722.05531502,
-            3366.00507206,
-            4763.04670013,
-            8087.36760191,
-            11672.35909295,
-            15432.7387546,
-        ]
-    )
-
-    fig, ax = plt.subplots(figsize=(8, 8))
-
     # make the plot!
-    plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum)
-
-    # show or save
-    basename = filebase + "_ifit_starnum_" + str(starnum)
-    print(basename)
-    if args.savefig:
-        fig.savefig("{}.{}".format(basename, args.savefig))
-    else:
-        plt.show()
+    plot_indiv_fit(filters, waves, stats, pdf1d_hdu, starnum)
