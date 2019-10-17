@@ -1,8 +1,6 @@
 """ Data Model interface v2.0
 BEAST datamodel for the example based on M31 PHAT data
 """
-from __future__ import (absolute_import, division, print_function)
-
 import numpy as np
 
 from astropy import units
@@ -15,67 +13,72 @@ from beast.observationmodel.observations import Observations
 from beast.observationmodel.vega import Vega
 from beast.observationmodel.noisemodel import absflux_covmat
 
-#from extra_filters import make_integration_filter, make_top_hat_filter
+# from extra_filters import make_integration_filter, make_top_hat_filter
 
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 # User inputs                                   [sec:conf]
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 # Parameters that are required to make models
 # and to fit the data
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 # AC == authomatically created
 # indicates where user's input change is NOT necessary/recommeded
-#-----------------------------------------------------------------
+# -----------------------------------------------------------------
 
 # project : string
 #   the name of the output results directory
-project = 'beast_example_phat'
+project = "beast_example_phat"
 
 # name of the survey
 #  used for the creation of the unique name for each source
-surveyname = 'PHAT'
+surveyname = "PHAT"
 
 # filters : list of strings
 #   full filter names in BEAST filter database
-filters = ['HST_WFC3_F275W','HST_WFC3_F336W','HST_ACS_WFC_F475W',
-           'HST_ACS_WFC_F814W', 'HST_WFC3_F110W','HST_WFC3_F160W']
+filters = [
+    "HST_WFC3_F275W",
+    "HST_WFC3_F336W",
+    "HST_ACS_WFC_F475W",
+    "HST_ACS_WFC_F814W",
+    "HST_WFC3_F110W",
+    "HST_WFC3_F160W",
+]
 
 # basefilters : list of strings
 #   short names for filters
-basefilters = ['F275W','F336W','F475W',
-               'F814W','F110W','F160W']
+basefilters = ["F275W", "F336W", "F475W", "F814W", "F110W", "F160W"]
 
 # obs_colnames : list of strings
 #   names of columns for filters in the observed catalog
 #   need to match column names in the observed catalog,
-#   input data MUST be in fluxes, NOT in magnitudes 
+#   input data MUST be in fluxes, NOT in magnitudes
 #   fluxes MUST be in normalized Vega units
-obs_colnames = [ f.lower() + '_rate' for f in basefilters ]
-#obs_colnames = [ f.upper() + '_RATE' for f in basefilters ]
+obs_colnames = [f.lower() + "_rate" for f in basefilters]
+# obs_colnames = [ f.upper() + '_RATE' for f in basefilters ]
 
-# obsfile : string 
+# obsfile : string
 #   pathname of the observed catalog
-obsfile = 'data/b15_4band_det_27_A.fits'
+obsfile = "data/b15_4band_det_27_A.fits"
 
-#------------------------------------------------------
+# ------------------------------------------------------
 # Artificial Star Test Input File Generation Parameters
-#------------------------------------------------------
+# ------------------------------------------------------
 
 # ast_models_selected_per_age : integer
 # Number of models to pick per age (Default = 70).
-ast_models_selected_per_age = 70  
+ast_models_selected_per_age = 70
 
-# ast_bands_above_maglimit : integer 
+# ast_bands_above_maglimit : integer
 # Number of filters that must be above the magnitude limit
 # for an AST to be included in the list (Default = 3)
-ast_bands_above_maglimit = 3  
-                             
+ast_bands_above_maglimit = 3
+
 
 # ast_realization_per_model : integer
 # Number of Realizations of each included AST model
 # to be put into the list. (Default = 20)
-ast_realization_per_model = 20 
-                             
+ast_realization_per_model = 20
+
 
 # ast_maglimit : float (single value or array with one value per filter)
 # (1) option 1: [number] to change the number of mags fainter than
@@ -85,7 +88,7 @@ ast_realization_per_model = 20
 #               (Default = 1)
 # (2) option 2: [space-separated list of numbers] to set custom faint end limits
 #               (one value for each band).
-ast_maglimit = [1.] 
+ast_maglimit = [1.0]
 
 # ast_with_positions :  (bool,optional)
 # If True, the ast list is produced with X,Y positions.
@@ -103,16 +106,16 @@ ast_density_table = None
 # ast_N_bins : (int, optional)
 # Number of source or background bins that you want ASTs repeated over
 # ast_N_bins = 8
-                         
+
 # ast_pixel_distribution : float (optional)
 # (Used if ast_with_positions is True), minimum pixel separation between AST
 # position and catalog star used to determine the AST spatial distribution
-ast_pixel_distribution = 10.0 
+ast_pixel_distribution = 10.0
 
 # ast_reference_image : string (optional, but required if ast_with_positions
-# is True and no X and Y information  is present in the photometry catalog)	
-# Name of the reference image used by DOLPHOT when running the measured 
-# photometry.	            
+# is True and no X and Y information  is present in the photometry catalog)
+# Name of the reference image used by DOLPHOT when running the measured
+# photometry.
 ast_reference_image = None
 
 # ast_coord_boundary : None, or list of two arrays (optional)
@@ -122,21 +125,21 @@ ast_reference_image = None
 # (either CW or CCW).
 ast_coord_boundary = None
 
-#-------------------------------------------
-#Noise Model Artificial Star Test Parameters
-#-------------------------------------------
+# -------------------------------------------
+# Noise Model Artificial Star Test Parameters
+# -------------------------------------------
 
 # astfile : string
 #   pathname of the AST files (single camera ASTs)
-astfile = 'data/fake_stars_b15_27_all.hd5'
+astfile = "data/fake_stars_b15_27_all.hd5"
 
-# ast_colnames : list of strings 
+# ast_colnames : list of strings
 #   names of columns for filters in the AST catalog (AC)
 ast_colnames = np.array(basefilters)
 
 # noisefile : string
 #   create a name for the noise model
-noisefile = project + '/' + project + '_noisemodel.hd5'
+noisefile = project + "/" + project + "_noisemodel.grid.hd5"
 
 # absflux calibration covariance matrix for HST specific filters (AC)
 absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
@@ -147,19 +150,21 @@ distances = [24.47]
 # Distance unit (any length or units.mag)
 distance_unit = units.mag
 
-# velocity of galaxy	
-velocity =  -300 * units.km / units.s # M31 velocity from SIMBAD	
+# velocity of galaxy
+velocity = -300 * units.km / units.s  # M31 velocity from SIMBAD
 
 ################
 
-### Stellar grid definition
+# Stellar grid definition
 
 # log10(Age) -- [min,max,step] to generate the isochrones in years
 #   example [6.0, 10.13, 1.0]
 logt = [6.0, 10.13, 1.0]
+age_prior_model = {'name': 'flat'}
 
 # note: Mass is not sampled, instead the isochrone supplied
 #       mass spacing is used instead
+mass_prior_model = {"name": "kroupa"}
 
 # Metallicity : list of floats
 #   Here: Z == Z_initial, NOT Z(t) surface abundance
@@ -167,8 +172,8 @@ logt = [6.0, 10.13, 1.0]
 #   example z = [0.03, 0.019, 0.008, 0.004]
 #   can they be set as [min, max, step]?
 z = [0.03, 0.019, 0.008, 0.004]
+met_prior_model = {"name": "flat"}
 
-# Isochrone Model Grid
 #   Current Choices: Padova or MIST
 #   PadovaWeb() -- `modeltype` param for iso sets from ezpadova
 #      (choices: parsec12s_r14, parsec12s, 2010, 2008, 2002)
@@ -177,45 +182,33 @@ z = [0.03, 0.019, 0.008, 0.004]
 # Default: PARSEC+COLIBRI
 oiso = isochrone.PadovaWeb()
 # Alternative: PARSEC1.2S -- old grid parameters
-#oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)
+# oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)
 # Alternative: MIST -- v1, no rotation
-#oiso = isochrone.MISTWeb()
+# oiso = isochrone.MISTWeb()
 
 # Stellar Atmospheres library definition
 osl = stellib.Tlusty() + stellib.Kurucz()
 
 ################
 
-### Dust extinction grid definition
+# Dust extinction grid definition
 extLaw = extinction.Gordon16_RvFALaw()
 
 # A(V): dust column in magnitudes
 #   acceptable avs > 0.0
 #   example [min, max, step] = [0.0, 10.055, 1.0]
 avs = [0.0, 10.055, 1.0]
-av_prior_model = {'name': 'flat'}
-#av_prior_model = {'name': 'lognormal',
-#                  'max_pos': 2.0,
-#                  'sigma': 1.0,
-#                  'N': 10.}
+av_prior_model = {"name": "flat"}
 
 # R(V): dust average grain size
 #   example [min, max, step] = [2.0,6.0,1.0]
-rvs = [2.0,6.0,1.0]
-rv_prior_model = {'name': 'flat'}
-#rv_prior_model = {'name': 'lognormal',
-#                  'max_pos': 2.0,
-#                  'sigma': 1.0,
-#                  'N': 10.}
+rvs = [2.0, 6.0, 1.0]
+rv_prior_model = {"name": "flat"}
 
 # fA: mixture factor between "MW" and "SMCBar" extinction curves
 #   example [min, max, step] = [0.0,1.0, 0.25]
-fAs = [0.0,1.0, 0.25]
-fA_prior_model = {'name': 'flat'}
-#fA_prior_model = {'name': 'lognormal',
-#                  'max_pos': 0.5,
-#                  'sigma': 0.2,
-#                  'N': 10.}
+fAs = [0.0, 1.0, 0.25]
+fA_prior_model = {"name": "flat"}
 
 ################
 
@@ -227,6 +220,7 @@ add_spectral_properties_kwargs = dict(filternames=filters)
 # The following code does not require user's attention (AC)
 ################
 
+
 class GenFluxCatalog(Observations):
     """Generic n band filter photometry
     This class implements a direct access to the Generic HST measured fluxes.
@@ -235,21 +229,22 @@ class GenFluxCatalog(Observations):
         it does not implement uncertainties as in this model, the noise is
         given through artificial star tests
     """
+
     def __init__(self, inputFile, filters=filters):
         """ Construct the interface """
-        desc = 'GENERIC star: %s' % inputFile
+        desc = "GENERIC star: %s" % inputFile
         Observations.__init__(self, inputFile, desc=desc)
-        self.setFilters( filters )
-        #some bad values smaller than expected
+        self.setFilters(filters)
+        # some bad values smaller than expected
         # in physical flux units
         self.setBadValue(6e-40)
 
         # rate column needed as this is the *flux* column
-        for ik,k in enumerate(filters):
+        for ik, k in enumerate(filters):
             self.data.set_alias(k, obs_colnames[ik])
 
     def getFlux(self, num, units=False):
-        """returns the absolute flux of an observation 
+        """returns the absolute flux of an observation
 
         Parameters
         ----------
@@ -262,18 +257,20 @@ class GenFluxCatalog(Observations):
         Returns
         -------
         flux: ndarray[dtype=float, ndim=1]
-            Measured integrated flux values throughout the filters 
+            Measured integrated flux values throughout the filters
             in erg/s/cm^2/A
         """
 
         # case for using '_flux' result
         d = self.data[num]
-        
-        flux = np.array([ d[self.data.resolve_alias(ok)] 
-                          for ok in self.filters ]) * self.vega_flux
-        
+
+        flux = (
+            np.array([d[self.data.resolve_alias(ok)] for ok in self.filters])
+            * self.vega_flux
+        )
+
         if units is True:
-            return flux * units.erg / (units.s*units.cm*units.cm*units.angstrom)
+            return flux * units.erg / (units.s * units.cm * units.cm * units.angstrom)
         else:
             return flux
 
@@ -287,7 +284,7 @@ class GenFluxCatalog(Observations):
         """
         self.filters = filters
 
-        #Data "rates" are normalized to Vega already, fits are not using vega
+        # Data "rates" are normalized to Vega already, fits are not using vega
 
         # for optimization purpose: pre-compute
         #   getting vega mags, require to open and read the content of one file.

@@ -8,8 +8,7 @@ import h5py
 from astropy.io import fits
 from astropy.utils.data import download_file
 
-__all__ = ['download_rename', 'compare_tables', 'compare_fits',
-           'compare_hdf5']
+__all__ = ["download_rename", "compare_tables", "compare_fits", "compare_hdf5"]
 
 
 def download_rename(filename):
@@ -22,10 +21,10 @@ def download_rename(filename):
     filename : str
         name of file to download
     """
-    url_loc = 'http://www.stsci.edu/~kgordon/beast/'
-    fname_dld = download_file('%s%s' % (url_loc, filename))
-    extension = filename.split('.')[-1]
-    fname = '%s.%s' % (fname_dld, extension)
+    url_loc = "http://www.stsci.edu/~kgordon/beast/"
+    fname_dld = download_file("%s%s" % (url_loc, filename))
+    extension = filename.split(".")[-1]
+    fname = "%s.%s" % (fname_dld, extension)
     os.rename(fname_dld, fname)
     return fname
 
@@ -45,16 +44,18 @@ def compare_tables(table_cache, table_new):
     for tcolname in table_new.colnames:
         # test numerical types for closeness
         # and other types for equality
-        if table_new[tcolname].data.dtype.kind in ['f', 'i']:
-            np.testing.assert_allclose(table_new[tcolname],
-                                       table_cache[tcolname],
-                                       err_msg=('%s columns not equal'
-                                                % tcolname))
+        if table_new[tcolname].data.dtype.kind in ["f", "i"]:
+            np.testing.assert_allclose(
+                table_new[tcolname],
+                table_cache[tcolname],
+                err_msg=("%s columns not equal" % tcolname),
+            )
         else:
-            np.testing.assert_equal(table_new[tcolname],
-                                    table_cache[tcolname],
-                                    err_msg=('%s columns not equal'
-                                             % tcolname))
+            np.testing.assert_equal(
+                table_new[tcolname],
+                table_cache[tcolname],
+                err_msg=("%s columns not equal" % tcolname),
+            )
 
 
 def compare_fits(fname_cache, fname_new):
@@ -73,11 +74,12 @@ def compare_fits(fname_cache, fname_new):
     assert len(fits_new) == len(fits_cache)
 
     for k in range(1, len(fits_new)):
-        qname = fits_new[k].header['EXTNAME']
-        np.testing.assert_allclose(fits_new[k].data,
-                                   fits_cache[qname].data,
-                                   err_msg=('%s FITS extension not equal'
-                                            % qname))
+        qname = fits_new[k].header["EXTNAME"]
+        np.testing.assert_allclose(
+            fits_new[k].data,
+            fits_cache[qname].data,
+            err_msg=("%s FITS extension not equal" % qname),
+        )
 
 
 def compare_hdf5(fname_cache, fname_new, ctype=None):
@@ -93,8 +95,8 @@ def compare_hdf5(fname_cache, fname_new, ctype=None):
     ctype : str
         if set, string to identify the type of data being tested
     """
-    hdf_cache = h5py.File(fname_cache, 'r')
-    hdf_new = h5py.File(fname_new, 'r')
+    hdf_cache = h5py.File(fname_cache, "r")
+    hdf_new = h5py.File(fname_new, "r")
 
     # go through the file and check if it is exactly the same
 
@@ -103,17 +105,22 @@ def compare_hdf5(fname_cache, fname_new, ctype=None):
             cvalue = hdf_cache[sname]
             cvalue_new = hdf_new[sname]
             if ctype is not None:
-                osname = '%s/%s' % (ctype, sname)
+                osname = "%s/%s" % (ctype, sname)
             else:
                 osname = sname
             if cvalue.dtype.fields is None:
-                np.testing.assert_allclose(cvalue.value, cvalue_new.value,
-                                           err_msg='testing %s' % (osname),
-                                           rtol=1e-6)
+                np.testing.assert_allclose(
+                    cvalue.value,
+                    cvalue_new.value,
+                    err_msg="testing %s" % (osname),
+                    rtol=1e-6,
+                )
             else:
                 for ckey in cvalue.dtype.fields.keys():
-                    err_msg = 'testing %s/%s' % (osname, ckey)
-                    np.testing.assert_allclose(cvalue.value[ckey],
-                                               cvalue_new.value[ckey],
-                                               err_msg=err_msg,
-                                               rtol=1e-5)
+                    err_msg = "testing %s/%s" % (osname, ckey)
+                    np.testing.assert_allclose(
+                        cvalue.value[ckey],
+                        cvalue_new.value[ckey],
+                        err_msg=err_msg,
+                        rtol=1e-5,
+                    )

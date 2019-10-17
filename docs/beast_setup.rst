@@ -61,7 +61,8 @@ from datamodel.py. See <beast_grid_inputs.rst> for details on model libraries.
 * ``avs``: dust column in magnitudes (A_V) grid range parameters (min, max, step).
 * ``rvs``: average dust grain size grid (R_V) range parameters (min, max, step).
 * ``fAs``: mixture factor between "MW" and "SMCBar" extinction curves (f_A) grid range parameters (min, max, step).
-* ``*_prior_model``: prior model definitions for dust parameters (A_V, R_V, f_A). Default: flat prior.
+* ``*_prior_model``: prior model definitions for stellar and dust parameters.
+     For more on setting up priors see :ref:`BEAST priors <beast_priors>`.
 
 Optional Features
 -----------------

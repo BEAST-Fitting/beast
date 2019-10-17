@@ -13,20 +13,18 @@ avoid injecting noise when the ASTs grossly oversample the model space.
 This is the case for single band ASTs - this is always the case for the
 BEAST toothpick noise model.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import math
 
 import numpy as np
+
+from tqdm import tqdm
 
 from beast.observationmodel.noisemodel.noisemodel import NoiseModel
 from beast.observationmodel.vega import Vega
 
 from beast.observationmodel.noisemodel.helpers import convert_dict_to_structured_ndarray
-from beast.tools.pbar import Pbar
 
-__all__ = ['MultiFilterASTs']
+__all__ = ["MultiFilterASTs"]
 
 
 class MultiFilterASTs(NoiseModel):
@@ -41,12 +39,12 @@ class MultiFilterASTs(NoiseModel):
     filters: sequence(str)
         sequence of filter names
     """
-    def __init__(self, astfile, filters, vega_fname=None,
-                 *args, **kwargs):
+
+    def __init__(self, astfile, filters, vega_fname=None, *args, **kwargs):
 
         NoiseModel.__init__(self, astfile, *args, **kwargs)
         self.setFilters(filters, vega_fname=vega_fname)
-        if 'pass_mapping' not in kwargs:
+        if "pass_mapping" not in kwargs:
             self.set_data_mappings()
 
         self._fluxes = None
@@ -54,8 +52,7 @@ class MultiFilterASTs(NoiseModel):
         self._sigmas = None
         self._compls = None
 
-    def setFilters(self, filters,
-                   vega_fname=None):
+    def setFilters(self, filters, vega_fname=None):
         """ set the filters and update the vega reference for the conversions
 
         Parameters
@@ -82,18 +79,23 @@ class MultiFilterASTs(NoiseModel):
         """
         try:
             for k in self.filters:
-                self.data.set_alias(k + '_out',
-                                    k.split('_')[-1].lower() + '_vega')
-                self.data.set_alias(k + '_in',
-                                    k.split('_')[-1].lower() + '_in')
+                self.data.set_alias(k + "_out", k.split("_")[-1].lower() + "_vega")
+                self.data.set_alias(k + "_in", k.split("_")[-1].lower() + "_in")
         except Exception as e:
             print(e)
-            print('Warning: Mapping failed. This could lead to wrong results')
+            print("Warning: Mapping failed. This could lead to wrong results")
 
-    def _compute_sigma_bins(self, magflux_in, magflux_out, nbins=30,
-                            min_per_bin=5, completeness_mag_cut=80,
-                            name_prefix=None, asarray=False,
-                            compute_stddev=False):
+    def _compute_sigma_bins(
+        self,
+        magflux_in,
+        magflux_out,
+        nbins=30,
+        min_per_bin=5,
+        completeness_mag_cut=80,
+        name_prefix=None,
+        asarray=False,
+        compute_stddev=False,
+    ):
         """
         Computes sigma estimate for each bin, store the result in a
         dictionary. Estimation performed using percentile-based method
@@ -136,10 +138,10 @@ class MultiFilterASTs(NoiseModel):
 
         """
         if name_prefix is None:
-            name_prefix = ''
+            name_prefix = ""
         else:
-            if name_prefix[-1] != '_':
-                name_prefix += '_'
+            if name_prefix[-1] != "_":
+                name_prefix += "_"
 
         # convert the AST output from magnitudes to fluxes if needed
         #  this is designated by setting the completeness_mag_cut to a
@@ -155,7 +157,7 @@ class MultiFilterASTs(NoiseModel):
                 magflux_out = magflux_out[good_in_indxs]
 
             # now convert from input mags to normalized vega fluxes
-            flux_out = 10 ** (-0.4*magflux_out)
+            flux_out = 10 ** (-0.4 * magflux_out)
             bad_indxs, = np.where(magflux_out >= completeness_mag_cut)
             flux_out[bad_indxs] = 0.0
         else:
@@ -164,7 +166,7 @@ class MultiFilterASTs(NoiseModel):
         # convert the AST input from magnitudes to fluxes
         # always convert the magflux_in to fluxes (the way the ASTs are
         # reported)
-        flux_in = 10 ** (-0.4*magflux_in)
+        flux_in = 10 ** (-0.4 * magflux_in)
 
         # storage the storage of the results
         ave_flux_in = np.zeros(nbins, dtype=float)
@@ -184,11 +186,11 @@ class MultiFilterASTs(NoiseModel):
         #  add a very small value to the max to make sure all the data is
         #  included
         min_flux = math.log10(min(flux_in))
-        max_flux = math.log10(max(flux_in)*1.000001)
-        delta_flux = (max_flux - min_flux)/float(nbins)
-        bin_min_vals = min_flux + np.arange(nbins)*delta_flux
+        max_flux = math.log10(max(flux_in) * 1.000001)
+        delta_flux = (max_flux - min_flux) / float(nbins)
+        bin_min_vals = min_flux + np.arange(nbins) * delta_flux
         bin_max_vals = bin_min_vals + delta_flux
-        bin_ave_vals = 0.5*(bin_min_vals + bin_max_vals)
+        bin_ave_vals = 0.5 * (bin_min_vals + bin_max_vals)
 
         # convert the bin min/max value to linear space for computational ease
         bin_min_vals = 10 ** bin_min_vals
@@ -196,8 +198,9 @@ class MultiFilterASTs(NoiseModel):
         bin_ave_vals = 10 ** bin_ave_vals
 
         for i in range(nbins):
-            bindxs, = np.where((flux_in >= bin_min_vals[i]) &
-                               (flux_in < bin_max_vals[i]))
+            bindxs, = np.where(
+                (flux_in >= bin_min_vals[i]) & (flux_in < bin_max_vals[i])
+            )
             n_bindxs = len(bindxs)
             if n_bindxs > 0:
                 bin_flux_in = flux_in[bindxs]
@@ -205,12 +208,11 @@ class MultiFilterASTs(NoiseModel):
                 # compute completeness
                 g_bindxs, = np.where(bin_flux_out != 0.0)
                 n_g_bindxs = len(g_bindxs)
-                completeness[i] = n_g_bindxs/float(n_bindxs)
+                completeness[i] = n_g_bindxs / float(n_bindxs)
                 if n_g_bindxs > min_per_bin:
                     good_bins[i] = 1
                     ave_flux_in[i] = np.mean(bin_flux_in)
-                    bin_bias_flux = (bin_flux_out[g_bindxs]
-                                     - bin_flux_in[g_bindxs])
+                    bin_bias_flux = bin_flux_out[g_bindxs] - bin_flux_in[g_bindxs]
                     if compute_stddev:
                         # compute sigma via mean/stddev
                         ave_bias[i] = np.mean(bin_bias_flux)
@@ -218,21 +220,23 @@ class MultiFilterASTs(NoiseModel):
                     else:
                         # compute sigma via percentiles
                         # ave = 50th; std = (84th-16th)/2
-                        flux_percent_out = np.percentile(bin_bias_flux,
-                                                         [16., 50., 84.])
+                        flux_percent_out = np.percentile(
+                            bin_bias_flux, [16.0, 50.0, 84.0]
+                        )
                         ave_bias[i] = flux_percent_out[1]
-                        std_bias[i] = (flux_percent_out[2]
-                                       - flux_percent_out[0])/2.
+                        std_bias[i] = (flux_percent_out[2] - flux_percent_out[0]) / 2.0
 
         # only pass back the bins with non-zero results
         gindxs, = np.where(good_bins == 1)
 
-        d = {name_prefix + 'FLUX_STD': std_bias[gindxs],
-             name_prefix + 'FLUX_BIAS': ave_bias[gindxs],
-             name_prefix + 'FLUX_IN': bin_ave_vals[gindxs],
-             name_prefix + 'FLUX_OUT': bin_ave_vals[gindxs] + ave_bias[gindxs],
-             name_prefix + 'COMPLETENESS': completeness[gindxs],
-             name_prefix + 'MINMAX': ast_minmax}
+        d = {
+            name_prefix + "FLUX_STD": std_bias[gindxs],
+            name_prefix + "FLUX_BIAS": ave_bias[gindxs],
+            name_prefix + "FLUX_IN": bin_ave_vals[gindxs],
+            name_prefix + "FLUX_OUT": bin_ave_vals[gindxs] + ave_bias[gindxs],
+            name_prefix + "COMPLETENESS": completeness[gindxs],
+            name_prefix + "MINMAX": ast_minmax,
+        }
 
         if asarray:
             return convert_dict_to_structured_ndarray(d)
@@ -243,9 +247,9 @@ class MultiFilterASTs(NoiseModel):
         """
         Alias of fit_bins
         """
-        return self.fit_bins(nbins=nbins,
-                             completeness_mag_cut=completeness_mag_cut,
-                             progress=progress)
+        return self.fit_bins(
+            nbins=nbins, completeness_mag_cut=completeness_mag_cut, progress=progress
+        )
 
     def fit_bins(self, nbins=30, completeness_mag_cut=80, progress=True):
         """
@@ -272,26 +276,29 @@ class MultiFilterASTs(NoiseModel):
         self._minmax_asts = np.empty((2, shape[1]), dtype=float)
 
         if progress is True:
-            it = Pbar(desc='fitting model').iterover(self.filters)
+            it = tqdm(self.filters, desc="Fitting model")
         else:
             it = self.filters
 
         for e, filterk in enumerate(it):
 
-            mag_in = self.data[filterk + '_in']
-            magflux_out = self.data[filterk + '_out']
+            mag_in = self.data[filterk + "_in"]
+            magflux_out = self.data[filterk + "_out"]
 
             d = self._compute_sigma_bins(
-                mag_in, magflux_out, nbins=nbins,
-                completeness_mag_cut=completeness_mag_cut)
+                mag_in,
+                magflux_out,
+                nbins=nbins,
+                completeness_mag_cut=completeness_mag_cut,
+            )
 
-            ncurasts = len(d['FLUX_IN'])
-            self._fluxes[0:ncurasts, e] = d['FLUX_IN'] * self.vega_flux[e]
-            self._sigmas[0:ncurasts, e] = d['FLUX_STD'] * self.vega_flux[e]
-            self._biases[0:ncurasts, e] = d['FLUX_BIAS'] * self.vega_flux[e]
-            self._compls[0:ncurasts, e] = d['COMPLETENESS']
+            ncurasts = len(d["FLUX_IN"])
+            self._fluxes[0:ncurasts, e] = d["FLUX_IN"] * self.vega_flux[e]
+            self._sigmas[0:ncurasts, e] = d["FLUX_STD"] * self.vega_flux[e]
+            self._biases[0:ncurasts, e] = d["FLUX_BIAS"] * self.vega_flux[e]
+            self._compls[0:ncurasts, e] = d["COMPLETENESS"]
             self._nasts[e] = ncurasts
-            self._minmax_asts[:, e] = d['MINMAX'] * self.vega_flux[e]
+            self._minmax_asts[:, e] = d["MINMAX"] * self.vega_flux[e]
 
             del d
 
@@ -322,15 +329,17 @@ class MultiFilterASTs(NoiseModel):
         N, M = flux.shape
 
         if M != len(self.filters):
-            raise AttributeError('the grid of models does not seem to' +
-                                 'be defined with the same number of filters')
+            raise AttributeError(
+                "the grid of models does not seem to"
+                + "be defined with the same number of filters"
+            )
 
         bias = np.empty((N, M), dtype=float)
         sigma = np.empty((N, M), dtype=float)
         compl = np.empty((N, M), dtype=float)
 
         if progress is True:
-            it = Pbar(desc='Evaluating model').iterover(list(range(M)))
+            it = tqdm(list(range(M)), desc="Evaluating model")
         else:
             it = list(range(M))
 

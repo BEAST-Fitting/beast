@@ -19,17 +19,13 @@ TODO: Check where any beast code uses eztable.Table's specific methods and
       * selectWhere
       * readCoordinates (although should work already)
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import sys
 import numpy as np
 from copy import deepcopy
 
 from beast.observationmodel import phot
 from beast.physicsmodel.dust import extinction
-from beast.physicsmodel.helpers.gridbackends import (MemoryBackend, CacheBackend,
-                                   HDFBackend, GridBackend)
+from beast.physicsmodel.helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
 from beast.physicsmodel.helpers.gridhelpers import pretty_size_print, isNestedInstance
 
 try:
@@ -47,8 +43,7 @@ else:
     bytes = str
     basestring = (str, unicode)
 
-__all__ = ['ModelGrid', 'SpectralGrid', 'StellibGrid',
-           'MemoryGrid', 'FileSEDGrid']
+__all__ = ["ModelGrid", "SpectralGrid", "StellibGrid", "MemoryGrid", "FileSEDGrid"]
 
 
 def find_backend(txt):
@@ -67,16 +62,18 @@ def find_backend(txt):
         corresponding backend class
     """
 
-    maps = {'memory': MemoryBackend,
-            'cache': CacheBackend,
-            'hdf': HDFBackend,
-            'generic': GridBackend
-            }
+    maps = {
+        "memory": MemoryBackend,
+        "cache": CacheBackend,
+        "hdf": HDFBackend,
+        "generic": GridBackend,
+    }
     return maps.get(txt.lower(), None)
 
 
 class ModelGrid(object):
     """ Generic class for a minimum update of future codes """
+
     def __init__(self, *args, **kwargs):
         """
         Parameters
@@ -110,7 +107,7 @@ class ModelGrid(object):
             'hdf': HDFBackend,
             'generic': GridBackend
         """
-        backend = kwargs.pop('backend', None)
+        backend = kwargs.pop("backend", None)
         if backend is None:
             self._backend = GridBackend(*args, **kwargs)
         elif type(backend) in basestring:
@@ -156,22 +153,23 @@ class ModelGrid(object):
         self._backend.grid = value
 
     def __repr__(self):
-        txt = '{} ({})'
-        return txt.format(object.__repr__(self),
-                          pretty_size_print(self.nbytes))
+        txt = "{} ({})"
+        return txt.format(object.__repr__(self), pretty_size_print(self.nbytes))
 
     @property
     def nbytes(self):
         """ return the number of bytes of the object """
-        n = sum(k.nbytes if hasattr(k, 'nbytes') else
-                sys.getsizeof(k) for k in list(self.__dict__.values()))
+        n = sum(
+            k.nbytes if hasattr(k, "nbytes") else sys.getsizeof(k)
+            for k in list(self.__dict__.values())
+        )
         return n
 
     def keys(self):
         """ returns the grid dimension names """
-        if hasattr(self.grid, 'keys'):
+        if hasattr(self.grid, "keys"):
             return list(self.grid.keys())
-        elif hasattr(self.grid, 'colnames'):
+        elif hasattr(self.grid, "colnames"):
             return self.grid.colnames
         else:
             return []
@@ -181,14 +179,14 @@ class ModelGrid(object):
             return self.__dict__[name]
         elif hasattr(self._backend, name):
             return getattr(self._backend, name)
-        elif hasattr(self.grid, 'keys'):
+        elif hasattr(self.grid, "keys"):
             return self.grid[name]
         else:
             msg = "'{0}' object has no attribute '{1}'"
             raise AttributeError(msg.format(type(self).__name__, name))
 
     def __getitem__(self, name):
-        if hasattr(self.grid, 'read'):
+        if hasattr(self.grid, "read"):
             try:
                 return self.grid.read(field=name)
             except TypeError:
@@ -205,8 +203,15 @@ class SpectralGrid(ModelGrid):
     """ Generate a grid that contains spectra.
     It provides an access to integrated photometry function getSEDs """
 
-    def getSEDs(self, filter_names, absFlux=True, extLaw=None, inplace=False,
-                filterLib=None, **kwargs):
+    def getSEDs(
+        self,
+        filter_names,
+        absFlux=True,
+        extLaw=None,
+        inplace=False,
+        filterLib=None,
+        **kwargs
+    ):
         """
         Extract integrated fluxes through filters
 
@@ -237,12 +242,14 @@ class SpectralGrid(ModelGrid):
             grid of SEDs
         """
         if type(filter_names[0]) == str:
-            flist = phot.load_filters(filter_names, interp=True,
-                                      lamb=self.lamb, filterLib=filterLib)
+            flist = phot.load_filters(
+                filter_names, interp=True, lamb=self.lamb, filterLib=filterLib
+            )
             _fnames = filter_names
         else:
-            flist = phot.load_Integrationfilters(filter_names, interp=True,
-                                                 lamb=self.lamb)
+            flist = phot.load_Integrationfilters(
+                filter_names, interp=True, lamb=self.lamb
+            )
             _fnames = [fk.name for fk in filter_names]
         if extLaw is not None:
             if not inplace:
@@ -250,12 +257,11 @@ class SpectralGrid(ModelGrid):
                 lamb, seds, grid = phot.extractSEDs(r, flist, absFlux=absFlux)
             else:
                 self.applyExtinctionLaw(extLaw, inplace=inplace, **kwargs)
-                lamb, seds, grid = phot.extractSEDs(self, flist,
-                                                    absFlux=absFlux)
+                lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
         else:
             lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
         memgrid = MemoryGrid(lamb, seds, grid)
-        setattr(memgrid, 'filters', _fnames)
+        setattr(memgrid, "filters", _fnames)
         return memgrid
 
     def applyExtinctionLaw(self, extLaw, inplace=False, **kwargs):
@@ -279,18 +285,19 @@ class SpectralGrid(ModelGrid):
             if not inplace, returns a new ModelGrid instance. Otherwise returns
             nothing
         """
-        assert(isinstance(extLaw, extinction.ExtinctionLaw)), \
-            'Expecting ExtinctionLaw object got %s' % type(extLaw)
-        extCurve = np.exp(-1. * extLaw.function(self.lamb[:], **kwargs))
+        assert isinstance(
+            extLaw, extinction.ExtinctionLaw
+        ), "Expecting ExtinctionLaw object got %s" % type(extLaw)
+        extCurve = np.exp(-1.0 * extLaw.function(self.lamb[:], **kwargs))
         if not inplace:
             g = self.copy()
             g.seds = g.seds[:] * extCurve[None, :]
-            g.header['ExtLaw'] = extLaw.name
+            g.header["ExtLaw"] = extLaw.name
             for k, v in kwargs.items():
                 g.header[k] = v
             return g
         else:
-            self.header['ExtLaw'] = extLaw.name
+            self.header["ExtLaw"] = extLaw.name
             for k, v in kwargs.items():
                 self.header[k] = v
             self.seds = self.seds[:] * extCurve[None, :]
@@ -301,15 +308,15 @@ class StellibGrid(SpectralGrid):
 
     def __init__(self, osl, filters, header={}, aliases={}, *args, **kwargs):
         self.osl = osl
-        lamb, seds = self.getSEDs(filters,
-                                  self.osl.wavelength,
-                                  self.osl.spectra)
-        super(StellibGrid, self).__init__(lamb,
-                                          seds=seds,
-                                          grid=self.osl.grid,
-                                          header=header,
-                                          aliases=aliases,
-                                          backend=MemoryBackend)
+        lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
+        super(StellibGrid, self).__init__(
+            lamb,
+            seds=seds,
+            grid=self.osl.grid,
+            header=header,
+            aliases=aliases,
+            backend=MemoryBackend,
+        )
         self.filters = filters
 
     def copy(self):
@@ -348,11 +355,17 @@ def MemoryGrid(lamb, seds=None, grid=None, header={}, aliases={}):
     g: ModelGrid
         grid of models with no physical storage (MemoryBackend)
     """
-    return ModelGrid(lamb, seds=seds, grid=grid, header=header,
-                     aliases=aliases, backend=MemoryBackend)
+    return ModelGrid(
+        lamb,
+        seds=seds,
+        grid=grid,
+        header=header,
+        aliases=aliases,
+        backend=MemoryBackend,
+    )
 
 
-def FileSEDGrid(fname, header={}, aliases={}, backend='memory'):
+def FileSEDGrid(fname, header={}, aliases={}, backend="memory"):
     """ Replace the FileSEDGrid class for backwards compatibility
         Generates a grid from a spectral library on disk
 

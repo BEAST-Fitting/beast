@@ -14,36 +14,33 @@ possibility to generate grids that cannot fit in memory.
     * likelihood computations need to be updated to allow computations even if
       the full grid does not fit in memory
 """
-from __future__ import (absolute_import, print_function, division)
-
-__version__ = '2.0dev'
-
 import numpy as np
 import copy
 
 from astropy import units
+from tqdm import tqdm
 
 from beast.physicsmodel.stars import stellib
-from beast.physicsmodel.grid import SpectralGrid
+from beast.physicsmodelbeast.physicsmodel.grid import SpectralGrid
 from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
 from beast.external.eztables import Table
-from beast.tools.pbar import Pbar
 from beast.tools.helpers import generator
 from beast.tools import helpers
 
 from beast.observationmodel.noisemodel import absflux_covmat
 
-__all__ = ['gen_spectral_grid_from_stellib_given_points',
-           'make_extinguished_grid',
-           'add_spectral_properties',
-           'calc_absflux_cov_matrices']
+__all__ = [
+    "gen_spectral_grid_from_stellib_given_points",
+    "make_extinguished_grid",
+    "add_spectral_properties",
+    "calc_absflux_cov_matrices",
+]
 
 
 @generator
-def gen_spectral_grid_from_stellib_given_points(osl, pts,
-                                                bounds=dict(dlogT=0.1,
-                                                            dlogg=0.3),
-                                                chunksize=0):
+def gen_spectral_grid_from_stellib_given_points(
+    osl, pts, bounds=dict(dlogT=0.1, dlogg=0.3), chunksize=0
+):
     """
     Generator that reinterpolates a given stellar spectral library on to
        an Isochrone grid
@@ -74,7 +71,7 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
         and associated spectra
     """
 
-    helpers.type_checker('osl', osl, stellib.Stellib)
+    helpers.type_checker("osl", osl, stellib.Stellib)
 
     if chunksize <= 0:
         yield osl.gen_spectral_grid_from_given_points(pts, bounds=bounds)
@@ -82,17 +79,14 @@ def gen_spectral_grid_from_stellib_given_points(osl, pts,
         try:
             # Yield successive n-sized chunks from l, assuming we can take
             # slices of the iterator
-            for chunk_slice in helpers.chunks(list(range(len(pts))),
-                                              chunksize):
+            for chunk_slice in helpers.chunks(list(range(len(pts))), chunksize):
                 chunk_pts = pts[chunk_slice]
-                yield osl.gen_spectral_grid_from_given_points(chunk_pts,
-                                                              bounds=bounds)
+                yield osl.gen_spectral_grid_from_given_points(chunk_pts, bounds=bounds)
         except Exception as e:
             # chunks may not work on this as pts is most likely a Table
             print(e)
             for chunk_pts in helpers.chunks(pts, chunksize):
-                yield osl.gen_spectral_grid_from_given_points(chunk_pts,
-                                                              bounds=bounds)
+                yield osl.gen_spectral_grid_from_given_points(chunk_pts, bounds=bounds)
 
 
 def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
@@ -128,8 +122,11 @@ def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
     npts = 0
 
     def is_valid(ak, rk, fk):
-        return (fk / max_Rv + (1. - fk) / 2.74 <= 1. / rk <= fk * 1. /
-                min_Rv + (1. - fk) / 2.74)
+        return (
+            fk / max_Rv + (1.0 - fk) / 2.74
+            <= 1.0 / rk
+            <= fk * 1.0 / min_Rv + (1.0 - fk) / 2.74
+        )
 
     # explore the full list once
     # not very time consuming
@@ -138,14 +135,14 @@ def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
             npts += 1
 
     # make the iterator
-    pts = ((float(ak), float(rk), float(fk)) for ak, rk, fk in it if
-           is_valid(ak, rk, fk))
+    pts = (
+        (float(ak), float(rk), float(fk)) for ak, rk, fk in it if is_valid(ak, rk, fk)
+    )
 
     return npts, pts
 
 
-def apply_distance_grid(specgrid, distances,
-                        redshift=0):
+def apply_distance_grid(specgrid, distances, redshift=0):
     """
     Distances are applied to the spectral grid by copying the grid and
     applying a scaling factor.
@@ -175,14 +172,14 @@ def apply_distance_grid(specgrid, distances,
     N = N0 * len(distances)
 
     # Make singleton list if a single distance is given
-    if not hasattr(distances, '__iter__'):
+    if not hasattr(distances, "__iter__"):
         _distances = [distances]
     else:
         _distances = distances
 
     # Add distance column if multiple distances are specified
     cols = {}
-    cols['distance'] = np.empty(N, dtype=float)
+    cols["distance"] = np.empty(N, dtype=float)
 
     # Existing columns
     keys0 = list(g0.keys())
@@ -192,9 +189,7 @@ def apply_distance_grid(specgrid, distances,
     n_sed_points = g0.seds.shape[1]
     new_seds = np.empty((N, n_sed_points), dtype=float)
 
-    for count, distance in \
-            Pbar(len(_distances),
-                 desc='grid with distances').iterover(enumerate(_distances)):
+    for count, distance in enumerate(tqdm(_distances, desc="Distance grid")):
 
         # The range where the current distance points will live
         distance_slice = slice(N0 * count, N0 * (count + 1))
@@ -205,31 +200,36 @@ def apply_distance_grid(specgrid, distances,
         new_seds[distance_slice, :] = g0.seds / (0.1 * distance_pc) ** 2
 
         # Fill in the distance in the distance column
-        cols['distance'][distance_slice] = distance_pc
+        cols["distance"][distance_slice] = distance_pc
 
         # Copy the old columns
         for key in keys0:
             cols[key][distance_slice] = g0.grid[key]
 
     # apply redshift
-    g0.lamb = g0.lamb * (1. + redshift)
+    g0.lamb = g0.lamb * (1.0 + redshift)
 
     # New object
-    g = SpectralGrid(g0.lamb, seds=new_seds, grid=Table(cols),
-                     backend='memory')
+    g = SpectralGrid(g0.lamb, seds=new_seds, grid=Table(cols), backend="memory")
     return g
 
 
 @generator
-def make_extinguished_grid(spec_grid, filter_names, extLaw,
-                           avs, rvs, fAs=None,
-                           av_prior_model={'name': 'flat'},
-                           rv_prior_model={'name': 'flat'},
-                           fA_prior_model={'name': 'flat'},
-                           chunksize=0,
-                           add_spectral_properties_kwargs=None,
-                           absflux_cov=False,
-                           filterLib=None):
+def make_extinguished_grid(
+    spec_grid,
+    filter_names,
+    extLaw,
+    avs,
+    rvs,
+    fAs=None,
+    av_prior_model={"name": "flat"},
+    rv_prior_model={"name": "flat"},
+    fA_prior_model={"name": "flat"},
+    chunksize=0,
+    add_spectral_properties_kwargs=None,
+    absflux_cov=False,
+    filterLib=None,
+):
     """
     Extinguish spectra and extract an SEDGrid through given series of filters
     (all wavelengths in stellar SEDs and filter response functions are assumed
@@ -297,13 +297,13 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
     # if string is provided try to load the most memory efficient backend
     # otherwise use a cache-type backend (load only when needed)
     if type(spec_grid) == str:
-        ext = spec_grid.split('.')[-1]
-        if ext in ['hdf', 'hd5', 'hdf5']:
-            g0 = SpectralGrid(spec_grid, backend='hdf')
+        ext = spec_grid.split(".")[-1]
+        if ext in ["hdf", "hd5", "hdf5"]:
+            g0 = SpectralGrid(spec_grid, backend="hdf")
         else:
-            g0 = SpectralGrid(spec_grid, backend='cache')
+            g0 = SpectralGrid(spec_grid, backend="cache")
     else:
-        helpers.type_checker('spec_grid', spec_grid, SpectralGrid)
+        helpers.type_checker("spec_grid", spec_grid, SpectralGrid)
         g0 = spec_grid
 
     # Tag fA usage
@@ -321,26 +321,30 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
     # basically the dot product from all input 1d vectors
     # setup interation over the full dust parameter grid
     if with_fA:
-        dustpriors = PriorWeightsDust(avs, av_prior_model,
-                                      rvs, rv_prior_model,
-                                      fAs, fA_prior_model)
+        dustpriors = PriorWeightsDust(
+            avs, av_prior_model, rvs, rv_prior_model, fAs, fA_prior_model
+        )
 
         it = np.nditer(np.ix_(avs, rvs, fAs))
         niter = np.size(avs) * np.size(rvs) * np.size(fAs)
         npts, pts = _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv)
 
         # Pet the user
-        print("""number of initially requested points = {0:d}
+        print(
+            """number of initially requested points = {0:d}
               number of valid points = {1:d} (based on restrictions in R(V)
                  versus f_A plane)
-              """.format(niter, npts))
+              """.format(
+                niter, npts
+            )
+        )
 
         if npts == 0:
-            raise AttributeError('No valid points')
+            raise AttributeError("No valid points")
     else:
-        dustpriors = PriorWeightsDust(avs, av_prior_model,
-                                      rvs, rv_prior_model,
-                                      [1.0], fA_prior_model)
+        dustpriors = PriorWeightsDust(
+            avs, av_prior_model, rvs, rv_prior_model, [1.0], fA_prior_model
+        )
 
         it = np.nditer(np.ix_(avs, rvs))
         npts = np.size(avs) * np.size(rvs)
@@ -352,29 +356,28 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
     N = N0 * npts
 
     if chunksize <= 0:
-        print('Generating a final grid of {0:d} points'.format(N))
+        print("Generating a final grid of {0:d} points".format(N))
     else:
-        print('Generating a final grid of {0:d} points in {1:d}' +
-              ' pieces'.format(N, int(float(N0) / chunksize + 1.)))
+        print(
+            "Generating a final grid of {0:d} points in {1:d}"
+            + " pieces".format(N, int(float(N0) / chunksize + 1.0))
+        )
 
     if chunksize <= 0:
         chunksize = npts
 
     if add_spectral_properties_kwargs is not None:
-        nameformat = add_spectral_properties_kwargs.pop('nameformat',
-                                                        '{0:s}') + '_wd'
+        nameformat = add_spectral_properties_kwargs.pop("nameformat", "{0:s}") + "_wd"
 
     for chunk_pts in helpers.chunks(pts, chunksize):
         # iter over chunks of models
 
         # setup chunk outputs
-        cols = {'Av': np.empty(N, dtype=float),
-                'Rv': np.empty(N, dtype=float)
-                }
+        cols = {"Av": np.empty(N, dtype=float), "Rv": np.empty(N, dtype=float)}
 
         if with_fA:
-            cols['Rv_A'] = np.empty(N, dtype=float)
-            cols['f_A'] = np.empty(N, dtype=float)
+            cols["Rv_A"] = np.empty(N, dtype=float)
+            cols["f_A"] = np.empty(N, dtype=float)
 
         keys = list(g0.keys())
         for key in keys:
@@ -383,32 +386,31 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
         n_filters = len(filter_names)
         _seds = np.empty((N, n_filters), dtype=float)
         if absflux_cov:
-            n_offdiag = (((n_filters**2)-n_filters)/2)
+            n_offdiag = ((n_filters ** 2) - n_filters) / 2
             _cov_diag = np.empty((N, n_filters), dtype=float)
             _cov_offdiag = np.empty((N, n_offdiag), dtype=float)
 
-        for count, pt in \
-                Pbar(npts, desc='SED grid').iterover(enumerate(chunk_pts)):
+        for count, pt in enumerate(tqdm(chunk_pts, desc="SED grid")):
 
             if with_fA:
                 Av, Rv, f_A = pt
                 dust_prior_weight = dustpriors.get_weight(Av, Rv, f_A)
                 Rv_MW = extLaw.get_Rv_A(Rv, f_A)
-                r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_A,
-                                          inplace=False)
+                r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_A, inplace=False)
                 # add extra "spectral bands" if requested
                 if add_spectral_properties_kwargs is not None:
                     r = add_spectral_properties(
-                        r, nameformat=nameformat,
+                        r,
+                        nameformat=nameformat,
                         filterLib=filterLib,
-                        **add_spectral_properties_kwargs)
-                temp_results = r.getSEDs(filter_names,
-                                         filterLib=filterLib)
+                        **add_spectral_properties_kwargs
+                    )
+                temp_results = r.getSEDs(filter_names, filterLib=filterLib)
                 # adding the dust parameters to the models
-                cols['Av'][N0 * count: N0 * (count + 1)] = Av
-                cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
-                cols['f_A'][N0 * count:N0 * (count + 1)] = f_A
-                cols['Rv_A'][N0 * count: N0 * (count + 1)] = Rv_MW
+                cols["Av"][N0 * count : N0 * (count + 1)] = Av
+                cols["Rv"][N0 * count : N0 * (count + 1)] = Rv
+                cols["f_A"][N0 * count : N0 * (count + 1)] = f_A
+                cols["Rv_A"][N0 * count : N0 * (count + 1)] = Rv_MW
 
             else:
                 Av, Rv = pt
@@ -417,47 +419,48 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
 
                 if add_spectral_properties_kwargs is not None:
                     r = add_spectral_properties(
-                        r, nameformat=nameformat,
+                        r,
+                        nameformat=nameformat,
                         filterLib=filterLib,
-                        **add_spectral_properties_kwargs)
-                temp_results = r.getSEDs(filter_names,
-                                         filterLib=filterLib)
+                        **add_spectral_properties_kwargs
+                    )
+                temp_results = r.getSEDs(filter_names, filterLib=filterLib)
                 # adding the dust parameters to the models
-                cols['Av'][N0 * count: N0 * (count + 1)] = Av
-                cols['Rv'][N0 * count: N0 * (count + 1)] = Rv
+                cols["Av"][N0 * count : N0 * (count + 1)] = Av
+                cols["Rv"][N0 * count : N0 * (count + 1)] = Rv
 
             # get new attributes if exist
             for key in list(temp_results.grid.keys()):
                 if key not in keys:
                     k1 = N0 * count
                     k2 = N0 * (count + 1)
-                    cols.setdefault(key, np.empty(N, dtype=float))[k1:k2] = \
-                        temp_results.grid[key]
+                    cols.setdefault(key, np.empty(N, dtype=float))[
+                        k1:k2
+                    ] = temp_results.grid[key]
 
             # compute the fractional absflux covariance matrices
             if absflux_cov:
-                absflux_covmats = calc_absflux_cov_matrices(r, temp_results,
-                                                            filter_names)
-                _cov_diag[N0 * count: N0 * (count + 1)] = absflux_covmats[0]
-                _cov_offdiag[N0 * count: N0 * (count + 1)] = absflux_covmats[1]
+                absflux_covmats = calc_absflux_cov_matrices(
+                    r, temp_results, filter_names
+                )
+                _cov_diag[N0 * count : N0 * (count + 1)] = absflux_covmats[0]
+                _cov_offdiag[N0 * count : N0 * (count + 1)] = absflux_covmats[1]
 
             # assign the extinguished SEDs to the output object
-            _seds[N0 * count: N0 * (count + 1)] = temp_results.seds[:]
+            _seds[N0 * count : N0 * (count + 1)] = temp_results.seds[:]
 
             # copy the rest of the parameters
             for key in keys:
-                cols[key][N0 * count: N0 * (count + 1)] = g0.grid[key]
+                cols[key][N0 * count : N0 * (count + 1)] = g0.grid[key]
 
             # multiply existing prior weights by the dust prior weight
-            cols['weight'][N0 * count: N0 * (count + 1)] \
-                *= dust_prior_weight
-            cols['prior_weight'][N0 * count: N0 * (count + 1)] \
-                *= dust_prior_weight
+            cols["weight"][N0 * count : N0 * (count + 1)] *= dust_prior_weight
+            cols["prior_weight"][N0 * count : N0 * (count + 1)] *= dust_prior_weight
 
             if count == 0:
-                cols['lamb'] = temp_results.lamb[:]
+                cols["lamb"] = temp_results.lamb[:]
 
-        _lamb = cols.pop('lamb')
+        _lamb = cols.pop("lamb")
 
         # free the memory of temp_results
         # del temp_results
@@ -465,20 +468,30 @@ def make_extinguished_grid(spec_grid, filter_names, extLaw,
 
         # Ship
         if absflux_cov:
-            g = SpectralGrid(_lamb, seds=_seds,
-                             cov_diag=_cov_diag, cov_offdiag=_cov_offdiag,
-                             grid=Table(cols), backend='memory')
+            g = SpectralGrid(
+                _lamb,
+                seds=_seds,
+                cov_diag=_cov_diag,
+                cov_offdiag=_cov_offdiag,
+                grid=Table(cols),
+                backend="memory",
+            )
         else:
-            g = SpectralGrid(_lamb, seds=_seds,
-                             grid=Table(cols), backend='memory')
+            g = SpectralGrid(_lamb, seds=_seds, grid=Table(cols), backend="memory")
 
-        g.grid.header['filters'] = ' '.join(filter_names)
+        g.grid.header["filters"] = " ".join(filter_names)
 
         yield g
 
 
-def add_spectral_properties(specgrid, filternames=None, filters=None,
-                            callables=None, nameformat=None, filterLib=None):
+def add_spectral_properties(
+    specgrid,
+    filternames=None,
+    filters=None,
+    callables=None,
+    nameformat=None,
+    filterLib=None,
+):
     """ Addon spectral calculations to spectral grids to extract in the fitting
     routines
 
@@ -510,7 +523,7 @@ def add_spectral_properties(specgrid, filternames=None, filters=None,
         instance of the input spectral grid which will include more properties
     """
     if nameformat is None:
-        nameformat = '{0:s}_0'
+        nameformat = "{0:s}_0"
 
     if filternames is not None:
         temp = specgrid.getSEDs(filternames, extLaw=None, filterLib=filterLib)
@@ -521,11 +534,10 @@ def add_spectral_properties(specgrid, filternames=None, filters=None,
             logtempseds[indxs] = np.log10(temp.seds[indxs])
         indxs = np.where(temp.seds <= 0)
         if len(indxs) > 0:
-            logtempseds[indxs] = -100.
+            logtempseds[indxs] = -100.0
 
         for i, fk in enumerate(filternames):
-            specgrid.grid.addCol('log'+nameformat.format(fk),
-                                 logtempseds[:, i])
+            specgrid.grid.addCol("log" + nameformat.format(fk), logtempseds[:, i])
         del temp
 
     if filters is not None:
@@ -538,11 +550,10 @@ def add_spectral_properties(specgrid, filternames=None, filters=None,
 
         indxs = np.where(temp.seds <= 0)
         if len(indxs) > 0:
-            logtempseds[indxs] = -100.
+            logtempseds[indxs] = -100.0
 
         for i, fk in enumerate(filters):
-            specgrid.grid.addCol('log'+nameformat.format(fk.name),
-                                 logtempseds[:, i])
+            specgrid.grid.addCol("log" + nameformat.format(fk.name), logtempseds[:, i])
         del temp
 
     if callables is not None:
@@ -573,12 +584,13 @@ def calc_absflux_cov_matrices(specgrid, sedgrid, filter_names):
 
     # get the fractional absflux covariance matrix
     absflux_cov_mats = absflux_covmat.hst_frac_matrix(
-        filter_names, spectrum=(specgrid.lamb[:], specgrid.seds))
+        filter_names, spectrum=(specgrid.lamb[:], specgrid.seds)
+    )
 
     # setup the output quantities
     n_models = specgrid.seds.shape[0]
     n_filters = len(filter_names)
-    n_offdiag = (((n_filters**2)-n_filters)/2)
+    n_offdiag = ((n_filters ** 2) - n_filters) / 2
     cov_diag = np.empty((n_models, n_filters), dtype=np.float64)
     cov_offdiag = np.empty((n_models, n_offdiag), dtype=np.float64)
 
@@ -588,14 +600,15 @@ def calc_absflux_cov_matrices(specgrid, sedgrid, filter_names):
     #     and fitting
     #   also convert from fractional to physical flux units
     m = 0
-    cov_diag[:, n_filters-1] = (absflux_cov_mats[:, n_filters-1, n_filters-1]
-                                * np.square(sedgrid.seds[:, n_filters-1]))
-    for k in range(n_filters-1):
-        cov_diag[:, k] = (absflux_cov_mats[:, k, k]
-                          * np.square(sedgrid.seds[:, k]))
-        for l in range(k+1, n_filters):
-            cov_offdiag[:, m] = (absflux_cov_mats[:, k, l]
-                                 * sedgrid.seds[:, k]*sedgrid.seds[:, l])
+    cov_diag[:, n_filters - 1] = absflux_cov_mats[
+        :, n_filters - 1, n_filters - 1
+    ] * np.square(sedgrid.seds[:, n_filters - 1])
+    for k in range(n_filters - 1):
+        cov_diag[:, k] = absflux_cov_mats[:, k, k] * np.square(sedgrid.seds[:, k])
+        for l in range(k + 1, n_filters):
+            cov_offdiag[:, m] = (
+                absflux_cov_mats[:, k, l] * sedgrid.seds[:, k] * sedgrid.seds[:, l]
+            )
             m += 1
 
     return (cov_diag, cov_offdiag)

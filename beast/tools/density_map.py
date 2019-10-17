@@ -1,8 +1,8 @@
 import numpy as np
 from astropy.table import Table, Column
 
-input_column = 'value'
-bin_colname = 'bin'
+input_column = "value"
+bin_colname = "bin"
 
 
 class DensityMap:
@@ -40,37 +40,36 @@ class DensityMap:
         else:
             self.tile_data = tile_data
 
-        self.ra_grid = self.tile_data.meta['ra_grid']
-        self.dec_grid = self.tile_data.meta['dec_grid']
+        self.ra_grid = self.tile_data.meta["ra_grid"]
+        self.dec_grid = self.tile_data.meta["dec_grid"]
 
-        self.min_i_ra = min(self.tile_data['i_ra'])
-        self.max_i_ra = max(self.tile_data['i_ra'])
-        self.min_i_dec = min(self.tile_data['i_dec'])
-        self.max_i_dec = max(self.tile_data['i_dec'])
+        self.min_i_ra = min(self.tile_data["i_ra"])
+        self.max_i_ra = max(self.tile_data["i_ra"])
+        self.min_i_dec = min(self.tile_data["i_dec"])
+        self.max_i_dec = max(self.tile_data["i_dec"])
 
         # map index pairs to table rows
         self.tile_for_ij = {}
         for r in range(len(self.tile_data)):
-            ij_ra_dec = (self.tile_data[r]['i_ra'], self.tile_data[r]['i_dec'])
+            ij_ra_dec = (self.tile_data[r]["i_ra"], self.tile_data[r]["i_dec"])
             self.tile_for_ij[ij_ra_dec] = r
 
     def write(self, fname):
         """
         Write this map to file fname (in fits format)
         """
-        self.tile_data.write(fname, format='hdf5', path='tile_data',
-                             overwrite=True)
+        self.tile_data.write(fname, format="hdf5", path="tile_data", overwrite=True)
 
     def tile_for_position(self, ra, dec):
         """
         Finds which tile a certain ra,dec fits into
         """
         # Get index pair
-        i_ra = np.searchsorted(self.ra_grid[:-1], ra, side='right') - 1
+        i_ra = np.searchsorted(self.ra_grid[:-1], ra, side="right") - 1
         i_ra = max(i_ra, self.min_i_ra)
         i_ra = min(i_ra, self.max_i_ra)
 
-        i_dec = np.searchsorted(self.dec_grid[:-1], dec, side='right') - 1
+        i_dec = np.searchsorted(self.dec_grid[:-1], dec, side="right") - 1
         i_dec = max(i_dec, self.min_i_ra)
         i_dec = min(i_dec, self.max_i_ra)
 
@@ -82,15 +81,17 @@ class DensityMap:
         Return a tuple, containing the coordinates of the bottom left
         corner for all the tiles (RAs, DECs)
         """
-        return self.tile_data['min_ra'], self.tile_data['min_dec']
+        return self.tile_data["min_ra"], self.tile_data["min_dec"]
 
     def delta_ras_decs(self):
         """
         Return a tuple, containing the widths (RA) and heights (DEC) of
         each tile
         """
-        return (self.tile_data['max_ra'] - self.tile_data['min_ra'],
-                self.tile_data['max_dec'] - self.tile_data['min_dec'])
+        return (
+            self.tile_data["max_ra"] - self.tile_data["min_ra"],
+            self.tile_data["max_dec"] - self.tile_data["min_dec"],
+        )
 
     def value(self, tile_index):
         """
@@ -120,12 +121,14 @@ class BinnedDensityMap(DensityMap):
         if bins is None:
             # Check if the bins are already there, and return
             if bin_colname not in self.tile_data.colnames:
-                raise Exception('{} column not yet calculated. '
-                                'Please use \'create\' function instead'.format(bin_colname))
+                raise Exception(
+                    "{} column not yet calculated. "
+                    "Please use 'create' function instead".format(bin_colname)
+                )
             return
 
         if bin_colname in self.tile_data.colnames:
-            print('{} column already there, overwriting it.'.format(bin_colname))
+            print("{} column already there, overwriting it.".format(bin_colname))
             self.tile_data[bin_colname] = bins
         else:
             c = Column(name=bin_colname, data=bins)
@@ -133,37 +136,50 @@ class BinnedDensityMap(DensityMap):
 
         self.bin_indices_used = np.sort(np.unique(bins))
 
-    def create(density_map, N_bins=None):
+    def create(density_map, N_bins=None, bin_width=None):
         """
         Creates a binned density map from a DensityMap file, or from an
         astropy table loaded from it. The tiles are grouped into
-        N_bins density bins.
-        If N_bins is none, each tile is treated as a separate bin.
+        N_bins density bins OR bins of width bin_width.
+        If N_bins and bin_width are none, each tile is treated as a separate bin.
         """
         # Use the base class to decide what to do with density_map (can
         # be file or table object)
         binned_density_map = DensityMap(density_map)
 
         # Create the extra column here
-        if N_bins is None:
+        if (N_bins is None) and (bin_width is None):
             bins = np.array(range(len(binned_density_map.tile_data)))
 
-        else:
+        elif N_bins is not None:
             # Create the density bins
             # [min, ., ., ., max]
             tile_densities = binned_density_map.tile_data[input_column]
             min_density = np.amin(tile_densities)
             max_density = np.amax(tile_densities)
-            bin_edges = np.linspace(min_density - 0.01 * abs(min_density),
-                                    max_density + 0.01 * abs(max_density),
-                                    N_bins + 1)
+            bin_edges = np.linspace(
+                min_density - 0.01 * abs(min_density),
+                max_density + 0.01 * abs(max_density),
+                N_bins + 1,
+            )
 
-        # Find which bin each tile belongs to
-        # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
-        # We have purposely chosen our bin boundaries so that no points fall
-        # outside (or on the edge) of the [1,5] range
-        bins = np.digitize(
-            binned_density_map.tile_data[input_column], bin_edges)
+            # Find which bin each tile belongs to
+            # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
+            # We have purposely chosen our bin boundaries so that no points fall
+            # outside (or on the edge) of the [1,5] range
+            bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
+
+        elif bin_width is not None:
+            tile_densities = binned_density_map.tile_data[input_column]
+            min_density = np.amin(tile_densities)
+            max_density = np.amax(tile_densities)
+            tot_bins = np.ceil((max_density - min_density) / bin_width)
+            bin_edges = min_density + np.arange(tot_bins + 1) * bin_width
+            print('bin edges: ', bin_edges)
+
+            # Find which bin each tile belongs to
+            bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
+
 
         # Upgrade to this subclass, and return
         return BinnedDensityMap(binned_density_map.tile_data, bins)
@@ -194,5 +210,4 @@ class BinnedDensityMap(DensityMap):
         bin, the tiles that where grouped into it are listed.
         """
         b_per_tile = self.bin_foreach_tile()
-        return [np.nonzero(b_per_tile == b)[0] for b in
-                self.bin_indices_used]
+        return [np.nonzero(b_per_tile == b)[0] for b in self.bin_indices_used]

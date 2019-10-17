@@ -2,19 +2,16 @@
 Trunchen version of noisemodel
 Goal is to compute the full n-band covariance matrix for each model
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
 
 from scipy.spatial import cKDTree
+from tqdm import tqdm
 
 from beast.observationmodel.noisemodel.noisemodel import NoiseModel
 from beast.observationmodel.vega import Vega
 
-from beast.tools.pbar import Pbar
 
-__all__ = ['MultiFilterASTs']
+__all__ = ["MultiFilterASTs"]
 
 
 class MultiFilterASTs(NoiseModel):
@@ -28,6 +25,7 @@ class MultiFilterASTs(NoiseModel):
     filters: sequence(str)
         sequence of filter names
     """
+
     def __init__(self, astfile, filters, *args, **kwargs):
         NoiseModel.__init__(self, astfile, *args, **kwargs)
         self.setFilters(filters)
@@ -104,7 +102,7 @@ class MultiFilterASTs(NoiseModel):
         for k in range(n_asts):
             cgood = 0
             for cfilter in filters:
-                if asts[cfilter+'_VEGA'][k] < 90:
+                if asts[cfilter + "_VEGA"][k] < 90:
                     cgood = cgood + 1
             gtindxs[k] = cgood
 
@@ -114,7 +112,7 @@ class MultiFilterASTs(NoiseModel):
             return False
 
         # completeness
-        compl = float(n_indxs)/float(n_asts)
+        compl = float(n_indxs) / float(n_asts)
 
         # setup the variables for output
         n_filters = len(filters)
@@ -124,13 +122,16 @@ class MultiFilterASTs(NoiseModel):
         cov_matrix = np.full((n_filters, n_filters), 0.0, dtype=np.float32)
 
         for ck, cfilter in enumerate(filters):
-            ifluxes[ck] = (np.power(10.0, -0.4*asts[cfilter+'_IN'][indxs[0]])
-                           * self.vega_flux[ck])
+            ifluxes[ck] = (
+                np.power(10.0, -0.4 * asts[cfilter + "_IN"][indxs[0]])
+                * self.vega_flux[ck]
+            )
             # compute the difference vector between the input and output fluxes
             #    note that the input fluxes are in magnitudes and the
             #    output fluxes in normalized vega fluxes
-            diffs[ck, :] = (asts[cfilter+'_RATE'][indxs]*self.vega_flux[ck]
-                            - ifluxes[ck])
+            diffs[ck, :] = (
+                asts[cfilter + "_RATE"][indxs] * self.vega_flux[ck] - ifluxes[ck]
+            )
             # compute the bias and standard deviations around said bias
             biases[ck] = np.mean(diffs[ck, :])
 
@@ -138,28 +139,28 @@ class MultiFilterASTs(NoiseModel):
         for ck in range(n_filters):
             for dk in range(ck, n_filters):
                 for ci in range(n_indxs):
-                    cov_matrix[ck, dk] += ((diffs[ck, ci] - biases[ck])
-                                           * (diffs[dk, ci] - biases[dk]))
+                    cov_matrix[ck, dk] += (diffs[ck, ci] - biases[ck]) * (
+                        diffs[dk, ci] - biases[dk]
+                    )
                 # fill in the symmetric terms
                 cov_matrix[dk, ck] = cov_matrix[ck, dk]
 
-        cov_matrix /= (n_indxs - 1)
+        cov_matrix /= n_indxs - 1
         stddevs = np.sqrt(np.diagonal(cov_matrix))
 
         # compute the corrleation matrix
         corr_matrix = np.array(cov_matrix)
         for ck in range(n_filters):
             for dk in range(ck, n_filters):
-                if stddevs[ck]*stddevs[dk] > 0:
-                    corr_matrix[ck, dk] /= stddevs[ck]*stddevs[dk]
+                if stddevs[ck] * stddevs[dk] > 0:
+                    corr_matrix[ck, dk] /= stddevs[ck] * stddevs[dk]
                 else:
                     corr_matrix[ck, dk] = 0.0
                 # fill in the symmetric terms
                 corr_matrix[dk, ck] = corr_matrix[ck, dk]
 
         if return_all:
-            return (cov_matrix, biases, stddevs, corr_matrix, diffs, ifluxes,
-                    compl)
+            return (cov_matrix, biases, stddevs, corr_matrix, diffs, ifluxes, compl)
         else:
             return (cov_matrix, biases, compl)
 
@@ -195,15 +196,14 @@ class MultiFilterASTs(NoiseModel):
 
         # find the stars by using unique values of the magnitude values
         #   in filtername
-        filtername = filters[-1] + '_IN'
+        filtername = filters[-1] + "_IN"
         uvals, ucounts = np.unique(self.data[filtername], return_counts=True)
         n_models = len(uvals)
 
         # setup the output
         n_filters = len(filters)
         all_covs = np.empty((n_models, n_filters, n_filters), dtype=np.float64)
-        all_corrs = np.empty((n_models, n_filters, n_filters),
-                             dtype=np.float32)
+        all_corrs = np.empty((n_models, n_filters, n_filters), dtype=np.float32)
         all_biases = np.empty((n_models, n_filters), dtype=np.float64)
         all_ifluxes = np.empty((n_models, n_filters), dtype=np.float32)
         all_compls = np.empty((n_models), dtype=np.float32)
@@ -216,8 +216,7 @@ class MultiFilterASTs(NoiseModel):
         # calculate the covariance matrix using the ASTs for this model
         good_asts = np.full((n_models), True)
         if progress is True:
-            it = Pbar(desc='Calculating AST Covariance '
-                      + 'Matrices').iterover(list(range(n_models)))
+            it = tqdm(list(range(n_models)), desc="Calculating AST covariance matrices")
         else:
             it = list(range(n_models))
         for i in it:
@@ -226,8 +225,7 @@ class MultiFilterASTs(NoiseModel):
             n_asts = len(indxs)
 
             if n_asts > 5:
-                results = self._calc_ast_cov(indxs, filters,
-                                             return_all=True)
+                results = self._calc_ast_cov(indxs, filters, return_all=True)
                 if results:
                     all_covs[i, :, :] = results[0]
                     all_biases[i, :] = results[1]
@@ -236,17 +234,21 @@ class MultiFilterASTs(NoiseModel):
                     all_compls[i] = results[6]
 
                     for k in range(n_filters):
-                        ast_minmax[0, k] = min(ast_minmax[0, k],
-                                               all_ifluxes[i, k])
-                        ast_minmax[1, k] = max(ast_minmax[1, k],
-                                               all_ifluxes[i, k])
+                        ast_minmax[0, k] = min(ast_minmax[0, k], all_ifluxes[i, k])
+                        ast_minmax[1, k] = max(ast_minmax[1, k], all_ifluxes[i, k])
                 else:
                     good_asts[i] = False
 
         indxs, = np.where(good_asts)
 
-        return (all_covs[indxs, :, :], all_biases[indxs, :], all_compls[indxs],
-                all_corrs[indxs, :, :], all_ifluxes[indxs, :], ast_minmax)
+        return (
+            all_covs[indxs, :, :],
+            all_biases[indxs, :],
+            all_compls[indxs],
+            all_corrs[indxs, :, :],
+            all_ifluxes[indxs, :],
+            ast_minmax,
+        )
 
     def process_asts(self, filters):
         """
@@ -271,13 +273,11 @@ class MultiFilterASTs(NoiseModel):
         self._input_fluxes = results[4]
         self._minmax_asts = results[5]
 
-        print('building kd-tree...')
+        print("building kd-tree...")
         self._kdtree = cKDTree(np.log10(self._input_fluxes))
-        print('...done')
+        print("...done")
 
-    def __call__(self, sedgrid,
-                 generic_absflux_a_matrix=None,
-                 progress=True):
+    def __call__(self, sedgrid, generic_absflux_a_matrix=None, progress=True):
         """
         Interpolate the results of the ASTs on the model grid
 
@@ -295,25 +295,23 @@ class MultiFilterASTs(NoiseModel):
         flux = sedgrid.seds
         if generic_absflux_a_matrix is not None:
             model_absflux_cov = False
-            if generic_absflux_a_matrix is not None:
-                print('using model indepdent absflux cov matrix')
-            else:
-                print('not using any absflux cov matrix')
-        elif ((sedgrid.cov_diag is not None) &
-              (sedgrid.cov_offdiag is not None)):
+            print("using model independent absflux cov matrix")
+        elif (sedgrid.cov_diag is not None) & (sedgrid.cov_offdiag is not None):
             model_absflux_cov = True
             absflux_cov_diag = sedgrid.cov_diag
             absflux_cov_offdiag = sedgrid.cov_offdiag
-            print('using model dependent absflux cov matrix')
+            print("using model dependent absflux cov matrix")
         else:
             model_absflux_cov = False
 
         n_models, n_filters = flux.shape
-        n_offdiag = (((n_filters**2)-n_filters)/2)
+        n_offdiag = ((n_filters ** 2) - n_filters) / 2
 
         if n_filters != len(self.filters):
-            raise AttributeError('the grid of models does not seem to' +
-                                 'be defined with the same number of filters')
+            raise AttributeError(
+                "the grid of models does not seem to"
+                + "be defined with the same number of filters"
+            )
 
         biases = np.empty((n_models, n_filters), dtype=np.float64)
         sigmas = np.empty((n_models, n_filters), dtype=np.float64)
@@ -325,7 +323,7 @@ class MultiFilterASTs(NoiseModel):
         compls = np.empty((n_models), dtype=float)
 
         if progress is True:
-            it = Pbar(desc='Evaluating model').iterover(list(range(n_models)))
+            it = tqdm(list(range(n_models)), desc="Evaluating model")
         else:
             it = list(range(n_models))
 
@@ -346,39 +344,40 @@ class MultiFilterASTs(NoiseModel):
 
             # compute the interpolated covariance matrix
             #    use the distances to generate weights for the sum
-            dist_weights = 1.0/dist
+            dist_weights = 1.0 / dist
             dist_weights /= np.sum(dist_weights)
 
-            cur_cov_matrix = np.average(self._cov_matrices[indxs, :, :],
-                                        axis=0,
-                                        weights=dist_weights)
+            cur_cov_matrix = np.average(
+                self._cov_matrices[indxs, :, :], axis=0, weights=dist_weights
+            )
 
             # add in the absflux covariance matrix
             #   unpack off diagonal terms the same way they were packed
             if model_absflux_cov:
                 m = 0
-                cur_cov_matrix[n_filters-1, n_filters-1] += \
-                    absflux_cov_diag[i, n_filters-1]
-                for k in range(n_filters-1):
+                cur_cov_matrix[n_filters - 1, n_filters - 1] += absflux_cov_diag[
+                    i, n_filters - 1
+                ]
+                for k in range(n_filters - 1):
                     cur_cov_matrix[k, k] += absflux_cov_diag[i, k]
-                    for l in range(k+1, n_filters):
+                    for l in range(k + 1, n_filters):
                         cur_cov_matrix[k, l] += absflux_cov_offdiag[i, m]
                         cur_cov_matrix[l, k] += absflux_cov_offdiag[i, m]
                         m += 1
             elif generic_absflux_a_matrix is not None:
                 for k in range(n_filters):
                     for l in range(n_filters):
-                        cur_cov_matrix[k, l] += (generic_absflux_a_matrix[k, l]
-                                                 * cur_flux[k]*cur_flux[l])
+                        cur_cov_matrix[k, l] += (
+                            generic_absflux_a_matrix[k, l] * cur_flux[k] * cur_flux[l]
+                        )
 
             # compute the interpolated biases
-            biases[i, :] = np.average(self._biases[indxs, :],
-                                      axis=0,
-                                      weights=dist_weights)
+            biases[i, :] = np.average(
+                self._biases[indxs, :], axis=0, weights=dist_weights
+            )
 
             # compute the interpolated completeness
-            compls[i] = np.average(self._completenesses[indxs],
-                                   weights=dist_weights)
+            compls[i] = np.average(self._completenesses[indxs], weights=dist_weights)
 
             # save the straight uncertainties
             sigmas[i, :] = np.sqrt(np.diagonal(cur_cov_matrix))
@@ -388,14 +387,14 @@ class MultiFilterASTs(NoiseModel):
 
             # save the diagnonal and packed version of non-diagonal terms
             m = 0
-            icov_diag[i, n_filters-1] = inv_cur_cov_matrix[n_filters-1,
-                                                           n_filters-1]
-            cov_diag[i, n_filters-1] = cur_cov_matrix[n_filters-1,
-                                                      n_filters-1]
-            for k in range(n_filters-1):
+            icov_diag[i, n_filters - 1] = inv_cur_cov_matrix[
+                n_filters - 1, n_filters - 1
+            ]
+            cov_diag[i, n_filters - 1] = cur_cov_matrix[n_filters - 1, n_filters - 1]
+            for k in range(n_filters - 1):
                 icov_diag[i, k] = inv_cur_cov_matrix[k, k]
                 cov_diag[i, k] = cur_cov_matrix[k, k]
-                for l in range(k+1, n_filters):
+                for l in range(k + 1, n_filters):
                     icov_offdiag[i, m] = inv_cur_cov_matrix[k, l]
                     cov_offdiag[i, m] = cur_cov_matrix[k, l]
                     m += 1
@@ -406,10 +405,18 @@ class MultiFilterASTs(NoiseModel):
             #       norm = 1.0/sqrt(Q)
             det = np.linalg.slogdet(cur_cov_matrix)
             if det[0] <= 0:
-                print('something bad happened')
-                print('determinant of covarinace matrix is zero or negative')
+                print("something bad happened")
+                print("determinant of covarinace matrix is zero or negative")
                 print(det)
-            q_norm[i] = -0.5*det[1]
+            q_norm[i] = -0.5 * det[1]
 
-        return (biases, sigmas, compls, q_norm, icov_diag, icov_offdiag,
-                cov_diag, cov_offdiag)
+        return (
+            biases,
+            sigmas,
+            compls,
+            q_norm,
+            icov_diag,
+            icov_offdiag,
+            cov_diag,
+            cov_offdiag,
+        )

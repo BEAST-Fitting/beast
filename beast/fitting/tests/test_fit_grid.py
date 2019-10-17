@@ -7,8 +7,7 @@ from beast.observationmodel.observations import Observations
 from beast.observationmodel.vega import Vega
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.fitting import fit
-from beast.tests.helpers import (download_rename, compare_tables,
-                                 compare_fits)
+from beast.tests.helpers import download_rename, compare_tables, compare_fits
 
 
 class GenFluxCatalog(Observations):
@@ -19,10 +18,10 @@ class GenFluxCatalog(Observations):
         it does not implement uncertainties as in this model, the noise is
         given through artificial star tests
     """
-    def __init__(self, inputFile, filters, obs_colnames,
-                 vega_fname=None):
+
+    def __init__(self, inputFile, filters, obs_colnames, vega_fname=None):
         """ Construct the interface """
-        desc = 'GENERIC star: %s' % inputFile
+        desc = "GENERIC star: %s" % inputFile
         Observations.__init__(self, inputFile, desc=desc)
         self.setFilters(filters, vega_fname=vega_fname)
         # some bad values smaller than expected
@@ -54,12 +53,13 @@ class GenFluxCatalog(Observations):
         # case for using '_flux' result
         d = self.data[num]
 
-        flux = np.array([d[self.data.resolve_alias(ok)]
-                         for ok in self.filters]) * self.vega_flux
+        flux = (
+            np.array([d[self.data.resolve_alias(ok)] for ok in self.filters])
+            * self.vega_flux
+        )
 
         if units is True:
-            return (flux * units.erg
-                    / (units.s*units.cm*units.cm*units.angstrom))
+            return flux * units.erg / (units.s * units.cm * units.cm * units.angstrom)
         else:
             return flux
 
@@ -85,8 +85,7 @@ class GenFluxCatalog(Observations):
         self.vega_flux = vega_flux
 
 
-def get_obscat(obsfile, filters, obs_colnames, vega_fname=None,
-               *args, **kwargs):
+def get_obscat(obsfile, filters, obs_colnames, vega_fname=None, *args, **kwargs):
     """ Function that generates a data catalog object with the correct
     arguments
 
@@ -111,16 +110,14 @@ def get_obscat(obsfile, filters, obs_colnames, vega_fname=None,
 def test_fit_grid():
 
     # download the needed files
-    vega_fname = download_rename('vega.hd5')
-    obs_fname = download_rename('b15_4band_det_27_A.fits')
-    noise_trim_fname = download_rename(
-                                'beast_example_phat_noisemodel_trim.grid.hd5')
-    seds_trim_fname = download_rename(
-                                'beast_example_phat_seds_trim.grid.hd5')
+    vega_fname = download_rename("vega.hd5")
+    obs_fname = download_rename("b15_4band_det_27_A.fits")
+    noise_trim_fname = download_rename("beast_example_phat_noisemodel_trim.grid.hd5")
+    seds_trim_fname = download_rename("beast_example_phat_seds_trim.grid.hd5")
 
     # download cached version of fitting results
-    stats_fname_cache = download_rename('beast_example_phat_stats.fits')
-    pdf1d_fname_cache = download_rename('beast_example_phat_pdf1d.fits')
+    stats_fname_cache = download_rename("beast_example_phat_stats.fits")
+    pdf1d_fname_cache = download_rename("beast_example_phat_pdf1d.fits")
 
     ################
 
@@ -128,27 +125,34 @@ def test_fit_grid():
     noisemodel_vals = noisemodel.get_noisemodelcat(noise_trim_fname)
 
     # read in the observed data
-    filters = ['HST_WFC3_F275W', 'HST_WFC3_F336W', 'HST_ACS_WFC_F475W',
-               'HST_ACS_WFC_F814W', 'HST_WFC3_F110W', 'HST_WFC3_F160W']
-    basefilters = ['F275W', 'F336W', 'F475W',
-                   'F814W', 'F110W', 'F160W']
-    obs_colnames = [f.lower() + '_rate' for f in basefilters]
+    filters = [
+        "HST_WFC3_F275W",
+        "HST_WFC3_F336W",
+        "HST_ACS_WFC_F475W",
+        "HST_ACS_WFC_F814W",
+        "HST_WFC3_F110W",
+        "HST_WFC3_F160W",
+    ]
+    basefilters = ["F275W", "F336W", "F475W", "F814W", "F110W", "F160W"]
+    obs_colnames = [f.lower() + "_rate" for f in basefilters]
 
-    obsdata = get_obscat(obs_fname,
-                         filters,
-                         obs_colnames,
-                         vega_fname=vega_fname)
+    obsdata = get_obscat(obs_fname, filters, obs_colnames, vega_fname=vega_fname)
     # output files
-    stats_fname = '/tmp/beast_example_phat_stats.fits'
-    pdf1d_fname = '/tmp/beast_example_phat_pdf1d.fits'
-    lnp_fname = '/tmp/beast_example_phat_lnp.hd5'
+    stats_fname = "/tmp/beast_example_phat_stats.fits"
+    pdf1d_fname = "/tmp/beast_example_phat_pdf1d.fits"
+    lnp_fname = "/tmp/beast_example_phat_lnp.hd5"
 
-    fit.summary_table_memory(obsdata, noisemodel_vals, seds_trim_fname,
-                             threshold=-10., save_every_npts=100,
-                             lnp_npts=60,
-                             stats_outname=stats_fname,
-                             pdf1d_outname=pdf1d_fname,
-                             lnp_outname=lnp_fname)
+    fit.summary_table_memory(
+        obsdata,
+        noisemodel_vals,
+        seds_trim_fname,
+        threshold=-10.0,
+        save_every_npts=100,
+        lnp_npts=60,
+        stats_outname=stats_fname,
+        pdf1d_outname=pdf1d_fname,
+        lnp_outname=lnp_fname,
+    )
 
     # check that the stats files are exactly the same
     table_cache = Table.read(stats_fname_cache)

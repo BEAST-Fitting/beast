@@ -1,6 +1,3 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import os
 
 import numpy as np
@@ -59,10 +56,18 @@ def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
     return idx
 
 
-def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
-                                N_fluxes, min_N_per_flux,
-                                outfile=None, outfile_params=None,
-                                bins_outfile=None, bright_cut=None):
+def pick_models_toothpick_style(
+    sedgrid_fname,
+    filters,
+    mag_cuts,
+    Nfilter,
+    N_fluxes,
+    min_N_per_flux,
+    outfile=None,
+    outfile_params=None,
+    bins_outfile=None,
+    bright_cut=None,
+):
     """
     Creates a fake star catalog from a BEAST model grid. The chosen seds
     are optimized for the toothpick model, by working with a given
@@ -116,9 +121,12 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
 
     """
     if outfile is not None and os.path.isfile(outfile):
-        print('{} already exists. Will attempt to load SEDs for ASTs from there.'.format(
-            outfile))
-        t = Table.read(outfile, format='ascii')
+        print(
+            "{} already exists. Will attempt to load SEDs for ASTs from there.".format(
+                outfile
+            )
+        )
+        t = Table.read(outfile, format="ascii")
         return t
 
     with Vega() as v:
@@ -129,8 +137,8 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
     Nf = sedsMags.shape[1]
 
-    #idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
-    idxs = np.where(modelsedgrid.grid['logL'] > -9)[0]
+    # idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
+    idxs = np.where(modelsedgrid.grid["logL"] > -9)[0]
     sedsMags_cut = sedsMags[idxs]
 
     # Note that i speak of fluxes, but I've recently modified this to
@@ -145,8 +153,8 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
         bin_edges[:, f] = np.linspace(mins[f], maxes[f], N_fluxes + 1)
     bin_mins = bin_edges[:-1, :]
     bin_maxs = bin_edges[1:, :]
-    assert (len(bin_mins) == N_fluxes)
-    assert (len(bin_maxs) == N_fluxes)
+    assert len(bin_mins) == N_fluxes
+    assert len(bin_maxs) == N_fluxes
 
     bin_count = np.zeros((N_fluxes, Nf))
     chosen_idxs = []
@@ -163,8 +171,7 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
         # Find in which bin each model belongs, for each filter
         fluxbins = np.zeros(randomseds.shape, dtype=int)
         for fltr in range(Nf):
-            fluxbins[:, fltr] = np.digitize(randomseds[:, fltr],
-                                            bin_maxs[:, fltr])
+            fluxbins[:, fltr] = np.digitize(randomseds[:, fltr], bin_maxs[:, fltr])
 
         # Clip in place (models of which the flux is equal to the max
         # are assigned bin nr N_fluxes. Move these down to bin nr
@@ -201,17 +208,24 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
                 break
 
         if not counter % 10:
-            print('Sampled {} models. {} successfull seds. Ratio = {}'.format(
-                counter * chunksize, successes, successes / counter / chunksize))
-            print('Bin array:')
+            print(
+                "Sampled {} models. {} successfull seds. Ratio = {}".format(
+                    counter * chunksize, successes, successes / counter / chunksize
+                )
+            )
+            print("Bin array:")
             print(bin_count)
 
     # Gather the selected model seds in a table
     sedsMags = Table(sedsMags[chosen_idxs, :], names=filters)
 
     if outfile is not None:
-        ascii.write(sedsMags, outfile, overwrite=True,
-                    formats={k: '%.5f' for k in sedsMags.colnames})
+        ascii.write(
+            sedsMags,
+            outfile,
+            overwrite=True,
+            formats={k: "%.5f" for k in sedsMags.colnames},
+        )
 
     # if chosen, save the corresponding model parameters
     if outfile_params is not None:
@@ -224,18 +238,30 @@ def pick_models_toothpick_style(sedgrid_fname, filters, mag_cuts, Nfilter,
     if bins_outfile is not None:
         bin_info_table = Table()
         col_bigarrays = [bin_mins, bin_maxs, bin_count]
-        col_basenames = ['bin_mins_', 'bin_maxs_', 'bin_count_']
+        col_basenames = ["bin_mins_", "bin_maxs_", "bin_count_"]
         for fltr, filter_name in enumerate(filters):
             for bigarray, basename in zip(col_bigarrays, col_basenames):
                 bin_info_table.add_column(
-                    Column(bigarray[:, fltr], name=basename + filter_name))
+                    Column(bigarray[:, fltr], name=basename + filter_name)
+                )
         ascii.write(bin_info_table, bins_outfile, overwrite=True)
 
     return sedsMags
 
 
-def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealize=20,
-                outfile=None, outfile_params=None, bright_cut=None, vega_fname=None, ranseed=None):
+def pick_models(
+    sedgrid_fname,
+    filters,
+    mag_cuts,
+    Nfilter=3,
+    N_stars=70,
+    Nrealize=20,
+    outfile=None,
+    outfile_params=None,
+    bright_cut=None,
+    vega_fname=None,
+    ranseed=None,
+):
     """Creates a fake star catalog from a BEAST model grid
 
     Parameters
@@ -310,7 +336,8 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
 
     # Sample the model grid uniformly
     prime_params = np.column_stack(
-        (grid_cut['logA'], grid_cut['M_ini'], grid_cut['Av']))
+        (grid_cut["logA"], grid_cut["M_ini"], grid_cut["Av"])
+    )
     search_age = np.unique(prime_params[:, 0])
 
     N_sample = N_stars
@@ -331,8 +358,12 @@ def pick_models(sedgrid_fname, filters, mag_cuts, Nfilter=3, N_stars=70, Nrealiz
     sedsMags = Table(sedsMags[index, :], names=filters)
 
     if outfile is not None:
-        ascii.write(sedsMags, outfile, overwrite=True,
-                    formats={k: '%.5f' for k in sedsMags.colnames})
+        ascii.write(
+            sedsMags,
+            outfile,
+            overwrite=True,
+            formats={k: "%.5f" for k in sedsMags.colnames},
+        )
 
     if outfile_params is not None:
         ast_params.write(outfile_params, overwrite=True)
