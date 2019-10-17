@@ -1,1 +1,1 @@
-from .common import percentile, expectation
+from beast.fitting.common import percentile, expectation

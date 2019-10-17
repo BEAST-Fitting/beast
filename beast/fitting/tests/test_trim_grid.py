@@ -2,11 +2,11 @@ import numpy as np
 
 from astropy.tests.helper import remote_data
 
-from ...physicsmodel.grid import FileSEDGrid
-from ...observationmodel.observations import Observations
-from ...observationmodel.vega import Vega
-from ...observationmodel.noisemodel import generic_noisemodel as noisemodel
-from ..trim_grid import trim_models
+from beast.physicsmodel.grid import FileSEDGrid
+from beast.observationmodel.observations import Observations
+from beast.observationmodel.vega import Vega
+from beast.observationmodel.noisemodel import generic_noisemodel as noisemodel
+from beast.fitting.trim_grid import trim_models
 from beast.tests.helpers import (download_rename, compare_hdf5)
 
 
