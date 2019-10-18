@@ -1,4 +1,5 @@
 import numpy as np
+import argparse
 
 from astropy.table import Table
 
@@ -120,3 +121,65 @@ def cut_catalogs(
     # - return in
     else:
         return new_cat, good_stars
+
+
+if __name__ == "__main__":
+    # commandline parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "input_file",
+        type=str,
+        help="file name of the input catalog (photometry or AST)",
+    )
+    parser.add_argument(
+        "output_file",
+        type=str,
+        help="file name for the output catalog",
+    )
+    parser.add_argument(
+        "--partial_overlap",
+        default=False,
+        action='store_true',
+        help="if True, remove sources in regions without full imaging coverage",
+    )
+    parser.add_argument(
+        "--flagged",
+        default=False,
+        action='store_true',
+        help="if True, remove sources with flag=99 in flag_filter",
+    )
+    parser.add_argument(
+        "--flag_filter",
+        default=None,
+        type=str,
+        help="if flagged is True, set this to the filter(s) to use",
+    )
+    parser.add_argument(
+        "--region_file",
+        default=False,
+        action='store_true',
+        help="""if True, create a ds9 region file where good sources are green
+        and removed sources are magenta""",
+    )
+    parser.add_argument(
+        "--no_write",
+        default=False,
+        action='store_true',
+        help="if True, don't write out the catalog file; instead, just return it",
+    )
+
+    args = parser.parse_args()
+
+    cut_catalogs(
+        input_file=args.input_file,
+        output_file=args.output_file,
+        partial_overlap=args.partial_overlap,
+        flagged=args.flagged,
+        flag_filter=args.flag_filter,
+        region_file=args.region_file,
+        no_write=args.no_write,
+    )
+
+    # print help if no arguments
+    if not any(vars(args).values()):
+        parser.print_help()

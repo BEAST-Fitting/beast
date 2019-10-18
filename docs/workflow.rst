@@ -3,210 +3,66 @@
 Standard Workflow
 #################
 
-The workflow is setup to run the fitting on many sources efficiently by
+The workflow is set up to run the fitting on many sources efficiently by
 splitting the full catalog into a number of smaller files.  This allows
 distributing the fitting across cores.  There are manual steps to allow
 for the refitting, fixing issues, etc without rerunning everything.  This
 workflow has been tested on large (e.g., PHAT) and small (e.g. METAL)
 datasets.
 
-****************************
-Production Conda Environment
-****************************
-
-Using a dedicated conda environment for production BEAST runs may be
-desirable.  Such an environment provides a way to ensure that
-production runs are reproducible by fixing the versions of all the
-software used.  The instructions below assume that the `astroconda channel
-<https://astroconda.readthedocs.io/>`_ is being used.
-
-Create a conda environment.  Here we name it to include the BEAST version.
-
-  .. code-block:: console
-
-    $ conda create -n beast_v1.3 python=3.6
-
-Activate the environment after all the packages are finished installing.
-
-  .. code-block:: console
-
-    $ source activate beast_v1.3
-
-Install dependencies using conda (better for speed)
-
-  .. code-block:: console
-
-    $ conda install astropy scipy h5py matplotlib cython
-
-Next, install the BEAST.  You have three options:
-
-Option 1: Use pip to install the production version of the beast (currently v1.3)
-
-  .. code-block:: console
-
-    $ pip install beast==1.3
-
-Option 2: Get the latest production branch, which can be ahead of pipy version
-
-  .. code-block:: console
-
-    $ pip install git+https://github.com/BEAST-Fitting/beast.git@v1.x
-
-Option 3: If you'll be doing development, fork the beast (as described
-`here <https://beast.readthedocs.io/en/latest/beast_development.html>`_\),
-navigate into the first `beast` folder, and do this command.  Any changes
-you make will be immediately reflected in your calls to the BEAST code. Note that
-you can make separate environments for development and production modes.
-
-  .. code-block:: console
-
-    $ python setup.py develop
-
-The BEAST production version is now ready for use.  Note, you need to
-activate this conda environment every time you want to use this installed
-version.
 
 *****
 Setup
 *****
 
-Working location
-================
+Setup a working location. For reference, there are examples in beast/examples.
 
-Setup a working location, usually a subdirectory. For reference, a
-template is the 'metal_production' subdirectory in beast/examples.
-
-In this location, at a minimum you will need the following files:
-
-  * run_beast_production.py: a "production" version of run_beast.py
-        - Provides commandline options for sub region files
-  * beast_production_wrapper.py: assembles the commands below into a script
-  * datamodel_template.py: a "production" version of datamodel.py that
-    will have name/filter fields automatically filled in by beast_production_wrapper
-  * symbolic link to the beast directory in the beast repository
-
-  .. code-block:: console
-
-     $ ln -s /location/beast/beast/ beast
-
-
-
-Datamodel_template.py
-=====================
-
-Before running the BEAST, you will need to modify this file to specify
-the required parameters for generating models and fitting data.
+In this location, you will need a datamodel.py parameter file.
 These parameters are described in the beast :ref:`setup documentation
-<beast_setup_datamodel>`.  The fields for project, obsfile, astfile,
-filters, and basefilters will be filled in by beast_production_wrapper.py.
-
-***************************
-Beast_production_wrapper.py
-***************************
-
-This is a wrapper for each of the commands described below.  You may
-choose to run each of those commands individually, but this
-conveniently packages them into one file.  If you use this wrapper, you
-should edit several items in the file:
-
-  * field_names: used to identify photometry files and create BEAST files
-  * gst_filter_names: labels for the filters used in your photometry
-    file (e.g., 'X_RATE')
-  * beast_filter_names: the corresponding long names used by the BEAST
-  * settings for the source density map: pixel size, filter, magnitude
-    range
-  * settings for the background map: pixel dimensions, reference image
-  * settings for splitting the catalog by source density: filter,
-    number of sources per file
-  * settings for the trimming/fitting batch scripts: number of files, nice level
-
-You can (and should!) read about the individual functions below before
-running beast_production_wrapper:
-
-  .. code-block:: console
-
-     $ run beast_production_wrapper.py
-
-The first thing it does is use datamodel_template.py to create a
-datamodel.py file.  This will be imported as needed in the functions
-called by the wrapper.  As noted above, five of the datamodel fields
-will be updated, so ensure that the other fields in
-datamodel_template.py have the desired values.
-
-The wrapper will proceed through each of the functions below.  At
-three points, you will need to manually run things independently of
-the wrapper.  It will not continue running subsequent functions until
-it finds that the necessary steps have been taken.
-
-  * Creating ASTs (if a fake star catalog doesn't exist)
-  * running the batch trimming scripts
-  * running the batch fitting scripts
-
-Once you have completed each of these, run the wrapper again.  It will
-skip past the steps that it has already processed, and resume at the point
-where you left off.  In the case of the batch scripts, if you only
-partially completed them, it will re-generate new scripts for the
-remaining trimming/fitting (and tell you which ones are new), and
-pause again.
-
-Note of warning: if you are using this wrapper for multiple fields,
-check that the proper version of datamodel.py is in place before
-running the batch trimming/fitting scripts.  For instance, if you have
-recently used the wrapper to do part of the processing for field_A,
-and you want to start the batch fitting script for field_B, re-run the
-wrapper for field_B to make sure that datamodel.py refers to the
-information for field_B.
+<beast_setup_datamodel>`.
 
 
-****
-Data
-****
+
+**********************************
+Source Density or Background Level
+**********************************
 
 The data need to have source density information added as it is common
 for the observation model (scatter and bias) to be strongly dependent
 on source density due to crowding/confusion noise.  The background may
 also be important in some situations, so there is code to calculate it as well.
 
-Adding source density or background to observations
-===================================================
+Adding source density to observations
+=====================================
 
 Create a new version of the observations that includes a column with the
-source density.  The new observation file includes only sources that have
-measurements in all bands (columns that match 'X_RATE').  In theory, sources
-without measurements in all bands is the result of non-overlapping observations.
-The BEAST is based on fitting sources with the same selection function,
-in this case measurements in all bands.
+source density.  The user chooses one band to use as the reference, and chooses
+the magnitude range of sources to use for calculating the source density
+(generally, this would be the range over which the catalog is complete).  The
+user can also choose a band for which sources that have '[band]_FLAG == 99' are
+ignored.
 
-A number of source density images are also created.  These include images
-that map the source density of objects with zero fluxes in different bands
-(or any band).
+A number of source density images are also created.  The prefix is derived
+from the name of the input photometry catalog.
+
+  * [prefix]_source_den_image.fits: an image of the source density map
+  * [prefix][band]_RATE_image.fits: for each band in the catalog, an image of
+    the number of sources with a flux of 0 (i.e., not detected in the given band)
+  * [prefix]_npts_zero_fluxes_image.fits: an image of the number of sources with
+    0 flux in at least one band
+  * [prefix]_with_sourceden_inc_zerofluxes.fits: photometry catalog with an
+    additional column that has the source density
+  * [prefix]_with_sourceden.fits: same as above, but only for sources with
+    flux > 0 in each band
+  * [prefix]_sourceden_map.hd5: contains information about the map grid
 
 Command to create the observed catalog with source density column with
-a pixel scale of 5 arcsec using the 'datafile.fits' catalog.
+a pixel scale of 5 arcsec using the 'phot_catalog.fits' catalog.
 
   .. code-block:: console
 
-     $ ./beast/tools/create_background_density_map.py sourceden -catfile datafile.fits --pixsize 5.
-
-Split up observations by source density
----------------------------------------
-
-The observed catalog should be split into separate files for each source
-density.  In addition, each source density catalog is split into a set of
-sub files to have at most 'n_per_file' sources.  The sources are sorted by
-the 'sort_col' flux before splitting to put sources with similar brightness
-together.  This splitting into sub files sorted by flux allows for trimming
-the BEAST physics+observation model removing objects that are too bright
-or too faint to fit any of the sources in the file.  In addition, this
-allows for running the BEAST fitting in parallel with each sub file
-on a different core.
-
-Command to create the the source density split files
-
- .. code-block:: console
-
-    $ ./beast/tools/subdivide_obscat_by_source_density.py --n_per_file 6250 \
-             --sort_col F475W_RATE datafile_with_sourceden.fits
+     $ python -m beast.tools.create_background_density_map sourceden \
+       -catfile phot_catalog.fits --pixsize 5.
 
 
 
@@ -219,39 +75,117 @@ stars that fall in each spatial bin.  The code will output a new catalog, an
 hdf5 file with the background maps and grid information, and some
 diagnostic plots.
 
-Command to create the observed catalog with background column with a 15x15 pixel array using the 'datafile.fits' catalog and the 'image.fits' reference image.
+Command to create the observed catalog with background column with a 15x15 pixel
+array using the 'phot_catalog.fits' catalog and the 'image.fits' reference image.
 
   .. code-block:: console
 
-     $ ./beast/tools/create_background_density_map.py background -catfile datafile.fits --npix 15 \
-	     -reference image.fits
+     $ python -m beast.tools.create_background_density_map background \
+	     -catfile phot_catalog.fits --npix 15 -reference image.fits
 
-Plotting the background map onto a reference image
---------------------------------------------------
 
 To check if the background (or source density) map makes sense, the 'tileplot' subcommand of the
 same script can be used. If the output of one of the previous commands was 'map_name.hd5', then use
 
   .. code-block:: console
 
-     $ ./beast/tools/create_background_density_map.py tileplot map_name.hd5 -image image.fits --colorbar 'background'
+     $ python -m beast.tools.create_background_density_map tileplot map_name.hd5 \
+       -image image.fits --colorbar 'background'
 
-*****
-Model
-*****
 
+*************
 Physics model
-=============
+*************
 
-Generate the full physics model grid.  Needed for the fitting and generation of
-the artificial star test (AST) inputs.  The '0 0' arguments are dummy values.
+Generate the full physics model grid.  This is needed for both the fitting and
+for generating the artificial star test (AST) inputs.  Note that you may want to
+use a coarser model grid for the ASTs.
+
+If you're creating a model grid that's so large it may not read into memory, you
+can use subgrids, which splits the grid into more manageable pieces.
+
+To create a physics model grid with 5 subgrids:
 
   .. code-block:: console
 
-     $ ./run_beast_production.py -p obscat.fits 0 0
+     $ python -m beast.tools.run.create_physicsmodel --nsubs=5
 
+
+*********************
+Artificial Star Tests
+*********************
+
+The observation model is based on artificial star tests (ASTs).  More details
+about the BEAST AST code components can be found at :ref:`Artificial Star Input
+Lists <beast_generating_asts>`.
+
+The BEAST selects SEDs from the physics model grid.  For each band, the range of fluxes
+in the model grid is split into bins (default=40, set by datamodel.ast_n_flux_bins),
+and models are randomly selected.  The model is retained if there are fewer than
+the set number of models (default=50, set by datamodel.ast_n_per_flux_bin) in
+each of the relevant flux bins.
+
+Then the stars are placed within the image.  For each of the options below, each
+SED may be placed once (for the toothpick model) or multiple times (for the
+truncheon model), as set by datamodel.ast_realization_per_model.
+
+  * Option 1 (datamodel.ast_source_density_table is set):
+    For each source density or background bin, randomly place the SEDs
+    within pixels of that bin.  Repeat for each of the bins.
+  * Option 2 (datamodel.ast_source_density_table = None):
+    Randomly choose a star from the photometry catalog, and place the
+    artificial star nearby.  Repeat until all SEDs have been placed.
+
+.. code-block:: console
+
+   $ python -m beast.tools.run.make_ast_inputs --flux_bin_method=True
+
+
+These ASTs should be processed with the same code that was used to extract the
+source photometry.
+
+
+*******************
+Edit/Split Catalogs
+*******************
+
+You may wish to remove artifacts from the photometry catalog.  If you do so, the
+same criteria must be applied to the AST catalog.
+
+Commands to edit the files, both to remove flagged sources and eliminate sources
+that don't have full imaging coverage, and to create ds9 region files:
+
+.. code-block:: console
+
+   $ python -m beast.tools.cut_catalogs phot_catalog_with_sourceden.fits phot_catalog_cut.fits \
+         --partial_overlap --region_file --flagged --flag_filter F475W
+   $
+   $ python -m beast.tools.cut_catalogs ast_catalog.fits ast_catalog_cut.fits \
+         --partial_overlap --region_file --flagged --flag_filter F475W
+
+
+The observed catalog should be split into separate files for each source
+density.  In addition, each source density catalog is split into a set of
+sub files to have at most 'n_per_file' sources.  The sources are sorted by
+the 'sort_col' flux before splitting to put sources with similar brightness
+together.  This splitting into sub files sorted by flux allows for trimming
+the BEAST physics+observation model, removing objects that are too bright
+or too faint to fit any of the sources in the file.  In addition, this
+allows for running the BEAST fitting in parallel with each sub file
+on a different core.
+
+Command to split both the catalog and AST files by source density:
+
+ .. code-block:: console
+
+    $ python -m beast.tools.split_catalog_using_map.py phot_catalog_cut.fits \
+          ast_catalog_cut.fits phot_catalog_sourceden_map.hd5 --bin_width 1 \
+          --n_per_file 6250 --sort_col F475W_RATE
+
+
+*****************
 Observation model
-=================
+*****************
 
 The observation model is generally based on artificial star tests (ASTs).
 ASTs are artificial sources inserted into the observations and extracted with
@@ -268,7 +202,7 @@ There are 3 different flavors of observation models.
    different bands (even if they are not).  The ASTs results are binned
    in log(flux) bins and the average bias and standard deviation is tabulated
    and used to compute the bias and noise for each model in the physics grid.
-3. 'Trunchen': The covariance between bands is measured using the AST results.
+3. 'Truncheon': The covariance between bands is measured using the AST results.
    The input AST SEDs are assumed to have been chosen from the BEAST
    physics model grid and are expected to sparsely sample the full model
    grid. The ASTs should be run simultaneously with all bands and it assumed that
@@ -278,48 +212,22 @@ There are 3 different flavors of observation models.
    physic grid by interpolating between the sparse grid computed from the AST
    results.
 
-Create the AST input list
--------------------------
-
-To be added.
-
-Compute the ASTs
-----------------
-
-Done separately with the same code that was used to extract the source
-photometry.
-
-
-Split up the ASTs by source density
------------------------------------
-
-To be added.
-
-Currently the workflow assumes a single AST file for all the source densities.
-
-Create the observation models for each source density
------------------------------------------------------
-
-To be added.
-
-Create a single observation model
----------------------------------
-
-This assumes that the ASTs do not have a strong dependence on source
-density.  This could be a good approximation if the source density does
-not change much over the observation area or is low everywhere.
-The '0 0' arguments are dummy values.
+The code to compute the observation can be done with or without subgridding, and
+with or without source density splitting.  Here are some examples:
 
   .. code-block:: console
 
-     $ ./run_beast_production.py -o datafile.fits 0 0
+     $ # with source density splitting and no subgridding
+     $ python -m beast.tools.run.create_obsmodel --use_sd --nsubs 1
+     $ # with source density splitting and 5 subgrids
+     $ python -m beast.tools.run.create_obsmodel --use_sd --nsubs 5
+     $ # no source density splitting or subgrids
+     $ python -m beast.tools.run.create_obsmodel --nsubs 1
+
 
 ******************
 Trimming for speed
 ******************
-
-Trim the full model grid for each source density split file
-===========================================================
 
 The physics+observation model can be trimmed of sources that are so bright or
 so faint (compared to min/max flux in the observation file) that they will
@@ -336,8 +244,8 @@ by producing multiple trimmed models with a single read.  A specific tool is
 provided to setup batch files for this trimming and to do the actual
 trimming.
 
-This code sets up batch files for submission to the 'at' queue on linux
-(or similar) systems.  The projectname (e.g., 'PHAT') provides a portion
+This code sets up batch files for submission to the 'at' queue on linux or
+similar systems (such as slurm).  The projectname (e.g., 'PHAT') provides a portion
 of the batch file names.  The datafile and astfile are the observed photometry
 file (not sub files) and file with the ASTs in them.  The optional input
 seds_fname can be used to specify the file with the physics model grid,
@@ -347,14 +255,14 @@ a joblist file for submission to the batch queue and smaller files used by
 the trimming code.
 
 The joblist file can be split into smaller files if submission to multiple
-cores is desired.  Use the 'split' commandline tool.  The optional 'nice'
-input allows you to prepend a 'nice' option, expecially useful if
+cores is desired.  Use the 'num_subtrim' commandline tool.  The optional 'nice'
+input allows you to prepend a 'nice' option, especially useful if
 you're utilizing shared computing resources.
 
   .. code-block:: console
 
-     $ ./beast/tools/setup_batch_beast_trim.py projectname datafile.fits \
-          astfile.fits --num_subtrim 5 --nice 19
+     $ python -m beast.tools.setup_batch_beast_trim projectname phot_catalog_cut.fits \
+          ast_catalog_cut.fits --num_subtrim 5 --nice 19
 
 Once the batch files are created, then the joblist can be submitted to the
 queue.  The beast/tools/trim_many_via_obsdata.py code is called and trimmed
@@ -379,8 +287,8 @@ are serial on the core).
 
   .. code-block:: console
 
-     $ ./beast/tools/setup_batch_beast_fit.py projectname datafile.fits \
-       --num_percore 2 --nice 19
+     $ python -m beast.tools.setup_batch_beast_fit.py --num_percore 2 --nice 19 \
+           --use_sd 1 --nsubs 5
 
 The jobs can be submitted to the batch queue via:
 
@@ -396,15 +304,13 @@ Create the merged stats file
 ============================
 
 The stats (catalog of fit parameters) files can then be merged into a single
-file for the region.  This only merges the stats output files, but not the
+file for the field.  This only merges the stats output files, but not the
 pdf1d or lnp files (see the next section).
 
   .. code-block:: console
 
-     $ beast/tools/merge_stats_file.py filebase
+     $ python -m beast.tools.run.merge_files --use_sd 1
 
-where the filebase where it is the first portion of the output stats filenames
-(e.g., filebase_sdx-x_subx_stats.fits).
 
 Reorganize the results into spatial region files
 ================================================
@@ -440,3 +346,65 @@ results for the stars in that region.
         --filedir spatial
 
 You may wish to use these files as inputs for the `MegaBEAST <https://megabeast.readthedocs.io/en/latest/>`_.
+
+
+**************
+Python wrapper
+**************
+
+This is a wrapper for each of the commands described above:
+`beast/examples/production_runs_2019/beast_production_wrapper.py`
+
+You may choose to run each of the above commands individually, but this
+conveniently packages them into one file.  If you use this wrapper, you
+should edit several items in the file:
+
+  * field_names: used to identify photometry files and create BEAST files
+  * gst_filter_names: labels for the filters used in your photometry
+    file (e.g., 'X_RATE')
+  * beast_filter_names: the corresponding long names used by the BEAST
+  * settings for the source density map: pixel size, filter, magnitude
+    range
+  * settings for the background map: pixel dimensions, reference image
+  * settings for splitting the catalog by source density: filter,
+    number of sources per file
+  * settings for the trimming/fitting batch scripts: number of files, nice level
+
+You can (and should!) read about the individual functions above before
+running beast_production_wrapper:
+
+  .. code-block:: console
+
+     $ python beast_production_wrapper
+
+The first thing it does is use datamodel_template.py to create a
+datamodel.py file.  You will need to modify datamodel_template.py file to
+specify the required parameters for generating models and fitting data.
+datamodel.py will be imported as needed in the functions
+called by the wrapper.  Four of the datamodel fields (project, obsfile,
+filters, and basefilters) will be filled in by beast_production_wrapper.py,
+so ensure that the other fields in datamodel_template.py have the desired values.
+
+The wrapper will proceed through each of the functions above.  At
+three points, you will need to manually run things independently of
+the wrapper.  It will not continue running subsequent functions until
+it finds that the necessary steps have been taken.
+
+  * Creating ASTs (if a fake star catalog doesn't exist)
+  * running the batch trimming scripts
+  * running the batch fitting scripts
+
+Once you have completed each of these, run the wrapper again.  It will
+skip past the steps that it has already processed, and resume at the point
+where you left off.  In the case of the batch scripts, if you only
+partially completed them, it will re-generate new scripts for the
+remaining trimming/fitting (and tell you which ones are new), and
+pause again.
+
+Note of warning: if you are using this wrapper for multiple fields,
+check that the proper version of datamodel.py is in place before
+running the batch trimming/fitting scripts.  For instance, if you have
+recently used the wrapper to do part of the processing for field_A,
+and you want to start the batch fitting script for field_B, re-run the
+wrapper for field_B to make sure that datamodel.py refers to the
+information for field_B.

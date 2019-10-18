@@ -16,8 +16,7 @@ def merge_files(use_sd=True, nsubs=1):
     Parameters
     ----------
     use_sd : boolean (default=True)
-        If True, create source density dependent noise models (determined by
-        finding matches to datamodel.astfile with SD info)
+        set to True if the fitting used source density bins
 
     nsubs : int (default=1)
         number of subgrids used for the physics model
@@ -114,3 +113,29 @@ def merge_files(use_sd=True, nsubs=1):
             subgridding_tools.merge_pdf1d_stats(
                 pdf_files, stats_files, output_fname_base=out_filebase
             )
+
+
+if __name__ == "__main__":
+    # commandline parser
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--use_sd",
+        type=int,
+        default=1,
+        help="set to True if the fitting used source density bins",
+    )
+    parser.add_argument(
+        "--nsubs",
+        type=int,
+        default=1,
+        help="number of subgrids used for the physics model",
+    )
+
+    args = parser.parse_args()
+
+    merge_files(use_sd=bool(args.use_sd), nsubs=args.nsubs)
+
+    # print help if no arguments
+    if not any(vars(args).values()):
+        parser.print_help()

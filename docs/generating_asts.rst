@@ -1,3 +1,5 @@
+.. _beast_generating_asts:
+
 ###########################
 Artificial Star Input Lists
 ###########################
