@@ -35,7 +35,8 @@ libs = dict(
     hstcovar="hst_whitedwarf_frac_covar.fits",
     basel22="stellib_BaSeL_v2.2.grid.fits",
     munari="atlas9-munari.hires.grid.fits",
-    btsettl="bt-settl.lowres.grid.fits"
+    btsettl="bt-settl.lowres.grid.fits",
+    aringer="Aringer.AGB.grid.fits"
     # elodie31 = 'Elodie_v3.1.grid.fits'
 )
 
