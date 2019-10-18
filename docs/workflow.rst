@@ -39,7 +39,7 @@ Create a new version of the observations that includes a column with the
 source density.  The user chooses one band to use as the reference, and chooses
 the magnitude range of sources to use for calculating the source density
 (generally, this would be the range over which the catalog is complete).  The
-user can also choose a band for which sources that have 'BAND_FLAG == 99' are
+user can also choose a band for which sources that have '[band]_FLAG == 99' are
 ignored.
 
 A number of source density images are also created.  The prefix is derived
@@ -61,7 +61,8 @@ a pixel scale of 5 arcsec using the 'phot_catalog.fits' catalog.
 
   .. code-block:: console
 
-     $ ./beast/tools/create_background_density_map.py sourceden -catfile phot_catalog.fits --pixsize 5.
+     $ python -m beast.tools.create_background_density_map sourceden \
+       -catfile phot_catalog.fits --pixsize 5.
 
 
 
@@ -79,8 +80,8 @@ array using the 'phot_catalog.fits' catalog and the 'image.fits' reference image
 
   .. code-block:: console
 
-     $ ./beast/tools/create_background_density_map.py background -catfile phot_catalog.fits --npix 15 \
-	     -reference image.fits
+     $ python -m beast.tools.create_background_density_map background \
+	     -catfile phot_catalog.fits --npix 15 -reference image.fits
 
 
 To check if the background (or source density) map makes sense, the 'tileplot' subcommand of the
@@ -88,7 +89,8 @@ same script can be used. If the output of one of the previous commands was 'map_
 
   .. code-block:: console
 
-     $ ./beast/tools/create_background_density_map.py tileplot map_name.hd5 -image image.fits --colorbar 'background'
+     $ python -m beast.tools.create_background_density_map tileplot map_name.hd5 \
+       -image image.fits --colorbar 'background'
 
 
 *************
@@ -106,15 +108,18 @@ To create a physics model grid with 5 subgrids:
 
   .. code-block:: console
 
-     $ beast.tools.run.create_physicsmodel --nsubs=5
+     $ python -m beast.tools.run.create_physicsmodel --nsubs=5
 
 
 *********************
 Artificial Star Tests
 *********************
 
-The observation model is based on artificial star tests (ASTs).  The BEAST
-selects SEDs from the physics model grid.  For each band, the range of fluxes
+The observation model is based on artificial star tests (ASTs).  More details
+about the BEAST AST code components can be found at :ref:`Artificial Star Input
+Lists <beast_generating_asts>`.
+
+The BEAST selects SEDs from the physics model grid.  For each band, the range of fluxes
 in the model grid is split into bins (default=40, set by datamodel.ast_n_flux_bins),
 and models are randomly selected.  The model is retained if there are fewer than
 the set number of models (default=50, set by datamodel.ast_n_per_flux_bin) in
@@ -133,7 +138,7 @@ truncheon model), as set by datamodel.ast_realization_per_model.
 
 .. code-block:: console
 
-   $ beast.tools.run.make_ast_inputs --flux_bin_method=True
+   $ python -m beast.tools.run.make_ast_inputs --flux_bin_method=True
 
 
 These ASTs should be processed with the same code that was used to extract the
@@ -148,13 +153,14 @@ You may wish to remove artifacts from the photometry catalog.  If you do so, the
 same criteria must be applied to the AST catalog.
 
 Commands to edit the files, both to remove flagged sources and eliminate sources
-that don't have full imaging coverage:
+that don't have full imaging coverage, and to create ds9 region files:
 
 .. code-block:: console
 
-   $ beast.tools.cut_catalogs phot_catalog_with_sourceden.fits phot_catalog_cut.fits \
+   $ python -m beast.tools.cut_catalogs phot_catalog_with_sourceden.fits phot_catalog_cut.fits \
          --partial_overlap --region_file --flagged --flag_filter F475W
-   $ beast.tools.cut_catalogs ast_catalog.fits ast_catalog_cut.fits \
+   $
+   $ python -m beast.tools.cut_catalogs ast_catalog.fits ast_catalog_cut.fits \
          --partial_overlap --region_file --flagged --flag_filter F475W
 
 
@@ -172,8 +178,9 @@ Command to split both the catalog and AST files by source density:
 
  .. code-block:: console
 
-    $ beast.tools.split_catalog_using_map.py phot_catalog_cut.fits ast_catalog_cut.fits \
-          phot_catalog_sourceden_map.hd5 --bin_width 1 --n_per_file 6250 --sort_col F475W_RATE
+    $ python -m beast.tools.split_catalog_using_map.py phot_catalog_cut.fits \
+          ast_catalog_cut.fits phot_catalog_sourceden_map.hd5 --bin_width 1 \
+          --n_per_file 6250 --sort_col F475W_RATE
 
 
 *****************
@@ -211,11 +218,11 @@ with or without source density splitting.  Here are some examples:
   .. code-block:: console
 
      $ # with source density splitting and no subgridding
-     $ beast.tools.run.create_obsmodel --use_sd --nsubs 1
+     $ python -m beast.tools.run.create_obsmodel --use_sd --nsubs 1
      $ # with source density splitting and 5 subgrids
-     $ beast.tools.run.create_obsmodel --use_sd --nsubs 5
+     $ python -m beast.tools.run.create_obsmodel --use_sd --nsubs 5
      $ # no source density splitting or subgrids
-     $ beast.tools.run.create_obsmodel --nsubs 1
+     $ python -m beast.tools.run.create_obsmodel --nsubs 1
 
 
 ******************
@@ -254,8 +261,8 @@ you're utilizing shared computing resources.
 
   .. code-block:: console
 
-     $ ./beast/tools/setup_batch_beast_trim.py projectname datafile.fits \
-          astfile.fits --num_subtrim 5 --nice 19
+     $ python -m beast.tools.setup_batch_beast_trim projectname phot_catalog_cut.fits \
+          ast_catalog_cut.fits --num_subtrim 5 --nice 19
 
 Once the batch files are created, then the joblist can be submitted to the
 queue.  The beast/tools/trim_many_via_obsdata.py code is called and trimmed
@@ -280,7 +287,7 @@ are serial on the core).
 
   .. code-block:: console
 
-     $ beast.tools.setup_batch_beast_fit.py --num_percore 2 --nice 19 \
+     $ python -m beast.tools.setup_batch_beast_fit.py --num_percore 2 --nice 19 \
            --use_sd 1 --nsubs 5
 
 The jobs can be submitted to the batch queue via:
@@ -302,10 +309,8 @@ pdf1d or lnp files (see the next section).
 
   .. code-block:: console
 
-     $ beast.tools.run.merge_files --use_sd 1
+     $ python -m beast.tools.run.merge_files --use_sd 1
 
-where the filebase where it is the first portion of the output stats filenames
-(e.g., filebase_sdx-x_subx_stats.fits).
 
 Reorganize the results into spatial region files
 ================================================
@@ -348,12 +353,9 @@ Python wrapper
 **************
 
 This is a wrapper for each of the commands described above:
+`beast/examples/production_runs_2019/beast_production_wrapper.py`
 
-.. code-block:: console
-
-   beast/examples/production_runs_2019/beast_production_wrapper.py
-
-You may choose to run each of those commands individually, but this
+You may choose to run each of the above commands individually, but this
 conveniently packages them into one file.  If you use this wrapper, you
 should edit several items in the file:
 
@@ -373,16 +375,15 @@ running beast_production_wrapper:
 
   .. code-block:: console
 
-     $ run beast_production_wrapper.py
+     $ python beast_production_wrapper
 
 The first thing it does is use datamodel_template.py to create a
 datamodel.py file.  You will need to modify datamodel_template.py file to
 specify the required parameters for generating models and fitting data.
 datamodel.py will be imported as needed in the functions
-called by the wrapper.  Five of the datamodel fields (project, obsfile, astfile,
+called by the wrapper.  Four of the datamodel fields (project, obsfile,
 filters, and basefilters) will be filled in by beast_production_wrapper.py,
-so ensure that the other fields in
-datamodel_template.py have the desired values.
+so ensure that the other fields in datamodel_template.py have the desired values.
 
 The wrapper will proceed through each of the functions above.  At
 three points, you will need to manually run things independently of

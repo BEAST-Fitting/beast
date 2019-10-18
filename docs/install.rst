@@ -102,8 +102,6 @@ installing, which is best done by replacing the last line with
 
      $ python setup.py develop
 
-.. _library-files:
-
 
 Installation for Production Runs
 ================================
@@ -160,6 +158,7 @@ The BEAST production version is now ready for use.  Note, you need to
 activate this conda environment every time you want to use this installed
 version.
 
+.. _library-files:
 
 BEAST Library Files
 ===================
