@@ -1,3 +1,4 @@
+.. _beast_standard_workflow:
 
 #################
 Standard Workflow
