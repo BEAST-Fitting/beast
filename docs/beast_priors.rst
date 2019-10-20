@@ -54,7 +54,7 @@ For example, step like priors can be specified by:
                      'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
                      'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
 
-Or by using bin edges, similar to outputs from `np.histo`:
+Or using bin edges (where N = N_values+1) like those output by `np.histogram()`:
 
 .. code-block:: python
 
