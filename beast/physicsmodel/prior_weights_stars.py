@@ -4,6 +4,7 @@ Prior Weights
 The priors on age, mass, and metallicty are computed as weights to use
 in the posterior calculations.
 """
+from sys import exit
 import numpy as np
 from scipy.integrate import quad
 from scipy.interpolate import interp1d
