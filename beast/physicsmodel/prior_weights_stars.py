@@ -60,8 +60,9 @@ def compute_age_prior_weights(logages, age_prior_model):
             np.array(age_prior_model["values"]),
         )
     elif age_prior_model["name"] == "exp":
-        vals = (10 ** logages) / (age_prior_model["tau"] * 1e6)
-        age_weights = np.exp(-1.0 * vals)
+        # assumes SFR(t) \propto e**(-t/tau) where age=(t0-t) and tau in Gyr
+        vals = (10 ** logages) / (age_prior_model["tau"] * 1e9)
+        age_weights = np.exp(vals)
     else:
         print(
             "input age prior ''{}'' function not supported".format(
