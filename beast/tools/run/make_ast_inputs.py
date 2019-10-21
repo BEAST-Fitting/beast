@@ -172,8 +172,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--flux_bin_method",
-        default=1,
-        type=int,
+        default=True,
+        type=bool,
         help="Choose SEDs using flux bin method (1, default) or not (0)",
     )
 
