@@ -54,6 +54,11 @@ Installing the BEAST
 In addition to installing the code, library files also need to be installed.
 See :ref:`library-files`.
 
+.. note::
+   The ``numpy`` must be installed before installing the beast.  This package
+   is needed as part of the install process, not just as a prerequisite for the
+   beast.
+
 Using pip
 ---------
 
