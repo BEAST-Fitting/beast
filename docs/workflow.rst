@@ -130,16 +130,22 @@ Then the stars are placed within the image.  For each of the options below, each
 SED may be placed once (for the toothpick model) or multiple times (for the
 truncheon model), as set by datamodel.ast_realization_per_model.
 
-  * Option 1 (datamodel.ast_source_density_table is set):
-    For each source density or background bin, randomly place the SEDs
-    within pixels of that bin.  Repeat for each of the bins.
-  * Option 2 (datamodel.ast_source_density_table = None):
-    Randomly choose a star from the photometry catalog, and place the
-    artificial star nearby.  Repeat until all SEDs have been placed.
+* Option 1 (datamodel.ast_source_density_table is set):
+  For each source density or background bin, randomly place the SEDs
+  within pixels of that bin.  Repeat for each of the bins.
 
-.. code-block:: console
+  .. code-block:: console
 
-   $ python -m beast.tools.run.make_ast_inputs --flux_bin_method=True
+     $ python -m beast.tools.run.make_ast_inputs
+
+* Option 2 (datamodel.ast_source_density_table = None):
+  Randomly choose a star from the photometry catalog, and place the
+  artificial star nearby.  Repeat until all SEDs have been placed.
+
+  .. code-block:: console
+
+     $ python -m beast.tools.run.make_ast_inputs --random_loc
+
 
 
 These ASTs should be processed with the same code that was used to extract the
@@ -156,13 +162,13 @@ same criteria must be applied to the AST catalog.
 Commands to edit the files, both to remove flagged sources and eliminate sources
 that don't have full imaging coverage, and to create ds9 region files:
 
-.. code-block:: console
+  .. code-block:: console
 
-   $ python -m beast.tools.cut_catalogs phot_catalog_with_sourceden.fits phot_catalog_cut.fits \
-         --partial_overlap --region_file --flagged --flag_filter F475W
-   $
-   $ python -m beast.tools.cut_catalogs ast_catalog.fits ast_catalog_cut.fits \
-         --partial_overlap --region_file --flagged --flag_filter F475W
+     $ python -m beast.tools.cut_catalogs phot_catalog_with_sourceden.fits phot_catalog_cut.fits \
+           --partial_overlap --region_file --flagged --flag_filter F475W
+
+     $ python -m beast.tools.cut_catalogs ast_catalog.fits ast_catalog_cut.fits \
+           --partial_overlap --region_file --flagged --flag_filter F475W
 
 
 The observed catalog should be split into separate files for each source
@@ -177,7 +183,7 @@ on a different core.
 
 Command to split both the catalog and AST files by source density:
 
- .. code-block:: console
+  .. code-block:: console
 
     $ python -m beast.tools.split_catalog_using_map.py phot_catalog_cut.fits \
           ast_catalog_cut.fits phot_catalog_sourceden_map.hd5 --bin_width 1 \
