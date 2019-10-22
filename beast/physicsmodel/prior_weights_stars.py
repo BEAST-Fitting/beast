@@ -4,6 +4,7 @@ Prior Weights
 The priors on age, mass, and metallicty are computed as weights to use
 in the posterior calculations.
 """
+from sys import exit
 import numpy as np
 from scipy.integrate import quad
 from scipy.interpolate import interp1d
@@ -45,9 +46,12 @@ def compute_age_prior_weights(logages, age_prior_model):
         # assumes the logace spacing is uniform
         age_weights = 1.0 / compute_age_grid_weights(logages)
     elif age_prior_model["name"] == "bins_histo":
+        # interpolate according to bins, assuming SFR constant from i to i+1
+        # and allow for bin edges input
+        if len(age_prior_model["values"]) == len(age_prior_model["logages"])-1:
+            age_prior_model["values"].append(0.0)
         ageND = interp1d(
-            age_prior_model["logages"], age_prior_model["values"], kind="nearest"
-        )
+            age_prior_model["logages"], age_prior_model["values"], kind="zero")
         age_weights = ageND(logages)
     elif age_prior_model["name"] == "bins_interp":
         # interpolate model to grid ages
@@ -57,8 +61,10 @@ def compute_age_prior_weights(logages, age_prior_model):
             np.array(age_prior_model["values"]),
         )
     elif age_prior_model["name"] == "exp":
-        vals = (10 ** logages) / (age_prior_model["tau"] * 1e6)
-        age_weights = np.exp(-1.0 * vals)
+        # assumes SFR(t) \propto e**(-t/tau) \propto e**(age/tau)
+        # where age \propto -t (for age=t0-t) and tau in Gyr
+        vals = (10 ** logages) / (age_prior_model["tau"] * 1e9)
+        age_weights = np.exp(vals)
     else:
         print(
             "input age prior ''{}'' function not supported".format(

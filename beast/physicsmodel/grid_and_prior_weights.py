@@ -71,7 +71,7 @@ def compute_age_mass_metallicity_weights(
         uniq_ages = np.unique(_tgrid[zindxs]["logA"])
 
         # compute the age weights
-        age_grid_weights = compute_age_grid_weights(uniq_ages, **kwargs)
+        age_grid_weights = compute_age_grid_weights(uniq_ages)
         age_prior_weights = compute_age_prior_weights(uniq_ages, age_prior_model)
 
         for ak, age_val in enumerate(uniq_ages):

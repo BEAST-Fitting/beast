@@ -5,6 +5,7 @@ The priors on A(V), R(V), and f_A computed as weights to use
 in the posterior calculations.
 """
 import numpy as np
+from sys import exit
 
 __all__ = ["PriorWeightsDust"]
 
@@ -223,7 +224,7 @@ class PriorWeightsDust:
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
                 N1=model["N1_to_N2"],
-                N2=1.0,
+                N2=1.0
             )
         elif model["name"] == "exponential":
             self.av_priors = _exponential(self.av_vals, a=model["a"])
@@ -261,7 +262,7 @@ class PriorWeightsDust:
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
                 N1=model["N1_to_N2"],
-                N2=1.0,
+                N2=1.0
             )
         else:
             print("**error in setting the R(V) dust prior weights!**")
@@ -297,6 +298,7 @@ class PriorWeightsDust:
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
                 N1=model["N1_to_N2"],
+                N2=1.0
             )
         else:
             print("**error in setting the f_A dust prior weights!**")

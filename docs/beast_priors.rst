@@ -54,6 +54,14 @@ For example, step like priors can be specified by:
                      'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
                      'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
 
+Or using bin edges (where N = N_values+1) like those output by `np.histogram()`:
+
+.. code-block:: python
+
+  age_prior_model = {'name': 'bins_histo',
+                     'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
+                     'values': [1.0, 2.0, 1.0, 5.0]}
+
 For example, lines connecting the bin value of the priors can be specified by:
 
 .. code-block:: python
@@ -62,13 +70,13 @@ For example, lines connecting the bin value of the priors can be specified by:
                     'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
                     'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
 
-4. An exponentially decreasing SFR starting at 1.0,
-with a 100 Myr time constant is:
+4. An exponentially decreasing SFR (in time, but here increasing with age)
+with a 0.1 Gyr time constant (with `tau` parameter in Gyr):
 
 .. code-block:: python
 
   age_prior_model = {'name': 'exp',
-                     'tau': 100.}
+                     'tau': 0.1}
 
 Plot showing examples of the possible age prior models with the parameters given above.
 
@@ -97,7 +105,7 @@ Plot showing examples of the possible age prior models with the parameters given
             "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
             "values": [1.0, 2.0, 1.0, 5.0, 3.0],
         },
-        {"name": "exp", "tau": 100.0}
+        {"name": "exp", "tau": 0.1}
     ]
 
     for ap_mod in age_prior_models:
