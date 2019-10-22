@@ -120,36 +120,39 @@ The observation model is based on artificial star tests (ASTs).  More details
 about the BEAST AST code components can be found at :ref:`Artificial Star Input
 Lists <beast_generating_asts>`.
 
-The BEAST selects SEDs from the physics model grid.  For each band, the range of fluxes
+The BEAST selects SEDs from the physics model grid with a technique that
+minimizes the number of ASTs needed to allow the construction of a good
+toothpick observation model.  For each band, the range of fluxes
 in the model grid is split into bins (default=40, set by datamodel.ast_n_flux_bins),
 and models are randomly selected.  The model is retained if there are fewer than
 the set number of models (default=50, set by datamodel.ast_n_per_flux_bin) in
 each of the relevant flux bins.
 
-Then the stars are placed within the image.  For each of the options below, each
-SED may be placed once (for the toothpick model) or multiple times (for the
-truncheon model), as set by datamodel.ast_realization_per_model.
-
-* Option 1 (datamodel.ast_source_density_table is set):
-  For each source density or background bin, randomly place the SEDs
-  within pixels of that bin.  Repeat for each of the bins.
-
   .. code-block:: console
 
      $ python -m beast.tools.run.make_ast_inputs
 
-* Option 2 (datamodel.ast_source_density_table = None):
-  Randomly choose a star from the photometry catalog, and place the
-  artificial star nearby.  Repeat until all SEDs have been placed.
+While not recommended, it is possible to randomly select SEDs from the
+physics model grid.
 
   .. code-block:: console
 
-     $ python -m beast.tools.run.make_ast_inputs --random_loc
+     $ python -m beast.tools.run.make_ast_inputs --random_seds
 
+How the sources are placed in the image is determined by the ast.source_density_table
+variable.
 
+1. datamodel.ast_source_density_table is set to `filebase_sourceden_map.hd5`:
+   For each source density or background bin, randomly place the SEDs
+   within pixels of that bin.  Repeat for each of the bins.
 
-These ASTs should be processed with the same code that was used to extract the
-source photometry.
+2. datamodel.ast_source_density_table = None:
+   Randomly choose a star from the photometry catalog, and place the
+   artificial star nearby.  Repeat until all SEDs have been placed.
+
+.. note::
+   These ASTs should be processed with the same code that was used to extract the
+   source photometry.
 
 
 *******************

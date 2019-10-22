@@ -171,14 +171,14 @@ if __name__ == "__main__":
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--random_loc",
+        "--random_seds",
         action="store_true",
-        help="Randomly use locations near actual sources",
+        help="Randomly pick from the physicsmodel grid",
     )
 
     args = parser.parse_args()
 
-    make_ast_inputs(flux_bin_method=not args.random_loc)
+    make_ast_inputs(flux_bin_method=not args.random_seds)
 
     # print help if no arguments
     if not any(vars(args).values()):
