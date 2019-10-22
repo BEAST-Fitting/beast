@@ -5,6 +5,7 @@ The priors on A(V), R(V), and f_A computed as weights to use
 in the posterior calculations.
 """
 import numpy as np
+from sys import exit
 
 __all__ = ["PriorWeightsDust"]
 
