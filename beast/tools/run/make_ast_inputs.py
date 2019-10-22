@@ -7,7 +7,9 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 
 # system imports
 import argparse
+import os
 import numpy as np
+from astropy.table import Table
 
 # BEAST imports
 from beast.observationmodel.ast.make_ast_input_list import (
@@ -68,43 +70,55 @@ def make_ast_inputs(flux_bin_method=True):
     outfile_seds = "./{0}/{0}_inputAST_seds.txt".format(datamodel.project)
     outfile_params = "./{0}/{0}_ASTparams.fits".format(datamodel.project)
 
-    if flux_bin_method:
+    # if the SED file doesn't exist, create SEDs
+    if not os.path.isfile(outfile_seds):
 
-        N_fluxes = datamodel.ast_n_flux_bins
-        min_N_per_flux = datamodel.ast_n_per_flux_bin
-        bins_outfile = "./{0}/{0}_ASTfluxbins.txt".format(datamodel.project)
-        modelsedgrid_filename = './{0}/{0}_seds.grid.hd5'.format(datamodel.project)
+        print('Selecting SEDs for ASTs')
 
-        chosen_seds = pick_models_toothpick_style(
-            modelsedgrid_filename,
-            datamodel.filters,
-            mag_cuts,
-            Nfilters,
-            N_fluxes,
-            min_N_per_flux,
-            outfile=outfile_seds,
-            outfile_params=outfile_params,
-            bins_outfile=bins_outfile,
-        )
+        if flux_bin_method:
 
+            N_fluxes = datamodel.ast_n_flux_bins
+            min_N_per_flux = datamodel.ast_n_per_flux_bin
+            bins_outfile = "./{0}/{0}_ASTfluxbins.txt".format(datamodel.project)
+            modelsedgrid_filename = './{0}/{0}_seds.grid.hd5'.format(datamodel.project)
+
+            chosen_seds = pick_models_toothpick_style(
+                modelsedgrid_filename,
+                datamodel.filters,
+                mag_cuts,
+                Nfilters,
+                N_fluxes,
+                min_N_per_flux,
+                outfile=outfile_seds,
+                outfile_params=outfile_params,
+                bins_outfile=bins_outfile,
+            )
+
+        else:
+
+            N_models = datamodel.ast_models_selected_per_age
+
+            chosen_seds = pick_models(
+                modelsedgrid_filename,
+                datamodel.filters,
+                mag_cuts,
+                Nfilter=Nfilters,
+                N_stars=N_models,
+                Nrealize=Nrealize,
+                outfile=outfile_seds,
+                outfile_params=outfile_params,
+            )
+
+    # if the SED file does exist, read them in
     else:
-
-        N_models = datamodel.ast_models_selected_per_age
-
-        chosen_seds = pick_models(
-            modelsedgrid_filename,
-            datamodel.filters,
-            mag_cuts,
-            Nfilter=Nfilters,
-            N_stars=N_models,
-            Nrealize=Nrealize,
-            outfile=outfile_seds,
-            outfile_params=outfile_params,
-        )
+        print('Reading existing AST SEDs')
+        chosen_seds = Table.read(outfile_seds, format='ascii')
 
     # --------------------
     # assign positions
     # --------------------
+
+    print('Assigning positions to artifical stars')
 
     outfile = "./{0}/{0}_inputAST.txt".format(datamodel.project)
 
