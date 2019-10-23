@@ -9,10 +9,9 @@ from astropy.io import fits
 from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 
-from beast.plotting import plot_indiv_fit
+from beast.plotting import plot_indiv_fit, plot_cmd, plot_cmd_with_fits
 
 plt.switch_backend("agg")
-
 
 def _download_rename(filename):
     """
@@ -71,5 +70,17 @@ def test_indiv_plot():
 
     # make the plot!
     plot_indiv_fit.plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum)
+
+    return fig
+
+@remote_data
+@pytest.mark.mpl_image_compare(tolerance=50)
+def test_plot_cmd():
+
+    # Download example data from phat_small
+    fitsfile =  _download_rename("b15_4band_det_27_A.fits")
+
+    # Plot CMD using defaults
+    fig = plot_cmd.plot(fitsfile)
 
     return fig
