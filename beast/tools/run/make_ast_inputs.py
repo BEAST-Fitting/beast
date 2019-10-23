@@ -171,15 +171,14 @@ if __name__ == "__main__":
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--flux_bin_method",
-        default=1,
-        type=int,
-        help="Choose SEDs using flux bin method (1, default) or not (0)",
+        "--random_seds",
+        action="store_true",
+        help="Randomly pick from the physicsmodel grid",
     )
 
     args = parser.parse_args()
 
-    make_ast_inputs(flux_bin_method=bool(args.flux_bin_method))
+    make_ast_inputs(flux_bin_method=not args.random_seds)
 
     # print help if no arguments
     if not any(vars(args).values()):
