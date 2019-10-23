@@ -139,7 +139,7 @@ physics model grid.
 
      $ python -m beast.tools.run.make_ast_inputs --random_seds
 
-How the sources are placed in the image is determined by the ast.source_density_table
+How the sources are placed in the image is determined by the ast_source_density_table
 variable.
 
 1. datamodel.ast_source_density_table is set to `filebase_sourceden_map.hd5`:
