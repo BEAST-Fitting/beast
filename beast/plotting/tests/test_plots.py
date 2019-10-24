@@ -9,6 +9,8 @@ from astropy.io import fits
 from astropy.utils.data import download_file
 from astropy.tests.helper import remote_data
 
+from matplotlib.testing.decorators import image_comparison
+
 from beast.plotting import plot_indiv_fit, plot_cmd, plot_cmd_with_fits
 
 plt.switch_backend("agg")
@@ -74,7 +76,7 @@ def test_indiv_plot():
     return fig
 
 @remote_data
-@pytest.mark.mpl_image_compare(tolerance=50)
+@pytest.mark.mpl_image_compare()
 def test_plot_cmd():
 
     # Download example data from phat_small

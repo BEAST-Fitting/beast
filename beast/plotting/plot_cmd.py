@@ -50,29 +50,13 @@ def plot(fitsfile, mag1_filter="F475W", mag2_filter="F814W", mag3_filter="F475W"
 
     col = mag1 - mag2
 
-    fontScale = 12
-    params = {'axes.labelsize': fontScale,
-        'axes.titlesize': fontScale,
-        'font.size': fontScale,
-        'xtick.labelsize': fontScale,
-        'ytick.labelsize': fontScale,
-        }
-    plt.rcParams.update(params)
-
     fig = plt.figure(figsize=(9, 9))
-    plt.plot(col, mag, "ko")
+    plt.plot(col, mag, ".")
 
     plt.gca().invert_yaxis()
 
-    x_pad = np.abs(np.max(col)-np.min(col))*0.1
-    y_pad = np.abs(np.max(mag)-np.min(mag))*0.1
-    plt.xlim(np.min(col)-x_pad, np.max(col)+x_pad)
-    plt.ylim(np.min(mag)-y_pad, np.max(mag)+y_pad)
-
     plt.xlabel("%s - %s" % (mag1_filter, mag2_filter))
     plt.ylabel(mag3_filter)
-
-    # plt.tight_layout()
 
     return fig
 
