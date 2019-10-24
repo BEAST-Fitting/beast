@@ -76,7 +76,7 @@ def test_indiv_plot():
     return fig
 
 @remote_data
-@pytest.mark.mpl_image_compare(tolerance=10)
+@pytest.mark.mpl_image_compare()
 def test_plot_cmd():
 
     # Download example data from phat_small
@@ -86,3 +86,15 @@ def test_plot_cmd():
     fig = plot_cmd.plot(fitsfile)
 
     return fig
+
+# @remote_data
+# @image_comparison(baseline_images=['plot_cmd'], extensions=['png'])
+# def test_plot_cmd():
+#
+#     # Download example data from phat_small
+#     fitsfile =  _download_rename("b15_4band_det_27_A.fits")
+#
+#     # Plot CMD using defaults
+#     fig = plot_cmd.plot(fitsfile)
+#
+#     return fig
