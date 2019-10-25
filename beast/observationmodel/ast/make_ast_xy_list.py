@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib.path import Path
 from scipy.spatial import ConvexHull
 from tqdm import tqdm
+import warnings
 
 from astropy.io import ascii, fits
 from astropy.table import Column, Table
@@ -120,8 +121,12 @@ def pick_positions_from_map(
     # if appropriate information is given, extract the x/y positions so that
     # there are no ASTs generated outside of the catalog footprint
     colnames = catalog.data.columns
+    xy_pos = False
+    radec_pos = False
 
+    # if x/y in catalog, save them
     if "X" or "x" in colnames:
+        xy_pos = True
         if "X" in colnames:
             x_positions = catalog.data["X"][:]
             y_positions = catalog.data["Y"][:]
@@ -129,52 +134,62 @@ def pick_positions_from_map(
             x_positions = catalog.data["x"][:]
             y_positions = catalog.data["y"][:]
 
-    else:
-        if ("RA" in colnames) or ("ra" in colnames):
-            if "RA" in colnames:
-                ra_positions = catalog.data["RA"][:]
-                dec_positions = catalog.data["DEC"][:]
-            if "ra" in colnames:
-                ra_positions = catalog.data["ra"][:]
-                dec_positions = catalog.data["dec"][:]
+    # if RA/Dec in catalog, save them
+    if ("RA" in colnames) or ("ra" in colnames):
+        radec_pos = True
+        if "RA" in colnames:
+            ra_positions = catalog.data["RA"][:]
+            dec_positions = catalog.data["DEC"][:]
+        if "ra" in colnames:
+            ra_positions = catalog.data["ra"][:]
+            dec_positions = catalog.data["dec"][:]
 
-            # if there's a refimage, convert RA/Dec to x/y
-            if refimage:
-                x_positions, y_positions = wcs.all_world2pix(
-                    ra_positions, dec_positions, wcs_origin
-                )
-            else:
-                x_positions, y_positions = ra_positions, dec_positions
-        else:
-            raise RuntimeError(
-                "Your catalog does not supply X/Y or RA/DEC information to ensure ASTs are within catalog boundary"
-            )
+    # if only one of those exists and there's a refimage, convert to the other
+    if xy_pos and not radec_pos and refimage:
+        radec_pos = True
+        x_positions, y_positions = wcs.all_world2pix(
+            ra_positions, dec_positions, wcs_origin
+        )
+    if radec_pos and not xy_pos and refimage:
+        xy_pos = True
+        ra_positions, dec_positions = wcs.all_pix2world(
+            x_positions, y_positions, wcs_origin
+        )
+
+    # if no x/y or ra/dec in the catalog, raise error
+    if not xy_pos and not radec_pos:
+        raise RuntimeError(
+            "Your catalog does not supply X/Y or RA/DEC information to ensure ASTs are within catalog boundary"
+        )
 
     # create path containing the positions
-    coords = np.array(
-        [x_positions, y_positions]
-    ).T  # there's a weird astropy datatype issue that requires numpy coercion
-    hull = ConvexHull(coords)
-    bounds_x, bounds_y = coords[hull.vertices, 0], coords[hull.vertices, 1]
-    catalog_boundary = Path(np.array([bounds_x, bounds_y]).T)
+    catalog_boundary_xy = None
+    catalog_boundary_radec = None
+    if xy_pos:
+        catalog_boundary_xy = convexhull_path(x_positions, y_positions)
+    if radec_pos:
+        catalog_boundary_radec = convexhull_path(ra_positions, dec_positions)
 
     # if coord_boundary set, define an additional boundary for ASTs
     if set_coord_boundary is not None:
-        if refimage:
+        # initialize variables
+        coord_boundary_xy = None
+        coord_boundary_radec = None
+        # evaluate one or both
+        if xy_pos and refimage:
             bounds_x, bounds_y = wcs.all_world2pix(
                 set_coord_boundary[0], set_coord_boundary[1], wcs_origin
             )
-            coord_boundary = Path(np.array([bounds_x, bounds_y]).T)
-        else:
-            raise RuntimeError(
-                "If using set_coord_boundary, you must also provide a refimage"
-            )
+            coord_boundary_xy = Path(np.array([bounds_x, bounds_y]).T)
+        if radec_pos:
+            coord_boundary_radec = Path(np.array([set_coord_boundary[0], set_coord_boundary[1]]).T)
 
     # if region_from_filters is set, define an additional boundary for ASTs
     if region_from_filters is not None:
         # need catalog file from datamodel
         importlib.reload(datamodel)
 
+        # 1. find the sub-list of sources
         if type(region_from_filters) == list:
             # good stars with user-defined partial overlap
             _, good_stars = cut_catalogs.cut_catalogs(datamodel.obsfile, 'N/A',
@@ -187,12 +202,21 @@ def pick_positions_from_map(
         else:
             raise RuntimeError('Invalid argument for region_from_filters')
 
-        coords = np.array(
-            [x_positions[good_stars == 1], y_positions[good_stars == 1]]
-        ).T  # there's a weird astropy datatype issue that requires numpy coercion
-        hull = ConvexHull(coords)
-        bounds_x, bounds_y = coords[hull.vertices, 0], coords[hull.vertices, 1]
-        filt_reg_boundary = Path(np.array([bounds_x, bounds_y]).T)
+        # 2. define the Path object for the convex hull
+        # initialize variables
+        filt_reg_boundary_xy = None
+        filt_reg_boundary_radec = None
+        # evaluate one or both
+        if xy_pos:
+            filt_reg_boundary_xy = convexhull_path(
+                x_positions[good_stars == 1],
+                y_positions[good_stars == 1]
+            )
+        if radec_pos:
+            filt_reg_boundary_radec = convexhull_path(
+                ra_positions[good_stars == 1],
+                dec_positions[good_stars == 1]
+            )
 
     # Load the background map
     print(Npermodel, " repeats of each model in each map bin")
@@ -224,34 +248,46 @@ def pick_positions_from_map(
                 dec_max = tile_dec_min[tile] + tile_dec_delta[tile]
 
                 # make a box object for the tile
-                if wcs is None:
-                    tile_box = box(ra_min, dec_min, ra_max, dec_max)
-                else:
+                tile_box_radec = box(ra_min, dec_min, ra_max, dec_max)
+                tile_box_xy = None
+                if refimage:
                     bounds_x, bounds_y = wcs.all_world2pix(
                         np.array([ra_min, ra_max]),
-                        np.array([dec_min, dec_max]), 0)
+                        np.array([dec_min, dec_max]), wcs_origin)
 
-                    tile_box = box(np.min(bounds_x), np.min(bounds_y),
+                    tile_box_xy = box(np.min(bounds_x), np.min(bounds_y),
                                        np.max(bounds_x), np.max(bounds_y))
 
                 # discard tile if there's no overlap with user-imposed regions
 
                 # - set_coord_boundary
                 if set_coord_boundary is not None:
-                    if Polygon(coord_boundary.vertices).intersection(tile_box).area == 0:
+                    # coord boundary is input in RA/Dec, and tiles are RA/Dec,
+                    # so there's no need to check the x/y version of either
+                    if Polygon(coord_boundary_radec.vertices).intersection(tile_box_radec).area == 0:
                         keep_tile[j] = False
 
                 # - region_from_filters
                 if region_from_filters is not None:
-                    if Polygon(filt_reg_boundary.vertices).intersection(tile_box).area == 0:
-                        keep_tile[j] = False
+                    if filt_reg_boundary_xy and tile_box_xy:
+                        if Polygon(filt_reg_boundary_xy.vertices).intersection(tile_box_xy).area == 0:
+                            keep_tile[j] = False
+                    elif filt_reg_boundary_radec and tile_box_radec:
+                        if Polygon(filt_reg_boundary_radec.vertices).intersection(tile_box_radec).area == 0:
+                            keep_tile[j] = False
+                    else:
+                        warnings.warn('Unable to use regions_from_filters to remove SD/bg tiles')
 
             # remove anything that needs to be discarded
             tiles_foreach_bin[i] = tile_set[keep_tile]
 
+
     # Remove empty bins
     tile_sets = [tile_set for tile_set in tiles_foreach_bin if len(tile_set)]
-    print(len(tile_sets), " non-empty map bins found between ", min_val, "and", max_val)
+    print("{0} non-empty map bins (out of {1}) found between {2} and {3}".format(
+        len(tile_sets), N_bins, min_val, max_val)
+    )
+
 
 
 
@@ -264,8 +300,8 @@ def pick_positions_from_map(
     repeated_seds = np.repeat(repeated_seds, len(tile_sets))
 
     out_table = Table(repeated_seds, names=chosen_seds.colnames)
-    xs = np.zeros(len(out_table))
-    ys = np.zeros(len(out_table))
+    ast_x_list = np.zeros(len(out_table))
+    ast_y_list = np.zeros(len(out_table))
     bin_indices = np.zeros(len(out_table))
 
     tile_ra_min, tile_dec_min = bdm.min_ras_decs()
@@ -278,11 +314,13 @@ def pick_positions_from_map(
         stop = start + Nseds_per_region
         bin_indices[start:stop] = bin_index
         for i in range(Nseds_per_region):
-            x = -1
-            y = -1
-            # Convert each ra,dec to x,y. If there are negative values, try again
-            while x < 0 or y < 0:
-                # Pick a random tile
+
+            # keep track of whether we're still looking for valid coordinates
+            x = None
+            y = None
+
+            while (x is None) or (y is None):
+                # Pick a random tile in this tile set
                 tile = np.random.choice(tile_set)
                 # Within this tile, pick a random ra and dec
                 ra = tile_ra_min[tile] + np.random.random_sample() * tile_ra_delta[tile]
@@ -291,49 +329,71 @@ def pick_positions_from_map(
                     + np.random.random_sample() * tile_dec_delta[tile]
                 )
 
+                # if we can't convert this to x/y, do everything in RA/Dec
                 if wcs is None:
                     x, y = ra, dec
+
                     # check that this x/y is within the catalog footprint
-                    within_bounds = catalog_boundary.contains_points(
-                        [[x, y]]
-                    )  # N,2 array of AST X and Y positions
-                    if within_bounds is False:
-                        x = -1
-                    break
-                else:
-                    [x], [y] = wcs.all_world2pix(np.array([ra]), np.array([dec]), wcs_origin)
-                    # check that this x/y is within the catalog footprint
-                    within_bounds = catalog_boundary.contains_points(
+                    within_bounds = catalog_boundary_radec.contains_points(
                         [[x, y]]
                     )[0]  # N,2 array of AST X and Y positions
-                    if within_bounds == False:
-                        x = -1
+                    if not within_bounds:
+                        x = None
+                    break
+
                     # check that this x/y is with any input boundary
-                    # (only relevant if there's a wcs from a refimage)
                     if set_coord_boundary is not None:
-                        within_bounds = coord_boundary.contains_points([[x, y]])[0]
-                        if within_bounds == False:
-                            x = -1
+                        if coord_boundary_radec:
+                            within_bounds = coord_boundary_radec.contains_points([[x, y]])[0]
+                            if not within_bounds:
+                                x = None
                     if region_from_filters is not None:
-                        within_bounds = filt_reg_boundary.contains_points([[x, y]])[0]
-                        if within_bounds == False:
-                            x = -1
+                        if filt_reg_boundary_radec:
+                            within_bounds = filt_reg_boundary_radec.contains_points([[x, y]])[0]
+                            if not within_bounds:
+                                x = None
+
+
+                # if we can convert to x/y, do everything in x/y
+                else:
+                    [x], [y] = wcs.all_world2pix(np.array([ra]), np.array([dec]), wcs_origin)
+
+                    # check that this x/y is within the catalog footprint
+                    within_bounds = catalog_boundary_xy.contains_points(
+                        [[x, y]]
+                    )[0]  # N,2 array of AST X and Y positions
+                    if not within_bounds:
+                        x = None
+
+                    # check that this x/y is with any input boundary
+                    if set_coord_boundary is not None:
+                        if coord_boundary_xy:
+                            within_bounds = coord_boundary_xy.contains_points([[x, y]])[0]
+                            if not within_bounds:
+                                x = None
+                    if region_from_filters is not None:
+                        if filt_reg_boundary_xy:
+                            within_bounds = filt_reg_boundary_xy.contains_points([[x, y]])[0]
+                            if not within_bounds:
+                                x = None
 
             j = bin_index * Nseds_per_region + i
-            xs[j] = x
-            ys[j] = y
+            ast_x_list[j] = x
+            ast_y_list[j] = y
 
     # I'm just mimicking the format that is produced by the examples
     cs = []
     cs.append(Column(np.zeros(len(out_table), dtype=int), name="zeros"))
     cs.append(Column(np.ones(len(out_table), dtype=int), name="ones"))
 
+    # positions were found using RA/Dec
     if wcs is None:
-        cs.append(Column(xs, name="RA"))
-        cs.append(Column(ys, name="DEC"))
+        cs.append(Column(ast_x_list, name="RA"))
+        cs.append(Column(ast_y_list, name="DEC"))
+    # positions were found using x/y
     else:
-        cs.append(Column(xs, name="X"))
-        cs.append(Column(ys, name="Y"))
+        cs.append(Column(ast_x_list, name="X"))
+        cs.append(Column(ast_y_list, name="Y"))
 
     for i, c in enumerate(cs):
         out_table.add_column(c, index=i)  # insert these columns from the left
@@ -455,3 +515,29 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
     astmags.add_column(column4, 3)
 
     ascii.write(astmags, filename, overwrite=True)
+
+
+def convexhull_path(x_coord, y_coord):
+    """
+    Find the convex hull for the given coordinates and make a Path object
+    from it.
+
+    Parameters
+    ----------
+    x_coord, y_coord: arrays
+        Arrays of coordinates (can be x/y or ra/dec)
+
+    Returns
+    -------
+    matplotlib Path object
+
+    """
+
+    coords = np.array(
+        [x_coord, y_coord]
+    ).T  # there's a weird astropy datatype issue that requires numpy coercion
+    hull = ConvexHull(coords)
+    bounds_x, bounds_y = coords[hull.vertices, 0], coords[hull.vertices, 1]
+    path_object = Path(np.array([bounds_x, bounds_y]).T)
+
+    return path_object
