@@ -22,6 +22,8 @@ from beast.tools import verify_params
 import datamodel
 import importlib
 
+importlib.reload(make_ast_xy_list)
+
 
 def make_ast_inputs(flux_bin_method=True):
     """
@@ -118,64 +120,57 @@ def make_ast_inputs(flux_bin_method=True):
     # assign positions
     # --------------------
 
-    print('Assigning positions to artifical stars')
-
-    outfile = "./{0}/{0}_inputAST.txt".format(datamodel.project)
-
+    # if we want ASTs with positions included (rather than just the fluxes from
+    # the section above)
     if datamodel.ast_with_positions:
-        separation = datamodel.ast_pixel_distribution
 
-        if datamodel.ast_reference_image is not None:
-            # With reference image, use one of these options
-            if datamodel.ast_source_density_table is not None:
-                make_ast_xy_list.pick_positions_from_map(
-                    obsdata,
-                    chosen_seds,
-                    datamodel.ast_source_density_table,
-                    datamodel.ast_N_bins,
-                    datamodel.ast_realization_per_model,
-                    outfile=outfile,
-                    refimage=datamodel.ast_reference_image,
-                    refimage_hdu=1,
-                    wcs_origin=1,
-                    Nrealize=1,
-                    set_coord_boundary=datamodel.ast_coord_boundary,
-                    region_from_filters='all',
-                )
+        print('Assigning positions to artifical stars')
 
-            elif datamodel.ast_background_table is not None:
-                make_ast_xy_list.pick_positions_from_map(
-                    obsdata,
-                    chosen_seds,
-                    datamodel.ast_background_table,
-                    datamodel.ast_N_bins,
-                    datamodel.ast_realization_per_model,
-                    outfile=outfile,
-                    refimage=datamodel.ast_reference_image,
-                    refimage_hdu=1,
-                    wcs_origin=1,
-                    Nrealize=1,
-                    set_coord_boundary=datamodel.ast_coord_boundary,
-                )
-            else:
-                make_ast_xy_list.pick_positions(
-                    obsdata,
-                    outfile,
-                    separation,
-                    refimage=datamodel.ast_reference_image,
-                )
+        outfile = "./{0}/{0}_inputAST.txt".format(datamodel.project)
 
+
+        # if we're replicating SEDs across source density bins
+        if datamodel.ast_source_density_table is not None:
+            make_ast_xy_list.pick_positions_from_map(
+                obsdata,
+                chosen_seds,
+                datamodel.ast_source_density_table,
+                datamodel.ast_N_bins,
+                datamodel.ast_realization_per_model,
+                outfile=outfile,
+                refimage=datamodel.ast_reference_image,
+                refimage_hdu=1,
+                wcs_origin=1,
+                Nrealize=1,
+                set_coord_boundary=datamodel.ast_coord_boundary,
+                region_from_filters='all',
+            )
+
+        # if we're replicating SEDs across background bins
+        elif datamodel.ast_background_table is not None:
+            make_ast_xy_list.pick_positions_from_map(
+                obsdata,
+                chosen_seds,
+                datamodel.ast_background_table,
+                datamodel.ast_N_bins,
+                datamodel.ast_realization_per_model,
+                outfile=outfile,
+                refimage=datamodel.ast_reference_image,
+                refimage_hdu=1,
+                wcs_origin=1,
+                Nrealize=1,
+                set_coord_boundary=datamodel.ast_coord_boundary,
+            )
+
+        # if we're not using SD/background maps, SEDs will be distributed
+        # based on catalog sources
         else:
-            # Without reference image, we can only use this function
-            if (
-                datamodel.ast_source_density_table is None
-                and datamodel.ast_background_table is None
-            ):
-                make_ast_xy_list.pick_positions(obsdata, outfile, separation)
-            else:
-                print(
-                    "To use ast_source_density_table or ast_background_table, ast_reference_image must be specified."
-                )
+            make_ast_xy_list.pick_positions(
+                obsdata,
+                outfile,
+                datamodel.ast_pixel_distribution,
+                refimage=datamodel.ast_reference_image,
+            )
 
 
 if __name__ == "__main__":
