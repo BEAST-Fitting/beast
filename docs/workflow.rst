@@ -340,7 +340,7 @@ with 10"x10" pixels.
 
   .. code-block:: console
 
-     $ beast/tools/reorder_beast_results_spatial.py
+     $ python -m beast.tools.reorder_beast_results_spatial
         --stats_filename filebase_stats.fits
         --region_filebase filebase_
         --output_filebase spatial/filebase
@@ -352,7 +352,7 @@ results for the stars in that region.
 
   .. code-block:: console
 
-     $ beast/tools/condense_beast_results_spatial.py
+     $ python -m beast.tools.condense_beast_results_spatial
         --filedir spatial
 
 You may wish to use these files as inputs for the `MegaBEAST <https://megabeast.readthedocs.io/en/latest/>`_.
@@ -418,3 +418,54 @@ recently used the wrapper to do part of the processing for field_A,
 and you want to start the batch fitting script for field_B, re-run the
 wrapper for field_B to make sure that datamodel.py refers to the
 information for field_B.
+
+*************
+Using `slurm`
+*************
+
+Many of the steps described above require considerable computational resources,
+especially if your grid is large.  If you're running on `XSEDE <https://www.xsede.org/>`_
+or another system that uses the slurm queue, you may wish to use
+`write_sbatch_file.py`.  This will create a job file that can be submitted with ``sbatch``.
+More information about how this file is constructed can be found in the TACC user guide
+`here <https://portal.tacc.utexas.edu/archives/stampede#slurm-job-control>`_.
+
+Here is an example call to `write_sbatch_file.py` that shows some of its
+functionality.
+
+ .. code-block:: console
+
+    $ # create submission script
+    $ python -m beast.tools.write_sbatch_file \
+      'sbatch_file.script' './path/to/job/beast_batch_fit_X.joblist' \
+      '/path/to/files/projectname/' \
+      --modules 'module load anaconda3' 'source activate beast_v1.3' \
+      --queue LM --run_time 2:30:00 --mem 250GB
+
+
+This creates a file ``sbatch_file.script`` with these contents::
+
+    #!/bin/bash
+
+    #SBATCH -J beast      # Job name
+    #SBATCH -p LM            # Queue name
+    #SBATCH -t 2:30:00      # Run time (hh:mm:ss)
+    #SBATCH --mem 250GB      # Requested memory
+
+    # move to appropriate directory
+    cd /path/to/files/projectname/
+
+    # Load any necessary modules
+    # Loading modules in the script ensures a consistent environment.
+    module load anaconda3
+    source activate beast_v1.3
+
+    # Launch a job
+    ./path/to/job/beast_batch_fit_X.joblist
+
+
+Then the file can be submitted:
+
+ .. code-block:: console
+
+    $ sbatch sbatch_file.script
