@@ -89,8 +89,8 @@ def pick_positions_from_map(
         If provided, these RA/Dec coordinates will be used to limit the
         region over which ASTs are generated.  Input should be list of two
         arrays, the first RA and the second Dec, ordered sequentially
-        around the region (either CW or CCW).  Requires a refimage to
-        convert the RA/Dec to x/y.
+        around the region (either CW or CCW).  If the input catalog only has x/y
+        (no RA/Dec), a refimage is required.
 
     region_from_filters : None, list of filter name(s), or 'all'
         If provided, ASTs will only be placed in regions with this particular
@@ -335,11 +335,11 @@ def pick_positions_from_map(
 
                     # check that this x/y is within the catalog footprint
                     if catalog_boundary_radec:
-                    within_bounds = catalog_boundary_radec.contains_points(
-                        [[x, y]]
-                    )[0]  # N,2 array of AST X and Y positions
-                    if not within_bounds:
-                        x = None
+                        within_bounds = catalog_boundary_radec.contains_points(
+                            [[x, y]]
+                        )[0]  # N,2 array of AST X and Y positions
+                        if not within_bounds:
+                            x = None
 
                     # check that this x/y is with any input boundary
                     if set_coord_boundary is not None:
