@@ -7,7 +7,9 @@ Assumes that the datamodel.py file exists in the same directory as this script.
 
 # system imports
 import argparse
+import os
 import numpy as np
+from astropy.table import Table
 
 # BEAST imports
 from beast.observationmodel.ast.make_ast_input_list import (
@@ -19,6 +21,8 @@ from beast.tools import verify_params
 
 import datamodel
 import importlib
+
+importlib.reload(make_ast_xy_list)
 
 
 def make_ast_inputs(flux_bin_method=True):
@@ -65,106 +69,108 @@ def make_ast_inputs(flux_bin_method=True):
     Nfilters = datamodel.ast_bands_above_maglimit
 
     # file names for stars and corresponding SED parameters
-    outfile = "./" + datamodel.project + "/" + datamodel.project + "_inputAST.txt"
-    outfile_params = (
-        "./" + datamodel.project + "/" + datamodel.project + "_ASTparams.fits"
-    )
+    outfile_seds = "./{0}/{0}_inputAST_seds.txt".format(datamodel.project)
+    outfile_params = "./{0}/{0}_ASTparams.fits".format(datamodel.project)
 
-    if flux_bin_method:
+    # if the SED file doesn't exist, create SEDs
+    if not os.path.isfile(outfile_seds):
 
-        N_fluxes = datamodel.ast_n_flux_bins
-        min_N_per_flux = datamodel.ast_n_per_flux_bin
-        bins_outfile = (
-            "./" + datamodel.project + "/" + datamodel.project + "_ASTfluxbins.txt"
-        )
-        modelsedgrid_filename = './{0}/{0}_seds.grid.hd5'.format(datamodel.project)
+        print('Selecting SEDs for ASTs')
 
-        chosen_seds = pick_models_toothpick_style(
-            modelsedgrid_filename,
-            datamodel.filters,
-            mag_cuts,
-            Nfilters,
-            N_fluxes,
-            min_N_per_flux,
-            outfile=outfile,
-            outfile_params=outfile_params,
-            bins_outfile=bins_outfile,
-        )
+        if flux_bin_method:
 
+            N_fluxes = datamodel.ast_n_flux_bins
+            min_N_per_flux = datamodel.ast_n_per_flux_bin
+            bins_outfile = "./{0}/{0}_ASTfluxbins.txt".format(datamodel.project)
+            modelsedgrid_filename = './{0}/{0}_seds.grid.hd5'.format(datamodel.project)
+
+            chosen_seds = pick_models_toothpick_style(
+                modelsedgrid_filename,
+                datamodel.filters,
+                mag_cuts,
+                Nfilters,
+                N_fluxes,
+                min_N_per_flux,
+                outfile=outfile_seds,
+                outfile_params=outfile_params,
+                bins_outfile=bins_outfile,
+            )
+
+        else:
+
+            N_models = datamodel.ast_models_selected_per_age
+
+            chosen_seds = pick_models(
+                modelsedgrid_filename,
+                datamodel.filters,
+                mag_cuts,
+                Nfilter=Nfilters,
+                N_stars=N_models,
+                Nrealize=Nrealize,
+                outfile=outfile_seds,
+                outfile_params=outfile_params,
+            )
+
+    # if the SED file does exist, read them in
     else:
-
-        N_models = datamodel.ast_models_selected_per_age
-
-        chosen_seds = pick_models(
-            modelsedgrid_filename,
-            datamodel.filters,
-            mag_cuts,
-            Nfilter=Nfilters,
-            N_stars=N_models,
-            Nrealize=Nrealize,
-            outfile=outfile,
-            outfile_params=outfile_params,
-        )
+        print('Reading existing AST SEDs')
+        chosen_seds = Table.read(outfile_seds, format='ascii')
 
     # --------------------
     # assign positions
     # --------------------
 
+    # if we want ASTs with positions included (rather than just the fluxes from
+    # the section above)
     if datamodel.ast_with_positions:
-        separation = datamodel.ast_pixel_distribution
-        filename = datamodel.project + "/" + datamodel.project + "_inputAST.txt"
 
-        if datamodel.ast_reference_image is not None:
-            # With reference image, use one of these options
-            if datamodel.ast_source_density_table is not None:
-                make_ast_xy_list.pick_positions_from_map(
-                    obsdata,
-                    chosen_seds,
-                    datamodel.ast_source_density_table,
-                    datamodel.ast_N_bins,
-                    datamodel.ast_realization_per_model,
-                    outfile=filename,
-                    refimage=datamodel.ast_reference_image,
-                    refimage_hdu=1,
-                    wcs_origin=1,
-                    Nrealize=1,
-                    set_coord_boundary=datamodel.ast_coord_boundary,
-                    region_from_filters='all',
-                )
+        print('Assigning positions to artifical stars')
 
-            elif datamodel.ast_background_table is not None:
-                make_ast_xy_list.pick_positions_from_map(
-                    obsdata,
-                    chosen_seds,
-                    datamodel.ast_background_table,
-                    datamodel.ast_N_bins,
-                    datamodel.ast_realization_per_model,
-                    outfile=filename,
-                    refimage=datamodel.ast_reference_image,
-                    refimage_hdu=1,
-                    wcs_origin=1,
-                    Nrealize=1,
-                    set_coord_boundary=datamodel.ast_coord_boundary,
-                )
-            else:
-                make_ast_xy_list.pick_positions(
-                    obsdata,
-                    filename,
-                    separation,
-                    refimage=datamodel.ast_reference_image,
-                )
+        outfile = "./{0}/{0}_inputAST.txt".format(datamodel.project)
 
+
+        # if we're replicating SEDs across source density bins
+        if datamodel.ast_source_density_table is not None:
+            make_ast_xy_list.pick_positions_from_map(
+                obsdata,
+                chosen_seds,
+                datamodel.ast_source_density_table,
+                datamodel.ast_N_bins,
+                datamodel.ast_realization_per_model,
+                outfile=outfile,
+                refimage=datamodel.ast_reference_image,
+                refimage_hdu=1,
+                wcs_origin=1,
+                Nrealize=1,
+                set_coord_boundary=datamodel.ast_coord_boundary,
+                region_from_filters='all',
+            )
+
+        # if we're replicating SEDs across background bins
+        elif datamodel.ast_background_table is not None:
+            make_ast_xy_list.pick_positions_from_map(
+                obsdata,
+                chosen_seds,
+                datamodel.ast_background_table,
+                datamodel.ast_N_bins,
+                datamodel.ast_realization_per_model,
+                outfile=outfile,
+                refimage=datamodel.ast_reference_image,
+                refimage_hdu=1,
+                wcs_origin=1,
+                Nrealize=1,
+                set_coord_boundary=datamodel.ast_coord_boundary,
+            )
+
+        # if we're not using SD/background maps, SEDs will be distributed
+        # based on catalog sources
         else:
-            # Without reference image, we can only use this function
-            if (
-                datamodel.ast_source_density_table is None
-                and datamodel.ast_background_table is None
-            ):
-                make_ast_xy_list.pick_positions(obsdata, filename, separation)
-            else:
-                print(
-                    "To use ast_source_density_table or ast_background_table, ast_reference_image must be specified."
-                )
+            make_ast_xy_list.pick_positions(
+                obsdata,
+                outfile,
+                datamodel.ast_pixel_distribution,
+                refimage=datamodel.ast_reference_image,
+            )
 
 
 if __name__ == "__main__":
