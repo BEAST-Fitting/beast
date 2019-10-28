@@ -125,7 +125,7 @@ def pick_positions_from_map(
     radec_pos = False
 
     # if x/y in catalog, save them
-    if "X" or "x" in colnames:
+    if ("X" in colnames) or ("x" in colnames):
         xy_pos = True
         if "X" in colnames:
             x_positions = catalog.data["X"][:]
@@ -334,12 +334,12 @@ def pick_positions_from_map(
                     x, y = ra, dec
 
                     # check that this x/y is within the catalog footprint
+                    if catalog_boundary_radec:
                     within_bounds = catalog_boundary_radec.contains_points(
                         [[x, y]]
                     )[0]  # N,2 array of AST X and Y positions
                     if not within_bounds:
                         x = None
-                    break
 
                     # check that this x/y is with any input boundary
                     if set_coord_boundary is not None:
