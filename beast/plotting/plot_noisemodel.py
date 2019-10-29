@@ -65,8 +65,6 @@ def plot_noisemodel(
         # extract error and bias
         noise_err = noisemodel_vals.root.error[:]
         noise_bias = noisemodel_vals.root.bias[:]
-        # error is negative where it's been extrapolated -> trim those
-        good_err = np.where(noise_err > 0)[0]
 
         # plot things
         for f, filt in enumerate(filter_list):
