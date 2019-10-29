@@ -14,6 +14,7 @@ def plot_noisemodel(
     plot_file,
     samp=100,
     color=['black','red','gold','lime','xkcd:azure'],
+    label=None,
 ):
     """
     Make a plot of the noise model: for each of the bandsm make plots of bias
@@ -39,6 +40,9 @@ def plot_noisemodel(
 
     color : list of strings (default=['black','red','gold','lime','xkcd:azure'])
         colors to cycle through when making plots
+
+    label : list of strings (default=None)
+        if set, use these labels in a legend for each item in noise_file_list
     """
 
     # read in the SED grid
@@ -76,31 +80,48 @@ def plot_noisemodel(
             plot_bias = noise_bias[good_err, f][::samp]
 
             # subplot region: bias
-            ax = plt.subplot(2, n_filter, f + 1)
+            ax1 = plt.subplot(2, n_filter, f + 1)
 
-            plt.plot(
+            plot1, = ax1.plot(
                 np.log10(plot_sed), plot_bias/plot_sed,
                 marker='o', linestyle='none', mew=0, ms=2,
                 color=color[n % len(color)], alpha=0.1)
+            if label is not None:
+                plot1.set_label(label[n])
 
-            ax.tick_params(axis="both", which="major", labelsize=12)
+            ax1.tick_params(axis="both", which="major", labelsize=13)
             #ax.set_xlim(ax.get_xlim()[::-1])
             plt.xlabel('log '+filt, fontsize=12)
             plt.ylabel(r"Bias ($\mu$/F)", fontsize=12)
 
 
             # subplot region: error
-            ax = plt.subplot(2, n_filter, n_filter + f + 1)
+            ax2 = plt.subplot(2, n_filter, n_filter + f + 1)
 
-            plt.plot(
+            plot2, = ax2.plot(
                 np.log10(plot_sed), plot_err/plot_sed,
                 marker='o', linestyle='none', mew=0, ms=2,
                 color=color[n % len(color)], alpha=0.1)
+            if label is not None:
+                plot2.set_label(label[n])
 
-            ax.tick_params(axis="both", which="major", labelsize=12)
+            ax2.tick_params(axis="both", which="major", labelsize=13)
             #ax.set_xlim(ax.get_xlim()[::-1])
             plt.xlabel('log '+filt, fontsize=12)
             plt.ylabel(r"Error ($\sigma$/F)", fontsize=12)
+
+            # do a legend if this is
+            # (a) the leftmost panel
+            # (b) the last line to be added
+            # (c) there are labels set
+            if (f == 0) and (n == len(noise_file_list)-1) and (label is not None):
+                leg = ax1.legend(fontsize=12)
+                for lh in leg.legendHandles:
+                    lh._legmarker.set_alpha(1)
+                leg = ax2.legend(fontsize=12)
+                for lh in leg.legendHandles:
+                    lh._legmarker.set_alpha(1)
+
 
 
     plt.tight_layout()
@@ -142,6 +163,13 @@ if __name__ == '__main__':
         default=['black','red','gold','lime','xkcd:azure'],
         help="colors to cycle through when making plots",
     )
+    parser.add_argument(
+        "--label",
+        type=str,
+        nargs='+',
+        default=None,
+        help="if set, use these labels in a legend for each item in noise_file_list",
+    )
 
     args = parser.parse_args()
 
@@ -151,6 +179,7 @@ if __name__ == '__main__':
         args.phot_file,
         samp=args.samp,
         color=args.color,
+        label=args.label,
     )
 
 
