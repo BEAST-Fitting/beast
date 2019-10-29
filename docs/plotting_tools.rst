@@ -26,7 +26,13 @@ diagnostic plots.  Some are described here.
 - `plot_indiv_fit.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_indiv_fit.py>`_:
   For a given star, makes a multi-panel plot that shows the PDFs and best fits
   of each parameter, as well as an SED (similar to Figure 14 in
-  `Gordon+16 <http://adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).
+  `Gordon+16 <https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).
 
 - `plot_mag_hist.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_mag_hist.py>`_:
   Make histograms of the magnitudes for each band in the photometry catalog.
+
+- `plot_noisemodel.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_noisemodel.py>`_:
+  Plot the bias and uncertainty as a function of flux (similar to Figure 12 in
+  `Gordon+16 <https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).
+  Multiple noise models can be overplotted, as long as they correspond to the
+  same SED model grid.
