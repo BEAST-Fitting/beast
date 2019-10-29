@@ -87,7 +87,7 @@ def plot_noisemodel(
 
             ax.tick_params(axis="both", which="major", labelsize=12)
             #ax.set_xlim(ax.get_xlim()[::-1])
-            plt.xlabel(filt, fontsize=12)
+            plt.xlabel('log '+filt, fontsize=12)
             plt.ylabel(r"Bias ($\mu$/F)", fontsize=12)
 
 
@@ -101,7 +101,7 @@ def plot_noisemodel(
 
             ax.tick_params(axis="both", which="major", labelsize=12)
             #ax.set_xlim(ax.get_xlim()[::-1])
-            plt.xlabel(filt, fontsize=12)
+            plt.xlabel('log '+filt, fontsize=12)
             plt.ylabel(r"Error ($\sigma$/F)", fontsize=12)
 
 
