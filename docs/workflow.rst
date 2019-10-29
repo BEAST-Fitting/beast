@@ -443,7 +443,9 @@ functionality.
       --queue LM --run_time 2:30:00 --mem 250GB
 
 
-This creates a file ``sbatch_file.script`` with these contents::
+This creates a file ``sbatch_file.script`` with these contents:
+
+ .. code-block:: console
 
     #!/bin/bash
 
