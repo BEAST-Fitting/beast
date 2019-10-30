@@ -31,7 +31,7 @@ def _download_rename(filename):
 
 # @pytest.mark.skip(reason="awaiting resolution of pytest-mpl")
 @remote_data
-@pytest.mark.mpl_image_compare
+@pytest.mark.mpl_image_compare()
 def test_indiv_plot():
 
     # download cached version of fitting results
