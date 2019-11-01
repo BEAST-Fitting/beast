@@ -4,7 +4,12 @@ Plotting Tools
 
 There are `several scripts
 <https://github.com/BEAST-Fitting/beast/tree/master/beast/plotting>`_ for making
-diagnostic plots.  Some are described here.
+diagnostic plots and visualizations.  Some are described here.
+
+- `make_ds9_region_file.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/make_ds9_region_file.py>`_:
+  Make a ds9 region file from an input fits catalog (use `region_file_fits`) or
+  a list of artificial stars (use `region_file_txt`).  Can also choose a
+  column+value as a cut to set two different region colors.
 
 - `plot_chi2_hist.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_chi2_hist.py>`_:
   Make a histogram of the best chi2 values (chi2=1 and the median chi2 are
