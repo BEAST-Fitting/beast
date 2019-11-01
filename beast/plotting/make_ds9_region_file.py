@@ -78,11 +78,11 @@ def region_file_txt(input_file, col_color=None, col_thresh=None):
         sources with values greater than this will have regions colored differently
     """
 
-    with open(ast_file.replace('.txt','.reg'),'w') as ds9_file:
+    with open(input_file.replace('.txt','.reg'),'w') as ds9_file:
         ds9_file.write('global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\n')
         ds9_file.write('image\n')
 
-        cat = Table.read(ast_file, format='ascii')
+        cat = Table.read(input_file, format='ascii')
 
         # no differently colored regions
         if col_color is None:
