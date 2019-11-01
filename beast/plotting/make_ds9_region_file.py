@@ -1,5 +1,6 @@
-
 from astropy.table import Table
+from astropy.coordinates import Angle
+from astropy import units as u
 
 def region_file_fits(input_file, col_color=None, col_thresh=None):
     """
@@ -45,7 +46,7 @@ def region_file_fits(input_file, col_color=None, col_thresh=None):
         # with differently colored regions
         if col_color is not None:
             for i in range(len(cat)):
-                if cat[col_color] <= col_thresh:
+                if cat[col_color][i] <= col_thresh:
                     ds9_file.write('circle(' +
                         Angle(cat[ra_col][i], u.deg).to_string(unit=u.hour, sep=':')
                         + ',' +
@@ -55,7 +56,7 @@ def region_file_fits(input_file, col_color=None, col_thresh=None):
                     ds9_file.write('circle(' +
                         Angle(cat[ra_col][i], u.deg).to_string(unit=u.hour, sep=':')
                         + ',' +
-                        Angle(cat[ra_col][i], u.deg).to_string(unit=u.deg, sep=':')
+                        Angle(cat[dec_col][i], u.deg).to_string(unit=u.deg, sep=':')
                         + ',0.1") # color=magenta \n' )
 
 
@@ -91,7 +92,7 @@ def region_file_txt(input_file, col_color=None, col_thresh=None):
         # with differently colored regions
         if col_color is not None:
             for i in range(len(cat)):
-                if cat[col_color] <= col_thresh:
+                if cat[col_color][i] <= col_thresh:
                     ds9_file.write('circle({0},{1},0.1")\n'.format(cat['X'][i],cat['Y'][i]) )
                 else:
-                    ds9_file.write('circle({0},{1},0.1") # color=magenta\n'.format(cat['X'][i],cat['Y'][i]) )
+                    ds9_file.write('circle({0},{1},0.1") # color=magenta \n'.format(cat['X'][i],cat['Y'][i]) )
