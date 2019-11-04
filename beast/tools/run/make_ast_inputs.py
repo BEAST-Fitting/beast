@@ -129,12 +129,12 @@ def make_ast_inputs(flux_bin_method=True):
         outfile = "./{0}/{0}_inputAST.txt".format(datamodel.project)
 
 
-        # if we're replicating SEDs across source density bins
-        if datamodel.ast_source_density_table is not None:
+        # if we're replicating SEDs across source density or background bins
+        if datamodel.ast_density_table is not None:
             make_ast_xy_list.pick_positions_from_map(
                 obsdata,
                 chosen_seds,
-                datamodel.ast_source_density_table,
+                datamodel.ast_density_table,
                 datamodel.ast_N_bins,
                 datamodel.ast_realization_per_model,
                 outfile=outfile,
@@ -144,22 +144,6 @@ def make_ast_inputs(flux_bin_method=True):
                 Nrealize=1,
                 set_coord_boundary=datamodel.ast_coord_boundary,
                 region_from_filters='all',
-            )
-
-        # if we're replicating SEDs across background bins
-        elif datamodel.ast_background_table is not None:
-            make_ast_xy_list.pick_positions_from_map(
-                obsdata,
-                chosen_seds,
-                datamodel.ast_background_table,
-                datamodel.ast_N_bins,
-                datamodel.ast_realization_per_model,
-                outfile=outfile,
-                refimage=datamodel.ast_reference_image,
-                refimage_hdu=1,
-                wcs_origin=1,
-                Nrealize=1,
-                set_coord_boundary=datamodel.ast_coord_boundary,
             )
 
         # if we're not using SD/background maps, SEDs will be distributed
