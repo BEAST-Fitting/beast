@@ -1,3 +1,4 @@
+import numpy as np
 import argparse
 
 from beast.physicsmodel.grid import FileSEDGrid
@@ -8,7 +9,7 @@ from astropy.table import vstack
 
 def simulate_obs(
     physgrid_list,
-    noise_model,
+    noise_model_list,
     output_catalog,
     nsim=100,
     compl_filter="F475W",
@@ -48,7 +49,7 @@ def simulate_obs(
     # numbers of samples to do
     # (ensure there are enough for even sampling of multiple model grids)
     n_phys = len(physgrid_list)
-    samples_per_grid = int(np.ceil(n_sim/n_phys))
+    samples_per_grid = int(np.ceil(nsim/n_phys))
 
     # list to hold all simulation tables
     simtable_list = []
