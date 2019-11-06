@@ -55,7 +55,9 @@ def simulate_obs(
     simtable_list = []
 
     # make a table for each physics model + noise model
-    for physgrid, noise_model in zip(physgrid_list, noise_model_list):
+    for physgrid, noise_model in zip(
+        np.atleast_1d(physgrid_list), np.atleast_1d(noise_model_list)
+    ):
 
         # get the physics model grid - includes priors
         modelsedgrid = FileSEDGrid(physgrid)
