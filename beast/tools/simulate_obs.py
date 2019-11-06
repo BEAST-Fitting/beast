@@ -85,9 +85,28 @@ if __name__ == "__main__":
 
     # commandline parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("physgrid", args='+', help="filename(s) of physics grid(s)")
-    parser.add_argument("noise_model", args='+', help="filename(s) of observation/noise grid(s)")
-    parser.add_argument("output_catalog", help="filename for simulated observations")
+    parser.add_argument(
+        "--physgrid_list",
+        "-p",
+        metavar="PHYS_MODEL",
+        required=True,
+        nargs='+',
+        help="filename(s) of physics grid(s)",
+    )
+    parser.add_argument(
+        "--noise_model_list",
+        "-n",
+        metavar="NOISE_MODEL",
+        required=True,
+        nargs='+',
+        help="filename(s) of observation/noise grid(s)",
+    )
+    parser.add_argument(
+        "--output_catalog",
+        "-c",
+        required=True,
+        help="filename for simulated observations",
+    )
     parser.add_argument(
         "--nsim", default=100, type=int, help="number of simulated objects"
     )
@@ -101,8 +120,8 @@ if __name__ == "__main__":
 
     # run observation simulator
     simulate_obs(
-        args.physgrid,
-        args.noise_model,
+        args.physgrid_list,
+        args.noise_model_lists,
         args.output_catalog,
         nsim=args.nsim,
         compl_filter=args.compl_filter,
