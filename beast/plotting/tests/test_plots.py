@@ -87,14 +87,17 @@ def test_plot_cmd():
 
     return fig
 
-# @remote_data
-# @image_comparison(baseline_images=['plot_cmd'], extensions=['png'])
-# def test_plot_cmd():
-#
-#     # Download example data from phat_small
-#     fitsfile =  _download_rename("b15_4band_det_27_A.fits")
-#
-#     # Plot CMD using defaults
-#     fig = plot_cmd.plot(fitsfile)
-#
-#     return fig
+@remote_data
+@pytest.mark.mpl_image_compare(tolerance=10)
+def test_plot_cmd_with_fits():
+
+    # Download example data from phat_small
+    fitsfile =  _download_rename("b15_4band_det_27_A.fits")
+
+    # Download BEAST fits to example data
+    beast_fitsfile =  _download_rename("beast_example_phat_stats.fits")
+
+    # Plot CMD using defaults
+    fig = plot_cmd_with_fits.plot(fitsfile, beast_fitsfile)
+
+    return fig

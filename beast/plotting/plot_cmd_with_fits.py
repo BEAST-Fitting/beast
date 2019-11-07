@@ -204,3 +204,11 @@ if __name__ == "__main__":
         param=args.param,
         log_param=args.log_param,
     )
+
+    # figname
+    basename = args.data_fits_file.replace(".fits", "_plot")
+
+    if args.savefig:
+        fig.savefig("{}.{}".format(basename, args.savefig))
+    else:
+        plt.show()
