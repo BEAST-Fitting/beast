@@ -11,7 +11,7 @@ from astropy.tests.helper import remote_data
 
 from matplotlib.testing.decorators import image_comparison
 
-from beast.plotting import plot_indiv_fit, plot_cmd, plot_cmd_with_fits
+from beast.plotting import plot_indiv_fit, plot_cmd, plot_cmd_with_fits, plot_filters
 
 plt.switch_backend("agg")
 
@@ -97,5 +97,22 @@ def test_plot_cmd_with_fits():
 
     # Plot CMD using defaults
     fig = plot_cmd_with_fits.plot(fitsfile, beast_fitsfile)
+
+    return fig
+
+
+@remote_data
+@pytest.mark.mpl_image_compare(tolerance=10)
+def test_plot_filters():
+
+    filter_names = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W',
+                    'HST_ACS_WFC_F475W', 'HST_ACS_WFC_F550M',
+                    'HST_ACS_WFC_F814W',
+                    'HST_WFC3_F110W', 'HST_WFC3_F160W']
+
+    args = {"tex": True, "savefig": False}
+
+    # Plot filters using defaults
+    fig = plot_filters.plot_filters(args, filter_names)
 
     return fig
