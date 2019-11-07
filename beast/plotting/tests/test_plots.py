@@ -86,7 +86,7 @@ def test_plot_cmd():
     return fig
 
 @remote_data
-@pytest.mark.mpl_image_compare(tolerance=10)
+@pytest.mark.mpl_image_compare(tolerance=55)
 def test_plot_cmd_with_fits():
 
     # Download example data from phat_small
@@ -112,7 +112,7 @@ def test_plot_filters():
 
     args = {"tex": True, "savefig": False}
 
-    # Plot filters using defaults
+    # Plot filters using above arguments (the defaults)
     fig = plot_filters.plot_filters(args, filter_names)
 
     return fig
