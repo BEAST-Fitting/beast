@@ -60,10 +60,10 @@ def simulate_obs(
     ):
 
         # get the physics model grid - includes priors
-        modelsedgrid = FileSEDGrid(physgrid)
+        modelsedgrid = FileSEDGrid(str(physgrid))
 
         # read in the noise model - includes bias, unc, and completeness
-        noisegrid = noisemodel.get_noisemodelcat(noise_model)
+        noisegrid = noisemodel.get_noisemodelcat(str(noise_model))
 
         # generate the table
         simtable = gen_SimObs_from_sedgrid(
