@@ -36,10 +36,6 @@ def plot_filters(
 
     # read in the filter response functions
     flist = phot.load_filters(filter_names, interp=True, lamb=waves)
-    # dict_keys(['name', 'wavelength', 'transmit', 'norm', 'lT', 'lpivot', 'cl'])
-
-    for f in flist:
-        print(f.norm)
 
     color_indices = np.log10(np.array(np.sort([f.norm for f in flist])))
     color_indices -= color_indices.min()
@@ -67,6 +63,7 @@ def plot_filters(
     ax.get_xaxis().set_major_formatter(mpl.ticker.ScalarFormatter())
 
     fig.tight_layout()
+    
     return fig
 
 
