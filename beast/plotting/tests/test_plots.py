@@ -112,6 +112,8 @@ def test_plot_filters():
 
     args = {"tex": True, "savefig": False}
 
+    filters = _download_rename("filters.hd5")
+
     # Plot filters using above arguments (the defaults)
     fig = plot_filters.plot_filters(args, filter_names)
 
