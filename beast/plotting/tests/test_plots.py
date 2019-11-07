@@ -86,7 +86,7 @@ def test_plot_cmd_with_fits():
 
 
 @remote_data
-@pytest.mark.mpl_image_compare(tolerance=10)
+@pytest.mark.mpl_image_compare(tolerance=18)
 def test_plot_filters():
 
     filter_names = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W',
