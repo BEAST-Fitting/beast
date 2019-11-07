@@ -28,8 +28,6 @@ def _download_rename(filename):
     os.rename(fname_dld, fname)
     return fname
 
-
-# @pytest.mark.skip(reason="awaiting resolution of pytest-mpl")
 @remote_data
 @pytest.mark.mpl_image_compare(tolerance=25)
 def test_indiv_plot():
