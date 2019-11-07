@@ -24,6 +24,8 @@ def plot(fitsfile, mag1_filter="F475W", mag2_filter="F814W", mag3_filter="F475W"
         2nd color filter; default = 'F814W'
     mag3_filter:        str
         magnitude; default = 'F475W'
+    savefig:            boolean
+        save figure; default = True
     """
 
     fits_data = fits.open(fitsfile)
@@ -82,6 +84,12 @@ if __name__ == "__main__":
         action="store",
         default="F475W",
         help="Choose filter for the magnitude",
+    )
+    parser.add_argument(
+        "--savefig",
+        action="store",
+        default="True",
+        help="Save figure or plot it",
     )
 
     args = parser.parse_args()
