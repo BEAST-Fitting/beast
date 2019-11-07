@@ -13,7 +13,7 @@ import numpy as np
 
 
 def setup_batch_beast_trim(
-    project, datafile, astfile, num_subtrim=5, nice=None, seds_fname=None, prefix=None
+    project, datafile, num_subtrim=5, nice=None, seds_fname=None, prefix=None
 ):
     """
     Sets up batch files for submission to the 'at' queue on
@@ -28,9 +28,6 @@ def setup_batch_beast_trim(
     datafile : string
         file with the observed data (FITS file) - the observed photometry,
         not the sub-files
-
-    astfile : string
-        file with ASTs
 
     num_subtrim : int (default = 5)
         number of trim batch jobs
@@ -47,7 +44,6 @@ def setup_batch_beast_trim(
         to each batch file (use '\n's to make multiple lines)
 
     """
-    ast_file = astfile
 
     if seds_fname is None:
         full_model_filename = "%s/%s_seds.grid.hd5" % (project, project)
@@ -78,7 +74,6 @@ def setup_batch_beast_trim(
         full_model_filename,
         ["%s/%s_noisemodel.hd5" % (project, project)] * n_cat_files,
         cat_files,
-        [ast_file] * n_cat_files,
         filebase_list,
         job_path=job_path,
         file_prefix="BEAST",
@@ -92,7 +87,6 @@ def generic_batch_trim(
     model_grid_file,
     noise_model_files,
     data_files,
-    ast_files,
     trimmed_file_bases,
     job_path=None,
     file_prefix="BEAST",
@@ -121,9 +115,6 @@ def generic_batch_trim(
     data_files : list of strings
         file with the observed data (FITS file)
 
-    ast_files : list of strings
-        file with ASTs
-
     trimmed_file_bases : list of strings
         prefixes (path+name) for the eventual trimmed model grid and noise model
 
@@ -147,7 +138,7 @@ def generic_batch_trim(
     """
 
     # check that everything is the same length that needs to be
-    keyword_list = [noise_model_files, data_files, ast_files, trimmed_file_bases]
+    keyword_list = [noise_model_files, data_files, trimmed_file_bases]
     length_array = np.array([len(key) for key in keyword_list])
     if len(np.unique(length_array)) != 1:
         print("input lists are not the same length!")
@@ -216,7 +207,6 @@ def generic_batch_trim(
     for i in range(n_cat_files):
         bt_f[k].write(noise_model_files[i])
         bt_f[k].write(" " + data_files[i])
-        bt_f[k].write(" " + ast_files[i])
         bt_f[k].write(" " + trimmed_file_bases[i])
         bt_f[k].write("\n")
         n_cur += 1
@@ -234,7 +224,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("projectname", help="project name to use (basename for files)")
     parser.add_argument("datafile", help="file with the observed data (FITS file)")
-    parser.add_argument("astfile", help="file with ASTs")
     parser.add_argument(
         "--num_subtrim", default=5, type=int, help="number of trim batch jobs"
     )
@@ -255,7 +244,6 @@ if __name__ == "__main__":
     setup_batch_beast_trim(
         args.projectname,
         args.datafile,
-        args.astfile,
         num_subtrim=args.num_subtrim,
         nice=args.nice,
         seds_fname=args.seds_fname,

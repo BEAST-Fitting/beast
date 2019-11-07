@@ -2,7 +2,7 @@
 """
 Code to create many trimmed model grids for batch runs
   Saves time by only reading the potentially huge modelsed grid once
-  and only reads in the noisemodel/astfile if it has changed
+  and only reads in the noisemodel if it has changed
 """
 
 # system imports
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "trimfile", help="file with modelgrid, astfiles, obsfiles to use"
+        "trimfile", help="file with modelgrid, obsfiles, filebase to use"
     )
     args = parser.parse_args()
 
@@ -47,10 +47,10 @@ if __name__ == "__main__":
     old_noisefile = ""
     for k in range(1, len(file_lines)):
 
-        print("/n/n")
+        print("\n\n")
 
         # file names
-        noisefile, obsfile, astfile, filebase = file_lines[k].split()
+        noisefile, obsfile, filebase = file_lines[k].split()
 
         # make sure the proper directories exist
         if not os.path.isdir(os.path.dirname(filebase)):
@@ -67,9 +67,8 @@ if __name__ == "__main__":
         if noisefile == old_noisefile:
             print("not reading noisefile - same as last")
             # print(noisefile)
-            # print(astfile)
         else:
-            print("reading noisefile/astfile")
+            print("reading noisefile")
             # read in the noise model
             noisemodel_vals = noisemodel.get_noisemodelcat(noisefile)
             old_noisefile = noisefile
