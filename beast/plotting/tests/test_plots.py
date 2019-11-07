@@ -11,7 +11,6 @@ from astropy.tests.helper import remote_data
 
 from beast.plotting import plot_indiv_fit, plot_cmd, plot_cmd_with_fits, plot_filters
 from beast.tests.helpers import download_rename
-from beast.plotting.beastplotlib import initialize_parser
 
 plt.switch_backend("agg")
 
