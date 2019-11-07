@@ -3,6 +3,9 @@
 # and from the example:
 # https://help.semmle.com/lgtm-enterprise/user/Resources/downloads/lgtm.template.yml
 
+queries:
+  - exclude: cpp
+
 extraction:
   python:
     python_setup:
