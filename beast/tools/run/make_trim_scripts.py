@@ -60,7 +60,6 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
     photometry_files = file_dict["photometry_files"]
     modelsedgrid_files = file_dict["modelsedgrid_files"]
     noise_files = file_dict["noise_files"]
-    sd_sub_info = file_dict['sd_sub_info']
     modelsedgrid_trim_files = file_dict["modelsedgrid_trim_files"]
     noise_trim_files = file_dict["noise_trim_files"]
     # the unique sets of things
