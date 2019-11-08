@@ -7,6 +7,7 @@ from beast.tools.run import (
     create_physicsmodel,
     make_ast_inputs,
     create_obsmodel,
+    make_trim_scripts,
     run_fitting,
     merge_files,
     create_filenames,
@@ -28,6 +29,7 @@ import importlib
 importlib.reload(create_physicsmodel)
 importlib.reload(make_ast_inputs)
 importlib.reload(create_obsmodel)
+importlib.reload(make_trim_scripts)
 importlib.reload(run_fitting)
 importlib.reload(setup_batch_beast_fit)
 importlib.reload(merge_files)
@@ -326,13 +328,14 @@ def beast_production_wrapper():
 
             # a smaller value for n_per_file will mean more individual files/runs,
             # but each run will take a shorter amount of time
-            
+
             split_catalog_using_map.split_main(
                 gst_file_cut,
                 ast_file_cut,
                 gst_file.replace('.fits','_sourceden_map.hd5'),
                 bin_width=1,
                 n_per_file=6250,
+                sort_col=ref_filter[b]+'_RATE',
             )
 
 
@@ -373,101 +376,20 @@ def beast_production_wrapper():
         print("setting up script to trim models")
         print("")
 
-        # save any at-queue commands
-        at_list = []
+        job_file_list = make_trim_scripts.make_trim_scripts(
+            num_subtrim=1, prefix='source activate b13'
+        )
 
-        # iterate through each model grid
-        for i in range(datamodel.n_subgrid):
-
-            # gst list
-            temp = file_dict["photometry_files"]
-            gst_input_list = [x for i, x in enumerate(temp) if i == temp.index(x)]
-
-            # create corresponding files for each of those
-            ast_input_list = []
-            noise_files = []
-            trim_prefix = []
-
-            for j in range(len(gst_input_list)):
-                # get the sd/sub number
-                curr_sd = unique_sd_sub[j][0]
-                curr_sub = unique_sd_sub[j][1]
-                subfolder = "bin{0}_sub{1}".format(curr_sd, curr_sub)
-
-                # create file names
-                ast_input_list.append(
-                    ast_file_cut.replace(".fits", "_bin" + curr_sd + ".fits")
-                )
-                if datamodel.n_subgrid > 1:
-                    noise_files.append(
-                        "./{0}_beast/{0}_beast_noisemodel_bin{1}.gridsub{2}.hd5".format(
-                            field_names[b], curr_sd, i
-                        )
-                    )
-                    
-                    trim_prefix.append(
-                        "./{0}_beast/{1}/{0}_beast_{1}_gridsub{2}".format(
-                            field_names[b], subfolder, i
-                        )
-                    )
-                    
-                if datamodel.n_subgrid == 1:
-                    noise_files.append(file_dict['noise_files'][j])
-                    trim_prefix.append(
-                        "./{0}_beast/{0}_beast_{1}".format(field_names[b], subfolder)
-                    )
-                    
-
-            # check if the trimmed grids exist before moving on
-            if datamodel.n_subgrid > 1:
-                trim_files = sorted(
-                    glob.glob(
-                        "./{0}_beast/bin*_sub*/{0}_beast_*_gridsub{1}_sed_trim.grid.hd5".format(
-                            field_names[b], i
-                        )
-                    )
-                )
-            if datamodel.n_subgrid == 1:
-                trim_files = sorted(
-                    glob.glob(
-                        "./{0}_beast/{0}_beast_*_sub*_sed_trim.grid.hd5".format(field_names[b])
-                    )
-                )
-
-            if len(trim_files) < len(gst_input_list):
-
-                job_path = "./" + field_names[b] + "_beast/trim_batch_jobs/"
-                if datamodel.n_subgrid > 1:
-                    file_prefix = "BEAST_gridsub" + str(i)
-                if datamodel.n_subgrid == 1:
-                    file_prefix = "BEAST"
-
-                # generate trimming at-queue commands
-                setup_batch_beast_trim.generic_batch_trim(
-                    model_grid_files[i],
-                    noise_files,
-                    gst_input_list,
-                    ast_input_list,
-                    trim_prefix,
-                    job_path=job_path,
-                    file_prefix=file_prefix,
-                    num_subtrim=1,
-                    nice=19,
-                    prefix="source activate b13",
-                )
-
-                at_list.append(
-                    "at -f " + job_path + file_prefix + "_batch_trim.joblist now"
-                )
-
-        if len(at_list) > 0:
-            print("\n**** go run trimming code for " + field_names[b] + "! ****")
-            print("Here are the command(s) to run:")
-            for cmd in at_list:
-                print(cmd)
+        if len(job_file_list) > 0:
+            print('\n**** go run trimming code for '+field_names[b]+'! ****')
+            print('Here are the command(s) to run:')
+            for job in job_file_list:
+                print('at -f '+job+' now')
             return
         else:
-            print("all files are trimmed for " + field_names[b])
+            print('all files are trimmed for '+field_names[b])
+
+
 
         # -----------------
         # 9. make script to fit models
