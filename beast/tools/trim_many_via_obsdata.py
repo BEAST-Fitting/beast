@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
         # construct trimmed file names
         sed_trimname = filebase + "_seds_trim.grid.hd5"
-        noisemodel_trimname = filebase + "_noisemodel_trim.hd5"
+        noisemodel_trimname = filebase + "_noisemodel_trim.grid.hd5"
 
         print("working on " + sed_trimname)
 
