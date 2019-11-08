@@ -51,3 +51,7 @@ diagnostic plots and visualizations.  Some are described here.
   (similar to Figure 13 in `Gordon+16 <https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).
   If given multiple sets of files, can do additional panels to compare across
   noise models.
+
+- `plot_triangle.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_triangle.py>`_:
+  Make a triangle/corner plot of all the parameters (p50) against each other.
+  Diagonals contain histograms of each parameter.
