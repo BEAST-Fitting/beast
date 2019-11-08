@@ -124,3 +124,34 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
             job_file_list.append(job_path+file_prefix+'_batch_trim.joblist')
 
     return job_file_list
+
+
+if __name__ == "__main__":
+    # commandline parser
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--num_subtrim",
+        type=int,
+        default=1,
+        help="number of trim batch jobs",
+    )
+    parser.add_argument(
+        "--nice",
+        type=int,
+        default=None,
+        help="prepend a 'nice' level to the trimming command",
+    )
+    parser.add_argument(
+        "--prefix",
+        type=str,
+        default=None,
+        help="string to prepend to each batch file",
+    )
+
+    args = parser.parse_args()
+
+    make_trim_scripts(
+        num_subtrim=args.num_subtrim,
+        nice=args.nice,
+        prefix=args.prefix,
+    )
