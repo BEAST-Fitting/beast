@@ -237,12 +237,6 @@ def beast_production_wrapper():
             print('\n**** go run physics model code for '+field_names[b]+'! ****')
             continue
 
-        # list of SED files
-        model_grid_files = sorted(
-            glob.glob(
-                "./{0}_beast/{0}_beast_seds.grid{1}.hd5".format(field_names[b], gs_str)
-            )
-        )
 
         # -----------------
         # 3. make ASTs

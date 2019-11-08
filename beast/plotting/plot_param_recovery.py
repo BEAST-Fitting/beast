@@ -102,12 +102,3 @@ def plot_param_recovery(
 
     fig.savefig(output_plot_filename)
     plt.close(fig)
-
-
-
-
-
-
-if __name__ == '__main__':
-
-    plot_param_recovery()

@@ -65,7 +65,6 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
     noise_trim_files = file_dict["noise_trim_files"]
     # the unique sets of things
     unique_sedgrid = [x for i, x in enumerate(modelsedgrid_files) if i == modelsedgrid_files.index(x)]
-    unique_sd_sub = [x for i, x in enumerate(sd_sub_info) if i == sd_sub_info.index(x)]
 
     # save the list of job files
     job_file_list = []

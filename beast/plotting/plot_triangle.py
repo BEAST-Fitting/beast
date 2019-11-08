@@ -84,8 +84,8 @@ def plot_triangle(
                 ax = plt.gca()
 
                 # make histogram
-                hist_output = plt.hist(plot_x, bins=20,
-                                facecolor='grey', linewidth=0.25, edgecolor='grey')
+                plt.hist(plot_x, bins=20,
+                         facecolor='grey', linewidth=0.25, edgecolor='grey')
 
                 ax.tick_params(axis='y',which='both',length=0, labelsize=14)
                 ax.tick_params(axis='x',which='both',direction='in', labelsize=14)

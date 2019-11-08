@@ -11,10 +11,7 @@ from beast.tools.run import (
 
 from beast.tools import (
     simulate_obs,
-    setup_batch_beast_trim,
     setup_batch_beast_fit,
-    reorder_beast_results_spatial,
-    condense_beast_results_spatial,
 )
 from beast.plotting import (
     plot_param_recovery,
@@ -31,7 +28,6 @@ importlib.reload(merge_files)
 importlib.reload(create_filenames)
 
 from astropy.table import Table, vstack
-from astropy.io import fits
 
 
 def beast_verification_wrapper():
@@ -70,10 +66,6 @@ def beast_verification_wrapper():
     # the path+file for a reference image
     im_path = ["../beast_dwarfs/images/15275_IC1613_F555W_drz.fits.gz"]
     ref_filter = ["F555W"]
-
-    # choose a filter to use for removing artifacts
-    # (remove catalog sources with filter_FLAG > 99)
-    flag_filter = ["F555W"]
 
     # number of fields
     n_field = len(field_names)
