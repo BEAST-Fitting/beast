@@ -222,7 +222,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                     )
                 )
                 modelsedgrid_trim_files.append(
-                    "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_sed_trim.grid.hd5".format(
+                    "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_seds_trim.grid.hd5".format(
                         datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
@@ -286,7 +286,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                         )
                     )
                     modelsedgrid_trim_files.append(
-                        "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_sed_trim.grid.hd5".format(
+                        "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_seds_trim.grid.hd5".format(
                             datamodel.project, curr_sd, curr_sub, gridsub
                         )
                     )

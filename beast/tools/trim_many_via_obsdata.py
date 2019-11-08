@@ -57,7 +57,7 @@ if __name__ == "__main__":
             os.makedirs(os.path.dirname(filebase))
 
         # construct trimmed file names
-        sed_trimname = filebase + "_sed_trim.grid.hd5"
+        sed_trimname = filebase + "_seds_trim.grid.hd5"
         noisemodel_trimname = filebase + "_noisemodel_trim.hd5"
 
         print("working on " + sed_trimname)
