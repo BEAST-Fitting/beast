@@ -111,8 +111,8 @@ def beast_verification_wrapper():
         im_file = im_path[b]
 
         create_datamodel(
-            gst_file,
-            ast_file,
+            gst_file_orig,
+            ast_file_orig,
             gst_filter_names,
             beast_filter_names,
             dist_mod[b],
@@ -205,8 +205,8 @@ def beast_verification_wrapper():
             proj_type='sim',
         )
 
-        # load in datamodel
-        import datamodel; importlib.reload(datamodel)
+        # load in datamodel again
+        importlib.reload(datamodel)
 
 
         # -----------------
