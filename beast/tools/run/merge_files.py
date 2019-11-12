@@ -24,7 +24,7 @@ def merge_files(use_sd=True, nsubs=1):
     """
 
     # if there's no SD and no subgridding, running this is unnecessary
-    if use_sd and (nsubs == 1):
+    if (not use_sd) and (nsubs == 1):
         print("No merging necessary")
         return
 
