@@ -1,3 +1,4 @@
+import pytest
 from astropy.tests.helper import remote_data
 from astropy.table import Table
 
@@ -6,6 +7,7 @@ from beast.tests.helpers import download_rename, compare_tables
 
 
 @remote_data
+@pytest.mark.skip(reason="currently website download not working")
 def test_padova_isochrone_download():
     # download the cached version
     iso_fname_cache = download_rename("beast_example_phat_iso.csv")
