@@ -38,4 +38,11 @@ def test_trim_grid():
     # check that the simobs files are exactly the same
     table_cache = Table.read(simobs_fname_cache)
 
+    # to avoid issues with uppercase vs lowercase column names, make them all
+    # the same before comparing
+    for col in table_new.colnames:
+        table_new[col].name = col.upper()
+    for col in table_cache.colnames:
+        table_cache[col].name = col.upper()
+
     compare_tables(table_cache, table_new)
