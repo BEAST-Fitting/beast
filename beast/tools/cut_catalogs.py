@@ -31,7 +31,11 @@ def cut_catalogs(
         file name for the output catalog
 
     partial_overlap : boolean (default=False)
-        if True, remove sources in regions without full imaging coverage
+        if True, remove sources in regions without full imaging coverage.  This
+        is done by finding sources with RATE=0 in any filter.  If a source has
+        RATE=0 in all filters (which can only happen for ASTs), that means the
+        source was not recovered, and since we need to keep that information,
+        the source will not be removed.
 
     flagged : boolean (default=False)
         if True, remove sources with flag=99 in flag_filter
@@ -70,8 +74,10 @@ def cut_catalogs(
 
     # partial overlap
     if partial_overlap is True:
-        for filt in filters:
-            good_stars[cat[filt + "_RATE"] == 0] = 0
+        # number of RATE=0 for each source
+        n_zero_flux = np.sum([cat[filt+"_RATE"] == 0 for filt in filters], axis=0)
+        # remove sources with more than 0 and less than n_filter
+        good_stars[(n_zero_flux > 0) & (n_zero_flux < len(filters))] = 0
 
     # flagged sources
     if flagged is True:
