@@ -38,7 +38,8 @@ def cut_catalogs(
         the source will not be removed.
 
     flagged : boolean (default=False)
-        if True, remove sources with flag=99 in flag_filter
+        if True, remove sources with flag=99 in flag_filter.  Note that this
+        will only be applied to sources with RATE>0 in flag_filter.
 
     flag_filter : string or list of strings (default=None)
         if flagged is True, set this to the filter(s) to use
@@ -81,11 +82,8 @@ def cut_catalogs(
 
     # flagged sources
     if flagged is True:
-        if type(flag_filter) == str:
-            good_stars[cat[flag_filter + "_FLAG"] >= 99] = 0
-        else:
-            for fl in flag_filter:
-                good_stars[cat[fl + "_FLAG"] >= 99] = 0
+        for fl in np.atleast_1d(flag_filter):
+            good_stars[(cat[fl + "_FLAG"] >= 99) & (cat[fl+"_RATE"] > 0)] = 0
 
     # write out the sources as a ds9 region file
     if region_file is True:
