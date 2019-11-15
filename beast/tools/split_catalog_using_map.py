@@ -28,19 +28,35 @@ def main():  # pragma: no cover
         type=int,
         help="Number of regions to split the catalog in, the number of density bins",
     )
-    nbin_or_binwidth.add_argument("--bin_width", type=float, default=None,
-                                      help="Width of the density bins for splitting catalog")
+    nbin_or_binwidth.add_argument(
+        "--bin_width",
+        type=float,
+        default=None,
+        help="Width of the density bins for splitting catalog",
+    )
 
-    parser.add_argument("--n_per_file", type=int, default=6250,
-                            help="Number of sources per subfile")
+    parser.add_argument(
+        "--n_per_file", type=int, default=6250, help="Number of sources per subfile"
+    )
 
-    parser.add_argument("--sort_col", type=str, default="F475W_RATE",
-                            help="If n_per_file set, sort catalog by this column before splitting")
+    parser.add_argument(
+        "--sort_col",
+        type=str,
+        default="F475W_RATE",
+        help="If n_per_file set, sort catalog by this column before splitting",
+    )
 
     args = parser.parse_args()
 
-    split_main(args.catfile, args.astfile, args.mapfile, args.n, args.bin_width,
-                   args.n_per_file, args.sort_col)
+    split_main(
+        args.catfile,
+        args.astfile,
+        args.mapfile,
+        args.n,
+        args.bin_width,
+        args.n_per_file,
+        args.sort_col,
+    )
 
 
 def split_main(
@@ -113,19 +129,22 @@ def split_catalog_using_map(
     for b in binnrs:
         # write out file for this bin
         sources_for_bin = np.where(bin_foreach_source == b)
-        print("bin {0}: {1} sources".format(b, len(sources_for_bin[0])) )
+        print("bin {0}: {1} sources".format(b, len(sources_for_bin[0])))
         subcat = cat[sources_for_bin]
         subcat.write(catfile.replace(".fits", "_bin{}.fits".format(b)), overwrite=True)
 
         # write out sub-files, if chosen
         if n_per_file is not None:
 
-            tot_subfiles = int(np.ceil( len(sources_for_bin[0]) / n_per_file))
-            print("dividing into " + str(tot_subfiles) + " subfiles for later fitting speed")
+            tot_subfiles = int(np.ceil(len(sources_for_bin[0]) / n_per_file))
+            print(
+                "dividing into "
+                + str(tot_subfiles)
+                + " subfiles for later fitting speed"
+            )
 
             # Sort the stars
             sort_indxs = np.argsort(subcat[sort_col])
-
 
             for i in range(tot_subfiles):
                 min_k = i * n_per_file
@@ -135,9 +154,9 @@ def split_catalog_using_map(
                     max_k = N
 
                 subcat[sort_indxs[min_k:max_k]].write(
-                    catfile.replace(".fits", "_bin{0}_sub{1}.fits".format(b, i)), overwrite=True
+                    catfile.replace(".fits", "_bin{0}_sub{1}.fits".format(b, i)),
+                    overwrite=True,
                 )
-
 
 
 if __name__ == "__main__":  # pragma: no cover

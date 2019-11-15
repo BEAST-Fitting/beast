@@ -7,6 +7,7 @@ from beast.observationmodel.observations import gen_SimObs_from_sedgrid
 
 from astropy.table import vstack
 
+
 def simulate_obs(
     physgrid_list,
     noise_model_list,
@@ -49,7 +50,7 @@ def simulate_obs(
     # numbers of samples to do
     # (ensure there are enough for even sampling of multiple model grids)
     n_phys = len(physgrid_list)
-    samples_per_grid = int(np.ceil(nsim/n_phys))
+    samples_per_grid = int(np.ceil(nsim / n_phys))
 
     # list to hold all simulation tables
     simtable_list = []
@@ -81,8 +82,6 @@ def simulate_obs(
     vstack(simtable_list).write(output_catalog, overwrite=True)
 
 
-
-
 if __name__ == "__main__":  # pragma: no cover
 
     # commandline parser
@@ -92,7 +91,7 @@ if __name__ == "__main__":  # pragma: no cover
         "-p",
         metavar="PHYS_MODEL",
         required=True,
-        nargs='+',
+        nargs="+",
         help="filename(s) of physics grid(s)",
     )
     parser.add_argument(
@@ -100,7 +99,7 @@ if __name__ == "__main__":  # pragma: no cover
         "-n",
         metavar="NOISE_MODEL",
         required=True,
-        nargs='+',
+        nargs="+",
         help="filename(s) of observation/noise grid(s)",
     )
     parser.add_argument(

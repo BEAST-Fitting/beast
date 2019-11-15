@@ -56,7 +56,7 @@ def make_diagnostic_plots(statsfile, suffix="Exp", figsize=(10, 5.5)):
     return fig
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     parser = initialize_parser()
     parser.add_argument(
         "filename", type=str, help="Path to FITS file with output stats"

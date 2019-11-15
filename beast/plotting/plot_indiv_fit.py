@@ -75,7 +75,7 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum, stats=None, logx=False):
         xvals = np.log10(xvals)
 
     if tagname == "Z":
-        gindxs, = np.where(pdf > 0.0)
+        (gindxs,) = np.where(pdf > 0.0)
         ax.plot(xvals[gindxs], pdf[gindxs] / max(pdf[gindxs]), color="k")
     else:
         ax.plot(xvals, pdf / max(pdf), color="k")
@@ -484,7 +484,7 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     parser = initialize_parser()
     parser.add_argument("filebase", type=str, help="base filename of output results")

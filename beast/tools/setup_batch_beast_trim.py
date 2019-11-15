@@ -228,15 +228,19 @@ if __name__ == "__main__":  # pragma: no cover
         "--num_subtrim", default=5, type=int, help="number of trim batch jobs"
     )
     parser.add_argument(
-        "--nice", default=None, type=int,
-        help="set this to an integer (-20 to 20) to prepend a 'nice' level to the trimming command"
+        "--nice",
+        default=None,
+        type=int,
+        help="set this to an integer (-20 to 20) to prepend a 'nice' level to the trimming command",
     )
     parser.add_argument(
         "--seds_fname", default=None, type=str, help="full filename to the SED grid"
     )
     parser.add_argument(
-        "--prefix", default=None, type=str,
-        help="Set this to a string to prepend to each batch file"
+        "--prefix",
+        default=None,
+        type=str,
+        help="Set this to a string to prepend to each batch file",
     )
 
     args = parser.parse_args()

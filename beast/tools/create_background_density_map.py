@@ -460,7 +460,9 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
     return phot["aperture_sum"] / area
 
 
-def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut, flag_name):
+def make_source_dens_map(
+    cat, ra_grid, dec_grid, output_base, mag_name, mag_cut, flag_name
+):
     """
     Computes the source density map and store it in a pyfits HDU
     Also writes a text file storing the source density for each source
@@ -509,18 +511,48 @@ def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut,
         indxs = indices_for_pixel(pix_x, pix_y, i, j)
 
         if flag_name is None:
-            indxs_for_SD, = np.where((cat[mag_name][indxs] >= mag_cut[0])
-                                        & (cat[mag_name][indxs] <= mag_cut[1]))
+            (indxs_for_SD,) = np.where(
+                (cat[mag_name][indxs] >= mag_cut[0])
+                & (cat[mag_name][indxs] <= mag_cut[1])
+            )
         else:
             flag_name = flag_name.upper()
-            indxs_for_SD, = np.where((cat[mag_name][indxs] >= mag_cut[0])
-                                         & (cat[mag_name][indxs] <= mag_cut[1])
-                                         & (cat[flag_name][indxs] < 99))
+            (indxs_for_SD,) = np.where(
+                (cat[mag_name][indxs] >= mag_cut[0])
+                & (cat[mag_name][indxs] <= mag_cut[1])
+                & (cat[flag_name][indxs] < 99)
+            )
 
         n_indxs = len(indxs_for_SD)
         if n_indxs > 0:
             npts_map[i, j] = n_indxs / pix_area
 
+<<<<<<< HEAD
+=======
+            # now make a map of the sources with zero fluxes in
+            #   at least one band
+            (zindxs,) = np.where(
+                (pix_x[zero_indxs] > i)
+                & (pix_x[zero_indxs] <= i + 1)
+                & (pix_y[zero_indxs] > j)
+                & (pix_y[zero_indxs] <= j + 1)
+            )
+            if len(zindxs) > 0:
+                npts_zero_map[i, j] = len(zindxs)
+
+            # do the same for each band
+            for k, cur_rate in enumerate(rate_cols):
+                tindxs = band_zero_indxs[cur_rate]
+                (zindxs,) = np.where(
+                    (pix_x[tindxs] > i)
+                    & (pix_x[tindxs] <= i + 1)
+                    & (pix_y[tindxs] > j)
+                    & (pix_y[tindxs] <= j + 1)
+                )
+                if len(zindxs) > 0:
+                    npts_band_zero_map[i, j, k] = len(zindxs)
+
+>>>>>>> More 'main' coverage skipped (and blackening)
         # save the source density as an entry for each source
         source_dens[indxs] = npts_map[i, j]
 
@@ -621,7 +653,7 @@ def indices_for_pixel(pix_x, pix_y, x, y):
     Return the indices of the sources for which the coordinates lie in
     the x, y pixel
     """
-    indxs, = np.where(
+    (indxs,) = np.where(
         np.logical_and.reduce([pix_x > x, pix_x <= x + 1, pix_y > y, pix_y <= y + 1])
     )
     return indxs

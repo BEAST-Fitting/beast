@@ -10,8 +10,13 @@ from beast.observationmodel import phot
 from beast.plotting.beastplotlib import initialize_parser
 
 
-def plot_filters(filter_names, filterLib = None,
-            save_name="beast_filters", xlim=[1.4e3, 2e4], ylim=[1e-4, 2]):
+def plot_filters(
+    filter_names,
+    filterLib=None,
+    save_name="beast_filters",
+    xlim=[1.4e3, 2e4],
+    ylim=[1e-4, 2],
+):
 
     """Plots transmission curves in log-log space.
 
@@ -35,7 +40,9 @@ def plot_filters(filter_names, filterLib = None,
     waves = np.logspace(3, np.log10(3e4), 501)
 
     # read in the filter response functions
-    flist = phot.load_filters(filter_names, interp=True, lamb=waves, filterLib=filterLib)
+    flist = phot.load_filters(
+        filter_names, interp=True, lamb=waves, filterLib=filterLib
+    )
 
     color_indices = np.log10(np.array(np.sort([f.norm for f in flist])))
     color_indices -= color_indices.min()
@@ -43,13 +50,19 @@ def plot_filters(filter_names, filterLib = None,
 
     cmap = mpl.cm.plasma
     # ax.set_prop_cycle(color=[cmap(i) for i in color_indices])
-    color=iter(cmap(np.linspace(0.2,0.8,len(filter_names))))
+    color = iter(cmap(np.linspace(0.2, 0.8, len(filter_names))))
 
     for f in flist:
         c = next(color)
         ax.plot(f.wavelength, f.transmit, color=c, lw=2)
         ax.fill_between(f.wavelength, f.transmit, alpha=0.2, color=c)
-        ax.text(np.nanmean(f.wavelength[f.transmit>100.*ylim[0]]), 1.3*np.nanmax(f.transmit[f.transmit>ylim[0]]), f.name.split("_")[-1], ha="center", color=c)
+        ax.text(
+            np.nanmean(f.wavelength[f.transmit > 100.0 * ylim[0]]),
+            1.3 * np.nanmax(f.transmit[f.transmit > ylim[0]]),
+            f.name.split("_")[-1],
+            ha="center",
+            color=c,
+        )
 
     ax.set_xscale("log")
     ax.set_yscale("log")
@@ -65,13 +78,10 @@ def plot_filters(filter_names, filterLib = None,
     return fig
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     parser = initialize_parser()
     parser.add_argument(
-        "--tex",
-        action="store",
-        default="False",
-        help="Use tex format for plot",
+        "--tex", action="store", default="False", help="Use tex format for plot",
     )
     parser.add_argument(
         "--save_name",
@@ -80,17 +90,20 @@ if __name__ == "__main__":
         help="Save figure to file",
     )
     parser.add_argument(
-        "--savefig",
-        action="store",
-        default="True",
-        help="Save figure to file",
+        "--savefig", action="store", default="True", help="Save figure to file",
     )
     args = parser.parse_args()
 
-    filter_names = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W',
-                        'HST_ACS_WFC_F475W', 'HST_ACS_WFC_F550M',
-                        'HST_ACS_WFC_F814W',
-                        'HST_WFC3_F110W', 'HST_WFC3_F160W']
+    filter_names = [
+        "HST_WFC3_F225W",
+        "HST_WFC3_F275W",
+        "HST_WFC3_F336W",
+        "HST_ACS_WFC_F475W",
+        "HST_ACS_WFC_F550M",
+        "HST_ACS_WFC_F814W",
+        "HST_WFC3_F110W",
+        "HST_WFC3_F160W",
+    ]
 
     fig = plot_filters(filter_names)
 

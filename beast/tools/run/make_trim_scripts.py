@@ -4,8 +4,7 @@ import os
 import argparse
 
 # BEAST imports
-from beast.tools import (verify_params,
-                         setup_batch_beast_trim)
+from beast.tools import verify_params, setup_batch_beast_trim
 from beast.tools.run import create_filenames
 
 from difflib import SequenceMatcher
@@ -13,8 +12,6 @@ from difflib import SequenceMatcher
 
 import datamodel
 import importlib
-
-
 
 
 def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
@@ -50,11 +47,9 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
     # check input parameters
     verify_params.verify_input_format(datamodel)
 
-
     # make lists of file names
     file_dict = create_filenames.create_filenames(
-        use_sd=True,
-        nsubs=datamodel.n_subgrid,
+        use_sd=True, nsubs=datamodel.n_subgrid,
     )
     # extract some useful ones
     photometry_files = file_dict["photometry_files"]
@@ -63,7 +58,9 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
     modelsedgrid_trim_files = file_dict["modelsedgrid_trim_files"]
     noise_trim_files = file_dict["noise_trim_files"]
     # the unique sets of things
-    unique_sedgrid = [x for i, x in enumerate(modelsedgrid_files) if i == modelsedgrid_files.index(x)]
+    unique_sedgrid = [
+        x for i, x in enumerate(modelsedgrid_files) if i == modelsedgrid_files.index(x)
+    ]
 
     # save the list of job files
     job_file_list = []
@@ -72,8 +69,11 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
     for i in range(datamodel.n_subgrid):
 
         # indices for this model grid
-        grid_ind = [ind for ind,mod in enumerate(modelsedgrid_files)
-            if mod == unique_sedgrid[i] ]
+        grid_ind = [
+            ind
+            for ind, mod in enumerate(modelsedgrid_files)
+            if mod == unique_sedgrid[i]
+        ]
 
         # create corresponding files for each of those
         input_noise = [noise_files[ind] for ind in grid_ind]
@@ -89,49 +89,43 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
                 0, len(str1), 0, len(str2)
             )
             # grab that substring (and remove trailing "_")
-            input_trim_prefix.append(
-                str1[match.a : match.a + match.size][:-1]
-            )
-
+            input_trim_prefix.append(str1[match.a : match.a + match.size][:-1])
 
         # check if the trimmed grids exist before moving on
-        check_trim = [os.path.isfile(noise_trim_files[ind])
-            for ind in grid_ind]
+        check_trim = [os.path.isfile(noise_trim_files[ind]) for ind in grid_ind]
 
         # if any aren't trimmed for this model grid, set up trimming
         if np.sum(check_trim) < len(input_noise):
 
-            job_path = './{0}/trim_batch_jobs/'.format(datamodel.project)
+            job_path = "./{0}/trim_batch_jobs/".format(datamodel.project)
             if datamodel.n_subgrid > 1:
-                file_prefix='BEAST_gridsub'+str(i)
+                file_prefix = "BEAST_gridsub" + str(i)
             if datamodel.n_subgrid == 1:
-                file_prefix='BEAST'
+                file_prefix = "BEAST"
 
             # generate trimming at-queue commands
-            setup_batch_beast_trim.generic_batch_trim(unique_sedgrid[i],
-                                                      input_noise,
-                                                      input_phot,
-                                                      input_trim_prefix,
-                                                      job_path=job_path,
-                                                      file_prefix=file_prefix,
-                                                      num_subtrim=num_subtrim,
-                                                      nice=nice,
-                                                      prefix=prefix)
+            setup_batch_beast_trim.generic_batch_trim(
+                unique_sedgrid[i],
+                input_noise,
+                input_phot,
+                input_trim_prefix,
+                job_path=job_path,
+                file_prefix=file_prefix,
+                num_subtrim=num_subtrim,
+                nice=nice,
+                prefix=prefix,
+            )
 
-
-            job_file_list.append(job_path+file_prefix+'_batch_trim.joblist')
+            job_file_list.append(job_path + file_prefix + "_batch_trim.joblist")
 
     return job_file_list
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--num_subtrim",
-        type=int,
-        default=1,
-        help="number of trim batch jobs",
+        "--num_subtrim", type=int, default=1, help="number of trim batch jobs",
     )
     parser.add_argument(
         "--nice",
@@ -140,16 +134,11 @@ if __name__ == "__main__":
         help="prepend a 'nice' level to the trimming command",
     )
     parser.add_argument(
-        "--prefix",
-        type=str,
-        default=None,
-        help="string to prepend to each batch file",
+        "--prefix", type=str, default=None, help="string to prepend to each batch file",
     )
 
     args = parser.parse_args()
 
     make_trim_scripts(
-        num_subtrim=args.num_subtrim,
-        nice=args.nice,
-        prefix=args.prefix,
+        num_subtrim=args.num_subtrim, nice=args.nice, prefix=args.prefix,
     )

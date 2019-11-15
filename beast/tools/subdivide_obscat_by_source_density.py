@@ -57,7 +57,7 @@ def split_obs_by_source_density(
 
     uinds = np.unique(inds)  # Selecting the populated bins
     for ek, ok in enumerate(uinds):
-        ii, = np.where(inds == ok)
+        (ii,) = np.where(inds == ok)
         cc = SD_cut[ii]
         print(bins[ok], bins[ok] + bin_width, cc.min(), cc.max())
         # checking we are in the right bin

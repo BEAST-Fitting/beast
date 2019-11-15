@@ -155,7 +155,7 @@ def plot(
     return fig
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

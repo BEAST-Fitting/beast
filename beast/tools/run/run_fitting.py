@@ -287,7 +287,7 @@ def fit_submodel(
         print("Done fitting on grid " + modelsedgrid_file)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(

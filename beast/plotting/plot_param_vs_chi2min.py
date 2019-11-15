@@ -53,7 +53,7 @@ def make_param_vs_chi2min_plots(stats, suffix="Exp", figsize=(20, 10)):
     return fig
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     parser = initialize_parser()
     parser.add_argument(
         "filename", type=str, help="Path to FITS file with output stats"

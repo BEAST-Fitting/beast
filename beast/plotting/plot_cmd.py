@@ -63,7 +63,7 @@ def plot(fitsfile, mag1_filter="F475W", mag2_filter="F814W", mag3_filter="F475W"
     return fig
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     parser = initialize_parser()
     parser.add_argument("filename", type=str, help="Path to FITS file to plot")

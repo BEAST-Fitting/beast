@@ -141,7 +141,7 @@ def reorder_beast_results_spatial(
             uxy_name = uniq_xy_names[k]
 
             # get the indexes for the objects in this region
-            indxs, = np.where(rindxs == k)
+            (indxs,) = np.where(rindxs == k)
 
             # add the number of stars found to summary array
             wcs_nstars[xy_vals["y"][indxs[0]], xy_vals["x"][indxs[0]]] += len(indxs)

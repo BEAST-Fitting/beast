@@ -180,7 +180,7 @@ def setup_batch_beast_fit(
             # get the fit results catalog
             t = Table.read(stats_files[i])
             # get the number of stars that have been fit
-            indxs, = np.where(t["Pmax"] != 0.0)
+            (indxs,) = np.where(t["Pmax"] != 0.0)
 
             # get the number of entries in the lnp file
             f = tables.open_file(lnp_files[i], "r")
@@ -192,7 +192,7 @@ def setup_batch_beast_fit(
 
                 # final check, is the pdf1d file correctly populated
                 tot_prob = np.sum(hdulist["M_ini"].data, axis=1)
-                tindxs, = np.where(tot_prob > 0.0)
+                (tindxs,) = np.where(tot_prob > 0.0)
                 print("# good pdf1d = ", len(tindxs) - 1)
                 if len(tindxs) == (len(obs) + 1):
                     run_done = True
@@ -291,7 +291,6 @@ def setup_batch_beast_fit(
         # slurm needs the job file to be executable
         os.chmod(joblist_file, stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
 
-
     # return the info about completed modeling
     return run_info_dict
 
@@ -304,8 +303,10 @@ if __name__ == "__main__":  # pragma: no cover
         "--num_percore", default=5, type=int, help="number of fitting runs per core"
     )
     parser.add_argument(
-        "--nice", default=None, type=int,
-        help="set this to an integer (-20 to 20) to prepend a 'nice' level to the trimming command"
+        "--nice",
+        default=None,
+        type=int,
+        help="set this to an integer (-20 to 20) to prepend a 'nice' level to the trimming command",
     )
     parser.add_argument(
         "--overwrite_logfile",
@@ -315,8 +316,10 @@ if __name__ == "__main__":  # pragma: no cover
         to existing log file""",
     )
     parser.add_argument(
-        "--prefix", default=None, type=str,
-        help="Set this to a string to prepend to each batch file"
+        "--prefix",
+        default=None,
+        type=str,
+        help="Set this to a string to prepend to each batch file",
     )
     parser.add_argument(
         "--use_sd",

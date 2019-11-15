@@ -55,7 +55,7 @@ def make_ast_inputs(flux_bin_method=True):
             sfiltername = obsdata.data.resolve_alias(filtername)
             sfiltername = sfiltername.replace("rate", "vega")
             sfiltername = sfiltername.replace("RATE", "VEGA")
-            keep, = np.where(obsdata[sfiltername] < 99.0)
+            (keep,) = np.where(obsdata[sfiltername] < 99.0)
             min_mags[k] = np.percentile(obsdata[keep][sfiltername], 90.0)
 
         # max. mags from the gst observation cat.
@@ -75,14 +75,14 @@ def make_ast_inputs(flux_bin_method=True):
     # if the SED file doesn't exist, create SEDs
     if not os.path.isfile(outfile_seds):
 
-        print('Selecting SEDs for ASTs')
+        print("Selecting SEDs for ASTs")
 
         if flux_bin_method:
 
             N_fluxes = datamodel.ast_n_flux_bins
             min_N_per_flux = datamodel.ast_n_per_flux_bin
             bins_outfile = "./{0}/{0}_ASTfluxbins.txt".format(datamodel.project)
-            modelsedgrid_filename = './{0}/{0}_seds.grid.hd5'.format(datamodel.project)
+            modelsedgrid_filename = "./{0}/{0}_seds.grid.hd5".format(datamodel.project)
 
             chosen_seds = pick_models_toothpick_style(
                 modelsedgrid_filename,
@@ -113,8 +113,8 @@ def make_ast_inputs(flux_bin_method=True):
 
     # if the SED file does exist, read them in
     else:
-        print('Reading existing AST SEDs')
-        chosen_seds = Table.read(outfile_seds, format='ascii')
+        print("Reading existing AST SEDs")
+        chosen_seds = Table.read(outfile_seds, format="ascii")
 
     # --------------------
     # assign positions
@@ -124,10 +124,9 @@ def make_ast_inputs(flux_bin_method=True):
     # the section above)
     if datamodel.ast_with_positions:
 
-        print('Assigning positions to artifical stars')
+        print("Assigning positions to artifical stars")
 
         outfile = "./{0}/{0}_inputAST.txt".format(datamodel.project)
-
 
         # if we're replicating SEDs across source density or background bins
         if datamodel.ast_density_table is not None:
@@ -143,7 +142,7 @@ def make_ast_inputs(flux_bin_method=True):
                 wcs_origin=1,
                 Nrealize=1,
                 set_coord_boundary=datamodel.ast_coord_boundary,
-                region_from_filters='all',
+                region_from_filters="all",
             )
 
         # if we're not using SD/background maps, SEDs will be distributed
@@ -157,7 +156,7 @@ def make_ast_inputs(flux_bin_method=True):
             )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
