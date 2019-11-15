@@ -111,7 +111,7 @@ def write_sbatch_file(
 
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
 

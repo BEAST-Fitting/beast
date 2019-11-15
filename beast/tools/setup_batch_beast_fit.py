@@ -296,7 +296,7 @@ def setup_batch_beast_fit(
     return run_info_dict
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     # commandline parser
     parser = argparse.ArgumentParser()

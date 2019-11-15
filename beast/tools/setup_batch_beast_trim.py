@@ -218,7 +218,7 @@ def generic_batch_trim(
         bt_f[i].close()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     # commandline parser
     parser = argparse.ArgumentParser()

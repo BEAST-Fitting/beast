@@ -127,7 +127,7 @@ def cut_catalogs(
         return new_cat, good_stars
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(

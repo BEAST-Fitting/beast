@@ -25,7 +25,7 @@ import itertools as it
 import os
 
 
-def main():
+def main():  # pragma: no cover
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="subcommand")
     subparsers.required = True
@@ -663,5 +663,5 @@ def save_map_fits(map_data_xy, map_wcs, file_name):
     hdu.writeto(file_name, overwrite=True)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

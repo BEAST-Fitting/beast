@@ -15,6 +15,6 @@ def _download_rename(filename, url_loc, local_loc):
     return filename
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     for ckey, clib in libs.items():
         nfilename = _download_rename(clib, libs_server, __ROOT__)

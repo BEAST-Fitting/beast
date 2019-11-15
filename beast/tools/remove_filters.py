@@ -62,7 +62,7 @@ def remove_filters_from_files(catfile, physgrid, obsgrid, outbase, rm_filters):
         )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     # commandline parser
     parser = argparse.ArgumentParser()

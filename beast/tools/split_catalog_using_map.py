@@ -14,7 +14,7 @@ from astropy.table import Table
 from beast.tools.density_map import BinnedDensityMap
 
 
-def main():
+def main():  # pragma: no cover
     parser = argparse.ArgumentParser()
     parser.add_argument("catfile", type=str, help="catalog FITS file")
     parser.add_argument("astfile", type=str, help="ast results fits file")
@@ -140,5 +140,5 @@ def split_catalog_using_map(
 
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
