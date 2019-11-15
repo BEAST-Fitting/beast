@@ -166,7 +166,7 @@ The code to edit catalogs can do three different things:
   any sources with flux=0 in all bands).
 * **Remove flagged sources.** This eliminates any source with `[filter]_FLAG=99`
   in the specified filter.  If that source has flux<0, it is not removed,
-  because those sources are set by `daophot` to have flag=99 regardless of
+  because those sources are set by `dolphot` to have flag=99 regardless of
   quality.
 * **Create ds9 region files.** If set, it will create a ds9 region file where
   good sources are green and removed sources are magenta.
