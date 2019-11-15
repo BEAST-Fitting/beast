@@ -120,7 +120,7 @@ def cut_catalogs(
 
     # either save it or return in
     # - save it
-    if no_write:
+    if not no_write:
         new_cat.write(output_file, format="fits", overwrite=True)
     # - return in
     else:
