@@ -41,3 +41,17 @@ diagnostic plots and visualizations.  Some are described here.
   `Gordon+16 <https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).
   Multiple noise models can be overplotted, as long as they correspond to the
   same SED model grid.
+
+- `plot_param_err.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_param_err.py>`_:
+  Make 2D histogram of each parameter (p50) plotted against its uncertainty
+  ((p84-p16)/2).
+
+- `plot_param_recovery.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_param_recovery.py>`_:
+  Make a 2D histogram to compare simulated and recovered model parameters
+  (similar to Figure 13 in `Gordon+16 <https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).
+  If given multiple sets of files, can do additional panels to compare across
+  noise models.
+
+- `plot_triangle.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_triangle.py>`_:
+  Make a triangle/corner plot of all the parameters (p50) against each other.
+  Diagonals contain histograms of each parameter.

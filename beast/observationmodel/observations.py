@@ -203,13 +203,13 @@ def gen_SimObs_from_sedgrid(
     n_models, n_filters = flux.shape
 
     # hack to get things to run for now
-    short_filters = [filter.split(sep="_")[-1].lower() for filter in sedgrid.filters]
-    if compl_filter.lower() not in short_filters:
+    short_filters = [filter.split(sep="_")[-1].upper() for filter in sedgrid.filters]
+    if compl_filter.upper() not in short_filters:
         print("requested completeness filter not present")
-        print("%s requested" % compl_filter.lower())
+        print("%s requested" % compl_filter.upper())
         print("possible filters", short_filters)
         exit()
-    filter_k = short_filters.index(compl_filter.lower())
+    filter_k = short_filters.index(compl_filter.upper())
     print("Completeness from %s" % sedgrid.filters[filter_k])
 
     # cache the noisemodel values
@@ -241,7 +241,7 @@ def gen_SimObs_from_sedgrid(
     qnames = list(sedgrid.keys())
     # simulated data
     for k, filter in enumerate(sedgrid.filters):
-        colname = "%s_rate" % filter.split(sep="_")[-1].lower()
+        colname = "%s_RATE" % filter.split(sep="_")[-1].upper()
         simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
         simflux = np.random.normal(loc=simflux_wbias, scale=model_unc[sim_indx, k])
         ot[colname] = Column(simflux / vega_flux[k])
