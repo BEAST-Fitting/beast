@@ -16,6 +16,7 @@ def plot(
     param="chi2min",
     log_param=False,
     plot_all=False,
+    savefig=True,
 ):
     """
     Make a CMD with the data, and color-code points by some other fitted quantity
@@ -50,6 +51,9 @@ def plot(
         If True, plot all points by converting the fluxes into magnitudes.
         If False, only plot sources with Vega mags that are <99 in the
         mag1/mag2/mag3 filters
+
+    savefig : boolean (default=True)
+        Save figure to file, or just show it.
 
     """
 
@@ -143,12 +147,12 @@ def plot(
         cbar_label = "Log " + param
     cbar.ax.set_ylabel(cbar_label, fontsize=13)  # , rotation=-90, va="bottom")
 
-    plt.tight_layout()
-
+    # plt.tight_layout()
     # save figure
-    fig.savefig(data_fits_file.replace(".fits", "_cmd.pdf"))
+    # fig.savefig(data_fits_file.replace(".fits", "_cmd.pdf"))
+    # plt.close("all")
 
-    plt.close("all")
+    return fig
 
 
 if __name__ == "__main__":
@@ -191,11 +195,16 @@ if __name__ == "__main__":
         action="store_true",
         help="choose whether to take the log of `param` for assigning color",
     )
+    parser.add_argument(
+        "--savefig",
+        action="store_true",
+        help="choose whether to save the figure, or show it",
+    )
 
     args = parser.parse_args()
 
     # plot the CMD
-    plot(
+    fig = plot(
         args.data_fits_file,
         args.beast_fits_file,
         mag1_filter=args.mag1,
@@ -203,4 +212,13 @@ if __name__ == "__main__":
         mag3_filter=args.magy,
         param=args.param,
         log_param=args.log_param,
+        savefig=args.savefig,
     )
+
+    # figname
+    basename = args.data_fits_file.replace(".fits", "_plot")
+
+    if args.savefig:
+        fig.savefig("{}.{}".format(basename, args.savefig))
+    else:
+        plt.show()
