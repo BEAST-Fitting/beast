@@ -527,32 +527,6 @@ def make_source_dens_map(
         if n_indxs > 0:
             npts_map[i, j] = n_indxs / pix_area
 
-<<<<<<< HEAD
-=======
-            # now make a map of the sources with zero fluxes in
-            #   at least one band
-            (zindxs,) = np.where(
-                (pix_x[zero_indxs] > i)
-                & (pix_x[zero_indxs] <= i + 1)
-                & (pix_y[zero_indxs] > j)
-                & (pix_y[zero_indxs] <= j + 1)
-            )
-            if len(zindxs) > 0:
-                npts_zero_map[i, j] = len(zindxs)
-
-            # do the same for each band
-            for k, cur_rate in enumerate(rate_cols):
-                tindxs = band_zero_indxs[cur_rate]
-                (zindxs,) = np.where(
-                    (pix_x[tindxs] > i)
-                    & (pix_x[tindxs] <= i + 1)
-                    & (pix_y[tindxs] > j)
-                    & (pix_y[tindxs] <= j + 1)
-                )
-                if len(zindxs) > 0:
-                    npts_band_zero_map[i, j, k] = len(zindxs)
-
->>>>>>> More 'main' coverage skipped (and blackening)
         # save the source density as an entry for each source
         source_dens[indxs] = npts_map[i, j]
 
