@@ -157,7 +157,7 @@ def main_make_map(args):
         ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
         dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
     elif args.pixsize is not None:
-        pixsize_arcsecs = args.pixsize * u.arcsec 
+        pixsize_arcsecs = args.pixsize * u.arcsec
         pixsize_degrees = pixsize_arcsecs.to(u.degree)
         n_x, n_y, ra_delt, dec_delt = calc_nx_ny_from_pixsize(cat, pixsize_degrees)
         # the ra spacing needs to be larger, as 1 degree of RA ==
@@ -492,35 +492,6 @@ def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut,
     # force filter magnitude name to be upper case to match column names
     mag_name = mag_name.upper()
 
-    # get the columns with fluxes
-    rate_cols = [s for s in cat.colnames if s[-4:] == "RATE"]
-    n_filters = len(rate_cols)
-
-    # create the indexs where any of the rates are zero and non-zero
-    #   zero = missing data, etc. -> bad for fitting
-    #   non-zero = good data, etc. -> great for fitting
-    initialize_zero = False
-    band_zero_indxs = {}
-    print("band, good, zero")
-    for cur_rate in rate_cols:
-
-        cur_good_indxs, = np.where(cat[cur_rate] != 0.0)
-        cur_indxs, = np.where(cat[cur_rate] == 0.0)
-        print(cur_rate, len(cur_good_indxs), len(cur_indxs))
-
-        if not initialize_zero:
-            initialize_zero = True
-            zero_indxs = cur_indxs
-            nonzero_indxs = cur_good_indxs
-        else:
-            zero_indxs = np.union1d(zero_indxs, cur_indxs)
-            nonzero_indxs = np.intersect1d(nonzero_indxs, cur_good_indxs)
-
-        # save the zero indexs for each band
-        band_zero_indxs[cur_rate] = zero_indxs
-
-    print("all bands", len(nonzero_indxs), len(zero_indxs))
-
     N_stars = len(cat)
 
     w = make_wcs_for_map(ra_grid, dec_grid)
@@ -529,8 +500,6 @@ def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut,
     n_x = len(ra_grid) - 1
     n_y = len(dec_grid) - 1
     npts_map = np.zeros([n_x, n_y], dtype=float)
-    npts_zero_map = np.zeros([n_x, n_y], dtype=float)
-    npts_band_zero_map = np.zeros([n_x, n_y, n_filters], dtype=float)
     source_dens = np.zeros(N_stars, dtype=float)
 
     # area of one pixel in square degrees
@@ -552,46 +521,14 @@ def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut,
         if n_indxs > 0:
             npts_map[i, j] = n_indxs / pix_area
 
-            # now make a map of the sources with zero fluxes in
-            #   at least one band
-            zindxs, = np.where(
-                (pix_x[zero_indxs] > i)
-                & (pix_x[zero_indxs] <= i + 1)
-                & (pix_y[zero_indxs] > j)
-                & (pix_y[zero_indxs] <= j + 1)
-            )
-            if len(zindxs) > 0:
-                npts_zero_map[i, j] = len(zindxs)
-
-            # do the same for each band
-            for k, cur_rate in enumerate(rate_cols):
-                tindxs = band_zero_indxs[cur_rate]
-                zindxs, = np.where(
-                    (pix_x[tindxs] > i)
-                    & (pix_x[tindxs] <= i + 1)
-                    & (pix_y[tindxs] > j)
-                    & (pix_y[tindxs] <= j + 1)
-                )
-                if len(zindxs) > 0:
-                    npts_band_zero_map[i, j, k] = len(zindxs)
-
         # save the source density as an entry for each source
         source_dens[indxs] = npts_map[i, j]
 
     save_map_fits(npts_map, w, output_base + "_source_den_image.fits")
-    save_map_fits(npts_zero_map, w, output_base + "_npts_zero_fluxes_image.fits")
-    for k, cur_rate in enumerate(rate_cols):
-        save_map_fits(
-            npts_band_zero_map[:, :, k], w, output_base + cur_rate + "_image.fits"
-        )
 
     # Save the source density for individual stars in a new catalog file
     cat["SourceDensity"] = source_dens
-    cat.write(output_base + "_with_sourceden_inc_zerofluxes.fits", overwrite=True)
-
-    # Save the source density for individual stars in a new catalog file
-    #   only those that have non-zero fluxes in all bands
-    cat[nonzero_indxs].write(output_base + "_with_sourceden.fits", overwrite=True)
+    cat.write(output_base + "_with_sourceden.fits", overwrite=True)
 
     return npts_map
 

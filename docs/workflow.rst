@@ -28,7 +28,7 @@ These parameters are described in the beast :ref:`setup documentation
 Source Density or Background Level
 **********************************
 
-The data need to have source density information added as it is common
+The data generally need to have source density information added as it is common
 for the observation model (scatter and bias) to be strongly dependent
 on source density due to crowding/confusion noise.  The background may
 also be important in some situations, so there is code to calculate it as well.
@@ -43,19 +43,13 @@ the magnitude range of sources to use for calculating the source density
 user can also choose a band for which sources that have '[band]_FLAG == 99' are
 ignored.
 
-A number of source density images are also created.  The prefix is derived
-from the name of the input photometry catalog.
+Three files are created.  The prefix is derived from the name of the input
+photometry catalog.
 
-  * [prefix]_source_den_image.fits: an image of the source density map
-  * [prefix][band]_RATE_image.fits: for each band in the catalog, an image of
-    the number of sources with a flux of 0 (i.e., not detected in the given band)
-  * [prefix]_npts_zero_fluxes_image.fits: an image of the number of sources with
-    0 flux in at least one band
-  * [prefix]_with_sourceden_inc_zerofluxes.fits: photometry catalog with an
-    additional column that has the source density
-  * [prefix]_with_sourceden.fits: same as above, but only for sources with
-    flux > 0 in each band
-  * [prefix]_sourceden_map.hd5: contains information about the map grid
+* [prefix]_source_den_image.fits: an image of the source density map
+* [prefix]_with_sourceden.fits: photometry catalog with an
+  additional column that has the source density
+* [prefix]_sourceden_map.hd5: contains information about the map grid
 
 Command to create the observed catalog with source density column with
 a pixel scale of 5 arcsec using the 'phot_catalog.fits' catalog.
@@ -161,6 +155,21 @@ Edit/Split Catalogs
 
 You may wish to remove artifacts from the photometry catalog.  If you do so, the
 same criteria must be applied to the AST catalog.
+
+The code to edit catalogs can do three different things:
+
+* **Remove objects without full imaging coverage.** Note that the overlap is
+  determined by eliminating sources with a flux of precisely 0 in any band.
+  However, any sources with a flux of 0 in all bands are not removed, since
+  that would indicate that an artificial star was not recovered (this
+  criterion does not affect standard photometry catalogs, which do not have
+  any sources with flux=0 in all bands).
+* **Remove flagged sources.** This eliminates any source with `[filter]_FLAG=99`
+  in the specified filter.  If that source has flux<0, it is not removed,
+  because those sources are set by `dolphot` to have flag=99 regardless of
+  quality.
+* **Create ds9 region files.** If set, it will create a ds9 region file where
+  good sources are green and removed sources are magenta.
 
 Commands to edit the files, both to remove flagged sources and eliminate sources
 that don't have full imaging coverage, and to create ds9 region files:
