@@ -492,11 +492,6 @@ def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut,
     # force filter magnitude name to be upper case to match column names
     mag_name = mag_name.upper()
 
-    # get the columns with fluxes
-    rate_cols = [s for s in cat.colnames if s[-4:] == "RATE"]
-    n_filters = len(rate_cols)
-
-
     N_stars = len(cat)
 
     w = make_wcs_for_map(ra_grid, dec_grid)
