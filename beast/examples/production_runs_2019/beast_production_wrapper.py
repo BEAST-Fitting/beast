@@ -17,10 +17,7 @@ from beast.plotting import plot_mag_hist
 from beast.tools import (
     create_background_density_map,
     split_ast_input_file,
-    subdivide_obscat_by_source_density,
     cut_catalogs,
-    split_asts_by_source_density,
-    setup_batch_beast_trim,
     setup_batch_beast_fit,
 )
 
