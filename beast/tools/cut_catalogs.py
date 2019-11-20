@@ -3,8 +3,6 @@ import argparse
 
 from astropy.table import Table
 
-from beast.observationmodel.ast.make_ast_xy_list import convexhull_path
-
 
 def cut_catalogs(
     input_phot_file,
@@ -219,6 +217,30 @@ def write_ds9(cat, good_stars, ds9_file_name):
                 )
 
 
+def convexhull_path(x_coord, y_coord):
+    """
+    Find the convex hull for the given coordinates and make a Path object
+    from it.
+
+    Parameters
+    ----------
+    x_coord, y_coord: arrays
+        Arrays of coordinates (can be x/y or ra/dec)
+
+    Returns
+    -------
+    matplotlib Path object
+
+    """
+
+    coords = np.array(
+        [x_coord, y_coord]
+    ).T  # there's a weird astropy datatype issue that requires numpy coercion
+    hull = ConvexHull(coords)
+    bounds_x, bounds_y = coords[hull.vertices, 0], coords[hull.vertices, 1]
+    path_object = Path(np.array([bounds_x, bounds_y]).T)
+
+    return path_object
 
 
 if __name__ == "__main__":  # pragma: no cover
