@@ -247,12 +247,26 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "input_file",
+        "input_phot_file",
         type=str,
-        help="file name of the input catalog (photometry or AST)",
+        help="file name of the input photometry catalog",
     )
     parser.add_argument(
-        "output_file", type=str, help="file name for the output catalog",
+        "output_phot_file",
+        type=str,
+        help="file name for the output photometry catalog",
+    )
+    parser.add_argument(
+        "--input_ast_file",
+        type=str,
+        default=None,
+        help="file name for the input AST catalog",
+    )
+    parser.add_argument(
+        "--output_ast_file",
+        type=str,
+        default=None,
+        help="file name for the output AST catalog",
     )
     parser.add_argument(
         "--partial_overlap",
@@ -289,15 +303,13 @@ if __name__ == "__main__":  # pragma: no cover
     args = parser.parse_args()
 
     cut_catalogs(
-        input_file=args.input_file,
-        output_file=args.output_file,
+        input_phot_file=args.input_phot_file,
+        output_phot_file=args.output_phot_file,
+        input_ast_file=args.input_ast_file,
+        output_ast_file=args.output_ast_file,
         partial_overlap=args.partial_overlap,
         flagged=args.flagged,
         flag_filter=args.flag_filter,
         region_file=args.region_file,
         no_write=args.no_write,
     )
-
-    # print help if no arguments
-    if not any(vars(args).values()):
-        parser.print_help()
