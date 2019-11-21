@@ -48,8 +48,7 @@ def main():
             func(**funcargs)
             break  # drop out immediately, which skips the "else" below
     else:
-        if False:
-            raise AssertionError("Invalid subparser! This should be impossible...")
+        raise AssertionError("Invalid subparser! This should be impossible...")
 
 
 if __name__ == "__main__":
