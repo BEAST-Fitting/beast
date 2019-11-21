@@ -6,17 +6,15 @@ from beast.tools import get_libfiles
 
 
 def main():
-    """Summary gets arguments for each of the scripts listed in 'scripts' 
+    """Main script for command-line use
+
+    Summary: gets arguments for each of the scripts listed in 'scripts' 
     and parses them for the function given in the input
     """
     all_funcs = []
-    scripts = [plot_cmd, plot_filters, plot_indiv_fit]
+    scripts = [plot_cmd, plot_filters, plot_indiv_fit] # scripts available
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--global-setting", action="store_true", help="some global thingie"
-    )
-
     subparsers = parser.add_subparsers(
         dest="subparser_name", required=True, help="sub-command help"
     )
@@ -26,6 +24,7 @@ def main():
         all_funcs.append(funcs_to_subcommand)
     all_funcs = [item for sublist in all_funcs for item in sublist]
 
+    # adds arguments for all of the functions listed in scripts
     for name, func in all_funcs:
         subparser = subparsers.add_parser(name, help=func.__doc__)
         for parname, arg in inspect.signature(func).parameters.items():
@@ -35,7 +34,7 @@ def main():
             else:
                 subparser.add_argument("--" + sanitized_name, default=arg.default)
 
-    # now actually parse the arguments
+    # now actually parses the arguments
     args = parser.parse_args()
 
     # and call the function
