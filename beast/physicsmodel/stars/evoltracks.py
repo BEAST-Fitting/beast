@@ -4,7 +4,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 
-from astropy.table import Table
+from astropy.table import Table, vstack
 
 from beast.config import __ROOT__
 
@@ -49,6 +49,7 @@ class EvolTracks(object):
             "phase": "evol phase",
             "M_act": "log(current mass)",
             "M_ini": "log(initial mass)",
+            "eep": "EEP",
         }
 
     def load_orig_tables(self, source):
@@ -249,6 +250,65 @@ class EvolTracks(object):
             self.data = new_grid
 
 
+class ETMist(EvolTracks):
+    """
+    MIST evolutionary tracks
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.source = "MIST"
+
+        self.orig_FeH = [0.0, 0.25, 0.5]
+        self.orig_files = ["MIST_FeH0.00.fits", "MIST_FeH0.25.fits", "MIST_FeH0.50.fits"]
+        # self.load_orig_tables(self.orig_files)
+
+    def load_orig_tables(self, files):
+        """
+        Read the tracks from the original files
+
+        Parameters
+        ----------
+        files : str
+            file or files with the evolutionary track calculations
+            often each for a single metallicity
+
+        Returns
+        -------
+        self.orig_tracks : astropy Table
+            Table with evolutionary track info as columns for all metallicities
+        """
+        if type(files) is not list:
+            files = [files]
+
+        itables = [Table.read(cfile) for cfile in files]
+        if len(itables) > 1:
+            self.orig_tracks = vstack(itables)
+        else:
+            self.orig_tracks = itables[0]
+
+    def get_evoltracks(self, masses, ages, metals=None, FeHs=None):
+        """
+        Get the evolutionary tracks for the specified ages, initial masses,
+        and metallicities.
+
+        Parameters
+        ----------
+        masses : list
+            Initial masses for grid
+        age : list
+            Ages for grid
+        metal, FeH : list
+            At least one needs to be set for the grid metallicities
+
+        Returns
+        -------
+        type
+            Description of returned object.
+        """
+        pass
+
+
 class ETParsec(EvolTracks):
     """
     EvolTracks specific to PARSEC calculations
@@ -280,59 +340,3 @@ class ETParsec(EvolTracks):
         self.data["M_act"] = np.array(mass_act)
         self.data["logL"] = np.array(logL)
         self.data["logT"] = np.array(logT)
-
-
-class ETMist(EvolTracks):
-    """
-    MIST evolutionary tracks
-    """
-
-    def __init__(self):
-        super().__init()
-        self.source = "MIST"
-
-        files = f"{__ROOT__}/MIST/MIST_v1.2_feh_p0.00_afe_p0.0_vvcrit0.4_EEPS/*.eep"
-        self.load_orig_tables(files)
-
-    def load_orig_tables(self, files):
-        """
-        Read the tracks from  the original files
-
-        files : str
-            file or files with the evolutionary track calculations
-            often each file is for a single initial mass
-        """
-        if type(files) is not list:
-            files = [files]
-
-        mass_act = np.array([])
-        mass_ini = np.array([])
-        logA = np.array([])
-        logL = np.array([])
-        logT = np.array([])
-        logg = np.array([])
-        phase = np.array([])
-        eep = np.array([])
-        for cfile in files:
-            a = Table.read(cfile, format="ascii", header_start=11)
-            tmass = a["star_mass"].data
-            mass_act = np.concatenate((mass_act, tmass))
-            mass_ini = np.concatenate((mass_ini, np.full((len(tmass)), max(tmass))))
-            logA = np.concatenate((logA, np.log10(a["star_age"].data)))
-            logL = np.concatenate((logL, a["log_L"].data))
-            logT = np.concatenate((logT, a["log_Teff"].data))
-            logg = np.concatenate((logg, a["log_g"].data))
-            phase = np.concatenate((phase, a["phase"].data))
-            eep = np.concatenate((eep, range(len(a))))
-
-        self.data = {}
-        self.data["M_act"] = np.log10(mass_act)
-        self.data["M_ini"] = np.log10(mass_ini)
-        self.data["logA"] = logA
-        self.data["logL"] = logL
-        self.data["logT"] = logT
-        self.data["logg"] = logg
-        self.data["phase"] = phase
-        self.data["eep"] = eep
-
-        self.alabels["eep"] = "EEP"
