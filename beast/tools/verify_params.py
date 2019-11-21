@@ -6,53 +6,40 @@ Created by Maria Kapala on Feb 24th 2017
 """
 from os.path import exists
 from numpy import inf
-from sys import exit
 
 
-def verify_range(param, param_name, param_lim, noexit=False):
+def verify_range(param, param_name, param_lim):
     # check if input param limits make sense
 
     if any(p < param_lim[0] for p in param):
-        print((param_name + " min value not physical."))
-        if not noexit:
-            exit()
+        raise ValueError(param_name + " min value not physical.")
 
     if any(p > param_lim[1] for p in param):
-        print((param_name + " max value not physical."))
-        if not noexit:
-            exit()
+        raise ValueError(param_name + " max value not physical.")
 
 
-def check_grid(param, param_name, param_lim, noexit=False):
+def check_grid(param, param_name, param_lim):
     # check if input param limits and grid initialisation make sense
 
     param_min, param_max, param_step = param
 
     if param_min < param_lim[0]:
-        print((param_name + " min value not physical."))
-        if not noexit:
-            exit()
+        raise ValueError(param_name + " min value not physical.")
 
     if param_max > param_lim[1]:
-        print((param_name + " max value not physical."))
-        if not noexit:
-            exit()
+        raise ValueError(param_name + " max value not physical.")
 
     if param_min > param_max:
-        print((param_name + " min value greater than max"))
-        if not noexit:
-            exit()
+        raise ValueError(param_name + " min value greater than max")
 
     if (param_max - param_min) < param_step:
         if param_max - param_min == 0.0:
-            print("Note: " + param_name + " grid is single-valued.")
+            raise UserWarning("Note: " + param_name + " grid is single-valued.")
         else:
-            print((param_name + " step value greater than (max-min)"))
-            if not noexit:
-                exit()
+            raise ValueError(param_name + " step value greater than (max-min)")
 
 
-def verify_one_input_format(param, param_name, param_format, param_lim, noexit=False):
+def verify_one_input_format(param, param_name, param_format, param_lim):
     """
     Test for an input parameter correctness of format and limits.
 
@@ -71,19 +58,14 @@ def verify_one_input_format(param, param_name, param_format, param_lim, noexit=F
        [-inf, inf] when param is not constraint at all;
        None when concerns a str parameter
 
-    noexit: boolean
-       Override exit() commands if there is an error.
-       Default = False (exit on error)
     """
 
     if "list" in param_format:
         if not isinstance(param, list):
             if param is None:
-                print("Warning: " + param_name + " is not defined.")
+                raise UserWarning(param_name + " is not defined.")
             else:
-                print((param_name + " is not in the right format - a list."))
-                if not noexit:
-                    exit()
+                raise TypeError(param_name + " is not in the right format - a list.")
         elif "float" in param_format:
             is_list_of_floats = all(isinstance(item, float) for item in param)
             if not is_list_of_floats:
@@ -91,9 +73,9 @@ def verify_one_input_format(param, param_name, param_format, param_lim, noexit=F
             elif "grid" in param_format:
                 # when param is aranged from given [min, max, step],
                 # instead of a specific list of values
-                check_grid(param, param_name, param_lim, noexit=noexit)
+                check_grid(param, param_name, param_lim)
             else:
-                verify_range(param, param_name, param_lim, noexit=noexit)
+                verify_range(param, param_name, param_lim)
 
         if "str" in param_format:
             if not isinstance(param, str):
@@ -112,7 +94,7 @@ def verify_one_input_format(param, param_name, param_format, param_lim, noexit=F
                 )
 
 
-def verify_input_format(datamodel, noexit=False):
+def verify_input_format(datamodel):
 
     """
     Import BEAST input parameters from datamodel.
@@ -124,10 +106,6 @@ def verify_input_format(datamodel, noexit=False):
     ----------
     datamodel: module
         Input parameters are initialized in datamodel
-
-    noexit: boolean
-        Override exit() commands if there is an error.
-        Default = False (exit on error)
 
     """
 
@@ -166,7 +144,6 @@ def verify_input_format(datamodel, noexit=False):
             parameters_names[i],
             param_format[i],
             parameters_limits[i],
-            noexit=noexit,
         )
 
 

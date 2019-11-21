@@ -104,8 +104,7 @@ def trim_models(
         model_icov_offdiag = sedgrid_noisemodel.root.icov_offdiag[:]
 
     if len(indxs) <= 0:
-        print("no models are brighter than the minimum ASTs run")
-        exit()
+        raise ValueError("no models are brighter than the minimum ASTs run")
 
     n_ast_indxs = len(indxs)
 
@@ -124,8 +123,7 @@ def trim_models(
             indxs = indxs[nindxs]
 
     if len(indxs) == 0:
-        print("no models that are within the data range")
-        exit()
+        raise ValueError("no models that are within the data range")
 
     print("number of original models = ", len(sedgrid.seds[:, 0]))
     print("number of ast trimmed models = ", n_ast_indxs)

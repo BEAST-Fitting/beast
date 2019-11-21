@@ -5,7 +5,6 @@ The priors on A(V), R(V), and f_A computed as weights to use
 in the posterior calculations.
 """
 import numpy as np
-from sys import exit
 
 __all__ = ["PriorWeightsDust"]
 
@@ -224,14 +223,17 @@ class PriorWeightsDust:
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
                 N1=model["N1_to_N2"],
-                N2=1.0
+                N2=1.0,
             )
         elif model["name"] == "exponential":
             self.av_priors = _exponential(self.av_vals, a=model["a"])
         else:
-            print("**error in setting the A(V) dust prior weights!**")
-            print("**model " + model["name"] + " not supported**")
-            exit()
+            raise NotImplementedError(
+                "**error in setting the A(V) dust prior weights!**"
+                + "**model "
+                + model["name"]
+                + " not supported**"
+            )
 
         # normalize to avoid numerical issues (too small or too large)
         self.av_priors /= np.average(self.av_priors)
@@ -262,12 +264,15 @@ class PriorWeightsDust:
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
                 N1=model["N1_to_N2"],
-                N2=1.0
+                N2=1.0,
             )
         else:
-            print("**error in setting the R(V) dust prior weights!**")
-            print("**model " + model["name"] + " not supported**")
-            exit()
+            raise NotImplementedError(
+                "**Error in setting the R(V) dust prior weights!**"
+                + "**model "
+                + model["name"]
+                + " not supported**"
+            )
 
         # normalize to avoid numerical issues (too small or too large)
         self.rv_priors /= np.average(self.rv_priors)
@@ -298,12 +303,15 @@ class PriorWeightsDust:
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
                 N1=model["N1_to_N2"],
-                N2=1.0
+                N2=1.0,
             )
         else:
-            print("**error in setting the f_A dust prior weights!**")
-            print("**model " + model["name"] + " not supported**")
-            exit()
+            raise NotImplementedError(
+                "**Error in setting the f_A dust prior weights!**"
+                + "**model "
+                + model["name"]
+                + " not supported**"
+            )
 
         # normalize to avoid numerical issues (too small or too large)
         self.fA_priors /= np.average(self.fA_priors)

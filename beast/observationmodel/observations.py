@@ -205,10 +205,13 @@ def gen_SimObs_from_sedgrid(
     # hack to get things to run for now
     short_filters = [filter.split(sep="_")[-1].upper() for filter in sedgrid.filters]
     if compl_filter.upper() not in short_filters:
-        print("requested completeness filter not present")
-        print("%s requested" % compl_filter.upper())
-        print("possible filters", short_filters)
-        exit()
+        raise NotImplementedError(
+            "Requested completeness filter not present:"
+            + compl_filter.upper()
+            + "\nPossible filters:"
+            + "\n".join(short_filters)
+        )
+
     filter_k = short_filters.index(compl_filter.upper())
     print("Completeness from %s" % sedgrid.filters[filter_k])
 
