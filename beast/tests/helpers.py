@@ -39,7 +39,8 @@ def compare_tables(table_cache, table_new):
     table_new : astropy table
         data for comparision.
     """
-    assert len(table_new) == len(table_cache)
+    if not len(table_new) == len(table_cache):
+        raise AssertionError()
 
     for tcolname in table_new.colnames:
         # test numerical types for closeness
@@ -71,7 +72,8 @@ def compare_fits(fname_cache, fname_new):
     fits_cache = fits.open(fname_cache)
     fits_new = fits.open(fname_new)
 
-    assert len(fits_new) == len(fits_cache)
+    if not len(fits_new) == len(fits_cache):
+        raise AssertionError()
 
     for k in range(1, len(fits_new)):
         qname = fits_new[k].header["EXTNAME"]

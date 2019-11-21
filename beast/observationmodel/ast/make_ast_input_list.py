@@ -153,8 +153,8 @@ def pick_models_toothpick_style(
         bin_edges[:, f] = np.linspace(mins[f], maxes[f], N_fluxes + 1)
     bin_mins = bin_edges[:-1, :]
     bin_maxs = bin_edges[1:, :]
-    assert len(bin_mins) == N_fluxes
-    assert len(bin_maxs) == N_fluxes
+    if not len(bin_mins) == len(bin_maxs) == N_fluxes:
+        raise AssertionError()
 
     bin_count = np.zeros((N_fluxes, Nf))
     chosen_idxs = []

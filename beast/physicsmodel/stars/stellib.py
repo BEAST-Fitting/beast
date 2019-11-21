@@ -595,7 +595,8 @@ class Stellib(object):
             else:
                 _r = np.asarray(self.interp(T0, g0, Z0, **kwargs))
         else:
-            assert T0.ndim == 2, "error expecting 2d-array"
+            if not (T0.ndim == 2):
+                raise ValueError("error expecting 2d-array")
             _r = T0
         return (((self.spectra[_r[:, 0].astype(int)].T) * _r[:, 1])).sum(1)
 

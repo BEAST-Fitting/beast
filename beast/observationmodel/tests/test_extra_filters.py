@@ -17,7 +17,8 @@ def test_extra_filters(lambda_start, lambda_finish, d_lambda):
 
     # test bandwidth and name
     np.testing.assert_allclose(f_int.bandwidth, lambda_finish - lambda_start - d_lambda)
-    assert f_int.name == "Pseudo_Fake_QION"
+    if not f_int.name == "Pseudo_Fake_QION":
+        raise AssertionError()
 
     # create example top hat filters
     f_top = make_top_hat_filter(
@@ -25,4 +26,5 @@ def test_extra_filters(lambda_start, lambda_finish, d_lambda):
     )
 
     np.testing.assert_allclose(f_top.bandwidth, lambda_finish - lambda_start - d_lambda)
-    assert f_top.name == "Pseudo_Fake_TOP"
+    if not f_top.name == "Pseudo_Fake_TOP":
+        raise AssertionError()

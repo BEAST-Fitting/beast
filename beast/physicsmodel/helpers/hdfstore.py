@@ -370,7 +370,7 @@ class HDFStore(object):
             returns if any operation was actually done (True) else the file was already opened (False)
         """
         if self.source is None:
-            if type(self.lnpfile) == str:
+            if isinstance(self.lnpfile, str):
                 self.source = tables.open_file(
                     self.lnpfile, mode=self._mode, **self._open_kwargs
                 )
@@ -606,7 +606,6 @@ def unittest():
     """unittest
     Example usage
     """
-    import numpy as np
 
     # make a store
     with HDFStore("tmp.hd5", mode="w") as hd:

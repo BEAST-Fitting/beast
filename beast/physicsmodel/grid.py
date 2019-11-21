@@ -110,7 +110,7 @@ class ModelGrid(object):
         backend = kwargs.pop("backend", None)
         if backend is None:
             self._backend = GridBackend(*args, **kwargs)
-        elif type(backend) in basestring:
+        elif isinstance(backend, basestring):
             self._backend = find_backend(backend)(*args, **kwargs)
         elif isNestedInstance(backend, GridBackend):
             self._backend = backend
@@ -241,7 +241,7 @@ class SpectralGrid(ModelGrid):
         memgrid: MemoryGrid instance
             grid of SEDs
         """
-        if type(filter_names[0]) == str:
+        if isinstance(filter_names[0], str):
             flist = phot.load_filters(
                 filter_names, interp=True, lamb=self.lamb, filterLib=filterLib
             )
@@ -285,9 +285,8 @@ class SpectralGrid(ModelGrid):
             if not inplace, returns a new ModelGrid instance. Otherwise returns
             nothing
         """
-        assert isinstance(
-            extLaw, extinction.ExtinctionLaw
-        ), "Expecting ExtinctionLaw object got %s" % type(extLaw)
+        if not isinstance(extLaw, extinction.ExtinctionLaw):
+            raise TypeError("Expecting ExtinctionLaw object got %s" % type(extLaw))
         extCurve = np.exp(-1.0 * extLaw.function(self.lamb[:], **kwargs))
         if not inplace:
             g = self.copy()

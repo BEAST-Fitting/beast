@@ -339,7 +339,8 @@ def merge_pdf1d_stats(
     # -------------
 
     nsubgrids = len(subgrid_pdf1d_fnames)
-    assert len(subgrid_stats_fnames) == nsubgrids
+    if not len(subgrid_stats_fnames) == nsubgrids:
+        raise AssertionError()
 
     nbins = {}
     with fits.open(subgrid_pdf1d_fnames[0]) as hdul_0:
@@ -357,17 +358,19 @@ def merge_pdf1d_stats(
                     pdf1d_0 = hdul_0[q].data
                     pdf1d = hdul[q].data
                     # the number of bins
-                    assert pdf1d_0.shape[1] == pdf1d.shape[1]
+                    if not pdf1d_0.shape[1] == pdf1d.shape[1]:
+                        raise AssertionError()
                     # the number of stars + 1
-                    assert pdf1d_0.shape[0] == pdf1d.shape[0]
+                    if not pdf1d_0.shape[0] == pdf1d.shape[0]:
+                        raise AssertionError()
                     # the bin centers (stored in the last row of the
                     # image) should be equal (or both nan)
-                    bin_centers_ok = (
+                    if not (
                         np.isnan(pdf1d_0[-1, 0])
                         and np.isnan(pdf1d[-1, 0])
                         or (pdf1d_0[-1, :] == pdf1d[-1, :]).all()
-                    )
-                    assert bin_centers_ok
+                    ):
+                        raise AssertionError()
 
     # Load all the stats files
     stats = [Table.read(f) for f in subgrid_stats_fnames]

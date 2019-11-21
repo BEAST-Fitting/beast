@@ -147,8 +147,11 @@ def percentile(data, percentiles, weights=None):
             else:
                 f1 = (w[s] - p) / (w[s] - w[s - 1])
                 f2 = (p - w[s - 1]) / (w[s] - w[s - 1])
-                assert (f1 >= 0) and (f2 >= 0) and (f1 <= 1) and (f2 <= 1)
-                assert abs(f1 + f2 - 1.0) < 1e-6
+                if not (
+                    (f1 >= 0) and (f2 >= 0) and (f1 <= 1) and (f2 <= 1)
+                    and (abs(f1 + f2 - 1.0) < 1e-6)
+                ):
+                    raise AssertionError()
                 o[pk] = sd[s - 1] * f1 + sd[s] * f2
         return o
 

@@ -138,7 +138,7 @@ class Observations(object):
         """ read the dataset from the original source file """
         from ..external.eztables import AstroTable
 
-        if type(self.inputFile) == str:
+        if isinstance(self.inputFile, str):
             self.data = AstroTable(self.inputFile)
         else:
             self.data = self.inputFile
