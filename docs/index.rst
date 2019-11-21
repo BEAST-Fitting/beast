@@ -38,6 +38,7 @@ User Documentation
    Plotting Tools <plotting_tools.rst>
    Format of BEAST grid files <beast_grid_format.rst>
    Details on BEAST libraries for grid <beast_grid_inputs.rst>
+   Output statistics <outputs.rst>
    Known issues <beast_issues.rst>
 
 Developer Documentation
