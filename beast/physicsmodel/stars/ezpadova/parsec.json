@@ -70,7 +70,6 @@
 		"lsst": "LSST ugrizY, March 2012 total filter throughputs (all ABmags)",
 		"noao_ctio_mosaic2": "NOAO/CTIO/MOSAIC2 (Vegamag)",
 		"TESS_2mass_kepler": "TESS + 2MASS (Vegamags) + Kepler + SDSS griz + DDO51 (in ABmags)",
-		"ukidss": "UKIDSS ZYJHK (Vegamag)",
 		"vphas": "VPHAS+ (ABmags)",
 		"vst_omegacam": "VST/OMEGACAM (ABmag)",
 		"vilnius": "Vilnius",
@@ -88,7 +87,7 @@
 	},
 	"map_carbon_stars" : {
 		"loidl": ["loidl01", "Loidl et al. (2001) (as in Marigo et al. (2008) and Girardi et al. (2008))"],
-		"aringer": ["aringer09", "Aringer et al. (2009) (Note: The interpolation scheme has been slightly improved w.r.t. to the paper's Fig. 19."] 
+		"aringer": ["aringer09", "Aringer et al. (2009) (Note: The interpolation scheme has been slightly improved w.r.t. to the paper's Fig. 19."]
 	},
 	"map_circum_Mstars": {
 		"nodustM": ["no dust", ""],
