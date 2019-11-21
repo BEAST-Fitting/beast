@@ -296,7 +296,7 @@ def make_extinguished_grid(
     # get the stellar grid (no dust yet)
     # if string is provided try to load the most memory efficient backend
     # otherwise use a cache-type backend (load only when needed)
-    if type(spec_grid) == str:
+    if isinstance(spec_grid, str):
         ext = spec_grid.split(".")[-1]
         if ext in ["hdf", "hd5", "hdf5"]:
             g0 = SpectralGrid(spec_grid, backend="hdf")
