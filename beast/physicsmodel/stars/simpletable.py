@@ -916,7 +916,7 @@ def pprint_rec_entry(data, num=0, keys=None):
         """
     if (keys is None) or (keys == "*"):
         _keys = data.dtype.names
-    elif type(keys) in strtype:
+    elif isinstance(keys, strtype):
         _keys = [k for k in data.dtype.names if (re.match(keys, k) is not None)]
     else:
         _keys = keys
@@ -970,7 +970,7 @@ def pprint_rec_array(
         """
     if (fields is None) or (fields == "*"):
         _keys = data.dtype.names
-    elif type(fields) in strtype:
+    elif isinstance(fields, strtype):
         if "," in fields:
             _fields = fields.split(",")
         elif " " in fields:
@@ -1030,7 +1030,7 @@ def elementwise(func):
 
     @wraps(func)
     def wrapper(it, **kwargs):
-        if hasattr(it, "__iter__") & (type(it) not in strtype):
+        if hasattr(it, "__iter__") and not isinstance(it, strtype):
             _f = partial(func, **kwargs)
             return list(map(_f, it))
         else:
@@ -1460,11 +1460,11 @@ class SimpleTable(object):
         self._units = kwargs.get("units", {})
         self._desc = kwargs.get("desc", {})
 
-        if (type(fname) == dict) or (dtype in [dict, "dict"]):
+        if isinstance(fname, dict) or (dtype in [dict, "dict"]):
             self.header = fname.pop("header", {})
             self.data = _convert_dict_to_structured_ndarray(fname)
-        elif (type(fname) in strtype) or (dtype is not None):
-            if type(fname) in strtype:
+        elif isinstance(fname, strtype) or (dtype is not None):
+            if isinstance(fname, strtype):
                 extension = fname.split(".")[-1]
             else:
                 extension = None
@@ -1531,13 +1531,13 @@ class SimpleTable(object):
                 self._aliases.update(**aliases)
             else:
                 raise Exception("Format {0:s} not handled".format(extension))
-        elif type(fname) == np.ndarray:
+        elif isinstance(fname, np.ndarray):
             self.data = fname
             self.header = {}
-        elif type(fname) == pyfits.FITS_rec:
+        elif isinstance(fname, pyfits.FITS_rec):
             self.data = np.array(fname)
             self.header = {}
-        elif type(fname) == SimpleTable:
+        elif isinstance(fname, SimpleTable):
             cp = kwargs.pop("copy", True)
             if cp:
                 self.data = deepcopy(fname.data)
@@ -1557,7 +1557,7 @@ class SimpleTable(object):
         else:
             raise Exception("Type {0!s:s} not handled".format(type(fname)))
         if "NAME" not in self.header:
-            if type(fname) not in strtype:
+            if not isinstance(fname, strtype):
                 self.header["NAME"] = "No Name"
             else:
                 self.header["NAME"] = fname
@@ -1576,7 +1576,7 @@ class SimpleTable(object):
         """
         if (keys is None) or (keys == "*"):
             _keys = list(self.keys())
-        elif type(keys) in strtype:
+        elif isinstance(keys, strtype):
             _keys = [
                 k
                 for k in (list(self.keys()) + tuple(self._aliases.keys()))
@@ -1638,7 +1638,7 @@ class SimpleTable(object):
 
         if (fields is None) or (fields == "*"):
             _keys = list(self.keys())
-        elif type(fields) in strtype:
+        elif isinstance(fields, strtype):
             if "," in fields:
                 _fields = fields.split(",")
             elif " " in fields:
@@ -1797,7 +1797,7 @@ class SimpleTable(object):
         Aliases are defined by using .define_alias()
         """
         # User aliases
-        if hasattr(colname, "__iter__") & (type(colname) not in strtype):
+        if hasattr(colname, "__iter__") and not isinstance(colname, strtype):
             return [self.resolve_alias(k) for k in colname]
         else:
             if self.caseless is True:
@@ -1863,7 +1863,7 @@ class SimpleTable(object):
         """
         if (regexp is None) or (regexp == "*"):
             return self.colnames
-        elif type(regexp) in strtype:
+        elif isinstance(regexp, strtype):
             if full_match is True:
                 fn = re.fullmatch
             else:
@@ -2358,7 +2358,7 @@ class SimpleTable(object):
             list of columns
         """
 
-        if not hasattr(names, "__iter__") or type(names) in strtype:
+        if not hasattr(names, "__iter__") or isinstance(names, strtype):
             names = [names]
 
         p = [self[k] for k in names]
