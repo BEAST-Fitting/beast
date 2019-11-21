@@ -4,7 +4,6 @@ Isochrone class
 Intent to implement a generic module to manage isochrone mining from various
 sources.
 """
-import numpy
 import numpy as np
 from numpy import interp
 from numpy import log10
@@ -37,7 +36,7 @@ class Isochrone(object):
            Z = [ 0.0004, 0.004, 0.008, 0.02, 0.05 ]
            [Fe/H] = [ -1.7  , -0.7 , -0.4 , 0   , 0.4  ]
         """
-        return numpy.log10(metal / 0.02)
+        return np.log10(metal / 0.02)
 
     def FeHtometal(self, feh):
         """
@@ -65,17 +64,17 @@ class Isochrone(object):
 
         # compute vector of discrete derivaties for each quantity
         # and the final number of points
-        npts = (numpy.abs(numpy.divide(numpy.diff(logM), dm))).astype(int)
-        npts += (numpy.abs(numpy.divide(numpy.diff(logT), dt))).astype(int)
-        npts += (numpy.abs(numpy.divide(numpy.diff(logL), dl))).astype(int)
-        idx = numpy.hstack([[0], numpy.cumsum(npts + 1)])
+        npts = (np.abs(np.divide(np.diff(logM), dm))).astype(int)
+        npts += (np.abs(np.divide(np.diff(logT), dt))).astype(int)
+        npts += (np.abs(np.divide(np.diff(logL), dl))).astype(int)
+        idx = np.hstack([[0], np.cumsum(npts + 1)])
         # set up vectors for storage
         ntot = (npts + 1).sum()
-        newm = numpy.empty(ntot, dtype=float)
-        newdm = numpy.empty(ntot, dtype=float)
-        newt = numpy.empty(ntot, dtype=float)
-        newg = numpy.empty(ntot, dtype=float)
-        newl = numpy.empty(ntot, dtype=float)
+        newm = np.empty(ntot, dtype=float)
+        newdm = np.empty(ntot, dtype=float)
+        newt = np.empty(ntot, dtype=float)
+        newg = np.empty(ntot, dtype=float)
+        newl = np.empty(ntot, dtype=float)
 
         for i in range(len(npts)):
             a, b = idx[i], idx[i] + npts[i] + 1
@@ -83,20 +82,20 @@ class Isochrone(object):
                 # construct new 1d grids in each dimension, being careful
                 #   about endpoints
                 # append them to storage vectors
-                newm[a:b] = numpy.linspace(
+                newm[a:b] = np.linspace(
                     logM[i], logM[i + 1], npts[i] + 1, endpoint=False
                 )
-                newt[a:b] = numpy.linspace(
+                newt[a:b] = np.linspace(
                     logT[i], logT[i + 1], npts[i] + 1, endpoint=False
                 )
-                newg[a:b] = numpy.linspace(
+                newg[a:b] = np.linspace(
                     logg[i], logg[i + 1], npts[i] + 1, endpoint=False
                 )
-                newl[a:b] = numpy.linspace(
+                newl[a:b] = np.linspace(
                     logL[i], logL[i + 1], npts[i] + 1, endpoint=False
                 )
                 newdm[a:b] = (
-                    numpy.ones(npts[i] + 1) * (logM[i + 1] - logM[i]) / (npts[i] + 1)
+                    np.ones(npts[i] + 1) * (logM[i + 1] - logM[i]) / (npts[i] + 1)
                 )
             else:
                 # if the maximumum allowable difference is small,
@@ -133,8 +132,8 @@ class padova2010(Isochrone):
         self.name = "Padova 2010 (Marigo 2008 + Girardi 2010)"
         self.source = __ROOT__ + "/padova2010.iso.fits"
         self._load_table_(self.source)
-        self.ages = 10 ** numpy.unique(self.data["logA"])
-        self.Z = numpy.unique(self.data["Z"])
+        self.ages = 10 ** np.unique(self.data["logA"])
+        self.Z = np.unique(self.data["Z"])
 
     def _load_table_(self, source):
         t = Table(self.source)
@@ -142,11 +141,11 @@ class padova2010(Isochrone):
         for k in list(t.keys()):
             data[k] = t[k]
         # Alias columns
-        data["logM"] = log10(numpy.asarray(data["M_ini"]))
-        data["logg"] = numpy.asarray(data["logG"])
-        data["logT"] = numpy.asarray(data["logTe"])
-        data["logL"] = numpy.asarray(data["logL/Lo"])
-        data["logA"] = numpy.asarray(data["log(age/yr)"])
+        data["logM"] = log10(np.asarray(data["M_ini"]))
+        data["logg"] = np.asarray(data["logG"])
+        data["logT"] = np.asarray(data["logTe"])
+        data["logL"] = np.asarray(data["logL/Lo"])
+        data["logA"] = np.asarray(data["log(age/yr)"])
         # clean columns
         data.pop("log(age/yr)")
         data.pop("M_ini")
@@ -184,13 +183,13 @@ class padova2010(Isochrone):
             # no interpolation, isochrone already in the file
             t = t.selectWhere("*", "(logA == _age)", condvars={"_age": log10(_age)})
             for kn in list(t.keys()):
-                data[kn] = numpy.asarray(t[kn])
+                data[kn] = np.asarray(t[kn])
         else:
             # interpolate between isochrones
             d = (self.ages - float(_age)) ** 2
-            a1, a2 = self.ages[numpy.argsort(d)[:2]]
+            a1, a2 = self.ages[np.argsort(d)[:2]]
             # print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
-            r = numpy.log10(_age / a1) / numpy.log10(a2 / a1)
+            r = np.log10(_age / a1) / np.log10(a2 / a1)
 
             t1 = t.selectWhere("*", "logA == _age", condvars={"_age": log10(a1)})
             t2 = t.selectWhere("*", "logA == _age", condvars={"_age": log10(a2)})
@@ -207,7 +206,7 @@ class padova2010(Isochrone):
         if masses is not None:
             # masses are expected in logM for interpolation
             if masses.max() > 2.3:
-                _m = numpy.log10(masses)
+                _m = np.log10(masses)
             else:
                 _m = masses
             data_logM = data["logM"][:]
@@ -227,10 +226,10 @@ class pegase(Isochrone):
         self.name = "Pegase.2 (Fioc+1997)"
         self.source = __ROOT__ + "/pegase.iso.hd5"
         self.data = tables.openFile(self.source)
-        self.ages = numpy.sort(
-            numpy.asarray([k.attrs.time for k in self.data.root.Z02]) * 1e6
+        self.ages = np.sort(
+            np.asarray([k.attrs.time for k in self.data.root.Z02]) * 1e6
         )
-        self.Z = numpy.asarray(
+        self.Z = np.asarray(
             [
                 float("0." + k[1:])
                 for k in self.data.root._g_listGroup(self.data.getNode("/"))[0]
@@ -282,9 +281,9 @@ class pegase(Isochrone):
         else:
             # interpolate between isochrones
             d = (self.ages - float(age)) ** 2
-            a1, a2 = numpy.sort(self.ages[numpy.argsort(d)[:2]] * 1e-6)
+            a1, a2 = np.sort(self.ages[np.argsort(d)[:2]] * 1e-6)
             # print "Warning: Interpolation between %d and %d Myr" % (a1, a2)
-            r = numpy.log10(_age / a1) / numpy.log10(a2 / a1)
+            r = np.log10(_age / a1) / np.log10(a2 / a1)
 
             t1 = self.data.getNode("/Z" + str(metal)[2:] + "/a" + str(int(a1)))
             t2 = self.data.getNode("/Z" + str(metal)[2:] + "/a" + str(int(a2)))
@@ -301,7 +300,7 @@ class pegase(Isochrone):
         if masses is not None:
             # masses are expected in logM for interpolation
             if masses.max() > 2.3:
-                _m = numpy.log10(masses)
+                _m = np.log10(masses)
             else:
                 _m = masses
             data_logM = data["logM"][:]
