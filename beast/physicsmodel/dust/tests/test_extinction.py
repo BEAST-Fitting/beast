@@ -188,7 +188,7 @@ def test_extinction_Cardelli89_values(Rv):
 def test_extinction_generalRvFA_initialize():
     tlaw = extinction.Generalized_RvFALaw()
     if not isinstance(tlaw, extinction.Generalized_RvFALaw):
-        raise AssertionError()
+        raise AssertionError("Should use Generalized_RvFALaw extinction")
 
     lam = np.linspace(2.0e3, 1.0e4, 10)
     tlaw_vals = tlaw(lam, Av=1.0, Rv=4.0, f_A=0.8)
@@ -201,7 +201,7 @@ def test_extinction_generalRvFA_initialize():
 def test_extinction_dustextpkg_initialize(curve):
     tlaw = extinction.Generalized_DustExt(curve)
     if not isinstance(tlaw, extinction.Generalized_DustExt):
-        raise AssertionError()
+        raise AssertionError("Should use Generalized_DustExt extinction")
 
 
 @pytest.mark.parametrize(
