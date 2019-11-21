@@ -80,8 +80,9 @@ def gen_spectral_grid_from_kurucz(outfile, osl, oiso, Z=0.02):
 
         only write into outfile
     """
-    assert grid.isNestedInstance(osl, stellib.Stellib)
-    assert grid.isNestedInstance(oiso, isochrone.Isochrone)
+    if not (grid.isNestedInstance(osl, stellib.Stellib)
+            and grid.isNestedInstance(oiso, isochrone.Isochrone)):
+        raise AssertionError()
     specs = np.empty((oiso.data.nrows + 1, len(osl.wavelength)), dtype=float)
     specs[-1] = osl.wavelength[:]
 

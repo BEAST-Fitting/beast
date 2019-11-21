@@ -301,9 +301,8 @@ class MemoryBackend(GridBackend):
             filename (incl. path) to export to
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            assert isinstance(
-                self.grid, Table
-            ), "Only eztables.Table are supported so far"
+            if not isinstance(self.grid, Table):
+                raise TypeError("Only eztables.Table are supported so far")
             r = numpy.vstack([self.seds, self.lamb])
             pyfits.writeto(fname, r, **kwargs)
             if getattr(self, "filters", None) is not None:
@@ -324,9 +323,8 @@ class MemoryBackend(GridBackend):
             if set, it will append data to each Array or Table
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            assert isinstance(
-                self.grid, Table
-            ), "Only eztables.Table are supported so far"
+            if not isinstance(self.grid, Table):
+                raise TypeError("Only eztables.Table are supported so far")
             with HDFStore(fname, mode="a") as hd:
                 if not append:
                     hd["/seds"] = self.seds[:]
@@ -533,9 +531,8 @@ class CacheBackend(GridBackend):
             filename (incl. path) to export to
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            assert isinstance(
-                self.grid, Table
-            ), "Only eztables.Table are supported so far"
+            if not isinstance(self.grid, Table):
+                raise TypeError("Only eztables.Table are supported so far")
             r = numpy.vstack([self.seds, self.lamb])
             pyfits.writeto(fname, r, **kwargs)
             del r
@@ -557,9 +554,8 @@ class CacheBackend(GridBackend):
             if set, it will append data to each Array or Table
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            assert isinstance(
-                self.grid, Table
-            ), "Only eztables.Table are supported so far"
+            if not isinstance(self.grid, Table):
+                raise TypeError("Only eztables.Table are supported so far")
             with HDFStore(fname, mode="a") as hd:
                 if not append:
                     hd["/seds"] = self.seds[:]

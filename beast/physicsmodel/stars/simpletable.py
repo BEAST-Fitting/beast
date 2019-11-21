@@ -2651,12 +2651,14 @@ class AstroTable(SimpleTable):
 
     def set_RA(self, val):
         """ Set the column that defines RA coordinates """
-        assert val in self, "column name {} not found in the table".format(val)
+        if val not in self:
+            raise KeyError("column name {} not found in the table".format(val))
         self._ra_name = val
 
     def set_DEC(self, val):
         """ Set the column that defines DEC coordinates """
-        assert val in self, "column name {} not found in the table".format(val)
+        if val not in self:
+            raise KeyError("column name {} not found in the table".format(val))
         self._dec_name = val
 
     def get_RA(self, degree=True):

@@ -285,9 +285,8 @@ class SpectralGrid(ModelGrid):
             if not inplace, returns a new ModelGrid instance. Otherwise returns
             nothing
         """
-        assert isinstance(
-            extLaw, extinction.ExtinctionLaw
-        ), "Expecting ExtinctionLaw object got %s" % type(extLaw)
+        if not isinstance(extLaw, extinction.ExtinctionLaw):
+            raise TypeError("Expecting ExtinctionLaw object got %s" % type(extLaw))
         extCurve = np.exp(-1.0 * extLaw.function(self.lamb[:], **kwargs))
         if not inplace:
             g = self.copy()
