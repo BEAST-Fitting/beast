@@ -6,8 +6,8 @@ from beast.physicsmodel.dust import extinction
 
 def test_extinction_Cardelli89_initialize():
     tlaw = extinction.Cardelli89()
-    assert type(tlaw) == extinction.Cardelli89
-    assert tlaw.name == "Cardelli89"
+    if not isinstance(tlaw, extinction.Cardelli89) and tlaw.name == "Cardelli89":
+        raise AssertionError("Should use Cardelli89 extinction")
 
 
 @pytest.mark.parametrize("Rv", [2.0, 3.0, 3.1, 4.0, 5.0, 6.0])
@@ -187,7 +187,7 @@ def test_extinction_Cardelli89_values(Rv):
 
 def test_extinction_generalRvFA_initialize():
     tlaw = extinction.Generalized_RvFALaw()
-    assert type(tlaw) == extinction.Generalized_RvFALaw
+    assert isinstance(tlaw, extinction.Generalized_RvFALaw)
 
     lam = np.linspace(2.0e3, 1.0e4, 10)
     tlaw_vals = tlaw(lam, Av=1.0, Rv=4.0, f_A=0.8)
@@ -199,7 +199,7 @@ def test_extinction_generalRvFA_initialize():
 @pytest.mark.parametrize("curve", ["F04", "G03_LMCAvg"])
 def test_extinction_dustextpkg_initialize(curve):
     tlaw = extinction.Generalized_DustExt(curve)
-    assert type(tlaw) == extinction.Generalized_DustExt
+    assert isinstance(tlaw, extinction.Generalized_DustExt)
 
 
 @pytest.mark.parametrize(
