@@ -202,7 +202,7 @@ def test_extinction_dustextpkg_initialize(curve):
     tlaw = extinction.Generalized_DustExt(curve)
     if not isinstance(tlaw, extinction.Generalized_DustExt):
         raise AssertionError()
-        
+
 
 @pytest.mark.parametrize(
     "curve,origExtLaw", [("G03_SMCBar", "Gordon03_SMCBar"), ("F99", "Fitzpatrick99")]
