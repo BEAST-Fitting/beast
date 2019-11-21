@@ -42,7 +42,7 @@ def plot_ast(ast_file, sed_grid_file=None):
     if sed_grid_file is not None:
         modelsedgrid = FileSEDGrid(sed_grid_file)
         with Vega() as v:
-            vega_f, vega_flux, _ = v.getFlux(filter_cols)
+            _, vega_flux, _ = v.getFlux(filter_cols)
         sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
         good_seds = np.where(modelsedgrid.grid['logL'] > -9)[0]
 
