@@ -104,7 +104,7 @@ def cut_catalogs(
         )  # N,2 array of AST RA and Dec positions
 
         # get final list of good stars
-        ast_good_stars = (temp_good_stars == 1) & (within_bounds == True)
+        ast_good_stars = (temp_good_stars == 1) & (within_bounds)
         print('removing {0} stars from {1}'.format(
             int(len(ast_cat) - np.sum(ast_good_stars)), input_ast_file
         ))
