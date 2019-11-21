@@ -11,6 +11,10 @@ diagnostic plots and visualizations.  Some are described here.
   a list of artificial stars (use `region_file_txt`).  Can also choose a
   column+value as a cut to set two different region colors.
 
+- `plot_ast_histogram.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_ast_histogram.py>`_:
+  Make a histogram of the AST fluxes for each filter.  Optionally, also include
+  a histogram of the SED grid for comparison.
+
 - `plot_chi2_hist.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_chi2_hist.py>`_:
   Make a histogram of the best chi2 values (chi2=1 and the median chi2 are
   marked).  Note that there is no plot of reduced chi2, because it is mathematically
