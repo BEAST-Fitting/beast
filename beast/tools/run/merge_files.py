@@ -80,7 +80,7 @@ def merge_files(use_sd=True, nsubs=1):
             merged_pdf_files = []
             merged_stats_files = []
 
-            for i, sd_sub in enumerate(unique_sd_sub):
+            for sd_sub in unique_sd_sub:
 
                 # indices with the current sd_sub
                 ind = [j for j, x in enumerate(sd_sub_info) if x == sd_sub]

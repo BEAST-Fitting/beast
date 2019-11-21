@@ -175,7 +175,7 @@ def setup_batch_beast_fit(
         #    the number of observations
         if not reg_run:
             # get the observed catalog
-            obs = Table.read(photometry_files[i])
+            obs = Table.read(phot_file)
 
             # get the fit results catalog
             t = Table.read(stats_files[i])
