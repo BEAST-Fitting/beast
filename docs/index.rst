@@ -21,6 +21,7 @@ Installation
 
    How to install <install.rst>
    Running an example <example.rst>
+   New User Interface <new_user_interface.rst>
 
 User Documentation
 ==================
