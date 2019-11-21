@@ -4,7 +4,6 @@ Prior Weights
 The priors on age, mass, and metallicty are computed as weights to use
 in the posterior calculations.
 """
-from sys import exit
 import numpy as np
 from scipy.integrate import quad
 from scipy.interpolate import interp1d
@@ -48,10 +47,11 @@ def compute_age_prior_weights(logages, age_prior_model):
     elif age_prior_model["name"] == "bins_histo":
         # interpolate according to bins, assuming SFR constant from i to i+1
         # and allow for bin edges input
-        if len(age_prior_model["values"]) == len(age_prior_model["logages"])-1:
+        if len(age_prior_model["values"]) == len(age_prior_model["logages"]) - 1:
             age_prior_model["values"].append(0.0)
         ageND = interp1d(
-            age_prior_model["logages"], age_prior_model["values"], kind="zero")
+            age_prior_model["logages"], age_prior_model["values"], kind="zero"
+        )
         age_weights = ageND(logages)
     elif age_prior_model["name"] == "bins_interp":
         # interpolate model to grid ages
@@ -66,12 +66,11 @@ def compute_age_prior_weights(logages, age_prior_model):
         vals = (10 ** logages) / (age_prior_model["tau"] * 1e9)
         age_weights = np.exp(vals)
     else:
-        print(
+        raise NotImplementedError(
             "input age prior ''{}'' function not supported".format(
                 age_prior_model["name"]
             )
         )
-        exit()
 
     # normalize to avoid numerical issues (too small or too large)
     age_weights /= np.average(age_weights)
@@ -170,8 +169,7 @@ def compute_mass_prior_weights(masses, mass_prior_model):
     elif mass_prior_model["name"] == "salpeter":
         imf_func = imf_salpeter
     else:
-        print("input mass prior function not supported")
-        exit()
+        raise NotImplementedError("input mass prior function not supported")
 
     # calculate the average prior in each mass bin
     for i in range(len(masses)):
@@ -204,8 +202,7 @@ def compute_metallicity_prior_weights(mets, met_prior_model):
     if met_prior_model["name"] == "flat":
         met_weights = np.full(len(mets), 1.0)
     else:
-        print("input metallicity prior function not supported")
-        exit()
+        raise NotImplementedError("input metallicity prior function not supported")
 
     # normalize to avoid numerical issues (too small or too large)
     met_weights /= np.average(met_weights)
