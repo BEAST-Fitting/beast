@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 from astropy.table import Table
 
 from beast.physicsmodel.grid import FileSEDGrid
@@ -94,3 +95,17 @@ def plot_ast(ast_file, sed_grid_file=None):
 
     fig.savefig(ast_file.replace('.txt','.png'))
     plt.close(fig)
+
+if __name__ == "__main__":  # pragma: no cover
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "ast_file", type=str, help="name of AST input file"
+    )
+    parser.add_argument(
+        "--sed_grid_file", type=str, default=None, help="name of SED grid file"
+    )
+
+    args = parser.parse_args()
+
+    plot_ast(args.ast_file, sed_grid_file=args.sed_grid_file)
