@@ -219,7 +219,7 @@ class MemoryBackend(GridBackend):
             self._fromHDFBackend(lamb)
         elif isNestedInstance(lamb, GridBackend):
             self._from_GridBackend(lamb)
-        elif type(lamb) in basestring:
+        elif isinstance(lamb, basestring):
             self._from_File(lamb)
         else:
             if (seds is None) | (grid is None):
