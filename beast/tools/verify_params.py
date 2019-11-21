@@ -77,7 +77,7 @@ def verify_one_input_format(param, param_name, param_format, param_lim, noexit=F
     """
 
     if "list" in param_format:
-        if type(param) is not list:
+        if not isinstance(param, list):
             if param is None:
                 print("Warning: " + param_name + " is not defined.")
             else:
@@ -85,11 +85,9 @@ def verify_one_input_format(param, param_name, param_format, param_lim, noexit=F
                 if not noexit:
                     exit()
         elif "float" in param_format:
-            is_list_of_floats = all(type(item) is float for item in param)
+            is_list_of_floats = all(isinstance(item, float) for item in param)
             if not is_list_of_floats:
-                print((param_name + " is not in the right format - list of floats."))
-                if not noexit:
-                    exit()
+                raise TypeError(param_name + " is not in the right format - list of floats.")
             elif "grid" in param_format:
                 # when param is aranged from given [min, max, step],
                 # instead of a specific list of values
@@ -98,32 +96,20 @@ def verify_one_input_format(param, param_name, param_format, param_lim, noexit=F
                 verify_range(param, param_name, param_lim, noexit=noexit)
 
         if "str" in param_format:
-            if type(param) is not str:
-                print((param_name + " is not in the right format - a string."))
-                if not noexit:
-                    exit()
+            if not isinstance(param, str):
+                raise TypeError(param_name + " is not in the right format - a string.")
             elif "file" in param_format:
                 if not exists(param):
-                    print(
-                        (param_name + " does not exist. Please provide the file path.")
-                    )
-                    if not noexit:
-                        exit()
+                    raise OSError(param_name + " does not exist. Please provide the file path.")
 
         if "version" in param_format:
-            if type(param) is not float:
-                print((param_name + " is not in the right format - a float"))
-                if not noexit:
-                    exit()
+            if not isinstance(param, float):
+                raise TypeError(param_name + " is not in the right format - a float")
             elif param not in param_lim:
-                print(
-                    (
-                        param_name
-                        + " is an invalid number, leading to version of the isochrone."
-                    )
+                raise TypeError(
+                    param_name
+                    + " is an invalid number, leading to version of the isochrone."
                 )
-                if not noexit:
-                    exit()
 
 
 def verify_input_format(datamodel, noexit=False):

@@ -29,7 +29,8 @@ def split_and_check(grid_fname, num_subgrids):
         sub_grids.append(sub_g.grid.data)
 
         np.testing.assert_equal(complete_g.lamb, sub_g.lamb)
-        assert complete_g.grid.columns.items() == sub_g.grid.columns.items()
+        if not complete_g.grid.columns.items() == sub_g.grid.columns.items():
+            raise AssertionError()
 
     sub_seds_reconstructed = np.concatenate(sub_seds)
     np.testing.assert_equal(sub_seds_reconstructed, complete_g.seds)
@@ -64,16 +65,21 @@ def test_reduce_grid_info():
     )
 
     for q in complete_g_info:
-        assert q in sub_g_info
-        assert complete_g_info[q]["min"] == sub_g_info[q]["min"]
-        assert complete_g_info[q]["max"] == sub_g_info[q]["max"]
+        if q not in sub_g_info:
+            raise AssertionError()
+        if not complete_g_info[q]["min"] == sub_g_info[q]["min"]:
+            raise AssertionError()
+        if not complete_g_info[q]["max"] == sub_g_info[q]["max"]:
+            raise AssertionError()
         num_unique = len(complete_g_info[q]["unique"])
         if num_unique > cap_unique:
             # Cpan still be larger if one of the sub results during the
             # reduction is larger. This is as intended.
-            assert sub_g_info[q]["num_unique"] >= cap_unique
+            if not sub_g_info[q]["num_unique"] >= cap_unique:
+                raise AssertionError()
         else:
-            assert sub_g_info[q]["num_unique"] == num_unique
+            if not sub_g_info[q]["num_unique"] == num_unique:
+                raise AssertionError()
 
 
 @remote_data
@@ -202,7 +208,8 @@ def test_merge_pdf1d_stats():
     fits_normal = fits.open(normal_pdf1d)
     fits_new = fits.open(merged_pdf1d_fname)
 
-    assert len(fits_new) == len(fits_normal)
+    if not len(fits_new) == len(fits_normal):
+        raise AssertionError()
 
     # A similar problem to the above will also occur here
     for k in range(1, len(fits_new)):
@@ -217,7 +224,8 @@ def test_merge_pdf1d_stats():
     table_normal = Table.read(normal_stats)
     table_new = Table.read(merged_stats_fname)
 
-    assert len(table_normal) == len(table_new)
+    if not len(table_normal) == len(table_new):
+        raise AssertionError()
 
     # These will normally fail, as the merging process can not be made
     # bit-correct due do floating point math (exacerbated by exponentials)
