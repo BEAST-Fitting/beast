@@ -2,13 +2,11 @@ import inspect
 import argparse
 
 from beast.plotting import plot_cmd, plot_filters, plot_indiv_fit, beastplotlib
-from beast.tools import get_libfiles
-
 
 def main():
     """Main script for command-line use
 
-    Summary: gets arguments for each of the scripts listed in 'scripts' 
+    Summary: gets arguments for each of the scripts listed in 'scripts'
     and parses them for the function given in the input
     """
     all_funcs = []
