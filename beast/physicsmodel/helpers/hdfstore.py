@@ -606,7 +606,6 @@ def unittest():
     """unittest
     Example usage
     """
-    import numpy as np
 
     # make a store
     with HDFStore("tmp.hd5", mode="w") as hd:
