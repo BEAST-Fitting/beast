@@ -93,17 +93,17 @@ def write_sbatch_file(
 
         f.write("# Load any necessary modules.\n")
         f.write("# Loading modules in the script ensures a consistent environment.\n")
-        if type(modules) == str:
+        if isinstance(modules, str):
             f.write(modules + "\n")
-        elif type(modules) == list:
+        elif isinstance(modules, list):
             for item in modules:
                 f.write(item + "\n")
         f.write("\n")
 
         f.write("# Launch a job\n")
-        if type(job_command) == str:
+        if isinstance(job_command, str):
             f.write(job_command + "\n")
-        elif type(job_command) == list:
+        elif isinstance(job_command, list):
             for item in job_command:
                 f.write(item + "\n")
 
