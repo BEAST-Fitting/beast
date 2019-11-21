@@ -2,7 +2,8 @@
 Running Example
 ###############
 
-You can find examples of BEAST runs in the ``beast/examples/`` directory.
+You can find examples of BEAST runs in the
+`beast-examples repository <https://github.com/BEAST-Fitting/beast-examples>`_
 
 Inside each example, there is a run_beast*.py script.
 
