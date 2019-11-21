@@ -1,6 +1,5 @@
 import numpy as np
 from matplotlib.path import Path
-from scipy.spatial import ConvexHull
 from tqdm import tqdm
 import warnings
 
@@ -166,9 +165,9 @@ def pick_positions_from_map(
     catalog_boundary_xy = None
     catalog_boundary_radec = None
     if xy_pos:
-        catalog_boundary_xy = convexhull_path(x_positions, y_positions)
+        catalog_boundary_xy = cut_catalogs.convexhull_path(x_positions, y_positions)
     if radec_pos:
-        catalog_boundary_radec = convexhull_path(ra_positions, dec_positions)
+        catalog_boundary_radec = cut_catalogs.convexhull_path(ra_positions, dec_positions)
 
     # if coord_boundary set, define an additional boundary for ASTs
     if set_coord_boundary is not None:
@@ -208,12 +207,12 @@ def pick_positions_from_map(
         filt_reg_boundary_radec = None
         # evaluate one or both
         if xy_pos:
-            filt_reg_boundary_xy = convexhull_path(
+            filt_reg_boundary_xy = cut_catalogs.convexhull_path(
                 x_positions[good_stars == 1],
                 y_positions[good_stars == 1]
             )
         if radec_pos:
-            filt_reg_boundary_radec = convexhull_path(
+            filt_reg_boundary_radec = cut_catalogs.convexhull_path(
                 ra_positions[good_stars == 1],
                 dec_positions[good_stars == 1]
             )
@@ -515,29 +514,3 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
     astmags.add_column(column4, 3)
 
     ascii.write(astmags, filename, overwrite=True)
-
-
-def convexhull_path(x_coord, y_coord):
-    """
-    Find the convex hull for the given coordinates and make a Path object
-    from it.
-
-    Parameters
-    ----------
-    x_coord, y_coord: arrays
-        Arrays of coordinates (can be x/y or ra/dec)
-
-    Returns
-    -------
-    matplotlib Path object
-
-    """
-
-    coords = np.array(
-        [x_coord, y_coord]
-    ).T  # there's a weird astropy datatype issue that requires numpy coercion
-    hull = ConvexHull(coords)
-    bounds_x, bounds_y = coords[hull.vertices, 0], coords[hull.vertices, 1]
-    path_object = Path(np.array([bounds_x, bounds_y]).T)
-
-    return path_object

@@ -171,16 +171,16 @@ The code to edit catalogs can do three different things:
 * **Create ds9 region files.** If set, it will create a ds9 region file where
   good sources are green and removed sources are magenta.
 
-Commands to edit the files, both to remove flagged sources and eliminate sources
+Command to edit the files, both to remove flagged sources and eliminate sources
 that don't have full imaging coverage, and to create ds9 region files:
 
   .. code-block:: console
 
-     $ python -m beast.tools.cut_catalogs phot_catalog_with_sourceden.fits phot_catalog_cut.fits \
-           --partial_overlap --region_file --flagged --flag_filter F475W
-
-     $ python -m beast.tools.cut_catalogs ast_catalog.fits ast_catalog_cut.fits \
-           --partial_overlap --region_file --flagged --flag_filter F475W
+  $ python -m beast.tools.cut_catalogs \
+        phot_catalog_with_sourceden.fits phot_catalog_cut.fits \
+        --input_ast_file ast_catalog.fits \
+        --output_ast_file ast_catalog_cut.fits \
+        --partial_overlap --region_file --flagged --flag_filter F475W
 
 
 The observed catalog should be split into separate files for each source

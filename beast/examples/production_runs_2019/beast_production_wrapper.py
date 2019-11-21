@@ -17,10 +17,7 @@ from beast.plotting import plot_mag_hist
 from beast.tools import (
     create_background_density_map,
     split_ast_input_file,
-    subdivide_obscat_by_source_density,
     cut_catalogs,
-    split_asts_by_source_density,
-    setup_batch_beast_trim,
     setup_batch_beast_fit,
 )
 
@@ -275,18 +272,10 @@ def beast_production_wrapper():
 
         # - photometry
         gst_file_cut = gst_file.replace(".fits", "_with_sourceden_cut.fits")
+        ast_file_cut = ast_file.replace(".fits", "_cut.fits")
         cut_catalogs.cut_catalogs(
             gst_file_sd,
             gst_file_cut,
-            partial_overlap=True,
-            flagged=True,
-            flag_filter=flag_filter[b],
-            region_file=True,
-        )
-
-        # - ASTs
-        ast_file_cut = ast_file.replace(".fits", "_cut.fits")
-        cut_catalogs.cut_catalogs(
             ast_file,
             ast_file_cut,
             partial_overlap=True,
@@ -294,7 +283,6 @@ def beast_production_wrapper():
             flag_filter=flag_filter[b],
             region_file=True,
         )
-        # test = plot_mag_hist.plot_mag_hist(ast_file_cut, stars_per_bin=200, max_bins=30)
 
         # edit the datamodel.py file to have the correct photometry file name
         # (AST file name is already automatically the cut version)
