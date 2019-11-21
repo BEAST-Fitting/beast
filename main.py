@@ -1,9 +1,6 @@
 import inspect
-import pdb
 import argparse
-import sys
 
-import beast
 from beast.plotting import plot_cmd, plot_filters, plot_indiv_fit, beastplotlib
 from beast.tools import get_libfiles
 
@@ -52,7 +49,8 @@ def main():
             func(**funcargs)
             break  # drop out immediately, which skips the "else" below
     else:
-        assert False, "Invalid subparser! This should be impossible..."
+        if False:
+            raise AssertionError("Invalid subparser! This should be impossible...")
 
 
 if __name__ == "__main__":
