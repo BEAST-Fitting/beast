@@ -12,6 +12,11 @@ def plot_ast(ast_file, sed_grid_file=None):
     Make a histogram of the AST fluxes.  If an SED grid is given, also plot
     a comparison histogram of the SED fluxes.
 
+    The histogram bins are set by the bins originally used to create the ASTs
+    (using the flux bin method), which are saved in
+       ast_file.replace('inputAST','ASTfluxbins')
+    and are automatically read in.
+
     Output plot is saved in the same location/name as ast_file, but with a .png
     instead of .txt.
 
