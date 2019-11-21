@@ -1,7 +1,7 @@
 import inspect
 import argparse
 
-from beast.plotting import plot_cmd, plot_filters, plot_indiv_fit, beastplotlib
+from beast.plotting import plot_cmd, plot_filters, plot_indiv_fit
 
 def main():
     """Main script for command-line use
