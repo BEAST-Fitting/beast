@@ -25,7 +25,7 @@ import itertools as it
 import os
 
 
-def main():
+def main():  # pragma: no cover
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="subcommand")
     subparsers.required = True
@@ -460,7 +460,9 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
     return phot["aperture_sum"] / area
 
 
-def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut, flag_name):
+def make_source_dens_map(
+    cat, ra_grid, dec_grid, output_base, mag_name, mag_cut, flag_name
+):
     """
     Computes the source density map and store it in a pyfits HDU
     Also writes a text file storing the source density for each source
@@ -509,13 +511,17 @@ def make_source_dens_map(cat, ra_grid, dec_grid, output_base, mag_name, mag_cut,
         indxs = indices_for_pixel(pix_x, pix_y, i, j)
 
         if flag_name is None:
-            indxs_for_SD, = np.where((cat[mag_name][indxs] >= mag_cut[0])
-                                        & (cat[mag_name][indxs] <= mag_cut[1]))
+            (indxs_for_SD,) = np.where(
+                (cat[mag_name][indxs] >= mag_cut[0])
+                & (cat[mag_name][indxs] <= mag_cut[1])
+            )
         else:
             flag_name = flag_name.upper()
-            indxs_for_SD, = np.where((cat[mag_name][indxs] >= mag_cut[0])
-                                         & (cat[mag_name][indxs] <= mag_cut[1])
-                                         & (cat[flag_name][indxs] < 99))
+            (indxs_for_SD,) = np.where(
+                (cat[mag_name][indxs] >= mag_cut[0])
+                & (cat[mag_name][indxs] <= mag_cut[1])
+                & (cat[flag_name][indxs] < 99)
+            )
 
         n_indxs = len(indxs_for_SD)
         if n_indxs > 0:
@@ -621,7 +627,7 @@ def indices_for_pixel(pix_x, pix_y, x, y):
     Return the indices of the sources for which the coordinates lie in
     the x, y pixel
     """
-    indxs, = np.where(
+    (indxs,) = np.where(
         np.logical_and.reduce([pix_x > x, pix_x <= x + 1, pix_y > y, pix_y <= y + 1])
     )
     return indxs
@@ -663,5 +669,5 @@ def save_map_fits(map_data_xy, map_wcs, file_name):
     hdu.writeto(file_name, overwrite=True)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

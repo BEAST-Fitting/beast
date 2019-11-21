@@ -184,6 +184,6 @@ def verify_input_format(datamodel, noexit=False):
         )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     pass

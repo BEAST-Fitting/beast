@@ -187,7 +187,7 @@ def gen_obsmodel(modelsedgridfile, source_density=None, use_rate=True):
     return noisefile  # (same as noisefile)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(

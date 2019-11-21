@@ -60,7 +60,7 @@ def merge_stats_files(stats_files, out_stats_filebase, reorder_tag_list=None):
     return len(full_cat)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     # commandline parser
     parser = argparse.ArgumentParser()

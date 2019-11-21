@@ -1,3 +1,5 @@
+import argparse
+
 # BEAST imports
 from beast.tools import verify_params, subgridding_tools, merge_beast_stats
 from beast.tools.run import create_filenames
@@ -88,7 +90,10 @@ def merge_files(use_sd=True, nsubs=1):
                     datamodel.project, sd_sub[0], sd_sub[1]
                 )
 
-                merged_pdf1d_fname, merged_stats_fname = subgridding_tools.merge_pdf1d_stats(
+                (
+                    merged_pdf1d_fname,
+                    merged_stats_fname,
+                ) = subgridding_tools.merge_pdf1d_stats(
                     [pdf_files[j] for j in ind],
                     [stats_files[j] for j in ind],
                     re_run=False,
@@ -115,7 +120,7 @@ def merge_files(use_sd=True, nsubs=1):
             )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
 

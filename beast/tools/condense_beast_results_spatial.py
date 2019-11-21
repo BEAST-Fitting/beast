@@ -200,7 +200,7 @@ def condense_lnp_files(bname, cur_dir, out_dir):
     cond_lnp_file.close()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     # commandline parser
     parser = argparse.ArgumentParser()

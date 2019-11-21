@@ -255,7 +255,7 @@ def split_create_physicsmodel(nsubs=1, nprocs=1):
         os.chmod(joblist_file, stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(

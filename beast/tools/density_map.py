@@ -175,11 +175,10 @@ class BinnedDensityMap(DensityMap):
             max_density = np.amax(tile_densities)
             tot_bins = np.ceil((max_density - min_density) / bin_width)
             bin_edges = min_density + np.arange(tot_bins + 1) * bin_width
-            print('bin edges: ', bin_edges)
+            print("bin edges: ", bin_edges)
 
             # Find which bin each tile belongs to
             bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
-
 
         # Upgrade to this subclass, and return
         return BinnedDensityMap(binned_density_map.tile_data, bins)

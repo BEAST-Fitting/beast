@@ -54,10 +54,10 @@ def make_region_diag_plots(
     cnames = ["{}_{}".format(n, suffix) for n in base_cnames]
 
     # cut out the data in the region defined
-    indxs, = np.where(
+    (indxs,) = np.where(
         np.logical_and(pxrange[0] <= stats[cnames[0]], stats[cnames[0]] <= pxrange[1])
     )
-    indxs2, = np.where(
+    (indxs2,) = np.where(
         np.logical_and(
             pyrange[0] <= stats[cnames[1]][indxs], stats[cnames[1]][indxs] <= pyrange[1]
         )
@@ -87,7 +87,7 @@ def make_region_diag_plots(
     return fig
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     parser = initialize_parser()
     parser.add_argument(
         "filename", type=str, help="Path to FITS file with output stats"

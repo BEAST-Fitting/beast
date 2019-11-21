@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 
 
-
 def plot_param_recovery(
     sim_data_list,
     stats_file_list,
@@ -41,62 +40,61 @@ def plot_param_recovery(
 
     """
 
-
     # parameters to plot
-    param_list=['Av', 'logA', 'M_ini', 'Rv', 'f_A', 'Z', 'distance']
+    param_list = ["Av", "logA", "M_ini", "Rv", "f_A", "Z", "distance"]
     n_param = len(param_list)
 
     # number of files
     n_stat = len(sim_data_list)
 
     # figure
-    fig = plt.figure(figsize=(5*n_stat, 4*n_param))
+    fig = plt.figure(figsize=(5 * n_stat, 4 * n_param))
 
     # iterate through the files
-    for i, (sim_stats, recov_stats) in enumerate(zip(
-        np.atleast_1d(sim_data_list), np.atleast_1d(stats_file_list)
-    )):
+    for i, (sim_stats, recov_stats) in enumerate(
+        zip(np.atleast_1d(sim_data_list), np.atleast_1d(stats_file_list))
+    ):
 
         # read in data
         with fits.open(sim_stats) as hdu_sim, fits.open(recov_stats) as hdu_recov:
             sim_table = hdu_sim[1].data
             recov_table = hdu_recov[1].data
 
-
-
         # make plots
-        for p,param in enumerate(param_list):
+        for p, param in enumerate(param_list):
 
             # subplot region
-            ax = plt.subplot(n_param, n_stat, 1 + n_stat*p + i)
+            ax = plt.subplot(n_param, n_stat, 1 + n_stat * p + i)
 
             # set things to plot
             plot_x = sim_table[param]
-            plot_y = recov_table[param+'_p50']
+            plot_y = recov_table[param + "_p50"]
 
-            if ('M_' in param) or (param=='Z'):
+            if ("M_" in param) or (param == "Z"):
                 plot_x = np.log10(plot_x)
                 plot_y = np.log10(plot_y)
 
             # number of bins
             n_uniq = len(np.unique(plot_x))
-            n_bins = [min(n_uniq, max_nbins), min(3*n_uniq, max_nbins)]
+            n_bins = [min(n_uniq, max_nbins), min(3 * n_uniq, max_nbins)]
 
             # plot
-            plt.hist2d(plot_x, plot_y,
-                           bins=n_bins, cmap='magma', norm=matplotlib.colors.LogNorm())
-
-
+            plt.hist2d(
+                plot_x,
+                plot_y,
+                bins=n_bins,
+                cmap="magma",
+                norm=matplotlib.colors.LogNorm(),
+            )
 
             # axis labels
-            ax.tick_params(axis='both', which='major', labelsize=13)
-            #ax.set_xlim(ax.get_xlim()[::-1])
+            ax.tick_params(axis="both", which="major", labelsize=13)
+            # ax.set_xlim(ax.get_xlim()[::-1])
             param_label = param
-            if ('M_' in param) or (param=='Z'):
-                param_label = 'log '+param
-            plt.xlabel('Simulated '+param_label, fontsize=14)
-            plt.ylabel('Recovered '+param_label, fontsize=14)
-
+            if ("M_" in param) or (param == "Z"):
+                param_label = "log " + param
+            plt.xlabel("Simulated " + param_label, fontsize=14)
+            plt.ylabel("Recovered " + param_label, fontsize=14)
 
     plt.tight_layout()
 

@@ -132,9 +132,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
                 # construct other file names
                 modelsedgrid_files.append(
-                    "{0}/{0}_seds.grid.hd5".format(
-                        datamodel.project, curr_sd, curr_sub
-                    )
+                    "{0}/{0}_seds.grid.hd5".format(datamodel.project, curr_sd, curr_sub)
                 )
                 modelsedgrid_trim_files.append(
                     "{0}/{0}_bin{1}_sub{2}_seds_trim.grid.hd5".format(
@@ -174,14 +172,14 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
         else:
 
             photometry_files.append(datamodel.obsfile)
-            modelsedgrid_files.append(
-                "{0}/{0}_seds.grid.hd5".format(datamodel.project)
-            )
+            modelsedgrid_files.append("{0}/{0}_seds.grid.hd5".format(datamodel.project))
             modelsedgrid_trim_files.append(
                 "{0}/{0}_seds_trim.grid.hd5".format(datamodel.project)
             )
             noise_files.append("{0}/{0}_noisemodel.grid.hd5".format(datamodel.project))
-            noise_trim_files.append("{0}/{0}_noisemodel_trim.grid.hd5".format(datamodel.project))
+            noise_trim_files.append(
+                "{0}/{0}_noisemodel_trim.grid.hd5".format(datamodel.project)
+            )
 
             stats_files.append("{0}/{0}_stats.fits".format(datamodel.project))
             pdf_files.append("{0}/{0}_pdf1d.fits".format(datamodel.project))
@@ -212,7 +210,9 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                 photometry_files.append(
                     datamodel.obsfile.replace(
                         ".fits",
-                        "_bin{0}_sub{1}.fits".format(choose_sd_sub[0], choose_sd_sub[1]),
+                        "_bin{0}_sub{1}.fits".format(
+                            choose_sd_sub[0], choose_sd_sub[1]
+                        ),
                     )
                 )
 
@@ -332,9 +332,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
             for gridsub in gridsub_list:
                 photometry_files.append(datamodel.obsfile)
                 modelsedgrid_files.append(
-                    "{0}/{0}_seds.gridsub{1}.hd5".format(
-                        datamodel.project, gridsub
-                    )
+                    "{0}/{0}_seds.gridsub{1}.hd5".format(datamodel.project, gridsub)
                 )
                 modelsedgrid_trim_files.append(
                     "{0}/{0}_gridsub{1}_seds_trim.grid.hd5".format(
