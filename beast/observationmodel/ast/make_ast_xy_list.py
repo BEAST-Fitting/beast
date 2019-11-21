@@ -1,6 +1,5 @@
 import numpy as np
 from matplotlib.path import Path
-from scipy.spatial import ConvexHull
 from tqdm import tqdm
 import warnings
 
