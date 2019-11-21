@@ -63,8 +63,7 @@ def make_region_diag_plots(
         )
     )
     if len(indxs2) <= 0:
-        print("no data in selection window")
-        exit()
+        raise ValueError("no data in selection window")
     else:
         stats_region = stats[indxs[indxs2]]
 
