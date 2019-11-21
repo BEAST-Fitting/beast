@@ -241,7 +241,7 @@ class SpectralGrid(ModelGrid):
         memgrid: MemoryGrid instance
             grid of SEDs
         """
-        if type(filter_names[0]) == str:
+        if isinstance(filter_names[0], str):
             flist = phot.load_filters(
                 filter_names, interp=True, lamb=self.lamb, filterLib=filterLib
             )
