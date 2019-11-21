@@ -190,7 +190,7 @@ def pick_positions_from_map(
         importlib.reload(datamodel)
 
         # 1. find the sub-list of sources
-        if type(region_from_filters) == list:
+        if isinstance(region_from_filters, list):
             # good stars with user-defined partial overlap
             _, good_stars = cut_catalogs.cut_catalogs(datamodel.obsfile, 'N/A',
                                       flagged=True, flag_filter=region_from_filters,
