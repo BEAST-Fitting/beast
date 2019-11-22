@@ -1,8 +1,9 @@
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import copy
-from scipy.stats import binned_statistic_2d
+from scipy.stats import binned_statistic, binned_statistic_2d
 from astropy.io import fits
 from astropy.table import Table, vstack
 
@@ -88,6 +89,9 @@ def plot_completeness(
     label_font = 25
     tick_font = 22
 
+    # load in color map
+    cmap = matplotlib.cm.get_cmap('magma')
+
     # iterate through the panels
     for i,pi in enumerate(param_list):
         for j,pj in enumerate(param_list[i:], i):
@@ -150,9 +154,25 @@ def plot_completeness(
                 plt.subplot(n_params, n_params, i + j*(n_params) + 1)
                 ax = plt.gca()
 
+                # create histogram and labels
+                x_col, x_bins, x_label = setup_axis(compl_table, pi)
+                compl_hist, _, _ = binned_statistic(
+                    x_col,
+                    compl_table['compl'],
+                    statistic='mean',
+                    bins=x_bins,
+                )
                 # make histogram
-                plt.hist(np.random.randint(0,10,100), bins=10,
-                         facecolor='grey', linewidth=0.25, edgecolor='grey')
+                _, _, patches = plt.hist(x_bins[:-1], x_bins, weights=compl_hist)
+                # color each bar by its completeness
+                for p in range(len(compl_hist)):
+                    patches[p].set_color(cmap(compl_hist[p]))
+                    patches[p].set_linewidth=0.1
+                # make a black outline so it stands out as a histogram
+                plt.hist(x_bins[:-1], x_bins, weights=compl_hist, histtype='step', color='k')
+                # axis ranges
+                plt.xlim(np.min(x_bins), np.max(x_bins))
+                plt.ylim(0, 1.05)
 
                 ax.tick_params(axis='y',which='both',length=0, labelsize=tick_font)
                 ax.tick_params(axis='x',which='both',direction='in', labelsize=tick_font)
