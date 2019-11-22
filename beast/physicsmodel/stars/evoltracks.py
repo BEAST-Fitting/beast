@@ -139,7 +139,7 @@ class EvolTracks(object):
 
         return metrics
 
-    def regrid(
+    def regrid_one_met(
         self,
         logmass_range=[-1.0, 2.0],
         logmass_delta=0.05,
@@ -148,11 +148,10 @@ class EvolTracks(object):
         logT_delta=0.05,
     ):
         """
-        Interpolate a set of evolutionary tracks to a uniform grid
-        in log(initial mass) and variable grid in stellar age.
-        Use Equivalent Evolutionary Points (EEPs) values to do the
-        mass interpolation.  EEPs are provide as part of the evolutionary
-        tracks.
+        Interpolate a set of evolutionary tracks for a single metallicity
+        to a uniform grid in log(initial mass) and variable grid in stellar age.
+        Use Equivalent Evolutionary Points (EEPs) values to do the mass
+        interpolation.  EEPs are provide as part of the evolutionary tracks.
 
         Parameters
         ----------
@@ -260,34 +259,33 @@ class ETMist(EvolTracks):
         self.source = "MIST"
 
         self.orig_FeH = [0.0, 0.25, 0.5]
-        self.orig_files = ["MIST_FeH0.00.fits", "MIST_FeH0.25.fits", "MIST_FeH0.50.fits"]
-        # self.load_orig_tables(self.orig_files)
+        self.orig_files = [
+            f"{__ROOT__}MIST/MIST_FeH{cstr:.2f}.fits" for cstr in self.orig_FeH
+        ]
 
-    def load_orig_tables(self, files):
+    def get_orig_tables(self):
         """
         Read the tracks from the original files
 
-        Parameters
-        ----------
-        files : str
-            file or files with the evolutionary track calculations
-            often each for a single metallicity
-
         Returns
         -------
-        self.orig_tracks : astropy Table
+        orig_tracks : astropy Table
             Table with evolutionary track info as columns for all metallicities
         """
-        if type(files) is not list:
-            files = [files]
+        if isinstance(self.orig_files, list):
+            files = self.orig_files
+        else:
+            files = [self.orig_files]
 
         itables = [Table.read(cfile) for cfile in files]
         if len(itables) > 1:
-            self.orig_tracks = vstack(itables)
+            orig_tracks = vstack(itables)
         else:
-            self.orig_tracks = itables[0]
+            orig_tracks = itables[0]
 
-    def get_evoltracks(self, masses, ages, metals=None, FeHs=None):
+        return orig_tracks
+
+    def get_evoltracks(self, masses, metals=None, FeHs=None):
         """
         Get the evolutionary tracks for the specified ages, initial masses,
         and metallicities.
@@ -296,8 +294,6 @@ class ETMist(EvolTracks):
         ----------
         masses : list
             Initial masses for grid
-        age : list
-            Ages for grid
         metal, FeH : list
             At least one needs to be set for the grid metallicities
 
@@ -306,7 +302,11 @@ class ETMist(EvolTracks):
         type
             Description of returned object.
         """
-        pass
+        orig_tracks = self.get_orig_tracks()
+
+        # first interpolate for mass spacing
+
+        # then interpolate for metallicity spacing
 
 
 class ETParsec(EvolTracks):
