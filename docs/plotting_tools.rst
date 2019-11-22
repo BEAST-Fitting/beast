@@ -32,6 +32,10 @@ diagnostic plots and visualizations.  Some are described here.
   the parameter to use, and whether to apply color after taking the log10 of the
   parameter.
 
+- `plot_completeness.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_completeness.py>`_:
+  Make a triangle plot with completeness averaged into 2D plots for each pair
+  of parameters, and 1D plots along the diagonal for each individual parameter.
+
 - `plot_indiv_fit.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_indiv_fit.py>`_:
   For a given star, makes a multi-panel plot that shows the PDFs and best fits
   of each parameter, as well as an SED (similar to Figure 14 in
@@ -47,7 +51,11 @@ diagnostic plots and visualizations.  Some are described here.
   same SED model grid.
 
 - `plot_param_err.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_param_err.py>`_:
-  Reproduce the Figures 16-18 in Gordon et al. 2016. Make 2D histogram of 50th percentile values of each parameter against its uncertainty (=0.5x(percentile_84th-percentile_16th)) on the left columns. Make H-R Hess diagram colored coded by the uncertainty of a given parameter on the right column. 
+  Reproduce the Figures 16-18 in Gordon et al. 2016. Make 2D histogram of 50th
+  percentile values of each parameter against its uncertainty
+  (=0.5x(percentile_84th-percentile_16th)) on the left columns. Make H-R Hess
+  diagram colored coded by the uncertainty of a given parameter on the right
+  column.
 
 - `plot_param_recovery.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_param_recovery.py>`_:
   Make a 2D histogram to compare simulated and recovered model parameters
