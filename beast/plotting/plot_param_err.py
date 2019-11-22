@@ -28,8 +28,7 @@ def plot(
         number of bins to use in each dimension of the 2D histogram
 
     colormap : str
-        name of a colormap to use included with Matplotlib    
-
+        name of a colormap to use included with Matplotlib
     """
 
     # read in data
@@ -78,7 +77,7 @@ def plot(
         h = stat2d(
             logT_p50, logL_p50, param_unc, bins=n_bins)
         plt.imshow(h[0].T,origin='lower',cmap=cmap,
-            extent=[h[1].min(),h[1].max(),h[2].min(),h[2].max()],aspect='auto')       
+            extent=[h[1].min(),h[1].max(),h[2].min(),h[2].max()],aspect='auto')
         cbar = plt.colorbar()
         cbar.set_label(r"$\sigma$ " + param_label, fontsize=14)
 
