@@ -1,6 +1,6 @@
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 import copy
 from scipy.stats import binned_statistic_2d
 from astropy.io import fits
@@ -84,6 +84,10 @@ def plot_completeness(
     # figure
     fig = plt.figure(figsize=(4*n_params, 4*n_params))
 
+    # label font sizes
+    label_font = 25
+    tick_font = 22
+
     # iterate through the panels
     for i,pi in enumerate(param_list):
         for j,pj in enumerate(param_list[i:], i):
@@ -103,6 +107,7 @@ def plot_completeness(
                 # plot points
                 im = plt.imshow(
                     compl_data['compl_image'].T,
+                    #np.random.random((4,4)),
                     extent=(
                         np.min(compl_data['x_bins']), np.max(compl_data['x_bins']),
                         np.min(compl_data['y_bins']), np.max(compl_data['y_bins'])
@@ -114,17 +119,17 @@ def plot_completeness(
                     origin='lower',
                 )
 
-                ax.tick_params(axis='both', which='both', direction='in', labelsize=14,
+                ax.tick_params(axis='both', which='both', direction='in', labelsize=tick_font,
                                    bottom=True, top=True, left=True, right=True)
 
                 # axis labels and ticks
                 if i == 0:
-                    ax.set_ylabel(compl_data['y_label'], fontsize=16)
+                    ax.set_ylabel(compl_data['y_label'], fontsize=label_font)
                     #ax.get_yaxis().set_label_coords(-0.35,0.5)
                 else:
                     ax.set_yticklabels([])
                 if j == n_params-1:
-                    ax.set_xlabel(compl_data['x_label'], fontsize=16)
+                    ax.set_xlabel(compl_data['x_label'], fontsize=label_font)
                     plt.xticks(rotation=-45)
                 else:
                     ax.set_xticklabels([])
@@ -141,19 +146,27 @@ def plot_completeness(
                 plt.hist(np.random.randint(0,10,100), bins=10,
                          facecolor='grey', linewidth=0.25, edgecolor='grey')
 
-                ax.tick_params(axis='y',which='both',length=0, labelsize=14)
-                ax.tick_params(axis='x',which='both',direction='in', labelsize=14)
+                ax.tick_params(axis='y',which='both',length=0, labelsize=tick_font)
+                ax.tick_params(axis='x',which='both',direction='in', labelsize=tick_font)
 
                 # axis labels and ticks
                 ax.set_yticklabels([])
                 if i < n_params-1:
                     ax.set_xticklabels([])
                 if i == n_params-1:
-                    ax.set_xlabel(compl_data['x_label'], fontsize=16)
+                    ax.set_xlabel(compl_data['x_label'], fontsize=label_font)
                     plt.xticks(rotation=-45)
 
     #plt.subplots_adjust(wspace=0.05, hspace=0.05)
     plt.tight_layout()
+
+    # add a colorbar
+    gs = GridSpec(nrows=20, ncols=n_params)
+    cax = fig.add_subplot(gs[0, 2:])
+    cbar = plt.colorbar(im, cax=cax, orientation='horizontal')
+    cbar.set_label('Completeness', fontsize=label_font)
+    cbar.ax.tick_params(labelsize=tick_font)
+    gs.tight_layout(fig)
 
     fig.savefig(output_plot_filename)
     plt.close(fig)
