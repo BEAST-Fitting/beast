@@ -63,7 +63,7 @@ def test_plot_cmd():
     fitsfile = download_rename("b15_4band_det_27_A.fits")
 
     # Plot CMD using defaults
-    fig = plot_cmd.plot_cmd(fitsfile)
+    fig = plot_cmd.plot_cmd(fitsfile, show_plot=False)
 
     return fig
 
@@ -102,6 +102,6 @@ def test_plot_filters():
     filters = download_rename("filters.hd5")
 
     # Plot filters using above arguments (the defaults)
-    fig = plot_filters.plot_filters(filter_names, filterLib=filters)
+    fig = plot_filters.plot_filters(filter_names, filterLib=filters, show_plot=False)
 
     return fig
