@@ -96,9 +96,9 @@ if __name__ == "__main__":  # pragma: no cover
         default="filters.appendVegaFilter",
         help="Save figure to file",
     )
-    # parser.add_argument(
-    #     "--savefig", action="store", default="True", help="Save figure to file",
-    # )
+    parser.add_argument(
+        "--savefig", action="store", default="True", help="Save figure to file",
+    )
     args = parser.parse_args()
 
     filter_names = [

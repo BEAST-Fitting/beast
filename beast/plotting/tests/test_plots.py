@@ -63,7 +63,7 @@ def test_plot_cmd():
     fitsfile = download_rename("b15_4band_det_27_A.fits")
 
     # Plot CMD using defaults
-    fig = plot_cmd.plot(fitsfile)
+    fig = plot_cmd.plot_cmd(fitsfile)
 
     return fig
 
