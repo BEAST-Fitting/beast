@@ -21,14 +21,14 @@ def plot(
         path+file for the BEAST fitting results
 
     param_list : list of strings
-        names of the parameters to plot 
+        names of the parameters to plot
         default is the params in Figs 16-18 in Gordon+16)
 
     n_bins : int (default=200)
         number of bins to use in each dimension of the 2D histogram
 
     colormap : str
-        name of a colormap to use included with Matplotlib     
+        name of a colormap to use included with Matplotlib    
 
     """
 
@@ -45,7 +45,7 @@ def plot(
     # make plots
     for p, param in enumerate(param_list):
 
-        # first column subplot 
+        # first column subplot
         plt.subplot(n_param, 2, p*2 + 1)
 
         param_p50 = stats_table[param + "_p50"]
@@ -78,7 +78,7 @@ def plot(
         h = stat2d(
             logT_p50, logL_p50, param_unc, bins=n_bins)
         plt.imshow(h[0].T,origin='lower',cmap=cmap,
-            extent=[h[1].min(),h[1].max(),h[2].min(),h[2].max()],aspect='auto')        
+            extent=[h[1].min(),h[1].max(),h[2].min(),h[2].max()],aspect='auto')       
         cbar = plt.colorbar()
         cbar.set_label(r"$\sigma$ " + param_label, fontsize=14)
 
