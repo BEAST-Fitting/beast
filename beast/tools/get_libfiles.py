@@ -15,6 +15,13 @@ def _download_rename(filename, url_loc, local_loc):
     return filename
 
 
-if __name__ == "__main__":  # pragma: no cover
+def get_libfiles():
+    """
+    Download all the library files needed by the BEAST
+    """
     for ckey, clib in libs.items():
-        nfilename = _download_rename(clib, libs_server, __ROOT__)
+        _download_rename(clib, libs_server, __ROOT__)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    get_libfiles()

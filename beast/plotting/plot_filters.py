@@ -33,6 +33,8 @@ def plot_filters(
     ylim : length 2 list
         Values to set plot y-limits to
     """
+    if not isinstance(filter_names, list):
+        filter_names = [filter_names]
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 6))
 
@@ -80,18 +82,18 @@ def plot_filters(
 
 if __name__ == "__main__":  # pragma: no cover
     parser = initialize_parser()
-    parser.add_argument(
-        "--tex", action="store", default="False", help="Use tex format for plot",
-    )
+    # parser.add_argument(
+    #     "--tex", action="store", default="False", help="Use tex format for plot",
+    # )
     parser.add_argument(
         "--save_name",
         action="store",
         default="filters.appendVegaFilter",
         help="Save figure to file",
     )
-    parser.add_argument(
-        "--savefig", action="store", default="True", help="Save figure to file",
-    )
+    # parser.add_argument(
+    #     "--savefig", action="store", default="True", help="Save figure to file",
+    # )
     args = parser.parse_args()
 
     filter_names = [
