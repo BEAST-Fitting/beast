@@ -2,7 +2,7 @@ import inspect
 import argparse
 
 from beast.tools import get_libfiles
-from beast.plotting import plot_cmd
+from beast.plotting import plot_cmd, plot_filters
 
 # cannot get plot_filters to work as the main parameter passed (filter_names)
 # needs to allow multiple strings
@@ -18,7 +18,7 @@ def main():
     and parses them for the function given in the input
     """
     all_funcs = []
-    scripts = [get_libfiles, plot_cmd]  # scripts available
+    scripts = [get_libfiles, plot_cmd, plot_filters]  # scripts available
 
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(
