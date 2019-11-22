@@ -47,8 +47,7 @@ diagnostic plots and visualizations.  Some are described here.
   same SED model grid.
 
 - `plot_param_err.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_param_err.py>`_:
-  Make 2D histogram of each parameter (p50) plotted against its uncertainty
-  ((p84-p16)/2).
+  Reproduce the Figures 16-18 in Gordon et al. 2016. Make 2D histogram of 50th percentile values of each parameter against its uncertainty (=0.5x(percentile_84th-percentile_16th)) on the left columns. Make H-R Hess diagram colored coded by the uncertainty of a given parameter on the right column. 
 
 - `plot_param_recovery.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_param_recovery.py>`_:
   Make a 2D histogram to compare simulated and recovered model parameters
