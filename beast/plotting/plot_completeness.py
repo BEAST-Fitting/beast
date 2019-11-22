@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import copy
 from scipy.stats import binned_statistic, binned_statistic_2d
-from astropy.io import fits
 from astropy.table import Table, vstack
 
 from beast.physicsmodel.grid import FileSEDGrid
@@ -165,9 +164,9 @@ def plot_completeness(
                 # make histogram
                 _, _, patches = plt.hist(x_bins[:-1], x_bins, weights=compl_hist)
                 # color each bar by its completeness
-                for p in range(len(compl_hist)):
-                    patches[p].set_color(cmap(compl_hist[p]))
-                    patches[p].set_linewidth=0.1
+                for c,comp in enumerate(compl_hist):
+                    patches[c].set_color(cmap(comp))
+                    patches[c].set_linewidth=0.1
                 # make a black outline so it stands out as a histogram
                 plt.hist(x_bins[:-1], x_bins, weights=compl_hist, histtype='step', color='k')
                 # axis ranges
