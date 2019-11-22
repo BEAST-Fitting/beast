@@ -102,15 +102,23 @@ def plot_completeness(
                 ax = plt.gca()
 
                 # create image and labels
-                compl_data = make_image(compl_table, pi, pj)
+                x_col, x_bins, x_label = setup_axis(compl_table, pi)
+                y_col, y_bins, y_label = setup_axis(compl_table, pj)
+                compl_image, _, _, _ = binned_statistic_2d(
+                    x_col,
+                    y_col,
+                    compl_table['compl'],
+                    statistic='mean',
+                    bins=(x_bins, y_bins),
+                )
 
                 # plot points
                 im = plt.imshow(
-                    compl_data['compl_image'].T,
+                    compl_image.T,
                     #np.random.random((4,4)),
                     extent=(
-                        np.min(compl_data['x_bins']), np.max(compl_data['x_bins']),
-                        np.min(compl_data['y_bins']), np.max(compl_data['y_bins'])
+                        np.min(x_bins), np.max(x_bins),
+                        np.min(y_bins), np.max(y_bins)
                     ),
                     cmap='magma',
                     vmin=0,
@@ -124,12 +132,12 @@ def plot_completeness(
 
                 # axis labels and ticks
                 if i == 0:
-                    ax.set_ylabel(compl_data['y_label'], fontsize=label_font)
+                    ax.set_ylabel(y_label, fontsize=label_font)
                     #ax.get_yaxis().set_label_coords(-0.35,0.5)
                 else:
                     ax.set_yticklabels([])
                 if j == n_params-1:
-                    ax.set_xlabel(compl_data['x_label'], fontsize=label_font)
+                    ax.set_xlabel(x_label, fontsize=label_font)
                     plt.xticks(rotation=-45)
                 else:
                     ax.set_xticklabels([])
@@ -154,7 +162,7 @@ def plot_completeness(
                 if i < n_params-1:
                     ax.set_xticklabels([])
                 if i == n_params-1:
-                    ax.set_xlabel(compl_data['x_label'], fontsize=label_font)
+                    ax.set_xlabel(x_label, fontsize=label_font)
                     plt.xticks(rotation=-45)
 
     #plt.subplots_adjust(wspace=0.05, hspace=0.05)
@@ -172,80 +180,45 @@ def plot_completeness(
     plt.close(fig)
 
 
-
-def make_image(compl_table, x_param, y_param):
+def setup_axis(compl_table, param):
     """
-    Make the completeness image
+    Set up the bins and labels for a parameter
 
+    Parameters
+    ----------
     compl_table : astropy table
         table with each set of physical parameters and their completeness
 
-    x_param, y_param : strings
-        parameters for which to create a completeness image
+    param : string
+        name of the parameter we're binning/labeling
+
+    Returns
+    -------
+    col : numpy array
+        column to plot
+
+    bins : numpy array
+        bin edges
+
+    label : string
+        the axis label to use
+
     """
 
-    # ---- set up things for x
     # mass isn't reguarly spaced, so take log and manually define bins
-    if 'M_' in x_param:
-        x_col = np.log(compl_table[x_param])
-        x_bins = np.linspace(np.min(x_col), np.max(x_col), 20)
-        x_label = 'log '+x_param
+    if 'M_' in param:
+        col = np.log(compl_table[param])
+        bins = np.linspace(np.min(col), np.max(col), 20)
+        label = 'log '+param
     # metallicity just needs to be log
-    elif x_param == 'Z':
-        x_col = np.log(compl_table[x_param])
-        x_bins = np.linspace(np.min(x_col), np.max(x_col), len(np.unique(x_col))+1)
-        x_label = 'log '+x_param
+    elif param == 'Z':
+        col = np.log(compl_table[param])
+        bins = np.linspace(np.min(col), np.max(col), len(np.unique(col))+1)
+        label = 'log '+param
     # for all others, standard linear spacing is ok
     else:
-        x_col = copy.copy(compl_table[x_param])
-        x_bins = np.linspace(np.min(x_col), np.max(x_col), len(np.unique(x_col))+1)
-        x_label = copy.copy(x_param)
+        col = copy.copy(compl_table[param])
+        bins = np.linspace(np.min(col), np.max(col), len(np.unique(col))+1)
+        label = copy.copy(param)
 
-    # ---- set up things for y
-    # mass isn't reguarly spaced, so take log and manually define bins
-    if 'M_' in y_param:
-        y_col = np.log(compl_table[y_param])
-        y_bins = np.linspace(np.min(y_col), np.max(y_col), 20)
-        y_label = 'log '+y_param
-    # metallicity just needs to be log
-    elif y_param == 'Z':
-        y_col = np.log(compl_table[y_param])
-        y_bins = np.linspace(np.min(y_col), np.max(y_col), len(np.unique(y_col))+1)
-        y_label = 'log '+y_param
-    # for all others, standard linear spacing is ok
-    else:
-        y_col = copy.copy(compl_table[y_param])
-        y_bins = np.linspace(np.min(y_col), np.max(y_col), len(np.unique(y_col))+1)
-        y_label = copy.copy(y_param)
-
-
-    # ---- make the image
-
-    # compl_image = np.zeros((len(x_bins)-1, len(y_bins)-1))
-    #
-    # for i in range(len(x_bins)-1):
-    #     for j in range(len(y_bins)-1):
-    #
-    #         # find the indices in this bin
-    #         match = np.where(
-    #             (x_col >= x_bins[i]) & (x_col <= x_bins[i+1]) &
-    #             (y_col >= y_bins[j]) & (y_col <= y_bins[j+1])
-    #         )
-    #         # calculate average completeness for those indices
-    #         compl_image[i,j] = np.average(compl_table['compl'][match])
-
-    compl_image, _, _, _ = binned_statistic_2d(
-        x_col,
-        y_col,
-        compl_table['compl'],
-        statistic='mean',
-        bins=(x_bins, y_bins),
-    )
-
-    return {
-        'compl_image':compl_image,
-        'x_bins':x_bins,
-        'x_label':x_label,
-        'y_bins':y_bins,
-        'y_label':y_label,
-    }
+    return col, bins, label
