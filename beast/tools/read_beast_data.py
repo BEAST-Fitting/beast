@@ -53,7 +53,6 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
         for k, sname in enumerate(lnp_hdf.keys()):
             lnp_vals[:lnp_sizes[k], k] = lnp_hdf[sname]['lnp'].value
             lnp_indxs[:lnp_sizes[k], k] = np.int64(np.array(lnp_hdf[sname]['idx'].value))
-        lnp_hdf.close()
 
         if shift_lnp:
             # shift the log(likelihood) values to have a max of 0.0
@@ -64,10 +63,48 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
     return {'vals': lnp_vals, 'indxs': lnp_indxs}
 
 
-def read_beast_data(
-    sed_filename,
-    noise_filename,
-    beast_params=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance', 'completeness'],
+def read_noise_data(
+    filename,
+    param_list=['bias', 'completeness', 'error'],
+    filter_col=None,
+):
+    """
+    Read some or all of the noise model parameters, for one or all of the filters
+
+    Parameters
+    ----------
+    filename : string
+       name of the file with the BEAST observationmodel grid
+
+    param_list : list of strings
+       the set of parameters to extract
+
+    filter_col : int (default=None)
+        if set, only return the data for this column number
+
+    noise_data
+    -------
+    beast_data: dictonary
+       contains arrays of the noise parameters
+    """
+    noise_data = {}
+
+    # open files for reading
+    with h5py.File(noise_filename, 'r') as noise_hdf:
+
+        # get beast physicsmodel params
+        for param in tqdm(param_list, desc='reading beast data'):
+            if filter_col is None:
+                noise_data[cparam] = np.array(noise_hdf[cparam])
+            else:
+                noise_data[cparam] = noise_hdf[cparam][:,filter_col]
+
+    return noise_data
+
+
+def read_sed_data(
+    filename,
+    param_list=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
     verbose=True
 ):
     """
@@ -75,35 +112,49 @@ def read_beast_data(
 
     Parameters
     ----------
-    sed_filename: string
+    filename : string
        name of the file with the BEAST physicsmodel grid
 
-    noise_filename: string
-       name of the file with the BEAST observationmodel grid
-
-    beast_params: list of strings
-       contains the set of BEAST parameters to extract
-       default = [completeness, Av, Rv, f_A, M_ini, logA, Z, distance]
+    param_list : list of strings
+       the set of parameters to extract
+       default = [Av, Rv, f_A, M_ini, logA, Z, distance]
+       If set to None, return the list of possible parameters
 
     Returns
     -------
+    grid_param_list : list of strings
+        if param_list is None, return the list of parameter options
+
     beast_data: dictonary
-       contains arrays of the beast parameters, priors, and completeness
+       contains arrays of the requested SED grid parameters
     """
-    beast_data = {}
+    sed_data = {}
 
     # open files for reading
-    with h5py.File(noise_filename, 'r') as beast_noise_hdf, h5py.File(sed_filename, 'r') as beast_seds_hdf:
+    with h5py.File(sed_filename, 'r') as sed_hdf:
 
-        # get beast physicsmodel params
-        for cparam in tqdm(beast_params, desc='reading beast data'):
-            if cparam == 'completeness':
-                beast_data[cparam] = np.max(beast_noise_hdf[cparam], axis=1)
+        # get the possible list of parameters
+        grid_param_list = list(h['grid'].value.dtype.names)
+        # return that if the user is so inclined
+        if param_list is None:
+            return grid_param_list + ['seds', 'lamb']
+
+        # get parameters
+        for param in tqdm(param_list, desc='reading beast data'):
+            # grid parameter
+            if param in grid_param_list:
+                sed_data[cparam] = sed_hdf['grid'][param]
+            # wavelengths of the filters -or- SED photometry values
+            elif (param == 'lamb') or (param == 'seds'):
+                sed_data[param] = sed_hdf[param].value
             else:
-                beast_data[cparam] = beast_seds_hdf['grid'][cparam]
+                raise ValueError(
+                    'parameter {0} not found in SED grid'.format(param)
+                )
 
 
-    return beast_data
+
+    return sed_data
 
 
 def extract_beast_data(beast_data, lnp_data):
