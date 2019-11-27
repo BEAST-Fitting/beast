@@ -30,7 +30,7 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
     Returns
     -------
     lnp_data: dictonary
-       contains arrays of the lnp values and indexs to the BEAST model grid
+       contains arrays of the lnp values and indices to the BEAST model grid
     """
 
 
@@ -157,39 +157,50 @@ def read_sed_data(
     return sed_data
 
 
-def extract_beast_data(beast_data, lnp_data):
+def get_lnp_grid_vals(sed_data, lnp_data):
     """
-    Read in the beast data for the locations where the lnp values
+    Acquire the SED parameter values for the locations where the lnp values
     were saved
 
     Parameters
     ----------
-    beast_data: dictonary
-       contains arrays of the beast parameters and priors
+    sed_data: dictonary or string
+       if dictionary: contains arrays of the beast parameters (output from
+       read_sed_data)
+       if string: name of the file with the BEAST physicsmodel grid, which will
+       be used in read_sed_data to get default parameters
 
-    lnp_data: dictonary
-       contains arrays of the lnp values and indexs to the BEAST model grid
+    lnp_data: dictonary or string
+       if dictionary: contains arrays of the lnp values and indices to the BEAST
+       model grid (output from read_lnp_data)
+       if string: name of the file with the sparse lnp values, which will be
+       used in read_lnp_data with default parameters
 
     Returns
     -------
     lnp_grid_vals: dictonary
-       contains arrays of the beast parameters and priors for the sparse
-       lnp saved model grid points
+        arrays of the SED grid parameters for the points in the lnp lists
     """
+
+    if type(sed_data) == str:
+        sed_data = read_sed_data(sed_data)
+    if type(lnp_data) == str:
+        lnp_data = read_lnp_data(lnp_data)
+
     # get the keys in beast_data
-    beast_params = beast_data.keys()
+    param_list = sed_data.keys()
 
     # setup the output
     lnp_grid_vals = {}
     n_lnps, n_stars = lnp_data['indxs'].shape
-    for cparam in beast_params:
-        lnp_grid_vals[cparam] = np.empty((n_lnps, n_stars), dtype=float)
+    for param in param_list:
+        lnp_grid_vals[param] = np.full((n_lnps, n_stars), np.nan, dtype=float)
 
     # loop over the stars and extract the requested BEAST data
     # for k in tqdm(range(n_stars), desc='extracting beast data'):
     for k in range(n_stars):
-        for cparam in beast_params:
-            lnp_grid_vals[cparam][:, k] = \
-                            beast_data[cparam][lnp_data['indxs'][:, k]]
+        for param in param_list:
+            lnp_grid_vals[param][:, k] = \
+                            sed_data[param][lnp_data['indxs'][:, k]]
 
     return lnp_grid_vals
