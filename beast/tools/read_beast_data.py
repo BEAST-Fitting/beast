@@ -64,24 +64,24 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
     return {'vals': lnp_vals, 'indxs': lnp_indxs}
 
 
-def read_beast_data(filename,
-                    noise_filename,
-                    beast_params=['Av', 'Rv', 'f_A',
-                                  'M_ini', 'logA', 'Z', 'distance',
-                                  'completeness'],
-                    verbose=True):
+def read_beast_data(
+    sed_filename,
+    noise_filename,
+    beast_params=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance', 'completeness'],
+    verbose=True
+):
     """
     Read in the beast data needed by all the pixels
 
     Parameters
     ----------
-    filename: string
+    sed_filename: string
        name of the file with the BEAST physicsmodel grid
 
     noise_filename: string
        name of the file with the BEAST observationmodel grid
 
-    beast_params: strings
+    beast_params: list of strings
        contains the set of BEAST parameters to extract
        default = [completeness, Av, Rv, f_A, M_ini, logA, Z, distance]
 
@@ -92,21 +92,16 @@ def read_beast_data(filename,
     """
     beast_data = {}
 
-    # open the full BEAST observationmodel file for reading
-    beast_noise_hdf = h5py.File(noise_filename, 'r')
+    # open files for reading
+    with h5py.File(noise_filename, 'r') as beast_noise_hdf, h5py.File(sed_filename, 'r') as beast_seds_hdf:
 
-    # open the full BEAST physicsmodel file for reading
-    beast_seds_hdf = h5py.File(filename, 'r')
+        # get beast physicsmodel params
+        for cparam in tqdm(beast_params, desc='reading beast data'):
+            if cparam == 'completeness':
+                beast_data[cparam] = np.max(beast_noise_hdf[cparam], axis=1)
+            else:
+                beast_data[cparam] = beast_seds_hdf['grid'][cparam]
 
-    # get beast physicsmodel params
-    for cparam in tqdm(beast_params, desc='reading beast data'):
-        if cparam == 'completeness':
-            beast_data[cparam] = np.max(beast_noise_hdf[cparam], axis=1)
-        else:
-            beast_data[cparam] = beast_seds_hdf['grid'][cparam]
-
-    beast_noise_hdf.close()
-    beast_seds_hdf.close()
 
     return beast_data
 
