@@ -11,31 +11,37 @@ import h5py
 from tqdm import tqdm
 
 
-def read_lnp_data(filename, nstars):
+def read_lnp_data(filename, nstars=None, shift_lnp=True):
     """
     Read in the sparse lnp for all the stars in the hdf5 file
 
     Parameters
     ----------
-    filename: string
+    filename : string
        name of the file with the sparse lnp values
 
-    nstars: int
-       number of stars expected in the file
+    nstars : int (default=None)
+       if you want to check that the number of lnp values is correct, set this
+       to the number of stars expected in the file
+
+    shift_lnp : boolean (default=True)
+        if True, shift lnp values to have a max of 0.0
 
     Returns
     -------
     lnp_data: dictonary
        contains arrays of the lnp values and indexs to the BEAST model grid
     """
-    lnp_hdf = h5py.File(filename, 'r')
 
-    if len(lnp_hdf.keys()) != nstars:
-        print('Error: number of stars not equal between nstars image and ' +
-              'lnp file')
-        lnp_hdf.close()
-        exit()
-    else:
+
+    with h5py.File(filename, 'r') as lnp_hdf:
+
+        if nstars is not None:
+            if len(lnp_hdf.keys()) != nstars:
+                raise ValueError(
+                    "Error: number of stars not equal between nstars image and lnp file"
+                )
+
         # initialize arrays
         # - find the length of the sparse likelihoods
         lnp_sizes = [lnp_hdf[sname]['lnp'].value.shape[0] for sname in lnp_hdf.keys()]
@@ -49,12 +55,13 @@ def read_lnp_data(filename, nstars):
             lnp_indxs[:lnp_sizes[k], k] = np.int64(np.array(lnp_hdf[sname]['idx'].value))
         lnp_hdf.close()
 
-        # shift the log(likelihood) values to have a max of 0.0
-        #  ok if the same shift is applied to all stars in a pixel
-        #  avoids numerical issues later when we go to intergrate probs
-        lnp_vals -= np.max(lnp_vals)
+        if shift_lnp:
+            # shift the log(likelihood) values to have a max of 0.0
+            #  ok if the same shift is applied to all stars in a pixel
+            #  avoids numerical issues later when we go to intergrate probs
+            lnp_vals -= np.max(lnp_vals)
 
-        return {'vals': lnp_vals, 'indxs': lnp_indxs}
+    return {'vals': lnp_vals, 'indxs': lnp_indxs}
 
 
 def read_beast_data(filename,
