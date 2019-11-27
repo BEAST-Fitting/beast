@@ -226,12 +226,12 @@ def setup_axis(compl_table, param):
 
     # mass isn't reguarly spaced, so take log and manually define bins
     if 'M_' in param:
-        col = np.log(compl_table[param])
+        col = np.log10(compl_table[param])
         bins = np.linspace(np.min(col), np.max(col), 20)
         label = 'log '+param
     # metallicity just needs to be log
     elif param == 'Z':
-        col = np.log(compl_table[param])
+        col = np.log10(compl_table[param])
         bins = np.linspace(np.min(col), np.max(col), len(np.unique(col))+1)
         label = 'log '+param
     # for all others, standard linear spacing is ok
