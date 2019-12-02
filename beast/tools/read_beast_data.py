@@ -36,21 +36,29 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
 
     with h5py.File(filename, 'r') as lnp_hdf:
 
+        # get keyword names for the stars (as opposed to filter info)
+        star_key_list = [sname for sname in lnp_hdf.keys() if 'star' in sname]
+        tot_stars = len(star_key_list)
+
         if nstars is not None:
-            if len(lnp_hdf.keys()) != nstars:
+            if tot_stars != nstars:
                 raise ValueError(
                     "Error: number of stars not equal between nstars image and lnp file"
                 )
 
         # initialize arrays
-        # - find the length of the sparse likelihoods
-        lnp_sizes = [lnp_hdf[sname]['lnp'].value.shape[0] for sname in lnp_hdf.keys()]
+        # - find the lengths of the sparse likelihoods
+        lnp_sizes = [
+            lnp_hdf[sname]['lnp'].value.shape[0]
+            for sname in star_key_list
+        ]
+        #print(lnp_sizes)
         # - set arrays to the maximum size
-        lnp_vals = np.zeros((np.max(lnp_sizes), nstars), dtype=float) - np.inf
-        lnp_indxs = np.zeros((np.max(lnp_sizes), nstars), dtype=int)
+        lnp_vals = np.zeros((np.max(lnp_sizes), tot_stars), dtype=float) - np.inf
+        lnp_indxs = np.zeros((np.max(lnp_sizes), tot_stars), dtype=int) + np.nan
 
         # loop over all the stars (groups)
-        for k, sname in enumerate(lnp_hdf.keys()):
+        for k, sname in enumerate(star_key_list):
             lnp_vals[:lnp_sizes[k], k] = lnp_hdf[sname]['lnp'].value
             lnp_indxs[:lnp_sizes[k], k] = np.int64(np.array(lnp_hdf[sname]['idx'].value))
 
