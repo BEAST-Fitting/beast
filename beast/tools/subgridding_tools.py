@@ -522,6 +522,7 @@ def merge_lnp_stats(
     subgrid_lnp_fnames,
     re_run=False,
     output_fname_base=None,
+    threshold=None,
 ):
     """
     Merge a set of sparsely sampled log likelihood (lnp) files.  It is assumed
@@ -541,6 +542,10 @@ def merge_lnp_stats(
     output_fname_base: string (default=None)
         If set, this will prepend the output lnp file name
 
+    threshold : float (default=None)
+        If set: for a given star, any lnP values below max(lnP)-threshold will
+        be deleted
+
     Returns
     -------
     merged_lnp_fname : string
@@ -559,18 +564,48 @@ def merge_lnp_stats(
 
     for fname in subgrid_lnp_fnames:
 
-        # extract subgrid number
+        # extract subgrid number from filename
         subgrid_num = [i for i in fname.split('_') if 'gridsub' in i][0][7:]
 
         # read in the SED indices and lnP values
         lnp_data = read_lnp_data(fname, shift_lnp=False)
         n_lnp, n_star = lnp_data['vals'].shape
 
-        # save each one in the master dictionary
+        # save each star's values into the master dictionary
         for i in range(n_star):
             merged_lnp['star_'+str(i)] += lnp_data['vals'][:,i].tolist()
             merged_idx['star_'+str(i)] += lnp_data['indxs'][:,i].tolist()
             merged_subgrid['star_'+str(i)] += np.full(n_lnp, int(subgrid_num)).tolist()
+
+
+    # go through each star and remove values that are too small
+    if threshold is not None:
+
+        # keep track of how long the list of good values is
+        good_list_len = np.zeros(n_star)
+
+        # go through each star
+        for i in range(n_star):
+
+            star_label = "star_"+str(i)
+            # good indices
+            keep_ind = np.where(
+                np.array(merged_lnp[star_label][ind]) >
+                (max(merged_lnp[star_label]) - threshold)
+            )[0]
+            good_list_len[i] = len(keep_ind)
+            # save just those
+            merged_lnp[star_label] = np.array(merged_lnp[star_label])[keep_ind].tolist()
+            merged_idx[star_label] = np.array(merged_idx[star_label])[keep_ind].tolist()
+            merged_subgrid[star_label] = np.array(merged_subgrid[star_label])[keep_ind].tolist()
+
+        # figure out how many padded -inf/nan values need to be appended to make
+        # each list the same length
+        n_list_pad = np.max(good_list_len) - good_list_len
+
+    else:
+        # no list padding if there's no trimming for threshold
+        n_list_pad = np.zeros(n_star)
 
 
     # write out the things in a new file
@@ -578,6 +613,15 @@ def merge_lnp_stats(
         for i in range(n_star):
             star_label = "star_"+str(i)
             star_group = out_table.create_group(star_label)
-            star_group.create_dataset('idx', data=np.array(merged_idx[star_label]))
-            star_group.create_dataset('lnp', data=np.array(merged_lnp[star_label]))
-            star_group.create_dataset('subgrid', data=np.array(merged_subgrid[star_label]))
+            star_group.create_dataset(
+                'idx',
+                data=np.array(merged_idx[star_label] + n_list_pad*[np.nan])
+            )
+            star_group.create_dataset(
+                'lnp',
+                data=np.array(merged_lnp[star_label] + n_list_pad*[-np.inf])
+            )
+            star_group.create_dataset(
+                'subgrid',
+                data=np.array(merged_subgrid[star_label] + n_list_pad*[np.nan])
+            )
