@@ -113,7 +113,6 @@ def read_noise_data(
 def read_sed_data(
     filename,
     param_list=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
-    verbose=True
 ):
     """
     Read in the beast data needed by all the pixels
