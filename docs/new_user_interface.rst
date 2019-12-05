@@ -9,8 +9,8 @@ The new user interface allows you to use the BEAST from any command line prompt.
     $ pip install beast
 
 
-Use the beast, the function you would like to use, and the arguments for that function. 
+Use the beast, the function you would like to use, and the arguments for that function.
 
 .. code-block:: console
 
-    $ beast plot_cmd 'filename.fits'
+    $ beast plot_cmd filename.fits

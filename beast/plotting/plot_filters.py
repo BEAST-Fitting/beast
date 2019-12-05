@@ -16,6 +16,7 @@ def plot_filters(
     save_name="beast_filters",
     xlim=[1.4e3, 2e4],
     ylim=[1e-4, 2],
+    show_plot=True,
 ):
 
     """Plots transmission curves in log-log space.
@@ -33,6 +34,8 @@ def plot_filters(
     ylim : length 2 list
         Values to set plot y-limits to
     """
+    if not isinstance(filter_names, list):
+        filter_names = [filter_names]
 
     fig, ax = plt.subplots(1, 1, figsize=(10, 6))
 
@@ -75,14 +78,18 @@ def plot_filters(
     ax.get_xaxis().set_major_formatter(mpl.ticker.ScalarFormatter())
 
     fig.tight_layout()
-    return fig
+
+    if show_plot:
+        plt.show()
+    else:
+        return fig
 
 
 if __name__ == "__main__":  # pragma: no cover
     parser = initialize_parser()
-    parser.add_argument(
-        "--tex", action="store", default="False", help="Use tex format for plot",
-    )
+    # parser.add_argument(
+    #     "--tex", action="store", default="False", help="Use tex format for plot",
+    # )
     parser.add_argument(
         "--save_name",
         action="store",
@@ -105,7 +112,7 @@ if __name__ == "__main__":  # pragma: no cover
         "HST_WFC3_F160W",
     ]
 
-    fig = plot_filters(filter_names)
+    fig = plot_filters(filter_names, show_plot=False)
 
     if args.tex:
         plt.rc({"usetex": True})

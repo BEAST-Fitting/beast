@@ -11,11 +11,22 @@ from functools import reduce
 from beast.plotting.beastplotlib import initialize_parser
 
 
-def plot(fitsfile, mag1_filter="F475W", mag2_filter="F814W", mag3_filter="F475W"):
+__all__ = ["plot_cmd"]
+
+
+def plot_cmd(
+    fitsfile,
+    mag1_filter="F475W",
+    mag2_filter="F814W",
+    mag3_filter="F475W",
+    show_plot=True,
+):
     """
     Read in flux from real or simulated data in fitsfile and plot a
     color-magnitude diagram based on specified filters.
 
+    Parameters
+    ----------
     fitsfile:           str
         input fitsfile (includes full path to file); format = .fits
     mag1_filter:        str
@@ -60,7 +71,10 @@ def plot(fitsfile, mag1_filter="F475W", mag2_filter="F814W", mag3_filter="F475W"
     plt.xlabel("%s - %s" % (mag1_filter, mag2_filter))
     plt.ylabel(mag3_filter)
 
-    return fig
+    if show_plot:
+        plt.show()
+    else:
+        return fig
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -86,20 +100,18 @@ if __name__ == "__main__":  # pragma: no cover
         help="Choose filter for the magnitude",
     )
     parser.add_argument(
-        "--savefig",
-        action="store",
-        default="True",
-        help="Save figure or plot it",
+        "--savefig", action="store", default="True", help="Save figure or plot it",
     )
 
     args = parser.parse_args()
 
     # plot the CMD
-    fig = plot(
+    fig = plot_cmd(
         args.filename,
         mag1_filter=args.mag1,
         mag2_filter=args.mag2,
         mag3_filter=args.magy,
+        show_plot=False,
     )
 
     # figname

@@ -191,7 +191,7 @@ will be downloaded into the location specified in :ref:`library_loc`
 
 .. code-block:: console
 
-     $ python -m beast.tools.get_libfiles
+     $ beast get_libfiles
 
 .. _library_loc:
 
