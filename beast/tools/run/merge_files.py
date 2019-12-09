@@ -5,8 +5,10 @@ from beast.tools import verify_params, subgridding_tools, merge_beast_stats
 from beast.tools.run import create_filenames
 
 
+
 import datamodel
 import importlib
+importlib.reload(subgridding_tools)
 
 
 def merge_files(use_sd=True, nsubs=1):
@@ -47,7 +49,7 @@ def merge_files(use_sd=True, nsubs=1):
     # - output files
     stats_files = file_dict["stats_files"]
     pdf_files = file_dict["pdf_files"]
-    # lnp_files = file_dict['lnp_files']
+    lnp_files = file_dict["lnp_files"]
 
     # - other useful info
     sd_sub_info = file_dict["sd_sub_info"]
@@ -79,6 +81,7 @@ def merge_files(use_sd=True, nsubs=1):
             # lists to save the merged file names
             merged_pdf_files = []
             merged_stats_files = []
+            merged_lnp_files = []
 
             for sd_sub in unique_sd_sub:
 
@@ -90,6 +93,7 @@ def merge_files(use_sd=True, nsubs=1):
                     datamodel.project, sd_sub[0], sd_sub[1]
                 )
 
+                # - 1D PDFs and stats
                 (
                     merged_pdf1d_fname,
                     merged_stats_fname,
@@ -103,6 +107,14 @@ def merge_files(use_sd=True, nsubs=1):
                 merged_pdf_files.append(merged_pdf1d_fname)
                 merged_stats_files.append(merged_stats_fname)
 
+                # - lnP files
+                subgridding_tools.merge_lnp(
+                    [lnp_files[j] for j in ind],
+                    rerun=False,
+                    output_fname_base=out_filebase,
+                    threshold=-10,
+                )
+
             # merge the merged stats files
             out_filebase = "{0}/{0}".format(datamodel.project)
             reorder_tags = ["bin{0}_sub{1}".format(x[0], x[1]) for x in unique_sd_sub]
@@ -115,10 +127,18 @@ def merge_files(use_sd=True, nsubs=1):
 
             out_filebase = "{0}/{0}".format(datamodel.project)
 
+            # - 1D PDFs and stats
             subgridding_tools.merge_pdf1d_stats(
                 pdf_files, stats_files, output_fname_base=out_filebase
             )
 
+            # - lnP files
+            subgridding_tools.merge_lnp(
+                lnp_files,
+                rerun=False,
+                output_fname_base=out_filebase,
+                threshold=-10,
+            )
 
 if __name__ == "__main__":  # pragma: no cover
     # commandline parser
