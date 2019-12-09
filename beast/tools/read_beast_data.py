@@ -99,14 +99,14 @@ def read_noise_data(
     noise_data = {}
 
     # open files for reading
-    with h5py.File(noise_filename, 'r') as noise_hdf:
+    with h5py.File(filename, 'r') as noise_hdf:
 
         # get beast physicsmodel params
         for param in tqdm(param_list, desc='reading beast data'):
             if filter_col is None:
-                noise_data[cparam] = np.array(noise_hdf[cparam])
+                noise_data[param] = np.array(noise_hdf[param])
             else:
-                noise_data[cparam] = noise_hdf[cparam][:,filter_col]
+                noise_data[param] = noise_hdf[cparam][:,filter_col]
 
     return noise_data
 
@@ -190,9 +190,9 @@ def get_lnp_grid_vals(sed_data, lnp_data):
         arrays of the SED grid parameters for the points in the lnp lists
     """
 
-    if type(sed_data) == str:
+    if isinstance(sed_data, str):
         sed_data = read_sed_data(sed_data)
-    if type(lnp_data) == str:
+    if isinstance(lnp_data, str):
         lnp_data = read_lnp_data(lnp_data)
 
     # get the keys in beast_data
@@ -206,7 +206,6 @@ def get_lnp_grid_vals(sed_data, lnp_data):
 
     # loop over the stars and extract the requested BEAST data
     for k in tqdm(range(n_stars), desc='extracting params for each lnP'):
-    #for k in range(n_stars):
         lnp_inds = lnp_data['indxs'][:, k]
         good_inds = np.isfinite(lnp_inds)
         for param in param_list:

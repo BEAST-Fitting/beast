@@ -108,12 +108,13 @@ def merge_files(use_sd=True, nsubs=1):
                 merged_stats_files.append(merged_stats_fname)
 
                 # - lnP files
-                subgridding_tools.merge_lnp(
+                merged_lnp_fname = subgridding_tools.merge_lnp(
                     [lnp_files[j] for j in ind],
-                    rerun=False,
+                    re_run=False,
                     output_fname_base=out_filebase,
                     threshold=-10,
                 )
+                merged_lnp_files.append(merged_lnp_fname)
 
             # merge the merged stats files
             out_filebase = "{0}/{0}".format(datamodel.project)
@@ -135,7 +136,7 @@ def merge_files(use_sd=True, nsubs=1):
             # - lnP files
             subgridding_tools.merge_lnp(
                 lnp_files,
-                rerun=False,
+                re_run=False,
                 output_fname_base=out_filebase,
                 threshold=-10,
             )

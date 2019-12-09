@@ -3,11 +3,11 @@ import os
 import re
 from multiprocessing import Pool
 from collections import defaultdict
+import tables
 
 import numpy as np
 from astropy.io import fits
 from astropy.table import Table
-import h5py
 
 from beast.observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
 from beast.physicsmodel import grid
@@ -597,7 +597,7 @@ def merge_lnp(
             star_label = "star_"+str(i)
             # good indices
             keep_ind = np.where(
-                np.array(merged_lnp[star_label][ind]) >
+                np.array(merged_lnp[star_label]) >
                 (max(merged_lnp[star_label]) - threshold)
             )[0]
             good_list_len[i] = len(keep_ind)
@@ -632,3 +632,6 @@ def merge_lnp(
                 'subgrid',
                 data=np.array(merged_subgrid[star_label] + n_list_pad*[np.nan])
             )
+
+
+    return merged_lnp_fname
