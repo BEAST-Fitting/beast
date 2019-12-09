@@ -14,7 +14,7 @@ from beast.physicsmodel import grid
 from beast.external import eztables
 from beast.fitting.fit import save_pdf1d
 from beast.fitting.fit_metrics import percentile
-from beast.tools.read_beast_data import read_lnp_data
+from beast.tools import read_beast_data
 
 
 def uniform_slices(num_points, num_slices):
@@ -518,7 +518,7 @@ def merge_pdf1d_stats(
     return pdf1d_fname, stats_fname
 
 
-def merge_lnp_stats(
+def merge_lnp(
     subgrid_lnp_fnames,
     re_run=False,
     output_fname_base=None,
@@ -552,10 +552,17 @@ def merge_lnp_stats(
         file name of the resulting lnp fits file (newly created by this function)
     """
 
+    # create filename
     if output_fname_base is None:
         merged_lnp_fname = "combined_lnp.fits"
     else:
         merged_lnp_fname = output_fname_base + "_lnp.fits"
+
+    # check if we need to rerun
+    if os.path.isfile(merged_lnp_fname) and (re_run is False):
+        print(str(len(subgrid_lnp_fnames)) + " files already merged, skipping")
+        return merged_lnp_fname
+
 
     # dictionaries to compile all the info
     merged_lnp = defaultdict(list)
@@ -568,7 +575,7 @@ def merge_lnp_stats(
         subgrid_num = [i for i in fname.split('_') if 'gridsub' in i][0][7:]
 
         # read in the SED indices and lnP values
-        lnp_data = read_lnp_data(fname, shift_lnp=False)
+        lnp_data = read_beast_data.read_lnp_data(fname, shift_lnp=False)
         n_lnp, n_star = lnp_data['vals'].shape
 
         # save each star's values into the master dictionary
