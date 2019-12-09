@@ -54,19 +54,20 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
         ]
         #print(lnp_sizes)
         # - set arrays to the maximum size
-        lnp_vals = np.zeros((np.max(lnp_sizes), tot_stars), dtype=float) - np.inf
-        lnp_indxs = np.zeros((np.max(lnp_sizes), tot_stars), dtype=int) + np.nan
+        lnp_vals = np.full((np.max(lnp_sizes), tot_stars), -np.inf)
+        lnp_indxs = np.full((np.max(lnp_sizes), tot_stars), np.nan)
 
         # loop over all the stars (groups)
         for k, sname in enumerate(star_key_list):
             lnp_vals[:lnp_sizes[k], k] = lnp_hdf[sname]['lnp'].value
-            lnp_indxs[:lnp_sizes[k], k] = np.int64(np.array(lnp_hdf[sname]['idx'].value))
+            lnp_indxs[:lnp_sizes[k], k] = np.array(lnp_hdf[sname]['idx'].value)
 
         if shift_lnp:
             # shift the log(likelihood) values to have a max of 0.0
             #  ok if the same shift is applied to all stars in a pixel
             #  avoids numerical issues later when we go to intergrate probs
             lnp_vals -= np.max(lnp_vals)
+
 
     return {'vals': lnp_vals, 'indxs': lnp_indxs}
 
@@ -138,10 +139,10 @@ def read_sed_data(
     sed_data = {}
 
     # open files for reading
-    with h5py.File(sed_filename, 'r') as sed_hdf:
+    with h5py.File(filename, 'r') as sed_hdf:
 
         # get the possible list of parameters
-        grid_param_list = list(h['grid'].value.dtype.names)
+        grid_param_list = list(sed_hdf['grid'].value.dtype.names)
         # return that if the user is so inclined
         if param_list is None:
             return grid_param_list + ['seds', 'lamb']
@@ -150,7 +151,7 @@ def read_sed_data(
         for param in tqdm(param_list, desc='reading beast data'):
             # grid parameter
             if param in grid_param_list:
-                sed_data[cparam] = sed_hdf['grid'][param]
+                sed_data[param] = sed_hdf['grid'][param]
             # wavelengths of the filters -or- SED photometry values
             elif (param == 'lamb') or (param == 'seds'):
                 sed_data[param] = sed_hdf[param].value
@@ -204,10 +205,12 @@ def get_lnp_grid_vals(sed_data, lnp_data):
         lnp_grid_vals[param] = np.full((n_lnps, n_stars), np.nan, dtype=float)
 
     # loop over the stars and extract the requested BEAST data
-    # for k in tqdm(range(n_stars), desc='extracting beast data'):
-    for k in range(n_stars):
+    for k in tqdm(range(n_stars), desc='extracting params for each lnP'):
+    #for k in range(n_stars):
+        lnp_inds = lnp_data['indxs'][:, k]
+        good_inds = np.isfinite(lnp_inds)
         for param in param_list:
-            lnp_grid_vals[param][:, k] = \
-                            sed_data[param][lnp_data['indxs'][:, k]]
+            lnp_grid_vals[param][good_inds, k] = \
+                sed_data[param][lnp_inds[good_inds].astype(int)]
 
     return lnp_grid_vals
