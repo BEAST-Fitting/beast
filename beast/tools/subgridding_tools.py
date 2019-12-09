@@ -616,7 +616,7 @@ def merge_lnp(
 
 
     # write out the things in a new file
-    with tables.open_file(lnp_fname, "a") as out_table:
+    with tables.open_file(lnp_fname, "w") as out_table:
         for i in range(n_star):
             star_label = "star_"+str(i)
             star_group = out_table.create_group(star_label)

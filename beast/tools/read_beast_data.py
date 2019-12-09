@@ -106,7 +106,7 @@ def read_noise_data(
             if filter_col is None:
                 noise_data[param] = np.array(noise_hdf[param])
             else:
-                noise_data[param] = noise_hdf[cparam][:,filter_col]
+                noise_data[param] = noise_hdf[param][:,filter_col]
 
     return noise_data
 
