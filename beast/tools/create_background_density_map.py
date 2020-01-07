@@ -24,7 +24,8 @@ from beast.tools.density_map import DensityMap
 from beast.tools import cut_catalogs
 import itertools as it
 import os
-from shapely.geometry import box, Polygon
+from shapely import geometry
+
 
 def main():  # pragma: no cover
     parser = argparse.ArgumentParser()
@@ -501,7 +502,9 @@ def make_source_dens_map(
     pix_x, pix_y = get_pix_coords(cat, w)
 
     # make a convex hull of the catalog
-    catalog_boundary = cut_catalogs.convexhull_path(pix_x, pix_y)
+    catalog_boundary = geometry.Polygon(
+        cut_catalogs.convexhull_path(pix_x, pix_y).vertices
+    )
 
     n_x = len(ra_grid) - 1
     n_y = len(dec_grid) - 1
@@ -530,9 +533,9 @@ def make_source_dens_map(
         n_indxs = len(indxs_for_SD)
         if n_indxs > 0:
             # make a box for the current SD map pixel
-            pix_box = box(i, j, i+1, j+1)
+            pix_box = geometry.box(i, j, i+1, j+1)
             # find fractional overlap area
-            frac_area = Polygon(catalog_boundary.vertices).intersection(pix_box).area
+            frac_area = catalog_boundary.intersection(pix_box).area
             # stars per unit area
             npts_map[i, j] = n_indxs / (pix_area*frac_area)
 
