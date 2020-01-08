@@ -21,8 +21,10 @@ from matplotlib.collections import PatchCollection
 import numpy as np
 import photutils as pu
 from beast.tools.density_map import DensityMap
+from beast.tools import cut_catalogs
 import itertools as it
 import os
+from shapely import geometry
 
 
 def main():  # pragma: no cover
@@ -499,6 +501,11 @@ def make_source_dens_map(
     w = make_wcs_for_map(ra_grid, dec_grid)
     pix_x, pix_y = get_pix_coords(cat, w)
 
+    # make a convex hull of the catalog
+    catalog_boundary = geometry.Polygon(
+        cut_catalogs.convexhull_path(pix_x, pix_y).vertices
+    )
+
     n_x = len(ra_grid) - 1
     n_y = len(dec_grid) - 1
     npts_map = np.zeros([n_x, n_y], dtype=float)
@@ -525,7 +532,12 @@ def make_source_dens_map(
 
         n_indxs = len(indxs_for_SD)
         if n_indxs > 0:
-            npts_map[i, j] = n_indxs / pix_area
+            # make a box for the current SD map pixel
+            pix_box = geometry.box(i, j, i+1, j+1)
+            # find fractional overlap area
+            frac_area = catalog_boundary.intersection(pix_box).area
+            # stars per unit area
+            npts_map[i, j] = n_indxs / (pix_area*frac_area)
 
         # save the source density as an entry for each source
         source_dens[indxs] = npts_map[i, j]
