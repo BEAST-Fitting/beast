@@ -1,5 +1,5 @@
-""" HDFStore
-High level interface to PyTables for reading and writing structures to disk
+""" High level interface to PyTables for reading and writing structures to disk
+
 Could work either as a (key, value) storage or as a classic tables.file.File object.
 
 Example Usage::
@@ -271,6 +271,7 @@ def __write__(
 
 class HDFStore(object):
     """ Handling quick in and out of the HDF5 file
+
         This class can be used as a context manager
 
         Any attribute of the HDF will be directly available transparently if
@@ -300,8 +301,9 @@ class HDFStore(object):
         self.set_mode(mode, **kwargs)
 
     def set_mode(self, val=None, **kwargs):
-        """set_mode - set a flag to open the file in a given mode operations
-        if the mode changes, and the storage already opened, it will close the
+        """ Set a flag to open the file in a given mode operations
+
+        If the mode changes, and the storage already opened, it will close the
         storage and reopen it in the new mode
 
         Parameters
@@ -342,7 +344,7 @@ class HDFStore(object):
                     self.open_source()
 
     def keep_open(self, val=None):
-        """keep_open - set a flag to keep the storage file open for multiple operations
+        """ Set a flag to keep the storage file open for multiple operations
 
         Parameters
         ----------
@@ -361,8 +363,9 @@ class HDFStore(object):
             self._keep_open = bool(val)
 
     def open_source(self):
-        """open_source
-        Open the file if needed, handles that the object was initialized with an opened file
+        """ Open the file if needed
+
+        Handles that the object was initialized with an opened file
 
         returns
         -------
@@ -380,8 +383,7 @@ class HDFStore(object):
         return False
 
     def close_source(self, force=False):
-        """close_source
-        close the file only if the object opened any file
+        """ Close the file only if the object opened any file
 
         Parameters
         ----------
@@ -394,7 +396,8 @@ class HDFStore(object):
                 self.source = None
 
     def keys(self):
-        """
+        """ Returns a list of keys based on objects in HDFStore
+
         Return a (potentially unordered) list of the keys corresponding to the
         objects stored in the HDFStore. These are ABSOLUTE path-names (e.g. have the leading '/'
         """
@@ -466,8 +469,8 @@ class HDFStore(object):
             )
 
     def __getitem__(self, key):
-        """__getitem__
-        Returns the node corresponding to the key
+        """__getitem__ 
+        Returns the node corresponding to the key 
         """
         with self as s:
             if key[0] != "/":
@@ -479,8 +482,8 @@ class HDFStore(object):
             return s.source.get_node(p)
 
     def __setitem__(self, key, value):
-        """__setitem__
-        create a node with the key path/name and set value as its content
+        """__setitem__ 
+        Creates a node with the key path/name and set value as its content
         """
         with self as s:
             if key in list(s.keys()):
@@ -528,7 +531,8 @@ class HDFStore(object):
         self.close_source()
 
     def __contains__(self, key):
-        """ check for existance of this key
+        """ check for existence of this key
+
         can match the exact pathname or the pathnm w/o the leading '/'
         """
         return key in list(self.keys())
@@ -537,12 +541,13 @@ class HDFStore(object):
         return len(self.groups())
 
     def get_Q_from_node(self, nodename, expr, condvars={}, coordinates=None):
-        """ returns a quantity from a HDF5 Node given its math expression.
+        """ Returns a quantity from a HDF5 Node given its math expression.
+
             Assuming that all quantities are either from the node or in condvars
 
-            attempt to be clever and optimizing speed when coordinates are provided
+            Attempt to be clever and optimizing speed when coordinates are provided
 
-            all np function can be used (log, exp, pi...)
+            All np function can be used (log, exp, pi...)
 
             method
             ------
@@ -603,7 +608,8 @@ class HDFStore(object):
 
 
 def unittest():
-    """unittest
+    """ unittest
+
     Example usage
     """
 
