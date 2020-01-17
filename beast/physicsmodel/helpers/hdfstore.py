@@ -469,8 +469,8 @@ class HDFStore(object):
             )
 
     def __getitem__(self, key):
-        """__getitem__ 
-        Returns the node corresponding to the key 
+        """__getitem__
+        Returns the node corresponding to the key
         """
         with self as s:
             if key[0] != "/":
@@ -482,7 +482,7 @@ class HDFStore(object):
             return s.source.get_node(p)
 
     def __setitem__(self, key, value):
-        """__setitem__ 
+        """__setitem__
         Creates a node with the key path/name and set value as its content
         """
         with self as s:
