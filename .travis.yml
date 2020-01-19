@@ -115,13 +115,13 @@ matrix:
         # time.
 
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.15
                SETUP_CMD='test -a "--mpl" --remote-data'
         - os: linux
-          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.14
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.16
                SETUP_CMD='test -a "--mpl" --remote-data'
         - os: linux
-          env: NUMPY_VERSION=1.15
+          env: NUMPY_VERSION=1.17
                SETUP_CMD='test -a "--mpl" --remote-data'
 
         # Do a PEP8 test with flake8
@@ -137,7 +137,7 @@ matrix:
                EVENT_TYPE='pull_request push cron'
 
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.15
                SETUP_CMD='test -a "--mpl" --remote-data'
 
         # Do a PEP8 test with flake8
