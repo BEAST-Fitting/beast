@@ -120,9 +120,9 @@ def percentile(data, percentiles, weights=None):
     _wt = np.asarray(weights, dtype=float)
 
     
-    i = np.argsort(_data)
-    sd = _data[i]
-    sw = _wt[i]
+    isort = np.argsort(_data)
+    sd = _data[isort]
+    sw = _wt[isort]
     aw = np.cumsum(sw)
 
     if not aw[-1] > 0:
