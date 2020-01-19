@@ -76,11 +76,6 @@ matrix:
         - stage: Initial tests
           env: PYTHON_VERSION=3.7 SETUP_CMD='egg_info'
 
-        # Try MacOS X
-        - os: osx
-          stage: Cron tests
-          env: SETUP_CMD='test -a "--mpl" --remote-data'
-
         # Do a coverage test.
         - os: linux
           stage: Initial tests
@@ -109,19 +104,23 @@ matrix:
                SETUP_CMD='test -a "--mpl" --remote-data'
                EVENT_TYPE='cron'
 
+        # Try MacOS X
+        - os: osx
+          env: SETUP_CMD='test -a "--mpl" --remote-data'
+
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
         # versions of Python, we can vary Python and Numpy versions at the same
         # time.
 
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.15
                SETUP_CMD='test -a "--mpl" --remote-data'
         - os: linux
-          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.14
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=1.16
                SETUP_CMD='test -a "--mpl" --remote-data'
         - os: linux
-          env: NUMPY_VERSION=1.15
+          env: NUMPY_VERSION=1.17
                SETUP_CMD='test -a "--mpl" --remote-data'
 
         # Do a PEP8 test with flake8
@@ -137,7 +136,7 @@ matrix:
                EVENT_TYPE='pull_request push cron'
 
         - os: linux
-          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.14
+          env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.15
                SETUP_CMD='test -a "--mpl" --remote-data'
 
         # Do a PEP8 test with flake8
