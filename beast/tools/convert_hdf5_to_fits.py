@@ -18,6 +18,7 @@ def st_file(file_name):
 
     """
 
+    # Check to see if the input file has been specified correctly
     if file_name is None:
         print("Need a valid filename")
         return
@@ -51,7 +52,7 @@ def st_file(file_name):
     # iterate through the table to fill the dictionary
     print("filling up the dictionary with data")
 
-    for ind in range(len(tab)):
+    for ind in enumerate(tab):
 
         # 0th item is the index
         # (don't need it)
