@@ -76,11 +76,6 @@ matrix:
         - stage: Initial tests
           env: PYTHON_VERSION=3.7 SETUP_CMD='egg_info'
 
-        # Try MacOS X
-        - os: osx
-          stage: Initial tests
-          env: SETUP_CMD='test -a "--mpl" --remote-data'
-
         # Do a coverage test.
         - os: linux
           stage: Initial tests
@@ -108,6 +103,10 @@ matrix:
           env: ASTROPY_VERSION=development NUMPY_VERSION=development
                SETUP_CMD='test -a "--mpl" --remote-data'
                EVENT_TYPE='cron'
+
+        # Try MacOS X
+        - os: osx
+          env: SETUP_CMD='test -a "--mpl" --remote-data'
 
         # Try all python versions and Numpy versions. Since we can assume that
         # the Numpy developers have taken care of testing Numpy with different
