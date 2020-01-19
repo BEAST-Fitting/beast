@@ -78,7 +78,7 @@ matrix:
 
         # Try MacOS X
         - os: osx
-          stage: Cron tests
+          stage: Initial tests
           env: SETUP_CMD='test -a "--mpl" --remote-data'
 
         # Do a coverage test.
