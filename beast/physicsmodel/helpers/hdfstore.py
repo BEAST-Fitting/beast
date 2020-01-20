@@ -607,30 +607,30 @@ class HDFStore(object):
         return q
 
 
-def unittest():
-    """ unittest
-
-    Example usage
-    """
-
-    # make a store
-    with HDFStore("tmp.hd5", mode="w") as hd:
-        # make some variables
-        d = {}
-        d["a"] = np.arange(10, dtype=float)
-        d["b"] = np.arange(10, dtype="int")
-        c1 = np.random.normal(0, 1, (10, 10))
-        c2 = np.random.normal(0, 1, (10, 10))
-        d["c"] = c1
-
-        # put values into the store
-        hd["/subdir/table"] = d
-        hd["/subdir1/array"] = c1
-        hd.write(c2, "/subdir1", "array", append=True)
-
-        # check values
-        print(list(hd.keys()))
-        print(hd["subdir/table"])
-        print(hd["subdir1/array"])
-        hd.remove_node("/subdir1", recursive=True)
-        print(list(hd.keys()))
+# def unittest():
+#    """ unittest
+#
+#    Example usage
+#    """
+#
+#    # make a store
+#    with HDFStore("tmp.hd5", mode="w") as hd:
+#        # make some variables
+#        d = {}
+#        d["a"] = np.arange(10, dtype=float)
+#        d["b"] = np.arange(10, dtype="int")
+#        c1 = np.random.normal(0, 1, (10, 10))
+#        c2 = np.random.normal(0, 1, (10, 10))
+#        d["c"] = c1
+#
+#        # put values into the store
+#        hd["/subdir/table"] = d
+#        hd["/subdir1/array"] = c1
+#        hd.write(c2, "/subdir1", "array", append=True)
+#
+#        # check values
+#        print(list(hd.keys()))
+#        print(hd["subdir/table"])
+#        print(hd["subdir1/array"])
+#        hd.remove_node("/subdir1", recursive=True)
+#        print(list(hd.keys()))
