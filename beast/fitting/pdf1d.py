@@ -98,15 +98,3 @@ class pdf1d:
                     _vals_1d[i] = np.sum(_tgrid[self.pdf_bin_indxs[i]])
 
             return (self.bin_vals, _vals_1d)
-
-    def gen1d_full(self, weights):
-
-        if self.bad:
-            return (self.bin_vals, np.zeros((self.nbins)))
-        else:
-            _vals_1d = np.zeros(self.nbins)
-            for i in range(self.nbins):
-                if len(self.pdf_bin_indxs[i]) > 0:
-                    _vals_1d[i] = np.sum(weights[self.pdf_bin_indxs[i]])
-
-            return (self.bin_vals, _vals_1d)
