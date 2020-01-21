@@ -184,6 +184,82 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
             outfile.create_array(star_group, "chi2", lnp_val[3])
     outfile.close()
 
+def setup_param_bins(qname, max_nbins, g0, full_model_flux, grid_info_dict):
+    """
+    Set up the bin properties for the given parameter
+
+    Parameters
+    ----------
+    qname : str
+        name of the parameter
+
+    max_nbins : int
+        max number of bins to use for the PDF calculations
+
+    g0 : FileSEDGrid object
+        the SED grid
+
+    full_model_flux : np.array
+        fluxes for the model grid
+
+    grid_info_dict : dict
+        the override for bin min/max/n_bin
+
+    Returns
+    -------
+    nbins : int
+        number of bins
+
+    logspacing : boolean
+        whether the bins should be log-spaced
+
+    minval, maxval : floats
+        min/max value for the bins
+
+    """
+
+    if "_bias" in qname:
+        fname = (qname.replace("_wd_bias", "")).replace("symlog", "")
+        q = full_model_flux[:, filters.index(fname)]
+    else:
+        q = g0[qname]
+
+    if grid_info_dict is not None and qname in grid_info_dict:
+        # When processing a subgrid, we actually need the number of
+        # unique values across all the subgrids to make the 1dpdfs
+        # compatible
+        n_uniq = grid_info_dict[qname]["num_unique"]
+    else:
+        n_uniq = len(np.unique(q))
+
+    if n_uniq > max_nbins:
+        # limit the number of bins in the 1D likelihood for speed
+        nbins = max_nbins
+    else:
+        nbins = n_uniq
+
+    # temp code for BEAST paper figure
+    if qname == "Z":
+        nbins = nbins + 1
+
+    # setup for the fast 1D/2D PDFs
+
+    # needed for mass parameters as they are stored as linear values
+    # computationally, less bins needed if 1D PDFs done as log spacing
+    if qname in set(["M_ini", "M_act", "radius"]):
+        logspacing = True
+    else:
+        logspacing = False
+
+    if grid_info_dict is not None and qname in grid_info_dict:
+        minval = grid_info_dict[qname]["min"]
+        maxval = grid_info_dict[qname]["max"]
+    else:
+        minval = None
+        maxval = None
+
+    return nbins, logspacing, minval, maxval
+
 
 def Q_all_memory(
     prev_result,
@@ -388,46 +464,11 @@ def Q_all_memory(
     save_pdf2d_vals = dict(fast_pdf2d_objs)
 
     for qname in qnames:
-        # q = g0[qname][g0_indxs]
-        if "_bias" in qname:
-            fname = (qname.replace("_wd_bias", "")).replace("symlog", "")
-            q = full_model_flux[:, filters.index(fname)]
-        else:
-            q = g0[qname]
 
-        if grid_info_dict is not None and qname in grid_info_dict:
-            # When processing a subgrid, we actually need the number of
-            # unique values across all the subgrids to make the 1dpdfs
-            # compatible
-            n_uniq = grid_info_dict[qname]["num_unique"]
-        else:
-            n_uniq = len(np.unique(q))
-
-        if n_uniq > max_nbins:
-            # limit the number of bins in the 1D likelihood for speed
-            nbins = max_nbins
-        else:
-            nbins = n_uniq
-
-        # temp code for BEAST paper figure
-        if qname == "Z":
-            nbins = nbins + 1
-
-        # setup the fast 1d pdf
-
-        # needed for mass parameters as they are stored as linear values
-        # computationally, less bins needed if 1D PDFs done as log spacing
-        if qname in set(["M_ini", "M_act", "radius"]):
-            logspacing = True
-        else:
-            logspacing = False
-
-        if grid_info_dict is not None and qname in grid_info_dict:
-            minval = grid_info_dict[qname]["min"]
-            maxval = grid_info_dict[qname]["max"]
-        else:
-            minval = None
-            maxval = None
+        # get bin properties
+        nbins, logspacing, minval, maxval = setup_param_bins(
+            qname, max_nbins, g0, full_model_flux, grid_info_dict
+        )
 
         # generate the fast 1d pdf mapping
         _tpdf1d = pdf1d(q, nbins, logspacing=logspacing, minval=minval, maxval=maxval)
