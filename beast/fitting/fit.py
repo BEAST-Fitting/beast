@@ -374,6 +374,19 @@ def Q_all_memory(
     fast_pdf1d_objs = []
     save_pdf1d_vals = []
 
+    # setup the 2D PDFs
+    _pdf2d_params = [
+        qname for qname in qnames
+        if qname in ['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance']
+    ]
+    _n_params = len(pdf2d_params)
+    fast_pdf2d_objs = {
+        _pdf2d_params[i]+'+'+_pdf2d_params[j]:0
+        for i in range(_n_params)
+        for j in range(i+1,_n_params)
+    }
+    save_pdf2d_vals = dict(fast_pdf2d_objs)
+
     for qname in qnames:
         # q = g0[qname][g0_indxs]
         if "_bias" in qname:
@@ -383,7 +396,7 @@ def Q_all_memory(
             q = g0[qname]
 
         if grid_info_dict is not None and qname in grid_info_dict:
-            # When processing a subgrid, we actuall need the number of
+            # When processing a subgrid, we actually need the number of
             # unique values across all the subgrids to make the 1dpdfs
             # compatible
             n_uniq = grid_info_dict[qname]["num_unique"]
@@ -571,6 +584,8 @@ def Q_all_memory(
         lnp_vals[e] = lnps.max()
         lnp_indx[e] = best_full_indx
 
+        # calculate quantities for individual parameters:
+        # best value, expectation value, 1D PDF, percentiles
         for k, qname in enumerate(qnames):
             if "_bias" in qname:
                 fname = (qname.replace("_wd_bias", "")).replace("symlog", "")
