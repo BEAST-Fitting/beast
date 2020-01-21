@@ -1,5 +1,6 @@
 """
 Backends to handle the model grids different ways
+
 =================================================
 
 Multiple backends are available to reduce the memory footprint for a
@@ -65,6 +66,7 @@ __all__ = ["GridBackend", "MemoryBackend", "CacheBackend", "HDFBackend"]
 
 class GridBackend(object):
     """GridBackend
+
     How the content of a grid is handled. The idea is to provide enough
     flexibility that low-memory footprint can be achieved if needed
 
@@ -174,8 +176,9 @@ class GridBackend(object):
 
 
 class MemoryBackend(GridBackend):
-    """ Instanciate an grid object that has no physical storage
-        Helps to create new grids on the fly. Because it deriveds from
+    """ Instanciate a grid object that has no physical storage
+
+        Helps to create new grids on the fly. Because it derives from
         ModelGrid, this can be exported on disk too.
     """
 
@@ -592,6 +595,7 @@ class CacheBackend(GridBackend):
 
 class HDFBackend(GridBackend):
     """HDFBackend -- Laziest grid
+
     Operations are optimized on disk through pytables
     """
 
