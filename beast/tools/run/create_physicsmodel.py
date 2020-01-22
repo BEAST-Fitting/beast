@@ -80,6 +80,9 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
         z=datamodel.z,
     )
 
+    # remove the isochrone points with logL=-9.999
+    oiso=oiso[oiso['logL']> -9]
+
     if hasattr(datamodel, "add_spectral_properties_kwargs"):
         extra_kwargs = datamodel.add_spectral_properties_kwargs
     else:
