@@ -110,7 +110,7 @@ def percentile(data, percentiles, weights=None):
 
     _wt = np.asarray(weights, dtype=float)
 
-    
+
     isort = np.argsort(_data)
     sd = _data[isort]
     sw = _wt[isort]
