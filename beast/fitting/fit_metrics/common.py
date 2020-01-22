@@ -158,7 +158,6 @@ def expectation(q, weights=None):
     (1) This function is about 30% fater than usning numpy.average
         to compute expectation values -- test by Yumi Choi on 1/17/2020
     """
-    n = len(q)
 
     if weights is None:
         return np.mean(q)
