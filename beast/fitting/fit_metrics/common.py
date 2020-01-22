@@ -124,7 +124,7 @@ def percentile(data, percentiles, weights=None):
 
     return o
 
-    
+
 
 def expectation(q, weights=None):
     """
