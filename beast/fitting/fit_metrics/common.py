@@ -44,15 +44,6 @@ Note that the 50th weighted percentile is known as the weighted median.
 """
 import numpy as np
 
-try:
-    from .c_common import weighted_percentile as c_wp
-    from .c_common import expectation as c_expect
-
-    _C_code = True
-except ImportError:
-    _C_code = False
-
-_C_code = False
 
 
 def percentile(data, percentiles, weights=None):
@@ -161,28 +152,20 @@ def expectation(q, weights=None):
     -------
     e: float
         expectation value
-    
+
     NOTE
     -------
-    (1) This function is about 30% fater than usning numpy.average 
-        to compute expectation values -- test by Yumi Choi on 1/17/2020 
+    (1) This function is about 30% fater than usning numpy.average
+        to compute expectation values -- test by Yumi Choi on 1/17/2020
     """
     n = len(q)
-    if _C_code:
-        # it is faster to use expectations instead of testing all weights are
-        # ones + calling np.mean
-        if weights is None:
-            _w = np.ones(n, dtype=float)
-        else:
-            _w = np.asarray(weights, dtype=float)
-        _q = np.asarray(q, dtype=float)
-        return c_expect(_q, _w)
-    else:
-        if weights is None:
-            return np.mean(q)
-        if np.equal(weights, 1.0).all():
-            return np.mean(q)
-        _w = np.asarray(weights, dtype=float)
-        _q = np.asarray(q, dtype=float)
-        e = (_q * _w).sum() / _w.sum()
-        return e
+
+    if weights is None:
+        return np.mean(q)
+    if np.equal(weights, 1.0).all():
+        return np.mean(q)
+    _w = np.asarray(weights, dtype=float)
+    _q = np.asarray(q, dtype=float)
+    e = (_q * _w).sum() / _w.sum()
+
+    return e
