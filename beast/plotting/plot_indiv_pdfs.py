@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-import matplotlib.colors as colors
 from astropy.io import fits
 import copy
 
@@ -92,12 +91,14 @@ def plot_pdfs(
                     )
 
                     # attempt to plot 1/2/3 sigma contours
+                    # (doesn't work if the probability is super concentrated,
+                    # which is generally due to the grid being really coarse)
                     try:
                         im_sort = np.sort(image, axis=None)[::-1]
                         cumsum = np.cumsum(im_sort)
                         cumsum /= np.max(cumsum)
                         clevels = [
-                            np.log(im_sort[np.where(cumsum < p)[0][-1]])
+                            np.log(im_sort[np.where(cumsum <= p)[0][-1]])
                             for p in [0.68, 0.95, 0.997]
                         ]
                         plt.contour(
@@ -108,9 +109,11 @@ def plot_pdfs(
                             colors='k',
                             linestyles='-',
                         )
-                    except:
+                    except IndexError:
                         #print("  can't make contours for this")
                         pass
+                    except:
+                        raise
 
 
 
