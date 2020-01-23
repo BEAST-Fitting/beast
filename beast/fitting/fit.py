@@ -219,7 +219,7 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
             outfile.create_array(star_group, "chi2", lnp_val[3])
     outfile.close()
 
-def setup_param_bins(qname, max_nbins, g0, full_model_flux, grid_info_dict):
+def setup_param_bins(qname, max_nbins, g0, full_model_flux, filters, grid_info_dict):
     """
     Set up the bin properties for the given parameter
 
@@ -236,6 +236,9 @@ def setup_param_bins(qname, max_nbins, g0, full_model_flux, grid_info_dict):
 
     full_model_flux : np.array
         fluxes for the model grid
+
+    filters : list of strings
+        names of the filters in the SED grid
 
     grid_info_dict : dict
         the override for bin min/max/n_bin
@@ -268,7 +271,7 @@ def setup_param_bins(qname, max_nbins, g0, full_model_flux, grid_info_dict):
         # compatible
         n_uniq = grid_info_dict[qname]["num_unique"]
     else:
-        n_uniq = len(np.unique(q))
+        n_uniq = len(np.unique(qname_vals))
 
     if n_uniq > max_nbins:
         # limit the number of bins in the 1D likelihood for speed
@@ -499,14 +502,15 @@ def Q_all_memory(
         qname for qname in qnames
         if qname in ['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance']
     ]
-    _n_params = len(pdf2d_params)
-    fast_pdf2d_objs = {
-        _pdf2d_params[i]+'+'+_pdf2d_params[j]:0
+    _n_params = len(_pdf2d_params)
+    pdf2d_qname_pairs = [
+        _pdf2d_params[i]+'+'+_pdf2d_params[j]
         for i in range(_n_params)
         for j in range(i+1,_n_params)
-    }
-    save_pdf2d_vals = dict(fast_pdf2d_objs)
-    pdf2d_qname_pairs = fast_pdf2d_objs.keys()
+    ]
+    fast_pdf2d_objs = []
+    save_pdf2d_vals = []
+
 
 
     # make 1D PDF objects
@@ -514,7 +518,7 @@ def Q_all_memory(
 
         # get bin properties
         qname_vals, nbins, logspacing, minval, maxval = setup_param_bins(
-            qname, max_nbins, g0, full_model_flux, grid_info_dict
+            qname, max_nbins, g0, full_model_flux, filters, grid_info_dict
         )
 
         # generate the fast 1d pdf mapping
@@ -531,10 +535,10 @@ def Q_all_memory(
 
         # get bin properties
         qname_vals_p1, nbins_p1, logspacing_p1, minval_p1, maxval_p1 = setup_param_bins(
-            qname_1, max_nbins, g0, full_model_flux, grid_info_dict
+            qname_1, max_nbins, g0, full_model_flux, filters, grid_info_dict
         )
         qname_vals_p2, nbins_p2, logspacing_p2, minval_p2, maxval_p2 = setup_param_bins(
-            qname_2, max_nbins, g0, full_model_flux, grid_info_dict
+            qname_2, max_nbins, g0, full_model_flux, filters, grid_info_dict
         )
 
         # make 2D PDF
@@ -552,12 +556,12 @@ def Q_all_memory(
         )
         fast_pdf2d_objs.append(_tpdf2d)
         # arrays for the PDFs and bins
-        save_pdf2d_vals.append(np.zeros(nobs + 2, nbins_p1, nbins_p2))
+        save_pdf2d_vals.append(np.zeros((nobs + 2, nbins_p1, nbins_p2)))
         save_pdf2d_vals[-1][-2, :, :] = np.tile(
-            _tpdf1d.bin_vals_p1, (nbins_p2, 1)
+            _tpdf2d.bin_vals_p1, (nbins_p2, 1)
         ).T
         save_pdf2d_vals[-1][-1, :, :] = np.tile(
-            _tpdf1d.bin_vals_p2, (nbins_p1, 1)
+            _tpdf2d.bin_vals_p2, (nbins_p1, 1)
         )
 
 
@@ -900,6 +904,7 @@ def summary_table_memory(
     resume=False,
     stats_outname=None,
     pdf1d_outname=None,
+    pdf2d_outname=None,
     grid_info_dict=None,
     lnp_outname=None,
     use_full_cov_matrix=True,
@@ -1011,6 +1016,7 @@ def summary_table_memory(
         lnp_npts=lnp_npts,
         stats_outname=stats_outname,
         pdf1d_outname=pdf1d_outname,
+        pdf2d_outname=pdf2d_outname,
         grid_info_dict=grid_info_dict,
         lnp_outname=lnp_outname,
         use_full_cov_matrix=use_full_cov_matrix,
