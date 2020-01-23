@@ -69,8 +69,10 @@ def plot_pdfs(
                     # find the 2D PDF and make sure it's properly rotated
                     try:
                         image = hdu_2d[pi+'+'+pj].data[starnum,:,:].T
-                    except:
+                    except KeyError:
                         image = hdu_2d[pj+'+'+pi].data[starnum,:,:]
+                    except:
+                        raise
 
                     # create axis/labels
                     x_bins, x_label = setup_axis(pi, hdu_1d)
