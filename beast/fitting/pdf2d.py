@@ -115,14 +115,14 @@ class pdf2d:
         self.pdf_bin_indxs = pdf_bin_indxs
 
 
-        def gen2d(self, gindxs, weights):
+    def gen2d(self, gindxs, weights):
 
-            _tgrid = np.zeros(self.n_gridvals)
-            _tgrid[gindxs] = weights
-            _vals_2d = np.zeros((self.nbins_p1, self.nbins_p2))
-            for i in range(self.nbins_p1):
-                for j in range(self.nbins_p2):
-                    if len(self.pdf_bin_indxs[i][j]) > 0:
-                        _vals_2d[i,j] = np.sum(_tgrid[self.pdf_bin_indxs[i][j]])
+        _tgrid = np.zeros(self.n_gridvals)
+        _tgrid[gindxs] = weights
+        _vals_2d = np.zeros((self.nbins_p1, self.nbins_p2))
+        for i in range(self.nbins_p1):
+            for j in range(self.nbins_p2):
+                if len(self.pdf_bin_indxs[i][j]) > 0:
+                    _vals_2d[i,j] = np.sum(_tgrid[self.pdf_bin_indxs[i][j]])
 
-            return _vals_2d
+        return _vals_2d
