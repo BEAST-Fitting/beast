@@ -17,6 +17,7 @@ from beast.tools.run import create_filenames
 
 import datamodel
 import importlib
+importlib.reload(fit)
 
 
 def run_fitting(
@@ -92,6 +93,7 @@ def run_fitting(
     # output files
     stats_files = file_dict["stats_files"]
     pdf_files = file_dict["pdf_files"]
+    pdf2d_files = file_dict["pdf2d_files"]
     lnp_files = file_dict["lnp_files"]
 
     # total number of files
@@ -155,6 +157,7 @@ def run_fitting(
                 noise_trim_files[i],
                 stats_files[i],
                 pdf_files[i],
+                pdf2d_files[i],
                 lnp_files[i],
                 None,
                 resume,
@@ -171,6 +174,7 @@ def run_fitting(
                 noise_trim_files[i],
                 stats_files[i],
                 pdf_files[i],
+                pdf2d_files[i],
                 lnp_files[i],
                 gridpickle_files[i],
                 resume,
@@ -193,6 +197,7 @@ def fit_submodel(
     noise_file,
     stats_file,
     pdf_file,
+    pdf2d_file,
     lnp_file,
     grid_info_file=None,
     resume=False,
@@ -216,6 +221,9 @@ def fit_submodel(
 
     pdf_file : string
         path+name of the file to contain 1D PDF output
+
+    pdf2d_file : string
+        path+name of the file to contain 2D PDF output
 
     lnp_file : string
         path+name of the file to contain log likelihood output
@@ -262,6 +270,7 @@ def fit_submodel(
             lnp_npts=500,
             stats_outname=stats_file,
             pdf1d_outname=pdf_file,
+            pdf2d_outname=pdf2d_file,
             grid_info_dict=grid_info_dict,
             lnp_outname=lnp_file,
             do_not_normalize=True,
@@ -281,6 +290,7 @@ def fit_submodel(
             lnp_npts=500,
             stats_outname=stats_file,
             pdf1d_outname=pdf_file,
+            pdf2d_outname=pdf2d_file,
             lnp_outname=lnp_file,
             surveyname=datamodel.surveyname,
         )
@@ -332,7 +342,3 @@ if __name__ == "__main__":  # pragma: no cover
         choose_subgrid=args.choose_subgrid,
         resume=args.resume,
     )
-
-    # print help if no arguments
-    if not any(vars(args).values()):
-        parser.print_help()
