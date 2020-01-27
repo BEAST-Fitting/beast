@@ -497,22 +497,6 @@ def Q_all_memory(
     fast_pdf1d_objs = []
     save_pdf1d_vals = []
 
-    # setup the 2D PDFs
-    _pdf2d_params = [
-        qname for qname in qnames
-        if qname in ['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance']
-    ]
-    _n_params = len(_pdf2d_params)
-    pdf2d_qname_pairs = [
-        _pdf2d_params[i]+'+'+_pdf2d_params[j]
-        for i in range(_n_params)
-        for j in range(i+1,_n_params)
-    ]
-    fast_pdf2d_objs = []
-    save_pdf2d_vals = []
-
-
-
     # make 1D PDF objects
     for qname in qnames:
 
@@ -529,40 +513,57 @@ def Q_all_memory(
         save_pdf1d_vals.append(np.zeros((nobs + 1, nbins)))
         save_pdf1d_vals[-1][-1, :] = _tpdf1d.bin_vals
 
-    # make 2D PDF objects
-    for qname_pair in pdf2d_qname_pairs:
-        qname_1, qname_2 = qname_pair.split('+')
+    # if chosen, make 2D PDFs
+    if pdf2d_outname is not None:
 
-        # get bin properties
-        qname_vals_p1, nbins_p1, logspacing_p1, minval_p1, maxval_p1 = setup_param_bins(
-            qname_1, max_nbins, g0, full_model_flux, filters, grid_info_dict
-        )
-        qname_vals_p2, nbins_p2, logspacing_p2, minval_p2, maxval_p2 = setup_param_bins(
-            qname_2, max_nbins, g0, full_model_flux, filters, grid_info_dict
-        )
+        # setup the 2D PDFs
+        _pdf2d_params = [
+            qname for qname in qnames
+            if qname in ['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance']
+        ]
+        _n_params = len(_pdf2d_params)
+        pdf2d_qname_pairs = [
+            _pdf2d_params[i]+'+'+_pdf2d_params[j]
+            for i in range(_n_params)
+            for j in range(i+1,_n_params)
+        ]
+        fast_pdf2d_objs = []
+        save_pdf2d_vals = []
 
-        # make 2D PDF
-        _tpdf2d = pdf2d(
-            qname_vals_p1,
-            qname_vals_p2,
-            nbins_p1,
-            nbins_p2,
-            logspacing_p1=logspacing_p1,
-            logspacing_p2=logspacing_p2,
-            minval_p1=minval_p1,
-            maxval_p1=maxval_p1,
-            minval_p2=minval_p2,
-            maxval_p2=maxval_p2,
-        )
-        fast_pdf2d_objs.append(_tpdf2d)
-        # arrays for the PDFs and bins
-        save_pdf2d_vals.append(np.zeros((nobs + 2, nbins_p1, nbins_p2)))
-        save_pdf2d_vals[-1][-2, :, :] = np.tile(
-            _tpdf2d.bin_vals_p1, (nbins_p2, 1)
-        ).T
-        save_pdf2d_vals[-1][-1, :, :] = np.tile(
-            _tpdf2d.bin_vals_p2, (nbins_p1, 1)
-        )
+        # make 2D PDF objects
+        for qname_pair in pdf2d_qname_pairs:
+            qname_1, qname_2 = qname_pair.split('+')
+
+            # get bin properties
+            qname_vals_p1, nbins_p1, logspacing_p1, minval_p1, maxval_p1 = setup_param_bins(
+                qname_1, max_nbins, g0, full_model_flux, filters, grid_info_dict
+            )
+            qname_vals_p2, nbins_p2, logspacing_p2, minval_p2, maxval_p2 = setup_param_bins(
+                qname_2, max_nbins, g0, full_model_flux, filters, grid_info_dict
+            )
+
+            # make 2D PDF
+            _tpdf2d = pdf2d(
+                qname_vals_p1,
+                qname_vals_p2,
+                nbins_p1,
+                nbins_p2,
+                logspacing_p1=logspacing_p1,
+                logspacing_p2=logspacing_p2,
+                minval_p1=minval_p1,
+                maxval_p1=maxval_p1,
+                minval_p2=minval_p2,
+                maxval_p2=maxval_p2,
+            )
+            fast_pdf2d_objs.append(_tpdf2d)
+            # arrays for the PDFs and bins
+            save_pdf2d_vals.append(np.zeros((nobs + 2, nbins_p1, nbins_p2)))
+            save_pdf2d_vals[-1][-2, :, :] = np.tile(
+                _tpdf2d.bin_vals_p1, (nbins_p2, 1)
+            ).T
+            save_pdf2d_vals[-1][-1, :, :] = np.tile(
+                _tpdf2d.bin_vals_p2, (nbins_p1, 1)
+            )
 
 
 
@@ -749,8 +750,9 @@ def Q_all_memory(
                 per_vals[e, k, :] = [0.0, 0.0, 0.0]
 
         # calculate 2D PDFs for the subset of parameter pairs
-        for k in range(len(pdf2d_qname_pairs)):
-            save_pdf2d_vals[k][e, :, :] = fast_pdf2d_objs[k].gen2d(g0_indxs[indx], weights)
+        if pdf2d_outname is not None:
+            for k in range(len(pdf2d_qname_pairs)):
+                save_pdf2d_vals[k][e, :, :] = fast_pdf2d_objs[k].gen2d(g0_indxs[indx], weights)
 
         # incremental save (useful if job dies early to recover most
         #    of the computations)
