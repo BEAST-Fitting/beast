@@ -315,6 +315,18 @@ The jobs can be submitted to the batch queue via:
 
      $ at -f projectname/fit_batch_jobs/beast_batch_fit_X.joblist now
 
+The fitting yields several output files (which are described in detail
+:doc:`here <outputs>`):
+
+* `*_stats.fits`: Statistics for each of the fitted and derived parameters,
+  including the 16th/50th/84th percentiles, mean, and expectation value
+* `*_pdf1d.fits`: Marginalized 1D PDFs for each of the fitted and derived
+  parameters
+* `*_pdf2d.fits`: Marginalized 2D PDFs for each pair of the fitted parameters
+* `*_lnp.hd5`: Sparsely sampled log likelihoods
+
+
+
 ***************
 Post-processing
 ***************
