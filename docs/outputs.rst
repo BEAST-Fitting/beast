@@ -1,12 +1,19 @@
-###########
-Output file
-###########
+############
+Output files
+############
 
-Below are details regarding the output statistics files produced by the BEAST
+Below are details regarding the output files produced by the BEAST:
+
+* `*_stats.fits`: Statistics for each of the fitted and derived parameters,
+  including the 16th/50th/84th percentiles, mean, and expectation value
+* `*_pdf1d.fits`: Marginalized 1D PDFs for each of the fitted and derived
+  parameters
+* `*_pdf2d.fits`: Marginalized 2D PDFs for each pair of the fitted parameters
+* `*_lnp.hd5`: Sparsely sampled log likelihoods
 
 
-Columns in BEAST stats files
-============================
+Statistics file
+===============
 
 Data Parameters
 ---------------
@@ -19,7 +26,7 @@ Data Parameters
 * `inside_chipgap`: in ACS chip gap
 * Photometry: listed as *flux* (not mag), units are normalized Vega fluxes
   (e.g., flux/flux_vega)
-  
+
   * `HST_WFC3_F275W`
   * `HST_WFC3_F336W`
   * `HST_ACS_WFC_F475W`
@@ -101,3 +108,91 @@ other bands of interest.
   PHAT results - incorrect***)
 * `logF_QION_wd`: log10 of the extinguished ionizing flux (***do not use for
   PHAT results - incorrect***)
+
+
+1D PDF file
+===========
+
+Each extension in the fits file is for one of the parameters listed above.  It
+contains an array with dimensions `(N_obs+1, N_bin)`, where `N_obs` is the
+number of stars and `N_bin` is the number of bins for that parameter.  Each
+entry in the array is the probability (NOT logarithmic) in each bin.  The bin
+values are listed in the last line of the array.
+
+Below is an example for `Rv` in the `phat_small` example.
+
+.. code-block:: python
+
+  >>> from astropy.io import fits
+  >>> hdu = fits.open('beast_example_phot_pdf1d.fits')
+  >>> hdu.info()
+  Filename: beast_example_phat_pdf1d.fits
+  No.    Name      Ver    Type      Cards   Dimensions   Format
+  0  PRIMARY       1 PrimaryHDU       6   (2, 2)   float64
+  1  Av            1 ImageHDU         8   (11, 270)   float64
+  2  M_act         1 ImageHDU         8   (50, 270)   float64
+  3  M_ini         1 ImageHDU         8   (50, 270)   float64
+  4  Rv            1 ImageHDU         8   (5, 270)   float64
+  5  Rv_A          1 ImageHDU         8   (9, 270)   float64
+  6  Z             1 ImageHDU         8   (5, 270)   float64
+  ...
+  >>> hdu['Rv'].data[0,:]  # 1D PDF for star 0
+  array([0.00000000e+00, 9.99753477e-01, 2.46523236e-04, 0.00000000e+00,
+       0.00000000e+00])
+  >>> hdu['Rv'].data[-1,:]  # corresponding bin values
+  array([2., 3., 4., 5., 6.])
+
+
+2D PDF file
+===========
+
+Each extension in the fits file is for one of the pairs of primary fitting
+parameters (`M_ini`, `logA`, `Z`, `distance`, `Av`, `Rv`, `f_A`).  The saved
+arrays have dimensions `(N_obs+2, N_bin_1, N_bin_2)`, where `N_obs` is the
+number of stars, `N_bin_1` is the number of bins for the first parameter, and
+`N_bin_2` is the number of bins for the second parameter.  The last two slices
+contain the bin values.
+
+Below is an example of the `Rv` and `f_A` 2D PDF in the `phat_small` example.
+
+.. code-block:: python
+
+  >>> from astropy.io import fits
+  >>> hdu = fits.open('beast_example_phot_pdf2d.fits')
+  >>> hdu.info()
+  Filename: beast_example_phat_pdf2d.fits
+  No.    Name      Ver    Type      Cards   Dimensions   Format
+  0  PRIMARY       1 PrimaryHDU       6   (2, 2)   float64
+  1  Av+M_ini      1 ImageHDU         9   (50, 11, 271)   float64
+  2  Av+Rv         1 ImageHDU         9   (5, 11, 271)   float64
+  3  Av+Z          1 ImageHDU         9   (5, 11, 271)   float64
+  4  Av+distance    1 ImageHDU         9   (1, 11, 271)   float64
+  5  Av+f_A        1 ImageHDU         9   (4, 11, 271)   float64
+  6  Av+logA       1 ImageHDU         9   (5, 11, 271)   float64
+  7  M_ini+Rv      1 ImageHDU         9   (5, 50, 271)   float64
+  8  M_ini+Z       1 ImageHDU         9   (5, 50, 271)   float64
+  ...
+  >>> hdu['Rv+f_A'].data[0,:,:]  # 2D PDF for star 0
+  array([[0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
+         [6.86784697e-01, 2.94159452e-01, 1.88093274e-02, 0.00000000e+00],
+         [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.46523236e-04],
+         [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
+         [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00]])
+  >>> hdu['Rv+f_A'].data[-2,:,:]  # corresponding Rv bin values
+  array([[2., 2., 2., 2.],
+         [3., 3., 3., 3.],
+         [4., 4., 4., 4.],
+         [5., 5., 5., 5.],
+         [6., 6., 6., 6.]])
+  >>> hdu['Rv+f_A'].data[-1,:,:]  # corresponding f_A bin values
+  array([[0.25, 0.5 , 0.75, 1.  ],
+         [0.25, 0.5 , 0.75, 1.  ],
+         [0.25, 0.5 , 0.75, 1.  ],
+         [0.25, 0.5 , 0.75, 1.  ],
+         [0.25, 0.5 , 0.75, 1.  ]])
+
+
+Log Likelihood file
+===================
+
+(to be added)
