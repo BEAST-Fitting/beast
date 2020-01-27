@@ -70,15 +70,15 @@ Stellar Parameters
 
 First 3 primary, others derived
 
-* M_ini: initial stellar mass (in solar masses)
-* logA: log10 of the stellar age (in years)
-* Z: stellar metallicity
-* M_act: current stellar mass (in solar masses)
-* logL: log10 of the stellar luminosity
-* logT: log10 of the stellar effective temperature
-* logg: log10 of the stellar surface gravity
-* mbol: bolometric magnitude
-* radius: stellar radius
+* `M_ini`: initial stellar mass (in solar masses)
+* `logA`: log10 of the stellar age (in years)
+* `Z`: stellar metallicity
+* `M_act`: current stellar mass (in solar masses)
+* `logL`: log10 of the stellar luminosity
+* `logT`: log10 of the stellar effective temperature
+* `logg`: log10 of the stellar surface gravity
+* `mbol`: bolometric magnitude
+* `radius`: stellar radius
 
 Predicted Fluxes
 """"""""""""""""
