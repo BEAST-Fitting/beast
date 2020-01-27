@@ -123,9 +123,9 @@ Below is an example for `Rv` in the `phat_small` example.
 
 .. code-block:: python
 
-  >>> from astropy.io import fits
-  >>> hdu = fits.open('beast_example_phat_pdf1d.fits')
-  >>> hdu.info()
+  >>> from astropy.io import fits #doctest: +SKIP
+  >>> hdu = fits.open('beast_example_phat_pdf1d.fits') #doctest: +SKIP
+  >>> hdu.info() #doctest: +SKIP
   Filename: beast_example_phat_pdf1d.fits
   No.    Name      Ver    Type      Cards   Dimensions   Format
   0  PRIMARY       1 PrimaryHDU       6   (2, 2)   float64
@@ -136,10 +136,10 @@ Below is an example for `Rv` in the `phat_small` example.
   5  Rv_A          1 ImageHDU         8   (9, 270)   float64
   6  Z             1 ImageHDU         8   (5, 270)   float64
   ...
-  >>> hdu['Rv'].data[0,:]  # 1D PDF for star 0
+  >>> hdu['Rv'].data[0,:]  # 1D PDF for star 0 #doctest: +SKIP
   array([0.00000000e+00, 9.99753477e-01, 2.46523236e-04, 0.00000000e+00,
        0.00000000e+00])
-  >>> hdu['Rv'].data[-1,:]  # corresponding bin values
+  >>> hdu['Rv'].data[-1,:]  # corresponding bin values #doctest: +SKIP
   array([2., 3., 4., 5., 6.])
 
 
@@ -157,9 +157,9 @@ Below is an example of the `Rv` and `f_A` 2D PDF in the `phat_small` example.
 
 .. code-block:: python
 
-  >>> from astropy.io import fits
-  >>> hdu = fits.open('beast_example_phat_pdf2d.fits')
-  >>> hdu.info()
+  >>> from astropy.io import fits #doctest: +SKIP
+  >>> hdu = fits.open('beast_example_phat_pdf2d.fits') #doctest: +SKIP
+  >>> hdu.info() #doctest: +SKIP
   Filename: beast_example_phat_pdf2d.fits
   No.    Name      Ver    Type      Cards   Dimensions   Format
   0  PRIMARY       1 PrimaryHDU       6   (2, 2)   float64
@@ -172,19 +172,19 @@ Below is an example of the `Rv` and `f_A` 2D PDF in the `phat_small` example.
   7  M_ini+Rv      1 ImageHDU         9   (5, 50, 271)   float64
   8  M_ini+Z       1 ImageHDU         9   (5, 50, 271)   float64
   ...
-  >>> hdu['Rv+f_A'].data[0,:,:]  # 2D PDF for star 0
+  >>> hdu['Rv+f_A'].data[0,:,:]  # 2D PDF for star 0 #doctest: +SKIP
   array([[0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
          [6.86784697e-01, 2.94159452e-01, 1.88093274e-02, 0.00000000e+00],
          [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.46523236e-04],
          [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
          [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00]])
-  >>> hdu['Rv+f_A'].data[-2,:,:]  # corresponding Rv bin values
+  >>> hdu['Rv+f_A'].data[-2,:,:]  # corresponding Rv bin values #doctest: +SKIP
   array([[2., 2., 2., 2.],
          [3., 3., 3., 3.],
          [4., 4., 4., 4.],
          [5., 5., 5., 5.],
          [6., 6., 6., 6.]])
-  >>> hdu['Rv+f_A'].data[-1,:,:]  # corresponding f_A bin values
+  >>> hdu['Rv+f_A'].data[-1,:,:]  # corresponding f_A bin values #doctest: +SKIP
   array([[0.25, 0.5 , 0.75, 1.  ],
          [0.25, 0.5 , 0.75, 1.  ],
          [0.25, 0.5 , 0.75, 1.  ],
