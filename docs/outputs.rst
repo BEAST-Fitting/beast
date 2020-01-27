@@ -124,7 +124,7 @@ Below is an example for `Rv` in the `phat_small` example.
 .. code-block:: python
 
   >>> from astropy.io import fits
-  >>> hdu = fits.open('beast_example_phot_pdf1d.fits')
+  >>> hdu = fits.open('beast_example_phat_pdf1d.fits')
   >>> hdu.info()
   Filename: beast_example_phat_pdf1d.fits
   No.    Name      Ver    Type      Cards   Dimensions   Format
@@ -158,7 +158,7 @@ Below is an example of the `Rv` and `f_A` 2D PDF in the `phat_small` example.
 .. code-block:: python
 
   >>> from astropy.io import fits
-  >>> hdu = fits.open('beast_example_phot_pdf2d.fits')
+  >>> hdu = fits.open('beast_example_phat_pdf2d.fits')
   >>> hdu.info()
   Filename: beast_example_phat_pdf2d.fits
   No.    Name      Ver    Type      Cards   Dimensions   Format
