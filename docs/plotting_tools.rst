@@ -41,6 +41,10 @@ diagnostic plots and visualizations.  Some are described here.
   of each parameter, as well as an SED (similar to Figure 14 in
   `Gordon+16 <https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).
 
+- `plot_indiv_pdfs.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_indiv_pdfs.py>`_:
+  For a given star, makes a triangle plot with all of the 2D PDFs.  Diagonals
+  contain the 1D PDFs.
+
 - `plot_mag_hist.py <https://github.com/BEAST-Fitting/beast/blob/master/beast/plotting/plot_mag_hist.py>`_:
   Make histograms of the magnitudes for each band in the photometry catalog.
 
