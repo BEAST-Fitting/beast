@@ -1,6 +1,6 @@
-############
-Output files
-############
+##################
+BEAST Output Files
+##################
 
 Below are details regarding the output files produced by the BEAST:
 
