@@ -38,11 +38,16 @@ def plot_pdfs(
         ]
 
         # grab the parameter names
-        param_list = [i for x in ext_list for i in x.split('+')]
+        param_list_temp = [i for x in ext_list for i in x.split('+')]
 
         # put them in the order we want
         _plot_order = ['M_ini','logA','distance','Z','Av','Rv','f_A']
-        param_list = [p for p in _plot_order if p in param_list]
+        param_list = [p for p in _plot_order if p in param_list_temp]
+        # if there are parameters not in the predetermined plot order, append them
+        for p in param_list_temp:
+            if p not in param_list:
+                param_list.append(p)
+        # total number of parameters
         n_params = len(param_list)
 
 
@@ -113,6 +118,8 @@ def plot_pdfs(
                         )
                     except IndexError:
                         #print("  can't make contours for this")
+                        pass
+                    except ValueError:
                         pass
                     except:
                         raise

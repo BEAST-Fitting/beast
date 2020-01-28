@@ -26,6 +26,7 @@ def run_fitting(
     nprocs=1,
     choose_sd_sub=None,
     choose_subgrid=None,
+    pdf2d_param_list=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
     resume=False,
 ):
     """
@@ -52,11 +53,14 @@ def run_fitting(
     choose_sd_sub : list of two strings (default=None)
         If this is set, the fitting will just be for this combo of SD+sub,
         rather than all of them.  Overrides use_sd.
-        format of the list: ['#-#','#']
+        format of the list: ['#','#']
 
     choose_subgrid : int (default=None)
         If this is set, the fitting with just be for this subgrid index.
         If nsubs=1, this is ignored.
+
+    pdf2d_param_list : list of strings or None
+        If set, do 2D PDFs of these parameters.  If None, don't make 2D PDFs.
 
     resume : boolean (default=False)
         choose whether to resume existing run or start over
@@ -94,6 +98,8 @@ def run_fitting(
     stats_files = file_dict["stats_files"]
     pdf_files = file_dict["pdf_files"]
     pdf2d_files = file_dict["pdf2d_files"]
+    if pdf2d_param_list is None:
+        pdf2d_files = [None for i in range(len(pdf2d_files))]
     lnp_files = file_dict["lnp_files"]
 
     # total number of files
@@ -158,6 +164,7 @@ def run_fitting(
                 stats_files[i],
                 pdf_files[i],
                 pdf2d_files[i],
+                pdf2d_param_list,
                 lnp_files[i],
                 None,
                 resume,
@@ -175,6 +182,7 @@ def run_fitting(
                 stats_files[i],
                 pdf_files[i],
                 pdf2d_files[i],
+                pdf2d_param_list,
                 lnp_files[i],
                 gridpickle_files[i],
                 resume,
@@ -198,6 +206,7 @@ def fit_submodel(
     stats_file,
     pdf_file,
     pdf2d_file,
+    pdf2d_param_list,
     lnp_file,
     grid_info_file=None,
     resume=False,
@@ -224,6 +233,9 @@ def fit_submodel(
 
     pdf2d_file : string
         path+name of the file to contain 2D PDF output
+
+    pdf2d_param_list: list of strings or None
+        parameters for which to make 2D PDFs (or None)
 
     lnp_file : string
         path+name of the file to contain log likelihood output
@@ -271,6 +283,7 @@ def fit_submodel(
             stats_outname=stats_file,
             pdf1d_outname=pdf_file,
             pdf2d_outname=pdf2d_file,
+            pdf2d_param_list=pdf2d_param_list,
             grid_info_dict=grid_info_dict,
             lnp_outname=lnp_file,
             do_not_normalize=True,
@@ -291,6 +304,7 @@ def fit_submodel(
             stats_outname=stats_file,
             pdf1d_outname=pdf_file,
             pdf2d_outname=pdf2d_file,
+            pdf2d_param_list=pdf2d_param_list,
             lnp_outname=lnp_file,
             surveyname=datamodel.surveyname,
         )
@@ -321,12 +335,19 @@ if __name__ == "__main__":  # pragma: no cover
     )
     parser.add_argument(
         "--choose_sd_sub",
-        nargs="+",
+        nargs=2,
         default=None,
-        help="Fit just this combo of SD+sub. Format: ['#-#','#']",
+        help="Fit just this combo of SD+sub. Format: ['#','#']",
     )
     parser.add_argument(
         "--choose_subgrid", type=int, default=None, help="Fit just this subgrid number"
+    )
+    parser.add_argument(
+        "--pdf2d_param_list",
+        type=str,
+        nargs="+",
+        default=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
+        help="If set, do 2D PDFs of these parameters. If None, don't make 2D PDFs."
     )
     parser.add_argument(
         "-r", "--resume", help="resume a fitting run", action="store_true"
@@ -334,11 +355,16 @@ if __name__ == "__main__":  # pragma: no cover
 
     args = parser.parse_args()
 
+    if 'None' in args.pdf2d_param_list:
+        args.pdf2d_param_list = None
+
+
     run_fitting(
         use_sd=args.use_sd,
         nsubs=args.nsubs,
         nprocs=args.nprocs,
         choose_sd_sub=args.choose_sd_sub,
         choose_subgrid=args.choose_subgrid,
+        pdf2d_param_list=args.pdf2d_param_list,
         resume=args.resume,
     )

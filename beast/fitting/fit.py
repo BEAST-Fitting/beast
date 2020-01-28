@@ -314,6 +314,7 @@ def Q_all_memory(
     stats_outname=None,
     pdf1d_outname=None,
     pdf2d_outname=None,
+    pdf2d_param_list=None,
     grid_info_dict=None,
     lnp_outname=None,
     lnp_npts=None,
@@ -373,8 +374,10 @@ def Q_all_memory(
         set to output the 1D PDFs into a FITS file with extensions
 
     pdf2d_outname : string
-        set to output the 2D PDFs (only for the main 7 fit parameters) into a
-        FITS file with extensions
+        set to output the 2D PDFs into a FITS file with extensions
+
+    pdf2d_param_list : list of strings or None
+        set to the parameters for which to make the 2D PDFs
 
     grid_info_dict: dict: {'qname': {'min': float,
                                      'max': float,
@@ -519,7 +522,7 @@ def Q_all_memory(
         # setup the 2D PDFs
         _pdf2d_params = [
             qname for qname in qnames
-            if qname in ['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance']
+            if qname in pdf2d_param_list and len(np.unique(g0[qname])) > 1
         ]
         _n_params = len(_pdf2d_params)
         pdf2d_qname_pairs = [
@@ -907,6 +910,7 @@ def summary_table_memory(
     stats_outname=None,
     pdf1d_outname=None,
     pdf2d_outname=None,
+    pdf2d_param_list=None,
     grid_info_dict=None,
     lnp_outname=None,
     use_full_cov_matrix=True,
@@ -951,6 +955,12 @@ def summary_table_memory(
                    extensions
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
+
+    pdf2d_outname : string
+        set to output the 2D PDFs into a FITS file with extensions
+
+    pdf2d_param_list : list of strings or None
+        set to the parameters for which to make the 2D PDFs
 
     grid_info_dict: dict: {'qname': {'min': float,
                                      'max': float,
@@ -1002,6 +1012,10 @@ def summary_table_memory(
         if not (key in list(g0.keys())):
             raise KeyError('Key "{0}" not recognized'.format(key))
 
+    # make sure there are 2D PDF params if needed
+    if (pdf2d_outname is not None) and (pdf2d_param_list is None):
+        raise KeyError('pdf2d_param_list cannot be None if saving 2D PDFs')
+
     # generate an IAU complient name for each source and add other inform
     res = IAU_names_and_extra_info(obs, surveyname=surveyname, extraInfo=False)
 
@@ -1019,6 +1033,7 @@ def summary_table_memory(
         stats_outname=stats_outname,
         pdf1d_outname=pdf1d_outname,
         pdf2d_outname=pdf2d_outname,
+        pdf2d_param_list=pdf2d_param_list,
         grid_info_dict=grid_info_dict,
         lnp_outname=lnp_outname,
         use_full_cov_matrix=use_full_cov_matrix,

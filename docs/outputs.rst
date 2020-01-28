@@ -8,7 +8,7 @@ Below are details regarding the output files produced by the BEAST:
   including the 16th/50th/84th percentiles, mean, and expectation value
 * `*_pdf1d.fits`: Marginalized 1D PDFs for each of the fitted and derived
   parameters
-* `*_pdf2d.fits`: Marginalized 2D PDFs for each pair of the fitted parameters
+* `*_pdf2d.fits`: Marginalized 2D PDFs for pairs of parameters
 * `*_lnp.hd5`: Sparsely sampled log likelihoods
 
 
@@ -146,12 +146,12 @@ Below is an example for `Rv` in the `phat_small` example.
 2D PDF file
 ===========
 
-Each extension in the fits file is for one of the pairs of primary fitting
-parameters (`M_ini`, `logA`, `Z`, `distance`, `Av`, `Rv`, `f_A`).  The saved
-arrays have dimensions `(N_obs+2, N_bin_1, N_bin_2)`, where `N_obs` is the
-number of stars, `N_bin_1` is the number of bins for the first parameter, and
-`N_bin_2` is the number of bins for the second parameter.  The last two slices
-contain the bin values.
+Each extension in the fits file is for one of the pairs of fitting parameters
+(the default is the 7 main parameters, but the user may have selected a
+different set).  The saved arrays have dimensions `(N_obs+2, N_bin_1, N_bin_2)`,
+where `N_obs` is the number of stars, `N_bin_1` is the number of bins for the
+first parameter, and `N_bin_2` is the number of bins for the second parameter.
+The last two slices contain the bin values.
 
 Below is an example of the `Rv` and `f_A` 2D PDF in the `phat_small` example.
 
@@ -166,11 +166,10 @@ Below is an example of the `Rv` and `f_A` 2D PDF in the `phat_small` example.
   1  Av+M_ini      1 ImageHDU         9   (50, 11, 271)   float64
   2  Av+Rv         1 ImageHDU         9   (5, 11, 271)   float64
   3  Av+Z          1 ImageHDU         9   (5, 11, 271)   float64
-  4  Av+distance    1 ImageHDU         9   (1, 11, 271)   float64
-  5  Av+f_A        1 ImageHDU         9   (4, 11, 271)   float64
-  6  Av+logA       1 ImageHDU         9   (5, 11, 271)   float64
-  7  M_ini+Rv      1 ImageHDU         9   (5, 50, 271)   float64
-  8  M_ini+Z       1 ImageHDU         9   (5, 50, 271)   float64
+  4  Av+f_A        1 ImageHDU         9   (4, 11, 271)   float64
+  5  Av+logA       1 ImageHDU         9   (5, 11, 271)   float64
+  6  M_ini+Rv      1 ImageHDU         9   (5, 50, 271)   float64
+  7  M_ini+Z       1 ImageHDU         9   (5, 50, 271)   float64
   ...
   >>> hdu['Rv+f_A'].data[0,:,:]  # 2D PDF for star 0 #doctest: +SKIP
   array([[0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
