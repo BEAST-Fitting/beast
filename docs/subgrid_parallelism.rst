@@ -13,25 +13,24 @@ sequentially, to use less memory. Of course, a combination of the two is also
 possible, splitting a grid into many subgrids, and running a couple of subgrid
 calculations at the same time.
 
-At the end of the calculation, we will possess partial PDFs and statistics of
-each subgrid, which can be merged into a single 1dpdf file and a single stats
-file. By taking into account the weights of each subgrid correctly, the
-resulting file should be equivalent to the result of a BEAST run on the full
-grid.
+At the end of the calculation, we will possess partial PDFs, statistics, and log
+likelihoods of each subgrid, which can be merged into a single 1D PDF file, a
+single stats file, and a single likelihood file. By taking into account the
+weights of each subgrid correctly, the resulting files will be equivalent to
+the result of a BEAST run on the full grid.
 
 Workflow
 ========
 
-To make use of this functionality, no extra data or changes to the datamodel
-file are needed, but you will need a custom run script that makes use of a set
-of newly implemented functions, and new options for existing functions. We will
-now give a summary of what such a run script has to pay attention to, for each
-of the steps in a BEAST run. (An example script might be provided later).
+Functions that implement subgrids can be found in ``beast.tools.subgridding_tools``.
+To make use of this functionality, simply set ``n_subgrid`` in ``datamodel`` to
+the desired number of subgrids.  An example workflow script that utilizes the
+subgridding tools can be found in
+`BEAST examples <https://github.com/BEAST-Fitting/beast-examples/tree/master/production_runs_2019>`_.
 
-Most the new functions can be found in ``beast.tools.subgridding_tools``.
+We will now give a summary of the steps in a subgrid run and how they differ
+from a non-subgridded run.
 
-Please refer to the regular example code for the single grid implementation of
-these steps (``beast/examples/phat_small``).
 
 Physics model
 -------------
@@ -83,7 +82,7 @@ Compatibility
 
 To make sure that the results of the fitting routine for the individual grids
 are compatible, there are several subtleties which come into play here. Firstly,
-it needs to be made sure that the 1dpdfs are compatible: their number of bins
+it needs to be made sure that the 1D PDFs are compatible: their number of bins
 and the values for the bin centers need to be exactly the same. To ensure this,
 we need to fix three values for each quantity:
 
@@ -100,11 +99,11 @@ a certain format. ``subgridding_tools`` contains a function called
 ``reduce_grid_info`` which will generate this dictionary for you. Just provide
 the filenames to all the (trimmed) subgrids and their (trimmed) noisemodels.
 
-This dictionary has an entry like this for each quantity (``Rv`` in this example):
+This dictionary has an entry like this for each quantity (``Av`` in this example):
 
 .. code:: python
 
-   grid_info_dict['Rv'] = {'min': 0, 'max': 10, 'num_unique': 20}
+   grid_info_dict['Av'] = {'min': 0, 'max': 10, 'num_unique': 20}
 
 Fit
 ~~~
@@ -119,8 +118,8 @@ Merge
 ~~~~~
 
 When all the subgrid fits have been successfully completed, the merge step can be
-started. To do this, just gather all the filenames for the pdf1d and stats
-files, and pass them to ``merge_pdf1d_stats``.
+started. To do this, pass the 1D PDF and stats file names to
+``merge_pdf1d_stats`` and the log likelihood file names to ``merge_lnp``.
 
 .. note::
 
