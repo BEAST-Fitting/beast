@@ -105,6 +105,10 @@ To create a physics model grid with 5 subgrids:
 
      $ python -m beast.tools.run.create_physicsmodel --nsubs=5
 
+If you would like to examine some of all of the grid values in the physics model,
+you can use the `read_sed_data` function in `tools/read_beast_data.py`.  This
+function can also be set to just extract the list of parameter names.
+
 
 *********************
 Artificial Star Tests
@@ -176,11 +180,11 @@ that don't have full imaging coverage, and to create ds9 region files:
 
   .. code-block:: console
 
-  $ python -m beast.tools.cut_catalogs \
-        phot_catalog_with_sourceden.fits phot_catalog_cut.fits \
-        --input_ast_file ast_catalog.fits \
-        --output_ast_file ast_catalog_cut.fits \
-        --partial_overlap --region_file --flagged --flag_filter F475W
+    $ python -m beast.tools.cut_catalogs \
+          phot_catalog_with_sourceden.fits phot_catalog_cut.fits \
+          --input_ast_file ast_catalog.fits \
+          --output_ast_file ast_catalog_cut.fits \
+          --partial_overlap --region_file --flagged --flag_filter F475W
 
 
 The observed catalog should be split into separate files for each source
@@ -242,6 +246,9 @@ with or without source density splitting.  Here are some examples:
      $ python -m beast.tools.run.create_obsmodel --use_sd --nsubs 5
      $ # no source density splitting or subgrids
      $ python -m beast.tools.run.create_obsmodel --nsubs 1
+
+If you would like to examine some of all of the values in the observation model,
+you can use the `read_noise_data` function in `tools/read_beast_data.py`.
 
 
 ******************
@@ -328,6 +335,10 @@ The fitting yields several output files (which are described in detail
   be chosen.
 * `*_lnp.hd5`: Sparsely sampled log likelihoods
 
+The contents of the `lnp` file can be easily accessed with the `read_lnp_data`
+function in `tools/read_beast_data.py`, which converts the hdf5 file structure
+into a dictionary.  If you need the SED grid values associated with the saved
+lnP points, use the `get_lnp_grid_vals` function in the same file.
 
 
 ***************
@@ -337,9 +348,10 @@ Post-processing
 Create the merged stats file
 ============================
 
-The stats (catalog of fit parameters) files can then be merged into a single
-file for the field.  This only merges the stats output files, but not the
-pdf1d or lnp files (see the next section).
+The stats files (catalog of fit parameters) can then be merged into a single
+file for the field.  The 1D PDF and lnP files are merged across subgrids, but
+not yet across source density or background bins.  Merging 2D PDFs has not yet
+been implemented.
 
   .. code-block:: console
 
