@@ -17,7 +17,6 @@ from beast.tools.run import create_filenames
 
 import datamodel
 import importlib
-importlib.reload(fit)
 
 
 def run_fitting(
