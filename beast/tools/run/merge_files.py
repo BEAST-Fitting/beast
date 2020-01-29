@@ -8,7 +8,6 @@ from beast.tools.run import create_filenames
 
 import datamodel
 import importlib
-importlib.reload(subgridding_tools)
 
 
 def merge_files(use_sd=True, nsubs=1):

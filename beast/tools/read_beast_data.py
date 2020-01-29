@@ -2,9 +2,6 @@
 Functions for interacting with the BEAST model
 """
 
-# system imports
-from __future__ import (absolute_import, division, print_function)
-
 # other package imports
 import numpy as np
 import h5py
