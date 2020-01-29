@@ -307,13 +307,28 @@ are serial on the core).
   .. code-block:: console
 
      $ python -m beast.tools.setup_batch_beast_fit.py --num_percore 2 --nice 19 \
-           --use_sd 1 --nsubs 5
+           --use_sd 1 --nsubs 5 --pdf2d_param_list Av M_ini logT
 
 The jobs can be submitted to the batch queue via:
 
   .. code-block:: console
 
      $ at -f projectname/fit_batch_jobs/beast_batch_fit_X.joblist now
+
+The fitting yields several output files (which are described in detail
+:doc:`here <outputs>`):
+
+* `*_stats.fits`: Statistics for each of the fitted and derived parameters,
+  including the 16th/50th/84th percentiles, mean, and expectation value
+* `*_pdf1d.fits`: Marginalized 1D PDFs for each of the fitted and derived
+  parameters
+* `*_pdf2d.fits`: Marginalized 2D PDFs for pairs of parameters.  If
+  `pdf2d_param_list` is set to `None`, 2D PDFs will not be generated.  The
+  default set is the 7 main BEAST parameters, but any parameters in the grid can
+  be chosen.
+* `*_lnp.hd5`: Sparsely sampled log likelihoods
+
+
 
 ***************
 Post-processing
