@@ -11,6 +11,10 @@ Below are details regarding the output files produced by the BEAST:
 * `*_pdf2d.fits`: Marginalized 2D PDFs for pairs of parameters
 * `*_lnp.hd5`: Sparsely sampled log likelihoods
 
+Several of the BEAST output files are saved in the hdf5 format, which can be
+more challenging to access than fits files.  There are functions in
+`tools/read_beast_data.py` to facilitate reading those files.
+
 
 Statistics file
 ===============
