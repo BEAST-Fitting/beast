@@ -60,11 +60,6 @@ if __name__ == "__main__":
         sed_trimname = filebase + "_seds_trim.grid.hd5"
         noisemodel_trimname = filebase + "_noisemodel_trim.grid.hd5"
 
-        # if these already exist, then continue to the next set of files to trim
-        if os.path.isfile(sed_trimname) and os.path.isfile(noisemodel_trimname):
-            print("trimming already complete for "+sed_trimname)
-            continue
-
         print("working on " + sed_trimname)
 
         start_time = time.clock()
