@@ -348,9 +348,10 @@ Post-processing
 Create the merged stats file
 ============================
 
-The stats (catalog of fit parameters) files can then be merged into a single
-file for the field.  This only merges the stats output files, but not the
-pdf1d or lnp files (see the next section).
+The stats files (catalog of fit parameters) can then be merged into a single
+file for the field.  The 1D PDF and lnP files are merged across subgrids, but
+not yet across source density or background bins.  Merging 2D PDFs has not yet
+been implemented.
 
   .. code-block:: console
 
