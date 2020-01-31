@@ -105,6 +105,9 @@ def star_type_probability(
     # - extinguished O star
     star_prob['ext_O_star'] = ext_O_star(pdf2d_data, pdf2d_bins)
 
+    # - dusty AGB star (high Av failure mode)
+    star_prob['dusty_agb'] = dusty_agb(pdf2d_data, pdf2d_bins)
+
     # - other things
 
 
@@ -115,7 +118,6 @@ def star_type_probability(
 
 def ext_O_star(pdf2d_data, pdf2d_bins):
     """
-
     Calculate the probability that each star is an extinguished O star:
     * initial mass >= 10 Msun
     * A_V >= 0.5 mag
@@ -157,5 +159,48 @@ def ext_O_star(pdf2d_data, pdf2d_bins):
     mass_bins = mass_bins.reshape(-1)
 
     keep = np.where((mass_bins > 10) & (av_bins > 0.5))[0]
+
+    return np.sum(prob_data[:,keep], axis=1)
+
+
+def dusty_agb(pdf2d_data, pdf2d_bins):
+    """
+    Calculate the probability that each star is a dusty AGB star, using the high
+    Av failure mode:
+    * A_V >= 7 mag
+    * Log T_eff from 3.7 to 4.2
+
+    Parameters
+    ----------
+    pdf2d_data : dict
+        2D PDF data, each key has an array with shape (n_stars, nbin1, nbin2)
+
+    pdf2d_bins : dict
+        dictionary with corresponding bin values
+
+    Returns
+    -------
+    star_prob : array
+        probability for each star
+
+    """
+
+    if 'Av+logT' in pdf2d_data.keys():
+        prob_data = pdf2d_data['Av+logT']
+        av_bins = pdf2d_bins['Av+logT'][0,:,:]
+        logT_bins = pdf2d_bins['Av+logT'][1,:,:]
+    elif 'logT+Av' in pdf2d_data.keys():
+        prob_data = pdf2d_data['logT+Av']
+        av_bins = pdf2d_bins['logT+Av'][1,:,:]
+        logT_bins = pdf2d_bins['logT+Av'][0,:,:]
+    else:
+        raise ValueError("2D PDFs don't contain Av and logT (T_eff) data")
+
+    # reshape the arrays
+    prob_data = prob_data.reshape(prob_data.shape[0], -1)
+    av_bins = av_bins.reshape(-1)
+    logT_bins = logT_bins.reshape(-1)
+
+    keep = np.where((av_bins >= 7) & (logT_bins >= 3.7) & (logT_bins <= 4.2))[0]
 
     return np.sum(prob_data[:,keep], axis=1)
