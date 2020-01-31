@@ -9,6 +9,8 @@ def star_type_probability(
     pdf1d_files,
     pdf2d_files,
     output_filebase,
+    ext_O_star_params=None,
+    dusty_agb_params=None,
 ):
     """
     Parameters
@@ -25,6 +27,16 @@ def star_type_probability(
         prefix for saving the file of probabilities ("_startype.fits" will be
         appended)
 
+    ext_O_star_params : dict or None
+        Set to a dictionary to override the default cuts for extinguished early
+        type stars.  Allowed keywords are 'min_M_ini' (float) and 'min_Av'
+        (float).
+
+    dusty_agb_params : dict or None
+        Set to a dictionary to override the default cuts for dusty AGB stars
+        (the high Av failure mode).  Allowed keywords are 'min_Av' (float),
+        'min_logT' (float), and 'max_logT' (float).
+
     """
 
     # read in the data
@@ -36,7 +48,7 @@ def star_type_probability(
     pdf2d_bins = defaultdict(list)
 
     # - parameters to save
-    param_list = ['Av', 'M_ini', 'logA']
+    param_list = ['Av', 'M_ini', 'logT']
 
     # - go through each pair of files
     for (pdf1d_file, pdf2d_file) in zip(np.atleast_1d(pdf1d_files), np.atleast_1d(pdf2d_files)):
@@ -100,10 +112,18 @@ def star_type_probability(
     star_prob = {}
 
     # - extinguished O star
-    star_prob['ext_O_star'] = ext_O_star(pdf2d_data, pdf2d_bins)
+    if ext_O_star_params is None:
+        star_prob['ext_O_star'] = ext_O_star(pdf2d_data, pdf2d_bins)
+    else:
+        star_prob['ext_O_star'] = ext_O_star(pdf2d_data, pdf2d_bins, **ext_O_star_params)
+
 
     # - dusty AGB star (high Av failure mode)
-    star_prob['dusty_agb'] = dusty_agb(pdf2d_data, pdf2d_bins)
+    if dusty_agb_params is None:
+        star_prob['dusty_agb'] = dusty_agb(pdf2d_data, pdf2d_bins)
+    else:
+        star_prob['dusty_agb'] = dusty_agb(pdf2d_data, pdf2d_bins, **dusty_agb_params)
+
 
     # - other things
 
@@ -113,7 +133,7 @@ def star_type_probability(
 
 
 
-def ext_O_star(pdf2d_data, pdf2d_bins):
+def ext_O_star(pdf2d_data, pdf2d_bins, min_M_ini=10, min_Av=0.5):
     """
     Calculate the probability that each star is an extinguished O star:
     * initial mass >= 10 Msun
@@ -131,6 +151,12 @@ def ext_O_star(pdf2d_data, pdf2d_bins):
 
     pdf2d_bins : dict
         dictionary with corresponding bin values
+
+    min_M_ini : float (default=10)
+        minimum mass (in solar masses)
+
+    min_Av : float (default=0.5)
+        minimum Av (magnitudes)
 
     Returns
     -------
@@ -155,12 +181,12 @@ def ext_O_star(pdf2d_data, pdf2d_bins):
     av_bins = av_bins.reshape(-1)
     mass_bins = mass_bins.reshape(-1)
 
-    keep = np.where((mass_bins > 10) & (av_bins > 0.5))[0]
+    keep = np.where((mass_bins >= min_M_ini) & (av_bins >= min_Av))[0]
 
     return np.sum(prob_data[:,keep], axis=1)
 
 
-def dusty_agb(pdf2d_data, pdf2d_bins):
+def dusty_agb(pdf2d_data, pdf2d_bins, min_Av=7, min_logT=3.7, max_logT=4.2):
     """
     Calculate the probability that each star is a dusty AGB star, using the high
     Av failure mode:
@@ -174,6 +200,13 @@ def dusty_agb(pdf2d_data, pdf2d_bins):
 
     pdf2d_bins : dict
         dictionary with corresponding bin values
+
+    min_Av : float (default=0.5)
+        minimum Av (magnitudes)
+
+    min_logT, max_logT : float (default=3.7, 4.2)
+        minimum and maximum logT
+
 
     Returns
     -------
@@ -198,6 +231,10 @@ def dusty_agb(pdf2d_data, pdf2d_bins):
     av_bins = av_bins.reshape(-1)
     logT_bins = logT_bins.reshape(-1)
 
-    keep = np.where((av_bins >= 7) & (logT_bins >= 3.7) & (logT_bins <= 4.2))[0]
+    keep = np.where(
+        (av_bins >= min_Av) &
+        (logT_bins >= min_logT) &
+        (logT_bins <= max_logT)
+    )[0]
 
     return np.sum(prob_data[:,keep], axis=1)
