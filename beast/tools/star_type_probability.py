@@ -5,22 +5,23 @@ import matplotlib.pyplot as plt
 from beast.tools import read_beast_data
 
 from astropy.table import Table
+from astropy.io import fits
 
 
 def star_type_probability(
-    sed_files,
-    lnp_files,
+    pdf1d_files,
+    pdf2d_files,
     output_filebase,
 ):
     """
     Parameters
     ----------
-    sed_files : string or list of strings
-        Name of the file(s) with the SED grid(s).  If a list, it's each part of
-        the subgrid.
+    pdf1d_files : string or list of strings
+        Name of the file(s) with the 1D PDFs.  If a list, it's each part of the
+        subgrid.
 
-    lnp_files : string or list of strings
-        Name of the file(s) with the lnP values.  If a list, it's in the same
+    pdf2d_files : string or list of strings
+        Name of the file(s) with the 2D PDFs.  If a list, it's in the same
         order as the subgrids above.
 
     output_filebase : string
@@ -30,40 +31,81 @@ def star_type_probability(
     """
 
     # read in the data
-    sed_data = defaultdict(list)
-    lnp_data = defaultdict(list)
-    for (sed_file, lnp_file) in zip(np.atleast_1d(sed_files), np.atleast_1d(lnp_files)):
-        sed_temp = read_beast_data.read_sed_data(str(sed_file), param_list=['Av', 'M_ini', 'logA'])
-        for key in sed_temp:
-            sed_data[key].append(sed_temp[key])
-        lnp_temp = read_beast_data.read_lnp_data(str(lnp_file), shift_lnp=False)
-        for key in lnp_temp:
-            lnp_data[key].append(lnp_temp[key])
+
+    # - set up dictionaries to hold PDFs and bins
+    pdf1d_data = defaultdict(list)
+    pdf1d_bins = defaultdict(list)
+    pdf2d_data = defaultdict(list)
+    pdf2d_bins = defaultdict(list)
+
+    # - parameters to save
+    param_list = ['Av', 'M_ini', 'logA']
+
+    # - go through each pair of files
+    for (pdf1d_file, pdf2d_file) in zip(np.atleast_1d(pdf1d_files), np.atleast_1d(pdf2d_files)):
+
+        # 1D PDF data
+        with fits.open(str(pdf1d_file)) as hdu:
+            for ext in hdu:
+                # only save the data if the parameter is in param_list
+                if ext.name in param_list:
+                    pdf1d_data[ext.name].append(ext.data[:-1,:])
+                    pdf1d_bins[ext.name].append(ext.data[-1,:])
+
+        # 2D PDF data
+        with fits.open(str(pdf2d_file)) as hdu:
+            for ext in hdu:
+                # skip extensions without '+'
+                if '+' not in ext.name:
+                    continue
+
+                # break up the name into the two parameters
+                p1, p2 = ext.name.split('+')
+                # only save the data if both parameters are in param_list
+                if (p1 in param_list) and (p2 in param_list):
+                    pdf2d_data[ext.name].append(ext.data[:-2,:,:])
+                    pdf2d_bins[ext.name].append(ext.data[-2:,:,:])
+
 
     # combine arrays from each file
-    for key in sed_data:
-        sed_data[key] = np.concatenate(sed_data[key])
-    for key in lnp_data:
-        lnp_data[key] = np.concatenate(lnp_data[key])
 
-    # get the physical parameters associated with each lnP
-    lnp_grid_vals = read_beast_data.get_lnp_grid_vals(sed_data, lnp_data)
+    for key in pdf1d_data:
+        # check that the bins are the same for all
+        bin_list = pdf1d_bins[key]
+        bin_check = [
+            not np.array_equal(bin_list[i], bin_list[i+1])
+            for i in range(len(bin_list)-1)
+        ]
+        if np.sum(bin_check) > 0:
+            raise ValueError('1D PDF bins not the same for each input file')
+        # if so, just save the first one
+        pdf1d_bins[key] = pdf1d_bins[key][0]
+        # concatenate the PDFs
+        pdf1d_data[key] = np.concatenate(pdf1d_data[key])
 
-    # make an array of star probabilities (instead of log probabilities)
-    # scale lnP for each star to have max of 1 to avoid numerical issues
-    prob_vals = np.exp(lnp_data['vals'] - np.max(lnp_data['vals'], axis=0))
+    for key in pdf2d_data:
+        # check that the bins are the same for all
+        bin_list = pdf2d_bins[key]
+        bin_check = [
+            not np.array_equal(bin_list[i], bin_list[i+1])
+            for i in range(len(bin_list)-1)
+        ]
+        if np.sum(bin_check) > 0:
+            raise ValueError('2D PDF bins not the same for each input file')
+        # if so, just save the first one
+        pdf2d_bins[key] = pdf2d_bins[key][0]
+        # concatenate the PDFs
+        pdf2d_data[key] = np.concatenate(pdf2d_data[key])
+
 
 
     # evaluate probabilities of things
     star_prob = {}
 
     # - extinguished O star
-    star_prob['ext_O_star'] = ext_O_star(prob_vals, lnp_grid_vals)
-    # test using subsample of lnPs
-    test_with_subsample('ext_O_star', 0.85, prob_vals, lnp_grid_vals)
+    star_prob['ext_O_star'] = ext_O_star(pdf2d_data, pdf2d_bins)
 
     # - other things
-
 
 
     # write out the table
@@ -71,7 +113,7 @@ def star_type_probability(
 
 
 
-def ext_O_star(prob_vals, lnp_grid_vals, use_ind=True):
+def ext_O_star(pdf2d_data, pdf2d_bins):
     """
 
     Calculate the probability that each star is an extinguished O star:
@@ -85,15 +127,11 @@ def ext_O_star(prob_vals, lnp_grid_vals, use_ind=True):
 
     Parameters
     ----------
-    prob_vals : np.array
-        array with probability values (shape = n_lnp, n_stars).  This should be
-        exp(lnP), with lnPs scaled to max=1 (if desired) to avoid numerical issues
+    pdf2d_data : dict
+        2D PDF data, each key has an array with shape (n_stars, nbin1, nbin2)
 
-    lnp_grid_vals : dict
-        dictionary with corresponding physical parameters
-
-    use_ind : array of booleans (default=True)
-        use this to test what happens if you use a subset of the lnP values
+    pdf2d_bins : dict
+        dictionary with corresponding bin values
 
     Returns
     -------
@@ -102,74 +140,22 @@ def ext_O_star(prob_vals, lnp_grid_vals, use_ind=True):
 
     """
 
-    return (
-        np.ma.array(
-            prob_vals,
-            mask=np.invert(
-                (lnp_grid_vals['Av'] >= 0.5) &
-                (lnp_grid_vals['M_ini'] >= 10) &
-                (use_ind)
-            )
-        ).sum(axis=0) / np.ma.array(prob_vals, mask=np.invert(use_ind)).sum(axis=0)
-    ).data
+    if 'Av+M_ini' in pdf2d_data.keys():
+        prob_data = pdf2d_data['Av+M_ini']
+        av_bins = pdf2d_bins['Av+M_ini'][0,:,:]
+        mass_bins = pdf2d_bins['Av+M_ini'][1,:,:]
+    elif 'M_ini+Av' in pdf2d_data.keys():
+        prob_data = pdf2d_data['M_ini+Av']
+        av_bins = pdf2d_bins['M_ini+Av'][1,:,:]
+        mass_bins = pdf2d_bins['M_ini+Av'][0,:,:]
+    else:
+        raise ValueError("2D PDFs don't contain M_ini and Av data")
 
+    # reshape the arrays
+    prob_data = prob_data.reshape(prob_data.shape[0], -1)
+    av_bins = av_bins.reshape(-1)
+    mass_bins = mass_bins.reshape(-1)
 
+    keep = np.where((mass_bins > 10) & (av_bins > 0.5))[0]
 
-def test_with_subsample(function_name, sample_frac, prob_vals, lnp_grid_vals):
-    """
-    Test what happens if we were to randomly sample fewer of the lnP values.
-    Specifically, create a plot comparing the probabilities from function_name
-    using the full lnP list to those derived from a partial sample.
-
-    Parameters
-    ----------
-    function_name : string
-        name of the function to evaluate
-
-    sample_frac : float
-        fraction of the original lnPs to sample (e.g., 0.25 for a quarter)
-
-    prob_vals : np.array
-        (see function input info)
-
-    lnp_grid_vals : dict
-        (see function input info)
-
-    """
-
-    # get indices of subset
-    n_lnp, n_stars = prob_vals.shape
-    use_ind = np.ones((n_lnp, n_stars)).astype(bool)
-    for i in range(n_stars):
-        tot_lnp = np.sum(prob_vals[:,i] > 0)
-        n_to_remove = int(np.floor(tot_lnp * (1-sample_frac)))
-        use_ind[np.random.choice(int(tot_lnp), n_to_remove, replace=False), i] = 0
-
-    # evaluate probabilities of full/partial samples
-    star_prob = {}
-    star_prob['full'] = globals()[function_name](prob_vals, lnp_grid_vals)
-    star_prob['partial'] = globals()[function_name](
-        prob_vals,
-        lnp_grid_vals,
-        use_ind=use_ind,
-    )
-
-    fig = plt.figure(figsize=(5,4))
-
-    plt.plot(star_prob['full'], star_prob['partial'],
-        marker="o",
-        mew=0,
-        color="black",
-        markersize=2,
-        linestyle="None",
-        alpha=0.2)
-
-    plt.plot([0,1], [0,1], color='red', markersize=0, linestyle=':')
-    ax = plt.gca()
-    ax.set_xlabel('Prob using all lnP')
-    ax.set_ylabel('Prob using {0:.3f} of lnP'.format(sample_frac))
-    ax.set_title('Probability from '+function_name)
-    plt.tight_layout()
-
-    fig.savefig('test_lnp_sampling.pdf')
-    plt.close(fig)
+    return np.sum(prob_data[:,keep], axis=1)
