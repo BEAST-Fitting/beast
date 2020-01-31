@@ -1,8 +1,5 @@
 import numpy as np
 from collections import defaultdict
-import matplotlib.pyplot as plt
-
-from beast.tools import read_beast_data
 
 from astropy.table import Table
 from astropy.io import fits
