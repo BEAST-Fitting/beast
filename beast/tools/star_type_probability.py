@@ -8,7 +8,7 @@ from astropy.io import fits
 def star_type_probability(
     pdf1d_files,
     pdf2d_files,
-    output_filebase,
+    output_filebase=None,
     ext_O_star_params=None,
     dusty_agb_params=None,
 ):
@@ -23,9 +23,9 @@ def star_type_probability(
         Name of the file(s) with the 2D PDFs.  If a list, it's in the same
         order as the subgrids above.
 
-    output_filebase : string
-        prefix for saving the file of probabilities ("_startype.fits" will be
-        appended)
+    output_filebase : string (default=None)
+        Prefix for saving the file of probabilities ("_startype.fits" will be
+        appended).  If None, will return the table rather than saving it.
 
     ext_O_star_params : dict or None
         Set to a dictionary to override the default cuts for extinguished early
@@ -129,8 +129,10 @@ def star_type_probability(
 
 
     # write out the table
-    Table(star_prob).write(output_filebase+"_startype.fits", overwrite=True)
-
+    if output_filebase is not None:
+        Table(star_prob).write(output_filebase+"_startype.fits", overwrite=True)
+    else:
+        return star_prob
 
 
 def ext_O_star(pdf2d_data, pdf2d_bins, min_M_ini=10, min_Av=0.5):
@@ -174,7 +176,8 @@ def ext_O_star(pdf2d_data, pdf2d_bins, min_M_ini=10, min_Av=0.5):
         av_bins = pdf2d_bins['M_ini+Av'][1,:,:]
         mass_bins = pdf2d_bins['M_ini+Av'][0,:,:]
     else:
-        raise ValueError("2D PDFs don't contain M_ini and Av data")
+        print("2D PDFs don't contain M_ini and Av data")
+        return None
 
     # reshape the arrays
     prob_data = prob_data.reshape(prob_data.shape[0], -1)
@@ -224,7 +227,8 @@ def dusty_agb(pdf2d_data, pdf2d_bins, min_Av=7, min_logT=3.7, max_logT=4.2):
         av_bins = pdf2d_bins['logT+Av'][1,:,:]
         logT_bins = pdf2d_bins['logT+Av'][0,:,:]
     else:
-        raise ValueError("2D PDFs don't contain Av and logT (T_eff) data")
+        print("2D PDFs don't contain Av and logT (T_eff) data")
+        return None
 
     # reshape the arrays
     prob_data = prob_data.reshape(prob_data.shape[0], -1)
