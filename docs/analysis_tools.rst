@@ -32,12 +32,12 @@ Below, we show an example for extinction curve candidates in phat_small.
   >>> from beast.tools import star_type_probability #doctest: +SKIP
   >>> from astropy.io import fits #doctest: +SKIP
   >>> # calculate probabilities
-  >>> star_prob = star_type_probability.star_type_probability(
+  >>> star_prob = star_type_probability.star_type_probability( #doctest: +SKIP
           'beast_example_phat_pdf1d.fits',
           'beast_example_phat_pdf2d.fits',
           output_filebase=None,
           ext_O_star_params={'min_M_ini':10, 'min_Av':0.5}
-      ) #doctest: +SKIP
+      )
   >>> # stars with >80% likelihood of being extinguished massive stars
   >>> np.where(star_prob['ext_O_star'] > 0.8)[0] #doctest: +SKIP
   array([29, 54])
@@ -47,3 +47,11 @@ Below, we show an example for extinction curve candidates in phat_small.
           print('Av:', hdu[1].data['Av_p50'][[29,54]])
   Masses: [16.84200042 15.23882141]
   Av: [3.98209536 3.99047602]
+
+
+Spectral type comparison
+------------------------
+
+When there are spectrally typed stars in our catalogs, we would like to compare
+the BEAST parameters to those inferred from the spectral types.  Code to do this
+is in progress.
