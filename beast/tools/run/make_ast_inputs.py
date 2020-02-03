@@ -43,23 +43,8 @@ def make_ast_inputs(flux_bin_method=True):
     # check input parameters
     verify_params.verify_input_format(datamodel)
 
-    # construct magnitude cuts
-
-    mag_cuts = datamodel.ast_maglimit
+    # read in the photometry catalog
     obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.filters)
-
-    if len(mag_cuts) == 1:
-        tmp_cuts = mag_cuts
-        min_mags = np.zeros(len(datamodel.filters))
-        for k, filtername in enumerate(obsdata.filters):
-            sfiltername = obsdata.data.resolve_alias(filtername)
-            sfiltername = sfiltername.replace("rate", "vega")
-            sfiltername = sfiltername.replace("RATE", "VEGA")
-            (keep,) = np.where(obsdata[sfiltername] < 99.0)
-            min_mags[k] = np.percentile(obsdata[keep][sfiltername], 90.0)
-
-        # max. mags from the gst observation cat.
-        mag_cuts = min_mags + tmp_cuts
 
     # --------------------
     # select SEDs
@@ -96,6 +81,24 @@ def make_ast_inputs(flux_bin_method=True):
             )
 
         else:
+
+            # construct magnitude cuts
+
+            mag_cuts = datamodel.ast_maglimit
+
+            if len(mag_cuts) == 1:
+                tmp_cuts = mag_cuts
+                min_mags = np.zeros(len(datamodel.filters))
+                for k, filtername in enumerate(obsdata.filters):
+                    sfiltername = obsdata.data.resolve_alias(filtername)
+                    sfiltername = sfiltername.replace("rate", "vega")
+                    sfiltername = sfiltername.replace("RATE", "VEGA")
+                    (keep,) = np.where(obsdata[sfiltername] < 99.0)
+                    min_mags[k] = np.percentile(obsdata[keep][sfiltername], 90.0)
+
+                # max. mags from the gst observation cat.
+                mag_cuts = min_mags + tmp_cuts
+
 
             N_models = datamodel.ast_models_selected_per_age
 
