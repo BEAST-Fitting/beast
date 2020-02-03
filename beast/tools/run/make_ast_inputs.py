@@ -87,7 +87,6 @@ def make_ast_inputs(flux_bin_method=True):
             chosen_seds = pick_models_toothpick_style(
                 modelsedgrid_filename,
                 datamodel.filters,
-                mag_cuts,
                 Nfilters,
                 N_fluxes,
                 min_N_per_flux,

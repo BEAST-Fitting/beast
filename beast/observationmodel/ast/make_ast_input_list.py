@@ -59,7 +59,6 @@ def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
 def pick_models_toothpick_style(
     sedgrid_fname,
     filters,
-    mag_cuts,
     Nfilter,
     N_fluxes,
     min_N_per_flux,
@@ -82,9 +81,6 @@ def pick_models_toothpick_style(
 
     filters: list of string
         Names of the filters, to be used as columns of the output table
-
-    mag_cuts: list of float
-        List of magnitude limits for each filter
 
     Nfilter: integer
         In how many filters a fake star needs to be brighter than the
@@ -137,7 +133,6 @@ def pick_models_toothpick_style(
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
     Nf = sedsMags.shape[1]
 
-    # idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
     idxs = np.where(modelsedgrid.grid["logL"] > -9)[0]
     sedsMags_cut = sedsMags[idxs]
 
