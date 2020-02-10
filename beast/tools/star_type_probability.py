@@ -13,6 +13,19 @@ def star_type_probability(
     dusty_agb_params=None,
 ):
     """
+    Calculate the probabilities of a set of star types by integrating either the
+    1D or 2D PDF across the relevant range of parameter values.
+
+    Currently does probabilities for these types.  See the docstrings of their
+    respective functions for more details.  If the required parameters are not
+    present in the PDFs, the function returns None.
+    * extinguished O star (M_ini, Av)
+    * dusty AGB star (Av, logT)
+
+    Note that if more functions for different stellar types are added (please
+    add more!), `params_to_save` needs to be updated.  This variable ensures
+    that only the necessary parameters are stored in memory.
+
     Parameters
     ----------
     pdf1d_files : string or list of strings
@@ -37,6 +50,11 @@ def star_type_probability(
         (the high Av failure mode).  Allowed keywords are 'min_Av' (float),
         'min_logT' (float), and 'max_logT' (float).
 
+    Returns
+    -------
+    star_prob : dict
+        if output_filebase is None, a dictionary of probabilities is returned.
+
     """
 
     # read in the data
@@ -48,7 +66,7 @@ def star_type_probability(
     pdf2d_bins = defaultdict(list)
 
     # - parameters to save
-    param_list = ['Av', 'M_ini', 'logT']
+    params_to_save = ['Av', 'M_ini', 'logT']
 
     # - go through each pair of files
     for (pdf1d_file, pdf2d_file) in zip(np.atleast_1d(pdf1d_files), np.atleast_1d(pdf2d_files)):
@@ -56,8 +74,8 @@ def star_type_probability(
         # 1D PDF data
         with fits.open(str(pdf1d_file)) as hdu:
             for ext in hdu:
-                # only save the data if the parameter is in param_list
-                if ext.name in param_list:
+                # only save the data if the parameter is in params_to_save
+                if ext.name in params_to_save:
                     pdf1d_data[ext.name].append(ext.data[:-1,:])
                     pdf1d_bins[ext.name].append(ext.data[-1,:])
 
@@ -70,8 +88,8 @@ def star_type_probability(
 
                 # break up the name into the two parameters
                 p1, p2 = ext.name.split('+')
-                # only save the data if both parameters are in param_list
-                if (p1 in param_list) and (p2 in param_list):
+                # only save the data if both parameters are in params_to_save
+                if (p1 in params_to_save) and (p2 in params_to_save):
                     pdf2d_data[ext.name].append(ext.data[:-2,:,:])
                     pdf2d_bins[ext.name].append(ext.data[-2:,:,:])
 
