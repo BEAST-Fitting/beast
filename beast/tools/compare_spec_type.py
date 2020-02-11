@@ -1,18 +1,12 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
-import copy
 from collections import defaultdict
 from scipy.interpolate import RegularGridInterpolator
 
 from astropy.table import Table
-from astropy.io import ascii
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
-from beast.config import __ROOT__
-
-import pdb
+#from beast.config import __ROOT__
 
 def compare_spec_type(
     phot_cat_file,
@@ -75,8 +69,6 @@ def compare_spec_type(
     # read in BEAST results
     beast_stats = Table.read(beast_stats_file)
     beast_stats_catalog = SkyCoord(ra=beast_stats['RA']*u.degree, dec=beast_stats['DEC']*u.degree)
-    # match them (they may be in different orders)
-    ind, sep, _ = beast_stats_catalog.match_to_catalog_sky(beast_phot_catalog)
 
     # setup the effective temperature table
     teff_function = setup_teff_table()
@@ -102,7 +94,7 @@ def compare_spec_type(
         # small enough number, then proceed with calculating all separations.
 
         c = SkyCoord(spec_ra[i], spec_dec[i], unit='deg')
-        ind_test, sep_test, _ = c.match_to_catalog_sky(beast_stats_catalog)
+        _, sep_test, _ = c.match_to_catalog_sky(beast_stats_catalog)
 
         print(sep_test[0].arcmin)
 
@@ -303,7 +295,6 @@ def setup_logg_table():
     logg_sun = 27444 # cm/s^2
     for col in ['I','III','V']:
         logg_table[col] = np.log10(10**logg_table[col] * logg_sun)
-    pdb.set_trace()
 
     # now make a general interpolator
     logg_interp_function = RegularGridInterpolator(
