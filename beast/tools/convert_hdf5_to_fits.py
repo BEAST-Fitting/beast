@@ -52,22 +52,22 @@ def st_file(file_name):
     # iterate through the table to fill the dictionary
     print("filling up the dictionary with data")
 
-    for ind in enumerate(tab):
+    for ind in tab:
 
         # 0th item is the index
         # (don't need it)
 
         # 1st item is block 0
         for t, tag in enumerate(set0):
-            data_dict[tag].append(tab[ind][1][t])
+            data_dict[tag].append(ind[1][t])
 
         # 2nd item is block 1
         for t, tag in enumerate(set1):
-            data_dict[tag].append(tab[ind][2][t])
+            data_dict[tag].append(ind[2][t])
 
         # 3rd item is block 2
         for t, tag in enumerate(set2):
-            data_dict[tag].append(tab[ind][3][t])
+            data_dict[tag].append(ind[3][t])
 
     # save everything to astropy table in a fits file
     print("making astropy table")
