@@ -65,7 +65,7 @@ def remove_filters_from_files(
     # read in the photometry catalog
     cat = Table.read(catfile)
 
-    # if set, remove the requested filters from the catalog
+    # if rm_filters set, remove the requested filters from the catalog
     if rm_filters is not None:
         for cfilter in np.atleast_1d(rm_filters):
             colname = "{}_rate".format(cfilter)
@@ -75,12 +75,12 @@ def remove_filters_from_files(
                 print("{} not in catalog file".format(colname))
         cat.write("{}_cat.fits".format(outbase), overwrite=True)
 
-    # if not set, extract the filter names that are present
+    # if rm_filters not set, extract the filter names that are present
     if rm_filters is None:
         cat_filters = [f[:-5] for f in cat.colnames if f[-4:].lower() == 'rate']
 
 
-    # if set, process the SED grid
+    # if physgrid set, process the SED grid
     if physgrid is not None:
 
         # read in the sed grid
@@ -92,6 +92,7 @@ def remove_filters_from_files(
         nlamb = []
         nfilters = []
         rindxs = []
+        rgridcols = []
 
         # loop through filters and determine what needs deleting
         for csfilter, clamb, cfilter in zip(shortfilters, g0.lamb, filters):
@@ -103,6 +104,9 @@ def remove_filters_from_files(
                     nfilters.append(cfilter)
                 else:
                     rindxs.append(shortfilters.index(csfilter))
+                    for grid_col in g0.grid.colnames:
+                        if cfilter in grid_col:
+                            rgridcols.append(grid_col)
 
             # if the removed filters are determined from the catalog file
             if rm_filters is None:
@@ -111,10 +115,15 @@ def remove_filters_from_files(
                     nfilters.append(cfilter)
                 else:
                     rindxs.append(shortfilters.index(csfilter))
+                    for grid_col in g0.grid.colnames:
+                        if cfilter in grid_col:
+                            rgridcols.append(grid_col)
 
         # delete column(s)
         if len(rindxs) > 0:
             nseds = np.delete(g0.seds, rindxs, 1)
+        for rcol in rgridcols:
+            g0.grid.delCol(rcol)
 
         print("orig filters: {}".format(" ".join(filters)))
         print(" new filters: {}".format(" ".join(nfilters)))
@@ -130,7 +139,7 @@ def remove_filters_from_files(
             raise ValueError('Need to set either outbase or physgrid_outfile')
 
 
-    # if set, process the observation model
+    # if obsgrid set, process the observation model
     if obsgrid is not None:
         obsgrid = noisemodel.get_noisemodelcat(obsgrid)
         with tables.open_file("{}_noisemodel.grid.hd5".format(outbase), "w") as outfile:
