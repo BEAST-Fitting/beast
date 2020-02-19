@@ -6,6 +6,7 @@ Created by Maria Kapala on Feb 24th 2017
 """
 from os.path import exists
 from numpy import inf
+import warnings
 
 
 def verify_range(param, param_name, param_lim):
@@ -34,7 +35,7 @@ def check_grid(param, param_name, param_lim):
 
     if (param_max - param_min) < param_step:
         if param_max - param_min == 0.0:
-            raise UserWarning("Note: " + param_name + " grid is single-valued.")
+            warnings.warn("Note: " + param_name + " grid is single-valued.")
         else:
             raise ValueError(param_name + " step value greater than (max-min)")
 
@@ -63,7 +64,7 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
     if "list" in param_format:
         if not isinstance(param, list):
             if param is None:
-                raise UserWarning(param_name + " is not defined.")
+                warnings.warn(param_name + " is not defined.")
             else:
                 raise TypeError(param_name + " is not in the right format - a list.")
         elif "float" in param_format:
