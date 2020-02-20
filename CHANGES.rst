@@ -1,9 +1,16 @@
-2.0 (unreleased)
+1.4 (unreleased)
 ================
 
-- No changes yet
+- adjustable stellar priors
+- 2D pPDFs added
+- improvements to AST generation
+- AGB stellar atmosphere models
+- tool scripts expanded and documented
+- some scripts system callable (e.g., 'beast get_libfiles')
+- examples moved to separate repository
+- various documentation updates and bugfixes
 
-1.3 (2019-08-20)
+1.3.2 (2019-09-05)
 ================
 
 - python 2 support dropped
