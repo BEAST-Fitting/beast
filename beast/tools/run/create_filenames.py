@@ -130,8 +130,8 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
             for phot_file in photometry_files:
                 # get the sd/sub number
-                dpos = phot_file.find("_bin")
-                spos = phot_file.find("sub")
+                dpos = phot_file.rfind("_bin")
+                spos = phot_file.rfind("sub")
                 ppos = phot_file.rfind(".")
                 curr_sd = phot_file[dpos + 4 : spos - 1]
                 curr_sub = phot_file[spos + 3 : ppos]
@@ -288,8 +288,8 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
             for phot_file in phot_file_list:
                 # get the sd/sub number
-                dpos = phot_file.find("_bin")
-                spos = phot_file.find("sub")
+                dpos = phot_file.rfind("_bin")
+                spos = phot_file.rfind("sub")
                 ppos = phot_file.rfind(".")
                 curr_sd = phot_file[dpos + 4 : spos - 1]
                 curr_sub = phot_file[spos + 3 : ppos]
