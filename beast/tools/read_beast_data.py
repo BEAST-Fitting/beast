@@ -124,6 +124,7 @@ def read_sed_data(
        the set of parameters to extract
        default = [Av, Rv, f_A, M_ini, logA, Z, distance]
        If set to None, return the list of possible parameters
+       If set to 'all', read in all parameters
 
     Returns
     -------
@@ -143,6 +144,8 @@ def read_sed_data(
         # return that if the user is so inclined
         if param_list is None:
             return grid_param_list + ['seds', 'lamb']
+        if param_list == 'all':
+            param_list = grid_param_list
 
         # get parameters
         for param in tqdm(param_list, desc='reading beast data'):
