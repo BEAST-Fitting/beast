@@ -28,14 +28,17 @@ def remove_filters_from_files(
        changes with different combinations of filters.  In that case, put in
        files for both `physgrid` and `obsgrid`.  Set `rm_filters` to the
        filter(s) you wish to remove, and they will be removed both from those
-       and from the catalog file.
+       and from the catalog file.  The three new files will be output with the
+       name prefix set in `outbase`.
 
     2. When running the BEAST, you have a master physics model grid with all
        filters present in the survey, but some fields don't have observations in
        all of those filters.  In that case, put the master grid in `physgrid`
        and set `rm_filters` to None.  The catalog will be used to determine the
        filters to remove (if any).  `obsgrid` should be left as None, because in
-       this use case, the obsmodel grid has not yet been generated.
+       this use case, the obsmodel grid has not yet been generated.  The output
+       physics model grid will be named using the filename in `physgrid_outfile`
+       (if given) or with the prefix in `outbase`.
 
 
     Parameters
@@ -134,7 +137,7 @@ def remove_filters_from_files(
         if physgrid_outfile is not None:
             g.writeHDF(physgrid_outfile)
         elif outbase is not None:
-            g.writeHDF("{}_sed.grid.hd5".format(outbase))
+            g.writeHDF("{}_seds.grid.hd5".format(outbase))
         else:
             raise ValueError('Need to set either outbase or physgrid_outfile')
 
