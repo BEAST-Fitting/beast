@@ -1,15 +1,18 @@
-####################
+#########################
 BEAST Miscellaneous Tools
-####################
+#########################
 
 The following miscellaneous tools are useful for handling data formats and
 
-Convert HDF5 to FITS
+.. _other_beast_tools:
+
+Convert hdf5 to FITS
 ---------------------
 
 Although the BEAST can read data in various formats, it may be of interest to
-convert a photometric catalog from HDF5 to FITS. Below, we show an example for
-to use the BEAST tool convert_hdf5_to_fits to do this:
+convert a photometric catalog from hdf5 to FITS format. Below, we show an example for
+to use the BEAST tool convert_hdf5_to_fits to convert a catalog from hdf5 to FITS
+and save it to disk:
 
 .. code-block:: python
 
