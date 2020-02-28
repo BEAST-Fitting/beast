@@ -115,7 +115,7 @@ def compare_hdf5(fname_cache, fname_new, ctype=None):
                     cvalue.value,
                     cvalue_new.value,
                     err_msg="testing %s" % (osname),
-                    rtol=1e-6,
+                    rtol=2e-6,
                 )
             else:
                 for ckey in cvalue.dtype.fields.keys():

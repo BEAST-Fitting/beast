@@ -57,6 +57,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
     # output files
     stats_files = []
     pdf_files = []
+    pdf2d_files = []
     lnp_files = []
 
     # other potentially useful things
@@ -107,6 +108,11 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                     datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
             )
+            pdf2d_files.append(
+                "{0}/{0}_bin{1}_sub{2}_pdf2d.fits".format(
+                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                )
+            )
             lnp_files.append(
                 "{0}/{0}_bin{1}_sub{2}_lnp.hd5".format(
                     datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
@@ -124,8 +130,8 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
             for phot_file in photometry_files:
                 # get the sd/sub number
-                dpos = phot_file.find("_bin")
-                spos = phot_file.find("sub")
+                dpos = phot_file.rfind("_bin")
+                spos = phot_file.rfind("sub")
                 ppos = phot_file.rfind(".")
                 curr_sd = phot_file[dpos + 4 : spos - 1]
                 curr_sub = phot_file[spos + 3 : ppos]
@@ -160,6 +166,11 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                         datamodel.project, curr_sd, curr_sub
                     )
                 )
+                pdf2d_files.append(
+                    "{0}/{0}_bin{1}_sub{2}_pdf2d.fits".format(
+                        datamodel.project, curr_sd, curr_sub
+                    )
+                )
                 lnp_files.append(
                     "{0}/{0}_bin{1}_sub{2}_lnp.hd5".format(
                         datamodel.project, curr_sd, curr_sub
@@ -183,6 +194,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
             stats_files.append("{0}/{0}_stats.fits".format(datamodel.project))
             pdf_files.append("{0}/{0}_pdf1d.fits".format(datamodel.project))
+            pdf2d_files.append("{0}/{0}_pdf2d.fits".format(datamodel.project))
             lnp_files.append("{0}/{0}_lnp.hd5".format(datamodel.project))
 
     # ** with subgrids **
@@ -247,6 +259,11 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                         datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
+                pdf2d_files.append(
+                    "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_pdf2d.fits".format(
+                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                    )
+                )
                 lnp_files.append(
                     "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_lnp.hd5".format(
                         datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
@@ -271,8 +288,8 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
             for phot_file in phot_file_list:
                 # get the sd/sub number
-                dpos = phot_file.find("_bin")
-                spos = phot_file.find("sub")
+                dpos = phot_file.rfind("_bin")
+                spos = phot_file.rfind("sub")
                 ppos = phot_file.rfind(".")
                 curr_sd = phot_file[dpos + 4 : spos - 1]
                 curr_sub = phot_file[spos + 3 : ppos]
@@ -308,6 +325,11 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                     )
                     pdf_files.append(
                         "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_pdf1d.fits".format(
+                            datamodel.project, curr_sd, curr_sub, gridsub
+                        )
+                    )
+                    pdf2d_files.append(
+                        "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_pdf2d.fits".format(
                             datamodel.project, curr_sd, curr_sub, gridsub
                         )
                     )
@@ -356,6 +378,9 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                 pdf_files.append(
                     "{0}/{0}_gridsub{1}_pdf1d.fits".format(datamodel.project, gridsub)
                 )
+                pdf2d_files.append(
+                    "{0}/{0}_gridsub{1}_pdf2d.fits".format(datamodel.project, gridsub)
+                )
                 lnp_files.append(
                     "{0}/{0}_gridsub{1}_lnp.hd5".format(datamodel.project, gridsub)
                 )
@@ -377,6 +402,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
             noise_trim_files,
             stats_files,
             pdf_files,
+            pdf2d_files,
             lnp_files,
         ]
     ]
@@ -392,6 +418,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
         "noise_trim_files": noise_trim_files,
         "stats_files": stats_files,
         "pdf_files": pdf_files,
+        "pdf2d_files": pdf2d_files,
         "lnp_files": lnp_files,
         "gridpickle_files": gridpickle_files,
         "sd_sub_info": sd_sub_info,

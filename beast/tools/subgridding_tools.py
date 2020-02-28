@@ -2,6 +2,8 @@ import math
 import os
 import re
 from multiprocessing import Pool
+from collections import defaultdict
+import tables
 
 import numpy as np
 from astropy.io import fits
@@ -12,6 +14,7 @@ from beast.physicsmodel import grid
 from beast.external import eztables
 from beast.fitting.fit import save_pdf1d
 from beast.fitting.fit_metrics import percentile
+from beast.tools import read_beast_data
 
 
 def uniform_slices(num_points, num_slices):
@@ -513,3 +516,122 @@ def merge_pdf1d_stats(
     print("Saved combined stats in " + stats_fname)
 
     return pdf1d_fname, stats_fname
+
+
+def merge_lnp(
+    subgrid_lnp_fnames,
+    re_run=False,
+    output_fname_base=None,
+    threshold=None,
+):
+    """
+    Merge a set of sparsely sampled log likelihood (lnp) files.  It is assumed
+    that they are for each part of a subgrid, such that a given star_# in each
+    file corresponds to the same star_# in the other file(s).  Note that this
+    should NOT be used to combine files across source density or background bin.
+
+    Parameters
+    ----------
+    subgrid_lnp_fnames: list of string
+        file names of all the lnp fits files
+
+    re_run: boolean (default=False)
+        If True, re-run the merging, even if the merged files already
+        exist.  If False, will only merge files if they don't exist.
+
+    output_fname_base: string (default=None)
+        If set, this will prepend the output lnp file name
+
+    threshold : float (default=None)
+        If set: for a given star, any lnP values below max(lnP)-threshold will
+        be deleted
+
+    Returns
+    -------
+    merged_lnp_fname : string
+        file name of the resulting lnp fits file (newly created by this function)
+    """
+
+    # create filename
+    if output_fname_base is None:
+        merged_lnp_fname = "combined_lnp.fits"
+    else:
+        merged_lnp_fname = output_fname_base + "_lnp.fits"
+
+    # check if we need to rerun
+    if os.path.isfile(merged_lnp_fname) and (re_run is False):
+        print(str(len(subgrid_lnp_fnames)) + " files already merged, skipping")
+        return merged_lnp_fname
+
+
+    # dictionaries to compile all the info
+    merged_lnp = defaultdict(list)
+    merged_subgrid = defaultdict(list)
+    merged_idx = defaultdict(list)
+
+    for fname in subgrid_lnp_fnames:
+
+        # extract subgrid number from filename
+        subgrid_num = [i for i in fname.split('_') if 'gridsub' in i][0][7:]
+
+        # read in the SED indices and lnP values
+        lnp_data = read_beast_data.read_lnp_data(fname, shift_lnp=False)
+        n_lnp, n_star = lnp_data['vals'].shape
+
+        # save each star's values into the master dictionary
+        for i in range(n_star):
+            merged_lnp['star_'+str(i)] += lnp_data['vals'][:,i].tolist()
+            merged_idx['star_'+str(i)] += lnp_data['indxs'][:,i].tolist()
+            merged_subgrid['star_'+str(i)] += np.full(n_lnp, int(subgrid_num)).tolist()
+
+
+    # go through each star and remove values that are too small
+    if threshold is not None:
+
+        # keep track of how long the list of good values is
+        good_list_len = np.zeros(n_star)
+
+        # go through each star
+        for i in range(n_star):
+
+            star_label = "star_"+str(i)
+            # good indices
+            keep_ind = np.where(
+                np.array(merged_lnp[star_label]) >
+                (max(merged_lnp[star_label]) - threshold)
+            )[0]
+            good_list_len[i] = len(keep_ind)
+            # save just those
+            merged_lnp[star_label] = np.array(merged_lnp[star_label])[keep_ind].tolist()
+            merged_idx[star_label] = np.array(merged_idx[star_label])[keep_ind].tolist()
+            merged_subgrid[star_label] = np.array(merged_subgrid[star_label])[keep_ind].tolist()
+
+        # figure out how many padded -inf/nan values need to be appended to make
+        # each list the same length
+        n_list_pad = np.max(good_list_len) - good_list_len
+
+    else:
+        # no list padding if there's no trimming for threshold
+        n_list_pad = np.zeros(n_star)
+
+
+    # write out the things in a new file
+    with tables.open_file(merged_lnp_fname, "w") as out_table:
+        for i in range(n_star):
+            star_label = "star_"+str(i)
+            star_group = out_table.create_group(star_label)
+            star_group.create_dataset(
+                'idx',
+                data=np.array(merged_idx[star_label] + n_list_pad*[np.nan])
+            )
+            star_group.create_dataset(
+                'lnp',
+                data=np.array(merged_lnp[star_label] + n_list_pad*[-np.inf])
+            )
+            star_group.create_dataset(
+                'subgrid',
+                data=np.array(merged_subgrid[star_label] + n_list_pad*[np.nan])
+            )
+
+
+    return merged_lnp_fname

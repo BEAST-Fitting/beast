@@ -5,6 +5,7 @@ __all__ = ["isNestedInstance", "pretty_size_print"]
 
 def isNestedInstance(obj, cl):
     """ Test for sub-classes types
+
         I could not find a universal test
 
         keywords

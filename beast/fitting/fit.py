@@ -39,6 +39,7 @@ from beast.fitting.fit_metrics.likelihood import N_covar_logLikelihood, N_logLik
 from beast.fitting.fit_metrics import expectation, percentile
 
 from beast.fitting.pdf1d import pdf1d
+from beast.fitting.pdf2d import pdf2d
 
 __all__ = [
     "summary_table_memory",
@@ -116,10 +117,14 @@ def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
 
     Keywords
     ----------
-    pdf1d_outname(str) : output filename
-    save_pdf1d_vals(list) : list of 2D nparrays giving the 1D PDFs for
-                            each parameter/variable
-    qnames(1D nparray) : list of the parameter names
+    pdf1d_outname : str
+        output filename
+
+    save_pdf1d_vals : list
+        list of 2D nparrays giving the 1D PDFs for each parameter/variable
+
+    qnames : 1D nparray
+        list of the parameter names
 
     Returns
     -------
@@ -136,6 +141,36 @@ def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
         pheader.set("XTENSION", "IMAGE")
         pheader.set("EXTNAME", qname)
         fits.append(pdf1d_outname, save_pdf1d_vals[k], header=pheader)
+
+def save_pdf2d(pdf2d_outname, save_pdf2d_vals, qname_pairs):
+    """ Saves the 2D PDFs to a file
+
+    Keywords
+    ----------
+    pdf2d_outname : str
+        output filename
+
+    save_pdf2d_vals : list of np.array
+        list of 3D nparrays giving the 2D PDFs for each pair of parameters
+
+    qname_pairs : list of strings
+        list of the parameter pairs
+
+    Returns
+    -------
+    N/A
+    """
+
+    # write a small primary header
+    fits.writeto(pdf2d_outname, np.zeros((2, 2)), overwrite=True)
+
+    # write the 2D PDFs for all the objects, 1 set per extension
+    for k, qname_pair in enumerate(qname_pairs):
+        hdu = fits.PrimaryHDU(save_pdf2d_vals[k])
+        pheader = hdu.header
+        pheader.set("XTENSION", "IMAGE")
+        pheader.set("EXTNAME", qname_pair)
+        fits.append(pdf2d_outname, save_pdf2d_vals[k], header=pheader)
 
 
 def save_lnp(lnp_outname, save_lnp_vals, resume):
@@ -184,6 +219,88 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
             outfile.create_array(star_group, "chi2", lnp_val[3])
     outfile.close()
 
+def setup_param_bins(qname, max_nbins, g0, full_model_flux, filters, grid_info_dict):
+    """
+    Set up the bin properties for the given parameter
+
+    Parameters
+    ----------
+    qname : str
+        name of the parameter
+
+    max_nbins : int
+        max number of bins to use for the PDF calculations
+
+    g0 : FileSEDGrid object
+        the SED grid
+
+    full_model_flux : np.array
+        fluxes for the model grid
+
+    filters : list of strings
+        names of the filters in the SED grid
+
+    grid_info_dict : dict
+        the override for bin min/max/n_bin
+
+    Returns
+    -------
+    qname_vals : np.array
+        Either the fluxes or the grid values for the input qname
+
+    nbins : int
+        number of bins
+
+    logspacing : boolean
+        whether the bins should be log-spaced
+
+    minval, maxval : floats
+        min/max value for the bins
+
+    """
+
+    if "_bias" in qname:
+        fname = (qname.replace("_wd_bias", "")).replace("symlog", "")
+        qname_vals = full_model_flux[:, filters.index(fname)]
+    else:
+        qname_vals = g0[qname]
+
+    if grid_info_dict is not None and qname in grid_info_dict:
+        # When processing a subgrid, we actually need the number of
+        # unique values across all the subgrids to make the 1dpdfs
+        # compatible
+        n_uniq = grid_info_dict[qname]["num_unique"]
+    else:
+        n_uniq = len(np.unique(qname_vals))
+
+    if n_uniq > max_nbins:
+        # limit the number of bins in the 1D likelihood for speed
+        nbins = max_nbins
+    else:
+        nbins = n_uniq
+
+    # temp code for BEAST paper figure
+    if qname == "Z":
+        nbins = nbins + 1
+
+    # setup for the fast 1D/2D PDFs
+
+    # needed for mass parameters as they are stored as linear values
+    # computationally, less bins needed if 1D PDFs done as log spacing
+    if qname in set(["M_ini", "M_act", "radius"]):
+        logspacing = True
+    else:
+        logspacing = False
+
+    if grid_info_dict is not None and qname in grid_info_dict:
+        minval = grid_info_dict[qname]["min"]
+        maxval = grid_info_dict[qname]["max"]
+    else:
+        minval = None
+        maxval = None
+
+    return qname_vals, nbins, logspacing, minval, maxval
+
 
 def Q_all_memory(
     prev_result,
@@ -196,6 +313,8 @@ def Q_all_memory(
     max_nbins=50,
     stats_outname=None,
     pdf1d_outname=None,
+    pdf2d_outname=None,
+    pdf2d_param_list=None,
     grid_info_dict=None,
     lnp_outname=None,
     lnp_npts=None,
@@ -251,7 +370,14 @@ def Q_all_memory(
     stats_outname: set to output the stats file into a FITS file with
                    extensions
 
-    pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
+    pdf1d_outname : string
+        set to output the 1D PDFs into a FITS file with extensions
+
+    pdf2d_outname : string
+        set to output the 2D PDFs into a FITS file with extensions
+
+    pdf2d_param_list : list of strings or None
+        set to the parameters for which to make the 2D PDFs
 
     grid_info_dict: dict: {'qname': {'min': float,
                                      'max': float,
@@ -374,55 +500,76 @@ def Q_all_memory(
     fast_pdf1d_objs = []
     save_pdf1d_vals = []
 
+    # make 1D PDF objects
     for qname in qnames:
-        # q = g0[qname][g0_indxs]
-        if "_bias" in qname:
-            fname = (qname.replace("_wd_bias", "")).replace("symlog", "")
-            q = full_model_flux[:, filters.index(fname)]
-        else:
-            q = g0[qname]
 
-        if grid_info_dict is not None and qname in grid_info_dict:
-            # When processing a subgrid, we actuall need the number of
-            # unique values across all the subgrids to make the 1dpdfs
-            # compatible
-            n_uniq = grid_info_dict[qname]["num_unique"]
-        else:
-            n_uniq = len(np.unique(q))
-
-        if n_uniq > max_nbins:
-            # limit the number of bins in the 1D likelihood for speed
-            nbins = max_nbins
-        else:
-            nbins = n_uniq
-
-        # temp code for BEAST paper figure
-        if qname == "Z":
-            nbins = nbins + 1
-
-        # setup the fast 1d pdf
-
-        # needed for mass parameters as they are stored as linear values
-        # computationally, less bins needed if 1D PDFs done as log spacing
-        if qname in set(["M_ini", "M_act", "radius"]):
-            logspacing = True
-        else:
-            logspacing = False
-
-        if grid_info_dict is not None and qname in grid_info_dict:
-            minval = grid_info_dict[qname]["min"]
-            maxval = grid_info_dict[qname]["max"]
-        else:
-            minval = None
-            maxval = None
+        # get bin properties
+        qname_vals, nbins, logspacing, minval, maxval = setup_param_bins(
+            qname, max_nbins, g0, full_model_flux, filters, grid_info_dict
+        )
 
         # generate the fast 1d pdf mapping
-        _tpdf1d = pdf1d(q, nbins, logspacing=logspacing, minval=minval, maxval=maxval)
+        _tpdf1d = pdf1d(qname_vals, nbins, logspacing=logspacing, minval=minval, maxval=maxval)
         fast_pdf1d_objs.append(_tpdf1d)
 
         # setup the arrays to save the 1d PDFs
         save_pdf1d_vals.append(np.zeros((nobs + 1, nbins)))
-        save_pdf1d_vals[-1][nobs, :] = _tpdf1d.bin_vals
+        save_pdf1d_vals[-1][-1, :] = _tpdf1d.bin_vals
+
+    # if chosen, make 2D PDFs
+    if pdf2d_outname is not None:
+
+        # setup the 2D PDFs
+        _pdf2d_params = [
+            qname for qname in qnames
+            if qname in pdf2d_param_list and len(np.unique(g0[qname])) > 1
+        ]
+        _n_params = len(_pdf2d_params)
+        pdf2d_qname_pairs = [
+            _pdf2d_params[i]+'+'+_pdf2d_params[j]
+            for i in range(_n_params)
+            for j in range(i+1,_n_params)
+        ]
+        fast_pdf2d_objs = []
+        save_pdf2d_vals = []
+
+        # make 2D PDF objects
+        for qname_pair in pdf2d_qname_pairs:
+            qname_1, qname_2 = qname_pair.split('+')
+
+            # get bin properties
+            qname_vals_p1, nbins_p1, logspacing_p1, minval_p1, maxval_p1 = setup_param_bins(
+                qname_1, max_nbins, g0, full_model_flux, filters, grid_info_dict
+            )
+            qname_vals_p2, nbins_p2, logspacing_p2, minval_p2, maxval_p2 = setup_param_bins(
+                qname_2, max_nbins, g0, full_model_flux, filters, grid_info_dict
+            )
+
+            # make 2D PDF
+            _tpdf2d = pdf2d(
+                qname_vals_p1,
+                qname_vals_p2,
+                nbins_p1,
+                nbins_p2,
+                logspacing_p1=logspacing_p1,
+                logspacing_p2=logspacing_p2,
+                minval_p1=minval_p1,
+                maxval_p1=maxval_p1,
+                minval_p2=minval_p2,
+                maxval_p2=maxval_p2,
+            )
+            fast_pdf2d_objs.append(_tpdf2d)
+            # arrays for the PDFs and bins
+            save_pdf2d_vals.append(np.zeros((nobs + 2, nbins_p1, nbins_p2)))
+            save_pdf2d_vals[-1][-2, :, :] = np.tile(
+                _tpdf2d.bin_vals_p1, (nbins_p2, 1)
+            ).T
+            save_pdf2d_vals[-1][-1, :, :] = np.tile(
+                _tpdf2d.bin_vals_p2, (nbins_p1, 1)
+            )
+
+
+
 
     # if this is a resume job, read in the already computed stats and
     #     fill the variables
@@ -454,10 +601,17 @@ def Q_all_memory(
         # read in the already computed 1D PDFs
         if pdf1d_outname is not None:
             print("restoring the already computed 1D PDFs from " + pdf1d_outname)
-            hdulist = fits.open(pdf1d_outname)
-            for k in range(len(qnames)):
-                save_pdf1d_vals[k] = hdulist[k + 1].data
-            hdulist.close()
+            with fits.open(pdf1d_outname) as hdulist:
+                for k in range(len(qnames)):
+                    save_pdf1d_vals[k] = hdulist[k + 1].data
+
+        # read in the already computed 2D PDFs
+        if pdf2d_outname is not None:
+            print("restoring the already computed 2D PDFs from " + pdf2d_outname)
+            with fits.open(pdf2d_outname) as hdulist:
+                for k in range(len(pdf2d_qname_pairs)):
+                    save_pdf2d_vals[k] = hdulist[k + 1].data
+
     else:
         start_pos = 0
 
@@ -571,6 +725,8 @@ def Q_all_memory(
         lnp_vals[e] = lnps.max()
         lnp_indx[e] = best_full_indx
 
+        # calculate quantities for individual parameters:
+        # best value, expectation value, 1D PDF, percentiles
         for k, qname in enumerate(qnames):
             if "_bias" in qname:
                 fname = (qname.replace("_wd_bias", "")).replace("symlog", "")
@@ -596,6 +752,11 @@ def Q_all_memory(
             else:
                 per_vals[e, k, :] = [0.0, 0.0, 0.0]
 
+        # calculate 2D PDFs for the subset of parameter pairs
+        if pdf2d_outname is not None:
+            for k in range(len(pdf2d_qname_pairs)):
+                save_pdf2d_vals[k][e, :, :] = fast_pdf2d_objs[k].gen2d(g0_indxs[indx], weights)
+
         # incremental save (useful if job dies early to recover most
         #    of the computations)
         if save_every_npts is not None:
@@ -603,6 +764,11 @@ def Q_all_memory(
                 # save the 1D PDFs
                 if pdf1d_outname is not None:
                     save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames)
+
+                # save the 2D PDFs
+                if pdf2d_outname is not None:
+                    save_pdf2d(pdf2d_outname, save_pdf2d_vals, pdf2d_qname_pairs)
+
 
                 # save the stats/catalog
                 if stats_outname is not None:
@@ -632,6 +798,10 @@ def Q_all_memory(
     # save the 1D PDFs
     if pdf1d_outname is not None:
         save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames)
+
+    # save the 2D PDFs
+    if pdf2d_outname is not None:
+        save_pdf2d(pdf2d_outname, save_pdf2d_vals, pdf2d_qname_pairs)
 
     # save the stats/catalog
     if stats_outname is not None:
@@ -739,6 +909,8 @@ def summary_table_memory(
     resume=False,
     stats_outname=None,
     pdf1d_outname=None,
+    pdf2d_outname=None,
+    pdf2d_param_list=None,
     grid_info_dict=None,
     lnp_outname=None,
     use_full_cov_matrix=True,
@@ -783,6 +955,12 @@ def summary_table_memory(
                    extensions
 
     pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
+
+    pdf2d_outname : string
+        set to output the 2D PDFs into a FITS file with extensions
+
+    pdf2d_param_list : list of strings or None
+        set to the parameters for which to make the 2D PDFs
 
     grid_info_dict: dict: {'qname': {'min': float,
                                      'max': float,
@@ -834,6 +1012,10 @@ def summary_table_memory(
         if not (key in list(g0.keys())):
             raise KeyError('Key "{0}" not recognized'.format(key))
 
+    # make sure there are 2D PDF params if needed
+    if (pdf2d_outname is not None) and (pdf2d_param_list is None):
+        raise KeyError('pdf2d_param_list cannot be None if saving 2D PDFs')
+
     # generate an IAU complient name for each source and add other inform
     res = IAU_names_and_extra_info(obs, surveyname=surveyname, extraInfo=False)
 
@@ -850,6 +1032,8 @@ def summary_table_memory(
         lnp_npts=lnp_npts,
         stats_outname=stats_outname,
         pdf1d_outname=pdf1d_outname,
+        pdf2d_outname=pdf2d_outname,
+        pdf2d_param_list=pdf2d_param_list,
         grid_info_dict=grid_info_dict,
         lnp_outname=lnp_outname,
         use_full_cov_matrix=use_full_cov_matrix,

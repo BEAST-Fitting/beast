@@ -27,6 +27,7 @@ def setup_batch_beast_fit(
     overwrite_logfile=True,
     prefix=None,
     use_sd=True,
+    pdf2d_param_list=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
     nsubs=1,
     nprocs=1,
 ):
@@ -54,6 +55,9 @@ def setup_batch_beast_fit(
     use_sd : boolean (default=True)
         If True, split runs based on source density (determined by finding
         matches to datamodel.astfile with SD info)
+
+    pdf2d_param_list : list of strings or None
+        If set, do 2D PDFs of these parameters.  If None, don't make 2D PDFs.
 
     nsubs : int (default=1)
         number of subgrids used for the physics model
@@ -268,6 +272,12 @@ def setup_batch_beast_fit(
             if nsubs > 1:
                 gs_str = " --choose_subgrid {0} ".format(gridsub_info[i])
 
+            # set 2D PDF option
+            if pdf2d_param_list is None:
+                pdf2d_str = "None"
+            else:
+                pdf2d_str = " " + " ".join(pdf2d_param_list) + " "
+
             job_command = (
                 nice_str
                 + "python -m beast.tools.run.run_fitting "
@@ -278,6 +288,8 @@ def setup_batch_beast_fit(
                 + str(nsubs)
                 + " --nprocs "
                 + str(nprocs)
+                + " --pdf2d_param_list "
+                + pdf2d_str
                 + pipe_str
                 + log_path
                 + log_files[i]
@@ -327,7 +339,13 @@ if __name__ == "__main__":  # pragma: no cover
         type=int,
         help="if True (1), remove sources with flag=99 in flag_filter",
     )
-
+    parser.add_argument(
+        "--pdf2d_param_list",
+        type=str,
+        nargs="+",
+        default=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
+        help="If set, do 2D PDFs of these parameters. If None, don't make 2D PDFs."
+    )
     parser.add_argument(
         "--nsubs",
         default=1,
@@ -343,12 +361,16 @@ if __name__ == "__main__":  # pragma: no cover
 
     args = parser.parse_args()
 
+    if 'None' in args.pdf2d_param_list:
+        args.pdf2d_param_list = None
+
     setup_batch_beast_fit(
         num_percore=args.num_percore,
         nice=args.nice,
         overwrite_logfile=bool(args.overwrite_logfile),
         prefix=args.prefix,
         use_sd=bool(args.use_sd),
+        pdf2d_param_list=args.pdf2d_param_list,
         nsubs=args.nsubs,
         nprocs=args.nprocs,
     )

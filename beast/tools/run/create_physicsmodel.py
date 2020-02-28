@@ -22,7 +22,7 @@ from beast.physicsmodel.model_grid import (
 )
 from beast.physicsmodel.grid import FileSEDGrid
 from beast.tools.run.helper_functions import parallel_wrapper
-
+from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.tools import verify_params
 from beast.tools import subgridding_tools
 
@@ -79,6 +79,9 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
         dlogt=datamodel.logt[2],
         z=datamodel.z,
     )
+
+    # remove the isochrone points with logL=-9.999
+    oiso = ezIsoch(oiso.selectWhere("*","logL > -9"))
 
     if hasattr(datamodel, "add_spectral_properties_kwargs"):
         extra_kwargs = datamodel.add_spectral_properties_kwargs
