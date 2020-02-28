@@ -65,7 +65,7 @@ def compute_age_prior_weights(logages, age_prior_model):
         # assumes SFR(t) \propto e**(-t/tau) \propto e**(age/tau)
         # where age \propto -t (for age=t0-t) and tau in Gyr
         vals = (10 ** logages) / (age_prior_model["tau"] * 1e9)
-        age_weights = np.exp(vals)
+        age_weights = np.exp(-1.0 * vals)
     else:
         raise NotImplementedError(
             "input age prior ''{}'' function not supported".format(
