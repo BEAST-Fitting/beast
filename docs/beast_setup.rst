@@ -73,11 +73,11 @@ Define list of filternames as ``additional_filters`` and alter ``add_spectral_pr
 
 ``add_spectral_properties_kwargs = dict(filternames=filters + additional_filters)``
 
-Skip verify_params exit
-^^^^^^^^^^^^^^^^^^^^^^^
-Add ``noexit=True`` keyword to ``verify_input_format()`` call in run_beast.py:
+Allow non-interrupting warnings in verify_params
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Set ``allow_verify_warnings`` boolean variable in datamodel.py to allow non-interrupting warnings. Default: raise UserWarning exception.
 
-``verify_params.verify_input_format(datamodel, noexit=True)``
+``allow_verify_warnings = True``
 
 Remove constant SFH prior
 ^^^^^^^^^^^^^^^^^^^^^^^^^
