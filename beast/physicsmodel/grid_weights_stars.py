@@ -11,6 +11,7 @@ for the non-uniform spacing.
 import numpy as np
 
 __all__ = [
+    "compute_distance_grid_weights",
     "compute_age_grid_weights",
     "compute_mass_grid_weights",
     "compute_metallicity_grid_weights",
@@ -136,3 +137,33 @@ def compute_metallicity_grid_weights(mets):
     mets_weights /= np.average(mets_weights)
 
     return mets_weights
+
+
+def compute_distance_grid_weights(dists):
+    """
+    Computes the distance weights to set a uniform prior on linear distance
+
+    Parameters
+    ----------
+    dists : numpy vector
+        distances
+
+    Returns
+    -------
+    dist_weights : numpy vector
+       weights to provide a flat distance
+    """
+    # sort
+    sindxs = np.argsort(dists)
+
+    # Compute the bin boundaries
+    dists_bounds = compute_bin_boundaries(dists[sindxs])
+
+    # compute the weights = mass bin widths
+    dists_weights = np.empty(len(dists))
+    dists_weights[sindxs] = np.diff(dists_bounds)
+
+    # normalize to avoid numerical issues (too small or too large)
+    dists_weights /= np.average(dists_weights)
+
+    return dists_weights

@@ -14,19 +14,100 @@ with prior weights.
 """
 import numpy as np
 
+from beast.physicsmodel.grid_weights_stars import compute_distance_grid_weights
 from beast.physicsmodel.grid_weights_stars import compute_age_grid_weights
 from beast.physicsmodel.grid_weights_stars import compute_mass_grid_weights
 from beast.physicsmodel.grid_weights_stars import compute_metallicity_grid_weights
 
+from beast.physicsmodel.prior_weights_stars import compute_distance_prior_weights
 from beast.physicsmodel.prior_weights_stars import compute_age_prior_weights
 from beast.physicsmodel.prior_weights_stars import compute_mass_prior_weights
 from beast.physicsmodel.prior_weights_stars import compute_metallicity_prior_weights
 
-__all__ = ["compute_age_mass_metallicity_weights"]
+__all__ = ["compute_age_mass_metallicity_weights",
+           "compute_distance_age_mass_metallicity_weights"]
+
+
+def compute_distance_age_mass_metallicity_weights(
+    _tgrid,
+    distance_prior_model={"name": "flat"},
+    age_prior_model={"name": "flat"},
+    mass_prior_model={"name": "kroupa"},
+    met_prior_model={"name": "flat"},
+):
+    """
+    Computes the distance and age-mass-metallicity grid
+    and prior weights on the BEAST model spectra grid
+
+    Keywords
+    --------
+    _tgrid : BEAST model spectra grid.
+
+    distance_prior_model
+    age_prior_model
+    mass_prior_model
+    met_prior_model: dict
+        dict including prior model name and parameters
+
+    Returns
+    -------
+    Grid and prior weight columns updated by multiplying by the
+        the distance and age-mass-metallicity weight.
+    """
+
+    # get the unique distances
+    uniq_dists = np.unique(_tgrid["distance"])
+
+    # setup the vector to hold the distance weight vectors
+    n_dist = len(uniq_dists)
+    total_dist_grid_weight = np.zeros((n_dist))
+    total_dist_prior_weight = np.zeros((n_dist))
+    total_dist_weight = np.zeros((n_dist))
+
+    for dz, dist_val in enumerate(uniq_dists):
+        print("computing the distance plus weights for dist = ", dist_val)
+        dindxs, = np.where(_tgrid["distance"] == dist_val)
+        compute_age_mass_metallicity_weights(
+            _tgrid,
+            dindxs,
+            age_prior_model=age_prior_model,
+            mass_prior_model=mass_prior_model,
+            met_prior_model=met_prior_model,
+        )
+        total_dist_grid_weight[dz] = np.sum(_tgrid[dindxs]["grid_weight"])
+        total_dist_prior_weight[dz] = np.sum(_tgrid[dindxs]["prior_weight"])
+        total_dist_weight[dz] = np.sum(_tgrid[dindxs]["weight"])
+
+    # ensure that the distance prior is uniform
+    if n_dist > 1:
+        # get the distance weights
+        dist_grid_weights = compute_distance_grid_weights(uniq_dists)
+        dist_grid_weights /= np.sum(dist_grid_weights)
+        dist_prior_weights = compute_distance_prior_weights(uniq_dists, distance_prior_model)
+        dist_prior_weights /= np.sum(dist_prior_weights)
+        dist_weights = dist_grid_weights * dist_prior_weights
+
+        # correct for any non-unformity in the number size of the
+        # age-mass grids between metallicity points
+        total_dist_grid_weight /= np.sum(total_dist_grid_weight)
+        total_dist_prior_weight /= np.sum(total_dist_prior_weight)
+        total_dist_weight /= np.sum(total_dist_weight)
+
+        for i, dist_val in enumerate(uniq_dists):
+            # get the grid for this distance
+            dindxs, = np.where(_tgrid["distance"] == dist_val)
+            _tgrid[dindxs]["grid_weight"] *= (
+                dist_grid_weights[i] * total_dist_grid_weight[i]
+            )
+            _tgrid[dindxs]["prior_weight"] *= (
+                dist_prior_weights[i] * total_dist_prior_weight[i]
+            )
+            _tgrid[dindxs]["weight"] *= dist_weights[i] * total_dist_weight[i]
 
 
 def compute_age_mass_metallicity_weights(
     _tgrid,
+    indxs,
     age_prior_model={"name": "flat"},
     mass_prior_model={"name": "kroupa"},
     met_prior_model={"name": "flat"},
@@ -49,12 +130,12 @@ def compute_age_mass_metallicity_weights(
 
     Returns
     -------
-    Grid weight column is updated by multiplying by the
+    Grid and prior weight columns updated by multiplying by the
        age-mass-metallicity weight.
     """
 
     # get the unique metallicities
-    uniq_Zs = np.unique(_tgrid["Z"])
+    uniq_Zs = np.unique(_tgrid[indxs]["Z"])
 
     # setup the vector to hold the z weight vector
     total_z_grid_weight = np.zeros(len(uniq_Zs))
@@ -65,9 +146,10 @@ def compute_age_mass_metallicity_weights(
         print("computing the age-mass-metallicity grid weight for Z = ", z_val)
 
         # get the grid for a single metallicity
-        zindxs, = np.where(_tgrid["Z"] == z_val)
+        zindxs, = np.where(_tgrid[indxs]["Z"] == z_val)
 
         # get the unique ages for this metallicity
+        zindxs = indxs[zindxs]
         uniq_ages = np.unique(_tgrid[zindxs]["logA"])
 
         # compute the age weights
@@ -76,7 +158,8 @@ def compute_age_mass_metallicity_weights(
 
         for ak, age_val in enumerate(uniq_ages):
             # get the grid for a single age
-            aindxs, = np.where((_tgrid["logA"] == age_val) & (_tgrid["Z"] == z_val))
+            aindxs, = np.where((_tgrid[indxs]["logA"] == age_val) & (_tgrid[indxs]["Z"] == z_val))
+            aindxs = indxs[aindxs]
             _tgrid_single_age = _tgrid[aindxs]
 
             # compute the mass weights
@@ -122,7 +205,8 @@ def compute_age_mass_metallicity_weights(
 
         for i, z_val in enumerate(uniq_Zs):
             # get the grid for this metallicity
-            zindxs, = np.where(_tgrid["Z"] == z_val)
+            zindxs, = np.where(_tgrid[indxs]["Z"] == z_val)
+            zindxs = indxs[zindxs]
             _tgrid[zindxs]["grid_weight"] *= (
                 met_grid_weights[i] * total_z_grid_weight[i]
             )
