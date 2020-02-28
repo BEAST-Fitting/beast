@@ -72,8 +72,10 @@ def remove_filters_from_files(
     if rm_filters is not None:
         for cfilter in np.atleast_1d(rm_filters):
             colname = "{}_rate".format(cfilter)
-            if colname in cat.colnames:
-                cat.remove_column(colname)
+            if colname.upper() in cat.colnames:
+                cat.remove_column(colname.upper())
+            elif colname.lower() in cat.colnames:
+                cat.remove_column(colname.lower())
             else:
                 print("{} not in catalog file".format(colname))
         cat.write("{}_cat.fits".format(outbase), overwrite=True)
@@ -91,7 +93,7 @@ def remove_filters_from_files(
 
         # extract info
         filters = g0.header["filters"].split(" ")
-        shortfilters = [(cfilter.split("_"))[-1].lower() for cfilter in filters]
+        shortfilters = [(cfilter.split("_"))[-1].upper() for cfilter in filters]
         nlamb = []
         nfilters = []
         rindxs = []
@@ -125,6 +127,8 @@ def remove_filters_from_files(
         # delete column(s)
         if len(rindxs) > 0:
             nseds = np.delete(g0.seds, rindxs, 1)
+        else:
+            nseds = g0.seds
         for rcol in rgridcols:
             g0.grid.delCol(rcol)
 
