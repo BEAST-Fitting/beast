@@ -110,6 +110,12 @@ def verify_input_format(datamodel):
 
     """
 
+    try:
+        if datamodel.allow_warnings:
+            print('verify_input_format: using non-interrupting warnings')
+    except NameError:
+        warnings.simplefilter('error', UserWarning)
+
     parameters = [
         datamodel.z,
         datamodel.obsfile,
