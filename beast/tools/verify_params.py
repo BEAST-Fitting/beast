@@ -113,8 +113,9 @@ def verify_input_format(datamodel):
     try:
         if datamodel.allow_warnings:
             print('verify_input_format: using non-interrupting warnings')
+        else:
+            warnings.simplefilter('error', UserWarning)
     except AttributeError:
-        print('verify_input_format: enable warning interrupt')
         warnings.simplefilter('error', UserWarning)
 
     parameters = [
