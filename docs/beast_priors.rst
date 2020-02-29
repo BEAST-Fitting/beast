@@ -136,6 +136,15 @@ The two mass function supported are:
 
   mass_prior_model = {'name': 'salpeter'}
 
+There is also a flat mass prior.  This is useful for creating grids for BEAST
+verification (see :doc:`Simulations <simulations>`), and should not be
+used for a standard fitting run.
+
+.. code-block:: python
+
+  mass_prior_model = {'name': 'flat_linear'}
+
+
 Plot showing examples of the possible mass prior models with the parameters given above.
 
 .. plot::
@@ -152,7 +161,8 @@ Plot showing examples of the possible mass prior models with the parameters give
 
     mass_prior_models = [
         {"name": "kroupa"},
-        {"name": "salpeter"}
+        {"name": "salpeter"},
+        {"name": "flat_linear"}
     ]
 
     for mp_mod in mass_prior_models:
