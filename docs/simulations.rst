@@ -26,12 +26,14 @@ of this file will determine the type of file output (e.g. filebase.fits for
 a FITS file).
 The number of observations to simulate is given by the `--nsim` parameter.
 The filter to use for the completeness function is given by the
-`--compl_filter` parameter.
+`--compl_filter` parameter.  By default, the SEDs are randomly chosen, and
+weighted by their grid+prior weights; this can be changed with the `--use_weight`
+parameter.
 
 .. code-block:: console
 
    $ python simulate_obs.py physicsgrid obsgrid outfile \
-                --nsim 200 --compl_filter f475w
+                --nsim 200 --compl_filter F475W
 
 The output file gives the simulated data in the observed data columns
 identified in the physicsgrid file along with all the model parameters

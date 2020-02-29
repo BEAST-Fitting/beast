@@ -160,6 +160,7 @@ def gen_SimObs_from_sedgrid(
     compl_filter="F475W",
     ranseed=None,
     vega_fname=None,
+    use_weight='weight',
 ):
     """
     Generate simulated observations using the physics and observation grids.
@@ -193,6 +194,10 @@ def gen_SimObs_from_sedgrid(
         filename for the vega info
         usefule for testing
 
+    use_weight : string (default='weight')
+        Set to either 'weight' (prior+grid), 'prior_weight', or 'grid_weight' to
+        choose the weighting for SED selection.
+
     Returns
     -------
     simtable : astropy Table
@@ -224,7 +229,7 @@ def gen_SimObs_from_sedgrid(
     # using both as the grid weight needed to account for the finite size
     #   of each grid bin
     # if we change to interpolating between grid points, need to rethink this
-    gridweights = sedgrid["weight"] * model_compl[:, filter_k]
+    gridweights = sedgrid[use_weight] * model_compl[:, filter_k]
     # need to sum to 1
     gridweights = gridweights / np.sum(gridweights)
 
