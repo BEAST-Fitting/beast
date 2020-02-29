@@ -111,6 +111,7 @@ def read_noise_data(
 def read_sed_data(
     filename,
     param_list=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
+    return_params=False,
 ):
     """
     Read in the beast data needed by all the pixels
@@ -118,13 +119,15 @@ def read_sed_data(
     Parameters
     ----------
     filename : string
-       name of the file with the BEAST physicsmodel grid
+        name of the file with the BEAST physicsmodel grid
 
     param_list : list of strings
-       the set of parameters to extract
-       default = [Av, Rv, f_A, M_ini, logA, Z, distance]
-       If set to None, return the list of possible parameters
-       If set to 'all', read in all parameters
+        The set of parameters to extract (default: Av, Rv, f_A, M_ini, logA, Z,
+        distance).  If set to 'all', extract all parameters in the grid.
+
+    return_params : boolean (default=False)
+        If True, return the list of all parameters in the grid.  Useful for
+        checking what columns are present.
 
     Returns
     -------
@@ -142,7 +145,7 @@ def read_sed_data(
         # get the possible list of parameters
         grid_param_list = list(sed_hdf['grid'].value.dtype.names)
         # return that if the user is so inclined
-        if param_list is None:
+        if return_params == True:
             return grid_param_list + ['seds', 'lamb']
         if param_list == 'all':
             param_list = grid_param_list
