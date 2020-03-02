@@ -1,10 +1,9 @@
 from astropy.tests.helper import remote_data
 from astropy.table import Table
-from astropy.io import misc
 from astropy.io import fits
 from beast.tools.convert_hdf5_to_fits import st_file
 
-from beast.tests.helpers import download_rename, compare_fits, compare_tables
+from beast.tests.helpers import download_rename, compare_tables
 
 
 @remote_data
