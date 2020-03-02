@@ -142,7 +142,7 @@ used for a standard fitting run.
 
 .. code-block:: python
 
-  mass_prior_model = {'name': 'flat_linear'}
+  mass_prior_model = {'name': 'flat'}
 
 
 Plot showing examples of the possible mass prior models with the parameters given above.
@@ -162,7 +162,7 @@ Plot showing examples of the possible mass prior models with the parameters give
     mass_prior_models = [
         {"name": "kroupa"},
         {"name": "salpeter"},
-        {"name": "flat_linear"}
+        {"name": "flat"}
     ]
 
     for mp_mod in mass_prior_models:

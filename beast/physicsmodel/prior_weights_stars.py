@@ -136,6 +136,23 @@ def imf_salpeter(x):
     return x ** (-2.35)
 
 
+def imf_flat(x):
+    """
+    Compute a flat IMF (useful for simulations, not for normal BEAST runs)
+
+    Parameters
+    ----------
+    x : numpy vector
+      masses
+
+    Returns
+    -------
+    imf : numpy vector
+      unformalized IMF
+    """
+    return 1.0
+
+
 def compute_mass_prior_weights(masses, mass_prior_model):
     """
     Compute the mass prior for the specificed model
@@ -155,36 +172,30 @@ def compute_mass_prior_weights(masses, mass_prior_model):
       integration is done between each bin's boundaries
     """
 
-    # if the prior is an IMF:
-    if mass_prior_model["name"] in ["kroupa", "salpeter"]:
+    # sort the initial mass along this isochrone
+    sindxs = np.argsort(masses)
 
-        # sort the initial mass along this isochrone
-        sindxs = np.argsort(masses)
+    # Compute the mass bin boundaries
+    mass_bounds = compute_bin_boundaries(masses[sindxs])
 
-        # Compute the mass bin boundaries
-        mass_bounds = compute_bin_boundaries(masses[sindxs])
+    # compute the weights = mass bin widths
+    mass_weights = np.empty(len(masses))
 
-        # compute the weights = mass bin widths
-        mass_weights = np.empty(len(masses))
-
-        # integrate the IMF over each bin
-        if mass_prior_model["name"] == "kroupa":
-            imf_func = imf_kroupa
-        if mass_prior_model["name"] == "salpeter":
-            imf_func = imf_salpeter
-
-        # calculate the average prior in each mass bin
-        for i in range(len(masses)):
-            mass_weights[sindxs[i]] = (quad(imf_func, mass_bounds[i], mass_bounds[i + 1]))[
-                0
-            ] / (mass_bounds[i + 1] - mass_bounds[i])
-
-    # if the prior is flat:
-    elif mass_prior_model["name"] == "flat_linear":
-        mass_weights = np.full(len(masses), 1.0)
-
+    # integrate the IMF over each bin
+    if mass_prior_model["name"] == "kroupa":
+        imf_func = imf_kroupa
+    elif mass_prior_model["name"] == "salpeter":
+        imf_func = imf_salpeter
+    elif mass_prior_model["name"] == "flat":
+        imf_func = imf_flat
     else:
         raise NotImplementedError("input mass prior function not supported")
+
+    # calculate the average prior in each mass bin
+    for i in range(len(masses)):
+        mass_weights[sindxs[i]] = (quad(imf_func, mass_bounds[i], mass_bounds[i + 1]))[
+            0
+        ] / (mass_bounds[i + 1] - mass_bounds[i])
 
     # normalize to avoid numerical issues (too small or too large)
     mass_weights /= np.average(mass_weights)
