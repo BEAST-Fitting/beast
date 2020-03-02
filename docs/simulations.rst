@@ -27,8 +27,8 @@ a FITS file).
 The number of observations to simulate is given by the `--nsim` parameter.
 The filter to use for the completeness function is given by the
 `--compl_filter` parameter.  By default, the SEDs are randomly chosen, and
-weighted by their grid+prior weights; this can be changed with the `--use_weight`
-parameter.
+weighted by their grid+prior weights; this can be changed with the
+`--weight_to_use` parameter.
 
 .. code-block:: console
 

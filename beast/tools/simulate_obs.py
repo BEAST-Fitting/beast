@@ -14,7 +14,7 @@ def simulate_obs(
     output_catalog,
     nsim=100,
     compl_filter="F475W",
-    use_weight='weight',
+    weight_to_use='weight',
     ranseed=None,
 ):
     """
@@ -43,7 +43,7 @@ def simulate_obs(
     compl_filter : string (default='F475W')
         filter name to use for completeness
 
-    use_weight : string (default='weight')
+    weight_to_use : string (default='weight')
         Set to either 'weight' (prior+grid), 'prior_weight', or 'grid_weight' to
         choose the weighting for SED selection.
 
@@ -77,7 +77,7 @@ def simulate_obs(
             noisegrid,
             nsim=samples_per_grid,
             compl_filter=compl_filter,
-            use_weight=use_weight,
+            weight_to_use=weight_to_use,
             ranseed=ranseed,
         )
 
@@ -121,7 +121,7 @@ if __name__ == "__main__":  # pragma: no cover
         "--compl_filter", default="F475W", help="filter name to use for completeness"
     )
     parser.add_argument(
-        "--use_weight",
+        "--weight_to_use",
         default="weight",
         type=str,
         help="""Set to either 'weight' (prior+grid), 'prior_weight', or
@@ -139,6 +139,6 @@ if __name__ == "__main__":  # pragma: no cover
         args.output_catalog,
         nsim=args.nsim,
         compl_filter=args.compl_filter,
-        use_weight=args.use_weight,
+        weight_to_use=args.weight_to_use,
         ranseed=args.ranseed,
     )
