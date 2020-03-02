@@ -515,8 +515,8 @@ if __name__ == "__main__":  # pragma: no cover
     filters = [
         "HST_WFC3_F275W",
         "HST_WFC3_F336W",
-        "HST_WFC3_F475W",
-        "HST_WFC3_F814W",
+        "HST_ACS_WFC_F475W",
+        "HST_ACS_WFC_F814W",
         "HST_WFC3_F110W",
         "HST_WFC3_F160W",
     ]
