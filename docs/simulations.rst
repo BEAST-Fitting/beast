@@ -43,7 +43,7 @@ the observed data are given).
 
 When creating simulated observations, using the standard IMF mass prior will
 skew your catalog to lower-mass stars.  If you wish to sample the full range of
-stellar masses, you can set the mass prior to `{'name': 'flat_linear'}` and the
+stellar masses, you can set the mass prior to `{'name': 'flat'}` and the
 age prior to `{'name': 'flat_log'}` in `datamodel.py` before creating the
 model grid.
 
