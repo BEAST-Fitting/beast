@@ -82,7 +82,9 @@ def st_file(file_name):
         new_table[tag.upper()] = np.array(data_dict[tag])
 
     print("saving to fits file")
-    new_table.write(file_name.replace("phot.hdf5", "st.fits"), format="fits")
+    new_table.write(
+        file_name.replace("phot.hdf5", "st.fits"), format="fits", overwrite=True
+    )
 
 
 if __name__ == "__main__":
