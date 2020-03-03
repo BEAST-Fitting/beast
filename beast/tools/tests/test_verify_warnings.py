@@ -44,3 +44,33 @@ def test_verifyparams_allowwarn():
     """Test: verify_params for case of warning with no exception."""
     with pytest.warns(UserWarning, match="fAs is not defined."):
         verify_params.verify_input_format(datamodel_mock_allowwarn())
+
+class datamodel_mock_RV(datamodel_mock):
+    """Mock datamodel w/ single-valued R_V"""
+    rvs = [3.1, 3.1, 1.0]
+
+class datamodel_mock_noallowRV(datamodel_mock):
+    """Mock datamodel w/ single-valued R_V"""
+    rvs = [3.1, 3.1, 1.0]
+    allow_warnings = False
+
+class datamodel_mock_allowwarnRV(datamodel_mock_RV):
+    """Mock datamodel w/ single-valued R_V and allow_warnings = True"""
+    allow_warnings = True
+
+def test_verifyparams_errorRV():
+    """Test: verify_params for case of warning raising exception."""
+    with pytest.raises(UserWarning) as exc:
+        verify_params.verify_input_format(datamodel_mock_RV())
+    assert exc.value.args[0] == "Note: rvs grid is single-valued."
+
+def test_verifyparams_errorRV():
+    """Test: verify_params for case of warning raising exception."""
+    with pytest.raises(UserWarning) as exc:
+        verify_params.verify_input_format(datamodel_mock_noallowRV())
+    assert exc.value.args[0] == "Note: rvs grid is single-valued."
+
+def test_verifyparams_allowwarnRV():
+    """Test: verify_params for case of warning with no exception."""
+    with pytest.warns(UserWarning, match="Note: rvs grid is single-valued."):
+        verify_params.verify_input_format(datamodel_mock_allowwarnRV())
