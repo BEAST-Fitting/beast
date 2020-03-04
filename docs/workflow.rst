@@ -16,13 +16,14 @@ datasets.
 Setup
 *****
 
-Setup a working location. For reference, there are examples in beast/examples.
+Setup a working location. For reference, there are examples in `BEAST-Fitting/beast-examples <https://github.com/BEAST-Fitting/beast-examples>`.
 
 In this location, you will need a datamodel.py parameter file.
-These parameters are described in the beast :ref:`setup documentation
+These parameters are described in the BEAST :ref:`setup documentation
 <beast_setup_datamodel>`.
 
-
+The BEAST also has some tools for converting catalogs between file formats,
+see :ref:`other tools<other_beast_tools>`.
 
 **********************************
 Source Density or Background Level
