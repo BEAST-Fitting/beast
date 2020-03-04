@@ -64,8 +64,8 @@ def test_verifyparams_errorRV():
         verify_params.verify_input_format(datamodel_mock_RV())
     assert exc.value.args[0] == "Note: rvs grid is single-valued."
 
-def test_verifyparams_errorRV():
-    """Test: verify_params for case of warning raising exception."""
+def test_verifyparams_noallowRV():
+    """Test: verify_params when warn raising except w/ allow_warnings=False"""
     with pytest.raises(UserWarning) as exc:
         verify_params.verify_input_format(datamodel_mock_noallowRV())
     assert exc.value.args[0] == "Note: rvs grid is single-valued."
