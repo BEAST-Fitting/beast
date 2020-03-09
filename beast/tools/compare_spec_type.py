@@ -154,7 +154,11 @@ def compare_spec_type(
             spec_match['phot_cat_ind'].append(phot_ind)
             spec_match['stats_cat_ind'].append(best_ind)
             spec_match['beast_teff_p50'].append(teff_p50)
+            spec_match['beast_teff_p16'].append(teff_p16)
+            spec_match['beast_teff_p84'].append(teff_p84)
             spec_match['beast_logg_p50'].append(logg_p50)
+            spec_match['beast_logg_p16'].append(logg_p16)
+            spec_match['beast_logg_p84'].append(logg_p84)
             spec_match['teff_sigma'].append(teff_sigma)
             spec_match['logg_sigma'].append(logg_sigma)
 
@@ -166,7 +170,11 @@ def compare_spec_type(
             spec_match['phot_cat_ind'].append(None)
             spec_match['stats_cat_ind'].append(None)
             spec_match['beast_teff_p50'].append(None)
+            spec_match['beast_teff_p16'].append(None)
+            spec_match['beast_teff_p84'].append(None)
             spec_match['beast_logg_p50'].append(None)
+            spec_match['beast_logg_p16'].append(None)
+            spec_match['beast_logg_p84'].append(None)
             spec_match['teff_sigma'].append(None)
             spec_match['logg_sigma'].append(None)
 
