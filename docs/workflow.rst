@@ -106,7 +106,22 @@ To create a physics model grid with 5 subgrids:
 
      $ python -m beast.tools.run.create_physicsmodel --nsubs=5
 
-If you would like to examine some of all of the grid values in the physics model,
+If you're running the BEAST on a survey in which different fields have different
+filters, you may wish to save time by creating a master grid with all possible
+filters and just copying out the subset of filters you need for each field.  To
+do this, create a `datamodel.py` file with all relevant filters listed in
+`filters` and `basefilters`, and run `create_physicsmodel` as above.  Then use
+`remove_filters` to create each modified grid.  The list of filters to remove
+will be determined by what's present in the input catalog file.  If you're using
+subgrids, repeat the command for each subgrid.
+
+  .. code-block:: console
+
+     $ python -m beast.tools.remove_filters.py catfile.fits \
+         --physgrid master_physgrid.hd5 --physgrid_outfile new_physgrid.hd5
+
+
+If you would like to examine some or all of the grid values in a physics model,
 you can use the `read_sed_data` function in `tools/read_beast_data.py`.  This
 function can also be set to just extract the list of parameter names.
 

@@ -75,17 +75,17 @@ simulations with the BEAST.  A quicker way to do this is to create the
 physics/observation grid set with the full set of desired filters, create
 the desired simulations, remove filters from the model and simulations as
 needed, and then fit with the BEAST.  This has the benefit of the simulations
-with different filter sets are exactly the same expect for the removed filters.
+with different filter sets are exactly the same except for the removed filters.
 
 As an example, to remove the filters F275W and F336W from the simulated
-observations contained in 'catfile' and the 'physgrid'/'obsgrid' set of models
-use the following command.
+observations contained in 'catfile.fits' and the 'physgrid.hd5'/'obsgrid.hd5'
+set of models use the following command.
 
 .. code-block:: console
 
-   $ python remove_filters.py catfile physgrid obsgrid outbase \
-                --rm_filters F275W F336W
+   $ python remove_filters.py catfile.fits --physgrid physgrid.hd5 \
+        --obsgrid obsgrid.hd5 --outbase outbase --rm_filters F275W F336W
 
 New physics/observation model grids and simulated observation files are
-created as 'outbase_sed.grid.hd5', 'outbase_noisemodel.grid.hd5', and
+created as 'outbase_seds.grid.hd5', 'outbase_noisemodel.grid.hd5', and
 'outbase_cat.fits'.
