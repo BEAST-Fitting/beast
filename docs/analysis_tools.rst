@@ -53,5 +53,34 @@ Spectral type comparison
 ------------------------
 
 When there are spectrally typed stars in our catalogs, we would like to compare
-the BEAST parameters to those inferred from the spectral types.  Code to do this
-is in progress.
+the BEAST parameters to those inferred from the spectral types.  The code in
+`beast/tools/compare_spec_type.py` simplifies this comparison.  It ingests the
+photometry catalog, stats catalog, spectral types and coordinates of comparison
+stars, and several settings.  Here is a summary of its procedure:
+
+1. Convert the spectral types into an effective temperature (Teff) and surface
+   gravity (logg).  This is done by interpolating on tables of Teff (from
+   Stellar Spectral Classification; R. Gray & C. Corbally) and logg (from
+   Allen's Astrophysical Quantities; A. Cox).
+2. For each spectrally-typed star, find all matches in the photometry catalog
+   within a user-defined radius (default 1").  Since spectrally-typed stars are
+   generally bright, choose the brightest source in the user-defined filter
+   (default='F475W').  If no match is found, all output values for this star
+   (see below) will be set to `None`.
+3. Save the p16, p50, and p84 values of logT and logg for the matched BEAST
+   star.  Also calculate the number of standard deviations between the BEAST
+   fits and star values (assuming no uncertainty on the star values).
+4. If the keyword `output_filebase` is set, the results will be saved into a
+   file.  Otherwise, the results will be returned in a dictionary.
+
+Below is an example for phat_small.  The spectral types are not from any real
+catalog, and are for illustrative purposes only.
+
+.. code-block:: python
+
+  >>> from beast.tools import compare_spec_type #doctest: +SKIP
+  >>> spec_match = compare_spec_type.compare_spec_type( #doctest: +SKIP
+          'data/b15_4band_det_27_A.fits',
+          'beast_example_phat/beast_example_phat_stats.fits',
+          []
+      )
