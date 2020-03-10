@@ -7,7 +7,6 @@ from astropy.table import Table
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
-#from beast.config import __ROOT__
 
 def compare_spec_type(
     phot_cat_file,
@@ -329,9 +328,3 @@ def _lumin_class_to_number(lumin_class):
     """
 
     return ['I','II','III','IV','V'].index(lumin_class) + 1
-
-
-if __name__ == '__main__':
-
-    print('moose')
-    # argparse stuff
