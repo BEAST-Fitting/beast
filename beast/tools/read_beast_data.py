@@ -123,11 +123,12 @@ def read_sed_data(
 
     param_list : list of strings
         The set of parameters to extract (default: Av, Rv, f_A, M_ini, logA, Z,
-        distance).  If set to 'all', extract all parameters in the grid.
+        distance).  If set to 'all', extract all parameters and model fluxes in
+        the grid.
 
     return_params : boolean (default=False)
-        If True, return the list of all parameters in the grid.  Useful for
-        checking what columns are present.
+        If True, return the list of keywords for all parameters and model fluxes
+        in the grid.  Useful for checking what columns are present.
 
     Returns
     -------
