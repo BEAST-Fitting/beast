@@ -65,7 +65,9 @@ def compare_spec_type(
 
     # read in the photometry catalog
     beast_phot = Table.read(phot_cat_file)
-    beast_phot_catalog = SkyCoord(ra=beast_phot['RA']*u.degree, dec=beast_phot['DEC']*u.degree)
+    ra_col = [x for x in beast_phot.colnames if "RA" in x.upper()][0]
+    dec_col = [x for x in beast_phot.colnames if "DEC" in x.upper()][0]
+    beast_phot_catalog = SkyCoord(ra=beast_phot[ra_col]*u.degree, dec=beast_phot[dec_col]*u.degree)
     # read in BEAST results
     beast_stats = Table.read(beast_stats_file)
     beast_stats_catalog = SkyCoord(ra=beast_stats['RA']*u.degree, dec=beast_stats['DEC']*u.degree)
@@ -96,7 +98,7 @@ def compare_spec_type(
         c = SkyCoord(spec_ra[i], spec_dec[i], unit='deg')
         _, sep_test, _ = c.match_to_catalog_sky(beast_stats_catalog)
 
-        print(sep_test[0].arcmin)
+        #print(sep_test[0].arcmin)
 
         # if the star is close enough, continue matching
 
@@ -109,13 +111,24 @@ def compare_spec_type(
             small_sep_ind = np.where(sep.arcsec < match_radius)[0]
 
             # get photometry for those sources
-            phot = np.zeros(len(small_sep_ind))
+            phot_list = np.zeros(len(small_sep_ind))
+            phot_ind_list = np.zeros(len(small_sep_ind)).astype(int)
+            
             for j in range(len(small_sep_ind)):
                 phot_ind, _, _ = beast_stats_catalog[small_sep_ind[j]].match_to_catalog_sky(beast_phot_catalog)
-                phot[j] = beast_phot[bright_filter+'_RATE'][phot_ind]
+                phot_ind_list[j] = phot_ind
+
+                phot_ref_col = bright_filter + '_RATE'
+                if phot_ref_col.lower() in beast_phot.colnames:
+                    phot_list[j] = beast_phot[phot_ref_col.lower()][phot_ind]
+                elif phot_ref_col.upper() in beast_phot.colnames:
+                    phot_list[j] = beast_phot[phot_ref_col.upper()][phot_ind]
+                else:
+                    raise ValueError("{} not in catalog file".format(bright_filter))
 
             # find brightest match
-            best_ind = small_sep_ind[phot == np.max(phot)][0]
+            best_ind = small_sep_ind[phot_list == np.max(phot_list)][0]
+            best_phot_ind = phot_ind_list[phot_list == np.max(phot_list)][0]
 
             # grab physical parameters for that source
             # - temperature
@@ -151,7 +164,7 @@ def compare_spec_type(
             # save the results
             spec_match['spec_teff'].append(star_teff)
             spec_match['spec_logg'].append(star_logg)
-            spec_match['phot_cat_ind'].append(phot_ind)
+            spec_match['phot_cat_ind'].append(best_phot_ind)
             spec_match['stats_cat_ind'].append(best_ind)
             spec_match['beast_teff_p50'].append(teff_p50)
             spec_match['beast_teff_p16'].append(teff_p16)
@@ -192,6 +205,8 @@ def lookup_param(input_function, spec_type, spec_subtype, lumin_class):
     For given spectral classification, evaluate a function to find the
     physical parameter (e.g., T_eff, log(g))
 
+    Note: the `.item()` at the end is because it would otherwise return, e.g.,
+    `array(99.9)` instead of `99.9`.
 
     Parameters
     ----------
@@ -218,7 +233,7 @@ def lookup_param(input_function, spec_type, spec_subtype, lumin_class):
     return input_function((
         _lumin_class_to_number(lumin_class),
         _spectype_to_id(spec_type, spec_subtype)
-    ))
+    )).item()
 
 
 
