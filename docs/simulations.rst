@@ -42,8 +42,8 @@ from the physicsgrid file.  The names of the observed columns are
 the observed data are given).
 
 When creating simulated observations, using the standard IMF mass prior will
-skew your catalog to lower-mass stars.  If you wish to sample an equal number of
-stars across all masses, use a flat IMF and a log-flat age prior.  To do this,
+skew your catalog to lower-mass stars.  If you wish to have similar weights for
+stars of all masses, use a flat IMF and a log-flat age prior.  To do this,
 set the mass prior to `{'name': 'flat'}` and the age prior to
 `{'name': 'flat_log'}` in `datamodel.py` before creating the model grid.
 
