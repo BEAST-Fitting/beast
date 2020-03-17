@@ -17,8 +17,9 @@ added.  When there are cuts along two parameters, the 2D PDFs are utilized.  If
 
 * Extinguished high mass stars (`star_type_probability.ext_O_star`): Stars above
   a certain mass (default `M_ini` > 10 solar masses) with some minimum
-  foreground dust column (default `Av` > 0.5 magnitudes).  These are candidates
-  for follow-up UV spectroscopy for extinction curves.
+  foreground dust column (default `Av` > 0.5 magnitudes).  You may also wish to
+  set a maximum `Av` to avoid artifacts (such as the dusty AGB stars).  These
+  stars are candidates for follow-up UV spectroscopy for extinction curves.
 * Dusty AGB stars (`star_type_probability.dusty_agb`): As described in
   :doc:`Known Issues <beast_issues>`, the BEAST does not include models for
   dusty AGB stars, and many of them are incorrectly fit as heavily extinguished
@@ -36,7 +37,7 @@ Below, we show an example for extinction curve candidates in phat_small.
           'beast_example_phat_pdf1d.fits',
           'beast_example_phat_pdf2d.fits',
           output_filebase=None,
-          ext_O_star_params={'min_M_ini':10, 'min_Av':0.5}
+          ext_O_star_params={'min_M_ini':10, 'min_Av':0.5, 'max_Av':5}
       )
   >>> # stars with >80% likelihood of being extinguished massive stars
   >>> np.where(star_prob['ext_O_star'] > 0.8)[0] #doctest: +SKIP
