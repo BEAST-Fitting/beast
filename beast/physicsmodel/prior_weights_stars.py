@@ -14,6 +14,7 @@ from beast.physicsmodel.grid_weights_stars import (
 )
 
 __all__ = [
+    "compute_distance_prior_weights",
     "compute_age_prior_weights",
     "compute_mass_prior_weights",
     "compute_metallicity_prior_weights",
@@ -64,7 +65,7 @@ def compute_age_prior_weights(logages, age_prior_model):
         # assumes SFR(t) \propto e**(-t/tau) \propto e**(age/tau)
         # where age \propto -t (for age=t0-t) and tau in Gyr
         vals = (10 ** logages) / (age_prior_model["tau"] * 1e9)
-        age_weights = np.exp(vals)
+        age_weights = np.exp(-1.0 * vals)
     else:
         raise NotImplementedError(
             "input age prior ''{}'' function not supported".format(
@@ -197,7 +198,7 @@ def compute_metallicity_prior_weights(mets, met_prior_model):
     Returns
     -------
     metallicity_weights : numpy vector
-       weights to provide a flat metallicity
+       weights to provide the requested prior model
     """
     if met_prior_model["name"] == "flat":
         met_weights = np.full(len(mets), 1.0)
@@ -208,3 +209,30 @@ def compute_metallicity_prior_weights(mets, met_prior_model):
     met_weights /= np.average(met_weights)
 
     return met_weights
+
+
+def compute_distance_prior_weights(dists, dist_prior_model):
+    """
+    Computes the distance prior for the specified model
+
+    Parameters
+    ----------
+    dists : numpy vector
+        distances
+    dist_prior_model: dict
+        dict including prior model name and parameters
+
+    Returns
+    -------
+    dists_weights : numpy vector
+       weights to provide the requested prior model
+    """
+    if dist_prior_model["name"] == "flat":
+        dists_weights = np.full(len(dists), 1.0)
+    else:
+        raise NotImplementedError("input distance prior function not supported")
+
+    # normalize to avoid numerical issues (too small or too large)
+    dists_weights /= np.average(dists_weights)
+
+    return dists_weights
