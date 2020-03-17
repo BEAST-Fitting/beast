@@ -42,8 +42,8 @@ def star_type_probability(
 
     ext_O_star_params : dict or None
         Set to a dictionary to override the default cuts for extinguished early
-        type stars.  Allowed keywords are 'min_M_ini' (float) and 'min_Av'
-        (float).
+        type stars.  Allowed keywords are 'min_M_ini' (float), 'min_Av' (float),
+        and 'max_Av' (float).
 
     dusty_agb_params : dict or None
         Set to a dictionary to override the default cuts for dusty AGB stars
@@ -153,11 +153,12 @@ def star_type_probability(
         return star_prob
 
 
-def ext_O_star(pdf2d_data, pdf2d_bins, min_M_ini=10, min_Av=0.5):
+def ext_O_star(pdf2d_data, pdf2d_bins, min_M_ini=10, min_Av=0.5, max_Av=99):
     """
     Calculate the probability that each star is an extinguished O star:
     * initial mass >= 10 Msun
     * A_V >= 0.5 mag
+    There's a max A_V option to avoid possible high-Av artifacts.
 
     Some useful references for O/B stars
     https://ui.adsabs.harvard.edu/abs/2019A%26A...625A.104R/abstract
@@ -177,6 +178,9 @@ def ext_O_star(pdf2d_data, pdf2d_bins, min_M_ini=10, min_Av=0.5):
 
     min_Av : float (default=0.5)
         minimum Av (magnitudes)
+
+    max_Av : float (default=99)
+        maximum Av (magnitudes)
 
     Returns
     -------
@@ -202,7 +206,9 @@ def ext_O_star(pdf2d_data, pdf2d_bins, min_M_ini=10, min_Av=0.5):
     av_bins = av_bins.reshape(-1)
     mass_bins = mass_bins.reshape(-1)
 
-    keep = np.where((mass_bins >= min_M_ini) & (av_bins >= min_Av))[0]
+    keep = np.where(
+        (mass_bins >= min_M_ini) & (av_bins >= min_Av) & (av_bins <= max_Av)
+    )[0]
 
     return np.sum(prob_data[:,keep], axis=1)
 
