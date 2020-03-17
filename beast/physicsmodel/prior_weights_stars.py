@@ -137,6 +137,23 @@ def imf_salpeter(x):
     return x ** (-2.35)
 
 
+def imf_flat(x):
+    """
+    Compute a flat IMF (useful for simulations, not for normal BEAST runs)
+
+    Parameters
+    ----------
+    x : numpy vector
+      masses
+
+    Returns
+    -------
+    imf : numpy vector
+      unformalized IMF
+    """
+    return 1.0
+
+
 def compute_mass_prior_weights(masses, mass_prior_model):
     """
     Compute the mass prior for the specificed model
@@ -155,6 +172,7 @@ def compute_mass_prior_weights(masses, mass_prior_model):
       Unnormalized IMF integral for each input mass
       integration is done between each bin's boundaries
     """
+
     # sort the initial mass along this isochrone
     sindxs = np.argsort(masses)
 
@@ -169,6 +187,8 @@ def compute_mass_prior_weights(masses, mass_prior_model):
         imf_func = imf_kroupa
     elif mass_prior_model["name"] == "salpeter":
         imf_func = imf_salpeter
+    elif mass_prior_model["name"] == "flat":
+        imf_func = imf_flat
     else:
         raise NotImplementedError("input mass prior function not supported")
 
