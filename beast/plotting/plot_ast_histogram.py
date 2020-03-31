@@ -66,7 +66,7 @@ def plot_ast(ast_file, sed_grid_file=None):
         plt.hist(
             ast_table[ast_col],
             bins=bin_list,
-            normed=True,
+            density=True,
             facecolor='black',
             edgecolor='none',
             alpha=0.3,
@@ -77,7 +77,7 @@ def plot_ast(ast_file, sed_grid_file=None):
             plt.hist(
                 sedsMags[good_seds,f],
                 bins=bin_list,
-                normed=True,
+                density=True,
                 histtype='step',
                 facecolor='none',
                 edgecolor='black',
