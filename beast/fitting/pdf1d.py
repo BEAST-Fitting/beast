@@ -86,7 +86,7 @@ class pdf1d:
             self.pdf_bin_indxs = pdf_bin_indxs
 
     def gen1d(self, gindxs, weights):
-        """Determines the probabilities for each bin in weights.
+        """Calculates the probabilities for each bin.
 
         Parameters
         ----------
