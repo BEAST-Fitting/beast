@@ -86,6 +86,22 @@ class pdf1d:
             self.pdf_bin_indxs = pdf_bin_indxs
 
     def gen1d(self, gindxs, weights):
+        """Determines the probabilities for each bin in weights.
+
+        Parameters
+        ----------
+        gindxs : array
+            Array of indices excluding those with weights below threshold.
+        weights : array
+            grid_weights * priors * log_liklihoods
+
+        Returns
+        -------
+        self.bin_vals: array
+            parameter bins
+        _vals_1d: array
+            sums of probabilities for each bin
+        """
 
         if self.bad:
             return (self.bin_vals, np.zeros((self.nbins)))
