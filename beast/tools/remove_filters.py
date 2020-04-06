@@ -82,7 +82,7 @@ def remove_filters_from_files(
 
     # if rm_filters not set, extract the filter names that are present
     if rm_filters is None:
-        cat_filters = [f[:-5] for f in cat.colnames if f[-4:].lower() == 'rate']
+        cat_filters = [f[:-5].upper() for f in cat.colnames if f[-4:].lower() == 'rate']
 
     # if physgrid set, process the SED grid
     if physgrid is not None:
@@ -93,41 +93,32 @@ def remove_filters_from_files(
         # extract info
         filters = g0.header["filters"].split(" ")
         shortfilters = [(cfilter.split("_"))[-1].upper() for cfilter in filters]
-        nlamb = []
-        nfilters = []
         rindxs = []
         rgridcols = []
 
         # loop through filters and determine what needs deleting
-        for csfilter, clamb, cfilter in zip(shortfilters, g0.lamb, filters):
+        for csfilter, cfilter in zip(shortfilters, filters):
 
             # if the user chose the filters to remove
             if rm_filters is not None:
-                if csfilter not in np.atleast_1d(rm_filters):
-                    nlamb.append(clamb)
-                    nfilters.append(cfilter)
-                else:
-                    rindxs.append(shortfilters.index(csfilter))
+                if csfilter in np.atleast_1d(rm_filters):
+                    rindxs.append(filters.index(cfilter))
                     for grid_col in g0.grid.colnames:
                         if cfilter in grid_col:
                             rgridcols.append(grid_col)
 
             # if the removed filters are determined from the catalog file
             if rm_filters is None:
-                if csfilter in cat_filters:
-                    nlamb.append(clamb)
-                    nfilters.append(cfilter)
-                else:
-                    rindxs.append(shortfilters.index(csfilter))
+                if csfilter not in cat_filters:
+                    rindxs.append(filters.index(cfilter))
                     for grid_col in g0.grid.colnames:
                         if cfilter in grid_col:
                             rgridcols.append(grid_col)
 
         # delete column(s)
-        if len(rindxs) > 0:
-            nseds = np.delete(g0.seds, rindxs, 1)
-        else:
-            nseds = g0.seds
+        nseds = np.delete(g0.seds, rindxs, 1)
+        nlamb = np.delete(g0.lamb, rindxs, 0)
+        nfilters = np.delete(filters, rindxs, 0)
         for rcol in rgridcols:
             g0.grid.delCol(rcol)
 
