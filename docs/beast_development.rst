@@ -79,6 +79,7 @@ with:
 
    $ python setup.py develop
 
+
 Adding Branches
 ===============
 
@@ -208,6 +209,7 @@ can be viewed in a web browser.
 
 Submitting a Pull Request
 =========================
+
 Once you have changes that you'd like to contribute back to the project or share
 with collaborators, you can open a pull request. It is a good idea to check with
 the projects or your collaborators which branch of their BEAST repository you
@@ -218,6 +220,7 @@ If you push any commits to your origin repository in a development branch
 (`beast-dev1`), then a "Compare & pull request" button should appear at the
 top of this site. Briefly describe the changes/additions you made in the comments
 section and submit the pull request.
+
 
 
 BEAST on Slack
