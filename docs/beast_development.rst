@@ -217,10 +217,42 @@ should send the pull requests.
 
 Pull requests can be submitted at https://github.com/BEAST-Fitting/beast/pulls.
 If you push any commits to your origin repository in a development branch
-(`beast-dev1`), then a "Compare & pull request" button should appear at the
+(beast-dev1), then a "Compare & pull request" button should appear at the
 top of this site. Briefly describe the changes/additions you made in the comments
 section and submit the pull request.
 
+
+Staying up-to-date
+==================
+
+The ``beast`` project's official repository will be updated from time to time
+to accommodate bug fixes, improvements and new features. You can keep your
+fork's master repository up-to-date with the following steps:
+
+- Switch to your fork's master branch:
+
+  .. code-block:: console
+
+     $ git checkout master
+
+- Fetch the project's up-to-date distribution:
+
+  .. code-block:: console
+
+     $ git fetch upstream
+
+- If there are any differences, then merge the official master branch (upstream)
+with your fork's master (you may need to write a commit message):
+
+  .. code-block:: console
+
+     $ git merge upstream/master
+
+- Sync this change with your origin repository:
+
+  .. code-block:: console
+
+     $ git push origin master
 
 
 BEAST on Slack
