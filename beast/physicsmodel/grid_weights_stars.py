@@ -15,6 +15,7 @@ __all__ = [
     "compute_age_grid_weights",
     "compute_mass_grid_weights",
     "compute_metallicity_grid_weights",
+    "compute_bin_boundaries",
 ]
 
 
