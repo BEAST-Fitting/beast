@@ -84,7 +84,7 @@ Adding Branches
 ===============
 
 - Make sure you are in the directory for your fork of the beast. You will be on
-  branch 'master' by default.
+  branch `master` by default.
 
 - Create and switch to a branch (here named 'beast-dev1'; generally it's good
   practice to give branches names related to their purpose)
@@ -113,7 +113,7 @@ Adding Branches
 
      $ git push origin beast-dev1
 
-- To revert back to your fork's master branch:
+- To revert back to your fork's `master` branch:
 
   .. code-block:: console
 
@@ -217,7 +217,7 @@ should send the pull requests.
 
 Pull requests can be submitted at https://github.com/BEAST-Fitting/beast/pulls.
 If you push any commits to your origin repository in a development branch
-(beast-dev1), then a "Compare & pull request" button should appear at the
+(`beast-dev1`), then a "Compare & pull request" button should appear at the
 top of this site. Briefly describe the changes/additions you made in the comments
 section and submit the pull request.
 
@@ -227,9 +227,9 @@ Staying up-to-date
 
 The ``beast`` project's official repository will be updated from time to time
 to accommodate bug fixes, improvements and new features. You can keep your
-fork's master repository up-to-date with the following steps:
+fork's `master` repository up-to-date with the following steps:
 
-- Switch to your fork's master branch:
+- Switch to your fork's `master` branch:
 
   .. code-block:: console
 
@@ -241,8 +241,8 @@ fork's master repository up-to-date with the following steps:
 
      $ git fetch upstream
 
-- If there are any differences, then merge the official master branch (upstream)
-  with your fork's master (you may need to write a commit message):
+- If there are any differences, then merge the official `master` branch (upstream)
+  with your fork's `master` (you may need to write a commit message):
 
   .. code-block:: console
 
