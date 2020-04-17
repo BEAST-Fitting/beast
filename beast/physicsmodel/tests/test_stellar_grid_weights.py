@@ -5,9 +5,20 @@ from beast.physicsmodel.grid_weights_stars import (
     compute_age_grid_weights,
     compute_mass_grid_weights,
     compute_metallicity_grid_weights,
+    compute_bin_boundaries,
 )
 
-# def test_bin_boundaries():
+
+def test_bin_boundaries():
+    """
+    Test bin boundaries
+    """
+    bin_centers = np.array([1, 2, 5, 10, 50])
+    weights = compute_bin_boundaries(bin_centers)
+    expected_weights = [0.5, 1.5, 3.5, 7.5, 30.0, 70.0]
+    np.testing.assert_allclose(
+        weights, expected_weights, err_msg=("Stellar bin boundaries error")
+    )
 
 
 def test_age_grid_weights():
