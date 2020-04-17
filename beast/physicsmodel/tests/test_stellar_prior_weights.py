@@ -3,6 +3,99 @@ import numpy as np
 from beast.physicsmodel.prior_weights_stars import *
 
 
+def test_flat_age_prior_weights():
+    """
+    Test for flat age prior
+    """
+    log_age = np.array([6.0, 7.0, 8.0, 9.0, 10.0])
+    log_age_prior_model = {"name": "flat"}
+    log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
+    expected_log_age_prior = [1, 1, 1, 1, 1]
+    np.testing.assert_allclose(
+        log_age_prior, expected_log_age_prior, err_msg=("\nFlat age prior error\n")
+    )
+
+
+def test_flat_log_age_prior_weights():
+    """
+    Test for flat log age prior
+    """
+    log_age = np.array([6.0, 7.0, 8.0, 9.0, 10.0])
+    log_age_prior_model = {"name": "flat_log"}
+    log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
+    expected_log_age_prior = [
+        4.500045e00,
+        4.500045e-01,
+        4.500045e-02,
+        4.500045e-03,
+        4.500045e-04,
+    ]
+    np.testing.assert_allclose(
+        log_age_prior,
+        expected_log_age_prior,
+        err_msg=("\nFlat log, log age prior error\n"),
+    )
+
+
+def test_bins_histo_age_prior_weights():
+    """
+    Test for bin histogram age prior
+    """
+    log_age = np.array([7.0, 8.0, 9.0])
+    log_age_prior_model = {
+        "name": "bins_histo",
+        "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
+        "values": [1.0, 2.0, 1.0, 5.0, 3.0],
+    }
+    log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
+    expected_log_age_prior = [0.75, 0.375, 1.875]
+    np.testing.assert_allclose(
+        log_age_prior,
+        expected_log_age_prior,
+        err_msg=("\nBin histogram log age prior error\n"),
+    )
+
+
+def test_bins_interp_age_prior_weights():
+    """
+    Test for bin interpolation age prior
+    """
+    log_age = np.array([6.0, 7.0, 8.0, 9.0, 10.0])
+    log_age_prior_model = {
+        "name": "bins_interp",
+        "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
+        "values": [1.0, 2.0, 1.0, 5.0, 3.0],
+    }
+    log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
+    expected_log_age_prior = [0.41666667, 0.83333333, 0.41666667, 2.08333333, 1.25]
+    np.testing.assert_allclose(
+        log_age_prior,
+        expected_log_age_prior,
+        err_msg=("\nBin histogram log age prior error\n"),
+    )
+
+
+def test_exp_age_prior_weights():
+    """
+    Test for exponential age prior with a tau = 0.1
+    """
+    log_age = np.array([6.0, 7.0, 8.0, 9.0, 10.0])
+    log_age_prior_model = {"name": "exp", "tau": 0.1}
+    log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
+    expected_log_age_prior = [
+        2.18765367e00,
+        1.99936491e00,
+        8.12881110e-01,
+        1.00317499e-04,
+        8.22002849e-44,
+    ]
+    np.testing.assert_allclose(
+        log_age_prior,
+        expected_log_age_prior,
+        err_msg=("\nExponential log age prior error\n"),
+    )
+
+
 def test_imf_kroupa():
     """
     Test for creating kroupa IMF
