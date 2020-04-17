@@ -71,7 +71,7 @@ In order to run a development installation, navigate to the directory in your
 
    $ pip install -e .
 
-Alternatively, you can perform a development install directly though Python
+Alternatively, you can perform a development install directly through Python
 with:
 
 .. code-block:: console
@@ -158,6 +158,12 @@ and `beast-dev1`).
   .. code-block:: console
 
      $ git status
+
+- To view any differences between a file and the last committed version:
+
+  .. code-block:: console
+
+     $ git diff PathToFile/filename
 
 - To undo all changes made to a specific file since the last commit:
 
