@@ -23,6 +23,7 @@ def test_dust_prior_weights():
     np.testing.assert_allclose(prior_weights.rv_priors,np.full((len(rv_vals)), 1.0))
     np.testing.assert_allclose(prior_weights.fA_priors,np.full((len(fA_vals)), 1.0))
 
+
     # Test A(V) priors
     # test default: model=flat
     prior_weights.set_av_weights()
@@ -63,6 +64,7 @@ def test_dust_prior_weights():
         prior_weights.set_rv_weights(model={"name" : "exponential"})
     assert str(exc_rv.value) == "**Error in setting the R(V) dust prior weights!****model exponential not supported**"
 
+
     # Test f_A priors
     prior_weights.set_fA_weights()
     np.testing.assert_allclose(prior_weights.fA_priors,np.full((len(fA_vals)), 1.0))
@@ -78,5 +80,3 @@ def test_dust_prior_weights():
     with pytest.raises(NotImplementedError) as exc_fA:
         prior_weights.set_fA_weights(model={"name" : "exponential"})
     assert str(exc_fA.value) == "**Error in setting the f_A dust prior weights!****model exponential not supported**"
-
-test_dust_prior_weights()
