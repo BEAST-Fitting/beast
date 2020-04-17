@@ -86,22 +86,14 @@ Adding Branches
 - Make sure you are in the directory for your fork of the beast. You will be on
   branch `master` by default.
 
-- Create and switch to a branch (here named `beast-dev1`; generally it's good
-  practice to give branches names related to their purpose)
+- Create and switch to a branch (here named `beast-dev1`):
 
   .. code-block:: console
 
      $ git checkout -b beast-dev1
 
-- Instead, if you want to create first a branch and then switch to it:
-
-  .. code-block:: console
-
-     $ git branch beast-dev1
-     $ git checkout beast-dev1
-
-- To see a list of all branches of the fork, with '*' indicating which branch you are
-  currently working on:
+- To see a list of all branches of the fork, with '*' indicating which branch
+  you are currently working on:
 
   .. code-block:: console
 
@@ -124,11 +116,11 @@ Making Changes
 ==============
 
 It is recommended that branches have a single purpose; for example, if you are working
-on adding a test suite, on improving the fitting algorithm and on speeding up some task,
-those should be in separate branches (e.g.) `add-test-suite`, `improve-fitting-algorithm`
-and `beast-dev1`.
+on adding a test suite, improving the fitting algorithm, and speeding up some task,
+those should be in separate branches (e.g. `add-test-suite`, `improve-fitting-algorithm`
+and `beast-dev1`).
 
-- Anywhere below 'beast-YourName', switch to the branch you wish to work off of:
+- Switch to the branch you wish to work off of:
 
   .. code-block:: console
 
@@ -175,7 +167,7 @@ and `beast-dev1`.
 
      $ git checkout PathToFile/filename
 
-- To sync changes made to the branch locally with your GitHub repo:
+- To sync changes made to the branch locally with your GitHub repository:
 
   .. code-block:: console
 
@@ -210,16 +202,12 @@ can be viewed in a web browser.
 Submitting a Pull Request
 =========================
 
-Once you have changes that you'd like to contribute back to the project or share
-with collaborators, you can open a pull request. It is a good idea to check with
-the projects or your collaborators which branch of their BEAST repository you
-should send the pull requests.
-
-Pull requests can be submitted at https://github.com/BEAST-Fitting/beast/pulls.
-If you push any commits to your origin repository in a development branch
-(`beast-dev1`), then a "Compare & pull request" button should appear at the
-top of this site. Briefly describe the changes/additions you made in the comments
-section and submit the pull request.
+Once you have changes that you'd like to contribute back to the upstream branch,
+you can open a pull request for review. Pull requests can be submitted at
+https://github.com/BEAST-Fitting/beast/pulls. If you push any commits to your
+origin repository in a development branch (`beast-dev1`), then a "Compare &
+pull request" button should appear at the top of this site. Briefly describe the
+changes/additions you made in the comments section and submit the pull request.
 
 
 Staying up-to-date
@@ -241,8 +229,7 @@ fork's `master` repository up-to-date with the following steps:
 
      $ git fetch upstream
 
-- If there are any differences, then merge the official `master` branch (upstream)
-  with your fork's `master` (you may need to write a commit message):
+- Merge the official (upstream) `master` branch with your fork's `master` branch:
 
   .. code-block:: console
 
