@@ -242,7 +242,7 @@ fork's master repository up-to-date with the following steps:
      $ git fetch upstream
 
 - If there are any differences, then merge the official master branch (upstream)
-with your fork's master (you may need to write a commit message):
+  with your fork's master (you may need to write a commit message):
 
   .. code-block:: console
 
