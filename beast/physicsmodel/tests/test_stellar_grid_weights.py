@@ -7,17 +7,25 @@ from beast.physicsmodel.grid_weights_stars import (
     compute_metallicity_grid_weights,
 )
 
+# def test_bin_boundaries():
 
-def test_flat_distance_grid_weight():
+
+def test_age_grid_weights():
     """
-    Test the flat distance grid weights
+    Test age grid weights
     """
-    dists = [10.0, 100.0, 1000.0]
-    expected_weights = [0.18181818, 1.0, 1.81818182]
-
-    weight = compute_distance_grid_weights(dists)
-
-    np.testing.assert_allclose(weight, expected_weights)
+    ages = np.array([6, 7, 8, 9, 10])
+    weights = compute_age_grid_weights(ages)
+    expected_weights = [
+        4.500045e-04,
+        4.500045e-03,
+        4.500045e-02,
+        4.500045e-01,
+        4.500045e00,
+    ]
+    np.testing.assert_allclose(
+        weights, expected_weights, err_msg=("Stellar grid age weights error")
+    )
 
 
 def test_mass_grid_weights():
@@ -49,3 +57,15 @@ def test_metallicity_grid_weights():
     np.testing.assert_allclose(
         weights, expected_weights, err_msg=("Stellar grid metallicity weights error")
     )
+
+
+def test_flat_distance_grid_weight():
+    """
+    Test the flat distance grid weights
+    """
+    dists = [10.0, 100.0, 1000.0]
+    expected_weights = [0.18181818, 1.0, 1.81818182]
+
+    weight = compute_distance_grid_weights(dists)
+
+    np.testing.assert_allclose(weight, expected_weights)
