@@ -18,6 +18,7 @@ __all__ = [
     "compute_age_prior_weights",
     "compute_mass_prior_weights",
     "compute_metallicity_prior_weights",
+    "imf_kroupa",
 ]
 
 
