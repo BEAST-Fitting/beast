@@ -42,10 +42,9 @@ project is:
 Development Install
 ===================
 
-It is much easier to develop the code if any changes you make are immediately
-reflected in how the ``beast`` runs (in contrast to performing a new install each
-team). This can be achieved by using a development install. First, create a fork
-of the official ``beast`` repository, and clone it to your local drive:
+If you plan on modifying the ``beast`` in addition to running the code, it may
+be useful to create a development installation. First, create a fork of the
+official ``beast`` repository and clone it:
 
 .. code-block:: console
 
@@ -154,14 +153,13 @@ and `beast-dev1`).
 
 - Commit messages should be short but descriptive.
 
-- To see the status of or commit changes of a single file:
+- To see the status of your changed files:
 
   .. code-block:: console
 
-     $ git status PathToFile/filename
-     $ git commit PathToFile/filename
+     $ git status
 
-- To undo all changes made to a file since last commit:
+- To undo all changes made to a specific file since the last commit:
 
   .. code-block:: console
 
@@ -195,7 +193,7 @@ Make sure the documentation can be created.
 
      $ python setup.py build_docs
 
-The resulting HTML files are placed in `docs/_build/html` subdirectory, and
+The resulting HTML files are placed in the `docs/_build/html` subdirectory, and
 can be viewed in a web browser.
 
 
@@ -252,7 +250,7 @@ Visualizing Repository Commits
 ==============================
 
 The commits to the ``beast`` repository can be visualized using `gource`.  This
-creates a movie showing the time evolution of the code and who make the
+creates a movie showing the time evolution of the code and who made the
 changes.
 
 Version created 22 Jan 2018:  <http://stsci.edu/~kgordon/beast/beast_repo.mp4>
