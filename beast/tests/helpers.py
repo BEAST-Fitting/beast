@@ -39,7 +39,7 @@ def compare_tables(table_cache, table_new, rtol=None):
     table_new : astropy table
         data for comparision.
     rtol : float (default=None)
-
+        relative tolerance for np.testing.assert_allclose
     """
     if not len(table_new) == len(table_cache):
         raise AssertionError()
