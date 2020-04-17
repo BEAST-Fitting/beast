@@ -86,7 +86,7 @@ Adding Branches
 - Make sure you are in the directory for your fork of the beast. You will be on
   branch `master` by default.
 
-- Create and switch to a branch (here named 'beast-dev1'; generally it's good
+- Create and switch to a branch (here named `beast-dev1`; generally it's good
   practice to give branches names related to their purpose)
 
   .. code-block:: console
