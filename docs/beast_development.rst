@@ -42,27 +42,42 @@ project is:
 Development Install
 ===================
 
-It is much easier to perform development if any changes you make to the code are
-immediately reflected in how the ``beast`` runs (in contrast to needed to perform a
-new install each team). This can be achieved by using a development install.
+It is much easier to develop the code if any changes you make are immediately
+reflected in how the ``beast`` runs (in contrast to performing a new install each
+team). This can be achieved by using a development install. First, create a fork
+of the official ``beast`` repository, and clone it to your local drive:
 
-This is most easily achieved via a pip development install. Navigate to the
-directory in your your ``beast`` repository that contains `setup.py`, and run:
+.. code-block:: console
 
-  .. code-block:: console
+   $ git clone https://github.com/YourName/beast.git
 
-     $ mv beast beast-official
-     $ git clone https://github.com/YourName/beast.git
-     $ mv beast beast-YourName
-     $ mv beast-official beast
+Optionally, you can rename this cloned copy:
 
-- Set the value of the fork's 'upstream' to the official distribution so you
-  can incorporate changes made by others to your development fork. In the clone
-  of your fork, run the following:
+.. code-block:: console
 
-  .. code-block:: console
+   $ git clone https://github.com/YourName/beast.git beast-YourName
 
-     $ git remote add upstream https://github.com/BEAST-Fitting/beast.git
+Set the value of the fork's 'upstream' to the official distribution so you
+can incorporate changes made by others to your development fork. In the clone
+of your fork, run the following:
+
+.. code-block:: console
+
+   $ git remote add upstream https://github.com/BEAST-Fitting/beast.git
+
+In order to run a development installation, navigate to the directory in your
+``beast`` repository that contains `setup.py`, and run:
+
+.. code-block:: console
+
+   $ pip install -e .
+
+Alternatively, you can perform a development install directly though Python
+with:
+
+.. code-block:: console
+
+   $ python setup.py develop
 
 Adding Branches
 ===============
@@ -102,26 +117,6 @@ Adding Branches
   .. code-block:: console
 
      $ git checkout master
-
-
-Development Install
-==============================
-
-To perform development, and see your changes reflected immediately in your
-installed copy of the BEAST, you can perform a development install. This can
-either be performed via a pip development install, by navigating to the
-directory that contains `setup.py` and running:
-
-  .. code-block:: console
-
-     $ pip install -e .
-
-Alternatively, you can perform a development install directly though Python
-with:
-
-  .. code-block:: console
-
-     $ python setup.py develop
 
 
 Making Changes
