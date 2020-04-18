@@ -42,50 +42,57 @@ project is:
 Development Install
 ===================
 
-It is much easier to perform development if any changes you make to the code are
-immediately reflected in how the ``beast`` runs (in contrast to needed to perform a
-new install each team). This can be achieved by using a development install.
+If you plan on modifying the ``beast`` in addition to running the code, it may
+be useful to create a development installation. First, create a fork of the
+official ``beast`` repository and clone it:
 
-This is most easily achieved via a pip development install. Navigate to the
-directory in your your ``beast`` repository that contains `setup.py`, and run:
+.. code-block:: console
 
-  .. code-block:: console
+   $ git clone https://github.com/YourName/beast.git
 
-     $ mv beast beast-official
-     $ git clone https://github.com/YourName/beast.git
-     $ mv beast beast-YourName
-     $ mv beast-official beast
+Optionally, you can rename this cloned copy:
 
-- Set the value of the fork's 'upstream' to the official distribution so you
-  can incorporate changes made by others to your development fork. In the clone
-  of your fork, run the following:
+.. code-block:: console
 
-  .. code-block:: console
+   $ git clone https://github.com/YourName/beast.git beast-YourName
 
-     $ git remote add upstream https://github.com/BEAST-Fitting/beast.git
+Set the value of the fork's 'upstream' to the official distribution so you
+can incorporate changes made by others to your development fork. In the clone
+of your fork, run the following:
+
+.. code-block:: console
+
+   $ git remote add upstream https://github.com/BEAST-Fitting/beast.git
+
+In order to run a development installation, navigate to the directory in your
+``beast`` repository that contains `setup.py`, and run:
+
+.. code-block:: console
+
+   $ pip install -e .
+
+Alternatively, you can perform a development install directly through Python
+with:
+
+.. code-block:: console
+
+   $ python setup.py develop
+
 
 Adding Branches
 ===============
 
 - Make sure you are in the directory for your fork of the beast. You will be on
-  branch 'master' by default.
+  branch `master` by default.
 
-- Create and switch to a branch (here named 'beast-dev1'; generally it's good
-  practice to give branches names related to their purpose)
+- Create and switch to a branch (here named `beast-dev1`):
 
   .. code-block:: console
 
      $ git checkout -b beast-dev1
 
-- Instead, if you want to create first a branch and then switch to it:
-
-  .. code-block:: console
-
-     $ git branch beast-dev1
-     $ git checkout beast-dev1
-
-- To see a list of all branches of the fork, with '*' indicating which branch you are
-  currently working on:
+- To see a list of all branches of the fork, with '*' indicating which branch
+  you are currently working on:
 
   .. code-block:: console
 
@@ -97,42 +104,22 @@ Adding Branches
 
      $ git push origin beast-dev1
 
-- To revert back to your fork's master branch:
+- To revert back to your fork's `master` branch:
 
   .. code-block:: console
 
      $ git checkout master
 
 
-Development Install
-==============================
-
-To perform development, and see your changes reflected immediately in your
-installed copy of the BEAST, you can perform a development install. This can
-either be performed via a pip development install, by navigating to the
-directory that contains `setup.py` and running:
-
-  .. code-block:: console
-
-     $ pip install -e .
-
-Alternatively, you can perform a development install directly though Python
-with:
-
-  .. code-block:: console
-
-     $ python setup.py develop
-
-
 Making Changes
 ==============
 
 It is recommended that branches have a single purpose; for example, if you are working
-on adding a test suite, on improving the fitting algorithm and on speeding up some task,
-those should be in separate branches (e.g.) `add-test-suite`, `improve-fitting-algorithm`
-and `beast-dev1`.
+on adding a test suite, improving the fitting algorithm, and speeding up some task,
+those should be in separate branches (e.g. `add-test-suite`, `improve-fitting-algorithm`
+and `beast-dev1`).
 
-- Anywhere below 'beast-YourName', switch to the branch you wish to work off of:
+- Switch to the branch you wish to work off of:
 
   .. code-block:: console
 
@@ -166,20 +153,25 @@ and `beast-dev1`.
 
 - Commit messages should be short but descriptive.
 
-- To see the status of or commit changes of a single file:
+- To see the status of your changed files:
 
   .. code-block:: console
 
-     $ git status PathToFile/filename
-     $ git commit PathToFile/filename
+     $ git status
 
-- To undo all changes made to a file since last commit:
+- To view any differences between a file and the last committed version:
+
+  .. code-block:: console
+
+     $ git diff PathToFile/filename
+
+- To undo all changes made to a specific file since the last commit:
 
   .. code-block:: console
 
      $ git checkout PathToFile/filename
 
-- To sync changes made to the branch locally with your GitHub repo:
+- To sync changes made to the branch locally with your GitHub repository:
 
   .. code-block:: console
 
@@ -207,12 +199,52 @@ Make sure the documentation can be created.
 
      $ python setup.py build_docs
 
-The resulting HTML files are placed in `docs/_build/html` subdirectory, and
+The resulting HTML files are placed in the `docs/_build/html` subdirectory, and
 can be viewed in a web browser.
 
 
-Collaborating and Contributing
-==============================
+Submitting a Pull Request
+=========================
+
+Once you have changes that you'd like to contribute back to the upstream branch,
+you can open a pull request for review. Pull requests can be submitted at
+https://github.com/BEAST-Fitting/beast/pulls. If you push any commits to your
+origin repository in a development branch (`beast-dev1`), then a "Compare &
+pull request" button should appear at the top of this site. Briefly describe the
+changes/additions you made in the comments section and submit the pull request.
+
+
+Staying up-to-date
+==================
+
+The ``beast`` project's official repository will be updated from time to time
+to accommodate bug fixes, improvements and new features. You can keep your
+fork's `master` repository up-to-date with the following steps:
+
+- Switch to your fork's `master` branch:
+
+  .. code-block:: console
+
+     $ git checkout master
+
+- Fetch the project's up-to-date distribution:
+
+  .. code-block:: console
+
+     $ git fetch upstream
+
+- Merge the official (upstream) `master` branch with your fork's `master` branch:
+
+  .. code-block:: console
+
+     $ git merge upstream/master
+
+- Sync this change with your origin repository:
+
+  .. code-block:: console
+
+     $ git push origin master
+
 
 BEAST on Slack
 ==============
@@ -224,7 +256,7 @@ Visualizing Repository Commits
 ==============================
 
 The commits to the ``beast`` repository can be visualized using `gource`.  This
-creates a movie showing the time evolution of the code and who make the
+creates a movie showing the time evolution of the code and who made the
 changes.
 
 Version created 22 Jan 2018:  <http://stsci.edu/~kgordon/beast/beast_repo.mp4>
