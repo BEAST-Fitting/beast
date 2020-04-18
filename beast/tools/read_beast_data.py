@@ -83,9 +83,9 @@ def read_noise_data(
     filter_col : int (default=None)
         if set, only return the data for this column number
 
-    noise_data
+    Returns
     -------
-    beast_data: dictonary
+    noise_data: dictonary
        contains arrays of the noise parameters
     """
     noise_data = {}
@@ -127,11 +127,14 @@ def read_sed_data(
 
     Returns
     -------
-    grid_param_list : list of strings
-        if param_list is None, return the list of parameter options
+    Two possible returns depending on param_list input
 
-    beast_data: dictonary
-       contains arrays of the requested SED grid parameters
+    sed_data: dictonary (param_list input as list of strings)
+        contains arrays of the requested SED grid parameters
+        if return_params is True, then also provides
+
+    grid_param_list : list of strings (param_list input as None)
+        if param_list is None, return the list of parameter options
     """
     sed_data = {}
 
