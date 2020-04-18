@@ -40,5 +40,37 @@ def test_read_noise_data():
     )
 
 
+@remote_data
+def test_read_sed_data():
+    seds_trim_fname = download_rename("beast_example_phat_seds_trim.grid.hd5")
+    requested_params = ["Av", "Rv", "f_A", "M_ini", "logA", "Z", "distance"]
+
+    # check that when return_params=True, then just a list of parameters is returned
+    sparams = read_sed_data(seds_trim_fname, return_params=True)
+    assert isinstance(sparams, list), "Returned params are not a list"
+    checknames = requested_params + ["seds", "lamb"]
+    for cname in checknames:
+        assert cname in sparams, f"{cname} not in sed parameter list"
+
+    # check that otherwise, the requested sed data is returned
+    sdata = read_sed_data(seds_trim_fname, param_list=requested_params)
+    expected_values = {
+        "Av": 0.0,
+        "Rv": 2.0,
+        "f_A": 1.0,
+        "M_ini": 4.0073261261,
+        "logA": 6.0,
+        "Z": 0.008,
+        "distance": 783429.642766212,
+    }
+    for cname in requested_params:
+        assert cname in sdata.keys(), f"requsted parameter {cname} not in sed data"
+        np.testing.assert_allclose(
+            sdata[cname][10],
+            expected_values[cname],
+            err_msg=f"expected value of {cname} is not found",
+        )
+
+
 if __name__ == "__main__":
-    test_read_noise_data()
+    test_read_sed_data()

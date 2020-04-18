@@ -2,7 +2,6 @@
 Functions for interacting with the BEAST model
 """
 
-# other package imports
 import numpy as np
 import h5py
 from tqdm import tqdm
@@ -94,7 +93,7 @@ def read_noise_data(
     with h5py.File(filename, "r") as noise_hdf:
 
         # get beast physicsmodel params
-        for param in tqdm(param_list, desc="reading beast data"):
+        for param in tqdm(param_list, desc="reading noise data"):
             if filter_col is None:
                 noise_data[param] = np.array(noise_hdf[param])
             else:
@@ -142,7 +141,7 @@ def read_sed_data(
     with h5py.File(filename, "r") as sed_hdf:
 
         # get the possible list of parameters
-        grid_param_list = list(sed_hdf["grid"].value.dtype.names)
+        grid_param_list = list(sed_hdf["grid"][()].dtype.names)
         # return that if the user is so inclined
         if return_params:
             return grid_param_list + ["seds", "lamb"]
@@ -150,7 +149,7 @@ def read_sed_data(
             param_list = grid_param_list
 
         # get parameters
-        for param in tqdm(param_list, desc="reading beast data"):
+        for param in tqdm(param_list, desc="reading sed data"):
             # grid parameter
             if param in grid_param_list:
                 sed_data[param] = sed_hdf["grid"][param]
