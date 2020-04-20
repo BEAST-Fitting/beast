@@ -29,7 +29,7 @@ def download_rename(filename):
     return fname
 
 
-def compare_tables(table_cache, table_new):
+def compare_tables(table_cache, table_new, rtol=1e-7):
     """
     Compare two tables using astropy tables routines.
 
@@ -38,9 +38,16 @@ def compare_tables(table_cache, table_new):
     table_cache : astropy table
     table_new : astropy table
         data for comparision.
+    rtol : float (default=1e-7)
+        relative tolerance for np.testing.assert_allclose (default of 1e-7
+        matches the default in assert_allclose)
     """
     if not len(table_new) == len(table_cache):
-        raise AssertionError()
+        raise AssertionError(
+            "Table lengths don't match: {0} (new) and {1} (cached)".format(
+                len(table_new), len(table_cache)
+            )
+        )
 
     for tcolname in table_new.colnames:
         # test numerical types for closeness
@@ -49,6 +56,7 @@ def compare_tables(table_cache, table_new):
             np.testing.assert_allclose(
                 table_new[tcolname],
                 table_cache[tcolname],
+                rtol=rtol,
                 err_msg=("%s columns not equal" % tcolname),
             )
         else:
@@ -73,7 +81,11 @@ def compare_fits(fname_cache, fname_new):
     fits_new = fits.open(fname_new)
 
     if not len(fits_new) == len(fits_cache):
-        raise AssertionError()
+        raise AssertionError(
+            "FITS data lengths don't match: {0} (new) and {1} (cached)".format(
+                len(fits_new), len(fits_cache)
+            )
+        )
 
     for k in range(1, len(fits_new)):
         qname = fits_new[k].header["EXTNAME"]
