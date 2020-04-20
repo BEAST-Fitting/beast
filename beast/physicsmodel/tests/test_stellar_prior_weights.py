@@ -1,6 +1,12 @@
 import numpy as np
 
-from beast.physicsmodel.prior_weights_stars import *
+from beast.physicsmodel.prior_weights_stars import (
+    compute_distance_prior_weights,
+    compute_age_prior_weights,
+    compute_mass_prior_weights,
+    compute_metallicity_prior_weights,
+    imf_kroupa,
+)
 
 
 def test_flat_age_prior_weights():
@@ -12,7 +18,7 @@ def test_flat_age_prior_weights():
     log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
     expected_log_age_prior = [1, 1, 1, 1, 1]
     np.testing.assert_allclose(
-        log_age_prior, expected_log_age_prior, err_msg=("\nFlat age prior error\n")
+        log_age_prior, expected_log_age_prior, err_msg=("Flat age prior error")
     )
 
 
@@ -31,9 +37,7 @@ def test_flat_log_age_prior_weights():
         4.500045e-04,
     ]
     np.testing.assert_allclose(
-        log_age_prior,
-        expected_log_age_prior,
-        err_msg=("\nFlat log, log age prior error\n"),
+        log_age_prior, expected_log_age_prior, err_msg=("Flat log, log age prior error")
     )
 
 
@@ -52,7 +56,7 @@ def test_bins_histo_age_prior_weights():
     np.testing.assert_allclose(
         log_age_prior,
         expected_log_age_prior,
-        err_msg=("\nBin histogram log age prior error\n"),
+        err_msg=("Bin histogram log age prior error"),
     )
 
 
@@ -71,7 +75,7 @@ def test_bins_interp_age_prior_weights():
     np.testing.assert_allclose(
         log_age_prior,
         expected_log_age_prior,
-        err_msg=("\nBin histogram log age prior error\n"),
+        err_msg=("Bin histogram log age prior error"),
     )
 
 
@@ -92,7 +96,7 @@ def test_exp_age_prior_weights():
     np.testing.assert_allclose(
         log_age_prior,
         expected_log_age_prior,
-        err_msg=("\nExponential log age prior error\n"),
+        err_msg=("Exponential log age prior error"),
     )
 
 
@@ -111,7 +115,7 @@ def test_imf_kroupa():
         1.23699798e-04,
     ]
     np.testing.assert_allclose(
-        imf, expected_imf, err_msg=("\nKroupa IMF calculation error\n")
+        imf, expected_imf, err_msg=("Kroupa IMF calculation error")
     )
 
 
@@ -126,7 +130,7 @@ def test_kroupa_mass_prior_weight():
     np.testing.assert_allclose(
         weights,
         expected_weights,
-        err_msg=("\nStellar mass prior weight error (kroupa IMF)\n"),
+        err_msg=("Stellar mass prior weight error (kroupa IMF)"),
     )
 
 
@@ -141,7 +145,7 @@ def test_salpeter_mass_prior_weight():
     np.testing.assert_allclose(
         weights,
         expected_weights,
-        err_msg=("\nStellar mass prior weight error (salpeter IMF)\n"),
+        err_msg=("Stellar mass prior weight error (salpeter IMF)"),
     )
 
 
@@ -155,7 +159,7 @@ def test_flat_mass_prior_weight():
     np.testing.assert_allclose(
         weights,
         np.full((len(weights)), 1.0),
-        err_msg=("\nStellar mass prior weight error (flat IMF)\n"),
+        err_msg=("Stellar mass prior weight error (flat IMF)"),
     )
 
 
@@ -169,7 +173,7 @@ def test_flat_metallicity_prior_weight():
     np.testing.assert_allclose(
         weights,
         np.full((len(weights)), 1.0),
-        err_msg=("\nStellar flat metallicity prior weight error\n"),
+        err_msg=("Stellar flat metallicity prior weight error"),
     )
 
 
@@ -183,5 +187,5 @@ def test_flat_distance_prior_weight():
     np.testing.assert_allclose(
         weights,
         np.full((len(weights)), 1.0),
-        err_msg=("\nStellar flat distance prior weight error\n"),
+        err_msg=("Stellar flat distance prior weight error"),
     )
