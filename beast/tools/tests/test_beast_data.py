@@ -11,6 +11,30 @@ from beast.tests.helpers import download_rename
 
 
 @remote_data
+def test_read_lnp_data():
+    lnp_fname = download_rename("beast_example_phat_lnp.hd5")
+    ldata = read_lnp_data(lnp_fname)
+
+    exp_keys = ["vals", "indxs"]
+    for ckey in ldata.keys():
+        assert ckey in exp_keys, f"{ckey} not in lnp data expected keys"
+
+    # check an entry for a single model (caching current values 20 Apr 2020)
+    # fmt: off
+    exp_vals = [-56.83604431, -76.34762573, -17.55770874, -18.23323059, -10.53744507]
+    exp_indxs = [14639., 15015., 296., 12636., 1336.]
+    # fmt: on
+    np.testing.assert_allclose(
+        ldata["vals"][0][0:5],
+        exp_vals,
+        err_msg="Expected posterior (vals) values not correct",
+    )
+    np.testing.assert_allclose(
+        ldata["indxs"][0][0:5], exp_indxs, err_msg="Expected index values not correct",
+    )
+
+
+@remote_data
 def test_read_noise_data():
     noise_trim_fname = download_rename("beast_example_phat_noisemodel_trim.grid.hd5")
     ndata = read_noise_data(noise_trim_fname)
@@ -73,4 +97,4 @@ def test_read_sed_data():
 
 
 if __name__ == "__main__":
-    test_read_sed_data()
+    test_read_lnp_data()

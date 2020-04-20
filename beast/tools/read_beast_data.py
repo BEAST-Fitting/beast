@@ -46,15 +46,15 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
 
         # initialize arrays
         # - find the lengths of the sparse likelihoods
-        lnp_sizes = [lnp_hdf[sname]["lnp"].value.shape[0] for sname in star_key_list]
+        lnp_sizes = [lnp_hdf[sname]["lnp"][()].shape[0] for sname in star_key_list]
         # - set arrays to the maximum size
         lnp_vals = np.full((np.max(lnp_sizes), tot_stars), -np.inf)
         lnp_indxs = np.full((np.max(lnp_sizes), tot_stars), np.nan)
 
         # loop over all the stars (groups)
         for k, sname in enumerate(star_key_list):
-            lnp_vals[: lnp_sizes[k], k] = lnp_hdf[sname]["lnp"].value
-            lnp_indxs[: lnp_sizes[k], k] = np.array(lnp_hdf[sname]["idx"].value)
+            lnp_vals[: lnp_sizes[k], k] = lnp_hdf[sname]["lnp"][()]
+            lnp_indxs[: lnp_sizes[k], k] = np.array(lnp_hdf[sname]["idx"][()])
 
         if shift_lnp:
             # shift the log(likelihood) values to have a max of 0.0
@@ -155,7 +155,7 @@ def read_sed_data(
                 sed_data[param] = sed_hdf["grid"][param]
             # wavelengths of the filters -or- SED photometry values
             elif (param == "lamb") or (param == "seds"):
-                sed_data[param] = sed_hdf[param].value
+                sed_data[param] = sed_hdf[param][()]
             else:
                 raise ValueError("parameter {0} not found in SED grid".format(param))
 
