@@ -1,4 +1,4 @@
-from beast.tools import compare_spec_type
+from beast.tools.compare_spec_type import compare_spec_type
 from beast.tests.helpers import download_rename, compare_tables
 from astropy.tests.helper import remote_data
 from astropy.table import Table
@@ -17,7 +17,7 @@ def test_compare_spec_type_inFOV():
     stats_fname = download_rename("beast_example_phat_stats.fits")
 
     # run compare_spec_type
-    spec_type = compare_spec_type.compare_spec_type(
+    spec_type = compare_spec_type(
         obs_fname,
         stats_fname,
         [11.2335881, 11.23342557],  # RA
@@ -66,7 +66,7 @@ def test_compare_spec_type_notFOV():
     stats_fname = download_rename("beast_example_phat_stats.fits")
 
     # run compare_spec_type
-    spec_type = compare_spec_type.compare_spec_type(
+    spec_type = compare_spec_type(
         obs_fname,
         stats_fname,
         [1.0],              # RA
@@ -98,9 +98,3 @@ def test_compare_spec_type_notFOV():
 
     # compare to new table
     compare_tables(expected_table, Table(spec_type))
-
-
-if __name__ == '__main__':
-
-    test_compare_spec_type_inFOV()
-    test_compare_spec_type_notFOV()
