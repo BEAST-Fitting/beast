@@ -29,7 +29,7 @@ def download_rename(filename):
     return fname
 
 
-def compare_tables(table_cache, table_new, rtol=None):
+def compare_tables(table_cache, table_new, rtol=1e-7):
     """
     Compare two tables using astropy tables routines.
 
@@ -38,8 +38,9 @@ def compare_tables(table_cache, table_new, rtol=None):
     table_cache : astropy table
     table_new : astropy table
         data for comparision.
-    rtol : float (default=None)
-        relative tolerance for np.testing.assert_allclose
+    rtol : float (default=1e-7)
+        relative tolerance for np.testing.assert_allclose (default of 1e-7
+        matches the default in assert_allclose)
     """
     if not len(table_new) == len(table_cache):
         raise AssertionError()
@@ -48,19 +49,12 @@ def compare_tables(table_cache, table_new, rtol=None):
         # test numerical types for closeness
         # and other types for equality
         if table_new[tcolname].data.dtype.kind in ["f", "i"]:
-            if rtol is None:
-                np.testing.assert_allclose(
-                    table_new[tcolname],
-                    table_cache[tcolname],
-                    err_msg=("%s columns not equal" % tcolname),
-                )
-            else:
-                np.testing.assert_allclose(
-                    table_new[tcolname],
-                    table_cache[tcolname],
-                    rtol=rtol,
-                    err_msg=("%s columns not equal" % tcolname),
-                )
+            np.testing.assert_allclose(
+                table_new[tcolname],
+                table_cache[tcolname],
+                rtol=rtol,
+                err_msg=("%s columns not equal" % tcolname),
+            )
         else:
             np.testing.assert_equal(
                 table_new[tcolname],
