@@ -43,7 +43,11 @@ def compare_tables(table_cache, table_new, rtol=1e-7):
         matches the default in assert_allclose)
     """
     if not len(table_new) == len(table_cache):
-        raise AssertionError()
+        raise AssertionError(
+            "Table lengths don't match: {0} (new) and {1} (cached)".format(
+                len(table_new), len(table_cache)
+            )
+        )
 
     for tcolname in table_new.colnames:
         # test numerical types for closeness
@@ -77,7 +81,11 @@ def compare_fits(fname_cache, fname_new):
     fits_new = fits.open(fname_new)
 
     if not len(fits_new) == len(fits_cache):
-        raise AssertionError()
+        raise AssertionError(
+            "FITS data lengths don't match: {0} (new) and {1} (cached)".format(
+                len(fits_new), len(fits_cache)
+            )
+        )
 
     for k in range(1, len(fits_new)):
         qname = fits_new[k].header["EXTNAME"]
