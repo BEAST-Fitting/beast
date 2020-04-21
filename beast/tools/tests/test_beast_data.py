@@ -96,5 +96,43 @@ def test_read_sed_data():
         )
 
 
+@remote_data
+def test_get_lnp_grid_vals():
+    lnp_fname = download_rename("beast_example_phat_lnp.hd5")
+    ldata = read_lnp_data(lnp_fname)
+
+    seds_trim_fname = download_rename("beast_example_phat_seds_trim.grid.hd5")
+    requested_params = ["Av", "Rv", "f_A", "M_ini", "logA", "Z", "distance"]
+    sdata = read_sed_data(seds_trim_fname, param_list=requested_params)
+
+    lgvals_data = get_lnp_grid_vals(sdata, ldata)
+
+    # check that otherwise, the requested lgvals data is returned
+    expected_values = {
+        "Av": [0.0, 0.0, 0.0, 0.0, 0.0],
+        "Rv": [2.0, 2.0, 2.0, 2.0, 2.0],
+        "f_A": [1.0, 1.0, 1.0, 1.0, 1.0],
+        "M_ini": [3.89416909, 3.92726111, 3.95603228, 2.04966068, 2.04999995],
+        "logA": [6.0, 6.0, 6.0, 9.0, 9.0],
+        "Z": [0.03, 0.03, 0.03, 0.004, 0.004],
+        "distance": [
+            783429.64276621,
+            783429.64276621,
+            783429.64276621,
+            783429.64276621,
+            783429.64276621,
+        ],
+    }
+    for cname in requested_params:
+        assert (
+            cname in lgvals_data.keys()
+        ), f"requsted parameter {cname} not in sed data"
+        np.testing.assert_allclose(
+            lgvals_data[cname][0:5, 10],
+            expected_values[cname],
+            err_msg=f"expected value of {cname} is not found",
+        )
+
+
 if __name__ == "__main__":
-    test_read_lnp_data()
+    test_get_lnp_grid_vals()
