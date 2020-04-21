@@ -13,7 +13,8 @@ likely to be high mass stars.
 
 There are two types of stars currently implemented, though more can easily be
 added.  When there are cuts along two parameters, the 2D PDFs are utilized.  If
-2D PDFs of the required parameters don't exist, the star type will be skipped.
+2D PDFs of the required parameters don't exist, the probability of that star
+type will be `NaN`.
 
 * Extinguished high mass stars (`star_type_probability.ext_O_star`): Stars above
   a certain mass (default `M_ini` > 10 solar masses) with some minimum
