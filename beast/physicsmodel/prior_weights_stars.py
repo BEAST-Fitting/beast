@@ -52,7 +52,7 @@ def compute_age_prior_weights(logages, age_prior_model):
             [np.max(logages) <= x <= np.min(logages) for x in age_prior_model["values"]]
         ):
             raise ValueError(
-                "\nAge prior weight error: Requested ages outside of model range\n"
+                "Age prior weight error: Requested ages outside of model range"
             )
 
         # interpolate according to bins, assuming SFR constant from i to i+1
