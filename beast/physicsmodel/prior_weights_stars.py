@@ -18,6 +18,7 @@ __all__ = [
     "compute_age_prior_weights",
     "compute_mass_prior_weights",
     "compute_metallicity_prior_weights",
+    "imf_kroupa",
 ]
 
 
@@ -46,6 +47,14 @@ def compute_age_prior_weights(logages, age_prior_model):
         # assumes the logace spacing is uniform
         age_weights = 1.0 / compute_age_grid_weights(logages)
     elif age_prior_model["name"] == "bins_histo":
+        # check if all ages within interpolation range
+        if np.all(
+            [np.max(logages) <= x <= np.min(logages) for x in age_prior_model["values"]]
+        ):
+            raise ValueError(
+                "Age prior weight error: Requested ages outside of model range"
+            )
+
         # interpolate according to bins, assuming SFR constant from i to i+1
         # and allow for bin edges input
         if len(age_prior_model["values"]) == len(age_prior_model["logages"]) - 1:

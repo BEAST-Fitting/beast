@@ -1,8 +1,8 @@
 from astropy.tests.helper import remote_data
 
-from .. import grid
-from ..model_grid import make_extinguished_sed_grid
-from ..dust import extinction
+from beast.physicsmodel import grid
+from beast.physicsmodel.model_grid import make_extinguished_sed_grid
+from beast.physicsmodel.dust import extinction
 from beast.tests.helpers import download_rename, compare_hdf5
 
 
