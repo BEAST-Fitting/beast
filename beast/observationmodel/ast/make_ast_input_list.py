@@ -227,6 +227,7 @@ def pick_models_toothpick_style(
         grid_dict = {}
         for key in list(modelsedgrid.grid.keys()):
             grid_dict[key] = modelsedgrid.grid[key][chosen_idxs]
+        grid_dict['sedgrid_indx'] = chosen_idxs
         ast_params = Table(grid_dict)
         ast_params.write(outfile_params, overwrite=True)
 
