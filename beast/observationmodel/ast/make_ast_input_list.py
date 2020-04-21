@@ -133,15 +133,9 @@ def pick_models_toothpick_style(
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
     Nf = sedsMags.shape[1]
 
-    idxs = np.where(modelsedgrid.grid["logL"] > -9)[0]
-    sedsMags_cut = sedsMags[idxs]
-
-    # Note that i speak of fluxes, but I've recently modified this to
-    # work with mags instead
-
     # Set up a number of flux bins for each filter
-    maxes = np.amax(sedsMags_cut, axis=0)
-    mins = np.amin(sedsMags_cut, axis=0)
+    maxes = np.amax(sedsMags, axis=0)
+    mins = np.amin(sedsMags, axis=0)
 
     bin_edges = np.zeros((N_fluxes + 1, Nf))  # indexed on [fluxbin, nfilters]
     for f in range(Nf):
