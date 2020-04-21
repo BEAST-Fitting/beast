@@ -199,7 +199,8 @@ def ext_O_star(pdf2d_data, pdf2d_bins, min_M_ini=10, min_Av=0.5, max_Av=99):
         mass_bins = pdf2d_bins['M_ini+Av'][0,:,:]
     else:
         print("2D PDFs don't contain M_ini and Av data")
-        return None
+        tot_stars = pdf2d_data[list(pdf2d_data)[0]].shape[0]
+        return [np.nan] * tot_stars
 
     # reshape the arrays
     prob_data = prob_data.reshape(prob_data.shape[0], -1)
@@ -252,7 +253,8 @@ def dusty_agb(pdf2d_data, pdf2d_bins, min_Av=7, min_logT=3.7, max_logT=4.2):
         logT_bins = pdf2d_bins['logT+Av'][0,:,:]
     else:
         print("2D PDFs don't contain Av and logT (T_eff) data")
-        return None
+        tot_stars = pdf2d_data[list(pdf2d_data)[0]].shape[0]
+        return [np.nan] * tot_stars
 
     # reshape the arrays
     prob_data = prob_data.reshape(prob_data.shape[0], -1)
