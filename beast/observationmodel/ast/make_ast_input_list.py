@@ -134,7 +134,7 @@ def pick_models_toothpick_style(
     Nf = sedsMags.shape[1]
 
     # Check if logL=-9.999 model points sliently sneak through
-    if min(modelsedgrid.grid["logL") < -9:
+    if min(modelsedgrid.grid["logL"]) < -9:
         warnings.warn('There are logL=-9.999 model points in the SED grid!')
         print('Excluding those SED models from selecting input ASTs')
         idxs = np.where(modelsedgrid.grid["logL"] > -9)[0]
