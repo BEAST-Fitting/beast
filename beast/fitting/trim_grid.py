@@ -89,19 +89,19 @@ def trim_models(
     #   that *none* were recovered and this implies
     #   that no model with these values would be recovered and thus the
     #   probability should always be zero
-    model_unc = sedgrid_noisemodel.root.error[:]
+    model_unc = sedgrid_noisemodel["error"]
     above_ast = model_unc > 0
     sum_above_ast = np.sum(above_ast, axis=1)
     indxs, = np.where(sum_above_ast >= n_detected)
 
     # cache the noisemodel values
-    model_bias = sedgrid_noisemodel.root.bias[:]
-    model_unc = np.fabs(sedgrid_noisemodel.root.error[:])
-    model_compl = sedgrid_noisemodel.root.completeness[:]
+    model_bias = sedgrid_noisemodel["bias"]
+    model_unc = np.fabs(sedgrid_noisemodel["error"])
+    model_compl = sedgrid_noisemodel["completeness"]
     if trunchen:
-        model_q_norm = sedgrid_noisemodel.root.q_norm[:]
-        model_icov_diag = sedgrid_noisemodel.root.icov_diag[:]
-        model_icov_offdiag = sedgrid_noisemodel.root.icov_offdiag[:]
+        model_q_norm = sedgrid_noisemodel["q_norm"]
+        model_icov_diag = sedgrid_noisemodel["icov_diag"]
+        model_icov_offdiag = sedgrid_noisemodel["icov_offdiag"]
 
     if len(indxs) <= 0:
         raise ValueError("no models are brighter than the minimum ASTs run")

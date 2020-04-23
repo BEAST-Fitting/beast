@@ -221,9 +221,9 @@ def gen_SimObs_from_sedgrid(
     print("Completeness from %s" % sedgrid.filters[filter_k])
 
     # cache the noisemodel values
-    model_bias = sedgrid_noisemodel.root.bias[:]
-    model_unc = np.fabs(sedgrid_noisemodel.root.error[:])
-    model_compl = sedgrid_noisemodel.root.completeness[:]
+    model_bias = sedgrid_noisemodel["bias"]
+    model_unc = np.fabs(sedgrid_noisemodel["error"])
+    model_compl = sedgrid_noisemodel["completeness"]
 
     # the combined prior and grid weights
     # using both as the grid weight needed to account for the finite size

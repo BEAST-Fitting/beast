@@ -65,8 +65,8 @@ def plot_noisemodel(
         noisemodel_vals = noisemodel.get_noisemodelcat(nfile)
 
         # extract error and bias
-        noise_err = noisemodel_vals.root.error[:]
-        noise_bias = noisemodel_vals.root.bias[:]
+        noise_err = noisemodel_vals["error"]
+        noise_bias = noisemodel_vals["bias"]
 
         # plot things
         for f, filt in enumerate(filter_list):

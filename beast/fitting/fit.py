@@ -306,7 +306,7 @@ def Q_all_memory(
     prev_result,
     obs,
     sedgrid,
-    ast,
+    obsmodel,
     qnames_in,
     p=[16.0, 50.0, 84.0],
     gridbackend="cache",
@@ -341,8 +341,8 @@ def Q_all_memory(
     sedgrid: str or grid.SEDgrid instance
         model grid
 
-    ast: beast noisemodel instance
-        noise model data
+    obsmodel: beast noisemodel instance
+        observation model model data
 
     qnames: list of quantities or expressions
 
@@ -418,7 +418,7 @@ def Q_all_memory(
     g0_weights = np.log(g0["weight"][g0_indxs])
     if not do_not_normalize:
         # this variable used on the next line, so is used regardless of what flake8 says
-        g0_weights_sum = np.log(g0["weight"][g0_indxs].sum())
+        g0_weights_sum = np.log(g0["weight"][g0_indxs].sum())  # noqa: E302
         g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
 
     if len(g0["weight"]) != len(g0_indxs):
@@ -431,27 +431,22 @@ def Q_all_memory(
     else:
         _seds = g0.seds
 
-    # get the names of all the children in the ast structure
-    ast_children = []
-    for label, node in list(ast.root._v_children.items()):
-        ast_children.append(label)
-
     # links to errors and biases
-    ast_error = ast.root.error[:]
-    ast_bias = ast.root.bias[:]
+    ast_error = obsmodel["error"]
+    ast_bias = obsmodel["bias"]
 
     # if the ast file includes the full covariance matrices, make links
     full_cov_mat = False
     if (
         use_full_cov_matrix
-        & ("q_norm" in ast_children)
-        & ("icov_diag" in ast_children)
-        & ("icov_offdiag" in ast_children)
+        & ("q_norm" in obsmodel.keys())
+        & ("icov_diag" in obsmodel.keys())
+        & ("icov_offdiag" in obsmodel.keys())
     ):
         full_cov_mat = True
-        ast_q_norm = np.asfortranarray(ast.root.q_norm[:])
-        ast_icov_diag = np.asfortranarray(ast.root.icov_diag[:])
-        two_ast_icov_offdiag = 2.0 * np.asfortranarray(ast.root.icov_offdiag)
+        ast_q_norm = obsmodel["q_norm"]
+        ast_icov_diag = obsmodel["icov_diag"]
+        two_ast_icov_offdiag = 2.0 * obsmodel["icov_offdiag"]
     else:
         ast_ivar = 1.0 / np.asfortranarray(ast_error) ** 2
 
