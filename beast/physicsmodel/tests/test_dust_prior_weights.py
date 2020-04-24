@@ -35,11 +35,11 @@ def test_dust_prior_weights():
 
     expected_two_lognormal_av = [0.0, 5.962474, 3.07642414e-02, 4.46347150e-03, 1.60916384e-03, 6.89125670e-04]
     prior_weights.set_av_weights(model={"name" : "two_lognormal", "max_pos1" : 0.2, "max_pos2": 2.0, "sigma1" : 1.0, "sigma2" : 0.2, "N1_to_N2" : 1.0 / 5.0})
-    np.testing.assert_allclose(prior_weights.av_priors, expected_two_lognormal_av, err_msg="A problem occurred while setting the A(V) priors to two_lognormal."))
+    np.testing.assert_allclose(prior_weights.av_priors, expected_two_lognormal_av, err_msg="A problem occurred while setting the A(V) priors to two_lognormal.")
 
     expected_exponential_av = [5.18802018, 7.02122180e-01, 9.50219041e-02, 1.28598163e-02, 1.74038688e-03, 2.35535752e-04]
     prior_weights.set_av_weights(model={"name" : "exponential", "a" : 1.0})
-    np.testing.assert_allclose(prior_weights.av_priors, expected_exponential_av, err_msg="A problem occurred while setting the A(V) priors to exponential."))
+    np.testing.assert_allclose(prior_weights.av_priors, expected_exponential_av, err_msg="A problem occurred while setting the A(V) priors to exponential.")
 
     # test error output when unsupported model is given
     with pytest.raises(NotImplementedError) as exc_av:
@@ -53,7 +53,7 @@ def test_dust_prior_weights():
 
     expected_lognormal_rv = [0.53984107, 2.48794534, 1.4922695, 0.4032949, 0.0766492]
     prior_weights.set_rv_weights(model={"name" : "lognormal", "max_pos" : 3.1, "sigma" : 0.25})
-    np.testing.assert_allclose(prior_weights.rv_priors, expected_lognormal_rv, err_msg="A problem occurred while setting the R(V) priors to lognormal."))
+    np.testing.assert_allclose(prior_weights.rv_priors, expected_lognormal_rv, err_msg="A problem occurred while setting the R(V) priors to lognormal.")
 
     expected_two_lognormal_rv = [5.19299866e-04, 1.85412702, 1.32008619, 1.29608363, 5.29183855e-01]
     prior_weights.set_rv_weights(model={"name" : "two_lognormal", "max_pos1" : 3.1, "max_pos2": 4.5, "sigma1" : 0.1, "sigma2" : 0.2, "N1_to_N2" : 2.0 / 5.0})
