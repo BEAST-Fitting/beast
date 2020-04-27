@@ -34,7 +34,7 @@ def write_sbatch_file(
     directory : string
         the directory that slurm should assume you're working in
 
-    modules :  string or list of strings (default=['module load anaconda3','source activate bdev']
+    modules : string or list of strings (default=['module load anaconda3','source activate bdev']
         modules to load before running job
 
     job_name : string (default='beast')
@@ -56,18 +56,18 @@ def write_sbatch_file(
         Maximum run time (hh:mm:ss).  If your job is shorter, it's fine.
 
     mem : string (default='128GB')
-        For bridges large, the memory to allocate to the job.  If your job uses
+        For bridges large, the memory to allocate to the job. If your job uses
         less memory than this, the full amount will still be charged.
 
     array : list of two ints (default=None)
-        If set, #SBATCH --array=[0]-[1] will be included.  In this case, make
+        If set, #SBATCH --array=[0]-[1] will be included. In this case, make
         sure to use "${SLURM_ARRAY_TASK_ID}" somewhere in the job command.
 
     """
 
     with open(file_name, "w") as f:
 
-        f.write("#!/bin/bash \n")
+        f.write("#!/bin/bash\n")
         f.write("\n")
 
         f.write("#SBATCH -J " + job_name + "\n")
@@ -76,7 +76,7 @@ def write_sbatch_file(
             f.write("#SBATCH -o " + stdout_file + "\n")
 
         if egress:
-            f.write("#SBATCH -C EGRESS \n")
+            f.write("#SBATCH -C EGRESS\n")
 
         f.write("#SBATCH -p " + queue + "\n")
         f.write("#SBATCH -t " + run_time + "\n")
@@ -106,7 +106,6 @@ def write_sbatch_file(
         elif isinstance(job_command, list):
             for item in job_command:
                 f.write(item + "\n")
-
         f.write("\n")
 
 
