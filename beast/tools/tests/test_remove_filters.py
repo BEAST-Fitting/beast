@@ -1,7 +1,6 @@
 from beast.tools import remove_filters, read_beast_data
 from beast.tests.helpers import download_rename
 from astropy.tests.helper import remote_data
-from astropy.table import Table
 import os
 
 @remote_data
