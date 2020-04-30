@@ -128,7 +128,7 @@ class pdf2d:
         gindxs : ndarray
             1D `int` array with the indxs of the weights in the full model grid
         weights : ndarray
-            1D `float` array with the fit proabilities (likelihood*prior)
+            1D `float` array with the fit probabilities (likelihood*prior)
             at each grid point
 
         Returns
