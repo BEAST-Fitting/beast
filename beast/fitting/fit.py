@@ -767,7 +767,7 @@ def Q_all_memory(
 
                 # save the lnps
                 if lnp_outname is not None:
-                    save_lnp(lnp_outname, save_lnp_vals, resume)
+                    save_lnp(lnp_outname, save_lnp_vals)
                     save_lnp_vals = []
 
     # do the final save of everything (or the last set for the lnp values)
@@ -800,7 +800,7 @@ def Q_all_memory(
 
     # save the lnps
     if lnp_outname is not None:
-        save_lnp(lnp_outname, save_lnp_vals, resume)
+        save_lnp(lnp_outname, save_lnp_vals)
 
 
 def IAU_names_and_extra_info(obsdata, surveyname="PHAT", extraInfo=False):
