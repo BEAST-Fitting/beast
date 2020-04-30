@@ -28,7 +28,7 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
 
     Returns
     -------
-    lnp_data: dictonary
+    lnp_data : dictonary
        contains arrays of the lnp values and indices to the BEAST model grid
     """
 
@@ -84,7 +84,7 @@ def read_noise_data(
 
     Returns
     -------
-    noise_data: dictonary
+    noise_data : dictonary
        contains arrays of the noise parameters
     """
     noise_data = {}
@@ -128,11 +128,11 @@ def read_sed_data(
     -------
     Two possible returns depending on param_list input
 
-    sed_data: dictonary (param_list input as list of strings)
+    sed_data : dictonary (param_list input as list of strings)
         contains arrays of the requested SED grid parameters
         if return_params is True, then also provides
 
-    grid_param_list : list of strings (param_list input as None)
+    grid_param_list : list of strings (return_params is True)
         if param_list is None, return the list of parameter options
     """
     sed_data = {}
@@ -169,13 +169,13 @@ def get_lnp_grid_vals(sed_data, lnp_data):
 
     Parameters
     ----------
-    sed_data: dictonary or string
+    sed_data : dictonary or string
        if dictionary: contains arrays of the beast parameters (output from
        read_sed_data)
        if string: name of the file with the BEAST physicsmodel grid, which will
        be used in read_sed_data to get default parameters
 
-    lnp_data: dictonary or string
+    lnp_data : dictonary or string
        if dictionary: contains arrays of the lnp values and indices to the BEAST
        model grid (output from read_lnp_data)
        if string: name of the file with the sparse lnp values, which will be
@@ -183,7 +183,7 @@ def get_lnp_grid_vals(sed_data, lnp_data):
 
     Returns
     -------
-    lnp_grid_vals: dictonary
+    lnp_grid_vals : dictonary
         arrays of the SED grid parameters for the points in the lnp lists
     """
 
