@@ -40,8 +40,9 @@ import sys
 import numpy
 import astropy.io.fits as pyfits
 import copy
+from astropy.table import Table
 
-from beast.external.eztables import Table
+from beast.external.eztables import Table as ezTable
 from beast.physicsmodel.helpers.hdfstore import HDFStore
 from beast.physicsmodel.helpers.gridhelpers import isNestedInstance, pretty_size_print
 
@@ -294,7 +295,7 @@ class MemoryBackend(GridBackend):
             filename (incl. path) to export to
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            if not isinstance(self.grid, Table):
+            if not isinstance(self.grid, Table) or isinstance(self.grid, ezTable):
                 raise TypeError("Only eztables.Table are supported so far")
             r = numpy.vstack([self.seds, self.lamb])
             pyfits.writeto(fname, r, **kwargs)
@@ -315,8 +316,8 @@ class MemoryBackend(GridBackend):
             if set, it will append data to each Array or Table
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            if not isinstance(self.grid, Table):
-                raise TypeError("Only eztables.Table are supported so far")
+            if not isinstance(self.grid, Table) or isinstance(self.grid, ezTable):
+                raise TypeError("Only astropy.Table or eztables.Table are supported")
             with HDFStore(fname, mode="a") as hd:
                 if not append:
                     hd["/seds"] = self.seds[:]
@@ -337,8 +338,8 @@ class MemoryBackend(GridBackend):
                         if self.cov_offdiag is not None:
                             hd["/covoffdiag"] = self.cov_offdiag[:]
             if getattr(self, "filters", None) is not None:
-                if "FILTERS" not in list(self.grid.header.keys()):
-                    self.grid.header["FILTERS"] = " ".join(self.filters)
+                if "FILTERS" not in list(self.header.keys()):
+                    self.header["FILTERS"] = " ".join(self.filters)
             self.grid.write(fname, tablename="grid", append=True)
 
     def copy(self):
