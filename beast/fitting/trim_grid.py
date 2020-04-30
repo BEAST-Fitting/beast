@@ -45,9 +45,9 @@ def trim_models(
         minimum number of bands where ASTs yielded a detection for
         a given model, if fewer detections than n_detected this model
         gets eliminated (default: 4)
-    inFlux : boolean, optional
+    inFlux : bool, optional
         if true data are in fluxes (default: True)
-    trunchen : boolean, optional
+    trunchen : bool, optional
         if true use the trunchen noise model (default: False)
     """
     # Store the brigtest and faintest fluxes in each band (for data and asts)
