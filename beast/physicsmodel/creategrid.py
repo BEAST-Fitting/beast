@@ -23,7 +23,8 @@ from tqdm import tqdm
 from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.grid import SpectralGrid
 from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
-from beast.external.eztables import Table
+# from beast.external.eztables import Table
+from astropy.table import Table
 from beast.tools.helpers import generator
 from beast.tools import helpers
 
@@ -478,6 +479,11 @@ def make_extinguished_grid(
             )
         else:
             g = SpectralGrid(_lamb, seds=_seds, grid=Table(cols), backend="memory")
+
+        print(_lamb)
+        print(_seds)
+        print(Table(cols))
+        exit()
 
         g.grid.header["filters"] = " ".join(filter_names)
 

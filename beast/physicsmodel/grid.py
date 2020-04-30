@@ -76,10 +76,10 @@ class ModelGrid(object):
             if str: filename to the grid
             if backend: ref to the given grid
 
-        seds : ndarray[dtype=float, ndim=2]
-            array of seds
+        seds : ndarray
+            2D `float` array of the seds
 
-        grid : eztable.Table
+        grid : astropy.Table
             table of properties associated to each sed
 
         header : dict
@@ -191,6 +191,21 @@ class SpectralGrid(ModelGrid):
     """
     Generate a grid that contains spectra.
     It provides an access to integrated photometry function getSEDs.
+
+    Attributes
+    ----------
+    seds : ndarray
+        2D `float` array (# models, # bands) giving the seds
+
+    lamb : ndarray
+        1D `float` array of the wavelengths of the sed bands
+
+    grid : astropy.Table
+        table with columns providing the model parameters and other
+        characteristics of the grid
+
+    header : dict
+        header information
     """
 
     def getSEDs(
@@ -229,7 +244,7 @@ class SpectralGrid(ModelGrid):
         Returns
         -------
         memgrid : ModelGrid instance
-            grid of SEDs
+            grid info with memory backend
         """
         if isinstance(filter_names[0], str):
             flist = phot.load_filters(
