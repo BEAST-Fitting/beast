@@ -357,7 +357,6 @@ if __name__ == "__main__":  # pragma: no cover
     if 'None' in args.pdf2d_param_list:
         args.pdf2d_param_list = None
 
-
     run_fitting(
         use_sd=args.use_sd,
         nsubs=args.nsubs,

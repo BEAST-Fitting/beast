@@ -11,6 +11,7 @@ can be achieved using the trunchen method.  The trunchen method
 requires significantly more complicated ASTs and many more of them.
 """
 import numpy as np
+import h5py
 import tables
 
 from beast.observationmodel.noisemodel import toothpick
@@ -134,7 +135,22 @@ def get_noisemodelcat(filename):
 
     Returns
     -------
-    table: pytables.Table
-        table containing the elements of the noise model
+    ntable : dict
+        dictonary containing the elements of the noise model
     """
-    return tables.open_file(filename)
+    nfile = h5py.File(filename, 'r')
+
+    # create a dictonary of the elements
+    ntable = {}
+    for ckey in nfile.keys():
+        ntable[ckey] = np.array(nfile[ckey])
+
+    nfile.close()
+
+    # check that at least the 3 basic elements are included
+    expected_elements = ["error", "bias", "completeness"]
+    for cexp in expected_elements:
+        if cexp not in ntable.keys():
+            raise ValueError(f"{cexp} values not found in noisemodel")
+
+    return ntable

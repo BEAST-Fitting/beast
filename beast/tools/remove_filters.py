@@ -84,7 +84,6 @@ def remove_filters_from_files(
     if rm_filters is None:
         cat_filters = [f[:-5] for f in cat.colnames if f[-4:].lower() == 'rate']
 
-
     # if physgrid set, process the SED grid
     if physgrid is not None:
 
@@ -145,21 +144,20 @@ def remove_filters_from_files(
         else:
             raise ValueError('Need to set either outbase or physgrid_outfile')
 
-
     # if obsgrid set, process the observation model
     if obsgrid is not None:
         obsgrid = noisemodel.get_noisemodelcat(obsgrid)
         with tables.open_file("{}_noisemodel.grid.hd5".format(outbase), "w") as outfile:
             outfile.create_array(
-                outfile.root, "bias", np.delete(obsgrid.root.bias, rindxs, 1)
+                outfile.root, "bias", np.delete(obsgrid["bias"], rindxs, 1)
             )
             outfile.create_array(
-                outfile.root, "error", np.delete(obsgrid.root.error, rindxs, 1)
+                outfile.root, "error", np.delete(obsgrid["error"], rindxs, 1)
             )
             outfile.create_array(
                 outfile.root,
                 "completeness",
-                np.delete(obsgrid.root.completeness, rindxs, 1),
+                np.delete(obsgrid["completeness"], rindxs, 1),
             )
 
 

@@ -125,15 +125,15 @@ def test_merge_pdf1d_stats():
 
     noisemodel_vals = get_noisemodelcat(noise_trim_fname)
     slices = subgridding_tools.uniform_slices(
-        len(noisemodel_vals.root.bias), num_subgrids
+        len(noisemodel_vals["bias"]), num_subgrids
     )
     for i, slc in enumerate(slices):
         outname = noise_trim_fname.replace(".hd5", "sub{}.hd5".format(i))
         with tables.open_file(outname, "w") as outfile:
-            outfile.create_array(outfile.root, "bias", noisemodel_vals.root.bias[slc])
-            outfile.create_array(outfile.root, "error", noisemodel_vals.root.error[slc])
+            outfile.create_array(outfile.root, "bias", noisemodel_vals["bias"][slc])
+            outfile.create_array(outfile.root, "error", noisemodel_vals["error"][slc])
             outfile.create_array(
-                outfile.root, "completeness", noisemodel_vals.root.completeness[slc]
+                outfile.root, "completeness", noisemodel_vals["completeness"][slc]
             )
         sub_noise_trim_fnames.append(outname)
 

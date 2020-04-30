@@ -161,7 +161,7 @@ def subgrid_info(grid_fname, noise_fname=None):
         # The following is also in fit.py, so we're kind of doing double
         # work here, but it's necessary if we want to know the proper
         # ranges for these values.
-        full_model_flux = seds[:] + noisemodel.root.bias[:]
+        full_model_flux = seds[:] + noisemodel["bias"]
         logtempseds = np.array(full_model_flux)
         full_model_flux = (
             np.sign(logtempseds)
