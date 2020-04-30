@@ -100,3 +100,4 @@ Reference API
    physicsmodel_api.rst
    observationmodel_api.rst
    fitting_api.rst
+   tools_api.rst
