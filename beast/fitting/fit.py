@@ -1,22 +1,5 @@
 """
-Fitting Pipeline for PHAT
-BEAST Toothpick version (v1, 5 Feb 2015)
-based on code by Morgan Fouesneau
-major modifications by Karl Gordon (Feb-Mar 2015)
-  - added a number of additional parameters
-  - uses a fast 1D PDF generator
-  - combines best,expectation,percentiles for speed
-  - updated to compute the lnp right before it is needed
-    this allows the option not to save the sparse lnp to disk
-  - added the option to save a random sampling of the lnp to disk
-  - code now can save the results every n stars if requested
-    things allows a partially completed run to be recovered and continue
-  - removed the use of ezpipe as everything is now packaged into a
-    single routine and this routine often needs to be run even if
-    results file already exist
-  - switched from eztables to astropy.table to (potentially) avoid
-    bus/memory errors
-updated to allow for trunchen noise model by Karl Gordon (Dec 2015/Jan 2016)
+BEAST Fitting functions
 """
 import numpy as np
 import math
@@ -35,7 +18,10 @@ from tqdm import tqdm
 
 from beast.physicsmodel import grid
 
-from beast.fitting.fit_metrics.likelihood import N_covar_logLikelihood, N_logLikelihood_NM
+from beast.fitting.fit_metrics.likelihood import (
+    N_covar_logLikelihood,
+    N_logLikelihood_NM,
+)
 from beast.fitting.fit_metrics import expectation, percentile
 
 from beast.fitting.pdf1d import pdf1d
@@ -66,24 +52,37 @@ def save_stats(
     qnames,
     p,
 ):
-    """ Saves the stats to a file
+    """
+    Save various fitting statistics to a file
 
-    Keywords
+    Parameters
     ----------
-    stats_outname(str) : output filename
-    stats_dict_in(dict) : input dictonary with ancilliary info
-    best_vals(2D nparray) : best fit parameters
-    exp_vals(2D nparray) : expectation fit parameters
-    per_vals(3D nparray) : percentile fit parameters
-    chi2_vals(1D nparray) : chisqr values (does not include model weights)
-    chi2_indx(1D nparray) : indx in model grid of chisqr values
-    lnp_vals(1D nparray) : P(max) values (includes model weights)
-    lnp_indx(1D nparray) : indx in model grid of P(max) values
-    best_specgrid_indx(1D nparray) : indx in spectroscopic model grid of
-                                     P(max) values
-    total_log_norm(1D nparray) : log of the total grid weight
-    qnames(1D nparray) : list of the parameter names
-    p(1D nparray) : list of percentiles use to create the per_vals
+    stats_outname : str
+        output filename
+    stats_dict_in : dict
+        input dictonary with ancilliary info
+    best_vals : ndarray
+        2D `float` array of the best fit parameters
+    exp_vals : ndarray
+        2D `float` array of the expectation fit parameters
+    per_vals : ndarray
+        3D `float` array of the percentile fit parameters
+    chi2_vals : ndarray
+        1D `float` array of the chisqr values (does not include model weights)
+    chi2_indx : ndarray
+        1D `float` array of the indx in model grid of chisqr values
+    lnp_vals : ndarray
+        1D `float` array of the P(max) values (includes model weights)
+    lnp_indx : ndarray
+        1D `int` array of the indx in model grid of P(max) values
+    best_specgrid_indx : ndarray
+        1D `int` array of the indx in spectroscopic model grid of P(max) values
+    total_log_norm : ndarray
+        1D `float` array of the log of the total grid weight
+    qnames : list
+        list of the parameter names
+    p : list
+        list of percentiles use to create the per_vals
 
     Returns
     -------
@@ -113,17 +112,16 @@ def save_stats(
 
 
 def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
-    """ Saves the 1D PDFs to a file
+    """
+    Save the 1D PDFs to a file
 
-    Keywords
+    Parameters
     ----------
     pdf1d_outname : str
         output filename
-
     save_pdf1d_vals : list
         list of 2D nparrays giving the 1D PDFs for each parameter/variable
-
-    qnames : 1D nparray
+    qnames : list
         list of the parameter names
 
     Returns
@@ -142,19 +140,19 @@ def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
         pheader.set("EXTNAME", qname)
         fits.append(pdf1d_outname, save_pdf1d_vals[k], header=pheader)
 
-def save_pdf2d(pdf2d_outname, save_pdf2d_vals, qname_pairs):
-    """ Saves the 2D PDFs to a file
 
-    Keywords
+def save_pdf2d(pdf2d_outname, save_pdf2d_vals, qname_pairs):
+    """
+    Save the 2D PDFs to a file
+
+    Parameters
     ----------
     pdf2d_outname : str
         output filename
-
     save_pdf2d_vals : list of np.array
         list of 3D nparrays giving the 2D PDFs for each pair of parameters
-
-    qname_pairs : list of strings
-        list of the parameter pairs
+    qname_pairs : list
+        list of `str` giving the parameter pairs
 
     Returns
     -------
@@ -173,15 +171,16 @@ def save_pdf2d(pdf2d_outname, save_pdf2d_vals, qname_pairs):
         fits.append(pdf2d_outname, save_pdf2d_vals[k], header=pheader)
 
 
-def save_lnp(lnp_outname, save_lnp_vals, resume):
-    """ Saves the nD lnps to a file
+def save_lnp(lnp_outname, save_lnp_vals):
+    """
+    Save the nD lnps to a file
 
-    Keywords
+    Parameters
     ----------
-    lnp_outname(str) : output filename
-    save_lnp_vals(list) : list of 5 parameter lists giving the lnp/chisqr
-                          info for each star
-    resume(boolean) : **not used** remove later
+    lnp_outname : str
+        output filename
+    save_lnp_vals : list
+        list of 5 parameter lists giving the lnp/chisqr info for each star
 
     Returns
     -------
@@ -219,6 +218,7 @@ def save_lnp(lnp_outname, save_lnp_vals, resume):
             outfile.create_array(star_group, "chi2", lnp_val[3])
     outfile.close()
 
+
 def setup_param_bins(qname, max_nbins, g0, full_model_flux, filters, grid_info_dict):
     """
     Set up the bin properties for the given parameter
@@ -227,36 +227,28 @@ def setup_param_bins(qname, max_nbins, g0, full_model_flux, filters, grid_info_d
     ----------
     qname : str
         name of the parameter
-
     max_nbins : int
         max number of bins to use for the PDF calculations
-
     g0 : FileSEDGrid object
         the SED grid
-
-    full_model_flux : np.array
-        fluxes for the model grid
-
-    filters : list of strings
-        names of the filters in the SED grid
-
+    full_model_flux : ndarray
+        1D `float` array of the fluxes for the model grid
+    filters : list
+        list of `str` of the names of the filters in the SED grid
     grid_info_dict : dict
         the override for bin min/max/n_bin
 
     Returns
     -------
     qname_vals : np.array
-        Either the fluxes or the grid values for the input qname
-
+        1D `float` array with either the fluxes or the grid values
+        for the input qname
     nbins : int
         number of bins
-
-    logspacing : boolean
+    logspacing : bool
         whether the bins should be log-spaced
-
     minval, maxval : floats
         min/max value for the bins
-
     """
 
     if "_bias" in qname:
@@ -324,85 +316,63 @@ def Q_all_memory(
     use_full_cov_matrix=True,
     do_not_normalize=False,
 ):
-    """ Fit each star, calculate various fit statistics, and output them
-        to files
-      (done in one function for speed and ability to resume partially
-      completed runs)
+    """
+    Fit each star, calculate various fit statistics, and output them to files.
+    All done in one function for speed and ability to resume partially completed runs.
 
-    keywords
-    --------
-    prev_result: dict
+    Parameters
+    ----------
+    prev_result : dict
         previous results to include in the output summary table
         usually basic data on each source
-
-    obs: Observation object instance
+    obs : Observation object instance
         observation catalog
-
-    sedgrid: str or grid.SEDgrid instance
+    sedgrid : str or grid.SEDgrid instance
         model grid
-
-    obsmodel: beast noisemodel instance
-        observation model model data
-
-    qnames: list of quantities or expressions
-
-    p: array-like
+    obsmodel : beast noisemodel instance
+        noise model data
+    qnames : list
+        names of quantities
+    p : array-like
         list of percentile values
-
-    gridbackend: str or grid.GridBackend
+    gridbackend : str or grid.GridBackend
         backend to use to load the grid if necessary (memory, cache, hdf)
         (see beast.core.grid)
-
-    max_nbins: maxiumum number of bins to use for the 1D likelihood
-               calculations
-
-    save_every_npts: integer
+    max_nbins : int
+        maxiumum number of bins to use for the 1D likelihood calculations
+    save_every_npts : int
         set to save the files below (if set) every n stars
         a requirement for recovering from partially complete runs
-
-    resume: boolean
+    resume : bool
         set to designate this run is resuming a partially complete run
-
-    use_full_cov_matrix: boolean
+    use_full_cov_matrix : bool
         set to use the full covariance matrix if it is present in the
         noise model file
-
-    stats_outname: set to output the stats file into a FITS file with
-                   extensions
-
-    pdf1d_outname : string
+    stats_outname : str
+        set to output the stats file into a FITS file with extensions
+    pdf1d_outname : str
         set to output the 1D PDFs into a FITS file with extensions
-
-    pdf2d_outname : string
+    pdf2d_outname : str
         set to output the 2D PDFs into a FITS file with extensions
-
-    pdf2d_param_list : list of strings or None
+    pdf2d_param_list : list of strs or None
         set to the parameters for which to make the 2D PDFs
-
-    grid_info_dict: dict: {'qname': {'min': float,
-                                     'max': float,
-                                     'num_unique': int},
-                           ...}
+    grid_info_dict : dict
         Set to override the mins/maxes of the 1dpdfs, and the number of
-        unique values.
-
-    lnp_outname: set to output the sparse likelihoods into a (usually HDF5)
-                 file
-
-    threshold: value above which to use/save for the lnps
-               (defines the sparse likelihood)
-
-    lnp_npts: set to a number to output a random sampling of the
-              lnp points above the threshold
-              otherwise, the full sparse likelihood is output
-
+        unique values
+    lnp_outname : str
+        set to output the sparse likelihoods into a (usually HDF5) file
+    threshold : float
+        value above which to use/save for the lnps (defines the sparse likelihood)
+    lnp_npts : int
+        set to a number to output a random sampling of the lnp points above
+        the threshold. Otherwise, the full sparse likelihood is output.
     do_not_normalize: bool
         Do not normalize the prior weights before applying them. This
         should have no effect on the final outcome when using only a
         single grid, but is essential when using the subgridding
         approach.
 
-    returns
+    Returns
     -------
     N/A
     """
@@ -413,7 +383,7 @@ def Q_all_memory(
         g0 = sedgrid
 
     # remove weights that are less than zero
-    g0_indxs, = np.where(g0["weight"] > 0.0)
+    (g0_indxs,) = np.where(g0["weight"] > 0.0)
 
     g0_weights = np.log(g0["weight"][g0_indxs])
     if not do_not_normalize:
@@ -504,7 +474,9 @@ def Q_all_memory(
         )
 
         # generate the fast 1d pdf mapping
-        _tpdf1d = pdf1d(qname_vals, nbins, logspacing=logspacing, minval=minval, maxval=maxval)
+        _tpdf1d = pdf1d(
+            qname_vals, nbins, logspacing=logspacing, minval=minval, maxval=maxval
+        )
         fast_pdf1d_objs.append(_tpdf1d)
 
         # setup the arrays to save the 1d PDFs
@@ -516,27 +488,40 @@ def Q_all_memory(
 
         # setup the 2D PDFs
         _pdf2d_params = [
-            qname for qname in qnames
+            qname
+            for qname in qnames
             if qname in pdf2d_param_list and len(np.unique(g0[qname])) > 1
         ]
         _n_params = len(_pdf2d_params)
         pdf2d_qname_pairs = [
-            _pdf2d_params[i]+'+'+_pdf2d_params[j]
+            _pdf2d_params[i] + "+" + _pdf2d_params[j]
             for i in range(_n_params)
-            for j in range(i+1,_n_params)
+            for j in range(i + 1, _n_params)
         ]
         fast_pdf2d_objs = []
         save_pdf2d_vals = []
 
         # make 2D PDF objects
         for qname_pair in pdf2d_qname_pairs:
-            qname_1, qname_2 = qname_pair.split('+')
+            qname_1, qname_2 = qname_pair.split("+")
 
             # get bin properties
-            qname_vals_p1, nbins_p1, logspacing_p1, minval_p1, maxval_p1 = setup_param_bins(
+            (
+                qname_vals_p1,
+                nbins_p1,
+                logspacing_p1,
+                minval_p1,
+                maxval_p1,
+            ) = setup_param_bins(
                 qname_1, max_nbins, g0, full_model_flux, filters, grid_info_dict
             )
-            qname_vals_p2, nbins_p2, logspacing_p2, minval_p2, maxval_p2 = setup_param_bins(
+            (
+                qname_vals_p2,
+                nbins_p2,
+                logspacing_p2,
+                minval_p2,
+                maxval_p2,
+            ) = setup_param_bins(
                 qname_2, max_nbins, g0, full_model_flux, filters, grid_info_dict
             )
 
@@ -559,12 +544,7 @@ def Q_all_memory(
             save_pdf2d_vals[-1][-2, :, :] = np.tile(
                 _tpdf2d.bin_vals_p1, (nbins_p2, 1)
             ).T
-            save_pdf2d_vals[-1][-1, :, :] = np.tile(
-                _tpdf2d.bin_vals_p2, (nbins_p1, 1)
-            )
-
-
-
+            save_pdf2d_vals[-1][-1, :, :] = np.tile(_tpdf2d.bin_vals_p2, (nbins_p1, 1))
 
     # if this is a resume job, read in the already computed stats and
     #     fill the variables
@@ -584,7 +564,7 @@ def Q_all_memory(
         lnp_indx = stats_table["Pmax_indx"]
         best_specgrid_indx = stats_table["specgrid_indx"]
 
-        indxs, = np.where(stats_table["Pmax"] != 0.0)
+        (indxs,) = np.where(stats_table["Pmax"] != 0.0)
         start_pos = max(indxs) + 1
         print(
             "resuming run with start indx = "
@@ -623,9 +603,10 @@ def Q_all_memory(
     g0_specgrid_indx = g0["specgrid_indx"]
     _p = np.asarray(p, dtype=float)
 
-    it = tqdm(islice(obs.enumobs(), int(start_pos), None),
+    it = tqdm(
+        islice(obs.enumobs(), int(start_pos), None),
         total=len(obs) - start_pos,
-        desc="Calculating Lnp/Stats"
+        desc="Calculating Lnp/Stats",
     )
     for e, obj in it:
         # calculate the full nD posterior
@@ -660,7 +641,7 @@ def Q_all_memory(
         # lnp = numexpr.evaluate('lnp + g0_weights')
         lnp += g0_weights  # multiply by the prior weights (sum in log space)
 
-        indx, = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
+        (indx,) = np.where((lnp - max(lnp[np.isfinite(lnp)])) > threshold)
 
         # now generate the sparse likelihood (remove later if this works
         #       by updating code below)
@@ -750,7 +731,9 @@ def Q_all_memory(
         # calculate 2D PDFs for the subset of parameter pairs
         if pdf2d_outname is not None:
             for k in range(len(pdf2d_qname_pairs)):
-                save_pdf2d_vals[k][e, :, :] = fast_pdf2d_objs[k].gen2d(g0_indxs[indx], weights)
+                save_pdf2d_vals[k][e, :, :] = fast_pdf2d_objs[k].gen2d(
+                    g0_indxs[indx], weights
+                )
 
         # incremental save (useful if job dies early to recover most
         #    of the computations)
@@ -763,7 +746,6 @@ def Q_all_memory(
                 # save the 2D PDFs
                 if pdf2d_outname is not None:
                     save_pdf2d(pdf2d_outname, save_pdf2d_vals, pdf2d_qname_pairs)
-
 
                 # save the stats/catalog
                 if stats_outname is not None:
@@ -823,21 +805,22 @@ def Q_all_memory(
 
 def IAU_names_and_extra_info(obsdata, surveyname="PHAT", extraInfo=False):
     """
-    generates IAU approved names for the data using RA & DEC
-      and extra information about the sources (ra, dec, photometry, etc.)
+    Generates IAU approved names for the data using RA & DEC
+    and extra information about the sources (ra, dec, photometry, etc.)
 
-    keywords
-    --------
-    obsdata: Observations
-    surveyname: string
-          name of survey [default = 'PHAT']
-    extraInfo: bool
-          set to get the HST specific PHAT software reduced survey information
+    Parameters
+    ----------
+    obsdata : class
+        observations data
+    surveyname : str
+        name of survey [default = 'PHAT']
+    extraInfo : bool
+        set to get the HST specific PHAT software reduced survey information
 
-    returns
+    Returns
     -------
-    r: dict
-        returns a dict with a (name, ndarray) pair
+    r : dict
+        A dict with a (name, ndarray) pair
     """
     r = {}
 
@@ -914,81 +897,62 @@ def summary_table_memory(
     do_not_normalize=False,
 ):
     """
-    keywords
-    --------
+    Do the fitting in memory
 
-    obs: Observation object instance
+    Parameters
+    ----------
+    obs : Observation object instance
         observation catalog
-
-    noisemodel: beast noisemodel instance
+    noisemodel : beast noisemodel instance
         noise model data
-
-    sedgrid: str or grid.SEDgrid instance
+    sedgrid : str or grid.SEDgrid instance
         model grid
-
-    keys: str or list of str
-        if str:  name of the quantity or expression to evaluate from the
-                 grid table
-        if list: list of quantities or expresions
-
-    gridbackend: str or grid.GridBackend
+    keys : str or list of str
+        if str - name of the quantity or expression to evaluate from the grid table
+        if list - list of quantities or expresions
+    gridbackend : str or grid.GridBackend
         backend to use to load the grid if necessary (memory, cache, hdf)
         (see beast.core.grid)
-
-    save_every_npts: integer
+    save_every_npts : integer
         set to save the files below (if set) every n stars
         a requirement for recovering from partially complete runs
-
-    resume: boolean
+    resume : bool
         set to designate this run is resuming a partially complete run
-
-    use_full_cov_matrix: boolean
+    use_full_cov_matrix : bool
         set to use the full covariance matrix if it is present in the
         noise model file
-
-    stats_outname: set to output the stats file into a FITS file with
-                   extensions
-
-    pdf1d_outname: set to output the 1D PDFs into a FITS file with extensions
-
-    pdf2d_outname : string
+    stats_outname : str
+        set to output the stats file into a FITS file with extensions
+    pdf1d_outname : str
+        set to output the 1D PDFs into a FITS file with extensions
+    pdf2d_outname : str
         set to output the 2D PDFs into a FITS file with extensions
-
     pdf2d_param_list : list of strings or None
         set to the parameters for which to make the 2D PDFs
-
-    grid_info_dict: dict: {'qname': {'min': float,
-                                     'max': float,
-                                     'num_unique': int},
-                           ...}
+    grid_info_dict : dict
         Set to override the mins/maxes of the 1dpdfs, and the number of
         unique values.
-
-    lnp_outname: set to output the sparse likelihoods into a (usually HDF5)
-                 file
-
-    threshold: value above which to use/save for the lnps (defines the
-               sparse likelihood)
-
-    lnp_npts: set to a number to output a random sampling of the
-              lnp points above the threshold
-              otherwise, the full sparse likelihood is output
-
-    surveyname: string
+    lnp_outname : str
+        set to output the sparse likelihoods into a (usually HDF5) file
+    threshold : float
+        value above which to use/save for the lnps (defines the sparse likelihood)
+    lnp_npts : int
+        set to a number to output a random sampling of the lnp points above
+        the threshold.  otherwise, the full sparse likelihood is output
+    surveyname : str
           name of survey [default = 'PHAT']
-
-    extraInfo: bool
+    extraInfo : bool
         set to get extra information, such as IAU name, brick, field, etc.
-
-    do_not_normalize: bool
+    do_not_normalize : bool
         Do not normalize the prior weights before applying them. This
         should have no effect on the final outcome when using only a
         single grid, but is essential when using the subgridding
         approach.
 
-    returns
+    Returns
     -------
     N/A
+
     """
 
     if type(sedgrid) == str:
@@ -1009,7 +973,7 @@ def summary_table_memory(
 
     # make sure there are 2D PDF params if needed
     if (pdf2d_outname is not None) and (pdf2d_param_list is None):
-        raise KeyError('pdf2d_param_list cannot be None if saving 2D PDFs')
+        raise KeyError("pdf2d_param_list cannot be None if saving 2D PDFs")
 
     # generate an IAU complient name for each source and add other inform
     res = IAU_names_and_extra_info(obs, surveyname=surveyname, extraInfo=False)
