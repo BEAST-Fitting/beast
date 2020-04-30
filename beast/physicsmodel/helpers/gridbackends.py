@@ -1,6 +1,5 @@
 """
 Backends to handle the model grids different ways
-
 =================================================
 
 Multiple backends are available to reduce the memory footprint for a
@@ -46,26 +45,12 @@ from beast.external.eztables import Table
 from beast.physicsmodel.helpers.hdfstore import HDFStore
 from beast.physicsmodel.helpers.gridhelpers import isNestedInstance, pretty_size_print
 
-try:
-    unicode = unicode
-except NameError:
-    # 'unicode' is undefined, must be Python 3
-    str = str
-    unicode = str
-    bytes = bytes
-    basestring = (str, bytes)
-else:
-    # 'unicode' exists, must be Python 2
-    str = str
-    unicode = unicode
-    bytes = str
-    basestring = (str, str)
-
 __all__ = ["GridBackend", "MemoryBackend", "CacheBackend", "HDFBackend"]
 
 
 class GridBackend(object):
-    """GridBackend
+    """
+    GridBackend
 
     How the content of a grid is handled. The idea is to provide enough
     flexibility that low-memory footprint can be achieved if needed
@@ -148,11 +133,11 @@ class GridBackend(object):
         self._aliases = b._aliases
 
     def _from_GridBackend(self, b):
-        """_from_GridBackend -- convert from generic backend
+        """
+        _from_GridBackend -- convert from generic backend
 
         Parameters
         ----------
-
         b: GridBackend or sub class
             backend to convert from
         """
@@ -192,37 +177,42 @@ class MemoryBackend(GridBackend):
         header={},
         aliases={},
     ):
-        """__init__
-
+        """
         Parameters
         ----------
+        lamb : ndarray or GridBackend subclass
+            if ndarray - 1D `float` wavelength of the SEDs
+            (requires seds and grid arguments)
+            if backend - ref to the given grid
 
-        lamb: ndarray or GridBackend subclass
-            if ndarray: wavelength of the SEDs (requires seds and grid
-                                                arguments)
-            if backend: ref to the given grid
+        seds : ndarray, optional
+            2D `float` array of seds
 
-        seds: ndarray[dtype=float, ndim=2]
-            array of seds
-
-        grid: eztable.Table
+        grid : eztable.Table, optional
             table of properties associated to each sed
 
-        header: dict
+        cov_diag : ndarray, optional
+            2D `float` array (# models, # filters) of the diagonal elements
+            of the absolute flux covariance matrix
+
+        cov_offdiag : ndarray, optional
+            2D `float` array (# models, # elements) of the off diagonal elements
+            of the absolute flux covariance matrix
+
+        header : dict, optional
             if provided, update the grid table header
 
-        aliases:
+        aliases : dict, , optional
             if provided, update the grid table aliases
-
         """
-        super(MemoryBackend, self).__init__()
+        super().__init__()
 
         # read from various formats
         if isinstance(lamb, HDFBackend):
             self._fromHDFBackend(lamb)
         elif isNestedInstance(lamb, GridBackend):
             self._from_GridBackend(lamb)
-        elif isinstance(lamb, basestring):
+        elif isinstance(lamb, (str, bytes)):
             self._from_File(lamb)
         else:
             if (seds is None) | (grid is None):
@@ -318,11 +308,10 @@ class MemoryBackend(GridBackend):
 
         Parameters
         ----------
-
-        fname: str
+        fname : str
             filename (incl. path) to export to
 
-        append: bool, optional (default False)
+        append : bool, optional (default False)
             if set, it will append data to each Array or Table
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
@@ -368,7 +357,8 @@ class MemoryBackend(GridBackend):
 
 
 class CacheBackend(GridBackend):
-    """CacheBackend -- Load content from a file only when needed
+    """
+    CacheBackend -- Load content from a file only when needed
 
     The key idea is to be able to load the content only at the first query
 
@@ -376,15 +366,13 @@ class CacheBackend(GridBackend):
     """
 
     def __init__(self, fname, *args, **kwargs):
-        """__init__
-
+        """
         Parameters
         ----------
-
-        fname: str
+        fname : str
             FITS or HD5 file containing the grid
         """
-        super(CacheBackend, self).__init__()
+        super().__init__(*args, **kwargs)
 
         self.fname = fname
         self._type = self._get_type(fname)
@@ -549,11 +537,10 @@ class CacheBackend(GridBackend):
 
         Parameters
         ----------
-
-        fname: str
+        fname : str
             filename (incl. path) to export to
 
-        append: bool, optional (default False)
+        append : bool, optional
             if set, it will append data to each Array or Table
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
@@ -600,7 +587,7 @@ class HDFBackend(GridBackend):
     """
 
     def __init__(self, fname, *args, **kwargs):
-        super(HDFBackend, self).__init__()
+        super().__init__(*args, **kwargs)
         ftype = self._get_type(fname)
         if ftype != "hdf":
             raise ValueError("Expecting HDF file got {0}".format(ftype))

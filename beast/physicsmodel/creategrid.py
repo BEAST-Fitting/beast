@@ -492,7 +492,8 @@ def add_spectral_properties(
     nameformat=None,
     filterLib=None,
 ):
-    """ Addon spectral calculations to spectral grids to extract in the fitting
+    """
+    Addon spectral calculations to spectral grids to extract in the fitting
     routines
 
     Parameters

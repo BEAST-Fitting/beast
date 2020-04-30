@@ -124,8 +124,8 @@ def compare_hdf5(fname_cache, fname_new, ctype=None):
                 osname = sname
             if cvalue.dtype.fields is None:
                 np.testing.assert_allclose(
-                    cvalue.value,
-                    cvalue_new.value,
+                    cvalue[()],
+                    cvalue_new[()],
                     err_msg="testing %s" % (osname),
                     rtol=2e-6,
                 )
@@ -133,8 +133,8 @@ def compare_hdf5(fname_cache, fname_new, ctype=None):
                 for ckey in cvalue.dtype.fields.keys():
                     err_msg = "testing %s/%s" % (osname, ckey)
                     np.testing.assert_allclose(
-                        cvalue.value[ckey],
-                        cvalue_new.value[ckey],
+                        cvalue[()][ckey],
+                        cvalue_new[()][ckey],
                         err_msg=err_msg,
                         rtol=1e-5,
                     )

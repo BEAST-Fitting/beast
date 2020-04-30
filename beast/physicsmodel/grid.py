@@ -25,23 +25,13 @@ from copy import deepcopy
 
 from beast.observationmodel import phot
 from beast.physicsmodel.dust import extinction
-from beast.physicsmodel.helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
+from beast.physicsmodel.helpers.gridbackends import (
+    MemoryBackend,
+    CacheBackend,
+    HDFBackend,
+    GridBackend,
+)
 from beast.physicsmodel.helpers.gridhelpers import pretty_size_print, isNestedInstance
-
-try:
-    unicode = unicode
-except NameError:
-    # 'unicode' is undefined, must be Python 3
-    str = str
-    unicode = str
-    bytes = bytes
-    basestring = (str, bytes)
-else:
-    # 'unicode' exists, must be Python 2
-    str = str
-    unicode = unicode
-    bytes = str
-    basestring = (str, unicode)
 
 __all__ = ["ModelGrid", "SpectralGrid", "StellibGrid", "MemoryGrid", "FileSEDGrid"]
 
@@ -51,13 +41,11 @@ def find_backend(txt):
 
     Parameters
     ----------
-
-    txt: str
+    txt : str
         name to find in the list
 
-    returns
+    Returns
     -------
-
     b: GridBackend class or subclass
         corresponding backend class
     """
@@ -72,36 +60,36 @@ def find_backend(txt):
 
 
 class ModelGrid(object):
-    """ Generic class for a minimum update of future codes """
+    """
+    Generic class
+    """
 
     def __init__(self, *args, **kwargs):
         """
         Parameters
         ----------
-
         *args and **kwargs are directly forwarded to the backend constructor
 
-        lamb: ndarray or str or GridBackend
+        lamb : ndarray or str or GridBackend
             if ndarray: wavelength of the SEDs (requires seds and
             grid arguments)
             if str: filename to the grid
             if backend: ref to the given grid
 
-        seds: ndarray[dtype=float, ndim=2]
+        seds : ndarray[dtype=float, ndim=2]
             array of seds
 
-        grid: eztable.Table
+        grid : eztable.Table
             table of properties associated to each sed
 
-        header: dict
+        header : dict
             if provided, update the grid table header
 
-        aliases: dict
+        aliases : dict
             if provided, update the grid table aliases
 
-        backend: str or GridBackend class or subclass
+        backend : str or GridBackend class or subclass
             corresponding backend class
-
             'memory': MemoryBackend,
             'cache': CacheBackend,
             'hdf': HDFBackend,
@@ -110,7 +98,7 @@ class ModelGrid(object):
         backend = kwargs.pop("backend", None)
         if backend is None:
             self._backend = GridBackend(*args, **kwargs)
-        elif isinstance(backend, basestring):
+        elif isinstance(backend, (str, bytes)):
             self._backend = find_backend(backend)(*args, **kwargs)
         elif isNestedInstance(backend, GridBackend):
             self._backend = backend
@@ -200,8 +188,10 @@ class ModelGrid(object):
 
 
 class SpectralGrid(ModelGrid):
-    """ Generate a grid that contains spectra.
-    It provides an access to integrated photometry function getSEDs """
+    """
+    Generate a grid that contains spectra.
+    It provides an access to integrated photometry function getSEDs.
+    """
 
     def getSEDs(
         self,
@@ -217,28 +207,28 @@ class SpectralGrid(ModelGrid):
 
         Parameters
         ----------
-        filter_names: list
+        filter_names : list
             list of filter names according to the filter lib or filter
-            instances
-            (no mixing between name and instances)
+            instances (no mixing between name and instances)
 
-        absFlux:bool
+        absFlux : bool, optional
             returns absolute fluxes if set
+            [capability should be removed]
 
-        extLaw: extinction.ExtinctionLaw
+        extLaw : extinction.ExtinctionLaw, optional
             apply extinction law if provided
 
-        inplace:bool
+        inplace : bool, optional
             if set, do not copy the grid and apply extinction on it
 
-        filterLib:  str
+        filterLib : str, optional
             full filename to the filter library hd5 file
 
-        **kwargs extra keywords will be forwrded to extLaw
+        **kwargs extra keywords will be forworded to extLaw
 
         Returns
         -------
-        memgrid: MemoryGrid instance
+        memgrid : ModelGrid instance
             grid of SEDs
         """
         if isinstance(filter_names[0], str):
@@ -260,7 +250,8 @@ class SpectralGrid(ModelGrid):
                 lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
         else:
             lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
-        memgrid = MemoryGrid(lamb, seds, grid)
+        memgrid = ModelGrid(lamb, seds, grid, backend=MemoryBackend)
+
         setattr(memgrid, "filters", _fnames)
         return memgrid
 
