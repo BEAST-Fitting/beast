@@ -3,6 +3,7 @@ from beast.tests.helpers import download_rename
 from astropy.tests.helper import remote_data
 import os
 
+
 @remote_data
 def test_remove_filters():
     """
@@ -33,8 +34,7 @@ def test_remove_filters():
     seds_fname = download_rename("beast_example_phat_seds_extrafilter.hd5")
 
     # name to use for the output grid
-    temp_physgrid_file = 'temp_newgrid.hd5'
-
+    temp_physgrid_file = "temp_newgrid.hd5"
 
     # ==== case 1A ====
 
@@ -43,25 +43,26 @@ def test_remove_filters():
         obs_fname,
         physgrid=seds_fname,
         physgrid_outfile=temp_physgrid_file,
-        #beast_filt=['HST_ACS_WFC_F475W'],
+        # beast_filt=['HST_ACS_WFC_F475W'],
     )
 
     # check that the proper filters are retained
     expected_filters = [
-        'HST_WFC3_F275W',
-        'HST_WFC3_F336W',
-        'HST_ACS_WFC_F475W',
-        'HST_WFC3_F475W',
-        'HST_ACS_WFC_F814W',
-        'HST_WFC3_F110W',
-        'HST_WFC3_F160W'
+        "HST_WFC3_F275W",
+        "HST_WFC3_F336W",
+        "HST_ACS_WFC_F475W",
+        "HST_WFC3_F475W",
+        "HST_ACS_WFC_F814W",
+        "HST_WFC3_F110W",
+        "HST_WFC3_F160W",
     ]
-    temp = read_beast_data.read_sed_data(temp_physgrid_file, param_list=['filters'])
-    assert set(temp['filters']) == set(expected_filters), "remove_filters case 1A doesn't match"
+    temp = read_beast_data.read_sed_data(temp_physgrid_file, param_list=["filters"])
+    assert set(temp["filters"]) == set(
+        expected_filters
+    ), "remove_filters case 1A doesn't match"
 
     # remove temp file
     os.remove(temp_physgrid_file)
-
 
     # ==== case 1B ====
 
@@ -70,25 +71,26 @@ def test_remove_filters():
         obs_fname,
         physgrid=seds_fname,
         physgrid_outfile=temp_physgrid_file,
-        beast_filt=['HST_ACS_WFC_F475W'],
+        beast_filt=["HST_ACS_WFC_F475W"],
     )
 
     # check that the proper filters are retained
     expected_filters = [
-        'HST_WFC3_F275W',
-        'HST_WFC3_F336W',
-        'HST_ACS_WFC_F475W',
+        "HST_WFC3_F275W",
+        "HST_WFC3_F336W",
+        "HST_ACS_WFC_F475W",
         #'HST_WFC3_F475W',
-        'HST_ACS_WFC_F814W',
-        'HST_WFC3_F110W',
-        'HST_WFC3_F160W'
+        "HST_ACS_WFC_F814W",
+        "HST_WFC3_F110W",
+        "HST_WFC3_F160W",
     ]
-    temp = read_beast_data.read_sed_data(temp_physgrid_file, param_list=['filters'])
-    assert set(temp['filters']) == set(expected_filters), "remove_filters case 1B doesn't match"
+    temp = read_beast_data.read_sed_data(temp_physgrid_file, param_list=["filters"])
+    assert set(temp["filters"]) == set(
+        expected_filters
+    ), "remove_filters case 1B doesn't match"
 
     # remove temp file
     os.remove(temp_physgrid_file)
-
 
     # ==== case 2A ====
 
@@ -97,26 +99,27 @@ def test_remove_filters():
         obs_fname,
         physgrid=seds_fname,
         physgrid_outfile=temp_physgrid_file,
-        rm_filters=['F475W'],
-        #beast_filt=['HST_WFC3_F475W'],
+        rm_filters=["F475W"],
+        # beast_filt=['HST_WFC3_F475W'],
     )
 
     # check that the proper filters are retained
     expected_filters = [
-        'HST_WFC3_F275W',
-        'HST_WFC3_F336W',
+        "HST_WFC3_F275W",
+        "HST_WFC3_F336W",
         #'HST_ACS_WFC_F475W',
         #'HST_WFC3_F475W',
-        'HST_ACS_WFC_F814W',
-        'HST_WFC3_F110W',
-        'HST_WFC3_F160W'
+        "HST_ACS_WFC_F814W",
+        "HST_WFC3_F110W",
+        "HST_WFC3_F160W",
     ]
-    temp = read_beast_data.read_sed_data(temp_physgrid_file, param_list=['filters'])
-    assert set(temp['filters']) == set(expected_filters), "remove_filters case 2A doesn't match"
+    temp = read_beast_data.read_sed_data(temp_physgrid_file, param_list=["filters"])
+    assert set(temp["filters"]) == set(
+        expected_filters
+    ), "remove_filters case 2A doesn't match"
 
     # remove temp file
     os.remove(temp_physgrid_file)
-
 
     # ==== case 2B ====
 
@@ -125,22 +128,24 @@ def test_remove_filters():
         obs_fname,
         physgrid=seds_fname,
         physgrid_outfile=temp_physgrid_file,
-        rm_filters=['F475W'],
-        beast_filt=['HST_WFC3_F475W'],
+        rm_filters=["F475W"],
+        beast_filt=["HST_WFC3_F475W"],
     )
 
     # check that the proper filters are retained
     expected_filters = [
-        'HST_WFC3_F275W',
-        'HST_WFC3_F336W',
-        'HST_ACS_WFC_F475W',
+        "HST_WFC3_F275W",
+        "HST_WFC3_F336W",
+        "HST_ACS_WFC_F475W",
         #'HST_WFC3_F475W',
-        'HST_ACS_WFC_F814W',
-        'HST_WFC3_F110W',
-        'HST_WFC3_F160W'
+        "HST_ACS_WFC_F814W",
+        "HST_WFC3_F110W",
+        "HST_WFC3_F160W",
     ]
-    temp = read_beast_data.read_sed_data(temp_physgrid_file, param_list=['filters'])
-    assert set(temp['filters']) == set(expected_filters), "remove_filters case 2B doesn't match"
+    temp = read_beast_data.read_sed_data(temp_physgrid_file, param_list=["filters"])
+    assert set(temp["filters"]) == set(
+        expected_filters
+    ), "remove_filters case 2B doesn't match"
 
     # remove temp file
     os.remove(temp_physgrid_file)

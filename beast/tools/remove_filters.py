@@ -90,7 +90,7 @@ def remove_filters_from_files(
 
     # if rm_filters not set, extract the filter names that are present
     if rm_filters is None:
-        cat_filters = [f[:-5].upper() for f in cat.colnames if f[-4:].lower() == 'rate']
+        cat_filters = [f[:-5].upper() for f in cat.colnames if f[-4:].lower() == "rate"]
 
     # if beast_filt is set, make a list of the short versions
     if beast_filt is not None:
@@ -146,7 +146,6 @@ def remove_filters_from_files(
                             if cfilter in grid_col:
                                 rgridcols.append(grid_col)
 
-
             # --------------------------
             # if the removed filters are determined from the catalog file
             if rm_filters is None:
@@ -177,8 +176,6 @@ def remove_filters_from_files(
                         if cfilter in grid_col:
                             rgridcols.append(grid_col)
 
-
-
         # delete column(s)
         nseds = np.delete(g0.seds, rindxs, 1)
         nlamb = np.delete(g0.lamb, rindxs, 0)
@@ -197,7 +194,7 @@ def remove_filters_from_files(
         elif outbase is not None:
             g.writeHDF("{}_seds.grid.hd5".format(outbase))
         else:
-            raise ValueError('Need to set either outbase or physgrid_outfile')
+            raise ValueError("Need to set either outbase or physgrid_outfile")
 
     # if obsgrid set, process the observation model
     if obsgrid is not None:
@@ -225,26 +222,26 @@ if __name__ == "__main__":  # pragma: no cover
         "--physgrid",
         type=str,
         default=None,
-        help="If set, remove filters from this physics model grid file"
+        help="If set, remove filters from this physics model grid file",
     )
     parser.add_argument(
         "--obsgrid",
         type=str,
         default=None,
-        help="If set, remove filters from this observation/noisemodel grid file"
+        help="If set, remove filters from this observation/noisemodel grid file",
     )
     parser.add_argument(
         "--outbase",
         type=str,
         default=None,
-        help="Path+file to prepend to all output file names"
+        help="Path+file to prepend to all output file names",
     )
     parser.add_argument(
         "--physgrid_outfile",
         type=str,
         default=None,
         help="""Path+name of the output physics model grid. Takes precendence
-        over the default file name constructed from outbase."""
+        over the default file name constructed from outbase.""",
     )
     parser.add_argument(
         "--rm_filters",
@@ -253,7 +250,7 @@ if __name__ == "__main__":  # pragma: no cover
         default=None,
         help="""If set, these are the filters to remove from all of the files.
         If not set, only the filters present in catfile will be retained in
-        physgrid and/or obsgrid."""
+        physgrid and/or obsgrid.""",
     )
     args = parser.parse_args()
 
