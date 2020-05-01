@@ -125,15 +125,12 @@ def remove_filters_from_files(
                         if csfilter in beast_filt_short:
 
                             # if it's the same instrument, delete it
+                            # (if it's not the same instrument, keep it)
                             if beast_filt[beast_filt_short.index(csfilter)] == cfilter:
                                 rindxs.append(filters.index(cfilter))
                                 for grid_col in g0.grid.colnames:
                                     if cfilter in grid_col:
                                         rgridcols.append(grid_col)
-
-                            # if it's not the same instrument, keep it
-                            else:
-                                continue
 
                         # if the current filter isn't in the BEAST ref list, delete it
                         else:
@@ -158,29 +155,20 @@ def remove_filters_from_files(
                 if csfilter in cat_filters:
 
                     # if there's a list of BEAST instrument+filter references
+                    # (if there isn't a list of BEAST refs, keep it)
                     if beast_filt is not None:
 
                         # if the current filter is in the list of BEAST references
+                        # (if the current filter isn't in the BEAST ref list, keep it)
                         if csfilter in beast_filt_short:
 
-                            # if it's the same instrument, keep it
-                            if beast_filt[beast_filt_short.index(csfilter)] == cfilter:
-                                continue
-
                             # if it's not the same instrument, delete it
-                            else:
+                            # (if it's the same instrument, keep it)
+                            if beast_filt[beast_filt_short.index(csfilter)] != cfilter:
                                 rindxs.append(filters.index(cfilter))
                                 for grid_col in g0.grid.colnames:
                                     if cfilter in grid_col:
                                         rgridcols.append(grid_col)
-
-                        # if the current filter isn't in the BEAST ref list, keep it
-                        else:
-                            continue
-
-                    # if there isn't a list of BEAST refs, keep it
-                    else:
-                        continue
 
                 # if the current filter isn't in the catalog filters, delete it
                 else:
