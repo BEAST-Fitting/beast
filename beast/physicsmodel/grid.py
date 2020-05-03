@@ -11,7 +11,6 @@ Currently no majors variation is expected as long as memory or cache
 
 More optimization can be done, especially in SpectralGrid.getSEDs
 
-**outdated?**
 TODO: Check where any beast code uses eztable.Table's specific methods and
       implement equivalent in the backends for transparency in the case of
       HDFBackend
@@ -19,6 +18,7 @@ TODO: Check where any beast code uses eztable.Table's specific methods and
       * eval expression
       * selectWhere
       * readCoordinates (although should work already)
+      ***outdated??***
 """
 import sys
 import numpy as np
