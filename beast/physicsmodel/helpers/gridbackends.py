@@ -38,7 +38,8 @@ TODO: check read(field=) exists into all backends.grid, give direct access
 """
 import sys
 import numpy
-import astropy.io.fits as pyfits
+import astropy.io.fits as fits
+import h5py
 import copy
 from astropy.table import Table
 
@@ -102,7 +103,7 @@ class GridBackend(object):
         # if fname.split('.')[-1] not in types:
         #    print(fname)
         #    try:
-        #        hdulist = pyfits.open(fname)
+        #        hdulist = fits.open(fname)
         #        rtype = 'fits'
         #    except:
         #        print('An error occured trying to read the file.')
@@ -116,6 +117,11 @@ class GridBackend(object):
         return txt.format(
             object.__repr__(self), self.fname, pretty_size_print(self.nbytes)
         )
+
+    # not sure anything below this actually works : KDG 3 May 2020
+    # giving recursion errors, but this may be related to moving away from
+    # the pytables hdf5 interface
+    # or maybe not, no testing of grid backends till above date
 
     def _from_HDFBackend(self, b):
         """_from_HDFBackend -- convert from HDFBackend
@@ -181,9 +187,9 @@ class MemoryBackend(GridBackend):
         """
         Parameters
         ----------
-        lamb : ndarray or GridBackend subclass
-            if ndarray - 1D `float` wavelength of the SEDs
-            (requires seds and grid arguments)
+        lamb : ndarray or str or GridBackend subclass
+            if ndarray - 1D `float` wavelength of the SEDs (requires seds and grid arguments)
+            if str - filename of grid on disk
             if backend - ref to the given grid
 
         seds : ndarray, optional
@@ -253,7 +259,8 @@ class MemoryBackend(GridBackend):
         return self._header
 
     def _from_File(self, fname):
-        """_from_File -- load the content of a FITS or HDF file
+        """
+        Load the content of a FITS or HDF file
 
         Parameters
         ----------
@@ -264,83 +271,71 @@ class MemoryBackend(GridBackend):
 
         # load_seds - load wavelength and seds
         if self._get_type(fname) == "fits":
-            with pyfits.open(fname) as f:
+            with fits.open(fname) as f:
                 self.seds = f[0].data[:-1]
                 self.lamb = f[0].data[-1]
             self.grid = Table(fname)
 
         elif self._get_type(fname) == "hdf":
-            with HDFStore(fname, mode="r") as s:
-                self.seds = s["/seds"].read()
-                self.lamb = s["/lamb"].read()
+            with h5py.File(fname, "r") as s:
+                self.seds = s["seds"][()]
+                self.lamb = s["lamb"][()]
                 try:
-                    self.cov_diag = s["/covdiag"].read()
+                    self.cov_diag = s["covdiag"][()]
                 except Exception:
                     self.cov_diag = None
                 try:
-                    self.cov_offdiag = s["/covoffdiag"].read()
+                    self.cov_offdiag = s["covoffdiag"][()]
                 except Exception:
                     self.cov_offdiag = None
-            self.grid = Table(fname, tablename="/grid")
+            self.grid = Table.read(fname, path="grid", format="hdf5")
 
-        self._header = self.grid.header
+        self._header = self.grid.meta
 
-    def writeFITS(self, fname, *args, **kwargs):
-        """write -- export to fits file
+    def writeFITS(self, fname):
+        """
+        Save to fits file
 
         Parameters
         ----------
-
         fname: str
             filename (incl. path) to export to
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
             if not isinstance(self.grid, Table) or isinstance(self.grid, ezTable):
-                raise TypeError("Only eztables.Table are supported so far")
+                raise TypeError("Only astropy.Table or eztables.Table are supported")
             r = numpy.vstack([self.seds, self.lamb])
-            pyfits.writeto(fname, r, **kwargs)
+            fits.writeto(fname, r)
             if getattr(self, "filters", None) is not None:
                 if "FILTERS" not in list(self.grid.header.keys()):
                     self.grid.header["FILTERS"] = " ".join(self.filters)
             self.grid.write(fname, append=True)
 
-    def writeHDF(self, fname, append=False, *args, **kwargs):
-        """write -- export to HDF file
+    def writeHDF(self, fname):
+        """
+        Save to HDF file
 
         Parameters
         ----------
         fname : str
-            filename (incl. path) to export to
-
-        append : bool, optional (default False)
-            if set, it will append data to each Array or Table
+            filename (incl. path)
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
             if not isinstance(self.grid, Table) or isinstance(self.grid, ezTable):
                 raise TypeError("Only astropy.Table or eztables.Table are supported")
-            with HDFStore(fname, mode="a") as hd:
-                if not append:
-                    hd["/seds"] = self.seds[:]
-                    hd["/lamb"] = self.lamb[:]
-                    if self.cov_diag is not None:
-                        hd["/covdiag"] = self.cov_diag[:]
-                    if self.cov_offdiag is not None:
-                        hd["/covoffdiag"] = self.cov_offdiag[:]
-                else:
-                    try:
-                        node = hd.get_node("/seds")
-                        node.append(self.seds[:])
-                    except Exception:
-                        hd["/seds"] = self.seds[:]
-                        hd["/lamb"] = self.lamb[:]
-                        if self.cov_diag is not None:
-                            hd["/covdiag"] = self.cov_diag[:]
-                        if self.cov_offdiag is not None:
-                            hd["/covoffdiag"] = self.cov_offdiag[:]
+            with h5py.File(fname, "w") as hd:
+                hd["seds"] = self.seds[:]
+                hd["lamb"] = self.lamb[:]
+                if self.cov_diag is not None:
+                    hd["covdiag"] = self.cov_diag[:]
+                if self.cov_offdiag is not None:
+                    hd["covoffdiag"] = self.cov_offdiag[:]
             if getattr(self, "filters", None) is not None:
-                if "FILTERS" not in list(self.header.keys()):
-                    self.header["FILTERS"] = " ".join(self.filters)
-            self.grid.write(fname, tablename="grid", append=True)
+                if "filters" not in list(self.header.keys()):
+                    self.header["filters"] = " ".join(self.filters)
+            # append the table of the grid parameters to the file
+            self.grid.meta = self.header
+            self.grid.write(fname, path="grid", format="hdf5", append=True)
 
     def copy(self):
         """ implement a copy method """
@@ -402,7 +397,7 @@ class CacheBackend(GridBackend):
         """load_seds - load seds"""
         if self._seds is None:
             if self._get_type(fname) == "fits":
-                with pyfits.open(self.fname) as f:
+                with fits.open(self.fname) as f:
                     self._seds = f[0].data[:-1]
 
             elif self._get_type(fname) == "hdf":
@@ -413,7 +408,7 @@ class CacheBackend(GridBackend):
         """load_seds - load wavelength"""
         if self._lamb is None:
             if self._get_type(fname) == "fits":
-                with pyfits.open(self.fname) as f:
+                with fits.open(self.fname) as f:
                     self._lamb = f[0].data[-1]
 
             elif self._get_type(fname) == "hdf":
@@ -434,7 +429,7 @@ class CacheBackend(GridBackend):
         """load_filters -- load only filters"""
         if self._filters is None:
             if self._type == "fits":
-                with pyfits.open(self.fname) as f:
+                with fits.open(self.fname) as f:
                     self._filters = f[1].header.get("FILTERS", None) or f[1].header.get(
                         "filters", None
                     )
@@ -526,7 +521,7 @@ class CacheBackend(GridBackend):
             if not isinstance(self.grid, Table):
                 raise TypeError("Only eztables.Table are supported so far")
             r = numpy.vstack([self.seds, self.lamb])
-            pyfits.writeto(fname, r, **kwargs)
+            fits.writeto(fname, r, **kwargs)
             del r
             if getattr(self, "filters", None) is not None:
                 if "FILTERS" not in list(self.grid.header.keys()):

@@ -33,7 +33,8 @@ from beast.physicsmodel.helpers.gridbackends import (
 )
 from beast.physicsmodel.helpers.gridhelpers import pretty_size_print, isNestedInstance
 
-__all__ = ["ModelGrid", "SpectralGrid", "StellibGrid", "MemoryGrid", "FileSEDGrid"]
+__all__ = ["ModelGrid", "SEDGrid", "SpectralGrid", "StellibGrid",
+           "MemoryGrid", "FileSEDGrid"]
 
 
 def find_backend(txt):
@@ -185,6 +186,28 @@ class ModelGrid(object):
     def copy(self):
         """ returns a copy of the object """
         return self.__class__(backend=self._backend.copy())
+
+
+class SEDGrid(ModelGrid):
+    """
+    Generate a grid that the full observational model (SEDs).
+    Currently a directy interface to ModelGrid.  Setup for later expansion.
+
+    Attributes
+    ----------
+    seds : ndarray
+        2D `float` array (# models, # bands) giving the seds
+
+    lamb : ndarray
+        1D `float` array of the wavelengths of the sed bands
+
+    grid : astropy.Table
+        table with columns providing the model parameters and other
+        characteristics of the grid
+
+    header : dict
+        header information
+    """
 
 
 class SpectralGrid(ModelGrid):
