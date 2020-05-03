@@ -242,7 +242,7 @@ class MemoryBackend(GridBackend):
             self._header = header
         else:
             for k, v in list(header.items()):
-                self.grid.header[k] = v
+                self.header[k] = v
 
         # update aliases
         self._aliases.update(aliases)
@@ -254,7 +254,10 @@ class MemoryBackend(GridBackend):
         r = self._header.get("filters", None) or self._header.get("FILTERS", None)
         if r is not None:
             r = r.split()
-        return r
+        if isinstance(r[0], bytes):
+            return [tr.decode() for tr in r]
+        else:
+            return r
 
     @property
     def header(self):
@@ -309,8 +312,8 @@ class MemoryBackend(GridBackend):
             r = numpy.vstack([self.seds, self.lamb])
             fits.writeto(fname, r)
             if getattr(self, "filters", None) is not None:
-                if "FILTERS" not in list(self.grid.header.keys()):
-                    self.grid.header["FILTERS"] = " ".join(self.filters)
+                if "FILTERS" not in list(self.grid.meta.keys()):
+                    self.grid.meta["FILTERS"] = " ".join(self.filters)
             self.grid.write(fname, append=True)
 
     def writeHDF(self, fname, append=False):

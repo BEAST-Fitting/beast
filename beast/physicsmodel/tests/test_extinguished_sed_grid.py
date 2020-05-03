@@ -10,14 +10,11 @@ from beast.tests.helpers import download_rename, compare_hdf5
 def test_make_extinguished_sed_grid():
 
     # download the needed files
-    # priors_fname = download_rename("beast_example_phat_spec_w_priors.grid.hd5")
-    priors_fname = "/tmp/astropy-download-20778-e5xgh7zw.hd5"
-    # filter_fname = download_rename("filters.hd5")
-    filter_fname = "/tmp/astropy-download-20778-s_507wtm.hd5"
+    priors_fname = download_rename("beast_example_phat_spec_w_priors.grid.hd5")
+    filter_fname = download_rename("filters.hd5")
 
     # download cached version of sed grid
-    # seds_fname_cache = download_rename("beast_example_phat_seds.grid.hd5")
-    seds_fname_cache = "/tmp/astropy-download-20778-co50dep2.hd5"
+    seds_fname_cache = download_rename("beast_example_phat_seds.grid.hd5")
 
     ################
     # generate the same extinguished SED grid from the code
@@ -57,7 +54,3 @@ def test_make_extinguished_sed_grid():
 
     # compare the new to the cached version
     compare_hdf5(seds_fname_cache, seds_fname)
-
-
-if __name__ == '__main__':
-    test_make_extinguished_sed_grid()

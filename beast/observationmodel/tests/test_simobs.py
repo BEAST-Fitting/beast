@@ -2,13 +2,13 @@ from astropy.tests.helper import remote_data
 from astropy.table import Table
 
 from beast.observationmodel.noisemodel import generic_noisemodel as noisemodel
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 from beast.observationmodel.observations import gen_SimObs_from_sedgrid
 from beast.tests.helpers import download_rename, compare_tables
 
 
 @remote_data
-def test_trim_grid():
+def test_simobs():
 
     # download the needed files
     vega_fname = download_rename("vega.hd5")
@@ -21,7 +21,7 @@ def test_trim_grid():
     ################
 
     # get the physics model grid - includes priors
-    modelsedgrid = FileSEDGrid(seds_fname)
+    modelsedgrid = SEDGrid(seds_fname)
 
     # read in the noise model - includes bias, unc, and completeness
     noisegrid = noisemodel.get_noisemodelcat(noise_fname)

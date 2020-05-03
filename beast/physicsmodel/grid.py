@@ -99,7 +99,7 @@ class ModelGrid(object):
         """
         backend = kwargs.pop("backend", None)
         if backend is None:
-            self._backend = GridBackend(*args, **kwargs)
+            self._backend = MemoryBackend(*args, **kwargs)
         elif isinstance(backend, (str, bytes)):
             self._backend = find_backend(backend)(*args, **kwargs)
         elif isNestedInstance(backend, GridBackend):
