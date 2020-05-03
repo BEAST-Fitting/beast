@@ -26,7 +26,7 @@ def split_and_check(grid_fname, num_subgrids):
         sub_g = FileSEDGrid(sub_fname)
 
         sub_seds.append(sub_g.seds)
-        sub_grids.append(sub_g.grid.data)
+        sub_grids.append(sub_g.grid)
 
         np.testing.assert_equal(complete_g.lamb, sub_g.lamb)
         if not complete_g.grid.columns.items() == sub_g.grid.columns.items():
@@ -245,3 +245,7 @@ def test_merge_pdf1d_stats():
                 equal_nan=True,
                 err_msg="column {} is not close enough".format(c),
             )
+
+
+if __name__ == '__main__':
+    test_merge_pdf1d_stats()

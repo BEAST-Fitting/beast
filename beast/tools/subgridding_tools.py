@@ -11,7 +11,7 @@ from astropy.table import Table
 
 from beast.observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
 from beast.physicsmodel import grid
-from beast.external import eztables
+# from beast.external import eztables
 from beast.fitting.fit import save_pdf1d
 from beast.fitting.fit_metrics import percentile
 from beast.tools import read_beast_data
@@ -48,7 +48,7 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
     num_subgrids: integer
         the number of parts the grid should be split into
 
-    overwrite: boolean
+    overwrite: bool
         any subgrids that already exist will be deleted if set to True.
         If set to False, skip over any grids that are already there.
 
@@ -56,7 +56,6 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
     -------
     list of string
         the names of the newly created subgrid files
-
     """
 
     g = grid.FileSEDGrid(grid_fname, backend="hdf")
@@ -82,11 +81,11 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
         sub_g = grid.SpectralGrid(
             g.lamb[:],
             seds=g.seds[slc],
-            grid=eztables.Table(g.grid[slc]),
+            grid=Table(g.grid[slc]),
             backend="memory",
         )
         if g.filters is not None:
-            sub_g.grid.header["filters"] = " ".join(g.filters)
+            sub_g.header["filters"] = " ".join(g.filters)
 
         # Save it to a new file
         sub_g.writeHDF(subgrid_fname, append=False)
@@ -139,7 +138,7 @@ def subgrid_info(grid_fname, noise_fname=None):
     """
 
     # Use the HDFStore (pytables) backend
-    sedgrid = grid.FileSEDGrid(grid_fname, backend="hdf")
+    sedgrid = grid.FileSEDGrid(grid_fname, backend="memory")
     seds = sedgrid.seds
 
     info_dict = {}
@@ -519,10 +518,7 @@ def merge_pdf1d_stats(
 
 
 def merge_lnp(
-    subgrid_lnp_fnames,
-    re_run=False,
-    output_fname_base=None,
-    threshold=None,
+    subgrid_lnp_fnames, re_run=False, output_fname_base=None, threshold=None,
 ):
     """
     Merge a set of sparsely sampled log likelihood (lnp) files.  It is assumed
@@ -563,7 +559,6 @@ def merge_lnp(
         print(str(len(subgrid_lnp_fnames)) + " files already merged, skipping")
         return merged_lnp_fname
 
-
     # dictionaries to compile all the info
     merged_lnp = defaultdict(list)
     merged_subgrid = defaultdict(list)
@@ -572,18 +567,19 @@ def merge_lnp(
     for fname in subgrid_lnp_fnames:
 
         # extract subgrid number from filename
-        subgrid_num = [i for i in fname.split('_') if 'gridsub' in i][0][7:]
+        subgrid_num = [i for i in fname.split("_") if "gridsub" in i][0][7:]
 
         # read in the SED indices and lnP values
         lnp_data = read_beast_data.read_lnp_data(fname, shift_lnp=False)
-        n_lnp, n_star = lnp_data['vals'].shape
+        n_lnp, n_star = lnp_data["vals"].shape
 
         # save each star's values into the master dictionary
         for i in range(n_star):
-            merged_lnp['star_'+str(i)] += lnp_data['vals'][:,i].tolist()
-            merged_idx['star_'+str(i)] += lnp_data['indxs'][:,i].tolist()
-            merged_subgrid['star_'+str(i)] += np.full(n_lnp, int(subgrid_num)).tolist()
-
+            merged_lnp["star_" + str(i)] += lnp_data["vals"][:, i].tolist()
+            merged_idx["star_" + str(i)] += lnp_data["indxs"][:, i].tolist()
+            merged_subgrid["star_" + str(i)] += np.full(
+                n_lnp, int(subgrid_num)
+            ).tolist()
 
     # go through each star and remove values that are too small
     if threshold is not None:
@@ -594,17 +590,19 @@ def merge_lnp(
         # go through each star
         for i in range(n_star):
 
-            star_label = "star_"+str(i)
+            star_label = "star_" + str(i)
             # good indices
             keep_ind = np.where(
-                np.array(merged_lnp[star_label]) >
-                (max(merged_lnp[star_label]) - threshold)
+                np.array(merged_lnp[star_label])
+                > (max(merged_lnp[star_label]) - threshold)
             )[0]
             good_list_len[i] = len(keep_ind)
             # save just those
             merged_lnp[star_label] = np.array(merged_lnp[star_label])[keep_ind].tolist()
             merged_idx[star_label] = np.array(merged_idx[star_label])[keep_ind].tolist()
-            merged_subgrid[star_label] = np.array(merged_subgrid[star_label])[keep_ind].tolist()
+            merged_subgrid[star_label] = np.array(merged_subgrid[star_label])[
+                keep_ind
+            ].tolist()
 
         # figure out how many padded -inf/nan values need to be appended to make
         # each list the same length
@@ -614,24 +612,20 @@ def merge_lnp(
         # no list padding if there's no trimming for threshold
         n_list_pad = np.zeros(n_star)
 
-
     # write out the things in a new file
     with tables.open_file(merged_lnp_fname, "w") as out_table:
         for i in range(n_star):
-            star_label = "star_"+str(i)
+            star_label = "star_" + str(i)
             star_group = out_table.create_group(star_label)
             star_group.create_dataset(
-                'idx',
-                data=np.array(merged_idx[star_label] + n_list_pad*[np.nan])
+                "idx", data=np.array(merged_idx[star_label] + n_list_pad * [np.nan])
             )
             star_group.create_dataset(
-                'lnp',
-                data=np.array(merged_lnp[star_label] + n_list_pad*[-np.inf])
+                "lnp", data=np.array(merged_lnp[star_label] + n_list_pad * [-np.inf])
             )
             star_group.create_dataset(
-                'subgrid',
-                data=np.array(merged_subgrid[star_label] + n_list_pad*[np.nan])
+                "subgrid",
+                data=np.array(merged_subgrid[star_label] + n_list_pad * [np.nan]),
             )
-
 
     return merged_lnp_fname

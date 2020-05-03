@@ -880,7 +880,7 @@ def summary_table_memory(
     noisemodel,
     sedgrid,
     keys=None,
-    gridbackend="cache",
+    gridbackend="memory",
     threshold=-10,
     save_every_npts=None,
     lnp_npts=None,
