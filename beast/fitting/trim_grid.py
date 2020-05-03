@@ -2,7 +2,7 @@ import numpy as np
 import tables
 
 from beast.physicsmodel.grid import SpectralGrid
-from beast.external.eztables import Table
+from astropy.table import Table
 
 __all__ = ["trim_models"]
 
@@ -133,7 +133,7 @@ def trim_models(
         sedgrid.lamb, seds=sedgrid.seds[indxs], grid=Table(cols), backend="memory"
     )
     filternames = obsdata.filters
-    g.grid.header["filters"] = " ".join(filternames)
+    g.header["filters"] = " ".join(filternames)
 
     # trimmed grid name
     g.writeHDF(sed_outname)

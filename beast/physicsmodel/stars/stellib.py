@@ -290,7 +290,7 @@ class Stellib(object):
 
     def __init__(self, *args, **kargs):
         """ Contructor """
-        pass
+        self.header = {}
 
     def _load_(self):
         raise NotImplementedError
@@ -1297,7 +1297,7 @@ class Elodie(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = self.name
+        self.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1409,7 +1409,7 @@ class BaSeL(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = "Basel 2.2 (pegase)"
+        self.header["NAME"] = "Basel 2.2 (pegase)"
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1520,7 +1520,7 @@ class Kurucz(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = self.name
+        self.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1619,7 +1619,7 @@ class Tlusty(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = "tlusty"
+        self.header["NAME"] = "tlusty"
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1707,7 +1707,7 @@ class BTSettl(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = self.name
+        self.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1796,7 +1796,7 @@ class Munari(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = self.name
+        self.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1882,7 +1882,7 @@ class Aringer(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = self.name
+        self.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):

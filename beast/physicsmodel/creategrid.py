@@ -539,7 +539,7 @@ def add_spectral_properties(
             logtempseds[indxs] = -100.0
 
         for i, fk in enumerate(filternames):
-            specgrid.grid.addCol("log" + nameformat.format(fk), logtempseds[:, i])
+            specgrid.grid["log" + nameformat.format(fk)] = logtempseds[:, i]
         del temp
 
     if filters is not None:
@@ -555,7 +555,7 @@ def add_spectral_properties(
             logtempseds[indxs] = -100.0
 
         for i, fk in enumerate(filters):
-            specgrid.grid.addCol("log" + nameformat.format(fk.name), logtempseds[:, i])
+            specgrid.grid["log" + nameformat.format(fk.name)] = logtempseds[:, i]
         del temp
 
     if callables is not None:

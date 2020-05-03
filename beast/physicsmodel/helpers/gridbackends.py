@@ -6,6 +6,8 @@ Multiple backends are available to reduce the memory footprint for a
 performance cost as small as possible. They allow grids to be stored into FITS
 files but also into HDF5 format.
 
+
+***outdated - pytables support removed - remove when sure***
 In principle, HDFBackend is the most optimized as it allow you to attack the
 grid file directly without memory overhead thanks to the full use of pytables
 package.
@@ -43,7 +45,7 @@ import h5py
 import copy
 from astropy.table import Table
 
-from beast.external.eztables import Table as ezTable
+# from beast.external.eztables import Table as ezTable
 from beast.physicsmodel.helpers.hdfstore import HDFStore
 from beast.physicsmodel.helpers.gridhelpers import isNestedInstance, pretty_size_print
 
@@ -195,7 +197,7 @@ class MemoryBackend(GridBackend):
         seds : ndarray, optional
             2D `float` array of seds
 
-        grid : eztable.Table, optional
+        grid : astropy.Table, optional
             table of properties associated to each sed
 
         cov_diag : ndarray, optional
@@ -274,7 +276,7 @@ class MemoryBackend(GridBackend):
             with fits.open(fname) as f:
                 self.seds = f[0].data[:-1]
                 self.lamb = f[0].data[-1]
-            self.grid = Table(fname)
+            self.grid = Table.read(fname)
 
         elif self._get_type(fname) == "hdf":
             with h5py.File(fname, "r") as s:
@@ -302,8 +304,8 @@ class MemoryBackend(GridBackend):
             filename (incl. path) to export to
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            if not isinstance(self.grid, Table) or isinstance(self.grid, ezTable):
-                raise TypeError("Only astropy.Table or eztables.Table are supported")
+            if not isinstance(self.grid, Table):
+                raise TypeError("Only astropy.Table are supported")
             r = numpy.vstack([self.seds, self.lamb])
             fits.writeto(fname, r)
             if getattr(self, "filters", None) is not None:
@@ -311,7 +313,7 @@ class MemoryBackend(GridBackend):
                     self.grid.header["FILTERS"] = " ".join(self.filters)
             self.grid.write(fname, append=True)
 
-    def writeHDF(self, fname):
+    def writeHDF(self, fname, append=False):
         """
         Save to HDF file
 
@@ -319,17 +321,25 @@ class MemoryBackend(GridBackend):
         ----------
         fname : str
             filename (incl. path)
+
+        append: bool, optional (default False)
+            if set, it will append data to each Array or Table
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            if not isinstance(self.grid, Table) or isinstance(self.grid, ezTable):
-                raise TypeError("Only astropy.Table or eztables.Table are supported")
+            print(type(self.grid))
+            if not isinstance(self.grid, Table):
+                raise TypeError("Only astropy.Table are supported")
             with h5py.File(fname, "w") as hd:
-                hd["seds"] = self.seds[:]
-                hd["lamb"] = self.lamb[:]
-                if self.cov_diag is not None:
-                    hd["covdiag"] = self.cov_diag[:]
-                if self.cov_offdiag is not None:
-                    hd["covoffdiag"] = self.cov_offdiag[:]
+                if (not append) or ("seds" not in hd.keys()):
+                    hd["seds"] = self.seds[:]
+                    hd["lamb"] = self.lamb[:]
+                    if self.cov_diag is not None:
+                        hd["covdiag"] = self.cov_diag[:]
+                    if self.cov_offdiag is not None:
+                        hd["covoffdiag"] = self.cov_offdiag[:]
+                else:
+                    raise Exception("Appending to HDF5 file not supported (code needed)")
+
             if getattr(self, "filters", None) is not None:
                 if "filters" not in list(self.header.keys()):
                     self.header["filters"] = " ".join(self.filters)

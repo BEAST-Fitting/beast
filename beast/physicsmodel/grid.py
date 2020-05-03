@@ -11,6 +11,7 @@ Currently no majors variation is expected as long as memory or cache
 
 More optimization can be done, especially in SpectralGrid.getSEDs
 
+**outdated?**
 TODO: Check where any beast code uses eztable.Table's specific methods and
       implement equivalent in the backends for transparency in the case of
       HDFBackend
@@ -175,13 +176,7 @@ class ModelGrid(object):
             raise AttributeError(msg.format(type(self).__name__, name))
 
     def __getitem__(self, name):
-        if hasattr(self.grid, "read"):
-            try:
-                return self.grid.read(field=name)
-            except TypeError:
-                return self.grid[name]
-        else:
-            return self.grid[name]
+        return self.grid[name]
 
     def copy(self):
         """ returns a copy of the object """
@@ -361,7 +356,6 @@ def MemoryGrid(lamb, seds=None, grid=None, header={}, aliases={}):
 
     Parameters
     ----------
-
     lamb: ndarray or GridBackend subclass
         if ndarray: wavelength of the SEDs (requires seds and grid arguments)
         if backend: ref to the given grid
@@ -369,7 +363,7 @@ def MemoryGrid(lamb, seds=None, grid=None, header={}, aliases={}):
     seds: ndarray[dtype=float, ndim=2]
         array of seds
 
-    grid: eztable.Table
+    grid: astropy.Table
         table of properties associated to each sed
 
     header: dict
@@ -407,7 +401,7 @@ def FileSEDGrid(fname, header={}, aliases={}, backend="memory"):
     seds: ndarray[dtype=float, ndim=2]
         array of seds
 
-    grid: eztable.Table
+    grid: astropy.Table
         table of properties associated to each sed
 
     header: dict
