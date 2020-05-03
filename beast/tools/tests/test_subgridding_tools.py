@@ -29,14 +29,14 @@ def split_and_check(grid_fname, num_subgrids):
         sub_grids.append(sub_g.grid)
 
         np.testing.assert_equal(complete_g.lamb, sub_g.lamb)
-        if not complete_g.grid.columns.items() == sub_g.grid.columns.items():
+        if not complete_g.grid.colnames == sub_g.grid.colnames:
             raise AssertionError()
 
     sub_seds_reconstructed = np.concatenate(sub_seds)
     np.testing.assert_equal(sub_seds_reconstructed, complete_g.seds)
 
     sub_grids_reconstructed = np.concatenate(sub_grids)
-    np.testing.assert_equal(sub_grids_reconstructed, complete_g.grid.data)
+    np.testing.assert_equal(sub_grids_reconstructed, complete_g.grid)
 
     # the split method skips anything that already exists, so if we
     # want to use this function multiple times for the same test
@@ -48,9 +48,9 @@ def split_and_check(grid_fname, num_subgrids):
 @remote_data
 def test_split_grid():
     seds_trim_fname = download_rename("beast_example_phat_seds_trim.grid.hd5")
-    split_and_check(seds_trim_fname, 1)  # an edge case
+    split_and_check(seds_trim_fname, 4)  # an edge case
     split_and_check(seds_trim_fname, 3)  # an odd numer
-    split_and_check(seds_trim_fname, 4)  # an even number
+    split_and_check(seds_trim_fname, 1)  # an even number
 
 
 @remote_data
@@ -245,7 +245,3 @@ def test_merge_pdf1d_stats():
                 equal_nan=True,
                 err_msg="column {} is not close enough".format(c),
             )
-
-
-if __name__ == '__main__':
-    test_merge_pdf1d_stats()
