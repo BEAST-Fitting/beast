@@ -12,11 +12,11 @@ from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
 from astropy import constants
 from tqdm import tqdm
+from matplotlib.path import Path
+from astropy.table import Table
 
 from beast.physicsmodel.grid import SpectralGrid
-from matplotlib.path import Path
-
-from beast.external.eztables import Table
+# from beast.external.eztables import Table
 from beast.config import __ROOT__, __NTHREADS__
 from beast.physicsmodel.stars.include import __interp__
 from beast.tools.helpers import nbytes

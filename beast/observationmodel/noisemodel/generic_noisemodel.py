@@ -17,26 +17,9 @@ import tables
 from beast.observationmodel.noisemodel import toothpick
 
 __all__ = [
-    "Generic_ToothPick_Noisemodel",
     "make_toothpick_noise_model",
     "get_noisemodelcat",
 ]
-
-
-class Generic_ToothPick_Noisemodel(toothpick.MultiFilterASTs):
-    def set_data_mappings(self):
-        """
-        hard code mapping directly with the interface to ASTs format
-        """
-        for k in self.filters:
-            try:
-                self.data.set_alias(k + "_out", k.split("_")[-1].upper() + "_VEGA")
-                # self.data.set_alias(k + '_rate',
-                #                    k.split('_')[-1].upper() + '_RATE')
-                self.data.set_alias(k + "_in", k.split("_")[-1].upper() + "_IN")
-            except Exception as e:
-                print(e)
-                print("Warning: Mapping failed. This could lead to " + "wrong results")
 
 
 def make_toothpick_noise_model(
@@ -46,7 +29,7 @@ def make_toothpick_noise_model(
     use_rate=True,
     vega_fname=None,
     absflux_a_matrix=None,
-    **kwargs
+    **kwargs,
 ):
     """ toothpick noise model assumes that every filter is independent with
     any other.
@@ -77,15 +60,16 @@ def make_toothpick_noise_model(
     """
 
     # read in AST results
-    model = Generic_ToothPick_Noisemodel(
-        astfile, sedgrid.filters, vega_fname=vega_fname
-    )
+    model = toothpick.MultiFilterASTs(astfile, sedgrid.filters, vega_fname=vega_fname)
+
+    # set the column mappings as the external file is BAND_VEGA or BAND_IN
+    model.set_data_mappings(upcase=True)
 
     # compute binned biases and uncertainties as a function of flux
     if use_rate:
         # change the mappings for the out column to the rate column
         for cfilt in sedgrid.filters:
-            model.data.set_alias(cfilt + "_out", cfilt.split("_")[-1].upper() + "_RATE")
+            model.filter_aliases[cfilt + "_out"] = cfilt.split("_")[-1].upper() + "_RATE"
         model.fit_bins(nbins=30, completeness_mag_cut=-10)
     else:
         model.fit_bins(nbins=30, completeness_mag_cut=80)
@@ -111,7 +95,7 @@ def make_toothpick_noise_model(
     # we are assuming that extrapolation at high fluxes is ok as the noise
     # will be very small there
     for k in range(len(model.filters)):
-        indxs, = np.where(sedgrid.seds[:, k] <= model._minmax_asts[0, k])
+        (indxs,) = np.where(sedgrid.seds[:, k] <= model._minmax_asts[0, k])
         if len(indxs) > 0:
             noise[indxs, k] *= -1.0
 
@@ -138,7 +122,7 @@ def get_noisemodelcat(filename):
     ntable : dict
         dictonary containing the elements of the noise model
     """
-    nfile = h5py.File(filename, 'r')
+    nfile = h5py.File(filename, "r")
 
     # create a dictonary of the elements
     ntable = {}

@@ -1,18 +1,4 @@
-"""
-Toothpick noise model assumes that every photometric band is independent
-from the others.
 
-The :class:`MultiFilterASTs` assumes that all AST information is compiled
-into on single table, in which one entry corresponds to one artificial star
-and recovered values
-
-Method
-------
-The noise model is computed in equally spaced bins in log flux space to
-avoid injecting noise when the ASTs grossly oversample the model space.
-This is the case for single band ASTs - this is always the case for the
-BEAST toothpick noise model.
-"""
 import math
 
 import numpy as np
@@ -28,24 +14,38 @@ __all__ = ["MultiFilterASTs"]
 
 
 class MultiFilterASTs(NoiseModel):
-    """ A noise model for which input information of ASTs are
-    provided as one single table
+    """
+    A noise model for based Artificial Star Tests (ASTs) that are provided
+    as one single table.
+
+    The noise model is computed in equally spaced bins in log flux space to
+    avoid injecting noise when the ASTs grossly oversample the model space.
+    This is the case for single band ASTs - this is always the case for the
+    BEAST toothpick noise model.
 
     Attributes
     ----------
-    astfile: str
+    astfile : str
         file containing the ASTs
-
-    filters: sequence(str)
+    filters : list
         sequence of filter names
+    filter_aliases : dict
+        alias of filter names between internal and external names
     """
 
     def __init__(self, astfile, filters, vega_fname=None, *args, **kwargs):
-
-        NoiseModel.__init__(self, astfile, *args, **kwargs)
+        """
+        Parameters
+        ----------
+        astfile : str
+            file containing the ASTs
+        filters : list
+            filters using the internal namings (obs_inst_band)
+        vega_fname : str, optional
+            filename of the vega database
+        """
+        super().__init__(astfile, *args, **kwargs)
         self.setFilters(filters, vega_fname=vega_fname)
-        if "pass_mapping" not in kwargs:
-            self.set_data_mappings()
 
         self._fluxes = None
         self._biases = None
@@ -53,13 +53,14 @@ class MultiFilterASTs(NoiseModel):
         self._compls = None
 
     def setFilters(self, filters, vega_fname=None):
-        """ set the filters and update the vega reference for the conversions
+        """
+        Set the filters and update the vega reference for the conversions
 
         Parameters
         ----------
-        filters: sequence
-            list of filters using the internally normalized namings
-        vega_fname: str
+        filters : list
+            filters using the internally normalized namings
+        vega_fname : str, optional
             filename of the vega database
         """
         self.filters = filters
@@ -71,19 +72,30 @@ class MultiFilterASTs(NoiseModel):
 
         self.vega_flux = vega_flux
 
-    def set_data_mappings(self):
-        """ hard code mapping directly with the interface to PHAT-like ASTs
-
-        .. note::
-            it makes it trivial to update this function for other input formats
+    def set_data_mappings(self, in_pair=("in", "in"), out_pair=("out", "vega"), upcase=False):
         """
-        try:
-            for k in self.filters:
-                self.data.set_alias(k + "_out", k.split("_")[-1].lower() + "_vega")
-                self.data.set_alias(k + "_in", k.split("_")[-1].lower() + "_in")
-        except Exception as e:
-            print(e)
-            print("Warning: Mapping failed. This could lead to wrong results")
+        Specify the mapping directly with the interface to PHAT-like ASTs
+
+        Parameters
+        ----------
+        in_pair, out_pair : tuple, optional
+            (in, out) strings giving the ending string mappings
+            defaults: (in, in) aliases internal HST_WFC3_F275W_in to exernal f275w_in
+            and (out, vega) aliases internal HST_WFC3_F275W_out to external f275w_vega
+        upcase : bool, optional
+            set to make the external name all uppercase
+        """
+        for k in self.filters:
+            external_in = k.split("_")[-1] + "_" + in_pair[1]
+            external_out = k.split("_")[-1] + "_" + out_pair[1]
+            if upcase:
+                external_in = external_in.upper()
+                external_out = external_out.upper()
+            else:
+                external_in = external_in.lower()
+                external_out = external_out.lower()
+            self.filter_aliases[k + "_in"] = external_in
+            self.filter_aliases[k + "_out"] = external_out
 
     def _compute_sigma_bins(
         self,
@@ -104,36 +116,36 @@ class MultiFilterASTs(NoiseModel):
 
         Parameters
         ----------
-        magflux_in: ndarray
+        magflux_in : ndarray
              AST input mag or flux
 
-        magflux_out: ndarray
+        magflux_out : ndarray
              AST output mag or flux
 
-        completeness_mag_cut: float
+        completeness_mag_cut : float
             magnitude at which consider a star not recovered
             set to -1 if the magflux_out is in fluxes (not magnitudes)
 
-        nbins: Integer
+        nbins : int, optional
             Number of logrithmically spaced bins between the min/max values
 
-        min_per_bins: Integer
+        min_per_bins : int,, optional
             Number of recovered ASTs required per bin for computation
 
-        name_prefix: str
+        name_prefix : str, optional
             if set, all output names in the final structure will start with
             this prefix.
 
-        asarray: bool
+        asarray : bool, optional
             if set returns a structured ndarray instead of a dictionary
 
-        compute_stddev: bool
+        compute_stddev : bool, optional
             if True, uses np.mean()+np.std() to estimate avg bias+sigma;
             if False (default), uses np.percentiles
 
         Returns
         -------
-        d: dict or np.recarray
+        d : dict or np.recarray
             dictionary or named array containing the statistics
 
         """
@@ -151,14 +163,14 @@ class MultiFilterASTs(NoiseModel):
             # first remove cases that have input magnitudes below the cut
             #   not sure why this is possible, but they exist and contain
             #   *no information* as mag_in = mag_out = 99.99
-            good_in_indxs, = np.where(magflux_in < completeness_mag_cut)
+            (good_in_indxs,) = np.where(magflux_in < completeness_mag_cut)
             if len(good_in_indxs) < len(magflux_in):
                 magflux_in = magflux_in[good_in_indxs]
                 magflux_out = magflux_out[good_in_indxs]
 
             # now convert from input mags to normalized vega fluxes
             flux_out = 10 ** (-0.4 * magflux_out)
-            bad_indxs, = np.where(magflux_out >= completeness_mag_cut)
+            (bad_indxs,) = np.where(magflux_out >= completeness_mag_cut)
             flux_out[bad_indxs] = 0.0
         else:
             flux_out = magflux_out
@@ -176,7 +188,7 @@ class MultiFilterASTs(NoiseModel):
         good_bins = np.zeros(nbins, dtype=int)
 
         # get the indexs to the recovered fluxes
-        good_indxs, = np.where(flux_out != 0.0)
+        (good_indxs,) = np.where(flux_out != 0.0)
 
         ast_minmax = np.empty(2)
         ast_minmax[0] = np.amin(flux_in[good_indxs])
@@ -198,7 +210,7 @@ class MultiFilterASTs(NoiseModel):
         bin_ave_vals = 10 ** bin_ave_vals
 
         for i in range(nbins):
-            bindxs, = np.where(
+            (bindxs,) = np.where(
                 (flux_in >= bin_min_vals[i]) & (flux_in < bin_max_vals[i])
             )
             n_bindxs = len(bindxs)
@@ -206,7 +218,7 @@ class MultiFilterASTs(NoiseModel):
                 bin_flux_in = flux_in[bindxs]
                 bin_flux_out = flux_out[bindxs]
                 # compute completeness
-                g_bindxs, = np.where(bin_flux_out != 0.0)
+                (g_bindxs,) = np.where(bin_flux_out != 0.0)
                 n_g_bindxs = len(g_bindxs)
                 completeness[i] = n_g_bindxs / float(n_bindxs)
                 if n_g_bindxs > min_per_bin:
@@ -227,7 +239,7 @@ class MultiFilterASTs(NoiseModel):
                         std_bias[i] = (flux_percent_out[2] - flux_percent_out[0]) / 2.0
 
         # only pass back the bins with non-zero results
-        gindxs, = np.where(good_bins == 1)
+        (gindxs,) = np.where(good_bins == 1)
 
         d = {
             name_prefix + "FLUX_STD": std_bias[gindxs],
@@ -257,10 +269,10 @@ class MultiFilterASTs(NoiseModel):
 
         Parameters
         ----------
-        completeness_mag_cut: float
+        completeness_mag_cut : float
             magnitude at which consider a star not recovered
 
-        progress: bool, optional
+        progress : bool, optional
             if set, display a progress bar
 
         .. see also: :func:`_compute_stddev`
@@ -282,8 +294,8 @@ class MultiFilterASTs(NoiseModel):
 
         for e, filterk in enumerate(it):
 
-            mag_in = self.data[filterk + "_in"]
-            magflux_out = self.data[filterk + "_out"]
+            mag_in = self.data[self.filter_aliases[filterk + "_in"]]
+            magflux_out = self.data[self.filter_aliases[filterk + "_out"]]
 
             d = self._compute_sigma_bins(
                 mag_in,
@@ -308,21 +320,21 @@ class MultiFilterASTs(NoiseModel):
 
         Parameters
         ----------
-        sedgrid: beast.core.grid type
+        sedgrid : beast.core.grid type
             model grid to interpolate AST results on
 
-        progress: bool, optional
+        progress : bool, optional
             if set, display a progress bar
 
         Returns
         -------
-        bias: ndarray
+        bias : ndarray
             bias table of the models
 
-        sigma: ndarray
+        sigma : ndarray
             dispersion table of the models
 
-        comp: ndarray
+        comp : ndarray
             completeness table per model
         """
         flux = sedgrid.seds

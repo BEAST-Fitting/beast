@@ -8,12 +8,13 @@ import numpy as np
 from numpy import interp
 from numpy import log10
 from scipy import interpolate
-
 from astropy import units
-
 import tables
-from beast.external.eztables import Table
-from beast.external.eztables.table import recfunctions
+from astropy.table import Table
+from numpy.lib import recfunctions
+
+# from beast.external.eztables import Table
+# from beast.external.eztables.table import recfunctions
 from beast.config import __ROOT__
 from beast.physicsmodel.stars.ezpadova import parsec
 from beast.physicsmodel.stars.ezmist import mist
@@ -313,6 +314,31 @@ class pegase(Isochrone):
         return table
 
 
+def _get_num_comments(filename):
+    """
+    Utility function to get determine the number of comment lines in a CSV file.
+    Needed to get the simpletable(?) generated csv files to read with astropy.tables.
+    Likely can remove this function with updates to provide more standard formats
+    for the isochrone csv files.
+
+    Parameters
+    ----------
+    filename : str
+        name of file
+
+    Returns
+    -------
+    int
+        number of lines starting with #
+    """
+    cnt = 0
+    f = open(filename, "r")
+    for line in f:
+        if line[0] == "#":
+            cnt += 1
+    return cnt
+
+
 class ezIsoch(Isochrone):
     """ Trying to make something that is easy to manipulate
     This class is basically a proxy to a table (whatever format works best)
@@ -330,8 +356,8 @@ class ezIsoch(Isochrone):
         self.Z = np.unique(np.round(self.data["Z"], 6))
         self.interpolation(interp)
 
-    def selectWhere(self, *args, **kwargs):
-        return self.data.selectWhere(*args, **kwargs)
+#    def selectWhere(self, *args, **kwargs):
+#        return self.data.selectWhere(*args, **kwargs)
 
     def interpolation(self, b=None):
         if b is not None:
@@ -342,7 +368,8 @@ class ezIsoch(Isochrone):
             return self.interp
 
     def _load_table_(self, source):
-        self.data = Table(self.source).selectWhere("*", "isfinite(logA)")
+        tdata = Table.read(self.source, format="csv", header_start=_get_num_comments(self.source))
+        self.data = tdata[np.isfinite(tdata["logA"])]
 
     def __getitem__(self, key):
         return self.data[key]

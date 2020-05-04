@@ -45,7 +45,6 @@ import h5py
 import copy
 from astropy.table import Table
 
-# from beast.external.eztables import Table as ezTable
 from beast.physicsmodel.helpers.hdfstore import HDFStore
 from beast.physicsmodel.helpers.gridhelpers import isNestedInstance, pretty_size_print
 
@@ -252,8 +251,9 @@ class MemoryBackend(GridBackend):
     def filters(self):
         """filters"""
         r = self._header.get("filters", None) or self._header.get("FILTERS", None)
-        if r is not None:
-            r = r.split()
+        if r is None:
+            return r
+        r = r.split()
         if isinstance(r[0], bytes):
             return [tr.decode() for tr in r]
         else:
@@ -329,7 +329,6 @@ class MemoryBackend(GridBackend):
             if set, it will append data to each Array or Table
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            print(type(self.grid))
             if not isinstance(self.grid, Table):
                 raise TypeError("Only astropy.Table are supported")
             with h5py.File(fname, "w") as hd:
