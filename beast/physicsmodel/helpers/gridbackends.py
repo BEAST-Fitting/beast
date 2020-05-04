@@ -296,6 +296,10 @@ class MemoryBackend(GridBackend):
             self.grid = Table.read(fname, path="grid", format="hdf5")
 
         self._header = self.grid.meta
+        if ("filters" in self._header.keys()) and isinstance(
+            self._header["filters"], bytes
+        ):
+            self._header["filters"] = self._header["filters"].decode()
 
     def writeFITS(self, fname):
         """
@@ -340,7 +344,9 @@ class MemoryBackend(GridBackend):
                     if self.cov_offdiag is not None:
                         hd["covoffdiag"] = self.cov_offdiag[:]
                 else:
-                    raise Exception("Appending to HDF5 file not supported (code needed)")
+                    raise Exception(
+                        "Appending to HDF5 file not supported (code needed)"
+                    )
 
             if getattr(self, "filters", None) is not None:
                 if "filters" not in list(self.header.keys()):
@@ -435,7 +441,7 @@ class CacheBackend(GridBackend):
                 self._grid = Table(self.fname)
 
             elif self._get_type(fname) == "hdf":
-                self._grid = Table(self.fname, tablename="/grid")
+                self._grid = Table.read(self.fname, path="grid", format="hdf5")
 
     def _load_filters(self, fname):
         """load_filters -- load only filters"""
