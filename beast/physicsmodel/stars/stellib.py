@@ -1222,7 +1222,6 @@ class CompositeStellib(Stellib):
             _pts = {}
             # oslk + 1 since 0 corresponds to "not covered by any osl"
             ind = osl_index == (oslk + 1)
-            # print sum(ind)
             if np.sum(ind) > 0:
                 if hasattr(pts, "keys"):
                     keys = list(pts.keys())

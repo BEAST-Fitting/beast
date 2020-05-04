@@ -163,7 +163,7 @@ def make_spectral_grid(
         if verbose:
             print("Make spectra")
         g = creategrid.gen_spectral_grid_from_stellib_given_points(
-            osl, oiso, bounds=bounds
+            osl, oiso.data, bounds=bounds
         )
 
         # Construct the distances array. Turn single value into
