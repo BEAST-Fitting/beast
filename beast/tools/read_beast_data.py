@@ -144,7 +144,7 @@ def read_sed_data(
         grid_param_list = list(sed_hdf["grid"][()].dtype.names)
         # return that if the user is so inclined
         if return_params:
-            return grid_param_list + ["seds", "lamb"]
+            return grid_param_list + ["seds", "lamb", "filters"]
         if param_list == "all":
             param_list = grid_param_list
 
@@ -156,6 +156,8 @@ def read_sed_data(
             # wavelengths of the filters -or- SED photometry values
             elif (param == "lamb") or (param == "seds"):
                 sed_data[param] = sed_hdf[param][()]
+            elif param == "filters":
+                sed_data[param] = sed_hdf["grid"].attrs["filters"].decode().split(" ")
             else:
                 raise ValueError("parameter {0} not found in SED grid".format(param))
 

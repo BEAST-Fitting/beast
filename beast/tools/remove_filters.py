@@ -19,6 +19,7 @@ def remove_filters_from_files(
     outbase=None,
     physgrid_outfile=None,
     rm_filters=None,
+    beast_filt=None,
 ):
     """
     Remove filters from catalog, physics grid, and/or obsmodel grid.  This has
@@ -63,6 +64,13 @@ def remove_filters_from_files(
         set, only the filters present in catfile will be retained in physgrid
         and/or obsgrid.
 
+    beast_filt : list of strings
+        Sometimes there is ambiguity in the filter name (e.g., the grid has
+        both HST_ACS_WFC_F475W and HST_WFC3_F475W, and the filter name is
+        F475W).  Set this to the BEAST filter name to resolve any
+        ambiguities.  For example, ['HST_WFC3_F475W', 'HST_WFC3_F814W'] ensures
+        that these are the names used for F475W and F814W.
+
     """
 
     # read in the photometry catalog
@@ -82,7 +90,11 @@ def remove_filters_from_files(
 
     # if rm_filters not set, extract the filter names that are present
     if rm_filters is None:
-        cat_filters = [f[:-5] for f in cat.colnames if f[-4:].lower() == 'rate']
+        cat_filters = [f[:-5].upper() for f in cat.colnames if f[-4:].lower() == "rate"]
+
+    # if beast_filt is set, make a list of the short versions
+    if beast_filt is not None:
+        beast_filt_short = [(f.split("_"))[-1].upper() for f in beast_filt]
 
     # if physgrid set, process the SED grid
     if physgrid is not None:
@@ -93,41 +105,81 @@ def remove_filters_from_files(
         # extract info
         filters = g0.header["filters"].split(" ")
         shortfilters = [(cfilter.split("_"))[-1].upper() for cfilter in filters]
-        nlamb = []
-        nfilters = []
         rindxs = []
         rgridcols = []
 
         # loop through filters and determine what needs deleting
-        for csfilter, clamb, cfilter in zip(shortfilters, g0.lamb, filters):
+        for csfilter, cfilter in zip(shortfilters, filters):
 
+            # --------------------------
             # if the user chose the filters to remove
             if rm_filters is not None:
-                if csfilter not in np.atleast_1d(rm_filters):
-                    nlamb.append(clamb)
-                    nfilters.append(cfilter)
-                else:
-                    rindxs.append(shortfilters.index(csfilter))
-                    for grid_col in g0.grid.colnames:
-                        if cfilter in grid_col:
-                            rgridcols.append(grid_col)
 
+                # if the current filter is in the list of filters to remove
+                if csfilter in np.atleast_1d(rm_filters):
+
+                    # if there's a list of BEAST instrument+filter references
+                    if beast_filt is not None:
+
+                        # if the current filter is in the list of BEAST references
+                        if csfilter in beast_filt_short:
+
+                            # if it's the same instrument, delete it
+                            # (if it's not the same instrument, keep it)
+                            if beast_filt[beast_filt_short.index(csfilter)] == cfilter:
+                                rindxs.append(filters.index(cfilter))
+                                for grid_col in g0.grid.colnames:
+                                    if cfilter in grid_col:
+                                        rgridcols.append(grid_col)
+
+                        # if the current filter isn't in the BEAST ref list, delete it
+                        else:
+                            rindxs.append(filters.index(cfilter))
+                            for grid_col in g0.grid.colnames:
+                                if cfilter in grid_col:
+                                    rgridcols.append(grid_col)
+
+                    # if there isn't a list of BEAST refs, delete it
+                    else:
+                        rindxs.append(filters.index(cfilter))
+                        for grid_col in g0.grid.colnames:
+                            if cfilter in grid_col:
+                                rgridcols.append(grid_col)
+
+            # --------------------------
             # if the removed filters are determined from the catalog file
             if rm_filters is None:
+
+                # if the current filter is present in the catalog filters
                 if csfilter in cat_filters:
-                    nlamb.append(clamb)
-                    nfilters.append(cfilter)
+
+                    # if there's a list of BEAST instrument+filter references
+                    # (if there isn't a list of BEAST refs, keep it)
+                    if beast_filt is not None:
+
+                        # if the current filter is in the list of BEAST references
+                        # (if the current filter isn't in the BEAST ref list, keep it)
+                        if csfilter in beast_filt_short:
+
+                            # if it's not the same instrument, delete it
+                            # (if it's the same instrument, keep it)
+                            if beast_filt[beast_filt_short.index(csfilter)] != cfilter:
+                                rindxs.append(filters.index(cfilter))
+                                for grid_col in g0.grid.colnames:
+                                    if cfilter in grid_col:
+                                        rgridcols.append(grid_col)
+
+                # if the current filter isn't in the catalog filters, delete it
                 else:
-                    rindxs.append(shortfilters.index(csfilter))
+                    rindxs.append(filters.index(cfilter))
                     for grid_col in g0.grid.colnames:
                         if cfilter in grid_col:
                             rgridcols.append(grid_col)
 
         # delete column(s)
-        if len(rindxs) > 0:
-            nseds = np.delete(g0.seds, rindxs, 1)
-        else:
-            nseds = g0.seds
+        nseds = np.delete(g0.seds, rindxs, 1)
+        nlamb = np.delete(g0.lamb, rindxs, 0)
+        nfilters = np.delete(filters, rindxs, 0)
         for rcol in rgridcols:
             g0.grid.delCol(rcol)
 
@@ -142,7 +194,7 @@ def remove_filters_from_files(
         elif outbase is not None:
             g.writeHDF("{}_seds.grid.hd5".format(outbase))
         else:
-            raise ValueError('Need to set either outbase or physgrid_outfile')
+            raise ValueError("Need to set either outbase or physgrid_outfile")
 
     # if obsgrid set, process the observation model
     if obsgrid is not None:
@@ -170,26 +222,26 @@ if __name__ == "__main__":  # pragma: no cover
         "--physgrid",
         type=str,
         default=None,
-        help="If set, remove filters from this physics model grid file"
+        help="If set, remove filters from this physics model grid file",
     )
     parser.add_argument(
         "--obsgrid",
         type=str,
         default=None,
-        help="If set, remove filters from this observation/noisemodel grid file"
+        help="If set, remove filters from this observation/noisemodel grid file",
     )
     parser.add_argument(
         "--outbase",
         type=str,
         default=None,
-        help="Path+file to prepend to all output file names"
+        help="Path+file to prepend to all output file names",
     )
     parser.add_argument(
         "--physgrid_outfile",
         type=str,
         default=None,
         help="""Path+name of the output physics model grid. Takes precendence
-        over the default file name constructed from outbase."""
+        over the default file name constructed from outbase.""",
     )
     parser.add_argument(
         "--rm_filters",
@@ -198,7 +250,7 @@ if __name__ == "__main__":  # pragma: no cover
         default=None,
         help="""If set, these are the filters to remove from all of the files.
         If not set, only the filters present in catfile will be retained in
-        physgrid and/or obsgrid."""
+        physgrid and/or obsgrid.""",
     )
     args = parser.parse_args()
 
