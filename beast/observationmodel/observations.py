@@ -16,20 +16,18 @@ class Observations(object):
 
     Attributes
     ----------
-    inputFile: str
+    inputFile : str
         catalog source file
-
-    filters: sequence(str)
+    filters : list
         list of filter names (internal standards)
-
-    desc: str, optional
+    filter_aliases : dict
+        alias of filter names between internal and external names
+    desc : str
         description of the observations
-
-    badvalue: float, optional
+    badvalue : float
         value that tags a bad measurement that should not be used in the
-        fitting.
-
-    nObs: int
+        fitting
+    nObs : int
         number of observations in the catalog
     """
 
@@ -37,13 +35,14 @@ class Observations(object):
         """ Generate a data interface object """
         self.inputFile = inputFile
         self.filters = None
+        self.filter_aliases = {}
         self.desc = desc
         self.readData()
         self.badvalue = None
 
     @property
     def nObs(self):
-        return self.data.nrows
+        return len(self.data)
 
     def __len__(self):
         return self.nObs
@@ -136,10 +135,9 @@ class Observations(object):
 
     def readData(self):
         """ read the dataset from the original source file """
-        from ..external.eztables import AstroTable
 
         if isinstance(self.inputFile, str):
-            self.data = AstroTable(self.inputFile)
+            self.data = Table.read(self.inputFile)
         else:
             self.data = self.inputFile
 

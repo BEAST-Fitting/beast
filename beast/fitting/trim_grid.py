@@ -57,7 +57,7 @@ def trim_models(
     min_models = np.zeros(n_filters)
     max_models = np.zeros(n_filters)
     for k, filtername in enumerate(obsdata.filters):
-        sfiltname = obsdata.data.resolve_alias(filtername)
+        sfiltname = obsdata.filter_aliases[filtername]
         if inFlux:
             min_data[k] = np.amin(obsdata.data[sfiltname] * obsdata.vega_flux[k])
             max_data[k] = np.amax(obsdata.data[sfiltname] * obsdata.vega_flux[k])

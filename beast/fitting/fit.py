@@ -870,7 +870,8 @@ def IAU_names_and_extra_info(obsdata, surveyname="PHAT", extraInfo=False):
 
     # include the observed filter fluxes
     for k, filtername in enumerate(obsdata.filters):
-        r[filtername] = (obsdata.data[filtername] * obsdata.vega_flux[k]).astype(float)
+        obsfiltname = obsdata.filter_aliases[filtername]
+        r[filtername] = (obsdata.data[obsfiltname] * obsdata.vega_flux[k]).astype(float)
 
     return r
 
