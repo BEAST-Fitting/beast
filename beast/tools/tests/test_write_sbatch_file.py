@@ -1,11 +1,13 @@
+from tempfile import NamedTemporaryFile
 from beast.tools.write_sbatch_file import write_sbatch_file
 
 def test_sbatch_file():
-    write_sbatch_file("create_LMC_mastergrid.script", "./mastergrid_LMC/model_batch_jobs/create_physicsmodel_\"${SLURM_ARRAY_TASK_ID}\".job",
+    temp_file = NamedTemporaryFile(suffix=".script")
+    write_sbatch_file(temp_file.name, "./mastergrid_LMC/model_batch_jobs/create_physicsmodel_\"${SLURM_ARRAY_TASK_ID}\".job",
     "/pylon5/as5pi7p/lhagen", modules=["module load anaconda3", "source activate bdev"], job_name="LMCgrid", egress=True, queue="LM",
     stdout_file="/pylon5/as5pi7p/lhagen/mastergrid_LMC/model_batch_jobs/logs/%A_%a.out", run_time="35:00:00", mem="570GB", array=[1,9])
 
-    file = open("create_LMC_mastergrid.script")
+    file = open(temp_file.name)
     content = file.read()
 
     expected = ("""#!/bin/bash
