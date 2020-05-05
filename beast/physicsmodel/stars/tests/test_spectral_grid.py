@@ -5,7 +5,7 @@ from astropy import constants as const
 from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.physicsmodel.dust import extinction
-from beast.physicsmodel import grid
+from beast.physicsmodel.grid import SpectralGrid
 from beast.physicsmodel.model_grid import make_spectral_grid, add_stellar_priors
 from beast.tests.helpers import download_rename, compare_hdf5
 
@@ -82,7 +82,7 @@ def test_add_stellar_priors_to_spectral_grid():
     # generate the spectral grid with stellar priors from the code
 
     gspec_fname = "/tmp/beast_example_phat_spec_grid.hd5"
-    specgrid = grid.FileSpectralGrid(gspec_fname, backend="memory")
+    specgrid = SpectralGrid(gspec_fname, backend="memory")
 
     priors_fname = "/tmp/beast_example_phat_spec_w_priors.grid.hd5"
     priors_fname, g = add_stellar_priors("test", specgrid, priors_fname=priors_fname)

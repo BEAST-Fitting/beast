@@ -229,7 +229,7 @@ def setup_param_bins(qname, max_nbins, g0, full_model_flux, filters, grid_info_d
         name of the parameter
     max_nbins : int
         max number of bins to use for the PDF calculations
-    g0 : FileSEDGrid object
+    g0 : SEDGrid object
         the SED grid
     full_model_flux : ndarray
         1D `float` array of the fluxes for the model grid
@@ -378,7 +378,7 @@ def Q_all_memory(
     """
 
     if type(sedgrid) == str:
-        g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
+        g0 = grid.SEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
 
@@ -957,7 +957,7 @@ def summary_table_memory(
     """
 
     if type(sedgrid) == str:
-        g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
+        g0 = grid.SEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
 

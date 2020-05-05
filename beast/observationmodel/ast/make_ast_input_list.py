@@ -6,7 +6,7 @@ from astropy.table import Table
 from astropy.table import Column
 
 from beast.observationmodel.vega import Vega
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 
 
 def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
@@ -128,7 +128,7 @@ def pick_models_toothpick_style(
     with Vega() as v:
         vega_f, vega_flux, lambd = v.getFlux(filters)
 
-    modelsedgrid = FileSEDGrid(sedgrid_fname)
+    modelsedgrid = SEDGrid(sedgrid_fname)
 
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
     Nf = sedsMags.shape[1]
@@ -313,7 +313,7 @@ def pick_models(
         vega_f, vega_flux, lamb = v.getFlux(filters)
 
     # gridf = h5py.File(sedgrid_fname)
-    modelsedgrid = FileSEDGrid(sedgrid_fname)
+    modelsedgrid = SEDGrid(sedgrid_fname)
 
     # Convert to Vega mags
     # sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)

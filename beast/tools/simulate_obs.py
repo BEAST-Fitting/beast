@@ -1,7 +1,7 @@
 import numpy as np
 import argparse
 
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.observationmodel.observations import gen_SimObs_from_sedgrid
 
@@ -66,7 +66,7 @@ def simulate_obs(
     ):
 
         # get the physics model grid - includes priors
-        modelsedgrid = FileSEDGrid(str(physgrid))
+        modelsedgrid = SEDGrid(str(physgrid))
 
         # read in the noise model - includes bias, unc, and completeness
         noisegrid = noisemodel.get_noisemodelcat(str(noise_model))

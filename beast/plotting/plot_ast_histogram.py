@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import argparse
 from astropy.table import Table
 
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 from beast.observationmodel.vega import Vega
 
 
@@ -30,36 +30,41 @@ def plot_ast(ast_file, sed_grid_file=None):
     """
 
     # read in AST info
-    ast_table = Table.read(ast_file, format='ascii')
-    ast_fluxbins = Table.read(ast_file.replace('inputAST','ASTfluxbins'), format='ascii')
+    ast_table = Table.read(ast_file, format="ascii")
+    ast_fluxbins = Table.read(
+        ast_file.replace("inputAST", "ASTfluxbins"), format="ascii"
+    )
 
     # get filter names (and it's even in order!)
-    filter_cols = [col for col in ast_table.colnames if '_' in col]
+    filter_cols = [col for col in ast_table.colnames if "_" in col]
     filter_list = [col[-5:] for col in filter_cols]
     n_filter = len(filter_list)
 
     # if chosen, read in model grid
     if sed_grid_file is not None:
-        modelsedgrid = FileSEDGrid(sed_grid_file)
+        modelsedgrid = SEDGrid(sed_grid_file)
         with Vega() as v:
             _, vega_flux, _ = v.getFlux(filter_cols)
         sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
-        good_seds = np.where(modelsedgrid.grid['logL'] > -9)[0]
-
+        good_seds = np.where(modelsedgrid.grid["logL"] > -9)[0]
 
     # make a histogram for each filter
-    fig = plt.figure(figsize=(7,4*n_filter))
+    fig = plt.figure(figsize=(7, 4 * n_filter))
 
-    for f,filt in enumerate(filter_list):
+    for f, filt in enumerate(filter_list):
 
         # names of table columns with bin values
-        min_bin_col = [b for b in ast_fluxbins.colnames if ('mins' in b and filt in b)][0]
-        max_bin_col = [b for b in ast_fluxbins.colnames if ('maxs' in b and filt in b)][0]
+        min_bin_col = [b for b in ast_fluxbins.colnames if ("mins" in b and filt in b)][
+            0
+        ]
+        max_bin_col = [b for b in ast_fluxbins.colnames if ("maxs" in b and filt in b)][
+            0
+        ]
         # use those to make a bin list
         bin_list = np.append(ast_fluxbins[min_bin_col], ast_fluxbins[max_bin_col][-1])
 
         # make histograms
-        ax = plt.subplot(n_filter, 1, f+1)
+        ax = plt.subplot(n_filter, 1, f + 1)
 
         ast_col = [b for b in ast_table.colnames if filt in b][0]
 
@@ -67,46 +72,43 @@ def plot_ast(ast_file, sed_grid_file=None):
             ast_table[ast_col],
             bins=bin_list,
             density=True,
-            facecolor='black',
-            edgecolor='none',
+            facecolor="black",
+            edgecolor="none",
             alpha=0.3,
-            label='ASTs'
+            label="ASTs",
         )
 
         if sed_grid_file is not None:
             plt.hist(
-                sedsMags[good_seds,f],
+                sedsMags[good_seds, f],
                 bins=bin_list,
                 density=True,
-                histtype='step',
-                facecolor='none',
-                edgecolor='black',
-                label='Model grid'
+                histtype="step",
+                facecolor="none",
+                edgecolor="black",
+                label="Model grid",
             )
 
         # labels
-        ax.tick_params(axis='both', which='major', labelsize=13)
+        ax.tick_params(axis="both", which="major", labelsize=13)
         ax.set_xlim(ax.get_xlim()[::-1])
-        plt.xlabel(filt+' (Vega mag)', fontsize=14)
-        plt.ylabel('Normalized Histogram', fontsize=14)
-
+        plt.xlabel(filt + " (Vega mag)", fontsize=14)
+        plt.ylabel("Normalized Histogram", fontsize=14)
 
         # add legend in first plot
         if f == 0:
             ax.legend(fontsize=14)
 
-
     plt.tight_layout()
 
-    fig.savefig(ast_file.replace('.txt','.png'))
+    fig.savefig(ast_file.replace(".txt", ".png"))
     plt.close(fig)
+
 
 if __name__ == "__main__":  # pragma: no cover
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "ast_file", type=str, help="name of AST input file"
-    )
+    parser.add_argument("ast_file", type=str, help="name of AST input file")
     parser.add_argument(
         "--sed_grid_file", type=str, default=None, help="name of SED grid file"
     )

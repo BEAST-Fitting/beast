@@ -1,6 +1,6 @@
 from astropy.tests.helper import remote_data
 
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 from beast.observationmodel.noisemodel import generic_noisemodel as noisemodel
 from beast.fitting.trim_grid import trim_models
 from beast.tests.helpers import download_rename, compare_hdf5
@@ -40,7 +40,7 @@ def test_trim_grid():
     obsdata = get_obscat(obs_fname, filters, obs_colnames, vega_fname=vega_fname)
 
     # get the modesedgrid
-    modelsedgrid = FileSEDGrid(seds_fname)
+    modelsedgrid = SEDGrid(seds_fname)
 
     # read in the noise model just created
     noisemodel_vals = noisemodel.get_noisemodelcat(noise_fname)

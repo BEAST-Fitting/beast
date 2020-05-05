@@ -8,7 +8,7 @@ import numpy as np
 from astropy.table import Table
 import tables
 
-from beast.physicsmodel.grid import FileSEDGrid, SpectralGrid
+from beast.physicsmodel.grid import SEDGrid, SpectralGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 
 
@@ -100,7 +100,7 @@ def remove_filters_from_files(
     if physgrid is not None:
 
         # read in the sed grid
-        g0 = FileSEDGrid(physgrid, backend="cache")
+        g0 = SEDGrid(physgrid, backend="cache")
 
         # extract info
         filters = g0.header["filters"].split(" ")

@@ -7,7 +7,7 @@ import pickle
 
 # BEAST imports
 from beast.fitting import fit
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.tools import verify_params
 from beast.tools.run.helper_functions import parallel_wrapper
@@ -267,7 +267,7 @@ def fit_submodel(
         subgrid_run = False
 
     # load the SED grid and noise model
-    modelsedgrid = FileSEDGrid(modelsedgrid_file)
+    modelsedgrid = SEDGrid(modelsedgrid_file)
     noisemodel_vals = noisemodel.get_noisemodelcat(noise_file)
 
     if subgrid_run:

@@ -13,7 +13,7 @@ import time
 # BEAST imports
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.fitting import trim_grid
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 
 
 # datamodel only needed for the get_obscat function
@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     # get the modesedgrid on which to generate the noisemodel
     print("Reading the model grid files = ", modelfile)
-    modelsedgrid = FileSEDGrid(modelfile)
+    modelsedgrid = SEDGrid(modelfile)
 
     new_time = time.clock()
     print("time to read: ", (new_time - start_time) / 60.0, " min")

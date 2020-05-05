@@ -20,9 +20,9 @@ from beast.physicsmodel.model_grid import (
     add_stellar_priors,
     make_extinguished_sed_grid,
 )
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 from beast.tools.run.helper_functions import parallel_wrapper
-from beast.physicsmodel.stars.isochrone import ezIsoch
+# from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.tools import verify_params
 from beast.tools import subgridding_tools
 
@@ -156,7 +156,7 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
 
         # function to process the subgrids individually
         def gen_subgrid(i, sub_name):
-            sub_g_pspec = FileSEDGrid(sub_name)
+            sub_g_pspec = SEDGrid(sub_name)
             sub_seds_fname = "{}seds.gridsub{}.hd5".format(file_prefix, i)
 
             # generate the SED grid by integrating the filter response functions

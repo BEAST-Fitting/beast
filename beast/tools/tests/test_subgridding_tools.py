@@ -8,14 +8,14 @@ import tables
 
 from beast.tools import subgridding_tools
 from beast.tests.helpers import download_rename
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 from beast.observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
 from beast.fitting.tests.test_fit_grid import get_obscat
 from beast.fitting import fit
 
 
 def split_and_check(grid_fname, num_subgrids):
-    complete_g = FileSEDGrid(grid_fname)
+    complete_g = SEDGrid(grid_fname)
     sub_fnames = subgridding_tools.split_grid(grid_fname, num_subgrids)
 
     # count the number of grid cells
@@ -23,7 +23,7 @@ def split_and_check(grid_fname, num_subgrids):
     sub_grids = []
 
     for sub_fname in sub_fnames:
-        sub_g = FileSEDGrid(sub_fname)
+        sub_g = SEDGrid(sub_fname)
 
         sub_seds.append(sub_g.seds)
         sub_grids.append(sub_g.grid)

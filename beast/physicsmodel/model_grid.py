@@ -3,7 +3,7 @@ import os
 import numpy as np
 from astropy import units
 
-from beast.physicsmodel import grid
+from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel import creategrid
 from beast.physicsmodel.stars import isochrone, stellib
 from beast.physicsmodel.stars.isochrone import ezIsoch
@@ -237,7 +237,7 @@ def make_spectral_grid(
                 gk = apply_distance_and_spectral_props(gk)
                 gk.writeHDF(spec_fname, append=True)
 
-    g = grid.FileSpectralGrid(spec_fname, backend="memory")
+    g = SEDGrid(spec_fname, backend="memory")
 
     return (spec_fname, g)
 
@@ -258,7 +258,7 @@ def add_stellar_priors(project, specgrid,
     project: str
         project name
 
-    specgrid: grid.SpectralGrid object
+    specgrid: SpectralGrid object
         spectral grid to transform
 
     distance_prior_model: dict
@@ -281,7 +281,7 @@ def add_stellar_priors(project, specgrid,
     fname: str
        name of saved file
 
-    g: grid.SpectralGrid object
+    g: SpectralGrid object
         spectral grid to transform
     """
     if priors_fname is None:
@@ -306,7 +306,7 @@ def add_stellar_priors(project, specgrid,
             for gk in specgrid:
                 gk.writeHDF(priors_fname, append=True)
 
-    g = grid.FileSpectralGrid(priors_fname, backend="memory")
+    g = SpectralGrid(priors_fname, backend="memory")
 
     return (priors_fname, g)
 
@@ -338,7 +338,7 @@ def make_extinguished_sed_grid(
     project: str
         project name
 
-    specgrid: grid.SpectralGrid object
+    specgrid: SpectralGrid object
         spectral grid to transform
 
     filters: sequence
@@ -385,7 +385,7 @@ def make_extinguished_sed_grid(
     fname: str
        name of saved file
 
-    g: grid.SpectralGrid object
+    g: SpectralGrid object
         spectral grid to transform
     """
     if seds_fname is None:
@@ -436,6 +436,6 @@ def make_extinguished_sed_grid(
             for gk in g:
                 gk.writeHDF(seds_fname, append=True)
 
-    g = grid.FileSEDGrid(seds_fname, backend="hdf")
+    g = SEDGrid(seds_fname, backend="hdf")
 
     return (seds_fname, g)

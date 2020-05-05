@@ -10,7 +10,7 @@ from astropy.io import fits
 from astropy.table import Table
 
 from beast.observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
-from beast.physicsmodel import grid
+from beast.physicsmodel.grid import SEDGrid
 # from beast.external import eztables
 from beast.fitting.fit import save_pdf1d
 from beast.fitting.fit_metrics import percentile
@@ -58,7 +58,7 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
         the names of the newly created subgrid files
     """
 
-    g = grid.FileSEDGrid(grid_fname, backend="hdf")
+    g = SEDGrid(grid_fname, backend="hdf")
 
     fnames = []
 
@@ -77,8 +77,8 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
 
         print("constructing subgrid " + str(i))
 
-        # Load a slice as a SpectralGrid object
-        sub_g = grid.SpectralGrid(
+        # Load a slice as a SEDGrid object
+        sub_g = SEDGrid(
             g.lamb[:],
             seds=g.seds[slc],
             grid=Table(g.grid[slc]),
@@ -110,7 +110,7 @@ def merge_grids(seds_fname, sub_names):
     if not os.path.isfile(seds_fname):
         for n in sub_names:
             print("Appending {} to {}".format(n, seds_fname))
-            g = grid.FileSEDGrid(n)
+            g = SEDGrid(n)
             g.writeHDF(seds_fname, append=True)
     else:
         print("{} already exists".format(seds_fname))
@@ -138,7 +138,7 @@ def subgrid_info(grid_fname, noise_fname=None):
     """
 
     # Use the HDFStore (pytables) backend
-    sedgrid = grid.FileSEDGrid(grid_fname, backend="memory")
+    sedgrid = SEDGrid(grid_fname, backend="memory")
     seds = sedgrid.seds
 
     info_dict = {}
