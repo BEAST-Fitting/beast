@@ -6,7 +6,7 @@ from beast.physicsmodel.grid import SEDGrid
 from beast.tests.helpers import compare_tables
 
 
-def test_sedgrid_hdf5():
+def test_sedgrid():
     """
     Simple tests of the SpectralGrid class
     """
@@ -14,7 +14,7 @@ def test_sedgrid_hdf5():
     filter_names = ["BAND1", "BAND2", "BAND3"]
     n_models = 100
     lamb = [1.0, 2.0, 3.0]
-    seds = np.array((n_models, n_bands))
+    seds = np.zeros((n_models, n_bands))
     cols = {"Av": [1.0, 1.1, 1.3], "Rv": [2.0, 3.0, 4.0]}
     header = {"Origin": "test_code"}
     gtable = Table(cols)
@@ -35,20 +35,23 @@ def test_sedgrid_hdf5():
     compare_tables(tgrid.grid, gtable)
     assert tgrid.grid.keys() == list(cols.keys()), "colnames of grid not equal"
 
-    # test writing a HDF5 file
-    tfile = NamedTemporaryFile(suffix=".hd5")
-    tgrid.writeHDF(tfile.name)
+    # test writing and reading to disk in different formats
+    fileformats = [".fits", ".hdf5"]
+    for cformat in fileformats:
+        print(f"testing {cformat}")
+        tfile = NamedTemporaryFile(suffix=cformat)
+        tgrid.write(tfile.name)
 
-    # read in the HD5 file
-    dgrid = SEDGrid(tfile.name, backend="memory")
+        # read in the HD5 file
+        dgrid = SEDGrid(tfile.name, backend="memory")
 
-    # check that the grid has the expected values
-    np.testing.assert_allclose(dgrid.lamb, lamb, err_msg="file grid lambdas not equal")
-    np.testing.assert_allclose(dgrid.seds, seds, err_msg="file grid seds not equal")
-    assert isinstance(dgrid.nbytes, int), "grid nbytes property not int"
-    compare_tables(dgrid.grid, gtable)
-    assert dgrid.grid.keys() == list(cols.keys()), "colnames of grid not equal"
+        # check that the grid has the expected values
+        np.testing.assert_allclose(dgrid.lamb, lamb, err_msg=f"{cformat} file grid lambdas not equal")
+        np.testing.assert_allclose(dgrid.seds, seds, err_msg=f"{cformat} file grid seds not equal")
+        assert isinstance(dgrid.nbytes, int), f"{cformat} file grid nbytes property not int"
+        compare_tables(dgrid.grid, gtable, otag=f"{cformat} file")
+        assert dgrid.grid.keys() == list(cols.keys()), f"{cformat} file colnames of grid not equal"
 
 
 if __name__ == "__main__":
-    test_sedgrid_hdf5()
+    test_sedgrid()

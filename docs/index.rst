@@ -50,6 +50,7 @@ Developer Documentation
    :maxdepth: 2
 
    How to contribute <beast_development.rst>
+   Internal Classes <development_classes.rst>
 
 Reporting Issues
 ================

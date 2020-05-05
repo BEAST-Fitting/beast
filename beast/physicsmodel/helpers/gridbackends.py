@@ -100,17 +100,13 @@ class GridBackend(object):
     def _get_type(self, fname):
         """_get_type -- guess the type of the file fname
         """
-        types = {"fits": "fits", "hdf": "hdf", "hd5": "hdf", "hdf5": "hdf5"}
-        # if fname.split('.')[-1] not in types:
-        #    print(fname)
-        #    try:
-        #        hdulist = fits.open(fname)
-        #        rtype = 'fits'
-        #    except:
-        #        print('An error occured trying to read the file.')
+        types = {"fits": "fits", "hdf": "hdf", "hd5": "hdf", "hdf5": "hdf"}
         # else:
-        rtype = types[fname.split(".")[-1]]
-        return rtype
+        fext = fname.split(".")[-1]
+        if fext not in types:
+            raise ValueError(f"{fext} file type not supported")
+        else:
+            return types[fext]
 
     def __repr__(self):
         """__repr__"""
@@ -265,7 +261,7 @@ class MemoryBackend(GridBackend):
 
     def _from_File(self, fname):
         """
-        Load the content of a FITS or HDF file
+        Load the content of a file
 
         Parameters
         ----------
@@ -277,21 +273,29 @@ class MemoryBackend(GridBackend):
         # load_seds - load wavelength and seds
         if self._get_type(fname) == "fits":
             with fits.open(fname) as f:
-                self.seds = f[0].data[:-1]
-                self.lamb = f[0].data[-1]
-            self.grid = Table.read(fname)
+                self.lamb = f[0].data
+                self.seds = f["seds"].data
+                try:
+                    self.cov_diag = f["covdiag"].data
+                except Exception:
+                    self.cov_diag = None
+                try:
+                    self.cov_offdiag = f["covoffdiag"].data
+                except Exception:
+                    self.cov_offdiag = None
+                self.grid = Table(f["grid"].data)
 
         elif self._get_type(fname) == "hdf":
             with h5py.File(fname, "r") as s:
                 self.seds = s["seds"][()]
                 self.lamb = s["lamb"][()]
-                try:
+                if "covdiag" in s.keys():
                     self.cov_diag = s["covdiag"][()]
-                except Exception:
+                else:
                     self.cov_diag = None
-                try:
+                if "covdiag" in s.keys():
                     self.cov_offdiag = s["covoffdiag"][()]
-                except Exception:
+                else:
                     self.cov_offdiag = None
             self.grid = Table.read(fname, path="grid", format="hdf5")
 
@@ -301,7 +305,21 @@ class MemoryBackend(GridBackend):
         ):
             self._header["filters"] = self._header["filters"].decode()
 
-    def writeFITS(self, fname):
+    def write(self, fname):
+        """
+        Save the file in a format based on the filename extension
+
+        fname: str
+            filename (incl. path)
+        """
+        if self._get_type(fname) == "fits":
+            self.writeFITS(fname)
+        elif self._get_type(fname) == "hdf":
+            self.writeHDF(fname)
+        else:
+            raise ValueError(f"{fname} format not supported")
+
+    def writeFITS(self, fname, overwrite=False):
         """
         Save to fits file
 
@@ -309,16 +327,25 @@ class MemoryBackend(GridBackend):
         ----------
         fname: str
             filename (incl. path) to export to
+
+        overwrite : bool, optional
+            Set to overwrite the fits file
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
             if not isinstance(self.grid, Table):
                 raise TypeError("Only astropy.Table are supported")
-            r = numpy.vstack([self.seds, self.lamb])
-            fits.writeto(fname, r)
-            if getattr(self, "filters", None) is not None:
-                if "FILTERS" not in list(self.grid.meta.keys()):
-                    self.grid.meta["FILTERS"] = " ".join(self.filters)
-            self.grid.write(fname, append=True)
+
+            hdulist = fits.HDUList()
+            hdulist.append(fits.PrimaryHDU(self.lamb))
+            hdulist.append(fits.ImageHDU(self.seds, name="seds"))
+            if self.cov_diag is not None:
+                hdulist.append(fits.ImageHDU(self.cov_diag, name="conv_diag"))
+            if self.cov_offdiag is not None:
+                hdulist.append(fits.ImageHDU(self.cov_offdiag, name="conv_offdiag"))
+            hdulist.append(fits.BinTableHDU(self.grid, name="grid"))
+            hdulist.writeto(fname, overwrite=overwrite)
+        else:
+            raise ValueError("Full data set not specified (lamb, seds, grid)")
 
     def writeHDF(self, fname, append=False):
         """
@@ -329,7 +356,7 @@ class MemoryBackend(GridBackend):
         fname : str
             filename (incl. path)
 
-        append: bool, optional (default False)
+        append : bool, optional (default False)
             if set, it will append data to each Array or Table
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
@@ -354,6 +381,8 @@ class MemoryBackend(GridBackend):
             # append the table of the grid parameters to the file
             self.grid.meta = self.header
             self.grid.write(fname, path="grid", format="hdf5", append=True)
+        else:
+            raise ValueError("Full data set not specified (lamb, seds, grid)")
 
     def copy(self):
         """ implement a copy method """
@@ -397,7 +426,6 @@ class CacheBackend(GridBackend):
 
         Parameters
         ----------
-
         attrname: str in [lamb, filters, grid, header, lamb, seds]
             if provided clear only one attribute
             else all cache will be erased

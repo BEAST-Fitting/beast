@@ -3,7 +3,6 @@ SED/spectral grids
 """
 import sys
 import numpy as np
-from copy import deepcopy
 
 from beast.observationmodel import phot
 from beast.physicsmodel.dust import extinction
@@ -15,7 +14,7 @@ from beast.physicsmodel.helpers.gridbackends import (
 )
 from beast.physicsmodel.helpers.gridhelpers import pretty_size_print, isNestedInstance
 
-__all__ = ["ModelGrid", "SEDGrid", "SpectralGrid", "StellibGrid"]
+__all__ = ["ModelGrid", "SEDGrid", "SpectralGrid"]
 
 
 def find_backend(txt):
@@ -305,24 +304,3 @@ class SpectralGrid(ModelGrid):
             for k, v in kwargs.items():
                 self.header[k] = v
             self.seds = self.seds[:] * extCurve[None, :]
-
-
-class StellibGrid(SpectralGrid):
-    """ Generate a grid from a spectral library """
-
-    def __init__(self, osl, filters, header={}, aliases={}, *args, **kwargs):
-        self.osl = osl
-        lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
-        super(StellibGrid, self).__init__(
-            lamb,
-            seds=seds,
-            grid=self.osl.grid,
-            header=header,
-            aliases=aliases,
-            backend=MemoryBackend,
-        )
-        self.filters = filters
-
-    def copy(self):
-        g = super(StellibGrid, self).copy()
-        g.osl = deepcopy(self.osl)
