@@ -32,15 +32,13 @@ import copy
 from astropy.table import Table
 
 from beast.physicsmodel.helpers.hdfstore import HDFStore
-from beast.physicsmodel.helpers.gridhelpers import isNestedInstance, pretty_size_print
+from beast.physicsmodel.helpers.gridhelpers import pretty_size_print
 
 __all__ = ["GridBackend", "MemoryBackend", "CacheBackend", "HDFBackend"]
 
 
 class GridBackend(object):
     """
-    GridBackend
-
     How the content of a grid is handled. The idea is to provide enough
     flexibility that low-memory footprint can be achieved if needed
 
@@ -178,43 +176,6 @@ class GridBackend(object):
         else:
             raise ValueError("Full data set not specified (lamb, seds, grid)")
 
-    # not sure anything below this actually works : KDG 3 May 2020
-    # giving recursion errors, but this may be related to moving away from
-    # the pytables hdf5 interface
-    # or maybe not, no testing of grid backends till above date
-
-    def _from_HDFBackend(self, b):
-        """_from_HDFBackend -- convert from HDFBackend
-
-        Parameters
-        ----------
-
-        b: GridBackend or sub class
-            backend to convert from
-        """
-        self.lamb = b.lamb.read()
-        self.seds = b.seds.read()
-        self.grid = Table(b.grid.read())
-        self._filters = b._filters[:]
-        self._header = b.header
-        self._aliases = b._aliases
-
-    def _from_GridBackend(self, b):
-        """
-        _from_GridBackend -- convert from generic backend
-
-        Parameters
-        ----------
-        b: GridBackend or sub class
-            backend to convert from
-        """
-        self.lamb = b.lamb
-        self.seds = b.seds
-        self.grid = b.grid
-        self._filters = b._filters
-        self._header = b.header
-        self._aliases = b._aliases
-
     def copy(self):
         """ implement a copy method """
         g = GridBackend()
@@ -275,11 +236,7 @@ class MemoryBackend(GridBackend):
         super().__init__()
 
         # read from various formats
-        if isinstance(lamb, HDFBackend):
-            self._fromHDFBackend(lamb)
-        elif isNestedInstance(lamb, GridBackend):
-            self._from_GridBackend(lamb)
-        elif isinstance(lamb, (str, bytes)):
+        if isinstance(lamb, (str, bytes)):
             self._from_File(lamb)
         else:
             if (seds is None) | (grid is None):
