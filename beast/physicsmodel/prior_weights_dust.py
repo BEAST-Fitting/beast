@@ -202,7 +202,7 @@ class PriorWeightsDust:
 
         Parameters
         ----------
-        model: string
+        model: dict
           Choice of model type [default=flat]
           flat = flat prior on linear A(V)
           lognormal = lognormal prior on linear A(V)
@@ -229,7 +229,7 @@ class PriorWeightsDust:
             self.av_priors = _exponential(self.av_vals, a=model["a"])
         else:
             raise NotImplementedError(
-                "**error in setting the A(V) dust prior weights!**"
+                "**Error in setting the A(V) dust prior weights!**"
                 + "**model "
                 + model["name"]
                 + " not supported**"
@@ -244,7 +244,7 @@ class PriorWeightsDust:
 
         Parameters
         ----------
-        model: string
+        model: dict
           Choice of model type [default=flat]
           flat = flat prior on linear R(V)
           lognormal = lognormal prior on linear R(V)
@@ -283,7 +283,7 @@ class PriorWeightsDust:
 
         Parameters
         ----------
-        model: string
+        model: dict
           Choice of model type [default=flat]
           flat = flat prior on linear f_A
           lognormal = lognormal prior on linear f_A

@@ -45,7 +45,6 @@ Note that the 50th weighted percentile is known as the weighted median.
 import numpy as np
 
 
-
 def percentile(data, percentiles, weights=None):
     """Compute weighted percentiles.
 
@@ -110,7 +109,6 @@ def percentile(data, percentiles, weights=None):
 
     _wt = np.asarray(weights, dtype=float)
 
-
     isort = np.argsort(_data)
     sd = _data[isort]
     sw = _wt[isort]
@@ -120,10 +118,9 @@ def percentile(data, percentiles, weights=None):
         raise ValueError("Nonpositive weight sum")
 
     w = (aw - 0.5 * sw) / np.sum(sw)
-    o = np.interp(_p,w,sd)
+    o = np.interp(_p, w, sd)
 
     return o
-
 
 
 def expectation(q, weights=None):
@@ -155,7 +152,7 @@ def expectation(q, weights=None):
 
     NOTE
     -------
-    (1) This function is about 30% fater than usning numpy.average
+    (1) This function is about 30% faster than using numpy.average
         to compute expectation values -- test by Yumi Choi on 1/17/2020
     """
 

@@ -14,9 +14,11 @@ from beast.physicsmodel.grid_weights_stars import (
 )
 
 __all__ = [
+    "compute_distance_prior_weights",
     "compute_age_prior_weights",
     "compute_mass_prior_weights",
     "compute_metallicity_prior_weights",
+    "imf_kroupa",
 ]
 
 
@@ -45,6 +47,14 @@ def compute_age_prior_weights(logages, age_prior_model):
         # assumes the logace spacing is uniform
         age_weights = 1.0 / compute_age_grid_weights(logages)
     elif age_prior_model["name"] == "bins_histo":
+        # check if all ages within interpolation range
+        if np.all(
+            [np.max(logages) <= x <= np.min(logages) for x in age_prior_model["values"]]
+        ):
+            raise ValueError(
+                "Age prior weight error: Requested ages outside of model range"
+            )
+
         # interpolate according to bins, assuming SFR constant from i to i+1
         # and allow for bin edges input
         if len(age_prior_model["values"]) == len(age_prior_model["logages"]) - 1:
@@ -64,7 +74,7 @@ def compute_age_prior_weights(logages, age_prior_model):
         # assumes SFR(t) \propto e**(-t/tau) \propto e**(age/tau)
         # where age \propto -t (for age=t0-t) and tau in Gyr
         vals = (10 ** logages) / (age_prior_model["tau"] * 1e9)
-        age_weights = np.exp(vals)
+        age_weights = np.exp(-1.0 * vals)
     else:
         raise NotImplementedError(
             "input age prior ''{}'' function not supported".format(
@@ -136,6 +146,23 @@ def imf_salpeter(x):
     return x ** (-2.35)
 
 
+def imf_flat(x):
+    """
+    Compute a flat IMF (useful for simulations, not for normal BEAST runs)
+
+    Parameters
+    ----------
+    x : numpy vector
+      masses
+
+    Returns
+    -------
+    imf : numpy vector
+      unformalized IMF
+    """
+    return 1.0
+
+
 def compute_mass_prior_weights(masses, mass_prior_model):
     """
     Compute the mass prior for the specificed model
@@ -154,6 +181,7 @@ def compute_mass_prior_weights(masses, mass_prior_model):
       Unnormalized IMF integral for each input mass
       integration is done between each bin's boundaries
     """
+
     # sort the initial mass along this isochrone
     sindxs = np.argsort(masses)
 
@@ -168,6 +196,8 @@ def compute_mass_prior_weights(masses, mass_prior_model):
         imf_func = imf_kroupa
     elif mass_prior_model["name"] == "salpeter":
         imf_func = imf_salpeter
+    elif mass_prior_model["name"] == "flat":
+        imf_func = imf_flat
     else:
         raise NotImplementedError("input mass prior function not supported")
 
@@ -197,7 +227,7 @@ def compute_metallicity_prior_weights(mets, met_prior_model):
     Returns
     -------
     metallicity_weights : numpy vector
-       weights to provide a flat metallicity
+       weights to provide the requested prior model
     """
     if met_prior_model["name"] == "flat":
         met_weights = np.full(len(mets), 1.0)
@@ -208,3 +238,30 @@ def compute_metallicity_prior_weights(mets, met_prior_model):
     met_weights /= np.average(met_weights)
 
     return met_weights
+
+
+def compute_distance_prior_weights(dists, dist_prior_model):
+    """
+    Computes the distance prior for the specified model
+
+    Parameters
+    ----------
+    dists : numpy vector
+        distances
+    dist_prior_model: dict
+        dict including prior model name and parameters
+
+    Returns
+    -------
+    dists_weights : numpy vector
+       weights to provide the requested prior model
+    """
+    if dist_prior_model["name"] == "flat":
+        dists_weights = np.full(len(dists), 1.0)
+    else:
+        raise NotImplementedError("input distance prior function not supported")
+
+    # normalize to avoid numerical issues (too small or too large)
+    dists_weights /= np.average(dists_weights)
+
+    return dists_weights

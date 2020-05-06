@@ -8,7 +8,7 @@ from beast.physicsmodel import creategrid
 from beast.physicsmodel.stars import isochrone, stellib
 from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.physicsmodel.dust import extinction
-from beast.physicsmodel.grid_and_prior_weights import compute_age_mass_metallicity_weights
+from beast.physicsmodel.grid_and_prior_weights import compute_distance_age_mass_metallicity_weights
 
 __all__ = [
     "make_iso_table",
@@ -243,6 +243,7 @@ def make_spectral_grid(
 
 
 def add_stellar_priors(project, specgrid,
+                       distance_prior_model={'name': 'flat'},
                        age_prior_model={'name': 'flat'},
                        mass_prior_model={'name': 'kroupa'},
                        met_prior_model={'name': 'flat'},
@@ -259,6 +260,9 @@ def add_stellar_priors(project, specgrid,
 
     specgrid: grid.SpectralGrid object
         spectral grid to transform
+
+    distance_prior_model: dict
+        dict including prior model name and parameters
 
     age_prior_model: dict
         dict including prior model name and parameters
@@ -287,8 +291,9 @@ def add_stellar_priors(project, specgrid,
         if verbose:
             print("Make Prior Weights")
 
-        compute_age_mass_metallicity_weights(
+        compute_distance_age_mass_metallicity_weights(
             specgrid.grid,
+            distance_prior_model=distance_prior_model,
             age_prior_model=age_prior_model,
             mass_prior_model=mass_prior_model,
             met_prior_model=met_prior_model,

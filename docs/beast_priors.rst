@@ -136,6 +136,15 @@ The two mass function supported are:
 
   mass_prior_model = {'name': 'salpeter'}
 
+There is also a flat mass prior.  This is useful for creating grids for BEAST
+verification (see :doc:`Simulations <simulations>`), and should not be
+used for a standard fitting run.
+
+.. code-block:: python
+
+  mass_prior_model = {'name': 'flat'}
+
+
 Plot showing examples of the possible mass prior models with the parameters given above.
 
 .. plot::
@@ -152,7 +161,8 @@ Plot showing examples of the possible mass prior models with the parameters give
 
     mass_prior_models = [
         {"name": "kroupa"},
-        {"name": "salpeter"}
+        {"name": "salpeter"},
+        {"name": "flat"}
     ]
 
     for mp_mod in mass_prior_models:
@@ -177,7 +187,7 @@ The metallicity prior can be
 
   met_prior_model = {'name': 'flat'}
 
-Plot showing examples of the possible mass prior models with the parameters given above.
+Plot showing examples of the possible metallicity prior models with the parameters given above.
 
 .. plot::
 
@@ -202,6 +212,41 @@ Plot showing examples of the possible mass prior models with the parameters give
     plt.tight_layout()
     plt.show()
 
+Distance
+--------
+
+The distance prior can be
+
+1. Flat
+
+.. code-block:: python
+
+  distance_prior_model = {'name': 'flat'}
+
+Plot showing examples of the possible distance prior models with the parameters given above.
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from beast.physicsmodel.prior_weights_stars import compute_distance_prior_weights
+
+    fig, ax = plt.subplots()
+
+    # met grid with linear spacing
+    dists = np.linspace(8e6, 9e6)
+
+    distance_prior_models = [{"name": "flat"},]
+
+    for mp_mod in distance_prior_models:
+        ax.plot(dists, compute_distance_prior_weights(dists, mp_mod), label=mp_mod["name"])
+
+    ax.set_ylabel("probability")
+    ax.set_xlabel("distance [pc]")
+    ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
 
 Extinction
 ==========
@@ -416,9 +461,3 @@ given by sigma.
     ax.legend(loc="best")
     plt.tight_layout()
     plt.show()
-
-
-Distance
-========
-
-[TBD]

@@ -19,21 +19,18 @@ class pdf2d:
         maxval_p2=None,
     ):
         """
-        Create an object which can be used to efficiently generate a 1D pdf for an observed object
+        Create an object which can be used to efficiently generate a 2D pdf
+        for an observed object
 
         Parameters
         ----------
-
-        gridvals_p1, gridvals_p2: array-like
-            values of the quantity for all the grid points
-
-        nbins_p1, nbins_p2: int
-            number of bins to use for each dimension of the 2D PDF
-
-        logspacing_p1, logspacing_p2: bool
-            whether to use logarithmic spacing for the bins of each dimension
-
-        minval_p1, maxval_p1, minval_p2, maxval_p2: float (optional)
+        gridvals_p1, gridvals_p2 : ndarray
+            1D `float` array with the values of the quantity for all the grid points
+        nbins_p1, nbins_p2 : int
+            number of bins to use for the 1D pdf
+        logspacing_p1, logspacing_p2 : bool, optional
+            whether to use logarithmic spacing for the bins
+        minval_p1, maxval_p1, minval_p2, maxval_p2 : float, optional
             override the range for the bins. this can be useful to make
             sure that the pdfs for different runs have the same bins
         """
@@ -41,7 +38,7 @@ class pdf2d:
         # copy values over
         self.nbins_p1 = nbins_p1
         self.nbins_p2 = nbins_p2
-        self.n_gridvals = len(gridvals_p1) # same as len(gridvals_p2)
+        self.n_gridvals = len(gridvals_p1)  # same as len(gridvals_p2)
         self.logspacing_p1 = logspacing_p1
         self.logspacing_p2 = logspacing_p2
 
@@ -67,20 +64,28 @@ class pdf2d:
 
         # set bin widths
         if self.nbins_p1 > 1:
-            self.bin_delta_p1 = (self.max_val_p1 - self.min_val_p1) / (self.nbins_p1 - 1)
+            self.bin_delta_p1 = (self.max_val_p1 - self.min_val_p1) / (
+                self.nbins_p1 - 1
+            )
         else:
             self.bin_delta_p1 = 1
         if self.nbins_p2 > 1:
-            self.bin_delta_p2 = (self.max_val_p2 - self.min_val_p2) / (self.nbins_p2 - 1)
+            self.bin_delta_p2 = (self.max_val_p2 - self.min_val_p2) / (
+                self.nbins_p2 - 1
+            )
         else:
             self.bin_delta_p2 = 1
 
         # set values for the bin middles/edges
-        self.bin_vals_p1 = self.min_val_p1 + np.arange(self.nbins_p1) * self.bin_delta_p1
+        self.bin_vals_p1 = (
+            self.min_val_p1 + np.arange(self.nbins_p1) * self.bin_delta_p1
+        )
         self.bin_edges_p1 = (
             self.min_val_p1 + (np.arange(self.nbins_p1 + 1) - 0.5) * self.bin_delta_p1
         )
-        self.bin_vals_p2 = self.min_val_p2 + np.arange(self.nbins_p2) * self.bin_delta_p2
+        self.bin_vals_p2 = (
+            self.min_val_p2 + np.arange(self.nbins_p2) * self.bin_delta_p2
+        )
         self.bin_edges_p2 = (
             self.min_val_p2 + (np.arange(self.nbins_p2 + 1) - 0.5) * self.bin_delta_p2
         )
@@ -97,7 +102,7 @@ class pdf2d:
         for i in range(self.nbins_p1):
             for j in range(self.nbins_p2):
                 # find the indicies for the current bin
-                cur_bin_indxs, = np.where(
+                (cur_bin_indxs,) = np.where(
                     (pdf_bin_num_p1 == (i + 1)) & (pdf_bin_num_p2 == (j + 1))
                 )
                 # save them
@@ -114,8 +119,23 @@ class pdf2d:
 
         self.pdf_bin_indxs = pdf_bin_indxs
 
-
     def gen2d(self, gindxs, weights):
+        """
+        Compute the 2D posterior PDFs based on the nD probabilities
+
+        Parameters
+        ----------
+        gindxs : ndarray
+            1D `int` array with the indxs of the weights in the full model grid
+        weights : ndarray
+            1D `float` array with the fit probabilities (likelihood*prior)
+            at each grid point
+
+        Returns
+        -------
+        vals_2d : ndarray
+            2D `float` array giving the bin pPDF values
+        """
 
         _tgrid = np.zeros(self.n_gridvals)
         _tgrid[gindxs] = weights
@@ -123,6 +143,6 @@ class pdf2d:
         for i in range(self.nbins_p1):
             for j in range(self.nbins_p2):
                 if len(self.pdf_bin_indxs[i][j]) > 0:
-                    _vals_2d[i,j] = np.sum(_tgrid[self.pdf_bin_indxs[i][j]])
+                    _vals_2d[i, j] = np.sum(_tgrid[self.pdf_bin_indxs[i][j]])
 
         return _vals_2d

@@ -81,7 +81,7 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
     )
 
     # remove the isochrone points with logL=-9.999
-    oiso = ezIsoch(oiso.selectWhere("*","logL > -9"))
+    oiso = ezIsoch(oiso.selectWhere("*", "logL > -9"))
 
     if hasattr(datamodel, "add_spectral_properties_kwargs"):
         extra_kwargs = datamodel.add_spectral_properties_kwargs
@@ -113,6 +113,7 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
         age_prior_model=datamodel.age_prior_model,
         mass_prior_model=datamodel.mass_prior_model,
         met_prior_model=datamodel.met_prior_model,
+        distance_prior_model=datamodel.distance_prior_model,
     )
 
     # --------------------

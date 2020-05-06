@@ -173,7 +173,7 @@ line will start with ``0 1 X Y``, which are the first four columns required by
 DOLPHOT to define the input star position.
 
 The code will also optionally output a fits file, `[project]/[project]_ASTparams.fits`,
-which has the physical parameters associated with each of the artificial stars.  It
+which has the physical parameters associated with each of the artificial stars as well as their indices in the spec and sed grids. It
 will have either
 approximately `ast_n_flux_bins * ast_n_per_flux_bin` lines or
 `<number of ages> * ast_models_selected_per_age` lines, and has the same

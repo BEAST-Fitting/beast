@@ -63,7 +63,7 @@ def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None, None], use_rat
 
         sd_list = []
         for ast_file in ast_file_list:
-            dpos = ast_file.find("_bin")
+            dpos = ast_file.rfind("_bin")
             ppos = ast_file.rfind(".")
             sd_list.append(ast_file[dpos + 4 : ppos])
         print("sd list: ", sd_list)

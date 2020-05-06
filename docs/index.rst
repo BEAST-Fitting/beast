@@ -36,6 +36,8 @@ User Documentation
    Generating AST inputs <generating_asts.rst>
    Simulating observations <simulations.rst>
    Plotting Tools <plotting_tools.rst>
+   Analysis Tools <analysis_tools.rst>
+   Other Tools <other_tools.rst>
    Format of BEAST grid files <beast_grid_format.rst>
    Details on BEAST libraries for grid <beast_grid_inputs.rst>
    BEAST output files <outputs.rst>
@@ -98,3 +100,4 @@ Reference API
    physicsmodel_api.rst
    observationmodel_api.rst
    fitting_api.rst
+   tools_api.rst

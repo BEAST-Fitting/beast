@@ -26,18 +26,26 @@ of this file will determine the type of file output (e.g. filebase.fits for
 a FITS file).
 The number of observations to simulate is given by the `--nsim` parameter.
 The filter to use for the completeness function is given by the
-`--compl_filter` parameter.
+`--compl_filter` parameter.  By default, the SEDs are randomly chosen, and
+weighted by their grid+prior weights; this can be changed with the
+`--weight_to_use` parameter.
 
 .. code-block:: console
 
    $ python simulate_obs.py physicsgrid obsgrid outfile \
-                --nsim 200 --compl_filter f475w
+                --nsim 200 --compl_filter F475W
 
 The output file gives the simulated data in the observed data columns
 identified in the physicsgrid file along with all the model parameters
 from the physicsgrid file.  The names of the observed columns are
 `band_rate` and the units are normalized Vega fluxes (to match how
 the observed data are given).
+
+When creating simulated observations, using the standard IMF mass prior will
+skew your catalog to lower-mass stars.  If you wish to have similar weights for
+stars of all masses, use a flat IMF and a log-flat age prior.  To do this,
+set the mass prior to `{'name': 'flat'}` and the age prior to
+`{'name': 'flat_log'}` in `datamodel.py` before creating the model grid.
 
 *********
 Truncheon
@@ -75,17 +83,17 @@ simulations with the BEAST.  A quicker way to do this is to create the
 physics/observation grid set with the full set of desired filters, create
 the desired simulations, remove filters from the model and simulations as
 needed, and then fit with the BEAST.  This has the benefit of the simulations
-with different filter sets are exactly the same expect for the removed filters.
+with different filter sets are exactly the same except for the removed filters.
 
 As an example, to remove the filters F275W and F336W from the simulated
-observations contained in 'catfile' and the 'physgrid'/'obsgrid' set of models
-use the following command.
+observations contained in 'catfile.fits' and the 'physgrid.hd5'/'obsgrid.hd5'
+set of models use the following command.
 
 .. code-block:: console
 
-   $ python remove_filters.py catfile physgrid obsgrid outbase \
-                --rm_filters F275W F336W
+   $ python remove_filters.py catfile.fits --physgrid physgrid.hd5 \
+        --obsgrid obsgrid.hd5 --outbase outbase --rm_filters F275W F336W
 
 New physics/observation model grids and simulated observation files are
-created as 'outbase_sed.grid.hd5', 'outbase_noisemodel.grid.hd5', and
+created as 'outbase_seds.grid.hd5', 'outbase_noisemodel.grid.hd5', and
 'outbase_cat.fits'.

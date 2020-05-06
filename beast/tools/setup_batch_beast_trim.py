@@ -51,7 +51,7 @@ def setup_batch_beast_trim(
         full_model_filename = seds_fname
 
     # photometry files
-    cat_files = sorted(glob.glob(datafile.replace(".fits", "*_sub*.fits")))
+    cat_files = sorted(glob.glob(datafile.replace(".fits", "*_bin*_sub*.fits")))
     n_cat_files = len(cat_files)
 
     # setup the subdirectory for the batch and log files
@@ -61,13 +61,13 @@ def setup_batch_beast_trim(
     filebase_list = []
     for cat_file in cat_files:
         # get the sd/sub number
-        dpos = cat_file.find("SD_")
-        spos = cat_file.find("sub")
+        dpos = cat_file.rfind("_bin")
+        spos = cat_file.rfind("sub")
         ppos = cat_file.rfind(".")
-        curr_sd = cat_file[dpos + 3 : spos - 1]
+        curr_sd = cat_file[dpos + 4 : spos - 1]
         curr_sub = cat_file[spos + 3 : ppos]
 
-        filebase_list.append("%s/%s_sd%s_sub%s" % (project, project, curr_sd, curr_sub))
+        filebase_list.append("%s/%s_bin%s_sub%s" % (project, project, curr_sd, curr_sub))
 
     # call the generic batch trim code
     generic_batch_trim(

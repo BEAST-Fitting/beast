@@ -32,7 +32,9 @@ def plot_mag_hist(data_file, stars_per_bin=100, max_bins=75):
     # read in data
     with fits.open(data_file) as hdu:
         data_table = hdu[1].data
-    filter_list = [col[:-5] for col in data_table.columns.names if "vega" in col.lower()]
+    filter_list = [
+        col[:-5] for col in data_table.columns.names if "vega" in col.lower()
+    ]
     n_filter = len(filter_list)
 
     # save the peak mags

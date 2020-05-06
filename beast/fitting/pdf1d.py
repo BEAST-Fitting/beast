@@ -7,21 +7,18 @@ import numpy as np
 class pdf1d:
     def __init__(self, gridvals, nbins, logspacing=False, minval=None, maxval=None):
         """
-        Create an object which can be used to efficiently generate a 1D pdf for an observed object
+        Create an object which can be used to efficiently generate a 1D pdf
+        for an observed object
 
         Parameters
         ----------
-
-        gridvals: array-like
-            values of the quantity for all the grid points
-
-        nbins: int
+        gridvals : ndarray
+            1D `float` array with the values of the quantity for all the grid points
+        nbins : int
             number of bins to use for the 1D pdf
-
-        logspacing: bool
+        logspacing : bool, optional
             whether to use logarithmic spacing for the bins
-
-        minval, maxval: float (optional)
+        minval, maxval : float, optional
             override the range for the bins. this can be useful to make
             sure that the pdfs for different runs have the same bins
         """
@@ -86,6 +83,24 @@ class pdf1d:
             self.pdf_bin_indxs = pdf_bin_indxs
 
     def gen1d(self, gindxs, weights):
+        """
+        Compute the 1D posterior PDFs based on the nD probabilities
+
+        Parameters
+        ----------
+        gindxs : ndarray
+            1D `int` array with the indxs of the weights in the full model grid
+        weights : ndarray
+            1D `float` array with the fit probabilities (likelihood*prior)
+            at each grid point
+
+        Returns
+        -------
+        bin_vals : ndarray
+            1D `float` array giving the values at the bin centers
+        vals_1d : ndarray
+            1D `float` array giving the bin pPDF values
+        """
 
         if self.bad:
             return (self.bin_vals, np.zeros((self.nbins)))

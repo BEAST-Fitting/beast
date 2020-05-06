@@ -65,7 +65,7 @@ def plot_completeness(
         # read in the noise model
         noisegrid = noisemodel.get_noisemodelcat(str(noise_model))
         # get the completeness
-        model_compl = noisegrid.root.completeness[:]
+        model_compl = noisegrid["completeness"]
         # close the file to save memory
         noisegrid.close()
 

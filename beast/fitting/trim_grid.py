@@ -27,35 +27,27 @@ def trim_models(
 
     Parameters
     ----------
-    sedgrid: grid.SEDgrid instance
+    sedgrid : grid.SEDgrid instance
         model grid
-
-    sedgrid_noisemodel: beast noisemodel instance
+    sedgrid_noisemodel : beast noisemodel instance
         noise model data
-
-    obsdata: Observation object instance
+    obsdata : Observation object instance
         observation catalog
-
-    sed_outname: str
+    sed_outname : str
         name for output sed file
-
-    noisemodel_outname: str
+    noisemodel_outname : str
         name for output noisemodel file
-
-    sigma_fac: float
+    sigma_fac : float, optional
         factor for trimming the upper and lower range of grid so that
         the model range cuts off sigma_fac above and below the brightest
         and faintest models, respectively (default: 3.)
-
-    n_detected: int
+    n_detected : int, optional
         minimum number of bands where ASTs yielded a detection for
         a given model, if fewer detections than n_detected this model
         gets eliminated (default: 4)
-
-    inFlux: boolean
+    inFlux : bool, optional
         if true data are in fluxes (default: True)
-
-    trunchen: boolean
+    trunchen : bool, optional
         if true use the trunchen noise model (default: False)
     """
     # Store the brigtest and faintest fluxes in each band (for data and asts)
@@ -89,19 +81,19 @@ def trim_models(
     #   that *none* were recovered and this implies
     #   that no model with these values would be recovered and thus the
     #   probability should always be zero
-    model_unc = sedgrid_noisemodel.root.error[:]
+    model_unc = sedgrid_noisemodel["error"]
     above_ast = model_unc > 0
     sum_above_ast = np.sum(above_ast, axis=1)
     indxs, = np.where(sum_above_ast >= n_detected)
 
     # cache the noisemodel values
-    model_bias = sedgrid_noisemodel.root.bias[:]
-    model_unc = np.fabs(sedgrid_noisemodel.root.error[:])
-    model_compl = sedgrid_noisemodel.root.completeness[:]
+    model_bias = sedgrid_noisemodel["bias"]
+    model_unc = np.fabs(sedgrid_noisemodel["error"])
+    model_compl = sedgrid_noisemodel["completeness"]
     if trunchen:
-        model_q_norm = sedgrid_noisemodel.root.q_norm[:]
-        model_icov_diag = sedgrid_noisemodel.root.icov_diag[:]
-        model_icov_offdiag = sedgrid_noisemodel.root.icov_offdiag[:]
+        model_q_norm = sedgrid_noisemodel["q_norm"]
+        model_icov_diag = sedgrid_noisemodel["icov_diag"]
+        model_icov_offdiag = sedgrid_noisemodel["icov_offdiag"]
 
     if len(indxs) <= 0:
         raise ValueError("no models are brighter than the minimum ASTs run")

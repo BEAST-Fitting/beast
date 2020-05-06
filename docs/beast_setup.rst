@@ -16,16 +16,17 @@ Basics
 BEAST Data Model
 ================
 
-Before running the BEAST, you will need to modify datamodel.py to specify the required parameters for generating models and fitting data. These parameters (and example values) are described below.
+Before running the BEAST, you will need to modify datamodel.py to specify the required parameters for generating models and fitting data. These parameters (and example values) are described below. An example datamodel.py can be found `here <https://github.com/BEAST-Fitting/beast-examples/blob/master/phat_small/datamodel.py>`_.
 
 Project Details
 ---------------
 
 * ``project``: pathname of of working subdirectory.
+* ``surveyname``: name of the survey.
 * ``filters``: names of photometric filter passbands (matching library names).
 * ``basefilters``: short versions of passband names.
-* ``obsfile``: filename for input flux data.
 * ``obs_colnames``: column names in ``obsfile`` for observed fluxes. The input data MUST be in fluxes, NOT in magnitudes and the fluxes MUST be in normalized Vega units.
+* ``obsfile``: filename for input flux data.
 
 Artificial Star Test (AST) File Parameters
 ------------------------------------------
@@ -38,10 +39,16 @@ input parameters from datamodel.py.
 * ``ast_realization_per_model``: number of realizations of each included AST model to be put into the list (default = 20).
 * ``ast_maglimit``: two options: (1) number of magnitudes fainter than the 90th percentile faintest star in the photometry catalog to be used for the mag cut (default = 1); (2) custom faint end limits (space-separated list of numbers, one for each band).
 * ``ast_with_positions``:  (optional; bool) if True, the AST list is produced with X,Y positions. If False, the AST list is produced with only magnitudes.
+* ``ast_density_table``: (optional; string) name of density table, containing either the source density map or the background density map. If supplied, the ASTs will be repeated for each density bin in the table (default = None).
+* ``ast_N_bins``: (optional; int) number of source or background bins that you want ASTs repeated over.
 * ``ast_pixel_distribution``: (optional; float) minimum pixel separation between AST position and catalog star used to determine the AST spatial distribution. Used if ast_with_positions is True.
-* ``ast_reference_image``: (optional; string)	name of the reference image used by DOLPHOT when running the measured photometry. Required if ast_with_positions is True and no X,Y information is present in the photometry catalog.
+* ``ast_reference_image``: (optional; string)   name of the reference image used by DOLPHOT when running the measured photometry. Required if ast_with_positions is True and no X,Y information is present in the photometry catalog.
+* ``ast_coord_boundary``: (optional; list of two arrays) if supplied, these RA/Dec coordinates will be used to limit the region over which ASTs are generated (default = None).
 * ``astfile``:  pathname to the AST files (single camera ASTs).
+* ``ast_colnames``:  names of columns for filters in the AST catalog (default is the basefilter list).
 * ``noisefile`` : pathname to the output noise model file.
+* ``absflux_a_matrix`` : absolute flux calibration covariance matrix for HST specfic filters.
+* ``velocity`` : heliocentric velocity of a galaxy (e.g., -300 km/s for M31).
 
 Grid Definition Parameters
 --------------------------
@@ -50,17 +57,29 @@ The BEAST generates a grid of stellar models based on aditional input parameters
 from datamodel.py. See <beast_grid_inputs.rst> for details on model libraries.
 
 * ``distances``: distance grid range parameters. ``[min, max, step]``, or ``[fixed number]``.
-* ``distance_unit``: specify magnitude (``units.mag``) or a length unit
+* ``distance_unit``: specify magnitude (``units.mag``) or a length unit.
+* ``distance_prior_model``: specify a prior for distance parameter.
 * ``logt``: age grid range parameters (min, max, step).
+* ``age_prior_model``: specify a prior for age parameter.
+* ``mass_prior_model``: specify a stellar IMF.
 * ``z``: metallicity grid points.
+* ``met_prior_model``: specify a prior for metallicity parameter.
 * ``oiso``: isochrone model grid. Current choices: Padova or MIST. Default: PARSEC+CALIBRI: ``oiso = isochrone.PadovaWeb()``
 * ``osl``: stellar library definition. Options include Kurucz, Tlusty, BTSettl, Munari, Elodie and BaSel. You can also generate an object from the union of multiple individual libraries: ``osl = stellib.Tlusty() + stellib.Kurucz()``
 
 * ``extLaw``: extinction law definition.
 
 * ``avs``: dust column in magnitudes (A_V) grid range parameters (min, max, step).
+* ``av_prior_model``: specify a prior for A_V parameter.
 * ``rvs``: average dust grain size grid (R_V) range parameters (min, max, step).
+* ``rv_prior_model``: specify a prior for R_V parameter.
 * ``fAs``: mixture factor between "MW" and "SMCBar" extinction curves (f_A) grid range parameters (min, max, step).
+* ``avs``: dust column in magnitudes (A_V) grid range parameters (min, max, step).
+* ``av_prior_model``: specify a prior for A_V parameter.
+* ``rvs``: average dust grain size grid (R_V) range parameters (min, max, step).
+* ``rv_prior_model``: specify a prior for R_V parameter.
+* ``fAs``: mixture factor between "MW" and "SMCBar" extinction curves (f_A) grid range parameters (min, max, step).
+* ``fA_prior_model``: specify a prior for f_A parameter.
 * ``*_prior_model``: prior model definitions for stellar and dust parameters.
      For more on setting up priors see :ref:`BEAST priors <beast_priors>`.
 
@@ -73,11 +92,11 @@ Define list of filternames as ``additional_filters`` and alter ``add_spectral_pr
 
 ``add_spectral_properties_kwargs = dict(filternames=filters + additional_filters)``
 
-Skip verify_params exit
-^^^^^^^^^^^^^^^^^^^^^^^
-Add ``noexit=True`` keyword to ``verify_input_format()`` call in run_beast.py:
+Allow non-interrupting warnings in verify_params
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Set ``allow_verify_warnings`` boolean variable in datamodel.py to allow non-interrupting warnings. Default: raise UserWarning exception.
 
-``verify_params.verify_input_format(datamodel, noexit=True)``
+``allow_verify_warnings = True``
 
 Remove constant SFH prior
 ^^^^^^^^^^^^^^^^^^^^^^^^^
