@@ -17,24 +17,32 @@ The two main classes to use to access information in spectral and SED grids are:
   Provides the interface to grids of extinguished SEDs composed of band integrated fluxes.
   Used fairly extensively in the BEAST to interface with the core physicsmodel grid.
 
+The core attributes of both classes are the same.
+
+- lamb: wavelengths of the seds.
+- seds: fluxes at the wavelengths
+- grid: astropy Table giving the parameters of each sed (mass, age, etc.)
+
 Both grids can interface with files via "backends" on disk with differing
 levels memory usage.
 
 - "memory":
-  This backend reads contents of the file into memory.  Largest memory usage and
+  The :class:`~beast.physicsmodel.helpers.gridbackends.MemoryBackend` reads
+  contents of the file into memory.  Largest memory usage and
   fastest access to the information after reading is done.
 
 - "cache":
-  This backend reads the contents into memory when that specific information is
-  first accessed.
+  The :class:`~beast.physicsmodel.helpers.gridbackends.CacheBackend` reads the
+  contents into memory when that specific information is first accessed.
 
-- "lazycache": TBD
-  This backend is TBD.
+- "disk":
+  The :class:`~beast.physicsmodel.helpers.gridbackends.DiskBackend` reads the
+  data from disk when it is accessed.  This supports reading only a portion
+  of the data.  This allows spectral and SED grids larger than can fit into
+  memory.
 
 The current file formats that are supported by the backends are:
 
 - "fits": Supported by "memory" and "cache" backends.
 
-- "hdf5": Supported by "memory" and "cache" backends
-
-- "lazycache": TBD.
+- "hdf": Supported by "memory", "cache", and "disk" backends

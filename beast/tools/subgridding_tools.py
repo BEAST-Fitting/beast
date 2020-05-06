@@ -58,7 +58,7 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
         the names of the newly created subgrid files
     """
 
-    g = SEDGrid(grid_fname, backend="hdf")
+    g = SEDGrid(grid_fname, backend="disk")
 
     fnames = []
 

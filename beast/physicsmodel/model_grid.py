@@ -436,6 +436,6 @@ def make_extinguished_sed_grid(
             for gk in g:
                 gk.writeHDF(seds_fname, append=True)
 
-    g = SEDGrid(seds_fname, backend="hdf")
+    g = SEDGrid(seds_fname, backend="memory")
 
     return (seds_fname, g)

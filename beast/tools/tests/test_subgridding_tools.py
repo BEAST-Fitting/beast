@@ -245,3 +245,7 @@ def test_merge_pdf1d_stats():
                 equal_nan=True,
                 err_msg="column {} is not close enough".format(c),
             )
+
+
+if __name__ == '__main__':
+    test_split_grid()

@@ -31,10 +31,30 @@ import h5py
 import copy
 from astropy.table import Table
 
-from beast.physicsmodel.helpers.hdfstore import HDFStore
-from beast.physicsmodel.helpers.gridhelpers import pretty_size_print
+# from beast.physicsmodel.helpers.hdfstore import HDFStore
+from beast.physicsmodel.helpers.gridhelpers import pretty_size_print, isNestedInstance
 
-__all__ = ["GridBackend", "MemoryBackend", "CacheBackend", "HDFBackend"]
+__all__ = ["GridBackend", "MemoryBackend", "CacheBackend", "DiskBackend"]
+
+
+def _decodebytestring(a):
+    """
+    Convert to string if input is a bytestring.
+
+    Parameters
+    ----------
+    a : byte or str
+        string or bytestring
+
+    Returns
+    -------
+    str
+        string version of input
+    """
+    if isinstance(a, bytes):
+        return a.decode()
+    else:
+        return a
 
 
 class GridBackend(object):
@@ -104,12 +124,11 @@ class GridBackend(object):
         fname: str
             filename (incl. path)
         """
+        # non supported types raise an error in self._get_type
         if self._get_type(fname) == "fits":
             self.writeFITS(fname)
         elif self._get_type(fname) == "hdf":
             self.writeHDF(fname)
-        else:
-            raise ValueError(f"{fname} format not supported")
 
     def writeFITS(self, fname, overwrite=False):
         """
@@ -163,9 +182,7 @@ class GridBackend(object):
                     if self.cov_offdiag is not None:
                         hd["covoffdiag"] = self.cov_offdiag[:]
                 else:
-                    raise Exception(
-                        "Appending to HDF5 file not supported (code needed)"
-                    )
+                    raise Exception("Appending to HDF5 file not supported")
 
             if getattr(self, "filters", None) is not None:
                 if "filters" not in list(self.header.keys()):
@@ -176,16 +193,36 @@ class GridBackend(object):
         else:
             raise ValueError("Full data set not specified (lamb, seds, grid)")
 
-    def copy(self):
-        """ implement a copy method """
-        g = GridBackend()
-        g.lamb = copy.deepcopy(self.lamb)
-        g.seds = copy.deepcopy(self.seds)
-        g.grid = copy.deepcopy(self.grid)
-        g._filters = copy.deepcopy(self._filters)
-        g._header = copy.deepcopy(self._header)
-        g._aliases = copy.deepcopy(self._aliases)
-        return g
+        def _from_GridBackend(self, b):
+            """
+            _from_GridBackend -- convert from generic backend
+            Parameters
+            ----------
+            b: GridBackend or sub class
+                backend to convert from
+            """
+            self.lamb = b.lamb
+            self.seds = b.seds
+            self.grid = b.grid
+            self._filters = b._filters
+            self._header = b.header
+            self._aliases = b._aliases
+
+        def _from_DiscBackend(self, b):
+            """
+            convert from DiscBackend
+
+            Parameters
+            ----------
+            b: GridBackend or sub class
+                backend to convert from
+            """
+            self.lamb = b.lamb.read()
+            self.seds = b.seds.read()
+            self.grid = Table(b.grid.read())
+            self._filters = b._filters[:]
+            self._header = b.header
+            self._aliases = b._aliases
 
 
 class MemoryBackend(GridBackend):
@@ -230,13 +267,17 @@ class MemoryBackend(GridBackend):
         header : dict, optional
             if provided, update the grid table header
 
-        aliases : dict, , optional
+        aliases : dict, optional
             if provided, update the grid table aliases
         """
         super().__init__()
 
         # read from various formats
-        if isinstance(lamb, (str, bytes)):
+        if isinstance(lamb, DiskBackend):
+            self._fromDiskBackend(lamb)
+        elif isNestedInstance(lamb, GridBackend):
+            self._from_GridBackend(lamb)
+        elif isinstance(lamb, (str, bytes)):
             self._from_File(lamb)
         else:
             if (seds is None) | (grid is None):
@@ -269,10 +310,7 @@ class MemoryBackend(GridBackend):
         if r is None:
             return r
         r = r.split()
-        if isinstance(r[0], bytes):
-            return [tr.decode() for tr in r]
-        else:
-            return r
+        return [_decodebytestring(tr) for tr in r]
 
     def _from_File(self, fname):
         """
@@ -321,10 +359,8 @@ class MemoryBackend(GridBackend):
             self.grid = Table.read(fname, path="grid", format="hdf5")
 
         self._header = self.grid.meta
-        if ("filters" in self._header.keys()) and isinstance(
-            self._header["filters"], bytes
-        ):
-            self._header["filters"] = self._header["filters"].decode()
+        if "filters" in self._header.keys():
+            self._header["filters"] = _decodebytestring(self._header["filters"])
 
     def copy(self):
         """ implement a copy method """
@@ -343,11 +379,7 @@ class MemoryBackend(GridBackend):
 
 class CacheBackend(GridBackend):
     """
-    CacheBackend -- Load content from a file only when needed
-
-    The key idea is to be able to load the content only at the first query
-
-    Currently the grid attribute is an eztable.Table object as it was before.
+    Load content from a file only when needed
     """
 
     def __init__(self, fname, *args, **kwargs):
@@ -355,7 +387,7 @@ class CacheBackend(GridBackend):
         Parameters
         ----------
         fname : str
-            FITS or HD5 file containing the grid
+            name of file containing the grid
         """
         super().__init__(*args, **kwargs)
 
@@ -368,7 +400,7 @@ class CacheBackend(GridBackend):
 
         Parameters
         ----------
-        attrname: str in [lamb, filters, grid, header, lamb, seds]
+        attrname : str in [lamb, filters, grid, header, lamb, seds]
             if provided clear only one attribute
             else all cache will be erased
         """
@@ -561,10 +593,13 @@ class CacheBackend(GridBackend):
         return g
 
 
-class HDFBackend(GridBackend):
-    """HDFBackend -- Laziest grid
+class DiskBackend(GridBackend):
+    """
+    Reads the data from disk when it is accessed.  This supports reading
+    only a portion (e.g., slices/subsets) of the requsted data.
+    This allows spectral and SED grids larger than can fit into memory.
 
-    Operations are optimized on disk through pytables
+    Only hdf files supported.
     """
 
     def __init__(self, fname, *args, **kwargs):
@@ -574,10 +609,11 @@ class HDFBackend(GridBackend):
             raise ValueError("Expecting HDF file got {0}".format(ftype))
 
         self.fname = fname
-        self.store = HDFStore(self.fname, mode="r")
-        self.seds = self.store["/seds"]
-        self.lamb = self.store["/lamb"]
-        self.grid = self.store["/grid"]
+        # self.store = HDFStore(self.fname, mode="r")
+        self.store = h5py.File(self.fname, mode="r")
+        self.seds = self.store["seds"]
+        self.lamb = self.store["lamb"]
+        self.grid = self.store["grid"]
         self._filters = None
         self._header = None
         self._aliases = {}
@@ -588,11 +624,11 @@ class HDFBackend(GridBackend):
             # update header & aliases
             exclude = ["NROWS", "VERSION", "CLASS", "EXTNAME"]
             header = {}
-            for k in self.grid.attrs._v_attrnames:
+            for k in self.grid.attrs.keys():
                 if (k not in exclude) & (k[:5] != "FIELD") & (k[:5] != "ALIAS"):
-                    header[k] = self.grid.attrs[k]
+                    header[k] = _decodebytestring(self.grid.attrs[k])
                 if k[:5] == "ALIAS":
-                    c0, c1 = self.grid.attrs[k].split("=")
+                    c0, c1 = _decodebytestring(self.grid.attrs[k].split("="))
                     self._aliases[c0] = c1
 
             empty_name = ["", "None", "Noname", None]
@@ -605,7 +641,7 @@ class HDFBackend(GridBackend):
 
     @property
     def filters(self):
-        """filters - load in cache if needed """
+        """load in cache if needed """
         if self._filters is None:
             self._filters = self.header.get("FILTERS", None) or self.header.get(
                 "filters", None
@@ -621,39 +657,7 @@ class HDFBackend(GridBackend):
         else:
             return []
 
-    def writeHDF(self, fname, append=False, *args, **kwargs):
-        """write -- export to HDF file
-
-        Parameters
-        ---------
-
-        fname: str
-            filename (incl. path) to export to
-
-        append: bool, optional (default False)
-            if set, it will append data to each Array or Table
-        """
-        if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            with HDFStore(fname, mode="a") as hd:
-                if not append:
-                    hd["/seds"] = self.seds[:]
-                    hd["/lamb"] = self.lamb[:]
-                else:
-                    try:
-                        node = hd.get_node("/seds")
-                        node.append(self.seds[:])
-                    except Exception:
-                        hd["/seds"] = self.seds[:]
-                        hd["/lamb"] = self.lamb[:]
-                hd.write(
-                    self.grid[:],
-                    group="/",
-                    tablename="grid",
-                    header=self.header,
-                    append=append,
-                )
-
     def copy(self):
-        g = HDFBackend(self.fname)
+        g = DiskBackend(self.fname)
         g._aliases = copy.deepcopy(self._aliases)
         return g

@@ -1,6 +1,6 @@
 """
 Grid and Prior Weights
-============
+======================
 The use of a non-uniformly spaced grid complicates the marginalization
 step as the trick of summation instead of integration is used.  But this
 trick only works when the grid is uniformaly spaced in all dimensions.
@@ -39,20 +39,20 @@ def compute_distance_age_mass_metallicity_weights(
     Computes the distance and age-mass-metallicity grid
     and prior weights on the BEAST model spectra grid
 
-    Keywords
-    --------
+    Parameters
+    ----------
     _tgrid : BEAST model spectra grid.
 
-    distance_prior_model
-    age_prior_model
-    mass_prior_model
+    distance_prior_model,
+    age_prior_model,
+    mass_prior_model,
     met_prior_model: dict
         dict including prior model name and parameters
 
     Returns
     -------
     Grid and prior weight columns updated by multiplying by the
-        the distance and age-mass-metallicity weight.
+    the distance and age-mass-metallicity weight.
     """
 
     # get the unique distances
@@ -116,22 +116,19 @@ def compute_age_mass_metallicity_weights(
     """
     Computes the age-mass-metallicity grid and prior weights
     on the BEAST model spectra grid
-
-    Keywords
-    --------
-    _tgrid : BEAST model spectra grid.
-
-    age_prior_model: dict
-        dict including prior model name and parameters
-     mass_prior_model: dict
-        dict including prior model name and parameters
-     met_prior_model: dict
-        dict including prior model name and parameters
-
-    Returns
-    -------
     Grid and prior weight columns updated by multiplying by the
-       age-mass-metallicity weight.
+    age-mass-metallicity weight.
+
+    Parameters
+    ----------
+    _tgrid : SpectralGrid
+        BEAST models spectral grid
+    age_prior_model : dict
+        dict including prior model name and parameters
+    mass_prior_model : dict
+        dict including prior model name and parameters
+    met_prior_model : dict
+        dict including prior model name and parameters
     """
 
     # get the unique metallicities

@@ -21,7 +21,11 @@ __all__ = [
 
 def compute_bin_boundaries(tab):
     """
-    Computes bin boundaries
+    Computes the boundaries of bins
+
+    The bin boundaries are defined as the midpoint between each value in tab.
+    At the two edges, 1/2 of the bin width is subtractted/added to the
+    min/max of tab.
 
     Parameters
     ----------
@@ -32,12 +36,6 @@ def compute_bin_boundaries(tab):
     -------
     tab2 : numpy array
        boundaries of the bins
-
-    Note
-    ----
-    The bin boundaries are defined as the midpoint between each value in tab.
-    At the two edges, 1/2 of the bin width is subtractted/added to the
-    min/max of tab.
     """
     temp = tab[1:] - np.diff(tab) / 2.0
     tab2 = np.empty(len(tab) + 1)

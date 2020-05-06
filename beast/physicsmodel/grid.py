@@ -9,7 +9,7 @@ from beast.physicsmodel.dust import extinction
 from beast.physicsmodel.helpers.gridbackends import (
     MemoryBackend,
     CacheBackend,
-    HDFBackend,
+    DiskBackend,
     GridBackend,
 )
 from beast.physicsmodel.helpers.gridhelpers import pretty_size_print, isNestedInstance
@@ -28,17 +28,19 @@ def find_backend(txt):
 
     Returns
     -------
-    b: GridBackend class or subclass
+    b : GridBackend class or subclass
         corresponding backend class
     """
 
     maps = {
         "memory": MemoryBackend,
         "cache": CacheBackend,
-        "hdf": HDFBackend,
-        "generic": GridBackend,
+        "disk": DiskBackend,
     }
-    return maps.get(txt.lower(), None)
+    btype = maps.get(txt.lower(), None)
+    if btype is None:
+        raise ValueError(f"{btype} backend not supported")
+    return btype
 
 
 class ModelGrid(object):
@@ -50,8 +52,6 @@ class ModelGrid(object):
         """
         Parameters
         ----------
-        *args and **kwargs are directly forwarded to the backend constructor
-
         lamb : ndarray or str or GridBackend
             if ndarray: wavelength of the SEDs (requires seds and
             grid arguments)
@@ -70,12 +70,10 @@ class ModelGrid(object):
         aliases : dict
             if provided, update the grid table aliases
 
-        backend : str or GridBackend class or subclass
+        backend : str or GridBackend(or subclass), optional
             corresponding backend class
             'memory': MemoryBackend,
             'cache': CacheBackend,
-            'hdf': HDFBackend,
-            'generic': GridBackend
         """
         backend = kwargs.pop("backend", None)
         if backend is None:
@@ -93,7 +91,6 @@ class ModelGrid(object):
 
     @lamb.setter
     def lamb(self, value):
-        """ Allow temporary overriding properties """
         self._backend.lamb = value
 
     @property
@@ -110,7 +107,6 @@ class ModelGrid(object):
 
     @seds.setter
     def seds(self, value):
-        """ Allow temporary overriding properties """
         self._backend.seds = value
 
     @property
@@ -119,7 +115,6 @@ class ModelGrid(object):
 
     @grid.setter
     def grid(self, value):
-        """ Allow temporary overriding properties """
         self._backend.grid = value
 
     def __repr__(self):
@@ -128,7 +123,7 @@ class ModelGrid(object):
 
     @property
     def nbytes(self):
-        """ return the number of bytes of the object """
+        """ The number of bytes of the object """
         n = sum(
             k.nbytes if hasattr(k, "nbytes") else sys.getsizeof(k)
             for k in list(self.__dict__.values())
@@ -136,7 +131,7 @@ class ModelGrid(object):
         return n
 
     def keys(self):
-        """ returns the grid dimension names """
+        """ The grid column names """
         if hasattr(self.grid, "keys"):
             return list(self.grid.keys())
         elif hasattr(self.grid, "colnames"):
