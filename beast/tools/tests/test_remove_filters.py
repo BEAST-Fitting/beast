@@ -2,11 +2,9 @@ from beast.tools import remove_filters, read_beast_data
 from beast.tests.helpers import download_rename
 from astropy.tests.helper import remote_data
 import os
-import pytest
 
 
 @remote_data
-@pytest.mark.skip(reason="no longer works - some very weird interaction between cases")
 def test_remove_filters():
     """
     Test for remove_filters.py
@@ -81,7 +79,7 @@ def test_remove_filters():
         "HST_WFC3_F275W",
         "HST_WFC3_F336W",
         "HST_ACS_WFC_F475W",
-        #'HST_WFC3_F475W',
+        # 'HST_WFC3_F475W',
         "HST_ACS_WFC_F814W",
         "HST_WFC3_F110W",
         "HST_WFC3_F160W",
@@ -109,8 +107,8 @@ def test_remove_filters():
     expected_filters = [
         "HST_WFC3_F275W",
         "HST_WFC3_F336W",
-        #'HST_ACS_WFC_F475W',
-        #'HST_WFC3_F475W',
+        # 'HST_ACS_WFC_F475W',
+        # 'HST_WFC3_F475W',
         "HST_ACS_WFC_F814W",
         "HST_WFC3_F110W",
         "HST_WFC3_F160W",
@@ -139,7 +137,7 @@ def test_remove_filters():
         "HST_WFC3_F275W",
         "HST_WFC3_F336W",
         "HST_ACS_WFC_F475W",
-        #'HST_WFC3_F475W',
+        # 'HST_WFC3_F475W',
         "HST_ACS_WFC_F814W",
         "HST_WFC3_F110W",
         "HST_WFC3_F160W",
