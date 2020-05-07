@@ -1,7 +1,7 @@
 import numpy as np
 import tables
 
-from beast.physicsmodel.grid import SpectralGrid
+from beast.physicsmodel.grid import SEDGrid
 from astropy.table import Table
 
 __all__ = ["trim_models"]
@@ -129,7 +129,7 @@ def trim_models(
 
     # New column to save the index of the model in the full grid
     cols["fullgrid_idx"] = indxs.astype(int)
-    g = SpectralGrid(
+    g = SEDGrid(
         sedgrid.lamb, seds=sedgrid.seds[indxs], grid=Table(cols), backend="memory"
     )
     filternames = obsdata.filters

@@ -9,7 +9,7 @@ from beast.tests.helpers import compare_tables
 
 def test_sedgrid():
     """
-    Simple tests of the SpectralGrid class
+    Tests of the SEDGrid class
     """
     n_bands = 3
     filter_names = ["BAND1", "BAND2", "BAND3"]

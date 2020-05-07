@@ -8,7 +8,7 @@ import numpy as np
 from astropy.table import Table
 import tables
 
-from beast.physicsmodel.grid import SEDGrid, SpectralGrid
+from beast.physicsmodel.grid import SEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 
 
@@ -187,7 +187,7 @@ def remove_filters_from_files(
         print(" new filters: {}".format(" ".join(nfilters)))
 
         # save the modified grid
-        g = SpectralGrid(np.array(nlamb), seds=nseds, grid=g0.grid, backend="memory")
+        g = SEDGrid(np.array(nlamb), seds=nseds, grid=g0.grid, backend="memory")
         g.header["filters"] = " ".join(nfilters)
         if physgrid_outfile is not None:
             g.writeHDF(physgrid_outfile)

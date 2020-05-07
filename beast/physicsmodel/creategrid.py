@@ -21,7 +21,7 @@ from astropy import units
 from tqdm import tqdm
 
 from beast.physicsmodel.stars import stellib
-from beast.physicsmodel.grid import SpectralGrid
+from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
 # from beast.external.eztables import Table
 from astropy.table import Table
@@ -300,7 +300,7 @@ def make_extinguished_grid(
     if isinstance(spec_grid, str):
         ext = spec_grid.split(".")[-1]
         if ext in ["hdf", "hd5", "hdf5"]:
-            g0 = SpectralGrid(spec_grid, backend="hdf")
+            g0 = SpectralGrid(spec_grid, backend="disk")
         else:
             g0 = SpectralGrid(spec_grid, backend="cache")
     else:
@@ -469,7 +469,7 @@ def make_extinguished_grid(
 
         # Ship
         if absflux_cov:
-            g = SpectralGrid(
+            g = SEDGrid(
                 _lamb,
                 seds=_seds,
                 cov_diag=_cov_diag,
@@ -478,7 +478,7 @@ def make_extinguished_grid(
                 backend="memory",
             )
         else:
-            g = SpectralGrid(_lamb, seds=_seds, grid=Table(cols), backend="memory")
+            g = SEDGrid(_lamb, seds=_seds, grid=Table(cols), backend="memory")
 
         g.header["filters"] = " ".join(filter_names)
 

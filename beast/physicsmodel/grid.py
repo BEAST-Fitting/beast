@@ -173,12 +173,19 @@ class SEDGrid(ModelGrid):
     lamb : ndarray
         1D `float` array of the wavelengths of the sed bands
 
+    filters : list
+        list of the filter names of the sed bands
+
     grid : astropy.Table
         table with columns providing the model parameters and other
         characteristics of the grid
 
     header : dict
         header information
+
+    cov_diag, cov_offdiag : ndarray
+        2D 'float' arrays with the covariance matrices of the absolute calibration
+        uncertainties for each model
     """
 
 
@@ -282,7 +289,7 @@ class SpectralGrid(ModelGrid):
 
         Returns
         -------
-        g: ModelGrid instance or None
+        g : ModelGrid instance or None
             if not inplace, returns a new ModelGrid instance. Otherwise returns
             nothing
         """
