@@ -1,6 +1,7 @@
 import numpy as np
 from tempfile import NamedTemporaryFile
 from astropy.table import Table
+from astropy.io.misc.hdf5 import read_table_hdf5
 
 from beast.physicsmodel.grid import SEDGrid
 from beast.tests.helpers import compare_tables
@@ -41,8 +42,9 @@ def test_sedgrid():
         "cov_diag",
         "cov_offdiag",
         "grid",
-        "header",
         "nbytes",
+        "filters",
+        "keys",
     ]
     for cprop in expected_props:
         assert hasattr(tgrid, cprop), f"missing {cprop} property"
@@ -56,23 +58,33 @@ def test_sedgrid():
     assert isinstance(tgrid.nbytes, int), "grid nbytes property not int"
     compare_tables(tgrid.grid, gtable)
     assert tgrid.grid.keys() == list(cols.keys()), "colnames of grid not equal"
+    assert tgrid.filters == filter_names, "filters of grid not equal"
 
     # test writing and reading to disk in different formats
-    fileformats = [".fits", ".hdf5"]
+    fileformats = [".fits", ".hdf"]
     for cformat in fileformats:
         print(f"testing {cformat} file format")
         tfile = NamedTemporaryFile(suffix=cformat)
+        print(tfile.name)
 
         # write the file
         tgrid.write(tfile.name)
 
         # read in the file using different backends
-        backs = ["memory", "cache"]
+        backs = ["memory", "cache", "disk"]
         for cback in backs:
+            if (cback == "disk") and (cformat == ".fits"):  # not supported
+                continue
+
             print(f"    testing {cback} backend")
             dgrid = SEDGrid(tfile.name, backend=cback)
 
+            for cprop in expected_props:
+                assert hasattr(dgrid, cprop), f"missing {cprop} property"
+
             # check that the grid has the expected values
+            assert dgrid.filters == filter_names, "{cformat} file filters not equal"
+
             np.testing.assert_allclose(
                 dgrid.lamb, lamb, err_msg=f"{cformat} file grid lambdas not equal"
             )
@@ -92,8 +104,13 @@ def test_sedgrid():
             assert isinstance(
                 dgrid.nbytes, int
             ), f"{cformat} file grid nbytes property not int"
-            compare_tables(dgrid.grid, gtable, otag=f"{cformat} file")
-            assert dgrid.grid.keys() == list(
+
+            dTable = dgrid.grid
+            if (cback == "disk") and (cformat == ".hdf"):
+                dTable = read_table_hdf5(dgrid.grid)
+            compare_tables(dTable, gtable, otag=f"{cformat} file")
+
+            assert dTable.keys() == list(
                 cols.keys()
             ), f"{cformat} file colnames of grid not equal"
 

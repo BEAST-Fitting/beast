@@ -10,28 +10,25 @@ Implemented Backends
 
 MemoryBackend:
     Load everything into memory. Can initiate from variables, a filename,
-    CacheBackend, and HDFBackend.
+    CacheBackend, and DiskBackend.
 
 CacheBackend:
     Load data only at the first request. You can work using only seds or only
     model properties without the overhead of loading both. (works with FITS and
     HDF files). Offers also dropping part of the data.
 
-HDFBackend:
-    Works directly with an HDFStore support, ie., on disk. Cache and reading
-    are allowed through any way offered by pytables, which becomes very handy
+DiskBackend:
+    Works directly with an h5py support, ie., on disk. Cache and reading
+    are allowed through any way offered by h5py, which becomes very handy
     for very low-memory tasks such as doing single star figures.
-
-All backends are able to write on disk into FITS and HDF format.
-
 """
 import sys
 import astropy.io.fits as fits
 import h5py
 import copy
 from astropy.table import Table
+from astropy.io.misc.hdf5 import read_table_hdf5
 
-# from beast.physicsmodel.helpers.hdfstore import HDFStore
 from beast.physicsmodel.helpers.gridhelpers import pretty_size_print, isNestedInstance
 
 __all__ = ["GridBackend", "MemoryBackend", "CacheBackend", "DiskBackend"]
@@ -55,6 +52,30 @@ def _decodebytestring(a):
         return a.decode()
     else:
         return a
+
+
+def _gethdfdatasetmeta(hdfds):
+    """
+    Extract the meta(header) information from the grid dataset in a hdf file.
+    Done without reading the entire grid into memory.
+
+    Parameters
+    ----------
+    hdfds : h5py dataset
+        the hdf dataset
+
+    Returns
+    -------
+    header : dict
+        dictionary of header information
+    """
+    exclude = ["NROWS", "VERSION", "CLASS", "EXTNAME"]
+    header = {}
+    attrs = hdfds.attrs
+    for k in hdfds.attrs.keys():
+        if (k not in exclude) & (k[:5] != "FIELD") & (k[:5] != "ALIAS"):
+            header[k] = _decodebytestring(attrs[k])
+    return header
 
 
 class GridBackend(object):
@@ -193,36 +214,36 @@ class GridBackend(object):
         else:
             raise ValueError("Full data set not specified (lamb, seds, grid)")
 
-        def _from_GridBackend(self, b):
-            """
-            _from_GridBackend -- convert from generic backend
-            Parameters
-            ----------
-            b: GridBackend or sub class
-                backend to convert from
-            """
-            self.lamb = b.lamb
-            self.seds = b.seds
-            self.grid = b.grid
-            self._filters = b._filters
-            self._header = b.header
-            self._aliases = b._aliases
+    def _from_GridBackend(self, b):
+        """
+        _from_GridBackend -- convert from generic backend
+        Parameters
+        ----------
+        b: GridBackend or sub class
+            backend to convert from
+        """
+        self.lamb = b.lamb
+        self.seds = b.seds
+        self.grid = b.grid
+        self._filters = b._filters
+        self._header = b.header
+        self._aliases = b._aliases
 
-        def _from_DiscBackend(self, b):
-            """
-            convert from DiscBackend
+    def _from_DiskBackend(self, b):
+        """
+        convert from DiskBackend
 
-            Parameters
-            ----------
-            b: GridBackend or sub class
-                backend to convert from
-            """
-            self.lamb = b.lamb.read()
-            self.seds = b.seds.read()
-            self.grid = Table(b.grid.read())
-            self._filters = b._filters[:]
-            self._header = b.header
-            self._aliases = b._aliases
+        Parameters
+        ----------
+        b: GridBackend or sub class
+            backend to convert from
+        """
+        self.lamb = b.lamb.read()
+        self.seds = b.seds.read()
+        self.grid = Table(b.grid.read())
+        self._filters = b._filters[:]
+        self._header = b.header
+        self._aliases = b._aliases
 
 
 class MemoryBackend(GridBackend):
@@ -274,7 +295,7 @@ class MemoryBackend(GridBackend):
 
         # read from various formats
         if isinstance(lamb, DiskBackend):
-            self._fromDiskBackend(lamb)
+            self._from_DiskBackend(lamb)
         elif isNestedInstance(lamb, GridBackend):
             self._from_GridBackend(lamb)
         elif isinstance(lamb, (str, bytes)):
@@ -337,11 +358,13 @@ class MemoryBackend(GridBackend):
                         self.cov_offdiag = f["covoffdiag"].data
                     else:
                         self.cov_offdiag = None
+                    self._header = f["grid"].header
                     self.grid = Table(f["grid"].data)
                 else:  # old format (used for stellar atmosphere grids, remove when those updated)
                     with fits.open(fname) as f:
                         self.seds = f[0].data[:-1]
                         self.lamb = f[0].data[-1]
+                        self._header = f[1].header
                     self.grid = Table.read(fname)
 
         elif self._get_type(fname) == "hdf":
@@ -356,9 +379,9 @@ class MemoryBackend(GridBackend):
                     self.cov_offdiag = s["covoffdiag"][()]
                 else:
                     self.cov_offdiag = None
-            self.grid = Table.read(fname, path="grid", format="hdf5")
+                self.grid = read_table_hdf5(s["grid"])
+                self._header = self.grid.meta
 
-        self._header = self.grid.meta
         if "filters" in self._header.keys():
             self._header["filters"] = _decodebytestring(self._header["filters"])
 
@@ -412,10 +435,11 @@ class CacheBackend(GridBackend):
             self._filters = None
             self._grid = None
             self._header = None
+            self._filters = None
         else:
             setattr(self, "_{0}".format(attrname), None)
 
-    def _load_seds(self, fname):
+    def _load_seds(self):
         """
         Load in the SEDs from file if not present
         """
@@ -428,7 +452,7 @@ class CacheBackend(GridBackend):
                 with h5py.File(self.fname, "r") as s:
                     self._seds = s["seds"][()]
 
-    def _load_cov_diag(self, fname):
+    def _load_cov_diag(self):
         """
         Load in the cov_diag from file if not present
         """
@@ -441,7 +465,7 @@ class CacheBackend(GridBackend):
                 with h5py.File(self.fname, "r") as s:
                     self._cov_diag = s["covdiag"][()]
 
-    def _load_cov_offdiag(self, fname):
+    def _load_cov_offdiag(self):
         """
         Load in the cov_offdiag from file if not present
         """
@@ -454,7 +478,7 @@ class CacheBackend(GridBackend):
                 with h5py.File(self.fname, "r") as s:
                     self._cov_offdiag = s["covoffdiag"][()]
 
-    def _load_lamb(self, fname):
+    def _load_lamb(self):
         """
         Load in the wavelengths from file if not present
         """
@@ -467,7 +491,7 @@ class CacheBackend(GridBackend):
                 with h5py.File(self.fname, mode="r") as s:
                     self._lamb = s["lamb"][()]
 
-    def _load_grid(self, fname):
+    def _load_grid(self):
         """
         Load in the grid from file if not present
         """
@@ -480,26 +504,33 @@ class CacheBackend(GridBackend):
 
             self._header = self.grid.meta
 
-    def _load_filters(self, fname):
+    def _load_header(self):
+        """
+        Load in the header of the grid if not present
+        """
+        if self._header is None:
+            if self._type == "fits":
+                with fits.open(self.fname) as f:
+                    self._header = f["grid"].header
+            elif self._type == "hdf":
+                with h5py.File(self.fname, mode="r") as s:
+                    self._header = _gethdfdatasetmeta(s["grid"])
+
+    def _load_filters(self):
         """
         Load in the filters from file if not present
         """
         if self._filters is None:
-            if self._type == "fits":
-                with fits.open(self.fname) as f:
-                    try1 = f["grid"].header.get("FILTERS", None)
-                    try2 = f["grid"].header.get("filters", None)
-            elif self._type == "hdf":
-                # not sure this works unless _load_grid has already been called
-                try1 = self.header.get("FILTERS", None)
-                try2 = self.header.get("filters", None)
+            self._load_header()
+            try1 = self._header.get("FILTERS", None)
+            try2 = self._header.get("filters", None)
             self._filters = try1 or try2
             if self._filters is not None:
                 self._filters = self._filters.split()
 
     @property
     def seds(self):
-        self._load_seds(self.fname)
+        self._load_seds()
         return self._seds
 
     @seds.setter
@@ -508,7 +539,7 @@ class CacheBackend(GridBackend):
 
     @property
     def lamb(self):
-        self._load_lamb(self.fname)
+        self._load_lamb()
         return self._lamb
 
     @lamb.setter
@@ -517,7 +548,7 @@ class CacheBackend(GridBackend):
 
     @property
     def cov_diag(self):
-        self._load_cov_diag(self.fname)
+        self._load_cov_diag()
         return self._cov_diag
 
     @cov_diag.setter
@@ -526,7 +557,7 @@ class CacheBackend(GridBackend):
 
     @property
     def cov_offdiag(self):
-        self._load_cov_offdiag(self.fname)
+        self._load_cov_offdiag()
         return self._cov_offdiag
 
     @cov_offdiag.setter
@@ -535,7 +566,7 @@ class CacheBackend(GridBackend):
 
     @property
     def grid(self):
-        self._load_grid(self.fname)
+        self._load_grid()
         return self._grid
 
     @grid.setter
@@ -544,7 +575,7 @@ class CacheBackend(GridBackend):
 
     @property
     def header(self):
-        self._load_grid(self.fname)
+        self._load_header()
         return self._grid.header
 
     @header.setter
@@ -553,7 +584,7 @@ class CacheBackend(GridBackend):
 
     @property
     def filters(self):
-        self._load_filters(self.fname)
+        self._load_filters()
         return self._filters
 
     @filters.setter
@@ -562,9 +593,7 @@ class CacheBackend(GridBackend):
 
     def keys(self):
         """ return column names when possible, avoid loading when possible """
-        if hasattr(self._grid, "coldescrs"):
-            return list(self._grid.coldescrs.keys())
-        elif hasattr(self._grid, "keys"):
+        if hasattr(self._grid, "keys"):
             return list(self._grid.keys())
         elif hasattr(self.grid, "keys"):
             return list(self.grid.keys())
@@ -609,11 +638,15 @@ class DiskBackend(GridBackend):
             raise ValueError("Expecting HDF file got {0}".format(ftype))
 
         self.fname = fname
-        # self.store = HDFStore(self.fname, mode="r")
         self.store = h5py.File(self.fname, mode="r")
         self.seds = self.store["seds"]
         self.lamb = self.store["lamb"]
         self.grid = self.store["grid"]
+        self.cov_diag = None
+        if "covdiag" in self.store.keys():
+            self.cov_diag = self.store["covdiag"]
+        if "covoffdiag" in self.store.keys():
+            self.cov_offdiag = self.store["covoffdiag"]
         self._filters = None
         self._header = None
         self._aliases = {}
@@ -621,29 +654,16 @@ class DiskBackend(GridBackend):
     @property
     def header(self):
         if self._header is None:
-            # update header & aliases
-            exclude = ["NROWS", "VERSION", "CLASS", "EXTNAME"]
-            header = {}
-            for k in self.grid.attrs.keys():
-                if (k not in exclude) & (k[:5] != "FIELD") & (k[:5] != "ALIAS"):
-                    header[k] = _decodebytestring(self.grid.attrs[k])
-                if k[:5] == "ALIAS":
-                    c0, c1 = _decodebytestring(self.grid.attrs[k].split("="))
-                    self._aliases[c0] = c1
-
-            empty_name = ["", "None", "Noname", None]
-            if (header["NAME"] in empty_name) & (
-                header.get("TITLE", None) not in empty_name
-            ):
-                header["NAME"] = header["TITLE"]
-            self._header = header
+            self._header = _gethdfdatasetmeta(self.grid)
         return self._header
 
     @property
     def filters(self):
         """load in cache if needed """
         if self._filters is None:
-            self._filters = self.header.get("FILTERS", None) or self.header.get(
+            if self._header is None:
+                self._header = _gethdfdatasetmeta(self.grid)
+            self._filters = self._header.get("FILTERS", None) or self._header.get(
                 "filters", None
             )
             if self._filters is not None:
@@ -652,10 +672,7 @@ class DiskBackend(GridBackend):
 
     def keys(self):
         """ return column names when possible """
-        if hasattr(self._grid, "coldescrs"):
-            return list(self._grid.coldescrs.keys())
-        else:
-            return []
+        return list(self.grid.dtype.fields.keys())
 
     def copy(self):
         g = DiskBackend(self.fname)

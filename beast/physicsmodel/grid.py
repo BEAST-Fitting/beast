@@ -132,7 +132,9 @@ class ModelGrid(object):
 
     def keys(self):
         """ The grid column names """
-        if hasattr(self.grid, "keys"):
+        if hasattr(self._backend, "keys"):
+            return self._backend.keys()
+        elif hasattr(self.grid, "keys"):
             return list(self.grid.keys())
         elif hasattr(self.grid, "colnames"):
             return self.grid.colnames

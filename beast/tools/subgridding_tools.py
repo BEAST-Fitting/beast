@@ -137,8 +137,8 @@ def subgrid_info(grid_fname, noise_fname=None):
         {name of quantity [string]: {'min': min, 'max': max, 'unique': unique values}}
     """
 
-    # Use the HDFStore (pytables) backend
-    sedgrid = SEDGrid(grid_fname, backend="memory")
+    # Use the disk backend to minimize the memory usage
+    sedgrid = SEDGrid(grid_fname, backend="disk")
     seds = sedgrid.seds
 
     info_dict = {}

@@ -2,20 +2,23 @@
 Classes
 *******
 
-The BEAST uses classes to abstract the specific implementation with the interface.
+The BEAST uses classes to abstract the specific implementation from the details
+of storage in memory and on disk.
 
 Grids
 =====
 
 The two main classes to use to access information in spectral and SED grids are:
 
-- :class:`~beast.physicsmodel.grid.SpectralGrid`:
-  Provides the interface to grids of spectra.
-  Generally used as part of generating the physics grid.
-
 - :class:`~beast.physicsmodel.grid.SEDGrid`:
   Provides the interface to grids of extinguished SEDs composed of band integrated fluxes.
   Used fairly extensively in the BEAST to interface with the core physicsmodel grid.
+
+- :class:`~beast.physicsmodel.grid.SpectralGrid`:
+  Provides the interface to grids of spectra.
+  Generally used as part of generating the physics grid.
+  Provides functions to apply dust extinction and compute the band integrated
+  fluxes from the spectra.
 
 The core attributes of both classes are the same.
 
@@ -43,6 +46,6 @@ levels memory usage.
 
 The current file formats that are supported by the backends are:
 
-- "fits": Supported by "memory" and "cache" backends.
+- "fits": Supported by "memory" and "cache" backends ("disk" backend support TBD)
 
 - "hdf": Supported by "memory", "cache", and "disk" backends
