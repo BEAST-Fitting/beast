@@ -10,7 +10,8 @@ from beast.tests.helpers import compare_tables
 
 @pytest.mark.parametrize("cformat", [".fits", ".hdf"])
 @pytest.mark.parametrize("cback", ["memory", "cache", "disk"])
-def test_sedgrid(cformat, cback):
+@pytest.mark.parametrize("copygrid", [False, True])
+def test_sedgrid(cformat, cback, copygrid):
     """
     Tests of the SEDGrid class
     """
@@ -76,7 +77,14 @@ def test_sedgrid(cformat, cback):
         return True
 
     print(f"    testing {cback} backend")
-    dgrid = SEDGrid(tfile.name, backend=cback)
+    dgrid_in = SEDGrid(tfile.name, backend=cback)
+
+    # test making a copy
+    print(f"    testing copygrid={copygrid}")
+    if copygrid:
+        dgrid = dgrid_in.copy()
+    else:
+        dgrid = dgrid_in
     print(dgrid)
 
     for cprop in expected_props:
@@ -118,13 +126,60 @@ def test_sedgrid(cformat, cback):
 
     assert dgrid.keys() == tgrid.keys(), f"{cformat} file colnames of grid not equal"
 
+    # final copy - needed for disk backend to get the now defined variables
     print(dgrid)
+
+    dgrid_fin = dgrid.copy()
+
+    print(dgrid_fin)
+
+
+def test_grid_warnings():
+    with pytest.raises(ValueError) as exc:
+        SEDGrid(backend="hdf")
+    assert exc.value.args[0] == "hdf backend not supported"
+
+    with pytest.raises(ValueError) as exc:
+        SEDGrid("test.txt")
+    assert exc.value.args[0] == "txt file type not supported"
+
+    # define grid contents
+    n_bands = 3
+    filter_names = ["BAND1", "BAND2", "BAND3"]
+    n_models = 100
+    lamb = [1.0, 2.0, 3.0]
+    seds = np.zeros((n_models, n_bands))
+    cov_diag = np.full((n_models, n_bands), 0.1)
+    n_offdiag = ((n_bands ** 2) - n_bands) // 2
+    cov_offdiag = np.full((n_models, n_offdiag), 1.0)
+    cols = {"Av": [1.0, 1.1, 1.3], "Rv": [2.0, 3.0, 4.0]}
+    header = {"Origin": "test_code"}
+    gtable = Table(cols)
+    gtable.meta = header
+
+    with pytest.raises(ValueError) as exc:
+        SEDGrid(lamb)
+    assert exc.value.args[0] == "seds or grid not passed"
+
+    for ftype in ["fits", "hdf"]:
+        with pytest.raises(ValueError) as exc:
+            a = SEDGrid(lamb, seds=seds, grid=gtable)
+            a.grid = cols
+            a.write(f"testgridwriteerror.{ftype}")
+        assert exc.value.args[0] == "Only astropy.Table are supported"
+
+        with pytest.raises(ValueError) as exc:
+            a = SEDGrid(lamb, seds=seds, grid=gtable)
+            a.grid = None
+            a.write(f"testgridwriteerror.{ftype}")
+        assert exc.value.args[0] == "Full data set not specified (lamb, seds, grid)"
 
 
 if __name__ == "__main__":
-    test_sedgrid(".fits", "memory")
-    test_sedgrid(".fits", "cache")
-    test_sedgrid(".fits", "disk")
-    test_sedgrid(".hdf", "memory")
-    test_sedgrid(".hdf", "cache")
-    test_sedgrid(".hdf", "disk")
+    copygrid = True
+    test_sedgrid(".fits", "memory", copygrid)
+    test_sedgrid(".fits", "cache", copygrid)
+    test_sedgrid(".fits", "disk", copygrid)
+    test_sedgrid(".hdf", "memory", copygrid)
+    test_sedgrid(".hdf", "cache", copygrid)
+    test_sedgrid(".hdf", "disk", copygrid)

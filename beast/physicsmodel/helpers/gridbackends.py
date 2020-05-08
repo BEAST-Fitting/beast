@@ -106,10 +106,6 @@ class GridBackend(object):
     def header(self):
         return self._header
 
-    @property
-    def filters(self):
-        return self._filters
-
     def __len__(self):
         """ number of models in grid """
         return len(self.grid)
@@ -166,7 +162,7 @@ class GridBackend(object):
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
             if not isinstance(self.grid, Table):
-                raise TypeError("Only astropy.Table are supported")
+                raise ValueError("Only astropy.Table are supported")
 
             hdulist = fits.HDUList()
             hdulist.append(fits.PrimaryHDU(self.lamb))
@@ -194,7 +190,7 @@ class GridBackend(object):
         """
         if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
             if not isinstance(self.grid, Table):
-                raise TypeError("Only astropy.Table are supported")
+                raise ValueError("Only astropy.Table are supported")
             with h5py.File(fname, "w") as hd:
                 if (not append) or ("seds" not in hd.keys()):
                     hd["seds"] = self.seds[:]
@@ -303,7 +299,7 @@ class MemoryBackend(GridBackend):
             self._from_File(lamb)
         else:
             if (seds is None) | (grid is None):
-                raise ValueError("Wrong number of arguments")
+                raise ValueError("seds or grid not passed")
             self.lamb = lamb
             self.seds = seds
             self.grid = grid

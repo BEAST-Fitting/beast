@@ -39,7 +39,7 @@ def find_backend(txt):
     }
     btype = maps.get(txt.lower(), None)
     if btype is None:
-        raise ValueError(f"{btype} backend not supported")
+        raise ValueError(f"{txt} backend not supported")
     return btype
 
 
@@ -137,10 +137,6 @@ class ModelGrid(object):
         """ The grid column names """
         if hasattr(self._backend, "keys"):
             return self._backend.keys()
-        elif hasattr(self.grid, "keys"):
-            return list(self.grid.keys())
-        elif hasattr(self.grid, "colnames"):
-            return self.grid.colnames
         else:
             return []
 
