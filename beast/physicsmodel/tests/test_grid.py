@@ -145,13 +145,13 @@ def test_grid_warnings():
 
     # define grid contents
     n_bands = 3
-    filter_names = ["BAND1", "BAND2", "BAND3"]
+    # filter_names = ["BAND1", "BAND2", "BAND3"]
     n_models = 100
     lamb = [1.0, 2.0, 3.0]
     seds = np.zeros((n_models, n_bands))
-    cov_diag = np.full((n_models, n_bands), 0.1)
-    n_offdiag = ((n_bands ** 2) - n_bands) // 2
-    cov_offdiag = np.full((n_models, n_offdiag), 1.0)
+    # cov_diag = np.full((n_models, n_bands), 0.1)
+    # n_offdiag = ((n_bands ** 2) - n_bands) // 2
+    # cov_offdiag = np.full((n_models, n_offdiag), 1.0)
     cols = {"Av": [1.0, 1.1, 1.3], "Rv": [2.0, 3.0, 4.0]}
     header = {"Origin": "test_code"}
     gtable = Table(cols)
