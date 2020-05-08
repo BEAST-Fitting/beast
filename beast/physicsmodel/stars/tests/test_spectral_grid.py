@@ -28,6 +28,9 @@ def test_make_kurucz_tlusty_spectral_grid():
     # read in the cached isochrones
     oiso = ezIsoch(iso_fname)
 
+    # remove the isochrone points with logL=-9.999
+    oiso = ezIsoch(oiso.selectWhere("*", "logL > -9"))
+
     # define the distance
     distances = [24.47]
     distance_unit = units.mag
