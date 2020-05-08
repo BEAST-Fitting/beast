@@ -111,6 +111,7 @@ class GridBackend(object):
         return self._filters
 
     def __len__(self):
+        """ number of models in grid """
         return len(self.grid)
 
     def keys(self):
@@ -121,7 +122,7 @@ class GridBackend(object):
             return []
 
     def _get_type(self, fname):
-        """_get_type -- guess the type of the file fname
+        """ determine the type of the file fname
         """
         types = {"fits": "fits", "hdf": "hdf", "hd5": "hdf", "hdf5": "hdf"}
         # else:
@@ -132,7 +133,7 @@ class GridBackend(object):
             return types[fext]
 
     def __repr__(self):
-        """__repr__"""
+        """ print the object and memory usage"""
         txt = "{}\n source: {}, \n current memory footprint: {}"
         return txt.format(
             object.__repr__(self), self.fname, pretty_size_print(self.nbytes)
@@ -502,8 +503,6 @@ class CacheBackend(GridBackend):
             elif self._type == "hdf":
                 self._grid = Table.read(self.fname, path="grid", format="hdf5")
 
-            self._header = self.grid.meta
-
     def _load_header(self):
         """
         Load in the header of the grid if not present
@@ -576,7 +575,7 @@ class CacheBackend(GridBackend):
     @property
     def header(self):
         self._load_header()
-        return self._grid.header
+        return self._header
 
     @header.setter
     def header(self, value):
@@ -595,10 +594,8 @@ class CacheBackend(GridBackend):
         """ return column names when possible, avoid loading when possible """
         if hasattr(self._grid, "keys"):
             return list(self._grid.keys())
-        elif hasattr(self.grid, "keys"):
-            return list(self.grid.keys())
         else:
-            return []
+            super().keys()
 
     def copy(self):
         """ implement a copy method """

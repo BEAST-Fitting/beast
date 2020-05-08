@@ -121,6 +121,9 @@ class ModelGrid(object):
         txt = "{} ({})"
         return txt.format(object.__repr__(self), pretty_size_print(self.nbytes))
 
+    def __len__(self):
+        return self._backend.__len__()
+
     @property
     def nbytes(self):
         """ The number of bytes of the object """
