@@ -88,7 +88,7 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
             sub_g.header["filters"] = " ".join(g.filters)
 
         # Save it to a new file
-        sub_g.writeHDF(subgrid_fname, append=False)
+        sub_g.write(subgrid_fname, append=False)
 
     return fnames
 
@@ -111,7 +111,7 @@ def merge_grids(seds_fname, sub_names):
         for n in sub_names:
             print("Appending {} to {}".format(n, seds_fname))
             g = SEDGrid(n)
-            g.writeHDF(seds_fname, append=True)
+            g.write(seds_fname, append=True)
     else:
         print("{} already exists".format(seds_fname))
 

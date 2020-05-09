@@ -135,7 +135,7 @@ class GridBackend(object):
             object.__repr__(self), self.fname, pretty_size_print(self.nbytes)
         )
 
-    def write(self, fname):
+    def write(self, fname, append=False):
         """
         Save the file in a format based on the filename extension
 
@@ -146,7 +146,7 @@ class GridBackend(object):
         if self._get_type(fname) == "fits":
             self.writeFITS(fname)
         elif self._get_type(fname) == "hdf":
-            self.writeHDF(fname)
+            self.writeHDF(fname, append=append)
 
     def writeFITS(self, fname, overwrite=False):
         """

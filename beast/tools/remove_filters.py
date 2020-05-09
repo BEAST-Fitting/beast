@@ -190,9 +190,9 @@ def remove_filters_from_files(
         g = SEDGrid(np.array(nlamb), seds=nseds, grid=g0.grid, backend="memory")
         g.header["filters"] = " ".join(nfilters)
         if physgrid_outfile is not None:
-            g.writeHDF(physgrid_outfile)
+            g.write(physgrid_outfile)
         elif outbase is not None:
-            g.writeHDF("{}_seds.grid.hd5".format(outbase))
+            g.write("{}_seds.grid.hd5".format(outbase))
         else:
             raise ValueError("Need to set either outbase or physgrid_outfile")
 

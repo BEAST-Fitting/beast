@@ -136,7 +136,7 @@ def trim_models(
     g.header["filters"] = " ".join(filternames)
 
     # trimmed grid name
-    g.writeHDF(sed_outname)
+    g.write(sed_outname)
 
     # save the trimmed noise model
     print("Writing trimmed noisemodel to disk into {0:s}".format(noisemodel_outname))

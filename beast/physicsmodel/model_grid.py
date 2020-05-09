@@ -226,18 +226,16 @@ def make_spectral_grid(
 
             return g
 
-        # if extLaw is set, remove wavelengths where the extinction curve
-        # isn't valid
         # Perform the extensions defined above and Write to disk
-        if hasattr(g, "writeHDF"):
+        if hasattr(g, "write"):
             g = apply_distance_and_spectral_props(g)
-            g.writeHDF(spec_fname)
+            g.write(spec_fname)
         else:
             for gk in g:
                 gk = apply_distance_and_spectral_props(gk)
-                gk.writeHDF(spec_fname, append=True)
+                gk.write(spec_fname, append=True)
 
-    g = SEDGrid(spec_fname, backend="memory")
+    g = SpectralGrid(spec_fname, backend="memory")
 
     return (spec_fname, g)
 
@@ -300,11 +298,11 @@ def add_stellar_priors(project, specgrid,
             **kwargs)
 
         # write to disk
-        if hasattr(specgrid, "writeHDF"):
-            specgrid.writeHDF(priors_fname)
+        if hasattr(specgrid, "write"):
+            specgrid.write(priors_fname)
         else:
             for gk in specgrid:
-                gk.writeHDF(priors_fname, append=True)
+                gk.write(priors_fname, append=True)
 
     g = SpectralGrid(priors_fname, backend="memory")
 
@@ -430,11 +428,11 @@ def make_extinguished_sed_grid(
             )
 
         # write to disk
-        if hasattr(g, "writeHDF"):
-            g.writeHDF(seds_fname)
+        if hasattr(g, "write"):
+            g.write(seds_fname)
         else:
             for gk in g:
-                gk.writeHDF(seds_fname, append=True)
+                gk.write(seds_fname, append=True)
 
     g = SEDGrid(seds_fname, backend="memory")
 
