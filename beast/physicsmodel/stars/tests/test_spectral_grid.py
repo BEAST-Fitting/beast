@@ -29,7 +29,7 @@ def test_make_kurucz_tlusty_spectral_grid():
     oiso = ezIsoch(iso_fname)
 
     # remove the isochrone points with logL=-9.999
-    oiso = ezIsoch(oiso.selectWhere("*", "logL > -9"))
+    oiso.data = oiso[oiso["logL"] > -9]
 
     # define the distance
     distances = [24.47]
