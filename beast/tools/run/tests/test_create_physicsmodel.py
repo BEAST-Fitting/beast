@@ -15,7 +15,7 @@ def test_create_physicsmodel_no_subgrid():
     datamodel_fname = download_rename("datamodel_no_subgrid.py")
     os.rename(datamodel_fname, "datamodel.py")
     # - input files
-    filter_fname = download_rename("filters.hd5")
+    download_rename("filters.hd5")
     # - intermediate files
     iso_fname_cache = download_rename("beast_example_phat_iso.csv")
     priors_fname_cache = download_rename("beast_example_phat_spec_w_priors.grid.hd5")
@@ -58,12 +58,12 @@ def test_create_physicsmodel_with_subgrid():
     datamodel_fname = download_rename("datamodel_with_subgrid.py")
     os.rename(datamodel_fname, "datamodel.py")
     # - input files
-    filter_fname = download_rename("filters.hd5")
+    download_rename("filters.hd5")
     # - intermediate files
     iso_fname_cache = download_rename("beast_example_phat_iso.csv")
     priors_fname_cache = download_rename("beast_example_phat_spec_w_priors.grid.hd5")
-    priors_sub1_fname_cache = download_rename("beast_example_phat_subgrids_spec_w_priors.gridsub0.hd5")
-    priors_sub2_fname_cache = download_rename("beast_example_phat_subgrids_spec_w_priors.gridsub1.hd5")
+    priors_sub0_fname_cache = download_rename("beast_example_phat_subgrids_spec_w_priors.gridsub0.hd5")
+    priors_sub1_fname_cache = download_rename("beast_example_phat_subgrids_spec_w_priors.gridsub1.hd5")
     # - anticipated output files
     seds_sub0_fname_cache = download_rename("beast_example_phat_subgrids_seds.gridsub0.hd5")
     seds_sub1_fname_cache = download_rename("beast_example_phat_subgrids_seds.gridsub1.hd5")
