@@ -9,6 +9,7 @@ Code to create many trimmed model grids for batch runs
 import os
 import argparse
 import time
+import warnings
 
 # BEAST imports
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
@@ -62,7 +63,9 @@ if __name__ == "__main__":
 
         # if these already exist, then continue to the next set of files to trim
         if os.path.isfile(sed_trimname) and os.path.isfile(noisemodel_trimname):
-            print("trimming already complete for "+sed_trimname)
+            warnings.warn(
+                "trimming already complete for {0}, skipping".format(sed_trimname)
+            )
             continue
 
         print("working on " + sed_trimname)
