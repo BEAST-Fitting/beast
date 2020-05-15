@@ -1,4 +1,4 @@
-1.4 (unreleased)
+1.4 (2020-5-15)
 ================
 
 - adjustable stellar priors
@@ -8,6 +8,7 @@
 - tool scripts expanded and documented
 - some scripts system callable (e.g., 'beast get_libfiles')
 - examples moved to separate repository
+- automated testing expanded
 - various documentation updates and bugfixes
 
 1.3.2 (2019-09-05)
