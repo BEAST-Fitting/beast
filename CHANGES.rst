@@ -3,6 +3,19 @@
 
 - No changes yet
 
+1.4 (2020-5-15)
+===============
+
+- adjustable stellar priors
+- 2D pPDFs added
+- improvements to AST generation
+- AGB stellar atmosphere models
+- tool scripts expanded and documented
+- some scripts system callable (e.g., 'beast get_libfiles')
+- examples moved to separate repository
+- automated testing expanded
+- various documentation updates and bugfixes
+
 1.3 (2019-08-20)
 ================
 
