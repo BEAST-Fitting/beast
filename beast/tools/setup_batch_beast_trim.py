@@ -190,7 +190,7 @@ def generic_batch_trim(
             nice_str
             + "python -m beast.tools.trim_many_via_obsdata "
             + trimfile
-            + " > "
+            + " >> "
             + log_path
             + file_prefix
             + "_trim_tr"
