@@ -1,5 +1,9 @@
+1.4.1 (unreleased)
+==================
+- no changes yet
+
 1.4 (2020-5-15)
-================
+===============
 
 - adjustable stellar priors
 - 2D pPDFs added
