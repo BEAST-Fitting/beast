@@ -284,7 +284,7 @@ class SpectralGrid(ModelGrid):
             if set, do not copy the grid and apply on it
 
         **kwargs
-            extra keywords will be forwrded to extLaw
+            extra keywords will be forwarded to extLaw
 
         Returns
         -------

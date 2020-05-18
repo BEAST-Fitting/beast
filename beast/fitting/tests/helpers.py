@@ -5,16 +5,27 @@ from beast.observationmodel.vega import Vega
 
 
 class GenFluxCatalog(Observations):
-    """Generic n band filter photometry
+    """
     This class implements a direct access to the Generic HST measured fluxes.
-
-    ..note::
-        it does not implement uncertainties as in this model, the noise is
-        given through artificial star tests
     """
 
     def __init__(self, inputFile, filters, obs_colnames, vega_fname=None):
-        """ Construct the interface """
+        """
+        Parameters
+        ----------
+        inputFile : str
+            observation file
+
+        filters : list
+            interal filter names of the data
+
+        obs_colnames : list
+            filter names in the observed catalog
+
+        vega_fname : str, optional
+            name of the file with the vega model spectrum
+        """
+
         desc = "GENERIC star: %s" % inputFile
         Observations.__init__(self, inputFile, desc=desc)
         self.setFilters(filters, vega_fname=vega_fname)
@@ -31,15 +42,15 @@ class GenFluxCatalog(Observations):
 
         Parameters
         ----------
-        num: int
+        num : int
             index of the star in the catalog to get measurement from
 
-        units: bool
+        units : bool
             if set returns the fluxes with a unit capsule
 
         Returns
         -------
-        flux: ndarray[dtype=float, ndim=1]
+        flux : ndarray[dtype=float, ndim=1]
             Measured integrated flux values throughout the filters
             in erg/s/cm^2/A
         """
@@ -58,12 +69,16 @@ class GenFluxCatalog(Observations):
             return flux
 
     def setFilters(self, filters, vega_fname=None):
-        """ set the filters and update the vega reference for the conversions
+        """
+        Set the filters and update the vega reference for the conversions
 
         Parameters
         ----------
-        filters: sequence
+        filters : list
             list of filters using the internally normalized namings
+
+        vega_fname : str, optional
+            name of the file with the vega model spectrum
         """
         self.filters = filters
 
@@ -80,20 +95,26 @@ class GenFluxCatalog(Observations):
 
 
 def get_obscat(obsfile, filters, obs_colnames, vega_fname=None, *args, **kwargs):
-    """ Function that generates a data catalog object with the correct
-    arguments
+    """
+    Generates a data catalog object
 
     Parameters
     ----------
-    obsfile: str, optional (default datamodel.obsfile)
+    obsfile : str
         observation file
 
-    filters: sequence(str), optional, datamodel.filters
-        seaquence of filters of the data
+    filters : list
+        interal filter names of the data
 
-    returns
+    obs_colnames : list
+        filter names in the observed catalog
+
+    vega_fname : str, optional
+        name of the file with the vega model spectrum
+
+    Returns
     -------
-    obs: GenFluxCatalog
+    obs : GenFluxCatalog
         observation catalog
     """
     obs = GenFluxCatalog(obsfile, filters, obs_colnames, vega_fname=vega_fname)
