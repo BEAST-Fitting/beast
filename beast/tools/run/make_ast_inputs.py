@@ -12,6 +12,7 @@ import numpy as np
 from astropy.table import Table
 
 # BEAST imports
+from beast.observationmodel.observations import Observations
 from beast.observationmodel.ast.make_ast_input_list import (
     pick_models,
     pick_models_toothpick_style,
@@ -44,7 +45,9 @@ def make_ast_inputs(flux_bin_method=True):
     verify_params.verify_input_format(datamodel)
 
     # read in the photometry catalog
-    obsdata = datamodel.get_obscat(datamodel.obsfile, datamodel.filters)
+    obsdata = Observations(
+        datamodel.obsfile, datamodel.filters, obs_colnames=datamodel.obs_colnames
+    )
 
     # --------------------
     # select SEDs
@@ -98,7 +101,6 @@ def make_ast_inputs(flux_bin_method=True):
 
                 # max. mags from the gst observation cat.
                 mag_cuts = min_mags + tmp_cuts
-
 
             N_models = datamodel.ast_models_selected_per_age
 

@@ -14,10 +14,9 @@ import time
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.fitting import trim_grid
 from beast.physicsmodel.grid import SEDGrid
+from beast.observationmodel.observations import Observations
 
-
-# datamodel only needed for the get_obscat function
-# would be good to remove this dependence
+# needed only for the obs_colnames to define the observed filternames
 import datamodel
 
 if __name__ == "__main__":
@@ -75,8 +74,9 @@ if __name__ == "__main__":
 
         # read in the observed data
         print("getting the observed data")
-        obsdata = datamodel.get_obscat(obsfile, modelsedgrid.filters)
-
+        obsdata = Observations(
+            obsfile, modelsedgrid.filters, obs_colnames=datamodel.obs_colnames
+        )
         # trim the model sedgrid
         #   set n_detected = 0 to disable the trimming of models based on
         #      the ASTs (e.g. extrapolations are ok)

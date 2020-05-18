@@ -9,8 +9,8 @@ import tables
 from beast.tools import subgridding_tools
 from beast.tests.helpers import download_rename
 from beast.physicsmodel.grid import SEDGrid
+from beast.observationmodel.observations import Observations
 from beast.observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
-from beast.fitting.tests.test_fit_grid import get_obscat
 from beast.fitting import fit
 
 
@@ -108,7 +108,7 @@ def test_merge_pdf1d_stats():
     basefilters = ["F275W", "F336W", "F475W", "F814W", "F110W", "F160W"]
     obs_colnames = [f.lower() + "_rate" for f in basefilters]
 
-    obsdata = get_obscat(obs_fname, filters, obs_colnames, vega_fname=vega_fname)
+    obsdata = Observations(obs_fname, filters, obs_colnames, vega_fname=vega_fname)
 
     #########################################################################################
     # STEP 2: SPLIT THE GRIDS AND GENERATE THE GRID INFO DICT AS IN THE SUBGRIDDING EXAMPLE #

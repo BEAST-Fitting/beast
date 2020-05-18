@@ -9,7 +9,7 @@ from astropy.wcs import WCS
 
 from shapely.geometry import box, Polygon
 
-from beast.tools import (density_map, cut_catalogs)
+from beast.tools import density_map, cut_catalogs
 
 import datamodel
 import importlib
@@ -48,9 +48,8 @@ def pick_positions_from_map(
     Parameters
     ----------
 
-    catalog: GenFluxCatalog object
-        The output object from `datamodel.get_obscat(datamodel.obsfile,
-        datamodel.filters)`
+    catalog: Observations object
+        Provides the observations
 
     chosen_seds: astropy Table
         Table containing fake stars to be duplicated and assigned positions
@@ -167,7 +166,9 @@ def pick_positions_from_map(
     if xy_pos:
         catalog_boundary_xy = cut_catalogs.convexhull_path(x_positions, y_positions)
     if radec_pos:
-        catalog_boundary_radec = cut_catalogs.convexhull_path(ra_positions, dec_positions)
+        catalog_boundary_radec = cut_catalogs.convexhull_path(
+            ra_positions, dec_positions
+        )
 
     # if coord_boundary set, define an additional boundary for ASTs
     if set_coord_boundary is not None:
@@ -181,7 +182,9 @@ def pick_positions_from_map(
             )
             coord_boundary_xy = Path(np.array([bounds_x, bounds_y]).T)
         if radec_pos:
-            coord_boundary_radec = Path(np.array([set_coord_boundary[0], set_coord_boundary[1]]).T)
+            coord_boundary_radec = Path(
+                np.array([set_coord_boundary[0], set_coord_boundary[1]]).T
+            )
 
     # if region_from_filters is set, define an additional boundary for ASTs
     if region_from_filters is not None:
@@ -191,15 +194,20 @@ def pick_positions_from_map(
         # 1. find the sub-list of sources
         if isinstance(region_from_filters, list):
             # good stars with user-defined partial overlap
-            _, good_stars = cut_catalogs.cut_catalogs(datamodel.obsfile, 'N/A',
-                                      flagged=True, flag_filter=region_from_filters,
-                                      no_write=True)
-        elif region_from_filters == 'all':
+            _, good_stars = cut_catalogs.cut_catalogs(
+                datamodel.obsfile,
+                "N/A",
+                flagged=True,
+                flag_filter=region_from_filters,
+                no_write=True,
+            )
+        elif region_from_filters == "all":
             # good stars only with fully overlapping region
-            _, good_stars = cut_catalogs.cut_catalogs(datamodel.obsfile, 'N/A', partial_overlap=True,
-                                      no_write=True)
+            _, good_stars = cut_catalogs.cut_catalogs(
+                datamodel.obsfile, "N/A", partial_overlap=True, no_write=True
+            )
         else:
-            raise RuntimeError('Invalid argument for region_from_filters')
+            raise RuntimeError("Invalid argument for region_from_filters")
 
         # 2. define the Path object for the convex hull
         # initialize variables
@@ -208,13 +216,11 @@ def pick_positions_from_map(
         # evaluate one or both
         if xy_pos:
             filt_reg_boundary_xy = cut_catalogs.convexhull_path(
-                x_positions[good_stars == 1],
-                y_positions[good_stars == 1]
+                x_positions[good_stars == 1], y_positions[good_stars == 1]
             )
         if radec_pos:
             filt_reg_boundary_radec = cut_catalogs.convexhull_path(
-                ra_positions[good_stars == 1],
-                dec_positions[good_stars == 1]
+                ra_positions[good_stars == 1], dec_positions[good_stars == 1]
             )
 
     # Load the background map
@@ -233,12 +239,12 @@ def pick_positions_from_map(
         tile_ra_min, tile_dec_min = bdm.min_ras_decs()
         tile_ra_delta, tile_dec_delta = bdm.delta_ras_decs()
 
-        for i,tile_set in enumerate(tiles_foreach_bin):
+        for i, tile_set in enumerate(tiles_foreach_bin):
 
             # keep track of which indices to discard
             keep_tile = np.ones(len(tile_set), dtype=bool)
 
-            for j,tile in enumerate(tile_set):
+            for j, tile in enumerate(tile_set):
 
                 # corners of the tile
                 ra_min = tile_ra_min[tile]
@@ -252,10 +258,16 @@ def pick_positions_from_map(
                 if refimage:
                     bounds_x, bounds_y = wcs.all_world2pix(
                         np.array([ra_min, ra_max]),
-                        np.array([dec_min, dec_max]), wcs_origin)
+                        np.array([dec_min, dec_max]),
+                        wcs_origin,
+                    )
 
-                    tile_box_xy = box(np.min(bounds_x), np.min(bounds_y),
-                                       np.max(bounds_x), np.max(bounds_y))
+                    tile_box_xy = box(
+                        np.min(bounds_x),
+                        np.min(bounds_y),
+                        np.max(bounds_x),
+                        np.max(bounds_y),
+                    )
 
                 # discard tile if there's no overlap with user-imposed regions
 
@@ -263,32 +275,47 @@ def pick_positions_from_map(
                 if set_coord_boundary is not None:
                     # coord boundary is input in RA/Dec, and tiles are RA/Dec,
                     # so there's no need to check the x/y version of either
-                    if Polygon(coord_boundary_radec.vertices).intersection(tile_box_radec).area == 0:
+                    if (
+                        Polygon(coord_boundary_radec.vertices)
+                        .intersection(tile_box_radec)
+                        .area
+                        == 0
+                    ):
                         keep_tile[j] = False
 
                 # - region_from_filters
                 if region_from_filters is not None:
                     if filt_reg_boundary_xy and tile_box_xy:
-                        if Polygon(filt_reg_boundary_xy.vertices).intersection(tile_box_xy).area == 0:
+                        if (
+                            Polygon(filt_reg_boundary_xy.vertices)
+                            .intersection(tile_box_xy)
+                            .area
+                            == 0
+                        ):
                             keep_tile[j] = False
                     elif filt_reg_boundary_radec and tile_box_radec:
-                        if Polygon(filt_reg_boundary_radec.vertices).intersection(tile_box_radec).area == 0:
+                        if (
+                            Polygon(filt_reg_boundary_radec.vertices)
+                            .intersection(tile_box_radec)
+                            .area
+                            == 0
+                        ):
                             keep_tile[j] = False
                     else:
-                        warnings.warn('Unable to use regions_from_filters to remove SD/bg tiles')
+                        warnings.warn(
+                            "Unable to use regions_from_filters to remove SD/bg tiles"
+                        )
 
             # remove anything that needs to be discarded
             tiles_foreach_bin[i] = tile_set[keep_tile]
 
-
     # Remove empty bins
     tile_sets = [tile_set for tile_set in tiles_foreach_bin if len(tile_set)]
-    print("{0} non-empty map bins (out of {1}) found between {2} and {3}".format(
-        len(tile_sets), N_bins, min_val, max_val)
+    print(
+        "{0} non-empty map bins (out of {1}) found between {2} and {3}".format(
+            len(tile_sets), N_bins, min_val, max_val
+        )
     )
-
-
-
 
     # Repeat the seds Nrealize times (sample each on at Nrealize
     # different positions, in each region)
@@ -306,9 +333,12 @@ def pick_positions_from_map(
     tile_ra_min, tile_dec_min = bdm.min_ras_decs()
     tile_ra_delta, tile_dec_delta = bdm.delta_ras_decs()
 
-    for bin_index, tile_set in enumerate(tqdm(tile_sets,
-        desc="{:.2f} models per map bin".format(Nseds_per_region / Npermodel)
-    )):
+    for bin_index, tile_set in enumerate(
+        tqdm(
+            tile_sets,
+            desc="{:.2f} models per map bin".format(Nseds_per_region / Npermodel),
+        )
+    ):
         start = bin_index * Nseds_per_region
         stop = start + Nseds_per_region
         bin_indices[start:stop] = bin_index
@@ -336,43 +366,54 @@ def pick_positions_from_map(
                     if catalog_boundary_radec:
                         within_bounds = catalog_boundary_radec.contains_points(
                             [[x, y]]
-                        )[0]  # N,2 array of AST X and Y positions
+                        )[
+                            0
+                        ]  # N,2 array of AST X and Y positions
                         if not within_bounds:
                             x = None
 
                     # check that this x/y is with any input boundary
                     if set_coord_boundary is not None:
                         if coord_boundary_radec:
-                            within_bounds = coord_boundary_radec.contains_points([[x, y]])[0]
+                            within_bounds = coord_boundary_radec.contains_points(
+                                [[x, y]]
+                            )[0]
                             if not within_bounds:
                                 x = None
                     if region_from_filters is not None:
                         if filt_reg_boundary_radec:
-                            within_bounds = filt_reg_boundary_radec.contains_points([[x, y]])[0]
+                            within_bounds = filt_reg_boundary_radec.contains_points(
+                                [[x, y]]
+                            )[0]
                             if not within_bounds:
                                 x = None
 
-
                 # if we can convert to x/y, do everything in x/y
                 else:
-                    [x], [y] = wcs.all_world2pix(np.array([ra]), np.array([dec]), wcs_origin)
+                    [x], [y] = wcs.all_world2pix(
+                        np.array([ra]), np.array([dec]), wcs_origin
+                    )
 
                     # check that this x/y is within the catalog footprint
-                    within_bounds = catalog_boundary_xy.contains_points(
-                        [[x, y]]
-                    )[0]  # N,2 array of AST X and Y positions
+                    within_bounds = catalog_boundary_xy.contains_points([[x, y]])[
+                        0
+                    ]  # N,2 array of AST X and Y positions
                     if not within_bounds:
                         x = None
 
                     # check that this x/y is with any input boundary
                     if set_coord_boundary is not None:
                         if coord_boundary_xy:
-                            within_bounds = coord_boundary_xy.contains_points([[x, y]])[0]
+                            within_bounds = coord_boundary_xy.contains_points([[x, y]])[
+                                0
+                            ]
                             if not within_bounds:
                                 x = None
                     if region_from_filters is not None:
                         if filt_reg_boundary_xy:
-                            within_bounds = filt_reg_boundary_xy.contains_points([[x, y]])[0]
+                            within_bounds = filt_reg_boundary_xy.contains_points(
+                                [[x, y]]
+                            )[0]
                             if not within_bounds:
                                 x = None
 
@@ -436,9 +477,7 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
     the ASTs though DOLPHOT
     """
 
-    noise = (
-        3.0
-    )  # Spreads the ASTs in a circular annulus of 3 pixel width instead of all being
+    noise = 3.0  # Spreads the ASTs in a circular annulus of 3 pixel width instead of all being
     # precisely [separation] from an observed star.
 
     colnames = catalog.data.columns
@@ -470,7 +509,9 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
             )
         wcs = WCS(refimage)
 
-        x_positions, y_positions = wcs.all_world2pix(ra_positions, dec_positions, wcs_origin)
+        x_positions, y_positions = wcs.all_world2pix(
+            ra_positions, dec_positions, wcs_origin
+        )
 
     astmags = ascii.read(filename)
 
@@ -493,7 +534,6 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
     ind = ind.astype("int")
 
     # Here we generate the circular distribution of ASTs surrounding random observed stars
-
 
     separation = np.random.random(n_asts) * noise + separation
     theta = np.random.random(n_asts) * 2.0 * np.pi

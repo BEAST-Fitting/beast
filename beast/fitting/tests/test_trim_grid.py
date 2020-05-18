@@ -4,7 +4,7 @@ from beast.physicsmodel.grid import SEDGrid
 from beast.observationmodel.noisemodel import generic_noisemodel as noisemodel
 from beast.fitting.trim_grid import trim_models
 from beast.tests.helpers import download_rename, compare_hdf5
-from beast.fitting.tests.helpers import get_obscat
+from beast.observationmodel.observations import Observations
 
 
 @remote_data
@@ -37,7 +37,7 @@ def test_trim_grid():
     basefilters = ["F275W", "F336W", "F475W", "F814W", "F110W", "F160W"]
     obs_colnames = [f.lower() + "_rate" for f in basefilters]
 
-    obsdata = get_obscat(obs_fname, filters, obs_colnames, vega_fname=vega_fname)
+    obsdata = Observations(obs_fname, filters, obs_colnames, vega_fname=vega_fname)
 
     # get the modesedgrid
     modelsedgrid = SEDGrid(seds_fname)

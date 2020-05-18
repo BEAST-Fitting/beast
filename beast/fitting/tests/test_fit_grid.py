@@ -2,9 +2,10 @@ from astropy.table import Table
 from astropy.tests.helper import remote_data
 
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
+from beast.observationmodel.observations import Observations
 from beast.fitting import fit
 from beast.tests.helpers import download_rename, compare_tables, compare_fits
-from beast.fitting.tests.helpers import get_obscat
+# from beast.fitting.tests.helpers import get_obscat
 
 
 @remote_data
@@ -37,7 +38,7 @@ def test_fit_grid():
     basefilters = ["F275W", "F336W", "F475W", "F814W", "F110W", "F160W"]
     obs_colnames = [f.lower() + "_rate" for f in basefilters]
 
-    obsdata = get_obscat(obs_fname, filters, obs_colnames, vega_fname=vega_fname)
+    obsdata = Observations(obs_fname, filters, obs_colnames, vega_fname=vega_fname)
     # output files
     stats_fname = "/tmp/beast_example_phat_stats.fits"
     pdf1d_fname = "/tmp/beast_example_phat_pdf1d.fits"

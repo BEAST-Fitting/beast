@@ -51,7 +51,7 @@ def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
 
     # Keep index where model is brighter than the limit in N filters
     s = np.sum(flag, axis=1)
-    idx, = np.where(s >= Nfilter)
+    (idx,) = np.where(s >= Nfilter)
 
     return idx
 
@@ -135,8 +135,8 @@ def pick_models_toothpick_style(
 
     # Check if logL=-9.999 model points sliently sneak through
     if min(modelsedgrid.grid["logL"]) < -9:
-        warnings.warn('There are logL=-9.999 model points in the SED grid!')
-        print('Excluding those SED models from selecting input ASTs')
+        warnings.warn("There are logL=-9.999 model points in the SED grid!")
+        print("Excluding those SED models from selecting input ASTs")
         idxs = np.where(modelsedgrid.grid["logL"] > -9)[0]
         sedsMags = sedsMags[idxs]
 
@@ -228,7 +228,7 @@ def pick_models_toothpick_style(
         grid_dict = {}
         for key in list(modelsedgrid.grid.keys()):
             grid_dict[key] = modelsedgrid.grid[key][chosen_idxs]
-        grid_dict['sedgrid_indx'] = chosen_idxs
+        grid_dict["sedgrid_indx"] = chosen_idxs
         ast_params = Table(grid_dict)
         ast_params.write(outfile_params, overwrite=True)
 
@@ -346,7 +346,7 @@ def pick_models(
         np.random.seed(ranseed)
 
     for iage in search_age:
-        tmp, = np.where(prime_params[:, 0] == iage)
+        (tmp,) = np.where(prime_params[:, 0] == iage)
         new_ind = np.random.choice(tmp, N_sample)
         model_ind.append(new_ind)
         [ast_params.add_row(grid_cut[new_ind[i]]) for i in range(len(new_ind))]
