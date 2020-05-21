@@ -314,31 +314,6 @@ class pegase(Isochrone):
         return table
 
 
-def _get_num_comments(filename):
-    """
-    Utility function to get determine the number of comment lines in a CSV file.
-    Needed to get the simpletable(?) generated csv files to read with astropy.tables.
-    Likely can remove this function with updates to provide more standard formats
-    for the isochrone csv files.
-
-    Parameters
-    ----------
-    filename : str
-        name of file
-
-    Returns
-    -------
-    int
-        number of lines starting with #
-    """
-    cnt = 0
-    f = open(filename, "r")
-    for line in f:
-        if line[0] == "#":
-            cnt += 1
-    return cnt
-
-
 class ezIsoch(Isochrone):
     """ Trying to make something that is easy to manipulate
     This class is basically a proxy to a table (whatever format works best)
@@ -368,7 +343,7 @@ class ezIsoch(Isochrone):
             return self.interp
 
     def _load_table_(self, source):
-        tdata = Table.read(self.source, format="csv", header_start=_get_num_comments(self.source))
+        tdata = Table.read(self.source, format="csv", comment="#")
         self.data = tdata[np.isfinite(tdata["logA"])]
 
     def __getitem__(self, key):
