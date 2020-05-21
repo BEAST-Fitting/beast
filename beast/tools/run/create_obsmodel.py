@@ -111,7 +111,7 @@ def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None, None], use_rat
         if use_sd:
 
             input_list = [
-                (sedfile, curr_sd)
+                (sedfile, curr_sd, use_rate)
                 for sedfile in modelsedgridfiles
                 for curr_sd in sd_list
             ]
@@ -121,7 +121,7 @@ def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None, None], use_rat
         # if we're not splitting by source density
         else:
 
-            input_list = [(sedfile, None) for sedfile in modelsedgridfiles]
+            input_list = [(sedfile, None, use_rate) for sedfile in modelsedgridfiles]
 
             parallel_wrapper(gen_obsmodel, input_list, nprocs=nprocs)
 
