@@ -73,7 +73,7 @@ class ModelGrid(object):
         backend : str or :class:`~beast.physicsmodel.helpers.gridbackends.GridBackend` subclass, optional
             if str corresponding backend class
             'memory' = MemoryBackend,
-            'cache' - CacheBackend,
+            'cache' = CacheBackend,
             'disk' = DiskBackend
         """
         backend = kwargs.pop("backend", None)
@@ -163,7 +163,7 @@ class ModelGrid(object):
 class SEDGrid(ModelGrid):
     """
     Generate a grid that the full observational model (SEDs).
-    Currently a directly interface to ModelGrid.  Setup for later expansion.
+    Currently a direct interface to ModelGrid.  Setup for later expansion.
 
     Attributes
     ----------
