@@ -252,6 +252,17 @@ if __name__ == "__main__":  # pragma: no cover
         If not set, only the filters present in catfile will be retained in
         physgrid and/or obsgrid.""",
     )
+    parser.add_argument(
+        "--beast_filt",
+        type=str,
+        nargs="*",
+        default=None,
+        help="""Sometimes there is ambiguity in the filter name (e.g., the grid has
+        both HST_ACS_WFC_F475W and HST_WFC3_F475W, and the filter name is
+        F475W).  Set this to the BEAST filter name to resolve any
+        ambiguities.  For example, ['HST_WFC3_F475W', 'HST_WFC3_F814W'] ensures
+        that these are the names used for F475W and F814W.""",
+    )
     args = parser.parse_args()
 
     # do the filter removal
@@ -262,4 +273,5 @@ if __name__ == "__main__":  # pragma: no cover
         outbase=args.outbase,
         physgrid_outfile=args.physgrid_outfile,
         rm_filters=args.rm_filters,
+        beast_filt=args.beast_filt,
     )
