@@ -28,7 +28,7 @@ def find_backend(txt):
 
     Returns
     -------
-    b : GridBackend class or subclass
+    b : :class:`~beast.physicsmodel.helpers.gridbackends.GridBackend` subclass
         corresponding backend class
     """
 
@@ -52,16 +52,16 @@ class ModelGrid(object):
         """
         Parameters
         ----------
-        lamb : ndarray or str or GridBackend
-            if ndarray: wavelength of the SEDs (requires seds and
-            grid arguments)
-            if str: filename to the grid
-            if backend: ref to the given grid
+        lamb : ndarray or str or :class:`~beast.physicsmodel.helpers.gridbackends.GridBackend` subclass
+            - if ndarray: wavelength of the SEDs (requires seds and
+              grid arguments)
+            - if str: filename to the grid
+            - if backend: ref to the given grid
 
         seds : ndarray
             2D `float` array of the seds
 
-        grid : astropy.Table
+        grid : :class:`~astropy.table.Table`
             table of properties associated to each sed
 
         header : dict
@@ -70,10 +70,11 @@ class ModelGrid(object):
         aliases : dict
             if provided, update the grid table aliases
 
-        backend : str or GridBackend(or subclass), optional
-            corresponding backend class
-            'memory': MemoryBackend,
-            'cache': CacheBackend,
+        backend : str or :class:`~beast.physicsmodel.helpers.gridbackends.GridBackend` subclass, optional
+            if str corresponding backend class
+            'memory' = MemoryBackend,
+            'cache' - CacheBackend,
+            'disk' = DiskBackend
         """
         backend = kwargs.pop("backend", None)
         if backend is None:
@@ -162,7 +163,7 @@ class ModelGrid(object):
 class SEDGrid(ModelGrid):
     """
     Generate a grid that the full observational model (SEDs).
-    Currently a directy interface to ModelGrid.  Setup for later expansion.
+    Currently a directly interface to ModelGrid.  Setup for later expansion.
 
     Attributes
     ----------
@@ -175,7 +176,7 @@ class SEDGrid(ModelGrid):
     filters : list
         list of the filter names of the sed bands
 
-    grid : astropy.Table
+    grid : :class:`~astropy.table.Table`
         table with columns providing the model parameters and other
         characteristics of the grid
 
@@ -201,7 +202,7 @@ class SpectralGrid(ModelGrid):
     lamb : ndarray
         1D `float` array of the wavelengths of the sed bands
 
-    grid : astropy.Table
+    grid : :class:`~astropy.table.Table`
         table with columns providing the model parameters and other
         characteristics of the grid
 
@@ -244,7 +245,7 @@ class SpectralGrid(ModelGrid):
 
         Returns
         -------
-        memgrid : ModelGrid instance
+        memgrid : :class:`~beast.physicsmodel.helpers.grid.SEDGrid` instance
             grid info with memory backend
         """
         if isinstance(filter_names[0], str):
@@ -266,7 +267,7 @@ class SpectralGrid(ModelGrid):
                 lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
         else:
             lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
-        memgrid = ModelGrid(lamb, seds, grid, backend=MemoryBackend)
+        memgrid = SEDGrid(lamb, seds, grid, backend=MemoryBackend)
 
         setattr(memgrid, "filters", _fnames)
         return memgrid
@@ -277,10 +278,10 @@ class SpectralGrid(ModelGrid):
 
         Parameters
         ----------
-        extLaw: extinction.ExtinctionLaw
+        extLaw : extinction.ExtinctionLaw
             apply extinction law if provided
 
-        inplace: bool
+        inplace : bool
             if set, do not copy the grid and apply on it
 
         **kwargs
@@ -288,9 +289,9 @@ class SpectralGrid(ModelGrid):
 
         Returns
         -------
-        g : ModelGrid instance or None
-            if not inplace, returns a new ModelGrid instance. Otherwise returns
-            nothing
+        g : :class:`~beast.physicsmodel.helpers.grid.SEDGrid` instance or None
+            if not inplace, returns a new :class:`~beast.physicsmodel.helpers.grid.SEDGrid`
+            instance. Otherwise returns `None`
         """
         if not isinstance(extLaw, extinction.ExtinctionLaw):
             raise TypeError("Expecting ExtinctionLaw object got %s" % type(extLaw))

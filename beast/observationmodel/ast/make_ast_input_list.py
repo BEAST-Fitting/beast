@@ -312,11 +312,9 @@ def pick_models(
     with Vega(source=vega_fname) as v:  # Get the vega fluxes
         vega_f, vega_flux, lamb = v.getFlux(filters)
 
-    # gridf = h5py.File(sedgrid_fname)
     modelsedgrid = SEDGrid(sedgrid_fname)
 
     # Convert to Vega mags
-    # sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
 
     # make sure Nfilters isn't larger than the total number of filters
@@ -325,7 +323,6 @@ def pick_models(
 
     # Select the models above the magnitude limits in N filters
     idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
-    # grid_cut = gridf['grid'][list(idxs)]
     cols = {}
     for key in list(modelsedgrid.grid.keys()):
         cols[key] = modelsedgrid.grid[key][idxs]

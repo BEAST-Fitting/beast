@@ -46,7 +46,6 @@ def plot_ast(ast_file, sed_grid_file=None):
         with Vega() as v:
             _, vega_flux, _ = v.getFlux(filter_cols)
         sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
-        good_seds = np.where(modelsedgrid.grid["logL"] > -9)[0]
 
     # make a histogram for each filter
     fig = plt.figure(figsize=(7, 4 * n_filter))
@@ -80,7 +79,7 @@ def plot_ast(ast_file, sed_grid_file=None):
 
         if sed_grid_file is not None:
             plt.hist(
-                sedsMags[good_seds, f],
+                sedsMags[:, f],
                 bins=bin_list,
                 density=True,
                 histtype="step",

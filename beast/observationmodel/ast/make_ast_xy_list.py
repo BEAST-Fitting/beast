@@ -364,28 +364,24 @@ def pick_positions_from_map(
 
                     # check that this x/y is within the catalog footprint
                     if catalog_boundary_radec:
-                        within_bounds = catalog_boundary_radec.contains_points(
-                            [[x, y]]
-                        )[
-                            0
-                        ]  # N,2 array of AST X and Y positions
-                        if not within_bounds:
+                        # N,2 array of AST X and Y positions
+                        inbounds = catalog_boundary_radec.contains_points([[x, y]])[0]
+
+                        if not inbounds:
                             x = None
 
                     # check that this x/y is with any input boundary
                     if set_coord_boundary is not None:
                         if coord_boundary_radec:
-                            within_bounds = coord_boundary_radec.contains_points(
-                                [[x, y]]
-                            )[0]
-                            if not within_bounds:
+                            inbounds = coord_boundary_radec.contains_points([[x, y]])[0]
+                            if not inbounds:
                                 x = None
                     if region_from_filters is not None:
                         if filt_reg_boundary_radec:
-                            within_bounds = filt_reg_boundary_radec.contains_points(
-                                [[x, y]]
-                            )[0]
-                            if not within_bounds:
+                            # fmt: off
+                            inbounds = filt_reg_boundary_radec.contains_points([[x, y]])[0]
+                            # fmt: on
+                            if not inbounds:
                                 x = None
 
                 # if we can convert to x/y, do everything in x/y
@@ -395,26 +391,21 @@ def pick_positions_from_map(
                     )
 
                     # check that this x/y is within the catalog footprint
-                    within_bounds = catalog_boundary_xy.contains_points([[x, y]])[
-                        0
-                    ]  # N,2 array of AST X and Y positions
-                    if not within_bounds:
+                    # N,2 array of AST X and Y positions
+                    inbounds = catalog_boundary_xy.contains_points([[x, y]])[0]
+                    if not inbounds:
                         x = None
 
                     # check that this x/y is with any input boundary
                     if set_coord_boundary is not None:
                         if coord_boundary_xy:
-                            within_bounds = coord_boundary_xy.contains_points([[x, y]])[
-                                0
-                            ]
-                            if not within_bounds:
+                            inbounds = coord_boundary_xy.contains_points([[x, y]])[0]
+                            if not inbounds:
                                 x = None
                     if region_from_filters is not None:
                         if filt_reg_boundary_xy:
-                            within_bounds = filt_reg_boundary_xy.contains_points(
-                                [[x, y]]
-                            )[0]
-                            if not within_bounds:
+                            inbounds = filt_reg_boundary_xy.contains_points([[x, y]])[0]
+                            if not inbounds:
                                 x = None
 
             j = bin_index * Nseds_per_region + i

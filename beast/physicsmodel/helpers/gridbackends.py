@@ -23,7 +23,7 @@ DiskBackend:
     for very low-memory tasks such as doing single star figures.
 """
 import sys
-import astropy.io.fits as fits
+from astropy.io import fits
 import h5py
 import copy
 from astropy.table import Table
