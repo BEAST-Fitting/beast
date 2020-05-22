@@ -6,7 +6,7 @@ from astropy.table import Table
 from astropy.table import Column
 
 from beast.observationmodel.vega import Vega
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 
 
 def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
@@ -51,7 +51,7 @@ def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
 
     # Keep index where model is brighter than the limit in N filters
     s = np.sum(flag, axis=1)
-    idx, = np.where(s >= Nfilter)
+    (idx,) = np.where(s >= Nfilter)
 
     return idx
 
@@ -128,15 +128,15 @@ def pick_models_toothpick_style(
     with Vega() as v:
         vega_f, vega_flux, lambd = v.getFlux(filters)
 
-    modelsedgrid = FileSEDGrid(sedgrid_fname)
+    modelsedgrid = SEDGrid(sedgrid_fname)
 
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
     Nf = sedsMags.shape[1]
 
     # Check if logL=-9.999 model points sliently sneak through
     if min(modelsedgrid.grid["logL"]) < -9:
-        warnings.warn('There are logL=-9.999 model points in the SED grid!')
-        print('Excluding those SED models from selecting input ASTs')
+        warnings.warn("There are logL=-9.999 model points in the SED grid!")
+        print("Excluding those SED models from selecting input ASTs")
         idxs = np.where(modelsedgrid.grid["logL"] > -9)[0]
         sedsMags = sedsMags[idxs]
 
@@ -228,7 +228,7 @@ def pick_models_toothpick_style(
         grid_dict = {}
         for key in list(modelsedgrid.grid.keys()):
             grid_dict[key] = modelsedgrid.grid[key][chosen_idxs]
-        grid_dict['sedgrid_indx'] = chosen_idxs
+        grid_dict["sedgrid_indx"] = chosen_idxs
         ast_params = Table(grid_dict)
         ast_params.write(outfile_params, overwrite=True)
 
@@ -312,11 +312,9 @@ def pick_models(
     with Vega(source=vega_fname) as v:  # Get the vega fluxes
         vega_f, vega_flux, lamb = v.getFlux(filters)
 
-    # gridf = h5py.File(sedgrid_fname)
-    modelsedgrid = FileSEDGrid(sedgrid_fname)
+    modelsedgrid = SEDGrid(sedgrid_fname)
 
     # Convert to Vega mags
-    # sedsMags = -2.5 * np.log10(gridf['seds'][:] / vega_flux)
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
 
     # make sure Nfilters isn't larger than the total number of filters
@@ -325,7 +323,6 @@ def pick_models(
 
     # Select the models above the magnitude limits in N filters
     idxs = mag_limits(sedsMags, mag_cuts, Nfilter=Nfilter, bright_cut=bright_cut)
-    # grid_cut = gridf['grid'][list(idxs)]
     cols = {}
     for key in list(modelsedgrid.grid.keys()):
         cols[key] = modelsedgrid.grid[key][idxs]
@@ -346,7 +343,7 @@ def pick_models(
         np.random.seed(ranseed)
 
     for iage in search_age:
-        tmp, = np.where(prime_params[:, 0] == iage)
+        (tmp,) = np.where(prime_params[:, 0] == iage)
         new_ind = np.random.choice(tmp, N_sample)
         model_ind.append(new_ind)
         [ast_params.add_row(grid_cut[new_ind[i]]) for i in range(len(new_ind))]

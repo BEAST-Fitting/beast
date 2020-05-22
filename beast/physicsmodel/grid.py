@@ -1,116 +1,85 @@
-""" Manage Various SED/spectral grids is a generic way
-
-Major changes from the previous version of core.grid:
-    Removed general write method
-    added backend functions and direct access to properties
-    MemoryGrid migrates to a function that creates a ModelGrid with a
-    MemoryBackend, FileSEDGrid, FileSpectralGrid migrated to functions as well
-
-Currently no majors variation is expected as long as memory or cache
-    backend types are used
-
-More optimization can be done, especially in SpectralGrid.getSEDs
-
-TODO: Check where any beast code uses eztable.Table's specific methods and
-      implement equivalent in the backends for transparency in the case of
-      HDFBackend
-      * aliases
-      * eval expression
-      * selectWhere
-      * readCoordinates (although should work already)
+"""
+SED/spectral grids
 """
 import sys
 import numpy as np
-from copy import deepcopy
 
 from beast.observationmodel import phot
 from beast.physicsmodel.dust import extinction
-from beast.physicsmodel.helpers.gridbackends import MemoryBackend, CacheBackend, HDFBackend, GridBackend
+from beast.physicsmodel.helpers.gridbackends import (
+    MemoryBackend,
+    CacheBackend,
+    DiskBackend,
+    GridBackend,
+)
 from beast.physicsmodel.helpers.gridhelpers import pretty_size_print, isNestedInstance
 
-try:
-    unicode = unicode
-except NameError:
-    # 'unicode' is undefined, must be Python 3
-    str = str
-    unicode = str
-    bytes = bytes
-    basestring = (str, bytes)
-else:
-    # 'unicode' exists, must be Python 2
-    str = str
-    unicode = unicode
-    bytes = str
-    basestring = (str, unicode)
-
-__all__ = ["ModelGrid", "SpectralGrid", "StellibGrid", "MemoryGrid", "FileSEDGrid"]
+__all__ = ["ModelGrid", "SEDGrid", "SpectralGrid"]
 
 
 def find_backend(txt):
-    """find_backend
+    """
+    Determine the needed background based on a text string
 
     Parameters
     ----------
-
-    txt: str
+    txt : str
         name to find in the list
 
-    returns
+    Returns
     -------
-
-    b: GridBackend class or subclass
+    b : :class:`~beast.physicsmodel.helpers.gridbackends.GridBackend` subclass
         corresponding backend class
     """
 
     maps = {
         "memory": MemoryBackend,
         "cache": CacheBackend,
-        "hdf": HDFBackend,
-        "generic": GridBackend,
+        "disk": DiskBackend,
     }
-    return maps.get(txt.lower(), None)
+    btype = maps.get(txt.lower(), None)
+    if btype is None:
+        raise ValueError(f"{txt} backend not supported")
+    return btype
 
 
 class ModelGrid(object):
-    """ Generic class for a minimum update of future codes """
+    """
+    Generic class
+    """
 
     def __init__(self, *args, **kwargs):
         """
         Parameters
         ----------
+        lamb : ndarray or str or :class:`~beast.physicsmodel.helpers.gridbackends.GridBackend` subclass
+            - if ndarray: wavelength of the SEDs (requires seds and
+              grid arguments)
+            - if str: filename to the grid
+            - if backend: ref to the given grid
 
-        *args and **kwargs are directly forwarded to the backend constructor
+        seds : ndarray
+            2D `float` array of the seds
 
-        lamb: ndarray or str or GridBackend
-            if ndarray: wavelength of the SEDs (requires seds and
-            grid arguments)
-            if str: filename to the grid
-            if backend: ref to the given grid
-
-        seds: ndarray[dtype=float, ndim=2]
-            array of seds
-
-        grid: eztable.Table
+        grid : :class:`~astropy.table.Table`
             table of properties associated to each sed
 
-        header: dict
+        header : dict
             if provided, update the grid table header
 
-        aliases: dict
+        aliases : dict
             if provided, update the grid table aliases
 
-        backend: str or GridBackend class or subclass
-            corresponding backend class
-
-            'memory': MemoryBackend,
-            'cache': CacheBackend,
-            'hdf': HDFBackend,
-            'generic': GridBackend
+        backend : str or :class:`~beast.physicsmodel.helpers.gridbackends.GridBackend` subclass, optional
+            if str corresponding backend class
+            'memory' = MemoryBackend,
+            'cache' = CacheBackend,
+            'disk' = DiskBackend
         """
         backend = kwargs.pop("backend", None)
         if backend is None:
-            self._backend = GridBackend(*args, **kwargs)
-        elif isinstance(backend, basestring):
+            self._backend = MemoryBackend(*args, **kwargs)
+        elif isinstance(backend, (str, bytes)):
             self._backend = find_backend(backend)(*args, **kwargs)
         elif isNestedInstance(backend, GridBackend):
             self._backend = backend
@@ -123,7 +92,6 @@ class ModelGrid(object):
 
     @lamb.setter
     def lamb(self, value):
-        """ Allow temporary overriding properties """
         self._backend.lamb = value
 
     @property
@@ -140,7 +108,6 @@ class ModelGrid(object):
 
     @seds.setter
     def seds(self, value):
-        """ Allow temporary overriding properties """
         self._backend.seds = value
 
     @property
@@ -149,16 +116,18 @@ class ModelGrid(object):
 
     @grid.setter
     def grid(self, value):
-        """ Allow temporary overriding properties """
         self._backend.grid = value
 
     def __repr__(self):
         txt = "{} ({})"
         return txt.format(object.__repr__(self), pretty_size_print(self.nbytes))
 
+    def __len__(self):
+        return self._backend.__len__()
+
     @property
     def nbytes(self):
-        """ return the number of bytes of the object """
+        """ The number of bytes of the object """
         n = sum(
             k.nbytes if hasattr(k, "nbytes") else sys.getsizeof(k)
             for k in list(self.__dict__.values())
@@ -166,11 +135,9 @@ class ModelGrid(object):
         return n
 
     def keys(self):
-        """ returns the grid dimension names """
-        if hasattr(self.grid, "keys"):
-            return list(self.grid.keys())
-        elif hasattr(self.grid, "colnames"):
-            return self.grid.colnames
+        """ The grid column names """
+        if hasattr(self._backend, "keys"):
+            return self._backend.keys()
         else:
             return []
 
@@ -186,22 +153,62 @@ class ModelGrid(object):
             raise AttributeError(msg.format(type(self).__name__, name))
 
     def __getitem__(self, name):
-        if hasattr(self.grid, "read"):
-            try:
-                return self.grid.read(field=name)
-            except TypeError:
-                return self.grid[name]
-        else:
-            return self.grid[name]
+        return self.grid[name]
 
     def copy(self):
         """ returns a copy of the object """
         return self.__class__(backend=self._backend.copy())
 
 
+class SEDGrid(ModelGrid):
+    """
+    Generate a grid that the full observational model (SEDs).
+    Currently a direct interface to ModelGrid.  Setup for later expansion.
+
+    Attributes
+    ----------
+    seds : ndarray
+        2D `float` array (# models, # bands) giving the seds
+
+    lamb : ndarray
+        1D `float` array of the wavelengths of the sed bands
+
+    filters : list
+        list of the filter names of the sed bands
+
+    grid : :class:`~astropy.table.Table`
+        table with columns providing the model parameters and other
+        characteristics of the grid
+
+    header : dict
+        header information
+
+    cov_diag, cov_offdiag : ndarray
+        2D 'float' arrays with the covariance matrices of the absolute calibration
+        uncertainties for each model
+    """
+
+
 class SpectralGrid(ModelGrid):
-    """ Generate a grid that contains spectra.
-    It provides an access to integrated photometry function getSEDs """
+    """
+    Generate a grid that contains spectra.
+    It provides an access to integrated photometry function getSEDs.
+
+    Attributes
+    ----------
+    seds : ndarray
+        2D `float` array (# models, # bands) giving the seds
+
+    lamb : ndarray
+        1D `float` array of the wavelengths of the sed bands
+
+    grid : :class:`~astropy.table.Table`
+        table with columns providing the model parameters and other
+        characteristics of the grid
+
+    header : dict
+        header information
+    """
 
     def getSEDs(
         self,
@@ -217,29 +224,29 @@ class SpectralGrid(ModelGrid):
 
         Parameters
         ----------
-        filter_names: list
+        filter_names : list
             list of filter names according to the filter lib or filter
-            instances
-            (no mixing between name and instances)
+            instances (no mixing between name and instances)
 
-        absFlux:bool
+        absFlux : bool, optional
             returns absolute fluxes if set
+            [capability should be removed]
 
-        extLaw: extinction.ExtinctionLaw
+        extLaw : extinction.ExtinctionLaw, optional
             apply extinction law if provided
 
-        inplace:bool
+        inplace : bool, optional
             if set, do not copy the grid and apply extinction on it
 
-        filterLib:  str
+        filterLib : str, optional
             full filename to the filter library hd5 file
 
-        **kwargs extra keywords will be forwrded to extLaw
+        **kwargs extra keywords will be forworded to extLaw
 
         Returns
         -------
-        memgrid: MemoryGrid instance
-            grid of SEDs
+        memgrid : :class:`~beast.physicsmodel.helpers.grid.SEDGrid` instance
+            grid info with memory backend
         """
         if isinstance(filter_names[0], str):
             flist = phot.load_filters(
@@ -260,7 +267,8 @@ class SpectralGrid(ModelGrid):
                 lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
         else:
             lamb, seds, grid = phot.extractSEDs(self, flist, absFlux=absFlux)
-        memgrid = MemoryGrid(lamb, seds, grid)
+        memgrid = SEDGrid(lamb, seds, grid, backend=MemoryBackend)
+
         setattr(memgrid, "filters", _fnames)
         return memgrid
 
@@ -270,20 +278,20 @@ class SpectralGrid(ModelGrid):
 
         Parameters
         ----------
-        extLaw: extinction.ExtinctionLaw
+        extLaw : extinction.ExtinctionLaw
             apply extinction law if provided
 
-        inplace: bool
+        inplace : bool
             if set, do not copy the grid and apply on it
 
         **kwargs
-            extra keywords will be forwrded to extLaw
+            extra keywords will be forwarded to extLaw
 
         Returns
         -------
-        g: ModelGrid instance or None
-            if not inplace, returns a new ModelGrid instance. Otherwise returns
-            nothing
+        g : :class:`~beast.physicsmodel.helpers.grid.SEDGrid` instance or None
+            if not inplace, returns a new :class:`~beast.physicsmodel.helpers.grid.SEDGrid`
+            instance. Otherwise returns `None`
         """
         if not isinstance(extLaw, extinction.ExtinctionLaw):
             raise TypeError("Expecting ExtinctionLaw object got %s" % type(extLaw))
@@ -300,108 +308,3 @@ class SpectralGrid(ModelGrid):
             for k, v in kwargs.items():
                 self.header[k] = v
             self.seds = self.seds[:] * extCurve[None, :]
-
-
-class StellibGrid(SpectralGrid):
-    """ Generate a grid from a spectral library """
-
-    def __init__(self, osl, filters, header={}, aliases={}, *args, **kwargs):
-        self.osl = osl
-        lamb, seds = self.getSEDs(filters, self.osl.wavelength, self.osl.spectra)
-        super(StellibGrid, self).__init__(
-            lamb,
-            seds=seds,
-            grid=self.osl.grid,
-            header=header,
-            aliases=aliases,
-            backend=MemoryBackend,
-        )
-        self.filters = filters
-
-    def copy(self):
-        g = super(StellibGrid, self).copy()
-        g.osl = deepcopy(self.osl)
-
-
-def MemoryGrid(lamb, seds=None, grid=None, header={}, aliases={}):
-    """ Replace the MemoryGrid class for backwards compatibility
-
-        Instanciate an grid object that has no physical storage
-        Helps to create new grids on the fly. Because it deriveds from
-        ModelGrid, this can be exported on disk too.
-
-    Parameters
-    ----------
-
-    lamb: ndarray or GridBackend subclass
-        if ndarray: wavelength of the SEDs (requires seds and grid arguments)
-        if backend: ref to the given grid
-
-    seds: ndarray[dtype=float, ndim=2]
-        array of seds
-
-    grid: eztable.Table
-        table of properties associated to each sed
-
-    header: dict
-        if provided, update the grid table header
-
-    aliases:
-        if provided, update the grid table aliases
-
-    returns
-    -------
-    g: ModelGrid
-        grid of models with no physical storage (MemoryBackend)
-    """
-    return ModelGrid(
-        lamb,
-        seds=seds,
-        grid=grid,
-        header=header,
-        aliases=aliases,
-        backend=MemoryBackend,
-    )
-
-
-def FileSEDGrid(fname, header={}, aliases={}, backend="memory"):
-    """ Replace the FileSEDGrid class for backwards compatibility
-        Generates a grid from a spectral library on disk
-
-    Parameters
-    ----------
-
-    lamb: ndarray or GridBackend subclass
-        if ndarray: wavelength of the SEDs (requires seds and grid arguments)
-        if backend: ref to the given grid
-
-    seds: ndarray[dtype=float, ndim=2]
-        array of seds
-
-    grid: eztable.Table
-        table of properties associated to each sed
-
-    header: dict
-        if provided, update the grid table header
-
-    aliases: dict
-        if provided, update the grid table aliases
-
-    backend: str or GridBackend class or subclass
-        corresponding backend class
-
-        'memory': MemoryBackend,
-        'cache': CacheBackend,
-        'hdf': HDFBackend,
-        'generic': GridBackend
-
-    returns
-    -------
-    g: ModelGrid
-        grid of models with no physical storage (MemoryBackend)
-    """
-    return SpectralGrid(fname, header=header, aliases=aliases, backend=backend)
-
-
-# Backward compatibility
-FileSpectralGrid = FileSEDGrid

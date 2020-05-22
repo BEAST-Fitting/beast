@@ -8,7 +8,7 @@ import numpy as np
 from astropy.table import Table
 import tables
 
-from beast.physicsmodel.grid import FileSEDGrid, SpectralGrid
+from beast.physicsmodel.grid import SEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 
 
@@ -100,10 +100,10 @@ def remove_filters_from_files(
     if physgrid is not None:
 
         # read in the sed grid
-        g0 = FileSEDGrid(physgrid, backend="cache")
+        g0 = SEDGrid(physgrid, backend="cache")
 
         # extract info
-        filters = g0.header["filters"].split(" ")
+        filters = g0.filters
         shortfilters = [(cfilter.split("_"))[-1].upper() for cfilter in filters]
         rindxs = []
         rgridcols = []
@@ -181,18 +181,18 @@ def remove_filters_from_files(
         nlamb = np.delete(g0.lamb, rindxs, 0)
         nfilters = np.delete(filters, rindxs, 0)
         for rcol in rgridcols:
-            g0.grid.delCol(rcol)
+            g0.grid.remove_column(rcol)
 
         print("orig filters: {}".format(" ".join(filters)))
         print(" new filters: {}".format(" ".join(nfilters)))
 
         # save the modified grid
-        g = SpectralGrid(np.array(nlamb), seds=nseds, grid=g0.grid, backend="memory")
-        g.grid.header["filters"] = " ".join(nfilters)
+        g = SEDGrid(np.array(nlamb), seds=nseds, grid=g0.grid, backend="memory")
+        g.header["filters"] = " ".join(nfilters)
         if physgrid_outfile is not None:
-            g.writeHDF(physgrid_outfile)
+            g.write(physgrid_outfile)
         elif outbase is not None:
-            g.writeHDF("{}_seds.grid.hd5".format(outbase))
+            g.write("{}_seds.grid.hd5".format(outbase))
         else:
             raise ValueError("Need to set either outbase or physgrid_outfile")
 

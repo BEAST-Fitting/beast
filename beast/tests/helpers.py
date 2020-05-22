@@ -29,7 +29,7 @@ def download_rename(filename):
     return fname
 
 
-def compare_tables(table_cache, table_new, rtol=1e-7):
+def compare_tables(table_cache, table_new, rtol=1e-7, otag=""):
     """
     Compare two tables using astropy tables routines.
 
@@ -38,14 +38,26 @@ def compare_tables(table_cache, table_new, rtol=1e-7):
     table_cache : astropy table
     table_new : astropy table
         data for comparision.
-    rtol : float (default=1e-7)
+    rtol : float, optional (default=1e-7)
         relative tolerance for np.testing.assert_allclose (default of 1e-7
         matches the default in assert_allclose)
+    otag : str
+        extra string for error messages
     """
+    etag = ""
+    if otag != "":
+        etag = f"{otag}:"
     if not len(table_new) == len(table_cache):
         raise AssertionError(
-            "Table lengths don't match: {0} (new) and {1} (cached)".format(
-                len(table_new), len(table_cache)
+            "{0}Table lengths don't match: {1} (new) and {2} (cached)".format(
+                etag, len(table_new), len(table_cache)
+            )
+        )
+
+    if not len(table_new.colnames) == len(table_cache.colnames):
+        raise AssertionError(
+            "{0} Table number of colums don't match: {1} (new) and {2} (cached)".format(
+                etag, len(table_new.colnames), len(table_cache.colnames)
             )
         )
 
@@ -124,8 +136,8 @@ def compare_hdf5(fname_cache, fname_new, ctype=None):
                 osname = sname
             if cvalue.dtype.fields is None:
                 np.testing.assert_allclose(
-                    cvalue.value,
-                    cvalue_new.value,
+                    cvalue[()],
+                    cvalue_new[()],
                     err_msg="testing %s" % (osname),
                     rtol=2e-6,
                 )
@@ -133,8 +145,8 @@ def compare_hdf5(fname_cache, fname_new, ctype=None):
                 for ckey in cvalue.dtype.fields.keys():
                     err_msg = "testing %s/%s" % (osname, ckey)
                     np.testing.assert_allclose(
-                        cvalue.value[ckey],
-                        cvalue_new.value[ckey],
+                        cvalue[()][ckey],
+                        cvalue_new[()][ckey],
                         err_msg=err_msg,
                         rtol=1e-5,
                     )

@@ -157,7 +157,10 @@ def read_sed_data(
             elif (param == "lamb") or (param == "seds"):
                 sed_data[param] = sed_hdf[param][()]
             elif param == "filters":
-                sed_data[param] = sed_hdf["grid"].attrs["filters"].decode().split(" ")
+                filtstr = sed_hdf["grid"].attrs["filters"]
+                if isinstance(filtstr, bytes):
+                    filtstr = filtstr.decode()
+                sed_data[param] = filtstr.split(" ")
             else:
                 raise ValueError("parameter {0} not found in SED grid".format(param))
 

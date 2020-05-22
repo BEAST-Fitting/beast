@@ -16,34 +16,54 @@ class Observations(object):
 
     Attributes
     ----------
-    inputFile: str
+    inputFile : str
         catalog source file
-
-    filters: sequence(str)
+    filters : list
         list of filter names (internal standards)
-
-    desc: str, optional
+    filter_aliases : dict
+        alias of filter names between internal and external names
+    desc : str
         description of the observations
-
-    badvalue: float, optional
+    badvalue : float
         value that tags a bad measurement that should not be used in the
-        fitting.
-
-    nObs: int
+        fitting
+    nObs : int
         number of observations in the catalog
     """
 
-    def __init__(self, inputFile, desc=None):
-        """ Generate a data interface object """
+    def __init__(self, inputFile, filters, obs_colnames=None, vega_fname=None, desc=None):
+        """
+        Parameters
+        ----------
+        inputFile : str
+            observation file
+        filters : list
+            interal filter names of the data
+        obs_colnames : list, optional
+            filter names in the observed catalog
+        vega_fname : str, optional
+            name of the file with the vega model spectrum
+        desc : str, optional
+            description of the observations
+        """
+        if desc is None:
+            self.desc = "GENERIC: %s" % inputFile
+        else:
+            self.desc = desc
         self.inputFile = inputFile
-        self.filters = None
-        self.desc = desc
+        self.setFilters(filters)
+        self.filter_aliases = {}
+        for ik, k in enumerate(filters):
+            self.filter_aliases[k] = obs_colnames[ik]
         self.readData()
-        self.badvalue = None
+        self.setVegaFluxes(filters, vega_fname=vega_fname)
+        # some bad values smaller than expected
+        # in physical flux units
+        self.setBadValue(6e-40)
 
     @property
     def nObs(self):
-        return self.data.nrows
+        return len(self.data)
 
     def __len__(self):
         return self.nObs
@@ -97,22 +117,54 @@ class Observations(object):
     def setFilters(self, filters):
         self.filters = filters
 
-    def getMags(self, num, filters):
-        raise Exception("Do not use as magnitudes")
-        # return np.array([self.data[tt][num] for tt in filters])
+    def setVegaFluxes(self, filters, vega_fname=None):
+        """
+        Set vega reference fluxes for conversions
 
-    def getErrors(self, num, filters):
-        raise Exception("Do not use as magnitudes")
-        # return np.array([self.data[tt + "err"][num] for tt in filters])
+        Parameters
+        ----------
+        filters : list
+            list of filters using the internally normalized namings
+        vega_fname : str, optional
+            name of the file with the vega model spectrum
+        """
+        # for optimization purpose: pre-compute
+        with Vega(source=vega_fname) as v:
+            _, vega_flux, _ = v.getFlux(filters)
+        self.vega_flux = vega_flux
 
-    def getFlux(self, num):
-        """returns the flux of an observation from the number of counts"""
+    def getFlux(self, num, units=False):
+        """
+        Flux of an observation computed from normalized vega fluxes
 
-        flux = np.empty(len(self.filters), dtype=float)
-        for ek, ok in enumerate(self.filters):
-            flux[ek] = self.data[ok][num]
+        Parameters
+        ----------
+        num : int
+            index of the star in the catalog to get measurement from
+        units : bool
+            if set returns the fluxes with units
 
-        return flux
+        Returns
+        -------
+        flux : ndarray[dtype=float, ndim=1]
+            Measured integrated flux values throughout the filters
+            in erg/s/cm^2/A
+        """
+        if self.vega_flux is None:
+            raise ValueError("vega_flux not set, can't return fluxes")
+
+        # case for using '_flux' result
+        d = self.data[num]
+
+        flux = (
+            np.array([d[self.filter_aliases[ok]] for ok in self.filters])
+            * self.vega_flux
+        )
+
+        if units is True:
+            return flux * units.erg / (units.s * units.cm * units.cm * units.angstrom)
+        else:
+            return flux
 
     def getFluxerr(self, num):
         """returns the error on the flux of an observation from the number of
@@ -136,10 +188,9 @@ class Observations(object):
 
     def readData(self):
         """ read the dataset from the original source file """
-        from ..external.eztables import AstroTable
 
         if isinstance(self.inputFile, str):
-            self.data = AstroTable(self.inputFile)
+            self.data = Table.read(self.inputFile)
         else:
             self.data = self.inputFile
 

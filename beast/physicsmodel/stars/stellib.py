@@ -12,11 +12,11 @@ from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
 from astropy import constants
 from tqdm import tqdm
+from matplotlib.path import Path
+from astropy.table import Table
 
 from beast.physicsmodel.grid import SpectralGrid
-from matplotlib.path import Path
-
-from beast.external.eztables import Table
+# from beast.external.eztables import Table
 from beast.config import __ROOT__, __NTHREADS__
 from beast.physicsmodel.stars.include import __interp__
 from beast.tools.helpers import nbytes
@@ -290,7 +290,7 @@ class Stellib(object):
 
     def __init__(self, *args, **kargs):
         """ Contructor """
-        pass
+        self.header = {}
 
     def _load_(self):
         raise NotImplementedError
@@ -1222,7 +1222,6 @@ class CompositeStellib(Stellib):
             _pts = {}
             # oslk + 1 since 0 corresponds to "not covered by any osl"
             ind = osl_index == (oslk + 1)
-            # print sum(ind)
             if np.sum(ind) > 0:
                 if hasattr(pts, "keys"):
                     keys = list(pts.keys())
@@ -1297,7 +1296,7 @@ class Elodie(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = self.name
+        self.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1409,7 +1408,7 @@ class BaSeL(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = "Basel 2.2 (pegase)"
+        self.header["NAME"] = "Basel 2.2 (pegase)"
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1520,7 +1519,7 @@ class Kurucz(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = self.name
+        self.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1619,7 +1618,7 @@ class Tlusty(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = "tlusty"
+        self.header["NAME"] = "tlusty"
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1707,7 +1706,7 @@ class BTSettl(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = self.name
+        self.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1796,7 +1795,7 @@ class Munari(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = self.name
+        self.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
@@ -1882,7 +1881,7 @@ class Aringer(Stellib):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
-        self.grid.header["NAME"] = self.name
+        self.header["NAME"] = self.name
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):

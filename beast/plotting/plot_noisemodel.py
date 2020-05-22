@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 
 
@@ -45,7 +45,7 @@ def plot_noisemodel(
 
     # read in the SED grid
     print("* reading SED grid file")
-    sed_object = FileSEDGrid(sed_file)
+    sed_object = SEDGrid(sed_file)
     if hasattr(sed_object.seds, "read"):
         sed_grid = sed_object.seds.read()
     else:

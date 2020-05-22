@@ -8,12 +8,13 @@ import numpy as np
 from numpy import interp
 from numpy import log10
 from scipy import interpolate
-
 from astropy import units
-
 import tables
-from beast.external.eztables import Table
-from beast.external.eztables.table import recfunctions
+from astropy.table import Table
+from numpy.lib import recfunctions
+
+# from beast.external.eztables import Table
+# from beast.external.eztables.table import recfunctions
 from beast.config import __ROOT__
 from beast.physicsmodel.stars.ezpadova import parsec
 from beast.physicsmodel.stars.ezmist import mist
@@ -330,8 +331,8 @@ class ezIsoch(Isochrone):
         self.Z = np.unique(np.round(self.data["Z"], 6))
         self.interpolation(interp)
 
-    def selectWhere(self, *args, **kwargs):
-        return self.data.selectWhere(*args, **kwargs)
+#    def selectWhere(self, *args, **kwargs):
+#        return self.data.selectWhere(*args, **kwargs)
 
     def interpolation(self, b=None):
         if b is not None:
@@ -342,7 +343,8 @@ class ezIsoch(Isochrone):
             return self.interp
 
     def _load_table_(self, source):
-        self.data = Table(self.source).selectWhere("*", "isfinite(logA)")
+        tdata = Table.read(self.source, format="csv", comment="#")
+        self.data = tdata[np.isfinite(tdata["logA"])]
 
     def __getitem__(self, key):
         return self.data[key]

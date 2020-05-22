@@ -1,8 +1,8 @@
 import numpy as np
 import tables
 
-from beast.physicsmodel.grid import SpectralGrid
-from beast.external.eztables import Table
+from beast.physicsmodel.grid import SEDGrid
+from astropy.table import Table
 
 __all__ = ["trim_models"]
 
@@ -57,7 +57,7 @@ def trim_models(
     min_models = np.zeros(n_filters)
     max_models = np.zeros(n_filters)
     for k, filtername in enumerate(obsdata.filters):
-        sfiltname = obsdata.data.resolve_alias(filtername)
+        sfiltname = obsdata.filter_aliases[filtername]
         if inFlux:
             min_data[k] = np.amin(obsdata.data[sfiltname] * obsdata.vega_flux[k])
             max_data[k] = np.amax(obsdata.data[sfiltname] * obsdata.vega_flux[k])
@@ -129,14 +129,14 @@ def trim_models(
 
     # New column to save the index of the model in the full grid
     cols["fullgrid_idx"] = indxs.astype(int)
-    g = SpectralGrid(
+    g = SEDGrid(
         sedgrid.lamb, seds=sedgrid.seds[indxs], grid=Table(cols), backend="memory"
     )
     filternames = obsdata.filters
-    g.grid.header["filters"] = " ".join(filternames)
+    g.header["filters"] = " ".join(filternames)
 
     # trimmed grid name
-    g.writeHDF(sed_outname)
+    g.write(sed_outname)
 
     # save the trimmed noise model
     print("Writing trimmed noisemodel to disk into {0:s}".format(noisemodel_outname))

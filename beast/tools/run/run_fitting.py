@@ -7,7 +7,8 @@ import pickle
 
 # BEAST imports
 from beast.fitting import fit
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
+from beast.observationmodel.observations import Observations
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.tools import verify_params
 from beast.tools.run.helper_functions import parallel_wrapper
@@ -25,7 +26,7 @@ def run_fitting(
     nprocs=1,
     choose_sd_sub=None,
     choose_subgrid=None,
-    pdf2d_param_list=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
+    pdf2d_param_list=["Av", "Rv", "f_A", "M_ini", "logA", "Z", "distance"],
     resume=False,
 ):
     """
@@ -255,7 +256,9 @@ def fit_submodel(
     """
 
     # read in the photometry catalog
-    obsdata = datamodel.get_obscat(photometry_file, datamodel.filters)
+    obsdata = Observations(
+        photometry_file, datamodel.filters, obs_colnames=datamodel.obs_colnames
+    )
 
     # check if it's a subgrid run by looking in the file name
     if "gridsub" in modelsedgrid_file:
@@ -267,7 +270,7 @@ def fit_submodel(
         subgrid_run = False
 
     # load the SED grid and noise model
-    modelsedgrid = FileSEDGrid(modelsedgrid_file)
+    modelsedgrid = SEDGrid(modelsedgrid_file)
     noisemodel_vals = noisemodel.get_noisemodelcat(noise_file)
 
     if subgrid_run:
@@ -345,8 +348,8 @@ if __name__ == "__main__":  # pragma: no cover
         "--pdf2d_param_list",
         type=str,
         nargs="+",
-        default=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
-        help="If set, do 2D PDFs of these parameters. If None, don't make 2D PDFs."
+        default=["Av", "Rv", "f_A", "M_ini", "logA", "Z", "distance"],
+        help="If set, do 2D PDFs of these parameters. If None, don't make 2D PDFs.",
     )
     parser.add_argument(
         "-r", "--resume", help="resume a fitting run", action="store_true"
@@ -354,7 +357,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     args = parser.parse_args()
 
-    if 'None' in args.pdf2d_param_list:
+    if "None" in args.pdf2d_param_list:
         args.pdf2d_param_list = None
 
     run_fitting(

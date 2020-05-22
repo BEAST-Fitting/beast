@@ -2,7 +2,7 @@ from astropy.tests.helper import remote_data
 
 from beast.observationmodel.noisemodel import generic_noisemodel as noisemodel
 from beast.observationmodel.noisemodel.absflux_covmat import hst_frac_matrix
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 from beast.tests.helpers import download_rename, compare_hdf5
 
 
@@ -21,7 +21,7 @@ def test_toothpick_noisemodel():
 
     ################
     # get the modesedgrid on which to generate the noisemodel
-    modelsedgrid = FileSEDGrid(seds_fname)
+    modelsedgrid = SEDGrid(seds_fname)
 
     # absflux calibration covariance matrix for HST specific filters (AC)
     filters = [

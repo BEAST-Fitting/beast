@@ -1,6 +1,6 @@
 from astropy.tests.helper import remote_data
 
-from beast.physicsmodel import grid
+from beast.physicsmodel.grid import SpectralGrid
 from beast.physicsmodel.model_grid import make_extinguished_sed_grid
 from beast.physicsmodel.dust import extinction
 from beast.tests.helpers import download_rename, compare_hdf5
@@ -30,7 +30,7 @@ def test_make_extinguished_sed_grid():
     ]
     add_spectral_properties_kwargs = dict(filternames=filters)
 
-    g_pspec = grid.FileSpectralGrid(priors_fname, backend="memory")
+    g_pspec = SpectralGrid(priors_fname, backend="memory")
 
     # generate the SED grid by integrating the filter response functions
     #   effect of dust extinction applied before filter integration

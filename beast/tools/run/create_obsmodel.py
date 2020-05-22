@@ -6,7 +6,7 @@ import glob
 
 # BEAST imports
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
 from beast.tools import verify_params
 from beast.tools.run.helper_functions import parallel_wrapper, get_modelsubgridfiles
 
@@ -171,7 +171,7 @@ def gen_obsmodel(modelsedgridfile, source_density=None, use_rate=True):
 
         print("creating " + noisefile)
 
-        modelsedgrid = FileSEDGrid(modelsedgridfile)
+        modelsedgrid = SEDGrid(modelsedgridfile)
 
         noisemodel.make_toothpick_noise_model(
             noisefile,

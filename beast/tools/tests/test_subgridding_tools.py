@@ -8,14 +8,14 @@ import tables
 
 from beast.tools import subgridding_tools
 from beast.tests.helpers import download_rename
-from beast.physicsmodel.grid import FileSEDGrid
+from beast.physicsmodel.grid import SEDGrid
+from beast.observationmodel.observations import Observations
 from beast.observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
-from beast.fitting.tests.test_fit_grid import get_obscat
 from beast.fitting import fit
 
 
 def split_and_check(grid_fname, num_subgrids):
-    complete_g = FileSEDGrid(grid_fname)
+    complete_g = SEDGrid(grid_fname)
     sub_fnames = subgridding_tools.split_grid(grid_fname, num_subgrids)
 
     # count the number of grid cells
@@ -23,20 +23,20 @@ def split_and_check(grid_fname, num_subgrids):
     sub_grids = []
 
     for sub_fname in sub_fnames:
-        sub_g = FileSEDGrid(sub_fname)
+        sub_g = SEDGrid(sub_fname)
 
         sub_seds.append(sub_g.seds)
-        sub_grids.append(sub_g.grid.data)
+        sub_grids.append(sub_g.grid)
 
         np.testing.assert_equal(complete_g.lamb, sub_g.lamb)
-        if not complete_g.grid.columns.items() == sub_g.grid.columns.items():
+        if not complete_g.grid.colnames == sub_g.grid.colnames:
             raise AssertionError()
 
     sub_seds_reconstructed = np.concatenate(sub_seds)
     np.testing.assert_equal(sub_seds_reconstructed, complete_g.seds)
 
     sub_grids_reconstructed = np.concatenate(sub_grids)
-    np.testing.assert_equal(sub_grids_reconstructed, complete_g.grid.data)
+    np.testing.assert_equal(sub_grids_reconstructed, complete_g.grid)
 
     # the split method skips anything that already exists, so if we
     # want to use this function multiple times for the same test
@@ -48,9 +48,9 @@ def split_and_check(grid_fname, num_subgrids):
 @remote_data
 def test_split_grid():
     seds_trim_fname = download_rename("beast_example_phat_seds_trim.grid.hd5")
-    split_and_check(seds_trim_fname, 1)  # an edge case
+    split_and_check(seds_trim_fname, 4)  # an edge case
     split_and_check(seds_trim_fname, 3)  # an odd numer
-    split_and_check(seds_trim_fname, 4)  # an even number
+    split_and_check(seds_trim_fname, 1)  # an even number
 
 
 @remote_data
@@ -108,7 +108,7 @@ def test_merge_pdf1d_stats():
     basefilters = ["F275W", "F336W", "F475W", "F814W", "F110W", "F160W"]
     obs_colnames = [f.lower() + "_rate" for f in basefilters]
 
-    obsdata = get_obscat(obs_fname, filters, obs_colnames, vega_fname=vega_fname)
+    obsdata = Observations(obs_fname, filters, obs_colnames, vega_fname=vega_fname)
 
     #########################################################################################
     # STEP 2: SPLIT THE GRIDS AND GENERATE THE GRID INFO DICT AS IN THE SUBGRIDDING EXAMPLE #
@@ -245,3 +245,7 @@ def test_merge_pdf1d_stats():
                 equal_nan=True,
                 err_msg="column {} is not close enough".format(c),
             )
+
+
+if __name__ == '__main__':
+    test_split_grid()

@@ -229,7 +229,7 @@ def setup_param_bins(qname, max_nbins, g0, full_model_flux, filters, grid_info_d
         name of the parameter
     max_nbins : int
         max number of bins to use for the PDF calculations
-    g0 : FileSEDGrid object
+    g0 : SEDGrid object
         the SED grid
     full_model_flux : ndarray
         1D `float` array of the fluxes for the model grid
@@ -378,7 +378,7 @@ def Q_all_memory(
     """
 
     if type(sedgrid) == str:
-        g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
+        g0 = grid.SEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
 
@@ -870,7 +870,8 @@ def IAU_names_and_extra_info(obsdata, surveyname="PHAT", extraInfo=False):
 
     # include the observed filter fluxes
     for k, filtername in enumerate(obsdata.filters):
-        r[filtername] = (obsdata.data[filtername] * obsdata.vega_flux[k]).astype(float)
+        obsfiltname = obsdata.filter_aliases[filtername]
+        r[filtername] = (obsdata.data[obsfiltname] * obsdata.vega_flux[k]).astype(float)
 
     return r
 
@@ -880,7 +881,7 @@ def summary_table_memory(
     noisemodel,
     sedgrid,
     keys=None,
-    gridbackend="cache",
+    gridbackend="memory",
     threshold=-10,
     save_every_npts=None,
     lnp_npts=None,
@@ -956,7 +957,7 @@ def summary_table_memory(
     """
 
     if type(sedgrid) == str:
-        g0 = grid.FileSEDGrid(sedgrid, backend=gridbackend)
+        g0 = grid.SEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
 

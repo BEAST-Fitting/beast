@@ -32,3 +32,7 @@ package_info = get_package_info()
 
 # setup(version=version, cmdclass=cmdclass, **package_info, entry_points={'console_scripts': ['beast = beast.main:main']})
 setup(version=version, cmdclass=cmdclass, **package_info)
+
+intersphinx_mapping = {
+        'astropy': ('https://docs.astropy.org/en/stable/', None)
+                      }

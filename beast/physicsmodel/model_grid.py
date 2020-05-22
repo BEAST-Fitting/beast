@@ -3,7 +3,7 @@ import os
 import numpy as np
 from astropy import units
 
-from beast.physicsmodel import grid
+from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel import creategrid
 from beast.physicsmodel.stars import isochrone, stellib
 from beast.physicsmodel.stars.isochrone import ezIsoch
@@ -226,18 +226,16 @@ def make_spectral_grid(
 
             return g
 
-        # if extLaw is set, remove wavelengths where the extinction curve
-        # isn't valid
         # Perform the extensions defined above and Write to disk
-        if hasattr(g, "writeHDF"):
+        if hasattr(g, "write"):
             g = apply_distance_and_spectral_props(g)
-            g.writeHDF(spec_fname)
+            g.write(spec_fname)
         else:
             for gk in g:
                 gk = apply_distance_and_spectral_props(gk)
-                gk.writeHDF(spec_fname, append=True)
+                gk.write(spec_fname, append=True)
 
-    g = grid.FileSpectralGrid(spec_fname, backend="memory")
+    g = SpectralGrid(spec_fname, backend="memory")
 
     return (spec_fname, g)
 
@@ -258,7 +256,7 @@ def add_stellar_priors(project, specgrid,
     project: str
         project name
 
-    specgrid: grid.SpectralGrid object
+    specgrid: SpectralGrid object
         spectral grid to transform
 
     distance_prior_model: dict
@@ -281,7 +279,7 @@ def add_stellar_priors(project, specgrid,
     fname: str
        name of saved file
 
-    g: grid.SpectralGrid object
+    g: SpectralGrid object
         spectral grid to transform
     """
     if priors_fname is None:
@@ -300,13 +298,13 @@ def add_stellar_priors(project, specgrid,
             **kwargs)
 
         # write to disk
-        if hasattr(specgrid, "writeHDF"):
-            specgrid.writeHDF(priors_fname)
+        if hasattr(specgrid, "write"):
+            specgrid.write(priors_fname)
         else:
             for gk in specgrid:
-                gk.writeHDF(priors_fname, append=True)
+                gk.write(priors_fname, append=True)
 
-    g = grid.FileSpectralGrid(priors_fname, backend="memory")
+    g = SpectralGrid(priors_fname, backend="memory")
 
     return (priors_fname, g)
 
@@ -338,7 +336,7 @@ def make_extinguished_sed_grid(
     project: str
         project name
 
-    specgrid: grid.SpectralGrid object
+    specgrid: SpectralGrid object
         spectral grid to transform
 
     filters: sequence
@@ -385,7 +383,7 @@ def make_extinguished_sed_grid(
     fname: str
        name of saved file
 
-    g: grid.SpectralGrid object
+    g: SpectralGrid object
         spectral grid to transform
     """
     if seds_fname is None:
@@ -430,12 +428,12 @@ def make_extinguished_sed_grid(
             )
 
         # write to disk
-        if hasattr(g, "writeHDF"):
-            g.writeHDF(seds_fname)
+        if hasattr(g, "write"):
+            g.write(seds_fname)
         else:
             for gk in g:
-                gk.writeHDF(seds_fname, append=True)
+                gk.write(seds_fname, append=True)
 
-    g = grid.FileSEDGrid(seds_fname, backend="hdf")
+    g = SEDGrid(seds_fname, backend="memory")
 
     return (seds_fname, g)

@@ -1,72 +1,85 @@
 """
 Backends to handle the model grids different ways
-
 =================================================
 
 Multiple backends are available to reduce the memory footprint for a
-performance cost as small as possible. They allow grids to be stored into FITS
-files but also into HDF5 format.
-
-In principle, HDFBackend is the most optimized as it allow you to attack the
-grid file directly without memory overhead thanks to the full use of pytables
-package.
+performance cost as small as possible.
 
 Implemented Backends
 --------------------
 
 MemoryBackend:
     Load everything into memory. Can initiate from variables, a filename,
-    CacheBackend, and HDFBackend.
+    CacheBackend, and DiskBackend.
 
 CacheBackend:
     Load data only at the first request. You can work using only seds or only
     model properties without the overhead of loading both. (works with FITS and
     HDF files). Offers also dropping part of the data.
 
-HDFBackend:
-    Works directly with an HDFStore support, ie., on disk. Cache and reading
-    are allowed through any way offered by pytables, which becomes very handy
+DiskBackend:
+    Works directly with an h5py support, ie., on disk. Cache and reading
+    are allowed through any way offered by h5py, which becomes very handy
     for very low-memory tasks such as doing single star figures.
-
-All backends are able to write on disk into FITS and HDF format.
-
-TODO: add evalexpr into the HDFBackend grid
-        needs a evalexpr into the backends directly to offer transparent access
-
-TODO: add readCoordinates into all backends
-
-TODO: check read(field=) exists into all backends.grid, give direct access
 """
 import sys
-import numpy
-import astropy.io.fits as pyfits
+from astropy.io import fits
+import h5py
 import copy
+from astropy.table import Table
+from astropy.io.misc.hdf5 import read_table_hdf5
 
-from beast.external.eztables import Table
-from beast.physicsmodel.helpers.hdfstore import HDFStore
-from beast.physicsmodel.helpers.gridhelpers import isNestedInstance, pretty_size_print
+from beast.physicsmodel.helpers.gridhelpers import pretty_size_print, isNestedInstance
 
-try:
-    unicode = unicode
-except NameError:
-    # 'unicode' is undefined, must be Python 3
-    str = str
-    unicode = str
-    bytes = bytes
-    basestring = (str, bytes)
-else:
-    # 'unicode' exists, must be Python 2
-    str = str
-    unicode = unicode
-    bytes = str
-    basestring = (str, str)
+__all__ = ["GridBackend", "MemoryBackend", "CacheBackend", "DiskBackend"]
 
-__all__ = ["GridBackend", "MemoryBackend", "CacheBackend", "HDFBackend"]
+
+def _decodebytestring(a):
+    """
+    Convert to string if input is a bytestring.
+
+    Parameters
+    ----------
+    a : byte or str
+        string or bytestring
+
+    Returns
+    -------
+    str
+        string version of input
+    """
+    if isinstance(a, bytes):
+        return a.decode()
+    else:
+        return a
+
+
+def _gethdfdatasetmeta(hdfds):
+    """
+    Extract the meta(header) information from the grid dataset in a hdf file.
+    Done without reading the entire grid into memory.
+
+    Parameters
+    ----------
+    hdfds : h5py dataset
+        the hdf dataset
+
+    Returns
+    -------
+    header : dict
+        dictionary of header information
+    """
+    exclude = ["NROWS", "VERSION", "CLASS", "EXTNAME"]
+    header = {}
+    attrs = hdfds.attrs
+    for k in hdfds.attrs.keys():
+        if (k not in exclude) & (k[:5] != "FIELD") & (k[:5] != "ALIAS"):
+            header[k] = _decodebytestring(attrs[k])
+    return header
 
 
 class GridBackend(object):
-    """GridBackend
-
+    """
     How the content of a grid is handled. The idea is to provide enough
     flexibility that low-memory footprint can be achieved if needed
 
@@ -91,68 +104,118 @@ class GridBackend(object):
 
     @property
     def header(self):
-        """header"""
         return self._header
 
-    @property
-    def filters(self):
-        """filters"""
-        return self._filters
-
     def __len__(self):
+        """ number of models in grid """
         return len(self.grid)
 
     def keys(self):
-        """ returns the grid dimension names """
+        """ returns the grid keys"""
         if hasattr(self.grid, "keys"):
             return list(self.grid.keys())
         else:
             return []
 
     def _get_type(self, fname):
-        """_get_type -- guess the type of the file fname
+        """ determine the type of the file fname
         """
-        types = {"fits": "fits", "hdf": "hdf", "hd5": "hdf", "hdf5": "hdf5"}
-        # if fname.split('.')[-1] not in types:
-        #    print(fname)
-        #    try:
-        #        hdulist = pyfits.open(fname)
-        #        rtype = 'fits'
-        #    except:
-        #        print('An error occured trying to read the file.')
+        types = {"fits": "fits", "hdf": "hdf", "hd5": "hdf", "hdf5": "hdf"}
         # else:
-        rtype = types[fname.split(".")[-1]]
-        return rtype
+        fext = fname.split(".")[-1]
+        if fext not in types:
+            raise ValueError(f"{fext} file type not supported")
+        else:
+            return types[fext]
 
     def __repr__(self):
-        """__repr__"""
+        """ print the object and memory usage"""
         txt = "{}\n source: {}, \n current memory footprint: {}"
         return txt.format(
             object.__repr__(self), self.fname, pretty_size_print(self.nbytes)
         )
 
-    def _from_HDFBackend(self, b):
-        """_from_HDFBackend -- convert from HDFBackend
+    def write(self, fname, append=False):
+        """
+        Save the file in a format based on the filename extension
+
+        fname: str
+            filename (incl. path)
+        """
+        # non supported types raise an error in self._get_type
+        if self._get_type(fname) == "fits":
+            self.writeFITS(fname)
+        elif self._get_type(fname) == "hdf":
+            self.writeHDF(fname, append=append)
+
+    def writeFITS(self, fname, overwrite=False):
+        """
+        Save to fits file
 
         Parameters
         ----------
+        fname: str
+            filename (incl. path) to export to
 
-        b: GridBackend or sub class
-            backend to convert from
+        overwrite : bool, optional
+            Set to overwrite the fits file
         """
-        self.lamb = b.lamb.read()
-        self.seds = b.seds.read()
-        self.grid = Table(b.grid.read())
-        self._filters = b._filters[:]
-        self._header = b.header
-        self._aliases = b._aliases
+        if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
+            if not isinstance(self.grid, Table):
+                raise ValueError("Only astropy.Table are supported")
+
+            hdulist = fits.HDUList()
+            hdulist.append(fits.PrimaryHDU(self.lamb))
+            hdulist.append(fits.ImageHDU(self.seds, name="seds"))
+            if self.cov_diag is not None:
+                hdulist.append(fits.ImageHDU(self.cov_diag, name="covdiag"))
+            if self.cov_offdiag is not None:
+                hdulist.append(fits.ImageHDU(self.cov_offdiag, name="covoffdiag"))
+            hdulist.append(fits.BinTableHDU(self.grid, name="grid"))
+            hdulist.writeto(fname, overwrite=overwrite)
+        else:
+            raise ValueError("Full data set not specified (lamb, seds, grid)")
+
+    def writeHDF(self, fname, append=False):
+        """
+        Save to HDF file
+
+        Parameters
+        ----------
+        fname : str
+            filename (incl. path)
+
+        append : bool, optional (default False)
+            if set, it will append data to each Array or Table
+        """
+        if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
+            if not isinstance(self.grid, Table):
+                raise ValueError("Only astropy.Table are supported")
+            with h5py.File(fname, "w") as hd:
+                if (not append) or ("seds" not in hd.keys()):
+                    hd["seds"] = self.seds[:]
+                    hd["lamb"] = self.lamb[:]
+                    if self.cov_diag is not None:
+                        hd["covdiag"] = self.cov_diag[:]
+                    if self.cov_offdiag is not None:
+                        hd["covoffdiag"] = self.cov_offdiag[:]
+                else:
+                    raise Exception("Appending to HDF5 file not supported")
+
+            if getattr(self, "filters", None) is not None:
+                if "filters" not in list(self.header.keys()):
+                    self.header["filters"] = " ".join(self.filters)
+            # append the table of the grid parameters to the file
+            self.grid.meta = self.header
+            self.grid.write(fname, path="grid", format="hdf5", append=True)
+        else:
+            raise ValueError("Full data set not specified (lamb, seds, grid)")
 
     def _from_GridBackend(self, b):
-        """_from_GridBackend -- convert from generic backend
-
+        """
+        _from_GridBackend -- convert from generic backend
         Parameters
         ----------
-
         b: GridBackend or sub class
             backend to convert from
         """
@@ -163,16 +226,21 @@ class GridBackend(object):
         self._header = b.header
         self._aliases = b._aliases
 
-    def copy(self):
-        """ implement a copy method """
-        g = GridBackend()
-        g.lamb = copy.deepcopy(self.lamb)
-        g.seds = copy.deepcopy(self.seds)
-        g.grid = copy.deepcopy(self.grid)
-        g._filters = copy.deepcopy(self._filters)
-        g._header = copy.deepcopy(self._header)
-        g._aliases = copy.deepcopy(self._aliases)
-        return g
+    def _from_DiskBackend(self, b):
+        """
+        convert from DiskBackend
+
+        Parameters
+        ----------
+        b: GridBackend or sub class
+            backend to convert from
+        """
+        self.lamb = b.lamb.read()
+        self.seds = b.seds.read()
+        self.grid = Table(b.grid.read())
+        self._filters = b._filters[:]
+        self._header = b.header
+        self._aliases = b._aliases
 
 
 class MemoryBackend(GridBackend):
@@ -192,46 +260,50 @@ class MemoryBackend(GridBackend):
         header={},
         aliases={},
     ):
-        """__init__
-
+        """
         Parameters
         ----------
+        lamb : ndarray or str or GridBackend subclass
+            if ndarray - 1D `float` wavelength of the SEDs (requires seds and grid arguments)
+            if str - filename of grid on disk
+            if backend - ref to the given grid
 
-        lamb: ndarray or GridBackend subclass
-            if ndarray: wavelength of the SEDs (requires seds and grid
-                                                arguments)
-            if backend: ref to the given grid
+        seds : ndarray, optional
+            2D `float` array of seds
 
-        seds: ndarray[dtype=float, ndim=2]
-            array of seds
-
-        grid: eztable.Table
+        grid : astropy.Table, optional
             table of properties associated to each sed
 
-        header: dict
+        cov_diag : ndarray, optional
+            2D `float` array (# models, # filters) of the diagonal elements
+            of the absolute flux covariance matrix
+
+        cov_offdiag : ndarray, optional
+            2D `float` array (# models, # elements) of the off diagonal elements
+            of the absolute flux covariance matrix
+
+        header : dict, optional
             if provided, update the grid table header
 
-        aliases:
+        aliases : dict, optional
             if provided, update the grid table aliases
-
         """
-        super(MemoryBackend, self).__init__()
+        super().__init__()
 
         # read from various formats
-        if isinstance(lamb, HDFBackend):
-            self._fromHDFBackend(lamb)
+        if isinstance(lamb, DiskBackend):
+            self._from_DiskBackend(lamb)
         elif isNestedInstance(lamb, GridBackend):
             self._from_GridBackend(lamb)
-        elif isinstance(lamb, basestring):
+        elif isinstance(lamb, (str, bytes)):
             self._from_File(lamb)
         else:
             if (seds is None) | (grid is None):
-                raise ValueError("Wrong number of arguments")
+                raise ValueError("seds or grid not passed")
             self.lamb = lamb
             self.seds = seds
             self.grid = grid
             if (cov_diag is not None) & (cov_offdiag is not None):
-                print("including cov diag and offdiag")
                 self.cov_diag = cov_diag
                 self.cov_offdiag = cov_offdiag
             else:
@@ -243,7 +315,7 @@ class MemoryBackend(GridBackend):
             self._header = header
         else:
             for k, v in list(header.items()):
-                self.grid.header[k] = v
+                self.header[k] = v
 
         # update aliases
         self._aliases.update(aliases)
@@ -253,104 +325,62 @@ class MemoryBackend(GridBackend):
     def filters(self):
         """filters"""
         r = self._header.get("filters", None) or self._header.get("FILTERS", None)
-        if r is not None:
-            r = r.split()
-        return r
-
-    @property
-    def header(self):
-        return self._header
+        if r is None:
+            return r
+        r = r.split()
+        return [_decodebytestring(tr) for tr in r]
 
     def _from_File(self, fname):
-        """_from_File -- load the content of a FITS or HDF file
+        """
+        Load the content of a file
 
         Parameters
         ----------
-
         fname: str
             filename (incl. path) to read from
         """
 
         # load_seds - load wavelength and seds
         if self._get_type(fname) == "fits":
-            with pyfits.open(fname) as f:
-                self.seds = f[0].data[:-1]
-                self.lamb = f[0].data[-1]
-            self.grid = Table(fname)
+            with fits.open(fname) as f:
+                extnames = [f[k].header["EXTNAME"].lower() for k in range(1, len(f))]
+                if "seds" in extnames:  # new format
+                    self.lamb = f[0].data
+                    self.seds = f["seds"].data
+                    if "covdiag" in extnames:
+                        self.cov_diag = f["covdiag"].data
+                    else:
+                        self.cov_diag = None
+                    if "covoffdiag" in extnames:
+                        self.cov_offdiag = f["covoffdiag"].data
+                    else:
+                        self.cov_offdiag = None
+                    self._header = f["grid"].header
+                    self.grid = Table(f["grid"].data)
+                else:  # old format (used for stellar atmosphere grids, remove when those updated)
+                    with fits.open(fname) as f:
+                        self.seds = f[0].data[:-1]
+                        self.lamb = f[0].data[-1]
+                        self._header = f[1].header
+                    self.grid = Table.read(fname)
 
         elif self._get_type(fname) == "hdf":
-            with HDFStore(fname, mode="r") as s:
-                self.seds = s["/seds"].read()
-                self.lamb = s["/lamb"].read()
-                try:
-                    self.cov_diag = s["/covdiag"].read()
-                except Exception:
-                    self.cov_diag = None
-                try:
-                    self.cov_offdiag = s["/covoffdiag"].read()
-                except Exception:
-                    self.cov_offdiag = None
-            self.grid = Table(fname, tablename="/grid")
-
-        self._header = self.grid.header
-
-    def writeFITS(self, fname, *args, **kwargs):
-        """write -- export to fits file
-
-        Parameters
-        ----------
-
-        fname: str
-            filename (incl. path) to export to
-        """
-        if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            if not isinstance(self.grid, Table):
-                raise TypeError("Only eztables.Table are supported so far")
-            r = numpy.vstack([self.seds, self.lamb])
-            pyfits.writeto(fname, r, **kwargs)
-            if getattr(self, "filters", None) is not None:
-                if "FILTERS" not in list(self.grid.header.keys()):
-                    self.grid.header["FILTERS"] = " ".join(self.filters)
-            self.grid.write(fname, append=True)
-
-    def writeHDF(self, fname, append=False, *args, **kwargs):
-        """write -- export to HDF file
-
-        Parameters
-        ----------
-
-        fname: str
-            filename (incl. path) to export to
-
-        append: bool, optional (default False)
-            if set, it will append data to each Array or Table
-        """
-        if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            if not isinstance(self.grid, Table):
-                raise TypeError("Only eztables.Table are supported so far")
-            with HDFStore(fname, mode="a") as hd:
-                if not append:
-                    hd["/seds"] = self.seds[:]
-                    hd["/lamb"] = self.lamb[:]
-                    if self.cov_diag is not None:
-                        hd["/covdiag"] = self.cov_diag[:]
-                    if self.cov_offdiag is not None:
-                        hd["/covoffdiag"] = self.cov_offdiag[:]
+            with h5py.File(fname, "r") as s:
+                self.seds = s["seds"][()]
+                self.lamb = s["lamb"][()]
+                if "covdiag" in s.keys():
+                    self.cov_diag = s["covdiag"][()]
                 else:
-                    try:
-                        node = hd.get_node("/seds")
-                        node.append(self.seds[:])
-                    except Exception:
-                        hd["/seds"] = self.seds[:]
-                        hd["/lamb"] = self.lamb[:]
-                        if self.cov_diag is not None:
-                            hd["/covdiag"] = self.cov_diag[:]
-                        if self.cov_offdiag is not None:
-                            hd["/covoffdiag"] = self.cov_offdiag[:]
-            if getattr(self, "filters", None) is not None:
-                if "FILTERS" not in list(self.grid.header.keys()):
-                    self.grid.header["FILTERS"] = " ".join(self.filters)
-            self.grid.write(fname, tablename="grid", append=True)
+                    self.cov_diag = None
+                if "covdiag" in s.keys():
+                    self.cov_offdiag = s["covoffdiag"][()]
+                else:
+                    self.cov_offdiag = None
+                self.grid = read_table_hdf5(s["grid"])
+                self._header = self.grid.meta
+
+        if "filters" in self._header.keys():
+            self._header["filters"] = _decodebytestring(self._header["filters"])
 
     def copy(self):
         """ implement a copy method """
@@ -368,23 +398,18 @@ class MemoryBackend(GridBackend):
 
 
 class CacheBackend(GridBackend):
-    """CacheBackend -- Load content from a file only when needed
-
-    The key idea is to be able to load the content only at the first query
-
-    Currently the grid attribute is an eztable.Table object as it was before.
+    """
+    Load content from a file only when needed
     """
 
     def __init__(self, fname, *args, **kwargs):
-        """__init__
-
+        """
         Parameters
         ----------
-
-        fname: str
-            FITS or HD5 file containing the grid
+        fname : str
+            name of file containing the grid
         """
-        super(CacheBackend, self).__init__()
+        super().__init__(*args, **kwargs)
 
         self.fname = fname
         self._type = self._get_type(fname)
@@ -395,185 +420,178 @@ class CacheBackend(GridBackend):
 
         Parameters
         ----------
-
-        attrname: str in [lamb, filters, grid, header, lamb, seds]
+        attrname : str in [lamb, filters, grid, header, lamb, seds]
             if provided clear only one attribute
             else all cache will be erased
         """
         if attrname is None:
             self._seds = None
             self._lamb = None
+            self._cov_diag = None
+            self._cov_offdiag = None
             self._filters = None
             self._grid = None
             self._header = None
+            self._filters = None
         else:
             setattr(self, "_{0}".format(attrname), None)
 
-    def _load_seds(self, fname):
-        """load_seds - load seds"""
+    def _load_seds(self):
+        """
+        Load in the SEDs from file if not present
+        """
         if self._seds is None:
-            if self._get_type(fname) == "fits":
-                with pyfits.open(self.fname) as f:
-                    self._seds = f[0].data[:-1]
-
-            elif self._get_type(fname) == "hdf":
-                with HDFStore(self.fname, mode="r") as s:
-                    self._seds = s["/seds"].read()
-
-    def _load_lamb(self, fname):
-        """load_seds - load wavelength"""
-        if self._lamb is None:
-            if self._get_type(fname) == "fits":
-                with pyfits.open(self.fname) as f:
-                    self._lamb = f[0].data[-1]
-
-            elif self._get_type(fname) == "hdf":
-                with HDFStore(self.fname, mode="r") as s:
-                    self._lamb = s["/lamb"].read()
-
-    def _load_grid(self, fname):
-        """load_grid - load grid table"""
-        # load_seds - load wavelength and seds
-        if self._grid is None:
-            if self._get_type(fname) == "fits":
-                self._grid = Table(self.fname)
-
-            elif self._get_type(fname) == "hdf":
-                self._grid = Table(self.fname, tablename="/grid")
-
-    def _load_filters(self, fname):
-        """load_filters -- load only filters"""
-        if self._filters is None:
             if self._type == "fits":
-                with pyfits.open(self.fname) as f:
-                    self._filters = f[1].header.get("FILTERS", None) or f[1].header.get(
-                        "filters", None
-                    )
-                    if self._filters is not None:
-                        self._filters = self._filters.split()
+                with fits.open(self.fname) as f:
+                    self._seds = f["seds"].data
+
             elif self._type == "hdf":
-                self._filters = self.header.get("FILTERS", None) or self.header.get(
-                    "filters", None
-                )
-                if self._filters is not None:
-                    self._filters = self._filters.split()
+                with h5py.File(self.fname, "r") as s:
+                    self._seds = s["seds"][()]
+
+    def _load_cov_diag(self):
+        """
+        Load in the cov_diag from file if not present
+        """
+        if self._cov_diag is None:
+            if self._type == "fits":
+                with fits.open(self.fname) as f:
+                    self._cov_diag = f["covdiag"].data
+
+            elif self._type == "hdf":
+                with h5py.File(self.fname, "r") as s:
+                    self._cov_diag = s["covdiag"][()]
+
+    def _load_cov_offdiag(self):
+        """
+        Load in the cov_offdiag from file if not present
+        """
+        if self._cov_offdiag is None:
+            if self._type == "fits":
+                with fits.open(self.fname) as f:
+                    self._cov_offdiag = f["covoffdiag"].data
+
+            elif self._type == "hdf":
+                with h5py.File(self.fname, "r") as s:
+                    self._cov_offdiag = s["covoffdiag"][()]
+
+    def _load_lamb(self):
+        """
+        Load in the wavelengths from file if not present
+        """
+        if self._lamb is None:
+            if self._type == "fits":
+                with fits.open(self.fname) as f:
+                    self._lamb = f[0].data
+
+            elif self._type == "hdf":
+                with h5py.File(self.fname, mode="r") as s:
+                    self._lamb = s["lamb"][()]
+
+    def _load_grid(self):
+        """
+        Load in the grid from file if not present
+        """
+        if self._grid is None:
+            if self._type == "fits":
+                self._grid = Table.read(self.fname)
+
+            elif self._type == "hdf":
+                self._grid = Table.read(self.fname, path="grid", format="hdf5")
+
+    def _load_header(self):
+        """
+        Load in the header of the grid if not present
+        """
+        if self._header is None:
+            if self._type == "fits":
+                with fits.open(self.fname) as f:
+                    self._header = f["grid"].header
+            elif self._type == "hdf":
+                with h5py.File(self.fname, mode="r") as s:
+                    self._header = _gethdfdatasetmeta(s["grid"])
+
+    def _load_filters(self):
+        """
+        Load in the filters from file if not present
+        """
+        if self._filters is None:
+            self._load_header()
+            try1 = self._header.get("FILTERS", None)
+            try2 = self._header.get("filters", None)
+            self._filters = try1 or try2
+            if self._filters is not None:
+                self._filters = self._filters.split()
 
     @property
     def seds(self):
-        """seds - load in cache if needed """
-        self._load_seds(self.fname)
+        self._load_seds()
         return self._seds
 
     @seds.setter
     def seds(self, value):
-        """ replace seds value """
         self._seds = value
 
     @property
     def lamb(self):
-        """lamb - load in cache if needed """
-        self._load_lamb(self.fname)
+        self._load_lamb()
         return self._lamb
 
     @lamb.setter
     def lamb(self, value):
-        """ replace seds value """
         self._lamb = value
 
     @property
+    def cov_diag(self):
+        self._load_cov_diag()
+        return self._cov_diag
+
+    @cov_diag.setter
+    def cov_diag(self, value):
+        self._cov_diag = value
+
+    @property
+    def cov_offdiag(self):
+        self._load_cov_offdiag()
+        return self._cov_offdiag
+
+    @cov_offdiag.setter
+    def cov_offdiag(self, value):
+        self._cov_offdiag = value
+
+    @property
     def grid(self):
-        """grid - load in cache if needed """
-        self._load_grid(self.fname)
+        self._load_grid()
         return self._grid
 
     @grid.setter
     def grid(self, value):
-        """ replace seds value """
         self._grid = value
 
     @property
     def header(self):
-        """header - load in cache if needed """
-        self._load_grid(self.fname)
-        return self._grid.header
+        self._load_header()
+        return self._header
 
     @header.setter
     def header(self, value):
-        """ replace seds value """
         self._header = value
 
     @property
     def filters(self):
-        """filters - load in cache if needed """
-        self._load_filters(self.fname)
+        self._load_filters()
         return self._filters
 
     @filters.setter
     def filters(self, value):
-        """ replace seds value """
         self._filters = value
 
     def keys(self):
         """ return column names when possible, avoid loading when possible """
-        if hasattr(self._grid, "coldescrs"):
-            return list(self._grid.coldescrs.keys())
-        elif hasattr(self._grid, "keys"):
+        if hasattr(self._grid, "keys"):
             return list(self._grid.keys())
-        elif hasattr(self.grid, "keys"):
-            return list(self.grid.keys())
         else:
-            return []
-
-    def writeFITS(self, fname, *args, **kwargs):
-        """write -- export to fits file
-
-        Parameters
-        ----------
-
-        fname: str
-            filename (incl. path) to export to
-        """
-        if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            if not isinstance(self.grid, Table):
-                raise TypeError("Only eztables.Table are supported so far")
-            r = numpy.vstack([self.seds, self.lamb])
-            pyfits.writeto(fname, r, **kwargs)
-            del r
-            if getattr(self, "filters", None) is not None:
-                if "FILTERS" not in list(self.grid.header.keys()):
-                    self.grid.header["FILTERS"] = " ".join(self.filters)
-            self.grid.write(fname, append=True)
-
-    def writeHDF(self, fname, append=False, *args, **kwargs):
-        """write -- export to HDF file
-
-        Parameters
-        ----------
-
-        fname: str
-            filename (incl. path) to export to
-
-        append: bool, optional (default False)
-            if set, it will append data to each Array or Table
-        """
-        if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            if not isinstance(self.grid, Table):
-                raise TypeError("Only eztables.Table are supported so far")
-            with HDFStore(fname, mode="a") as hd:
-                if not append:
-                    hd["/seds"] = self.seds[:]
-                    hd["/lamb"] = self.lamb[:]
-                else:
-                    try:
-                        node = hd.get_node("/seds")
-                        node.append(self.seds[:])
-                    except Exception:
-                        hd["/seds"] = self.seds[:]
-                        hd["/lamb"] = self.lamb[:]
-            if getattr(self, "filters", None) is not None:
-                if "FILTERS" not in list(self.grid.header.keys()):
-                    self.grid.header["FILTERS"] = " ".join(self.filters)
-            self.grid.write(fname, tablename="grid", append=True)
+            super().keys()
 
     def copy(self):
         """ implement a copy method """
@@ -585,6 +603,10 @@ class CacheBackend(GridBackend):
             g._seds = copy.deepcopy(self._seds)
         if self._lamb is not None:
             g._lamb = copy.deepcopy(self._lamb)
+        if self._cov_diag is not None:
+            g._cov_diag = copy.deepcopy(self._cov_diag)
+        if self._cov_offdiag is not None:
+            g._cov_offdiag = copy.deepcopy(self._cov_offdiag)
         if self._header is not None:
             g._header = copy.deepcopy(self._header)
         if self._filters is not None:
@@ -593,23 +615,31 @@ class CacheBackend(GridBackend):
         return g
 
 
-class HDFBackend(GridBackend):
-    """HDFBackend -- Laziest grid
+class DiskBackend(GridBackend):
+    """
+    Reads the data from disk when it is accessed.  This supports reading
+    only a portion (e.g., slices/subsets) of the requsted data.
+    This allows spectral and SED grids larger than can fit into memory.
 
-    Operations are optimized on disk through pytables
+    Only hdf files supported.
     """
 
     def __init__(self, fname, *args, **kwargs):
-        super(HDFBackend, self).__init__()
+        super().__init__(*args, **kwargs)
         ftype = self._get_type(fname)
         if ftype != "hdf":
             raise ValueError("Expecting HDF file got {0}".format(ftype))
 
         self.fname = fname
-        self.store = HDFStore(self.fname, mode="r")
-        self.seds = self.store["/seds"]
-        self.lamb = self.store["/lamb"]
-        self.grid = self.store["/grid"]
+        self.store = h5py.File(self.fname, mode="r")
+        self.seds = self.store["seds"]
+        self.lamb = self.store["lamb"]
+        self.grid = self.store["grid"]
+        self.cov_diag = None
+        if "covdiag" in self.store.keys():
+            self.cov_diag = self.store["covdiag"]
+        if "covoffdiag" in self.store.keys():
+            self.cov_offdiag = self.store["covoffdiag"]
         self._filters = None
         self._header = None
         self._aliases = {}
@@ -617,29 +647,16 @@ class HDFBackend(GridBackend):
     @property
     def header(self):
         if self._header is None:
-            # update header & aliases
-            exclude = ["NROWS", "VERSION", "CLASS", "EXTNAME"]
-            header = {}
-            for k in self.grid.attrs._v_attrnames:
-                if (k not in exclude) & (k[:5] != "FIELD") & (k[:5] != "ALIAS"):
-                    header[k] = self.grid.attrs[k]
-                if k[:5] == "ALIAS":
-                    c0, c1 = self.grid.attrs[k].split("=")
-                    self._aliases[c0] = c1
-
-            empty_name = ["", "None", "Noname", None]
-            if (header["NAME"] in empty_name) & (
-                header.get("TITLE", None) not in empty_name
-            ):
-                header["NAME"] = header["TITLE"]
-            self._header = header
+            self._header = _gethdfdatasetmeta(self.grid)
         return self._header
 
     @property
     def filters(self):
-        """filters - load in cache if needed """
+        """load in cache if needed """
         if self._filters is None:
-            self._filters = self.header.get("FILTERS", None) or self.header.get(
+            if self._header is None:
+                self._header = _gethdfdatasetmeta(self.grid)
+            self._filters = self._header.get("FILTERS", None) or self._header.get(
                 "filters", None
             )
             if self._filters is not None:
@@ -648,44 +665,9 @@ class HDFBackend(GridBackend):
 
     def keys(self):
         """ return column names when possible """
-        if hasattr(self._grid, "coldescrs"):
-            return list(self._grid.coldescrs.keys())
-        else:
-            return []
-
-    def writeHDF(self, fname, append=False, *args, **kwargs):
-        """write -- export to HDF file
-
-        Parameters
-        ---------
-
-        fname: str
-            filename (incl. path) to export to
-
-        append: bool, optional (default False)
-            if set, it will append data to each Array or Table
-        """
-        if (self.lamb is not None) & (self.seds is not None) & (self.grid is not None):
-            with HDFStore(fname, mode="a") as hd:
-                if not append:
-                    hd["/seds"] = self.seds[:]
-                    hd["/lamb"] = self.lamb[:]
-                else:
-                    try:
-                        node = hd.get_node("/seds")
-                        node.append(self.seds[:])
-                    except Exception:
-                        hd["/seds"] = self.seds[:]
-                        hd["/lamb"] = self.lamb[:]
-                hd.write(
-                    self.grid[:],
-                    group="/",
-                    tablename="grid",
-                    header=self.header,
-                    append=append,
-                )
+        return list(self.grid.dtype.fields.keys())
 
     def copy(self):
-        g = HDFBackend(self.fname)
+        g = DiskBackend(self.fname)
         g._aliases = copy.deepcopy(self._aliases)
         return g
