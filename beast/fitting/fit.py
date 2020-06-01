@@ -302,7 +302,7 @@ def Q_all_memory(
     qnames_in,
     p=[16.0, 50.0, 84.0],
     gridbackend="cache",
-    max_nbins=50,
+    max_nbins=100,
     stats_outname=None,
     pdf1d_outname=None,
     pdf2d_outname=None,
