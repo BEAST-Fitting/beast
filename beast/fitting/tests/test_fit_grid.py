@@ -149,6 +149,7 @@ def test_fit_grid():
         threshold=-10.0,
         save_every_npts=100,
         lnp_npts=60,
+        max_nbins=50,
         stats_outname=stats_fname,
         pdf1d_outname=pdf1d_fname,
         lnp_outname=lnp_fname,
