@@ -11,7 +11,7 @@ from shapely.geometry import box, Polygon
 
 from beast.tools import density_map, cut_catalogs
 
-import datamodel
+from . import datamodel
 import importlib
 
 

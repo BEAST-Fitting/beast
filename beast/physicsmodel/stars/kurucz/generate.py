@@ -1,14 +1,13 @@
 """ This module gives tools to generate Kurucz grid from original downloads """
 from beast.physicsmodel import grid
 from beast.physicsmodel.stars import stellib, isochrone
-from beast.external.eztables.core.decorators import timeit
-from beast.external.eztables.table import Table
+from astropy.table import Table
 
-import pyfits
+import astropy.io.fits as pyfits
 import numpy as np
 
 # import glob
-from matplotlib.nxutils import points_inside_poly
+# from matplotlib.nxutils import points_inside_poly
 import sys
 
 
@@ -97,26 +96,26 @@ def gen_spectral_grid_from_kurucz(outfile, osl, oiso, Z=0.02):
 
     progress = 0
     data = np.array([oiso.data["logg"], oiso.data["logT"]]).T
-    bound_cond = points_inside_poly(data, bounds)
+    # Needs to be converted to use matplotlib.path.Path.contains_points
+    # bound_cond = points_inside_poly(data, bounds)
     del data
     radii = get_radius(oiso.data["logL"], oiso.data["logT"])
     weights = (
         4.0 * np.pi * (radii * 1e2) ** 2
     )  # denorm models are in cm**-2 (4 * pi * rad)
-    with timeit("interpolation"):
-        for k in range(oiso.data.nrows):
-            p = int(100 * (k + 1) / oiso.data.nrows)
-            if progress < p:
-                progress = p
-                sys.stdout.write("progress... %d / 100\r" % progress)
-            if bound_cond[k] is True:
-                r = np.array(
-                    osl.interp(oiso.data["logT"][k], oiso.data["logg"][k], Z, 0.0)
-                ).T
-                specs[k, :] = osl.genSpectrum(r) * weights[k]
-            else:
-                specs[k, :] = np.zeros(len(osl.wavelength), dtype=float)
-        sys.stdout.write("progress... %d / 100" % progress)
+    for k in range(oiso.data.nrows):
+        p = int(100 * (k + 1) / oiso.data.nrows)
+        if progress < p:
+            progress = p
+            sys.stdout.write("progress... %d / 100\r" % progress)
+        if bound_cond[k] is True:
+            r = np.array(
+                osl.interp(oiso.data["logT"][k], oiso.data["logg"][k], Z, 0.0)
+            ).T
+            specs[k, :] = osl.genSpectrum(r) * weights[k]
+        else:
+            specs[k, :] = np.zeros(len(osl.wavelength), dtype=float)
+    sys.stdout.write("progress... %d / 100" % progress)
 
     specs = specs[bound_cond, :]
 
@@ -148,12 +147,11 @@ def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
 
     OUTPUTS:
         b   ndarray[float, ndim=2]  (closed) boundary points: [logg, Teff]
-
-    Note:
-        use "points_inside_poly" to test wether a point is inside the limits
-        >>> data = np.array([iso.data['logg'], iso.data['logT']]).T
-        >>> aa = points_inside_poly(data, leftb)
     """
+#        use "points_inside_poly" to test wether a point is inside the limits
+#        >>> data = np.array([iso.data['logg'], iso.data['logT']]).T
+#        >>> aa = points_inside_poly(data, leftb)
+#    """
     leftb = [(k, np.max(s.logT[s.logg == k]) + dlogT) for k in np.unique(s.logg)]
     leftb += [(leftb[-1][0] + dlogg, leftb[-1][1])]
     leftb = [(leftb[0][0] - dlogg, leftb[0][1])] + leftb
@@ -167,29 +165,30 @@ def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
 
 
 # =========================== TEST UNITS ==================================
-def test_stellib_boundaries():
-    """ Test get_stellib_boundaries function """
-    import pylab as plt
-
-    s = stellib.Kurucz()
-    iso = isochrone.padova2010()
-    leftb = get_stellib_boundaries(s, 0.1, 0.3, True)
-
-    plt.plot(s.Teff, s.logg, ".", color="k")
-    plt.plot(leftb[:, 1], leftb[:, 0], "o-")
-
+#def test_stellib_boundaries():
+#    """ Test get_stellib_boundaries function """
+#    import pylab as plt
+#
+#    s = stellib.Kurucz()
+#    iso = isochrone.padova2010()
+#    leftb = get_stellib_boundaries(s, 0.1, 0.3, True)
+#
+#    plt.plot(s.Teff, s.logg, ".", color="k")
+#    plt.plot(leftb[:, 1], leftb[:, 0], "o-")
+#
     # leftb = [logg, teff]
-    plt.plot(iso.data["logT"], iso.data["logg"], ",", color="r")
-    data = np.array([iso.data["logg"], iso.data["logT"]]).T
-    aa = points_inside_poly(data, leftb)
-    plt.plot(iso.data["logT"][aa], iso.data["logg"][aa], ",", color="g")
-    plt.xlabel("log(Teff)")
-    plt.ylabel("log(g)")
-    plt.xlim(plt.xlim()[::-1])
-    plt.ylim(plt.ylim()[::-1])
+#    plt.plot(iso.data["logT"], iso.data["logg"], ",", color="r")
+#    data = np.array([iso.data["logg"], iso.data["logT"]]).T
+    # Needs to be converted to use matplotlib.path.Path.contains_points
+    # aa = points_inside_poly(data, leftb)
+#    plt.plot(iso.data["logT"][aa], iso.data["logg"][aa], ",", color="g")
+#    plt.xlabel("log(Teff)")
+#    plt.ylabel("log(g)")
+#    plt.xlim(plt.xlim()[::-1])
+#    plt.ylim(plt.ylim()[::-1])
 
 
-def main_last_grid():
-    s = stellib.Kurucz()
-    iso = isochrone.padova2010()
-    gen_spectral_grid_from_kurucz("tmp.fits", s, iso)
+#def main_last_grid():
+#    s = stellib.Kurucz()
+#    iso = isochrone.padova2010()
+#    gen_spectral_grid_from_kurucz("tmp.fits", s, iso)
