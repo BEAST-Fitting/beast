@@ -1,7 +1,6 @@
 """ This module gives tools to generate Kurucz grid from original downloads """
 from beast.physicsmodel import grid
 from beast.physicsmodel.stars import stellib, isochrone
-from beast.external.eztables.core.decorators import timeit
 from beast.external.eztables.table import Table
 
 import pyfits
@@ -103,20 +102,19 @@ def gen_spectral_grid_from_kurucz(outfile, osl, oiso, Z=0.02):
     weights = (
         4.0 * np.pi * (radii * 1e2) ** 2
     )  # denorm models are in cm**-2 (4 * pi * rad)
-    with timeit("interpolation"):
-        for k in range(oiso.data.nrows):
-            p = int(100 * (k + 1) / oiso.data.nrows)
-            if progress < p:
-                progress = p
-                sys.stdout.write("progress... %d / 100\r" % progress)
-            if bound_cond[k] is True:
-                r = np.array(
-                    osl.interp(oiso.data["logT"][k], oiso.data["logg"][k], Z, 0.0)
-                ).T
-                specs[k, :] = osl.genSpectrum(r) * weights[k]
-            else:
-                specs[k, :] = np.zeros(len(osl.wavelength), dtype=float)
-        sys.stdout.write("progress... %d / 100" % progress)
+    for k in range(oiso.data.nrows):
+        p = int(100 * (k + 1) / oiso.data.nrows)
+        if progress < p:
+            progress = p
+            sys.stdout.write("progress... %d / 100\r" % progress)
+        if bound_cond[k] is True:
+            r = np.array(
+                osl.interp(oiso.data["logT"][k], oiso.data["logg"][k], Z, 0.0)
+            ).T
+            specs[k, :] = osl.genSpectrum(r) * weights[k]
+        else:
+            specs[k, :] = np.zeros(len(osl.wavelength), dtype=float)
+    sys.stdout.write("progress... %d / 100" % progress)
 
     specs = specs[bound_cond, :]
 
