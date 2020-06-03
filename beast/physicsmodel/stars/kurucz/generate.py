@@ -3,7 +3,7 @@ from beast.physicsmodel import grid
 from beast.physicsmodel.stars import stellib, isochrone
 from astropy.table import Table
 
-import pyfits
+import astropy.io.fits as pyfits
 import numpy as np
 
 # import glob
