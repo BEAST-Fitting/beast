@@ -7,7 +7,7 @@ import astropy.io.fits as pyfits
 import numpy as np
 
 # import glob
-from matplotlib.nxutils import points_inside_poly
+# from matplotlib.nxutils import points_inside_poly
 import sys
 
 
@@ -96,7 +96,8 @@ def gen_spectral_grid_from_kurucz(outfile, osl, oiso, Z=0.02):
 
     progress = 0
     data = np.array([oiso.data["logg"], oiso.data["logT"]]).T
-    bound_cond = points_inside_poly(data, bounds)
+    # Needs to be converted to use matplotlib.path.Path.contains_points
+    # bound_cond = points_inside_poly(data, bounds)
     del data
     radii = get_radius(oiso.data["logL"], oiso.data["logT"])
     weights = (
@@ -179,7 +180,8 @@ def test_stellib_boundaries():
     # leftb = [logg, teff]
     plt.plot(iso.data["logT"], iso.data["logg"], ",", color="r")
     data = np.array([iso.data["logg"], iso.data["logT"]]).T
-    aa = points_inside_poly(data, leftb)
+    # Needs to be converted to use matplotlib.path.Path.contains_points
+    # aa = points_inside_poly(data, leftb)
     plt.plot(iso.data["logT"][aa], iso.data["logg"][aa], ",", color="g")
     plt.xlabel("log(Teff)")
     plt.ylabel("log(g)")
