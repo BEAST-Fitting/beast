@@ -147,12 +147,11 @@ def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
 
     OUTPUTS:
         b   ndarray[float, ndim=2]  (closed) boundary points: [logg, Teff]
-
-    Note:
-        use "points_inside_poly" to test wether a point is inside the limits
-        >>> data = np.array([iso.data['logg'], iso.data['logT']]).T
-        >>> aa = points_inside_poly(data, leftb)
     """
+#        use "points_inside_poly" to test wether a point is inside the limits
+#        >>> data = np.array([iso.data['logg'], iso.data['logT']]).T
+#        >>> aa = points_inside_poly(data, leftb)
+#    """
     leftb = [(k, np.max(s.logT[s.logg == k]) + dlogT) for k in np.unique(s.logg)]
     leftb += [(leftb[-1][0] + dlogg, leftb[-1][1])]
     leftb = [(leftb[0][0] - dlogg, leftb[0][1])] + leftb
