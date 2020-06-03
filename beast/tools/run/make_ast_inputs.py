@@ -20,7 +20,7 @@ from beast.observationmodel.ast.make_ast_input_list import (
 from beast.observationmodel.ast import make_ast_xy_list
 from beast.tools import verify_params
 
-import datamodel
+from . import datamodel
 import importlib
 
 importlib.reload(make_ast_xy_list)

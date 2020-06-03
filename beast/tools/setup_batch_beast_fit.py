@@ -17,7 +17,7 @@ from astropy.io import fits
 
 from beast.tools import verify_params
 from beast.tools.run import create_filenames
-import datamodel
+from . import datamodel
 import importlib
 
 

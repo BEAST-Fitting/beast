@@ -16,7 +16,7 @@ from beast.tools import subgridding_tools
 from beast.tools.run import create_filenames
 
 
-import datamodel
+from . import datamodel
 import importlib
 
 

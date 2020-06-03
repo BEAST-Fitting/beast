@@ -26,7 +26,7 @@ from beast.tools.run.helper_functions import parallel_wrapper
 from beast.tools import verify_params
 from beast.tools import subgridding_tools
 
-import datamodel
+from . import datamodel
 import importlib
 
 # import pdb

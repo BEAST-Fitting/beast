@@ -10,7 +10,7 @@ from beast.tools.run import create_filenames
 from difflib import SequenceMatcher
 
 
-import datamodel
+from . import datamodel
 import importlib
 
 

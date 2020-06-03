@@ -18,7 +18,7 @@ from beast.physicsmodel.grid import SEDGrid
 from beast.observationmodel.observations import Observations
 
 # needed only for the obs_colnames to define the observed filternames
-import datamodel
+from . import datamodel
 
 if __name__ == "__main__":
     # commandline parser

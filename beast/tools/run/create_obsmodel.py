@@ -11,7 +11,7 @@ from beast.tools import verify_params
 from beast.tools.run.helper_functions import parallel_wrapper, get_modelsubgridfiles
 
 
-import datamodel
+from . import datamodel
 import importlib
 
 
