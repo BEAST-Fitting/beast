@@ -26,6 +26,7 @@ def run_fitting(
     choose_sd_sub=None,
     choose_subgrid=None,
     pdf2d_param_list=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
+    pdf_max_nbins=100,
     resume=False,
 ):
     """
@@ -60,6 +61,9 @@ def run_fitting(
 
     pdf2d_param_list : list of strings or None
         If set, do 2D PDFs of these parameters.  If None, don't make 2D PDFs.
+
+    pdf_max_nbins : int (default=100)
+        Maxiumum number of bins to use for the 1D and 2D PDFs
 
     resume : boolean (default=False)
         choose whether to resume existing run or start over
@@ -279,6 +283,7 @@ def fit_submodel(
             threshold=-10.0,
             save_every_npts=100,
             lnp_npts=500,
+            max_nbins=pdf_max_nbins,
             stats_outname=stats_file,
             pdf1d_outname=pdf_file,
             pdf2d_outname=pdf2d_file,
@@ -300,6 +305,7 @@ def fit_submodel(
             threshold=-10.0,
             save_every_npts=100,
             lnp_npts=500,
+            max_nbins=pdf_max_nbins,
             stats_outname=stats_file,
             pdf1d_outname=pdf_file,
             pdf2d_outname=pdf2d_file,
