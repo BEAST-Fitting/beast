@@ -302,7 +302,7 @@ def Q_all_memory(
     qnames_in,
     p=[16.0, 50.0, 84.0],
     gridbackend="cache",
-    max_nbins=50,
+    max_nbins=100,
     stats_outname=None,
     pdf1d_outname=None,
     pdf2d_outname=None,
@@ -338,7 +338,7 @@ def Q_all_memory(
     gridbackend : str or grid.GridBackend
         backend to use to load the grid if necessary (memory, cache, hdf)
         (see beast.core.grid)
-    max_nbins : int
+    max_nbins : int (default=100)
         maxiumum number of bins to use for the 1D likelihood calculations
     save_every_npts : int
         set to save the files below (if set) every n stars
@@ -886,6 +886,7 @@ def summary_table_memory(
     save_every_npts=None,
     lnp_npts=None,
     resume=False,
+    max_nbins=100,
     stats_outname=None,
     pdf1d_outname=None,
     pdf2d_outname=None,
@@ -922,6 +923,8 @@ def summary_table_memory(
     use_full_cov_matrix : bool
         set to use the full covariance matrix if it is present in the
         noise model file
+    max_nbins : int (default=100)
+        maxiumum number of bins to use for the 1D likelihood calculations
     stats_outname : str
         set to output the stats file into a FITS file with extensions
     pdf1d_outname : str
@@ -990,6 +993,7 @@ def summary_table_memory(
         threshold=threshold,
         save_every_npts=save_every_npts,
         lnp_npts=lnp_npts,
+        max_nbins=max_nbins,
         stats_outname=stats_outname,
         pdf1d_outname=pdf1d_outname,
         pdf2d_outname=pdf2d_outname,
