@@ -166,30 +166,30 @@ def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
 
 
 # =========================== TEST UNITS ==================================
-def test_stellib_boundaries():
-    """ Test get_stellib_boundaries function """
-    import pylab as plt
-
-    s = stellib.Kurucz()
-    iso = isochrone.padova2010()
-    leftb = get_stellib_boundaries(s, 0.1, 0.3, True)
-
-    plt.plot(s.Teff, s.logg, ".", color="k")
-    plt.plot(leftb[:, 1], leftb[:, 0], "o-")
-
+#def test_stellib_boundaries():
+#    """ Test get_stellib_boundaries function """
+#    import pylab as plt
+#
+#    s = stellib.Kurucz()
+#    iso = isochrone.padova2010()
+#    leftb = get_stellib_boundaries(s, 0.1, 0.3, True)
+#
+#    plt.plot(s.Teff, s.logg, ".", color="k")
+#    plt.plot(leftb[:, 1], leftb[:, 0], "o-")
+#
     # leftb = [logg, teff]
-    plt.plot(iso.data["logT"], iso.data["logg"], ",", color="r")
-    data = np.array([iso.data["logg"], iso.data["logT"]]).T
+#    plt.plot(iso.data["logT"], iso.data["logg"], ",", color="r")
+#    data = np.array([iso.data["logg"], iso.data["logT"]]).T
     # Needs to be converted to use matplotlib.path.Path.contains_points
     # aa = points_inside_poly(data, leftb)
-    plt.plot(iso.data["logT"][aa], iso.data["logg"][aa], ",", color="g")
-    plt.xlabel("log(Teff)")
-    plt.ylabel("log(g)")
-    plt.xlim(plt.xlim()[::-1])
-    plt.ylim(plt.ylim()[::-1])
+#    plt.plot(iso.data["logT"][aa], iso.data["logg"][aa], ",", color="g")
+#    plt.xlabel("log(Teff)")
+#    plt.ylabel("log(g)")
+#    plt.xlim(plt.xlim()[::-1])
+#    plt.ylim(plt.ylim()[::-1])
 
 
-def main_last_grid():
-    s = stellib.Kurucz()
-    iso = isochrone.padova2010()
-    gen_spectral_grid_from_kurucz("tmp.fits", s, iso)
+#def main_last_grid():
+#    s = stellib.Kurucz()
+#    iso = isochrone.padova2010()
+#    gen_spectral_grid_from_kurucz("tmp.fits", s, iso)
