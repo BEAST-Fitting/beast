@@ -11,12 +11,13 @@ from beast.observationmodel.observations import Observations
 from beast.observationmodel.ast.make_ast_input_list import (
     pick_models,
     pick_models_toothpick_style,
+    supplement_ast,
 )
 from beast.observationmodel.ast import make_ast_xy_list
 from beast.tools import beast_settings
 
 
-def make_ast_inputs(beast_settings_info, flux_bin_method=True):
+def make_ast_inputs(beast_settings_info, pick_method):
     """
     Make the list of artificial stars to be run through the photometry pipeline
 
@@ -26,9 +27,11 @@ def make_ast_inputs(beast_settings_info, flux_bin_method=True):
         if string: file name with beast settings
         if class: beast.tools.beast_settings.beast_settings instance
 
-    flux_bin_method : boolean (default=True)
-        If True, use the flux bin method to select SEDs.  If False, randomly
-        select SEDs from the model grid.
+    pick_method : string (default = "flux_bin_method")
+        If not specified, use the flux bin method to select SEDs as default.
+        If set to "random_seds", randomly select SEDs from the model grid.
+        If set to "suppl_seds", supplement input ASTs on top of the existing
+        input ASTs.
 
     """
 
@@ -51,24 +54,28 @@ def make_ast_inputs(beast_settings_info, flux_bin_method=True):
     # select SEDs
     # --------------------
 
+    modelsedgrid_filename = "./{0}/{0}_seds.grid.hd5".format(settings.project)
     Nrealize = settings.ast_realization_per_model
     Nfilters = settings.ast_bands_above_maglimit
 
     # file names for stars and corresponding SED parameters
-    outfile_seds = "./{0}/{0}_inputAST_seds.txt".format(settings.project)
-    outfile_params = "./{0}/{0}_ASTparams.fits".format(settings.project)
+    if settings.ast_supplement:
+        outfile_seds = "./{0}/{0}_inputAST_seds_suppl.txt".format(settings.project)
+        outfile_params = "./{0}/{0}_ASTparams_suppl.fits".format(settings.project)
+    else:
+        outfile_seds = "./{0}/{0}_inputAST_seds.txt".format(settings.project)
+        outfile_params = "./{0}/{0}_ASTparams.fits".format(settings.project)
 
     # if the SED file doesn't exist, create SEDs
     if not os.path.isfile(outfile_seds):
 
         print("Selecting SEDs for ASTs")
 
-        if flux_bin_method:
+        if pick_method == "flux_bin_method":
 
             N_fluxes = settings.ast_n_flux_bins
             min_N_per_flux = settings.ast_n_per_flux_bin
             bins_outfile = "./{0}/{0}_ASTfluxbins.txt".format(settings.project)
-            modelsedgrid_filename = "./{0}/{0}_seds.grid.hd5".format(settings.project)
 
             chosen_seds = pick_models_toothpick_style(
                 modelsedgrid_filename,
@@ -81,7 +88,7 @@ def make_ast_inputs(beast_settings_info, flux_bin_method=True):
                 bins_outfile=bins_outfile,
             )
 
-        else:
+        if pick_method == "random_pick":
 
             # construct magnitude cuts
 
@@ -112,6 +119,25 @@ def make_ast_inputs(beast_settings_info, flux_bin_method=True):
                 outfile=outfile_seds,
                 outfile_params=outfile_params,
             )
+
+        if pick_method == "suppl_seds":
+
+            print("Supplementing ASTs")
+
+            nAST = datamodel.ast_N_supplement
+            existingASTfile = datamodel.ast_existing_file
+            mag_cuts = datamodel.ast_suppl_maglimit
+
+            chosen_seds = supplement_ast(
+                modelsedgrid_filename,
+                datamodel.filters,
+                nAST=nAST,
+                existingASTfile=existingASTfile,
+                outASTfile=outfile_seds,
+                outASTfile_params=outfile_params,
+                mag_cuts=mag_cuts,
+            )
+
 
     # if the SED file does exist, read them in
     else:
@@ -172,12 +198,26 @@ if __name__ == "__main__":  # pragma: no cover
         help="Randomly pick from the physicsmodel grid",
     )
 
+    parser.add_argument(
+        "--suppl_seds",
+        action="store_true",
+        help="Randomly pick from the physicsmodel grid \
+              to supplement the existing input ASTs",
+    )
+
     args = parser.parse_args()
 
-    make_ast_inputs(
-        beast_settings_info=args.beast_settings_file,
-        flux_bin_method=not args.random_seds,
-    )
+    if args.random_seds:
+        make_ast_inputs(beast_settings_info=args.beast_settings_file,
+                "random_seds")
+
+    if args.suppl_seds:
+        make_ast_inputs(beast_settings_info=args.beast_settings_file,
+                "suppl_seds")
+
+    else:
+        make_ast_inputs(beast_settings_info=args.beast_settings_file,
+                "flux_bin_method")
 
     # print help if no arguments
     if not any(vars(args).values()):
