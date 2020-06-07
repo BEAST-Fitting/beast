@@ -153,6 +153,13 @@ physics model grid.
 
      $ python -m beast.tools.run.make_ast_inputs beast_settings.txt --random_seds
 
+In case the user needs to supplement the existing input ASTs, it is possible
+to select additional model SEDs.
+
+  .. code-block:: console
+
+     $ python -m beast.tools.run.make_ast_inputs --suppl_seds
+
 How the sources are placed in the image is determined by the ast_source_density_table
 variable in `beast_settings.txt`
 
