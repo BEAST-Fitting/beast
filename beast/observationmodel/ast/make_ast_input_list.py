@@ -425,7 +425,6 @@ def supplement_ast(
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
 
     Nseds = sedsMags.shape[0]
-    Nf = sedsMags.shape[1]
     sedsIndx = np.arange(Nseds)
 
     if existingASTfile is not None and os.path.isfile(existingASTfile):
