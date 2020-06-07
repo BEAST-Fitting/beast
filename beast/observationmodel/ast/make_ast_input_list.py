@@ -365,3 +365,122 @@ def pick_models(
         ast_params.write(outfile_params, overwrite=True)
 
     return sedsMags
+
+
+def supplement_ast(
+    sedgrid_fname,
+    filters,
+    nAST=1000,
+    existingASTfile=None,
+    outASTfile=None,
+    outASTfile_params=None,
+    mag_cuts=None,
+):
+    """
+    Creates an additional fake star catalog from a BEAST model grid
+    that fulfills the customized conditions to supplement input ASTs.
+    If the existing input AST parameter file is given, already selected
+    models will be excluded from this process.
+
+    Parameters
+    ----------
+    sedgrid_fname: string
+        BEAST model grid from which the models are picked (hdf5 file)
+
+    filters: list of string
+        Names of the filters
+
+    nAST: int
+        Number of unique additional ASTs per source density bin
+
+    existingASTfile: string (optional, default=None)
+        Name of the existing input AST parameter file. If not None,
+        the models that were already listed in the existing list Will
+        be removed by default
+
+    outASTfile: string (optional, default=None)
+        Output file name for the chosen models
+
+    outASTfile_params: string (optional, default=None)
+        If a file name is given, the physical parameters associated with
+        each model will be written to disk
+
+    mag_cut: dictionary (optional, default=None)
+        Ditionary of bright and faint magnitude limits for given filters
+
+    Returns
+    -------
+    sedsMags: astropy Table
+        A table containing the selected model seds (columns are named
+        after the filters)
+
+    """
+
+    with Vega() as v:
+        vega_f, vega_flux, lambd = v.getFlux(filters)
+
+    modelsedgrid = SEDGrid(sedgrid_fname)
+
+    # Convert to Vega mags
+    sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
+
+    Nseds = sedsMags.shape[0]
+    Nf = sedsMags.shape[1]
+    sedsIndx = np.arange(Nseds)
+
+    if existingASTfile is not None and os.path.isfile(existingASTfile):
+        print(
+            "{} exists. Will attempt to load SEDs for ASTs from there \
+             and remove those SEDs from the SED grid".format(
+             existingASTfile
+            )
+        )
+
+        t = Table.read(outfile, format="fits")
+        sedsMags = np.delete(sedsMags, t["sedgrid_indx"], axis=0)
+        sedsIndx = np.delete(sedsIndx, t["sedgrid_indx"])
+
+    # Apply selection conditions if supplied
+    if mag_cuts is not None:
+        cond = np.zeros(Nseds, dtype=bool)
+
+        for key in list(mag_cuts.keys()):
+            idx_filter = [i for i, iflt in enumerate(filters) if key in iflt]
+            bright_cut = mag_cuts[key][0]
+            faint_cut = mag_cuts[key][1]
+            tmp_cond = np.logical_and(sedsMags[:,idx_filter] >= bright_cut,
+                                      sedsMags[:,idx_filter] <= faint_cut
+                                      )
+            cond = np.logical_or(cond, tmp_cond.ravel())
+
+        sedsMags = sedsMags[cond,:]
+        sedsIndx = sedsIndx[cond]
+
+    # Randomly select models
+    # Supplementing ASTs does not need to follow
+    # the toothpick-way selection
+    chosen_idxs = random.choices(np.arange(len(sedsIndx)), k=nAST)
+    sedsIndx = sedsIndx[chosen_idxs]
+
+    # Gather the selected model seds in a table
+    sedsMags = Table(sedsMags[chosen_idxs, :], names=filters)
+
+    if outASTfile is not None:
+        ascii.write(
+            sedsMags,
+            outASTfile,
+            overwrite=True,
+            formats={k: "%.5f" for k in sedsMags.colnames},
+        )
+
+    # if chosen, save the corresponding model parameters
+    if outASTfile_params is not None:
+        grid_dict = {}
+        for key in list(modelsedgrid.grid.keys()):
+            grid_dict[key] = modelsedgrid.grid[key][sedsIndx]
+        grid_dict['sedgrid_indx'] = sedsIndx
+        ast_params = Table(grid_dict)
+        ast_params.write(outASTfile_params, overwrite=True)
+
+
+    return sedsMags
