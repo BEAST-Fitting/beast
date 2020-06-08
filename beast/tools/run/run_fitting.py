@@ -165,6 +165,7 @@ def run_fitting(
                 photometry_files[i],
                 modelsedgrid_trim_files[i],
                 noise_trim_files[i],
+                pdf_max_nbins,
                 stats_files[i],
                 pdf_files[i],
                 pdf2d_files[i],
@@ -183,6 +184,7 @@ def run_fitting(
                 photometry_files[i],
                 modelsedgrid_trim_files[i],
                 noise_trim_files[i],
+                pdf_max_nbins,
                 stats_files[i],
                 pdf_files[i],
                 pdf2d_files[i],
@@ -207,6 +209,7 @@ def fit_submodel(
     photometry_file,
     modelsedgrid_file,
     noise_file,
+    pdf_max_nbins,
     stats_file,
     pdf_file,
     pdf2d_file,
@@ -228,6 +231,9 @@ def fit_submodel(
 
     noise_file : string
         path+name of the noise model file
+
+    pdf_max_nbins : int
+        Maxiumum number of bins to use for the 1D and 2D PDFs
 
     stats_file : string
         path+name of the file to contain stats output
