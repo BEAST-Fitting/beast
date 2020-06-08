@@ -114,27 +114,27 @@ Parameters used by the random SED selection method
   Number of models to pick per age
 
 
-  Parameters used by the supplementing AST method
-  --------------------------------------------------
-  - 'ast_supplement' : bool
+Parameters used by the supplementing AST method
+-----------------------------------------------
+- `ast_supplement` : bool
+  
+  If True, supplement the existing input ASTs
 
-    If True, supplement the existing input ASTs
+- `ast_N_supplement` : integer (Default = 1000)
 
-  - 'ast_N_supplement' : integer (Default = 1000)
+  Number of unique model SEDs to select. These selected unique SEDs will be
+  repeated over N number of source density bins. In total, the user will supplement
+  ast_N_supplement x ast_N_bins
 
-    Number of unique model SEDs to select. These selected unique SEDs will be
-    repeated over N number of source density bins. In total, the user will supplement
-    ast_N_supplement x ast_N_bins
+- `ast_existing_file` : string (optional)
 
-  - 'ast_existing_file' : string (optional)
+  If the name of the existing input AST parameter file is supplied, additional
+  ASTs will be selected by excluding the SED models listed in that file.
 
-    If the name of the existing input AST parameter file is supplied, additional
-    ASTs will be selected by excluding the SED models listed in that file.
+- `ast_suppl_maglimit` : dictionary (optional)
 
-  - 'ast_suppl_maglimit' : dictionary (optional)
-
-    If supplied, these magnitude limits will be applied to the SED model grids
-    when selecting additional ASTs.
+  If supplied, these magnitude limits will be applied to the SED model grids
+  when selecting additional ASTs.
 
 
 Parameters used for selecting SED positions
