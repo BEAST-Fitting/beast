@@ -1,10 +1,4 @@
 #!/usr/bin/env python
-"""
-	Script to verify wrong format of the BEAST input parameters
-           and terminate run_beast
-	It must be called run_beast.py
-	Created by Maria Kapala on Feb 24th 2017
-"""
 
 import numpy as np
 from astropy import units
@@ -49,18 +43,19 @@ class datamodel:
         """
 
         # read everything in as strings
-        # import pdb; pdb.set_trace()
-        # input_data = Table.read(self.datamodel_file, format='ascii.no_header',
-        #                            delimiter='=', comment='#')
-        # input_data = Table({'col1':['var','velocity','blah'],
-        #                        'col2':['/path/to/somewhere','262.2 km/s','"some_file.txt"']})
         with open(self.datamodel_file, "r") as f:
             temp_data = f.readlines()
+        # remove empty lines and comments
         input_data = [
             line.strip()
             for line in temp_data
             if line.strip() != "" and line.strip()[0] != "#"
         ]
+        # if parameters are defined over multiple lines, combine lines
+        for i in reversed(range(len(input_data))):
+            if "=" not in input_data[i]:
+                input_data[i - 1] += input_data[i]
+                del input_data[i]
 
         # list of parameters that have units
         # (and therefore need special treatment)
