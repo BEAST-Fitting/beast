@@ -7,15 +7,18 @@ import glob
 # BEAST imports
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.physicsmodel.grid import SEDGrid
-from beast.tools import verify_params
+from beast.tools import read_datamodel
 from beast.tools.run.helper_functions import parallel_wrapper, get_modelsubgridfiles
 
 
-from . import datamodel
-import importlib
-
-
-def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None, None], use_rate=True):
+def create_obsmodel(
+    datamodel_info,
+    use_sd=True,
+    nsubs=1,
+    nprocs=1,
+    subset=[None, None],
+    use_rate=True,
+):
     """
     Create the observation models.  If nsubs > 1, this will find existing
     subgrids.  If use_sd is True, will also incorporate source density
@@ -24,6 +27,10 @@ def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None, None], use_rat
 
     Parameters
     ----------
+    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
+        if string: file name with datamodel settings
+        if class: beast.tools.read_datamodel.datamodel instance
+
     use_sd : boolean (default=True)
         If True, create source density dependent noise models (determined by
         finding matches to datamodel.astfile with SD info)
@@ -47,11 +54,15 @@ def create_obsmodel(use_sd=True, nsubs=1, nprocs=1, subset=[None, None], use_rat
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+   # process datamodel info
+    if isinstance(datamodel_info, str):
+        datamodel = read_datamodel.datamodel(datamodel_info)
+    elif isinstance(datamodel_info, read_datamodel.datamodel):
+        datamodel = datamodel_info
+    else:
+        raise TypeError(
+            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+        )
 
     # --------------------
     # figure out if there are source density bins

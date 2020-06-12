@@ -15,13 +15,12 @@ from astropy.io import fits
 
 #####
 
-from beast.tools import verify_params
+from beast.tools import read_datamodel
 from beast.tools.run import create_filenames
-from . import datamodel
-import importlib
 
 
 def setup_batch_beast_fit(
+    datamodel_info,
     num_percore=5,
     nice=None,
     overwrite_logfile=True,
@@ -37,6 +36,10 @@ def setup_batch_beast_fit(
 
     Parameters
     ----------
+    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
+        if string: file name with datamodel settings
+        if class: beast.tools.read_datamodel.datamodel instance
+
     num_percore : int (default = 5)
         number of fitting runs per core
 
@@ -75,11 +78,15 @@ def setup_batch_beast_fit(
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process datamodel info
+    if isinstance(datamodel_info, str):
+        datamodel = read_datamodel.datamodel(datamodel_info)
+    elif isinstance(datamodel_info, read_datamodel.datamodel):
+        datamodel = datamodel_info
+    else:
+        raise TypeError(
+            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+        )
 
     # setup the subdirectory for the batch and log files
     job_path = datamodel.project + "/fit_batch_jobs/"
@@ -281,6 +288,7 @@ def setup_batch_beast_fit(
             job_command = (
                 nice_str
                 + "python -m beast.tools.run.run_fitting "
+                + " {0} ".format(datamodel.datamodel_file)
                 + resume_str
                 + sd_str
                 + gs_str

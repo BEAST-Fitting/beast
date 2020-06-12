@@ -18,31 +18,34 @@ from beast.observationmodel.ast.make_ast_input_list import (
     pick_models_toothpick_style,
 )
 from beast.observationmodel.ast import make_ast_xy_list
-from beast.tools import verify_params
-
-from . import datamodel
-import importlib
-
-importlib.reload(make_ast_xy_list)
+from beast.tools import read_datamodel
 
 
-def make_ast_inputs(flux_bin_method=True):
+def make_ast_inputs(datamodel_info, flux_bin_method=True):
     """
     Make the list of artificial stars to be run through the photometry pipeline
 
     Parameters
     ----------
+    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
+        if string: file name with datamodel settings
+        if class: beast.tools.read_datamodel.datamodel instance
+
     flux_bin_method : boolean (default=True)
         If True, use the flux bin method to select SEDs.  If False, randomly
         select SEDs from the model grid.
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process datamodel info
+    if isinstance(datamodel_info, str):
+        datamodel = read_datamodel.datamodel(datamodel_info)
+    elif isinstance(datamodel_info, read_datamodel.datamodel):
+        datamodel = datamodel_info
+    else:
+        raise TypeError(
+            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+        )
 
     # read in the photometry catalog
     obsdata = Observations(
@@ -164,6 +167,11 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "datamodel_file",
+        type=str,
+        help="file name with datamodel settings",
+    )
+    parser.add_argument(
         "--random_seds",
         action="store_true",
         help="Randomly pick from the physicsmodel grid",
@@ -171,7 +179,10 @@ if __name__ == "__main__":  # pragma: no cover
 
     args = parser.parse_args()
 
-    make_ast_inputs(flux_bin_method=not args.random_seds)
+    make_ast_inputs(
+        datamodel_info=args.datamodel_file,
+        flux_bin_method=not args.random_seds,
+    )
 
     # print help if no arguments
     if not any(vars(args).values()):

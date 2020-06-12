@@ -4,20 +4,27 @@ import numpy as np
 import glob
 
 # BEAST imports
-from beast.tools import verify_params
+from beast.tools import read_datamodel
 from beast.tools.run.helper_functions import get_modelsubgridfiles
 
-from . import datamodel
-import importlib
 
-
-def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=None):
+def create_filenames(
+    datamodel_info,
+    use_sd=True,
+    nsubs=1,
+    choose_sd_sub=None,
+    choose_subgrid=None,
+):
     """
     Helper function to make all of the filenames.  SED grid and noise model
     are trimmed versions.
 
     Parameters
     ----------
+    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
+        if string: file name with datamodel settings
+        if class: beast.tools.read_datamodel.datamodel instance
+
     use_sd : boolean (default=True)
         If True, create source density dependent noise models (determined by
         finding matches to datamodel.astfile with SD info)
@@ -41,11 +48,15 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process datamodel info
+    if isinstance(datamodel_info, str):
+        datamodel = read_datamodel.datamodel(datamodel_info)
+    elif isinstance(datamodel_info, read_datamodel.datamodel):
+        datamodel = datamodel_info
+    else:
+        raise TypeError(
+            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+        )
 
     # input files
     photometry_files = []

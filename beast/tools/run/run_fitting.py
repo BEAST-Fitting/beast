@@ -10,17 +10,13 @@ from beast.fitting import fit
 from beast.physicsmodel.grid import SEDGrid
 from beast.observationmodel.observations import Observations
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
-from beast.tools import verify_params
-from beast.tools.run.helper_functions import parallel_wrapper
-from beast.tools import subgridding_tools
+from beast.tools import read_datamodel, subgridding_tools
 from beast.tools.run import create_filenames
-
-
-from . import datamodel
-import importlib
+from beast.tools.run.helper_functions import parallel_wrapper
 
 
 def run_fitting(
+    datamodel_info,
     use_sd=True,
     nsubs=1,
     nprocs=1,
@@ -40,6 +36,10 @@ def run_fitting(
 
     Parameters
     ----------
+    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
+        if string: file name with datamodel settings
+        if class: beast.tools.read_datamodel.datamodel instance
+
     use_sd : boolean (default=True)
         If True, create source density dependent noise models (determined by
         finding matches to datamodel.astfile with SD info)
@@ -71,11 +71,15 @@ def run_fitting(
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process datamodel info
+    if isinstance(datamodel_info, str):
+        datamodel = read_datamodel.datamodel(datamodel_info)
+    elif isinstance(datamodel_info, read_datamodel.datamodel):
+        datamodel = datamodel_info
+    else:
+        raise TypeError(
+            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+        )
 
     # keep track of time
     start_time = time.clock()
@@ -85,6 +89,7 @@ def run_fitting(
     # --------------------
 
     file_dict = create_filenames.create_filenames(
+        datamodel,
         use_sd=use_sd,
         nsubs=nsubs,
         choose_sd_sub=choose_sd_sub,
@@ -129,7 +134,7 @@ def run_fitting(
                 # - with SD+sub: get file list for ALL subgrids at current SD+sub
                 if use_sd or (choose_sd_sub is not None):
                     temp = create_filenames.create_filenames(
-                        nsubs=nsubs, choose_sd_sub=sd_sub_info[i], choose_subgrid=None
+                        datamodel, nsubs=nsubs, choose_sd_sub=sd_sub_info[i], choose_subgrid=None
                     )
                     modelsedgrid_trim_list = temp["modelsedgrid_trim_files"]
                     noise_trim_list = temp["noise_trim_files"]
@@ -137,7 +142,7 @@ def run_fitting(
                 # - no SD info: get file list for ALL subgrids
                 else:
                     temp = create_filenames.create_filenames(
-                        use_sd=False, nsubs=nsubs, choose_subgrid=None
+                        datamodel, use_sd=False, nsubs=nsubs, choose_subgrid=None
                     )
                     modelsedgrid_trim_list = temp["modelsedgrid_trim_files"]
                     noise_trim_list = temp["noise_trim_files"]
@@ -329,6 +334,11 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "datamodel_file",
+        type=str,
+        help="file name with datamodel settings",
+    )
+    parser.add_argument(
         "--use_sd",
         help="create source density dependent noise models",
         action="store_true",
@@ -380,6 +390,7 @@ if __name__ == "__main__":  # pragma: no cover
         args.pdf2d_param_list = None
 
     run_fitting(
+        datamodel_info=args.datamodel_file,
         use_sd=args.use_sd,
         nsubs=args.nsubs,
         nprocs=args.nprocs,

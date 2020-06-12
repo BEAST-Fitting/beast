@@ -23,22 +23,20 @@ from beast.physicsmodel.model_grid import (
 from beast.physicsmodel.grid import SpectralGrid
 from beast.tools.run.helper_functions import parallel_wrapper
 # from beast.physicsmodel.stars.isochrone import ezIsoch
-from beast.tools import verify_params
-from beast.tools import subgridding_tools
-
-from . import datamodel
-import importlib
-
-# import pdb
+from beast.tools import read_datamodel, subgridding_tools
 
 
-def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
+def create_physicsmodel(datamodel_info, nsubs=1, nprocs=1, subset=[None, None]):
     """
     Create the physics model grid.  If nsubs > 1, this will make sub-grids.
 
 
     Parameters
     ----------
+    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
+        if string: file name with datamodel settings
+        if class: beast.tools.read_datamodel.datamodel instance
+
     nsubs : int (default=1)
         number of subgrids to split the physics model into
 
@@ -52,11 +50,15 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+   # process datamodel info
+    if isinstance(datamodel_info, str):
+        datamodel = read_datamodel.datamodel(datamodel_info)
+    elif isinstance(datamodel_info, read_datamodel.datamodel):
+        datamodel = datamodel_info
+    else:
+        raise TypeError(
+            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+        )
 
     # filename for the SED grid
     modelsedgrid_filename = "%s/%s_seds.grid.hd5" % (
@@ -199,14 +201,17 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
                 fname_file.write(fname + "\n")
 
 
-def split_create_physicsmodel(nsubs=1, nprocs=1):
+def split_create_physicsmodel(datamodel_info, nsubs=1, nprocs=1):
     """
     Making the physics model grid takes a while for production runs.  This
     creates scripts to run each subgrid as a separate job.
 
-
     Parameters
     ----------
+    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
+        if string: file name with datamodel settings
+        if class: beast.tools.read_datamodel.datamodel instance
+
     nsubs : int (default=1)
         number of subgrids to split the physics model into
 
@@ -216,11 +221,15 @@ def split_create_physicsmodel(nsubs=1, nprocs=1):
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process datamodel info
+    if isinstance(datamodel_info, str):
+        datamodel = read_datamodel.datamodel(datamodel_info)
+    elif isinstance(datamodel_info, read_datamodel.datamodel):
+        datamodel = datamodel_info
+    else:
+        raise TypeError(
+            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+        )
 
     # make sure the project directory exists
     create_project_dir(datamodel.project)
@@ -241,6 +250,7 @@ def split_create_physicsmodel(nsubs=1, nprocs=1):
 
             jf.write(
                 "python -m beast.tools.run.create_physicsmodel "
+                + " {0} ".format(datamodel.datamodel_file)
                 + " --nsubs "
                 + str(nsubs)
                 + " --nprocs "
@@ -263,6 +273,11 @@ def split_create_physicsmodel(nsubs=1, nprocs=1):
 if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "datamodel_file",
+        type=str,
+        help="file name with datamodel settings",
+    )
     parser.add_argument(
         "--nsubs",
         type=int,
@@ -288,8 +303,9 @@ if __name__ == "__main__":  # pragma: no cover
 
     args = parser.parse_args()
 
-    create_physicsmodel(nsubs=args.nsubs, nprocs=args.nprocs, subset=args.subset)
-
-    # print help if no arguments
-    if not any(vars(args).values()):
-        parser.print_help()
+    create_physicsmodel(
+        datamodel_info=args.datamodel_file,
+        nsubs=args.nsubs,
+        nprocs=args.nprocs,
+        subset=args.subset,
+    )

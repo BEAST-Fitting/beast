@@ -1,15 +1,11 @@
 import argparse
 
 # BEAST imports
-from beast.tools import verify_params, subgridding_tools, merge_beast_stats
+from beast.tools import read_datamodel, subgridding_tools, merge_beast_stats
 from beast.tools.run import create_filenames
 
 
-from . import datamodel
-import importlib
-
-
-def merge_files(use_sd=True, nsubs=1):
+def merge_files(datamodel_info, use_sd=True, nsubs=1):
     """
     Merge all of the results from the assorted fitting sub-files (divided by
     source density, subgrids, or both).
@@ -17,6 +13,10 @@ def merge_files(use_sd=True, nsubs=1):
 
     Parameters
     ----------
+    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
+        if string: file name with datamodel settings
+        if class: beast.tools.read_datamodel.datamodel instance
+
     use_sd : boolean (default=True)
         set to True if the fitting used source density bins
 
@@ -30,14 +30,20 @@ def merge_files(use_sd=True, nsubs=1):
         print("No merging necessary")
         return
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process datamodel info
+    if isinstance(datamodel_info, str):
+        datamodel = read_datamodel.datamodel(datamodel_info)
+    elif isinstance(datamodel_info, read_datamodel.datamodel):
+        datamodel = datamodel_info
+    else:
+        raise TypeError(
+            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+        )
 
     # get file name lists (to check if they exist and/or need to be resumed)
-    file_dict = create_filenames.create_filenames(use_sd=use_sd, nsubs=nsubs)
+    file_dict = create_filenames.create_filenames(
+        datamodel, use_sd=use_sd, nsubs=nsubs
+    )
 
     # - input files
     # photometry_files = file_dict['photometry_files']
@@ -142,6 +148,11 @@ if __name__ == "__main__":  # pragma: no cover
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
+        "datamodel_file",
+        type=str,
+        help="file name with datamodel settings",
+    )
+    parser.add_argument(
         "--use_sd",
         type=int,
         default=1,
@@ -156,7 +167,11 @@ if __name__ == "__main__":  # pragma: no cover
 
     args = parser.parse_args()
 
-    merge_files(use_sd=bool(args.use_sd), nsubs=args.nsubs)
+    merge_files(
+        datamodel_info=args.datamodel_file,
+        use_sd=bool(args.use_sd),
+        nsubs=args.nsubs,
+    )
 
     # print help if no arguments
     if not any(vars(args).values()):
