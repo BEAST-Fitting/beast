@@ -13,7 +13,13 @@ import numpy as np
 
 
 def setup_batch_beast_trim(
-    project, datafile, num_subtrim=5, nice=None, seds_fname=None, prefix=None
+    project,
+    datafile,
+    obs_colnames,
+    num_subtrim=5,
+    nice=None,
+    seds_fname=None,
+    prefix=None,
 ):
     """
     Sets up batch files for submission to the 'at' queue on
@@ -28,6 +34,9 @@ def setup_batch_beast_trim(
     datafile : string
         file with the observed data (FITS file) - the observed photometry,
         not the sub-files
+
+    obs_colnames : list of strings
+        names of columns in datafile that contain the photometry for each filter
 
     num_subtrim : int (default = 5)
         number of trim batch jobs
@@ -75,6 +84,7 @@ def setup_batch_beast_trim(
         ["%s/%s_noisemodel.hd5" % (project, project)] * n_cat_files,
         cat_files,
         filebase_list,
+        obs_colnames,
         job_path=job_path,
         file_prefix="BEAST",
         num_subtrim=num_subtrim,
@@ -88,6 +98,7 @@ def generic_batch_trim(
     noise_model_files,
     data_files,
     trimmed_file_bases,
+    obs_colnames,
     job_path=None,
     file_prefix="BEAST",
     num_subtrim=5,
@@ -117,6 +128,9 @@ def generic_batch_trim(
 
     trimmed_file_bases : list of strings
         prefixes (path+name) for the eventual trimmed model grid and noise model
+
+    obs_colnames : list of strings
+        names of columns in data_files that contain the photometry for each filter
 
     job_path : string (default=None)
         path in which to store info about the jobs
@@ -185,7 +199,10 @@ def generic_batch_trim(
     for i in range(num_subtrim):
         trimfile = job_path + file_prefix + "_" + str(i + 1)
         bt_f.append(open(trimfile, "w"))
+        # at the start of the file, write the SED grid file name and the obs_colnames
         bt_f[-1].write(model_grid_file + "\n")
+        bt_f[-1].write(" ".join(obs_colnames) + "\n")
+
         pf.write(
             nice_str
             + "python -m beast.tools.trim_many_via_obsdata "

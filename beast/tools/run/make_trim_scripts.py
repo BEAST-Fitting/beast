@@ -4,17 +4,18 @@ import os
 import argparse
 
 # BEAST imports
-from beast.tools import verify_params, setup_batch_beast_trim
+from beast.tools import read_datamodel, setup_batch_beast_trim
 from beast.tools.run import create_filenames
 
 from difflib import SequenceMatcher
 
 
-from . import datamodel
-import importlib
-
-
-def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
+def make_trim_scripts(
+    datamodel_info,
+    num_subtrim=1,
+    nice=None,
+    prefix=None,
+):
     """
     `setup_batch_beast_trim.py` uses file names to create batch trim files.  This
     generates all of the file names for that function.
@@ -24,6 +25,10 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
 
     Parameters
     ----------
+    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
+        if string: file name with datamodel settings
+        if class: beast.tools.read_datamodel.datamodel instance
+
     num_subtrim : int (default = 1)
         number of trim batch jobs
 
@@ -41,15 +46,19 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
         Names of the newly created job files
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process datamodel info
+    if isinstance(datamodel_info, str):
+        datamodel = read_datamodel.datamodel(datamodel_info)
+    elif isinstance(datamodel_info, read_datamodel.datamodel):
+        datamodel = datamodel_info
+    else:
+        raise TypeError(
+            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+        )
 
     # make lists of file names
     file_dict = create_filenames.create_filenames(
-        use_sd=True, nsubs=datamodel.n_subgrid,
+        datamodel, use_sd=True, nsubs=datamodel.n_subgrid,
     )
     # extract some useful ones
     photometry_files = file_dict["photometry_files"]
@@ -109,6 +118,7 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
                 input_noise,
                 input_phot,
                 input_trim_prefix,
+                datamodel.obs_colnames,
                 job_path=job_path,
                 file_prefix=file_prefix,
                 num_subtrim=num_subtrim,
