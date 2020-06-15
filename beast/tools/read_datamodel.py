@@ -35,7 +35,8 @@ class datamodel:
             # read in the file
             self.read_datamodel()
             # verify parameters
-            verify_params.verify_input_format(self)
+            self.verify_datamodel()
+
 
     def read_datamodel(self):
         """
@@ -83,3 +84,11 @@ class datamodel:
         # turn dictionary into attributes
         for key in datamodel_params:
             setattr(self, key, datamodel_params[key])
+
+
+    def verify_datamodel(self):
+        """
+        Run the verification code on datamodel
+        """
+
+        verify_params.verify_input_format(self)
