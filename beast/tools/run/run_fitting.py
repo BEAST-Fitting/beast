@@ -164,6 +164,7 @@ def run_fitting(
                 photometry_files[i],
                 modelsedgrid_trim_files[i],
                 noise_trim_files[i],
+                pdf_max_nbins,
                 stats_files[i],
                 pdf_files[i],
                 pdf2d_files[i],
@@ -182,6 +183,7 @@ def run_fitting(
                 photometry_files[i],
                 modelsedgrid_trim_files[i],
                 noise_trim_files[i],
+                pdf_max_nbins,
                 stats_files[i],
                 pdf_files[i],
                 pdf2d_files[i],
@@ -206,6 +208,7 @@ def fit_submodel(
     photometry_file,
     modelsedgrid_file,
     noise_file,
+    pdf_max_nbins,
     stats_file,
     pdf_file,
     pdf2d_file,
@@ -227,6 +230,9 @@ def fit_submodel(
 
     noise_file : string
         path+name of the noise model file
+
+    pdf_max_nbins : int
+        Maxiumum number of bins to use for the 1D and 2D PDFs
 
     stats_file : string
         path+name of the file to contain stats output
@@ -355,6 +361,13 @@ if __name__ == "__main__":  # pragma: no cover
         help="If set, do 2D PDFs of these parameters. If None, don't make 2D PDFs."
     )
     parser.add_argument(
+        "--pdf_max_nbins",
+        type=int,
+        nargs=1,
+        default=100,
+        help="Maxiumum number of bins to use for the 1D and 2D PDFs",
+    )
+    parser.add_argument(
         "-r", "--resume", help="resume a fitting run", action="store_true"
     )
 
@@ -370,5 +383,6 @@ if __name__ == "__main__":  # pragma: no cover
         choose_sd_sub=args.choose_sd_sub,
         choose_subgrid=args.choose_subgrid,
         pdf2d_param_list=args.pdf2d_param_list,
+        pdf_max_nbins=args.pdf_max_nbins,
         resume=args.resume,
     )
