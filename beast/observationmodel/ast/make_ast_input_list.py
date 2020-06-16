@@ -131,7 +131,9 @@ def pick_models_toothpick_style(
     modelsedgrid = FileSEDGrid(sedgrid_fname)
 
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
+    Nseds = sedsMags.shape[0]
     Nf = sedsMags.shape[1]
+    idxs = np.arange(Nseds)
 
     # Check if logL=-9.999 model points sliently sneak through
     if min(modelsedgrid.grid["logL"]) < -9:
