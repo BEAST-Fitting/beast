@@ -68,25 +68,21 @@ trace if it is necessary.
 Contributing
 ============
 
-Like the `Astropy`_ project, ``beast`` is made both by and for its
-users.  We accept contributions at all levels, spanning the gamut from
-fixing a typo in the documentation to developing a major new feature.
-We welcome contributors who will abide by the `Python Software
-Foundation Code of Conduct
-<https://www.python.org/psf/codeofconduct/>`_.
+Like the `Astropy`_ project, the ``beast`` is made both by and for its
+users.  We accept contributions at all levels, spanning the gamut from fixing a
+typo in the documentation to developing a major new feature. We welcome
+contributors who will abide by the `Python Software Foundation Code of Conduct
+<https://www.python.org/psf/conduct/>`_.
 
 ``beast`` follows the same workflow and coding guidelines as
-`Astropy`_.  The following pages will help you get started with
-contributing fixes, code, or documentation (no git or GitHub
-experience necessary):
+`Astropy`_.  The following pages will help you get started with contributing
+fixes, code, or documentation (no git or GitHub experience necessary):
 
-* `How to make a code contribution <http://astropy.readthedocs.io/en/stable/development/workflow/development_workflow.html>`_
+* `How to make a code contribution <https://docs.astropy.org/en/stable/development/workflow/development_workflow.html>`_
 
-* `Coding Guidelines <http://docs.astropy.io/en/latest/development/codeguide.html>`_
+* `Coding Guidelines <https://docs.astropy.org/en/stable/development/codeguide.html>`_
 
-* `Try the development version <http://astropy.readthedocs.io/en/stable/development/workflow/get_devel_version.html>`_
-
-* `Developer Documentation <http://docs.astropy.org/en/latest/#developer-documentation>`_
+* `Developer Documentation <https://docs.astropy.org/en/stable/#developer-documentation>`_
 
 
 For the complete list of contributors please see the `beast
