@@ -10,13 +10,13 @@ from beast.fitting import fit
 from beast.physicsmodel.grid import SEDGrid
 from beast.observationmodel.observations import Observations
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
-from beast.tools import read_datamodel, subgridding_tools
+from beast.tools import beast_settings, subgridding_tools
 from beast.tools.run import create_filenames
 from beast.tools.run.helper_functions import parallel_wrapper
 
 
 def run_fitting(
-    datamodel_info,
+    beast_settings_info,
     use_sd=True,
     nsubs=1,
     nprocs=1,
@@ -36,13 +36,13 @@ def run_fitting(
 
     Parameters
     ----------
-    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
-        if string: file name with datamodel settings
-        if class: beast.tools.read_datamodel.datamodel instance
+    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
 
     use_sd : boolean (default=True)
         If True, create source density dependent noise models (determined by
-        finding matches to datamodel.astfile with SD info)
+        finding matches to settings.astfile with SD info)
 
     nsubs : int (default=1)
         number of subgrids used for the physics model
@@ -71,14 +71,14 @@ def run_fitting(
 
     """
 
-    # process datamodel info
-    if isinstance(datamodel_info, str):
-        datamodel = read_datamodel.datamodel(datamodel_info)
-    elif isinstance(datamodel_info, read_datamodel.datamodel):
-        datamodel = datamodel_info
+    # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
     else:
         raise TypeError(
-            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
         )
 
     # keep track of time
@@ -89,7 +89,7 @@ def run_fitting(
     # --------------------
 
     file_dict = create_filenames.create_filenames(
-        datamodel,
+        settings,
         use_sd=use_sd,
         nsubs=nsubs,
         choose_sd_sub=choose_sd_sub,
@@ -134,7 +134,7 @@ def run_fitting(
                 # - with SD+sub: get file list for ALL subgrids at current SD+sub
                 if use_sd or (choose_sd_sub is not None):
                     temp = create_filenames.create_filenames(
-                        datamodel, nsubs=nsubs, choose_sd_sub=sd_sub_info[i], choose_subgrid=None
+                        settings, nsubs=nsubs, choose_sd_sub=sd_sub_info[i], choose_subgrid=None
                     )
                     modelsedgrid_trim_list = temp["modelsedgrid_trim_files"]
                     noise_trim_list = temp["noise_trim_files"]
@@ -142,7 +142,7 @@ def run_fitting(
                 # - no SD info: get file list for ALL subgrids
                 else:
                     temp = create_filenames.create_filenames(
-                        datamodel, use_sd=False, nsubs=nsubs, choose_subgrid=None
+                        settings, use_sd=False, nsubs=nsubs, choose_subgrid=None
                     )
                     modelsedgrid_trim_list = temp["modelsedgrid_trim_files"]
                     noise_trim_list = temp["noise_trim_files"]
@@ -167,6 +167,7 @@ def run_fitting(
 
         input_list = [
             (
+                settings,
                 photometry_files[i],
                 modelsedgrid_trim_files[i],
                 noise_trim_files[i],
@@ -186,6 +187,7 @@ def run_fitting(
 
         input_list = [
             (
+                settings,
                 photometry_files[i],
                 modelsedgrid_trim_files[i],
                 noise_trim_files[i],
@@ -211,6 +213,7 @@ def run_fitting(
 
 
 def fit_submodel(
+    settings,
     photometry_file,
     modelsedgrid_file,
     noise_file,
@@ -228,6 +231,9 @@ def fit_submodel(
 
     Parameters
     ----------
+    settings : beast.tools.beast_settings.beast_settings instance
+        object with the beast settings
+
     photometry_file : string
         path+name of the photometry file
 
@@ -272,7 +278,7 @@ def fit_submodel(
 
     # read in the photometry catalog
     obsdata = Observations(
-        photometry_file, datamodel.filters, obs_colnames=datamodel.obs_colnames
+        photometry_file, settings.filters, obs_colnames=settings.obs_colnames
     )
 
     # check if it's a subgrid run by looking in the file name
@@ -305,7 +311,7 @@ def fit_submodel(
             grid_info_dict=grid_info_dict,
             lnp_outname=lnp_file,
             do_not_normalize=True,
-            surveyname=datamodel.surveyname,
+            surveyname=settings.surveyname,
         )
         print("Done fitting on grid " + modelsedgrid_file)
 
@@ -325,7 +331,7 @@ def fit_submodel(
             pdf2d_outname=pdf2d_file,
             pdf2d_param_list=pdf2d_param_list,
             lnp_outname=lnp_file,
-            surveyname=datamodel.surveyname,
+            surveyname=settings.surveyname,
         )
         print("Done fitting on grid " + modelsedgrid_file)
 
@@ -334,9 +340,9 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "datamodel_file",
+        "beast_settings_file",
         type=str,
-        help="file name with datamodel settings",
+        help="file name with beast settings",
     )
     parser.add_argument(
         "--use_sd",
@@ -390,7 +396,7 @@ if __name__ == "__main__":  # pragma: no cover
         args.pdf2d_param_list = None
 
     run_fitting(
-        datamodel_info=args.datamodel_file,
+        beast_settings_info=args.beast_settings_file,
         use_sd=args.use_sd,
         nsubs=args.nsubs,
         nprocs=args.nprocs,

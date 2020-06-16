@@ -7,12 +7,12 @@ import glob
 # BEAST imports
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.physicsmodel.grid import SEDGrid
-from beast.tools import read_datamodel
+from beast.tools import beast_settings
 from beast.tools.run.helper_functions import parallel_wrapper, get_modelsubgridfiles
 
 
 def create_obsmodel(
-    datamodel_info,
+    beast_settings_info,
     use_sd=True,
     nsubs=1,
     nprocs=1,
@@ -27,13 +27,13 @@ def create_obsmodel(
 
     Parameters
     ----------
-    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
-        if string: file name with datamodel settings
-        if class: beast.tools.read_datamodel.datamodel instance
+    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
 
     use_sd : boolean (default=True)
         If True, create source density dependent noise models (determined by
-        finding matches to datamodel.astfile with SD info)
+        finding matches to settings.astfile with SD info)
 
     nsubs : int (default=1)
         number of subgrids used for the physics model
@@ -54,21 +54,21 @@ def create_obsmodel(
 
     """
 
-   # process datamodel info
-    if isinstance(datamodel_info, str):
-        datamodel = read_datamodel.datamodel(datamodel_info)
-    elif isinstance(datamodel_info, read_datamodel.datamodel):
-        datamodel = datamodel_info
+   # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
     else:
         raise TypeError(
-            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
         )
 
     # --------------------
     # figure out if there are source density bins
     # --------------------
 
-    ast_file_list = sorted(glob.glob(datamodel.astfile.replace(".fits", "*_bin*")))
+    ast_file_list = sorted(glob.glob(settings.astfile.replace(".fits", "*_bin*")))
 
     if use_sd and (len(ast_file_list) > 0):
 
@@ -89,7 +89,7 @@ def create_obsmodel(
 
     if nsubs == 1:
 
-        modelsedgridfile = "{0}/{0}_seds.grid.hd5".format(datamodel.project)
+        modelsedgridfile = "{0}/{0}_seds.grid.hd5".format(settings.project)
 
         # if we're splitting by source density
         if use_sd:
@@ -112,7 +112,7 @@ def create_obsmodel(
     if nsubs > 1:
 
         # get the list of physics model files
-        outdir = os.path.join(".", datamodel.project)
+        outdir = os.path.join(".", settings.project)
         subgrid_names_file = os.path.join(outdir, "subgrid_fnames.txt")
         modelsedgridfiles = get_modelsubgridfiles(subgrid_names_file)[
             slice(subset[0], subset[1])
@@ -166,14 +166,14 @@ def gen_obsmodel(modelsedgridfile, source_density=None, use_rate=True):
 
     # noise and AST file names
     noisefile = modelsedgridfile.replace("seds", "noisemodel")
-    astfile = datamodel.astfile
+    astfile = settings.astfile
 
     # If we are treating regions with different
     # backgrounds/source densities separately, pick one of the
     # split ast files, and name noise file accordingly
     if source_density is not None:
         noisefile = noisefile.replace("noisemodel", "noisemodel_bin" + source_density)
-        astfile = datamodel.astfile.replace(
+        astfile = settings.astfile.replace(
             ".fits", "_bin" + source_density.replace("_", "-") + ".fits"
         )
 
@@ -188,7 +188,7 @@ def gen_obsmodel(modelsedgridfile, source_density=None, use_rate=True):
             noisefile,
             astfile,
             modelsedgrid,
-            absflux_a_matrix=datamodel.absflux_a_matrix,
+            absflux_a_matrix=settings.absflux_a_matrix,
             use_rate=use_rate,
         )
 

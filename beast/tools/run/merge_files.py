@@ -1,11 +1,11 @@
 import argparse
 
 # BEAST imports
-from beast.tools import read_datamodel, subgridding_tools, merge_beast_stats
+from beast.tools import beast_settings, subgridding_tools, merge_beast_stats
 from beast.tools.run import create_filenames
 
 
-def merge_files(datamodel_info, use_sd=True, nsubs=1):
+def merge_files(beast_settings_info, use_sd=True, nsubs=1):
     """
     Merge all of the results from the assorted fitting sub-files (divided by
     source density, subgrids, or both).
@@ -13,9 +13,9 @@ def merge_files(datamodel_info, use_sd=True, nsubs=1):
 
     Parameters
     ----------
-    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
-        if string: file name with datamodel settings
-        if class: beast.tools.read_datamodel.datamodel instance
+    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
 
     use_sd : boolean (default=True)
         set to True if the fitting used source density bins
@@ -30,19 +30,19 @@ def merge_files(datamodel_info, use_sd=True, nsubs=1):
         print("No merging necessary")
         return
 
-    # process datamodel info
-    if isinstance(datamodel_info, str):
-        datamodel = read_datamodel.datamodel(datamodel_info)
-    elif isinstance(datamodel_info, read_datamodel.datamodel):
-        datamodel = datamodel_info
+    # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
     else:
         raise TypeError(
-            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
         )
 
     # get file name lists (to check if they exist and/or need to be resumed)
     file_dict = create_filenames.create_filenames(
-        datamodel, use_sd=use_sd, nsubs=nsubs
+        settings, use_sd=use_sd, nsubs=nsubs
     )
 
     # - input files
@@ -67,7 +67,7 @@ def merge_files(datamodel_info, use_sd=True, nsubs=1):
 
     if nsubs == 1:
 
-        out_filebase = "{0}/{0}".format(datamodel.project)
+        out_filebase = "{0}/{0}".format(settings.project)
         reorder_tags = ["bin{0}_sub{1}".format(x[0], x[1]) for x in unique_sd_sub]
         merge_beast_stats.merge_stats_files(
             stats_files, out_filebase, reorder_tag_list=reorder_tags
@@ -94,7 +94,7 @@ def merge_files(datamodel_info, use_sd=True, nsubs=1):
 
                 # merge the subgrid files for that SD+sub
                 out_filebase = "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}".format(
-                    datamodel.project, sd_sub[0], sd_sub[1]
+                    settings.project, sd_sub[0], sd_sub[1]
                 )
 
                 # - 1D PDFs and stats
@@ -121,7 +121,7 @@ def merge_files(datamodel_info, use_sd=True, nsubs=1):
                 merged_lnp_files.append(merged_lnp_fname)
 
             # merge the merged stats files
-            out_filebase = "{0}/{0}".format(datamodel.project)
+            out_filebase = "{0}/{0}".format(settings.project)
             reorder_tags = ["bin{0}_sub{1}".format(x[0], x[1]) for x in unique_sd_sub]
             merge_beast_stats.merge_stats_files(
                 merged_stats_files, out_filebase, reorder_tag_list=reorder_tags
@@ -130,7 +130,7 @@ def merge_files(datamodel_info, use_sd=True, nsubs=1):
         # runs weren't split by source density
         else:
 
-            out_filebase = "{0}/{0}".format(datamodel.project)
+            out_filebase = "{0}/{0}".format(settings.project)
 
             # - 1D PDFs and stats
             subgridding_tools.merge_pdf1d_stats(
@@ -148,9 +148,9 @@ if __name__ == "__main__":  # pragma: no cover
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "datamodel_file",
+        "beast_settings_file",
         type=str,
-        help="file name with datamodel settings",
+        help="file name with beast settings",
     )
     parser.add_argument(
         "--use_sd",
@@ -168,7 +168,7 @@ if __name__ == "__main__":  # pragma: no cover
     args = parser.parse_args()
 
     merge_files(
-        datamodel_info=args.datamodel_file,
+        beast_settings_info=args.beast_settings_file,
         use_sd=bool(args.use_sd),
         nsubs=args.nsubs,
     )

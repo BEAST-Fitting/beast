@@ -15,12 +15,12 @@ from astropy.io import fits
 
 #####
 
-from beast.tools import read_datamodel
+from beast.tools import beast_settings
 from beast.tools.run import create_filenames
 
 
 def setup_batch_beast_fit(
-    datamodel_info,
+    beast_settings_info,
     num_percore=5,
     nice=None,
     overwrite_logfile=True,
@@ -36,9 +36,9 @@ def setup_batch_beast_fit(
 
     Parameters
     ----------
-    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
-        if string: file name with datamodel settings
-        if class: beast.tools.read_datamodel.datamodel instance
+    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
 
     num_percore : int (default = 5)
         number of fitting runs per core
@@ -57,7 +57,7 @@ def setup_batch_beast_fit(
 
     use_sd : boolean (default=True)
         If True, split runs based on source density (determined by finding
-        matches to datamodel.astfile with SD info)
+        matches to settings.astfile with SD info)
 
     pdf2d_param_list : list of strings or None
         If set, do 2D PDFs of these parameters.  If None, don't make 2D PDFs.
@@ -78,18 +78,18 @@ def setup_batch_beast_fit(
 
     """
 
-    # process datamodel info
-    if isinstance(datamodel_info, str):
-        datamodel = read_datamodel.datamodel(datamodel_info)
-    elif isinstance(datamodel_info, read_datamodel.datamodel):
-        datamodel = datamodel_info
+    # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
     else:
         raise TypeError(
-            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
         )
 
     # setup the subdirectory for the batch and log files
-    job_path = datamodel.project + "/fit_batch_jobs/"
+    job_path = settings.project + "/fit_batch_jobs/"
     if not os.path.isdir(job_path):
         os.mkdir(job_path)
 
@@ -288,7 +288,7 @@ def setup_batch_beast_fit(
             job_command = (
                 nice_str
                 + "python -m beast.tools.run.run_fitting "
-                + " {0} ".format(datamodel.datamodel_file)
+                + " {0} ".format(settings.input_settings_file)
                 + resume_str
                 + sd_str
                 + gs_str

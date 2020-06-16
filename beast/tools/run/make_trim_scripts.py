@@ -4,14 +4,14 @@ import os
 import argparse
 
 # BEAST imports
-from beast.tools import read_datamodel, setup_batch_beast_trim
+from beast.tools import beast_settings, setup_batch_beast_trim
 from beast.tools.run import create_filenames
 
 from difflib import SequenceMatcher
 
 
 def make_trim_scripts(
-    datamodel_info,
+    beast_settings_info,
     num_subtrim=1,
     nice=None,
     prefix=None,
@@ -25,9 +25,9 @@ def make_trim_scripts(
 
     Parameters
     ----------
-    datamodel_info : string or beast.tools.read_datamodel.datamodel instance
-        if string: file name with datamodel settings
-        if class: beast.tools.read_datamodel.datamodel instance
+    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
 
     num_subtrim : int (default = 1)
         number of trim batch jobs
@@ -46,19 +46,19 @@ def make_trim_scripts(
         Names of the newly created job files
     """
 
-    # process datamodel info
-    if isinstance(datamodel_info, str):
-        datamodel = read_datamodel.datamodel(datamodel_info)
-    elif isinstance(datamodel_info, read_datamodel.datamodel):
-        datamodel = datamodel_info
+    # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
     else:
         raise TypeError(
-            "datamodel_info must be string or beast.tools.run_datamodel.datamodel instance"
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
         )
 
     # make lists of file names
     file_dict = create_filenames.create_filenames(
-        datamodel, use_sd=True, nsubs=datamodel.n_subgrid,
+        settings, use_sd=True, nsubs=settings.n_subgrid,
     )
     # extract some useful ones
     photometry_files = file_dict["photometry_files"]
@@ -75,7 +75,7 @@ def make_trim_scripts(
     job_file_list = []
 
     # iterate through each model grid
-    for i in range(datamodel.n_subgrid):
+    for i in range(settings.n_subgrid):
 
         # indices for this model grid
         grid_ind = [
@@ -106,10 +106,10 @@ def make_trim_scripts(
         # if any aren't trimmed for this model grid, set up trimming
         if np.sum(check_trim) < len(input_noise):
 
-            job_path = "./{0}/trim_batch_jobs/".format(datamodel.project)
-            if datamodel.n_subgrid > 1:
+            job_path = "./{0}/trim_batch_jobs/".format(settings.project)
+            if settings.n_subgrid > 1:
                 file_prefix = "BEAST_gridsub" + str(i)
-            if datamodel.n_subgrid == 1:
+            if settings.n_subgrid == 1:
                 file_prefix = "BEAST"
 
             # generate trimming at-queue commands
@@ -118,7 +118,7 @@ def make_trim_scripts(
                 input_noise,
                 input_phot,
                 input_trim_prefix,
-                datamodel.obs_colnames,
+                settings.obs_colnames,
                 job_path=job_path,
                 file_prefix=file_prefix,
                 num_subtrim=num_subtrim,
