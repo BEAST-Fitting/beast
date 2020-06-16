@@ -1780,7 +1780,7 @@ class Munari(Stellib):
     Paper: Munari et al. 2005 A&A 442 1127
     http://adsabs.harvard.edu/abs/2005A%26A...442.1127M
 
-    Files available at: (linke no longer exists) archives.pd.astro.it/2500-10500/
+    Files available at: https://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=J/A%2bA/442/1127
     """
 
     def __init__(self, *args, **kwargs):
