@@ -438,6 +438,7 @@ def supplement_ast(
         t = Table.read(outfile, format="fits")
         sedsMags = np.delete(sedsMags, t["sedgrid_indx"], axis=0)
         sedsIndx = np.delete(sedsIndx, t["sedgrid_indx"])
+        Nseds = sedsMags.shape[0]
 
     # Apply selection conditions if supplied
     if mag_cuts is not None:
