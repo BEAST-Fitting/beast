@@ -1598,10 +1598,9 @@ class Tlusty(Stellib):
     * **BSTAR2006 Grid**: Early B-type stars, 15000 K <= Teff <= 30000 K
             * Reference: Lanz & Hubeny (2007)
 
-    files are available at: http://nova.astro.umd.edu/Tlusty2002/database/
+    files are available at: http://tlusty.oca.eu/
 
     O and B stars rebinned to nearly 20,000 frequency points (for CLOUDY usage)
-    http://nova.astro.umd.edu/Tlusty2002/database/obstar_merged_3d.ascii.gz
     """
 
     def __init__(self, filename=None, *args, **kwargs):
