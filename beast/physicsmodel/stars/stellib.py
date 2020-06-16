@@ -1396,7 +1396,6 @@ class BaSeL(Stellib):
     References
     ----------
     * Lejeune, Cuisiner, and Buser, 1998 A&AS, 130, 65
-    * can be downloaded http://www.astro.unibas.ch/BaSeL_files/BaSeL2_2.tar.gz
     """
 
     def __init__(self, *args, **kwargs):
@@ -1868,7 +1867,7 @@ class Aringer(Stellib):
     Paper 2019: https://ui.adsabs.harvard.edu/abs/2019MNRAS.487.2133A/abstract
 
     Files available at:
-    http://starkey.astro.unipd.it/atm/
+    http://starkey.astro.unipd.it/Cstar_atmos_models.html
 
     """
 
