@@ -5,7 +5,6 @@ from beast.tools import verify_params, subgridding_tools, merge_beast_stats
 from beast.tools.run import create_filenames
 
 
-
 from . import datamodel
 import importlib
 
@@ -134,11 +133,9 @@ def merge_files(use_sd=True, nsubs=1):
 
             # - lnP files
             subgridding_tools.merge_lnp(
-                lnp_files,
-                re_run=False,
-                output_fname_base=out_filebase,
-                threshold=-10,
+                lnp_files, re_run=False, output_fname_base=out_filebase, threshold=-10,
             )
+
 
 if __name__ == "__main__":  # pragma: no cover
     # commandline parser

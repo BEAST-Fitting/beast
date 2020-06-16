@@ -79,8 +79,10 @@ def gen_spectral_grid_from_kurucz(outfile, osl, oiso, Z=0.02):
 
         only write into outfile
     """
-    if not (grid.isNestedInstance(osl, stellib.Stellib)
-            and grid.isNestedInstance(oiso, isochrone.Isochrone)):
+    if not (
+        grid.isNestedInstance(osl, stellib.Stellib)
+        and grid.isNestedInstance(oiso, isochrone.Isochrone)
+    ):
         raise AssertionError()
     specs = np.empty((oiso.data.nrows + 1, len(osl.wavelength)), dtype=float)
     specs[-1] = osl.wavelength[:]
@@ -148,10 +150,10 @@ def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
     OUTPUTS:
         b   ndarray[float, ndim=2]  (closed) boundary points: [logg, Teff]
     """
-#        use "points_inside_poly" to test wether a point is inside the limits
-#        >>> data = np.array([iso.data['logg'], iso.data['logT']]).T
-#        >>> aa = points_inside_poly(data, leftb)
-#    """
+    #        use "points_inside_poly" to test wether a point is inside the limits
+    #        >>> data = np.array([iso.data['logg'], iso.data['logT']]).T
+    #        >>> aa = points_inside_poly(data, leftb)
+    #    """
     leftb = [(k, np.max(s.logT[s.logg == k]) + dlogT) for k in np.unique(s.logg)]
     leftb += [(leftb[-1][0] + dlogg, leftb[-1][1])]
     leftb = [(leftb[0][0] - dlogg, leftb[0][1])] + leftb
@@ -165,7 +167,7 @@ def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
 
 
 # =========================== TEST UNITS ==================================
-#def test_stellib_boundaries():
+# def test_stellib_boundaries():
 #    """ Test get_stellib_boundaries function """
 #    import pylab as plt
 #
@@ -176,11 +178,11 @@ def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
 #    plt.plot(s.Teff, s.logg, ".", color="k")
 #    plt.plot(leftb[:, 1], leftb[:, 0], "o-")
 #
-    # leftb = [logg, teff]
+# leftb = [logg, teff]
 #    plt.plot(iso.data["logT"], iso.data["logg"], ",", color="r")
 #    data = np.array([iso.data["logg"], iso.data["logT"]]).T
-    # Needs to be converted to use matplotlib.path.Path.contains_points
-    # aa = points_inside_poly(data, leftb)
+# Needs to be converted to use matplotlib.path.Path.contains_points
+# aa = points_inside_poly(data, leftb)
 #    plt.plot(iso.data["logT"][aa], iso.data["logg"][aa], ",", color="g")
 #    plt.xlabel("log(Teff)")
 #    plt.ylabel("log(g)")
@@ -188,7 +190,7 @@ def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
 #    plt.ylim(plt.ylim()[::-1])
 
 
-#def main_last_grid():
+# def main_last_grid():
 #    s = stellib.Kurucz()
 #    iso = isochrone.padova2010()
 #    gen_spectral_grid_from_kurucz("tmp.fits", s, iso)
