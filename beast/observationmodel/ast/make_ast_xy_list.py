@@ -444,7 +444,7 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
 
     separation: float
         Minimum pixel separation between AST and star in photometry
-        catalog provided in the datamodel.
+        catalog provided in the beast settings.
 
     refimage: string
         Name of the reference image.  If supplied, the method will use the
