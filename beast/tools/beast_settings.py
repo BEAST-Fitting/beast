@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
-import numpy as np
+# note that other needed imports will be in the settings file
 from astropy import units
-
-from beast.physicsmodel.stars import isochrone, stellib
-from beast.physicsmodel.dust import extinction
-from beast.observationmodel.noisemodel import absflux_covmat
 from beast.tools import verify_beast_settings
 
 
@@ -54,7 +50,7 @@ class beast_settings:
         ]
         # if parameters are defined over multiple lines, combine lines
         for i in reversed(range(len(input_data))):
-            if "=" not in input_data[i]:
+            if ('import ' not in input_data[i]) and ("=" not in input_data[i]):
                 input_data[i - 1] += input_data[i]
                 del input_data[i]
 
@@ -66,20 +62,25 @@ class beast_settings:
         beast_params = {}
 
         for i in range(len(input_data)):
-            # extract parameter and value (as strings)
-            param = input_data[i].split("=")[0].strip()
-            val = input_data[i].split("=")[1].strip()
-            # if it's a unit, put into Quantity
-            if param in params_with_units:
-                try:
-                    beast_params[param] = units.Quantity(val)
-                except:
-                    beast_params[param] = eval(val)
-            # if it's not a unit
-            else:
-                # exec the string to get parameter values accessible
+            # execute imports
+            if 'import ' in input_data[i]:
                 exec(input_data[i])
-                beast_params[param] = eval(param)
+
+            # extract parameter and value (as strings)
+            else:
+                param = input_data[i].split("=")[0].strip()
+                val = input_data[i].split("=")[1].strip()
+                # if it's a unit, put into Quantity
+                if param in params_with_units:
+                    try:
+                        beast_params[param] = units.Quantity(val)
+                    except:
+                        beast_params[param] = eval(val)
+                # if it's not a unit
+                else:
+                    # exec the string to get parameter values accessible
+                    exec(input_data[i])
+                    beast_params[param] = eval(param)
 
         # turn dictionary into attributes
         for key in beast_params:
