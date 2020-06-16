@@ -533,11 +533,11 @@ def make_source_dens_map(
         n_indxs = len(indxs_for_SD)
         if n_indxs > 0:
             # make a box for the current SD map pixel
-            pix_box = geometry.box(i, j, i+1, j+1)
+            pix_box = geometry.box(i, j, i + 1, j + 1)
             # find fractional overlap area
             frac_area = catalog_boundary.intersection(pix_box).area
             # stars per unit area
-            npts_map[i, j] = n_indxs / (pix_area*frac_area)
+            npts_map[i, j] = n_indxs / (pix_area * frac_area)
 
         # save the source density as an entry for each source
         source_dens[indxs] = npts_map[i, j]

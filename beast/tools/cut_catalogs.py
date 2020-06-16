@@ -76,9 +76,11 @@ def cut_catalogs(
         flagged=flagged,
         flag_filter=flag_filter,
     )
-    print('removing {0} stars from {1}'.format(
-        int(len(phot_cat) - np.sum(phot_good_stars)), input_phot_file
-    ))
+    print(
+        "removing {0} stars from {1}".format(
+            int(len(phot_cat) - np.sum(phot_good_stars)), input_phot_file
+        )
+    )
     new_phot_cat = phot_cat[phot_good_stars == 1]
 
     # if chosen, run the cutting for the AST file
@@ -93,9 +95,7 @@ def cut_catalogs(
         # do convex hull
         ra_col = [x for x in phot_cat.colnames if "RA" in x.upper()][0]
         dec_col = [x for x in phot_cat.colnames if "DEC" in x.upper()][0]
-        phot_cat_boundary = convexhull_path(
-            new_phot_cat[ra_col], new_phot_cat[dec_col]
-        )
+        phot_cat_boundary = convexhull_path(new_phot_cat[ra_col], new_phot_cat[dec_col])
         # check if points are inside
         ra_col = [x for x in ast_cat.colnames if "RA" in x.upper()][0]
         dec_col = [x for x in ast_cat.colnames if "DEC" in x.upper()][0]
@@ -105,9 +105,11 @@ def cut_catalogs(
 
         # get final list of good stars
         ast_good_stars = (temp_good_stars == 1) & (within_bounds)
-        print('removing {0} stars from {1}'.format(
-            int(len(ast_cat) - np.sum(ast_good_stars)), input_ast_file
-        ))
+        print(
+            "removing {0} stars from {1}".format(
+                int(len(ast_cat) - np.sum(ast_good_stars)), input_ast_file
+            )
+        )
         new_ast_cat = ast_cat[ast_good_stars]
 
     # write out the sources as a ds9 region file
@@ -116,7 +118,6 @@ def cut_catalogs(
 
         if input_ast_file is not None:
             write_ds9(ast_cat, ast_good_stars, input_ast_file + ".reg")
-
 
     # either save it or return it
     # - save it
@@ -127,7 +128,6 @@ def cut_catalogs(
     # - return it
     else:
         return new_phot_cat, phot_good_stars
-
 
 
 def make_cuts(cat_file, partial_overlap=False, flagged=False, flag_filter=None):
@@ -169,14 +169,14 @@ def make_cuts(cat_file, partial_overlap=False, flagged=False, flag_filter=None):
     # partial overlap
     if partial_overlap is True:
         # number of RATE=0 for each source
-        n_zero_flux = np.sum([cat[filt+"_RATE"] == 0 for filt in filters], axis=0)
+        n_zero_flux = np.sum([cat[filt + "_RATE"] == 0 for filt in filters], axis=0)
         # remove sources with more than 0 and less than n_filter
         good_stars[(n_zero_flux > 0) & (n_zero_flux < len(filters))] = 0
 
     # flagged sources
     if flagged is True:
         for fl in np.atleast_1d(flag_filter):
-            good_stars[(cat[fl + "_FLAG"] >= 99) & (cat[fl+"_RATE"] > 0)] = 0
+            good_stars[(cat[fl + "_FLAG"] >= 99) & (cat[fl + "_RATE"] > 0)] = 0
 
     # return results
     return cat, good_stars
@@ -249,9 +249,7 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "input_phot_file",
-        type=str,
-        help="file name of the input photometry catalog",
+        "input_phot_file", type=str, help="file name of the input photometry catalog",
     )
     parser.add_argument(
         "output_phot_file",

@@ -4,11 +4,13 @@ from astropy.io import fits
 from matplotlib.colors import LogNorm
 from scipy.stats import binned_statistic_2d as stat2d
 
+
 def plot(
     beast_stats_file,
     param_list=["Av", "Rv", "logA", "f_A", "M_ini", "Z", "logT", "logg", "logL"],
     n_bins=200,
-    colormap="cubehelix"):
+    colormap="cubehelix",
+):
     """
     Make a plot of each parameter vs the parameter errors
 
@@ -39,13 +41,13 @@ def plot(
     cmap = plt.get_cmap(colormap)
 
     # figure
-    fig = plt.figure(figsize=(10,30))
+    fig = plt.figure(figsize=(10, 30))
 
     # make plots
     for p, param in enumerate(param_list):
 
         # first column subplot
-        plt.subplot(n_param, 2, p*2 + 1)
+        plt.subplot(n_param, 2, p * 2 + 1)
 
         param_p50 = stats_table[param + "_p50"]
         param_unc = (stats_table[param + "_p84"] - stats_table[param + "_p16"]) / 2
@@ -55,8 +57,7 @@ def plot(
             param_unc = param_unc / (param_p50 * np.log(10))
 
         # plot
-        plt.hist2d(
-            param_p50, param_unc, bins=n_bins, cmap=cmap, norm=LogNorm())
+        plt.hist2d(param_p50, param_unc, bins=n_bins, cmap=cmap, norm=LogNorm())
 
         # axis labels
         plt.tick_params(axis="both", which="major", labelsize=13)
@@ -68,16 +69,20 @@ def plot(
         plt.ylabel(r"$\sigma$ " + param_label, fontsize=14)
 
         # second column subplot
-        plt.subplot(n_param, 2, p*2 + 2)
+        plt.subplot(n_param, 2, p * 2 + 2)
 
         logT_p50 = stats_table["logT_p50"]
         logL_p50 = stats_table["logL_p50"]
 
         # plot
-        h = stat2d(
-            logT_p50, logL_p50, param_unc, bins=n_bins)
-        plt.imshow(h[0].T,origin='lower',cmap=cmap,
-            extent=[h[1].min(),h[1].max(),h[2].min(),h[2].max()],aspect='auto')
+        h = stat2d(logT_p50, logL_p50, param_unc, bins=n_bins)
+        plt.imshow(
+            h[0].T,
+            origin="lower",
+            cmap=cmap,
+            extent=[h[1].min(), h[1].max(), h[2].min(), h[2].max()],
+            aspect="auto",
+        )
         cbar = plt.colorbar()
         cbar.set_label(r"$\sigma$ " + param_label, fontsize=14)
 
@@ -85,7 +90,6 @@ def plot(
         plt.tick_params(axis="both", which="major", labelsize=13)
         plt.xlabel(r"log(T$_{\rm eff}$)", fontsize=14)
         plt.ylabel(r"log(L)", fontsize=14)
-
 
     plt.tight_layout()
 
