@@ -1,7 +1,9 @@
 2.0 (unreleased)
 ================
 
-- No changes yet
+- Migrated to the new package template (APE17)
+- Moved from travis to github actions for CI
+- Moved from coveralls to codecov for test coverage reporting
 
 1.4 (2020-5-15)
 ===============

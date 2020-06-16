@@ -67,7 +67,7 @@ Choices:
 * `Tlusty`_
     Non-LTE hot star (T\ :sub:`eff` > 15,000 K) atmosphere models (OSTAR and BSTAR) by
     `Lanz & Hubeny (2003 <https://ui.adsabs.harvard.edu/abs/2003ApJS..146..417L/abstract>`_, `2007 <https://ui.adsabs.harvard.edu/abs/2007ApJS..169...83L/abstract>`_), using spectra computed for
-    `Cloudy <http://nova.astro.umd.edu/Tlusty2002/tlusty-frames-cloudy.html>`_
+    Cloudy
     by Peter van Hoof at R~900 (sampled at R~1800). Z grid spans 5 pts from
     1/10-2x Solar, plus additional 4 pts from 1/1000-1/30x Solar for OSTAR
     grid.  Models are computed using solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://ui.adsabs.harvard.edu/abs/1998SSRv...85..161G/abstract>`_.
@@ -133,8 +133,8 @@ Choices:
      Gordon, Cartledge, & Clayton 09's MW Avg = GCC09_MWAvg
 
  .. _BTSettl: https://phoenix.ens-lyon.fr/Grids/BT-Settl/
- .. _TLusty: http://nova.astro.umd.edu/Tlusty2002/database/
- .. _Munari: http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=J%2FA%2BA%2F442%2F1127
+ .. _TLusty: http://tlusty.oca.eu/
+ .. _Munari: https://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=J/A%2bA/442/1127
  .. _Kurucz: http://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs/castelli-and-kurucz-atlas
  .. _BOSZ: https://archive.stsci.edu/prepds/bosz/
  .. _dust_extinction: https://dust-extinction.readthedocs.io/
