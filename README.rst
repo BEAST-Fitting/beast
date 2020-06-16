@@ -19,13 +19,13 @@ Build Status/Checks
    :target: http://beast.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://travis-ci.org/BEAST-Fitting/beast.svg?branch=master
-    :target: https://travis-ci.org/BEAST-Fitting/beast
-    :alt: Build Status
+.. image:: https://github.com/BEAST-Fitting/beast/workflows/Python%20Tests/badge.svg
+   :target: https://github.com/BEAST-Fitting/beast/actions/
+   :alt: Test Status
 
-.. image:: https://coveralls.io/repos/github/BEAST-Fitting/beast/badge.svg?branch=master
-    :target: https://coveralls.io/github/BEAST-Fitting/beast?branch=master
-    :alt: Coverage Status
+.. image:: https://codecov.io/gh/BEAST-Fitting/beast/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/BEAST-Fitting/beast
+   :alt: Test Coverage Status
 
 .. image:: https://img.shields.io/lgtm/grade/python/g/BEAST-Fitting/beast.svg?logo=lgtm&logoWidth=18
     :target: https://lgtm.com/projects/g/BEAST-Fitting/beast/context:python
