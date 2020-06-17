@@ -48,15 +48,17 @@ class beast_settings:
             for line in temp_data
             if line.strip() != "" and line.strip()[0] != "#"
         ]
+        # remove comments that are mid-line (e.g., "x = 5 #comment")
+        for i,line in enumerate(input_data):
+            try:
+                input_data[i] = line[:line.index('#')]
+            except ValueError:
+                pass
         # if parameters are defined over multiple lines, combine lines
         for i in reversed(range(len(input_data))):
             if ('import ' not in input_data[i]) and ("=" not in input_data[i]):
                 input_data[i - 1] += input_data[i]
                 del input_data[i]
-
-        # list of parameters that have units
-        # (and therefore need special treatment)
-        params_with_units = ["distance_unit", "velocity"]
 
         # parse it into a dictionary
         beast_params = {}
@@ -69,18 +71,9 @@ class beast_settings:
             # extract parameter and value (as strings)
             else:
                 param = input_data[i].split("=")[0].strip()
-                val = input_data[i].split("=")[1].strip()
-                # if it's a unit, put into Quantity
-                if param in params_with_units:
-                    try:
-                        beast_params[param] = units.Quantity(val)
-                    except:
-                        beast_params[param] = eval(val)
-                # if it's not a unit
-                else:
-                    # exec the string to get parameter values accessible
-                    exec(input_data[i])
-                    beast_params[param] = eval(param)
+                # exec the string to get parameter values accessible
+                exec(input_data[i])
+                beast_params[param] = eval(param)
 
         # turn dictionary into attributes
         for key in beast_params:
