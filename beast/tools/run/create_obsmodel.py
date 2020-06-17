@@ -94,14 +94,14 @@ def create_obsmodel(
         # if we're splitting by source density
         if use_sd:
 
-            input_list = [(modelsedgridfile, curr_sd) for curr_sd in sd_list]
+            input_list = [(settings, modelsedgridfile, curr_sd) for curr_sd in sd_list]
 
             parallel_wrapper(gen_obsmodel, input_list, nprocs=nprocs)
 
         # if we're not splitting by source density
         else:
 
-            input_list = [(modelsedgridfile, None, use_rate)]
+            input_list = [(settings, modelsedgridfile, None, use_rate)]
 
             parallel_wrapper(gen_obsmodel, input_list, nprocs=nprocs)
 
@@ -122,7 +122,7 @@ def create_obsmodel(
         if use_sd:
 
             input_list = [
-                (sedfile, curr_sd, use_rate)
+                (settings, sedfile, curr_sd, use_rate)
                 for sedfile in modelsedgridfiles
                 for curr_sd in sd_list
             ]
@@ -132,17 +132,20 @@ def create_obsmodel(
         # if we're not splitting by source density
         else:
 
-            input_list = [(sedfile, None, use_rate) for sedfile in modelsedgridfiles]
+            input_list = [(settings, sedfile, None, use_rate) for sedfile in modelsedgridfiles]
 
             parallel_wrapper(gen_obsmodel, input_list, nprocs=nprocs)
 
 
-def gen_obsmodel(modelsedgridfile, source_density=None, use_rate=True):
+def gen_obsmodel(settings, modelsedgridfile, source_density=None, use_rate=True):
     """
     Code to create filenames and run the toothpick noise model
 
     Parameters
     ----------
+    settings : beast.tools.beast_settings.beast_settings instance
+        object with the beast settings
+
     modelsedgridfile : string
         path+name of the physics model grid file
 
@@ -202,6 +205,11 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
+    )
+    parser.add_argument(
         "--use_sd",
         help="create source density dependent noise models",
         action="store_true",
@@ -232,7 +240,11 @@ if __name__ == "__main__":  # pragma: no cover
     args = parser.parse_args()
 
     create_obsmodel(
-        use_sd=args.use_sd, nsubs=args.nsubs, nprocs=args.nprocs, subset=args.subset
+        beast_settings_info=args.beast_settings_file,
+        use_sd=args.use_sd,
+        nsubs=args.nsubs,
+        nprocs=args.nprocs,
+        subset=args.subset,
     )
 
     # print help if no arguments

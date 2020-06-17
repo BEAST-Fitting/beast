@@ -98,7 +98,7 @@ def setup_batch_beast_fit(
         os.mkdir(log_path)
 
     # get file name lists (to check if they exist and/or need to be resumed)
-    file_dict = create_filenames.create_filenames(use_sd=use_sd, nsubs=nsubs)
+    file_dict = create_filenames.create_filenames(settings, use_sd=use_sd, nsubs=nsubs)
 
     # - input files
     photometry_files = file_dict["photometry_files"]

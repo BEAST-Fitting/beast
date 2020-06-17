@@ -239,8 +239,22 @@ if __name__ == "__main__":  # pragma: no cover
 
     # commandline parser
     parser = argparse.ArgumentParser()
-    parser.add_argument("projectname", help="project name to use (basename for files)")
-    parser.add_argument("datafile", help="file with the observed data (FITS file)")
+    parser.add_argument(
+        "projectname",
+        type=str,
+        help="project name to use (basename for files)"
+    )
+    parser.add_argument(
+        "datafile",
+        type=str,
+        help="file with the observed data (FITS file)"
+    )
+    parser.add_argument(
+        "obs_colnames",
+        type=str,
+        nargs="+",
+        help="names of columns in datafile that contain the photometry for each filter"
+    )
     parser.add_argument(
         "--num_subtrim", default=5, type=int, help="number of trim batch jobs"
     )
@@ -265,6 +279,7 @@ if __name__ == "__main__":  # pragma: no cover
     setup_batch_beast_trim(
         args.projectname,
         args.datafile,
+        args.obs_colnames,
         num_subtrim=args.num_subtrim,
         nice=args.nice,
         seds_fname=args.seds_fname,
