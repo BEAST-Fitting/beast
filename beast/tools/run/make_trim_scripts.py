@@ -135,6 +135,11 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
+    )
+    parser.add_argument(
         "--num_subtrim", type=int, default=1, help="number of trim batch jobs",
     )
     parser.add_argument(
@@ -150,5 +155,8 @@ if __name__ == "__main__":  # pragma: no cover
     args = parser.parse_args()
 
     make_trim_scripts(
-        num_subtrim=args.num_subtrim, nice=args.nice, prefix=args.prefix,
+        beast_settings_info=args.beast_settings_file,
+        num_subtrim=args.num_subtrim,
+        nice=args.nice,
+        prefix=args.prefix,
     )

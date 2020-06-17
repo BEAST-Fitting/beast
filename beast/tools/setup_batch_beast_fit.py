@@ -320,6 +320,11 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
+    )
+    parser.add_argument(
         "--num_percore", default=5, type=int, help="number of fitting runs per core"
     )
     parser.add_argument(
@@ -373,6 +378,7 @@ if __name__ == "__main__":  # pragma: no cover
         args.pdf2d_param_list = None
 
     setup_batch_beast_fit(
+        beast_settings_info=args.beast_settings_file,
         num_percore=args.num_percore,
         nice=args.nice,
         overwrite_logfile=bool(args.overwrite_logfile),
