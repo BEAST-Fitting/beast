@@ -1,4 +1,4 @@
-settings#!/usr/bin/env python
+#!/usr/bin/env python
 
 # system imports
 import argparse

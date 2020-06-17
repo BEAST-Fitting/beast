@@ -149,7 +149,7 @@ def create_filenames(
 
                 # construct other file names
                 modelsedgrid_files.append(
-                    "{0}/{0}_seds.grid.hd5".format(settings.project, curr_sd, curr_sub)
+                    "{0}/{0}_seds.grid.hd5".format(settings.project)
                 )
                 modelsedgrid_trim_files.append(
                     "{0}/{0}_bin{1}_sub{2}_seds_trim.grid.hd5".format(
