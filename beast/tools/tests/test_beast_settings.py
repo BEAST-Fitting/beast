@@ -160,7 +160,9 @@ def test_beast_settings():
             noisefile = project + "/" + project + "_noisemodel.grid.hd5"
 
             # absflux calibration covariance matrix for HST specific filters (AC)
-            absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
+            absflux_a_matrix = absflux_covmat.hst_frac_matrix(
+                filters, hst_fname="hst_whitedwarf_frac_covar.fits"
+            )
 
             # -------------------------------------------
             # Grid
