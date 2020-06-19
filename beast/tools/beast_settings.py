@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 # note that other needed imports will be in the settings file
-from astropy import units
 from beast.tools import verify_beast_settings
 
 
@@ -33,7 +32,6 @@ class beast_settings:
             # verify parameters
             self.verify_settings()
 
-
     def read_beast_settings(self):
         """
         Read in the beast settings file and set parameters
@@ -49,14 +47,14 @@ class beast_settings:
             if line.strip() != "" and line.strip()[0] != "#"
         ]
         # remove comments that are mid-line (e.g., "x = 5 #comment")
-        for i,line in enumerate(input_data):
+        for i, line in enumerate(input_data):
             try:
-                input_data[i] = line[:line.index('#')]
+                input_data[i] = line[: line.index("#")]
             except ValueError:
                 pass
         # if parameters are defined over multiple lines, combine lines
         for i in reversed(range(len(input_data))):
-            if ('import ' not in input_data[i]) and ("=" not in input_data[i]):
+            if ("import " not in input_data[i]) and ("=" not in input_data[i]):
                 input_data[i - 1] += input_data[i]
                 del input_data[i]
 
@@ -65,7 +63,7 @@ class beast_settings:
 
         for i in range(len(input_data)):
             # execute imports
-            if 'import ' in input_data[i]:
+            if "import " in input_data[i]:
                 exec(input_data[i])
 
             # extract parameter and value (as strings)
@@ -78,7 +76,6 @@ class beast_settings:
         # turn dictionary into attributes
         for key in beast_params:
             setattr(self, key, beast_params[key])
-
 
     def verify_settings(self):
         """

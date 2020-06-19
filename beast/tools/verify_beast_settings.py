@@ -70,7 +70,9 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
         elif "float" in param_format:
             is_list_of_floats = all(isinstance(item, float) for item in param)
             if not is_list_of_floats:
-                raise TypeError(param_name + " is not in the right format - list of floats.")
+                raise TypeError(
+                    param_name + " is not in the right format - list of floats."
+                )
             elif "grid" in param_format:
                 # when param is aranged from given [min, max, step],
                 # instead of a specific list of values
@@ -83,7 +85,9 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
                 raise TypeError(param_name + " is not in the right format - a string.")
             elif "file" in param_format:
                 if not exists(param):
-                    raise OSError(param_name + " does not exist. Please provide the file path.")
+                    raise OSError(
+                        param_name + " does not exist. Please provide the file path."
+                    )
 
         if "version" in param_format:
             if not isinstance(param, float):
@@ -111,11 +115,11 @@ def verify_input_format(settings):
 
     try:
         if settings.allow_warnings:
-            print('verify_input_format: using non-interrupting warnings')
+            print("verify_input_format: using non-interrupting warnings")
         else:
-            warnings.simplefilter('error', UserWarning)
+            warnings.simplefilter("error", UserWarning)
     except AttributeError:
-        warnings.simplefilter('error', UserWarning)
+        warnings.simplefilter("error", UserWarning)
 
     parameters = [
         settings.z,
@@ -148,10 +152,7 @@ def verify_input_format(settings):
 
     for i, param_ in enumerate(parameters):
         verify_one_input_format(
-            param_,
-            parameters_names[i],
-            param_format[i],
-            parameters_limits[i],
+            param_, parameters_names[i], param_format[i], parameters_limits[i],
         )
 
 
