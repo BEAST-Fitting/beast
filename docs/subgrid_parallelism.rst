@@ -23,8 +23,8 @@ Workflow
 ========
 
 Functions that implement subgrids can be found in ``beast.tools.subgridding_tools``.
-To make use of this functionality, simply set ``n_subgrid`` in ``datamodel`` to
-the desired number of subgrids.  An example workflow script that utilizes the
+To make use of this functionality, simply set ``n_subgrid`` in ``beast_settings``
+to the desired number of subgrids.  An example workflow script that utilizes the
 subgridding tools can be found in
 `BEAST examples <https://github.com/BEAST-Fitting/beast-examples/tree/master/production_runs_2019>`_.
 

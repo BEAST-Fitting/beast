@@ -4,7 +4,7 @@
 Priors
 ######
 
-Priors on the parameters are set in the datamodel.py file using
+Priors on the parameters are set in the beast_settings.txt file using
 python dictionaries to give the prior model and any related
 parameters.
 

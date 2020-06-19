@@ -18,9 +18,9 @@ Setup
 
 Setup a working location. For reference, there are examples in `BEAST-Fitting/beast-examples <https://github.com/BEAST-Fitting/beast-examples>`.
 
-In this location, you will need a datamodel.py parameter file.
+In this location, you will need a `beast_settings.txt` parameter file.
 These parameters are described in the BEAST :ref:`setup documentation
-<beast_setup_datamodel>`.
+<beast_setup_settings>`.
 
 The BEAST also has some tools for converting catalogs between file formats,
 see :ref:`other tools<other_beast_tools>`.
@@ -104,12 +104,12 @@ To create a physics model grid with 5 subgrids:
 
   .. code-block:: console
 
-     $ python -m beast.tools.run.create_physicsmodel --nsubs=5
+     $ python -m beast.tools.run.create_physicsmodel beast_settings.txt --nsubs=5
 
 If you're running the BEAST on a survey in which different fields have different
 filters, you may wish to save time by creating a master grid with all possible
 filters and just copying out the subset of filters you need for each field.  To
-do this, create a `datamodel.py` file with all relevant filters listed in
+do this, create a `beast_settings.txt` file with all relevant filters listed in
 `filters` and `basefilters`, and run `create_physicsmodel` as above.  Then use
 `remove_filters` to create each modified grid.  The list of filters to remove
 will be determined by what's present in the input catalog file.  If you're using
@@ -137,30 +137,30 @@ Lists <beast_generating_asts>`.
 The BEAST selects SEDs from the physics model grid with a technique that
 minimizes the number of ASTs needed to allow the construction of a good
 toothpick observation model.  For each band, the range of fluxes
-in the model grid is split into bins (default=40, set by datamodel.ast_n_flux_bins),
+in the model grid is split into bins (default=40, set by ast_n_flux_bins in beast_settings),
 and models are randomly selected.  The model is retained if there are fewer than
-the set number of models (default=50, set by datamodel.ast_n_per_flux_bin) in
+the set number of models (default=50, set by ast_n_per_flux_bin in beast_settings) in
 each of the relevant flux bins.
 
   .. code-block:: console
 
-     $ python -m beast.tools.run.make_ast_inputs
+     $ python -m beast.tools.run.make_ast_inputs beast_settings.txt
 
 While not recommended, it is possible to randomly select SEDs from the
 physics model grid.
 
   .. code-block:: console
 
-     $ python -m beast.tools.run.make_ast_inputs --random_seds
+     $ python -m beast.tools.run.make_ast_inputs beast_settings.txt --random_seds
 
 How the sources are placed in the image is determined by the ast_source_density_table
-variable.
+variable in `beast_settings.txt`
 
-1. datamodel.ast_source_density_table is set to `filebase_sourceden_map.hd5`:
+1. ast_source_density_table is set to `filebase_sourceden_map.hd5`:
    For each source density or background bin, randomly place the SEDs
    within pixels of that bin.  Repeat for each of the bins.
 
-2. datamodel.ast_source_density_table = None:
+2. ast_source_density_table = None:
    Randomly choose a star from the photometry catalog, and place the
    artificial star nearby.  Repeat until all SEDs have been placed.
 
@@ -238,7 +238,7 @@ There are 3 different flavors of observation models.
    the noise is a fraction of the model SED flux and there is no bias.
    No ASTs are used.
 2. 'Toothpick':  The AST results are assumed to be independent between
-   different bands (even if they are not).  The ASTs results are binned
+   different bands (even if they are not).  The AST results are binned
    in log(flux) bins and the average bias and standard deviation is tabulated
    and used to compute the bias and noise for each model in the physics grid.
 3. 'Truncheon': The covariance between bands is measured using the AST results.
@@ -248,7 +248,7 @@ There are 3 different flavors of observation models.
    there are multiple ASTs run for the same model.  The covariance
    between the bands is approximated with a multi-variate Gaussian.
    The bias and a multi-variate Gaussian is computed for each model in the
-   physic grid by interpolating between the sparse grid computed from the AST
+   physics grid by interpolating between the sparse grid computed from the AST
    results.
 
 The code to compute the observation can be done with or without subgridding, and
@@ -257,11 +257,11 @@ with or without source density splitting.  Here are some examples:
   .. code-block:: console
 
      $ # with source density splitting and no subgridding
-     $ python -m beast.tools.run.create_obsmodel --use_sd --nsubs 1
+     $ python -m beast.tools.run.create_obsmodel beast_settings.txt --use_sd --nsubs 1
      $ # with source density splitting and 5 subgrids
-     $ python -m beast.tools.run.create_obsmodel --use_sd --nsubs 5
+     $ python -m beast.tools.run.create_obsmodel beast_settings.txt --use_sd --nsubs 5
      $ # no source density splitting or subgrids
-     $ python -m beast.tools.run.create_obsmodel --nsubs 1
+     $ python -m beast.tools.run.create_obsmodel beast_settings.txt --nsubs 1
 
 If you would like to examine some of all of the values in the observation model,
 you can use the `read_noise_data` function in `tools/read_beast_data.py`.
@@ -305,6 +305,16 @@ you're utilizing shared computing resources.
 
      $ python -m beast.tools.setup_batch_beast_trim projectname phot_catalog_cut.fits \
           ast_catalog_cut.fits --num_subtrim 5 --nice 19
+
+If you're doing a BEAST run that utilizes both subgrids and background/source
+density splitting, a handy wrapper will generate each combination of file names
+and run `setup_batch_beast_trim` for you:
+
+.. code-block:: console
+
+   $ python -m beast.tools.run.make_trim_scripts beast_settings.txt \
+        --num_subtrim 5 --nice 19
+
 
 Once the batch files are created, then the joblist can be submitted to the
 queue.  The beast/tools/trim_many_via_obsdata.py code is called and trimmed
@@ -371,7 +381,7 @@ been implemented.
 
   .. code-block:: console
 
-     $ python -m beast.tools.run.merge_files --use_sd 1
+     $ python -m beast.tools.run.merge_files beast_settings.txt --use_sd 1
 
 
 Reorganize the results into spatial region files
@@ -439,13 +449,14 @@ running beast_production_wrapper:
 
      $ python beast_production_wrapper
 
-The first thing it does is use datamodel_template.py to create a
-datamodel.py file.  You will need to modify datamodel_template.py file to
-specify the required parameters for generating models and fitting data.
-datamodel.py will be imported as needed in the functions
-called by the wrapper.  Four of the datamodel fields (project, obsfile,
+The first thing it does is use beast_settings_template.txt to create a
+field-specific beast settings file.  You will need to modify the
+beast_settings_template.py file to specify the required parameters for generating
+models and fitting data. The settings will be utilized as needed in the functions
+called by the wrapper.  Four of the settings fields (project, obsfile,
 filters, and basefilters) will be filled in by beast_production_wrapper.py,
-so ensure that the other fields in datamodel_template.py have the desired values.
+so ensure that the other fields in beast_settings_template.py have the desired
+values.
 
 The wrapper will proceed through each of the functions above.  At
 three points, you will need to manually run things independently of
@@ -462,14 +473,6 @@ where you left off.  In the case of the batch scripts, if you only
 partially completed them, it will re-generate new scripts for the
 remaining trimming/fitting (and tell you which ones are new), and
 pause again.
-
-Note of warning: if you are using this wrapper for multiple fields,
-check that the proper version of datamodel.py is in place before
-running the batch trimming/fitting scripts.  For instance, if you have
-recently used the wrapper to do part of the processing for field_A,
-and you want to start the batch fitting script for field_B, re-run the
-wrapper for field_B to make sure that datamodel.py refers to the
-information for field_B.
 
 *************
 Using `slurm`
@@ -491,7 +494,7 @@ functionality.
     $ python -m beast.tools.write_sbatch_file \
       'sbatch_file.script' './path/to/job/beast_batch_fit_X.joblist' \
       '/path/to/files/projectname/' \
-      --modules 'module load anaconda3' 'source activate beast_v1.3' \
+      --modules 'module load anaconda3' 'source activate beast_v1.4' \
       --queue LM --run_time 2:30:00 --mem 250GB
 
 
@@ -512,7 +515,7 @@ This creates a file ``sbatch_file.script`` with these contents:
     # Load any necessary modules
     # Loading modules in the script ensures a consistent environment.
     module load anaconda3
-    source activate beast_v1.3
+    source activate beast_v1.4
 
     # Launch a job
     ./path/to/job/beast_batch_fit_X.joblist
