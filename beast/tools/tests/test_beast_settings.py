@@ -1,7 +1,10 @@
 from tempfile import NamedTemporaryFile
 from beast.tools import beast_settings
+from beast.tests.helpers import download_rename
+from astropy.tests.helper import remote_data
 
 
+@remote_data
 def test_beast_settings():
     """
     Test that a given text file creates the expected beast_examples class.
@@ -9,7 +12,10 @@ def test_beast_settings():
     Text is copied over from the phat_small example in beast-examples.
     """
 
+    # make a temp file to hold the settings text file
     temp_file = NamedTemporaryFile(suffix=".txt")
+    # also need to download a beast library file
+    hst_fname = download_rename("hst_whitedwarf_frac_covar.fits")
 
     with open(temp_file.name, "w") as beast_file:
 
