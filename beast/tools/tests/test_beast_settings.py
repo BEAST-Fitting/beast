@@ -16,6 +16,7 @@ def test_beast_settings():
     temp_file = NamedTemporaryFile(suffix=".txt")
     # also need to download a beast library file
     hst_fname = download_rename("hst_whitedwarf_frac_covar.fits")
+    print(hst_fname)
 
     with open(temp_file.name, "w") as beast_file:
 
@@ -158,12 +159,14 @@ def test_beast_settings():
             # noisefile : string
             #   create a name for the noise model
             noisefile = project + "/" + project + "_noisemodel.grid.hd5"
-
+            """
+            +
+            """
             # absflux calibration covariance matrix for HST specific filters (AC)
-            absflux_a_matrix = absflux_covmat.hst_frac_matrix(
-                filters, hst_fname="hst_whitedwarf_frac_covar.fits"
-            )
-
+            absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters, hst_fname="{0}")
+            """.format(hst_fname)
+            +
+            """
             # -------------------------------------------
             # Grid
             # -------------------------------------------
