@@ -1,26 +1,63 @@
+import tempfile
+
 from astropy.tests.helper import remote_data
 from astropy import units
 from astropy import constants as const
+from astropy.table import Table
 
 from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.physicsmodel.dust import extinction
 from beast.physicsmodel.grid import SpectralGrid
-from beast.physicsmodel.model_grid import make_spectral_grid, add_stellar_priors
-from beast.tests.helpers import download_rename, compare_hdf5
+from beast.physicsmodel.model_grid import (
+    make_iso_table,
+    make_spectral_grid,
+    add_stellar_priors,
+)
+from beast.tests.helpers import download_rename, compare_hdf5, compare_tables
 from beast.tools import get_libfiles
 
 
 @remote_data
-class TestBeast:
+class TestRegressionSuite:
+    """
+    The regression tests are done in a class to only download files used
+    for the calculations and comparisons once.
+    """
 
     # download the BEAST library files
-    get_libfiles.get_libfiles()
+    # get_libfiles.get_libfiles()
 
     # download the cached version for use and comparision
+    # tmpdir = tempfile.TemporaryDirectory().name + "/"
+
     iso_fname_cache = download_rename("beast_example_phat_iso.csv")
     spec_fname_cache = download_rename("beast_example_phat_spec_grid.hd5")
     priors_fname_cache = download_rename("beast_example_phat_spec_w_priors.grid.hd5")
+
+    def test_padova_isochrone_download(self):
+
+        # download the file live from the website
+        savename = tempfile.NamedTemporaryFile(suffix=".csv").name
+        iso_fname, oiso = make_iso_table(
+            "test",
+            iso_fname=savename,
+            logtmin=6.0,
+            logtmax=10.13,
+            dlogt=1.0,
+            z=[0.03, 0.019, 0.008, 0.004],
+        )
+
+        # read the cached and new tables using astropy tables
+        table_cache = Table.read(
+            self.iso_fname_cache, format="ascii.csv", comment="#", delimiter=","
+        )
+        table_new = Table.read(
+            iso_fname, format="ascii.csv", comment="#", delimiter=","
+        )
+
+        # compare
+        compare_tables(table_cache, table_new)
 
     def test_make_kurucz_tlusty_spectral_grid(self):
 
@@ -50,7 +87,7 @@ class TestBeast:
         ]
         add_spectral_properties_kwargs = dict(filternames=filters)
 
-        spec_fname = "/tmp/beast_example_phat_spec_grid.hd5"
+        spec_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
         spec_fname, g = make_spectral_grid(
             "test",
             oiso,
@@ -72,8 +109,10 @@ class TestBeast:
         # gspec_fname = "/tmp/beast_example_phat_spec_grid.hd5"
         specgrid = SpectralGrid(self.spec_fname_cache, backend="memory")
 
-        priors_fname = "/tmp/beast_example_phat_spec_w_priors.grid.hd5"
-        priors_fname, g = add_stellar_priors("test", specgrid, priors_fname=priors_fname)
+        priors_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
+        priors_fname, g = add_stellar_priors(
+            "test", specgrid, priors_fname=priors_fname
+        )
 
         # compare the new to the cached version
         compare_hdf5(self.priors_fname_cache, priors_fname)

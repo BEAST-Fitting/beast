@@ -4,6 +4,7 @@ import os.path
 
 import numpy as np
 import h5py
+import tempfile
 
 from astropy.io import fits
 from astropy.utils.data import download_file
@@ -11,7 +12,7 @@ from astropy.utils.data import download_file
 __all__ = ["download_rename", "compare_tables", "compare_fits", "compare_hdf5"]
 
 
-def download_rename(filename):
+def download_rename(filename, tmpdir=""):
     """Download a file and rename it to have the right extension.
     Otherwise, downloaded file will not have an extension at all and an
     extension is needed for the BEAST.
@@ -24,7 +25,8 @@ def download_rename(filename):
     url_loc = "http://www.stsci.edu/~kgordon/beast/"
     fname_dld = download_file("%s%s" % (url_loc, filename))
     extension = filename.split(".")[-1]
-    fname = "%s.%s" % (fname_dld, extension)
+    # fname = f"{fname_dld}.{extension}"
+    fname = tempfile.NamedTemporaryFile(suffix=f".{extension}").name
     os.rename(fname_dld, fname)
     return fname
 
