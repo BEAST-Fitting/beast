@@ -1,5 +1,5 @@
 from tempfile import NamedTemporaryFile
-from beast.tools import beast_settings
+from beast.tools import beast_settings, get_libfiles
 from beast.tests.helpers import download_rename
 from astropy.tests.helper import remote_data
 
@@ -15,8 +15,7 @@ def test_beast_settings():
     # make a temp file to hold the settings text file
     temp_file = NamedTemporaryFile(suffix=".txt")
     # also need to download some beast library files
-    hst_fname = download_rename("hst_whitedwarf_frac_covar.fits")
-    filterlib_fname = download_rename("filters.hd5")
+    get_libfiles.get_libfiles()
 
     with open(temp_file.name, "w") as beast_file:
 
@@ -159,14 +158,10 @@ def test_beast_settings():
             # noisefile : string
             #   create a name for the noise model
             noisefile = project + "/" + project + "_noisemodel.grid.hd5"
-            """
-            + """
+
             # absflux calibration covariance matrix for HST specific filters (AC)
-            absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters, hst_fname="{0}", filterLib="{1}")
-            """.format(
-                hst_fname, filterlib_fname
-            )
-            + """
+            absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
+
             # -------------------------------------------
             # Grid
             # -------------------------------------------
