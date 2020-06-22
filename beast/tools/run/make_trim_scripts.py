@@ -4,17 +4,18 @@ import os
 import argparse
 
 # BEAST imports
-from beast.tools import verify_params, setup_batch_beast_trim
+from beast.tools import beast_settings, setup_batch_beast_trim
 from beast.tools.run import create_filenames
 
 from difflib import SequenceMatcher
 
 
-from . import datamodel
-import importlib
-
-
-def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
+def make_trim_scripts(
+    beast_settings_info,
+    num_subtrim=1,
+    nice=None,
+    prefix=None,
+):
     """
     `setup_batch_beast_trim.py` uses file names to create batch trim files.  This
     generates all of the file names for that function.
@@ -24,6 +25,10 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
 
     Parameters
     ----------
+    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
+
     num_subtrim : int (default = 1)
         number of trim batch jobs
 
@@ -41,15 +46,19 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
         Names of the newly created job files
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
+    else:
+        raise TypeError(
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
+        )
 
     # make lists of file names
     file_dict = create_filenames.create_filenames(
-        use_sd=True, nsubs=datamodel.n_subgrid,
+        settings, use_sd=True, nsubs=settings.n_subgrid,
     )
     # extract some useful ones
     photometry_files = file_dict["photometry_files"]
@@ -66,7 +75,7 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
     job_file_list = []
 
     # iterate through each model grid
-    for i in range(datamodel.n_subgrid):
+    for i in range(settings.n_subgrid):
 
         # indices for this model grid
         grid_ind = [
@@ -97,10 +106,10 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
         # if any aren't trimmed for this model grid, set up trimming
         if np.sum(check_trim) < len(input_noise):
 
-            job_path = "./{0}/trim_batch_jobs/".format(datamodel.project)
-            if datamodel.n_subgrid > 1:
+            job_path = "./{0}/trim_batch_jobs/".format(settings.project)
+            if settings.n_subgrid > 1:
                 file_prefix = "BEAST_gridsub" + str(i)
-            if datamodel.n_subgrid == 1:
+            if settings.n_subgrid == 1:
                 file_prefix = "BEAST"
 
             # generate trimming at-queue commands
@@ -109,6 +118,7 @@ def make_trim_scripts(num_subtrim=1, nice=None, prefix=None):
                 input_noise,
                 input_phot,
                 input_trim_prefix,
+                settings.obs_colnames,
                 job_path=job_path,
                 file_prefix=file_prefix,
                 num_subtrim=num_subtrim,
@@ -125,6 +135,11 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
+    )
+    parser.add_argument(
         "--num_subtrim", type=int, default=1, help="number of trim batch jobs",
     )
     parser.add_argument(
@@ -140,5 +155,8 @@ if __name__ == "__main__":  # pragma: no cover
     args = parser.parse_args()
 
     make_trim_scripts(
-        num_subtrim=args.num_subtrim, nice=args.nice, prefix=args.prefix,
+        beast_settings_info=args.beast_settings_file,
+        num_subtrim=args.num_subtrim,
+        nice=args.nice,
+        prefix=args.prefix,
     )

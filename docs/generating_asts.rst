@@ -67,8 +67,8 @@ These functions are found in ``beast.observationmodel.ast.make_ast_xy_list``.
   intensity bin.
 
 
-Parameters in datamodel.py
-==========================
+Parameters in beast_settings.txt
+================================
 
 Parameters used by the flux bin method of selecting SEDs
 --------------------------------------------------------
@@ -156,7 +156,7 @@ Parameters used for selecting SED positions
 Returns
 =======
 
-Table of fake star fluxes for all bands in the datamodel photometry file.
+Table of fake star fluxes for all bands in the beast_settings photometry file.
 The file will be in ascii format in the project directory, and it will have the
 name `[project]/[project]_inputAST.txt`.
 

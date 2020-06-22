@@ -4,23 +4,30 @@ import numpy as np
 import glob
 
 # BEAST imports
-from beast.tools import verify_params
+from beast.tools import beast_settings
 from beast.tools.run.helper_functions import get_modelsubgridfiles
 
-from . import datamodel
-import importlib
 
-
-def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=None):
+def create_filenames(
+    beast_settings_info,
+    use_sd=True,
+    nsubs=1,
+    choose_sd_sub=None,
+    choose_subgrid=None,
+):
     """
     Helper function to make all of the filenames.  SED grid and noise model
     are trimmed versions.
 
     Parameters
     ----------
+    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
+
     use_sd : boolean (default=True)
         If True, create source density dependent noise models (determined by
-        finding matches to datamodel.astfile with SD info)
+        finding matches to settings.astfile with SD info)
 
     nsubs : int (default=1)
         number of subgrids used for the physics model
@@ -41,11 +48,15 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
+    else:
+        raise TypeError(
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
+        )
 
     # input files
     photometry_files = []
@@ -72,50 +83,50 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
         if choose_sd_sub is not None:
 
             photometry_files.append(
-                datamodel.obsfile.replace(
+                settings.obsfile.replace(
                     ".fits",
                     "_bin{0}_sub{1}.fits".format(choose_sd_sub[0], choose_sd_sub[1]),
                 )
             )
             modelsedgrid_files.append(
                 "{0}/{0}_seds.grid.hd5".format(
-                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                    settings.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
             )
             modelsedgrid_trim_files.append(
                 "{0}/{0}_bin{1}_sub{2}_seds_trim.grid.hd5".format(
-                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                    settings.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
             )
             noise_files.append(
                 "{0}/{0}_noisemodel_bin{1}.grid.hd5".format(
-                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                    settings.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
             )
             noise_trim_files.append(
                 "{0}/{0}_bin{1}_sub{2}_noisemodel_trim.grid.hd5".format(
-                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                    settings.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
             )
 
             stats_files.append(
                 "{0}/{0}_bin{1}_sub{2}_stats.fits".format(
-                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                    settings.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
             )
             pdf_files.append(
                 "{0}/{0}_bin{1}_sub{2}_pdf1d.fits".format(
-                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                    settings.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
             )
             pdf2d_files.append(
                 "{0}/{0}_bin{1}_sub{2}_pdf2d.fits".format(
-                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                    settings.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
             )
             lnp_files.append(
                 "{0}/{0}_bin{1}_sub{2}_lnp.hd5".format(
-                    datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                    settings.project, choose_sd_sub[0], choose_sd_sub[1]
                 )
             )
 
@@ -125,7 +136,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
         elif use_sd is True:
 
             photometry_files = sorted(
-                glob.glob(datamodel.obsfile.replace(".fits", "_bin*_sub*.fits"))
+                glob.glob(settings.obsfile.replace(".fits", "_bin*_sub*.fits"))
             )
 
             for phot_file in photometry_files:
@@ -138,42 +149,42 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
                 # construct other file names
                 modelsedgrid_files.append(
-                    "{0}/{0}_seds.grid.hd5".format(datamodel.project, curr_sd, curr_sub)
+                    "{0}/{0}_seds.grid.hd5".format(settings.project)
                 )
                 modelsedgrid_trim_files.append(
                     "{0}/{0}_bin{1}_sub{2}_seds_trim.grid.hd5".format(
-                        datamodel.project, curr_sd, curr_sub
+                        settings.project, curr_sd, curr_sub
                     )
                 )
                 noise_files.append(
                     "{0}/{0}_noisemodel_bin{1}.grid.hd5".format(
-                        datamodel.project, curr_sd, curr_sub
+                        settings.project, curr_sd, curr_sub
                     )
                 )
                 noise_trim_files.append(
                     "{0}/{0}_bin{1}_sub{2}_noisemodel_trim.grid.hd5".format(
-                        datamodel.project, curr_sd, curr_sub
+                        settings.project, curr_sd, curr_sub
                     )
                 )
 
                 stats_files.append(
                     "{0}/{0}_bin{1}_sub{2}_stats.fits".format(
-                        datamodel.project, curr_sd, curr_sub
+                        settings.project, curr_sd, curr_sub
                     )
                 )
                 pdf_files.append(
                     "{0}/{0}_bin{1}_sub{2}_pdf1d.fits".format(
-                        datamodel.project, curr_sd, curr_sub
+                        settings.project, curr_sd, curr_sub
                     )
                 )
                 pdf2d_files.append(
                     "{0}/{0}_bin{1}_sub{2}_pdf2d.fits".format(
-                        datamodel.project, curr_sd, curr_sub
+                        settings.project, curr_sd, curr_sub
                     )
                 )
                 lnp_files.append(
                     "{0}/{0}_bin{1}_sub{2}_lnp.hd5".format(
-                        datamodel.project, curr_sd, curr_sub
+                        settings.project, curr_sd, curr_sub
                     )
                 )
 
@@ -182,20 +193,20 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
         # -- no source density splitting
         else:
 
-            photometry_files.append(datamodel.obsfile)
-            modelsedgrid_files.append("{0}/{0}_seds.grid.hd5".format(datamodel.project))
+            photometry_files.append(settings.obsfile)
+            modelsedgrid_files.append("{0}/{0}_seds.grid.hd5".format(settings.project))
             modelsedgrid_trim_files.append(
-                "{0}/{0}_seds_trim.grid.hd5".format(datamodel.project)
+                "{0}/{0}_seds_trim.grid.hd5".format(settings.project)
             )
-            noise_files.append("{0}/{0}_noisemodel.grid.hd5".format(datamodel.project))
+            noise_files.append("{0}/{0}_noisemodel.grid.hd5".format(settings.project))
             noise_trim_files.append(
-                "{0}/{0}_noisemodel_trim.grid.hd5".format(datamodel.project)
+                "{0}/{0}_noisemodel_trim.grid.hd5".format(settings.project)
             )
 
-            stats_files.append("{0}/{0}_stats.fits".format(datamodel.project))
-            pdf_files.append("{0}/{0}_pdf1d.fits".format(datamodel.project))
-            pdf2d_files.append("{0}/{0}_pdf2d.fits".format(datamodel.project))
-            lnp_files.append("{0}/{0}_lnp.hd5".format(datamodel.project))
+            stats_files.append("{0}/{0}_stats.fits".format(settings.project))
+            pdf_files.append("{0}/{0}_pdf1d.fits".format(settings.project))
+            pdf2d_files.append("{0}/{0}_pdf2d.fits".format(settings.project))
+            lnp_files.append("{0}/{0}_lnp.hd5".format(settings.project))
 
     # ** with subgrids **
 
@@ -205,7 +216,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
     if nsubs > 1:
 
         # start with getting the model grid files (note these aren't trimmed ones)
-        outdir = os.path.join(".", datamodel.project)
+        outdir = os.path.join(".", settings.project)
         subgrid_names_file = os.path.join(outdir, "subgrid_fnames.txt")
         temp = get_modelsubgridfiles(subgrid_names_file)
         # use that to get the number of subgrids and make a list of them
@@ -220,7 +231,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
             for gridsub in gridsub_list:
 
                 photometry_files.append(
-                    datamodel.obsfile.replace(
+                    settings.obsfile.replace(
                         ".fits",
                         "_bin{0}_sub{1}.fits".format(
                             choose_sd_sub[0], choose_sd_sub[1]
@@ -230,49 +241,49 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
 
                 modelsedgrid_files.append(
                     "{0}/{0}_seds.gridsub{3}.hd5".format(
-                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                        settings.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
                 modelsedgrid_trim_files.append(
                     "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_seds_trim.grid.hd5".format(
-                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                        settings.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
                 noise_files.append(
                     "{0}/{0}_noisemodel_bin{1}.gridsub{3}.hd5".format(
-                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                        settings.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
                 noise_trim_files.append(
                     "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_noisemodel_trim.grid.hd5".format(
-                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                        settings.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
 
                 stats_files.append(
                     "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_stats.fits".format(
-                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                        settings.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
                 pdf_files.append(
                     "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_pdf1d.fits".format(
-                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                        settings.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
                 pdf2d_files.append(
                     "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_pdf2d.fits".format(
-                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                        settings.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
                 lnp_files.append(
                     "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_lnp.hd5".format(
-                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                        settings.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
                     )
                 )
 
                 gridpickle_files.append(
                     "{0}/bin{1}_sub{2}/grid_info_dict.pkl".format(
-                        datamodel.project, choose_sd_sub[0], choose_sd_sub[1]
+                        settings.project, choose_sd_sub[0], choose_sd_sub[1]
                     )
                 )
 
@@ -283,7 +294,7 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
         elif use_sd is True:
 
             phot_file_list = sorted(
-                glob.glob(datamodel.obsfile.replace(".fits", "_bin*_sub*.fits"))
+                glob.glob(settings.obsfile.replace(".fits", "_bin*_sub*.fits"))
             )
 
             for phot_file in phot_file_list:
@@ -299,49 +310,49 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
                     photometry_files.append(phot_file)
                     modelsedgrid_files.append(
                         "{0}/{0}_seds.gridsub{3}.hd5".format(
-                            datamodel.project, curr_sd, curr_sub, gridsub
+                            settings.project, curr_sd, curr_sub, gridsub
                         )
                     )
                     modelsedgrid_trim_files.append(
                         "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_seds_trim.grid.hd5".format(
-                            datamodel.project, curr_sd, curr_sub, gridsub
+                            settings.project, curr_sd, curr_sub, gridsub
                         )
                     )
                     noise_files.append(
                         "{0}/{0}_noisemodel_bin{1}.gridsub{3}.hd5".format(
-                            datamodel.project, curr_sd, curr_sub, gridsub
+                            settings.project, curr_sd, curr_sub, gridsub
                         )
                     )
                     noise_trim_files.append(
                         "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_noisemodel_trim.grid.hd5".format(
-                            datamodel.project, curr_sd, curr_sub, gridsub
+                            settings.project, curr_sd, curr_sub, gridsub
                         )
                     )
 
                     stats_files.append(
                         "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_stats.fits".format(
-                            datamodel.project, curr_sd, curr_sub, gridsub
+                            settings.project, curr_sd, curr_sub, gridsub
                         )
                     )
                     pdf_files.append(
                         "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_pdf1d.fits".format(
-                            datamodel.project, curr_sd, curr_sub, gridsub
+                            settings.project, curr_sd, curr_sub, gridsub
                         )
                     )
                     pdf2d_files.append(
                         "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_pdf2d.fits".format(
-                            datamodel.project, curr_sd, curr_sub, gridsub
+                            settings.project, curr_sd, curr_sub, gridsub
                         )
                     )
                     lnp_files.append(
                         "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_lnp.hd5".format(
-                            datamodel.project, curr_sd, curr_sub, gridsub
+                            settings.project, curr_sd, curr_sub, gridsub
                         )
                     )
 
                     gridpickle_files.append(
                         "{0}/bin{1}_sub{2}/grid_info_dict.pkl".format(
-                            datamodel.project, curr_sd, curr_sub
+                            settings.project, curr_sd, curr_sub
                         )
                     )
 
@@ -352,41 +363,41 @@ def create_filenames(use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=No
         else:
 
             for gridsub in gridsub_list:
-                photometry_files.append(datamodel.obsfile)
+                photometry_files.append(settings.obsfile)
                 modelsedgrid_files.append(
-                    "{0}/{0}_seds.gridsub{1}.hd5".format(datamodel.project, gridsub)
+                    "{0}/{0}_seds.gridsub{1}.hd5".format(settings.project, gridsub)
                 )
                 modelsedgrid_trim_files.append(
                     "{0}/{0}_gridsub{1}_seds_trim.grid.hd5".format(
-                        datamodel.project, gridsub
+                        settings.project, gridsub
                     )
                 )
                 noise_files.append(
                     "{0}/{0}_noisemodel.gridsub{1}.hd5".format(
-                        datamodel.project, gridsub
+                        settings.project, gridsub
                     )
                 )
                 noise_trim_files.append(
                     "{0}/{0}_gridsub{1}_noisemodel_trim.grid.hd5".format(
-                        datamodel.project, gridsub
+                        settings.project, gridsub
                     )
                 )
 
                 stats_files.append(
-                    "{0}/{0}_gridsub{1}_stats.fits".format(datamodel.project, gridsub)
+                    "{0}/{0}_gridsub{1}_stats.fits".format(settings.project, gridsub)
                 )
                 pdf_files.append(
-                    "{0}/{0}_gridsub{1}_pdf1d.fits".format(datamodel.project, gridsub)
+                    "{0}/{0}_gridsub{1}_pdf1d.fits".format(settings.project, gridsub)
                 )
                 pdf2d_files.append(
-                    "{0}/{0}_gridsub{1}_pdf2d.fits".format(datamodel.project, gridsub)
+                    "{0}/{0}_gridsub{1}_pdf2d.fits".format(settings.project, gridsub)
                 )
                 lnp_files.append(
-                    "{0}/{0}_gridsub{1}_lnp.hd5".format(datamodel.project, gridsub)
+                    "{0}/{0}_gridsub{1}_lnp.hd5".format(settings.project, gridsub)
                 )
 
                 gridpickle_files.append(
-                    "{0}/grid_info_dict.pkl".format(datamodel.project)
+                    "{0}/grid_info_dict.pkl".format(settings.project)
                 )
 
                 gridsub_info.append(gridsub)

@@ -11,9 +11,6 @@ from shapely.geometry import box, Polygon
 
 from beast.tools import density_map, cut_catalogs
 
-from . import datamodel
-import importlib
-
 
 def pick_positions_from_map(
     catalog,
@@ -188,14 +185,12 @@ def pick_positions_from_map(
 
     # if region_from_filters is set, define an additional boundary for ASTs
     if region_from_filters is not None:
-        # need catalog file from datamodel
-        importlib.reload(datamodel)
 
         # 1. find the sub-list of sources
         if isinstance(region_from_filters, list):
             # good stars with user-defined partial overlap
             _, good_stars = cut_catalogs.cut_catalogs(
-                datamodel.obsfile,
+                catalog.inputFile,
                 "N/A",
                 flagged=True,
                 flag_filter=region_from_filters,
@@ -204,7 +199,7 @@ def pick_positions_from_map(
         elif region_from_filters == "all":
             # good stars only with fully overlapping region
             _, good_stars = cut_catalogs.cut_catalogs(
-                datamodel.obsfile, "N/A", partial_overlap=True, no_write=True
+                catalog.inputFile, "N/A", partial_overlap=True, no_write=True
             )
         else:
             raise RuntimeError("Invalid argument for region_from_filters")
@@ -449,7 +444,7 @@ def pick_positions(catalog, filename, separation, refimage=None, wcs_origin=1):
 
     separation: float
         Minimum pixel separation between AST and star in photometry
-        catalog provided in the datamodel.
+        catalog provided in the beast settings.
 
     refimage: string
         Name of the reference image.  If supplied, the method will use the

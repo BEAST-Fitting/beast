@@ -47,7 +47,7 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
     Parameters
     ----------
     param: str, float, or list(float)
-        Input parameter for run_beast.py, defined in datamodel.py
+        Input parameter for run_beast.py, defined in beast settings
 
     param_name: str
         Extact name of the param, used for printing purposes.
@@ -70,7 +70,9 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
         elif "float" in param_format:
             is_list_of_floats = all(isinstance(item, float) for item in param)
             if not is_list_of_floats:
-                raise TypeError(param_name + " is not in the right format - list of floats.")
+                raise TypeError(
+                    param_name + " is not in the right format - list of floats."
+                )
             elif "grid" in param_format:
                 # when param is aranged from given [min, max, step],
                 # instead of a specific list of values
@@ -83,7 +85,9 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
                 raise TypeError(param_name + " is not in the right format - a string.")
             elif "file" in param_format:
                 if not exists(param):
-                    raise OSError(param_name + " does not exist. Please provide the file path.")
+                    raise OSError(
+                        param_name + " does not exist. Please provide the file path."
+                    )
 
         if "version" in param_format:
             if not isinstance(param, float):
@@ -95,37 +99,36 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
                 )
 
 
-def verify_input_format(datamodel):
+def verify_input_format(settings):
 
     """
-    Import BEAST input parameters from datamodel.
     Define relevant parameters, their correct names, format and limits.
     Call verify_one_input_format to test for correctness of format and
     limits.
 
     Parameters
     ----------
-    datamodel: module
-        Input parameters are initialized in datamodel
+    settings: beast.tools.beast_settings.beast_settings instance
+        Input parameters are initialized in beast_settings
 
     """
 
     try:
-        if datamodel.allow_warnings:
-            print('verify_input_format: using non-interrupting warnings')
+        if settings.allow_warnings:
+            print("verify_input_format: using non-interrupting warnings")
         else:
-            warnings.simplefilter('error', UserWarning)
+            warnings.simplefilter("error", UserWarning)
     except AttributeError:
-        warnings.simplefilter('error', UserWarning)
+        warnings.simplefilter("error", UserWarning)
 
     parameters = [
-        datamodel.z,
-        datamodel.obsfile,
-        datamodel.astfile,
-        datamodel.logt,
-        datamodel.avs,
-        datamodel.rvs,
-        datamodel.fAs,
+        settings.z,
+        settings.obsfile,
+        settings.astfile,
+        settings.logt,
+        settings.avs,
+        settings.rvs,
+        settings.fAs,
     ]
     parameters_names = ["z", "obsfile", "astfile", "logt", "avs", "rvs", "fAs"]
     param_format = [
@@ -149,10 +152,7 @@ def verify_input_format(datamodel):
 
     for i, param_ in enumerate(parameters):
         verify_one_input_format(
-            param_,
-            parameters_names[i],
-            param_format[i],
-            parameters_limits[i],
+            param_, parameters_names[i], param_format[i], parameters_limits[i],
         )
 
 

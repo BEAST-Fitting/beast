@@ -15,13 +15,12 @@ from astropy.io import fits
 
 #####
 
-from beast.tools import verify_params
+from beast.tools import beast_settings
 from beast.tools.run import create_filenames
-from . import datamodel
-import importlib
 
 
 def setup_batch_beast_fit(
+    beast_settings_info,
     num_percore=5,
     nice=None,
     overwrite_logfile=True,
@@ -37,6 +36,10 @@ def setup_batch_beast_fit(
 
     Parameters
     ----------
+    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
+
     num_percore : int (default = 5)
         number of fitting runs per core
 
@@ -54,7 +57,7 @@ def setup_batch_beast_fit(
 
     use_sd : boolean (default=True)
         If True, split runs based on source density (determined by finding
-        matches to datamodel.astfile with SD info)
+        matches to settings.astfile with SD info)
 
     pdf2d_param_list : list of strings or None
         If set, do 2D PDFs of these parameters.  If None, don't make 2D PDFs.
@@ -75,14 +78,18 @@ def setup_batch_beast_fit(
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
+    else:
+        raise TypeError(
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
+        )
 
     # setup the subdirectory for the batch and log files
-    job_path = datamodel.project + "/fit_batch_jobs/"
+    job_path = settings.project + "/fit_batch_jobs/"
     if not os.path.isdir(job_path):
         os.mkdir(job_path)
 
@@ -91,7 +98,7 @@ def setup_batch_beast_fit(
         os.mkdir(log_path)
 
     # get file name lists (to check if they exist and/or need to be resumed)
-    file_dict = create_filenames.create_filenames(use_sd=use_sd, nsubs=nsubs)
+    file_dict = create_filenames.create_filenames(settings, use_sd=use_sd, nsubs=nsubs)
 
     # - input files
     photometry_files = file_dict["photometry_files"]
@@ -281,6 +288,7 @@ def setup_batch_beast_fit(
             job_command = (
                 nice_str
                 + "python -m beast.tools.run.run_fitting "
+                + " {0} ".format(settings.input_settings_file)
                 + resume_str
                 + sd_str
                 + gs_str
@@ -311,6 +319,11 @@ if __name__ == "__main__":  # pragma: no cover
 
     # commandline parser
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
+    )
     parser.add_argument(
         "--num_percore", default=5, type=int, help="number of fitting runs per core"
     )
@@ -365,6 +378,7 @@ if __name__ == "__main__":  # pragma: no cover
         args.pdf2d_param_list = None
 
     setup_batch_beast_fit(
+        beast_settings_info=args.beast_settings_file,
         num_percore=args.num_percore,
         nice=args.nice,
         overwrite_logfile=bool(args.overwrite_logfile),

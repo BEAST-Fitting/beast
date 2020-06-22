@@ -17,8 +17,6 @@ from beast.fitting import trim_grid
 from beast.physicsmodel.grid import SEDGrid
 from beast.observationmodel.observations import Observations
 
-# needed only for the obs_colnames to define the observed filternames
-from . import datamodel
 
 if __name__ == "__main__":
     # commandline parser
@@ -41,11 +39,14 @@ if __name__ == "__main__":
     print("Reading the model grid files = ", modelfile)
     modelsedgrid = SEDGrid(modelfile)
 
+    # get the column names for the photometry file
+    obs_colnames = file_lines[1].split()
+
     new_time = time.clock()
     print("time to read: ", (new_time - start_time) / 60.0, " min")
 
     old_noisefile = ""
-    for k in range(1, len(file_lines)):
+    for k in range(2, len(file_lines)):
 
         print("\n\n")
 
@@ -83,7 +84,7 @@ if __name__ == "__main__":
         # read in the observed data
         print("getting the observed data")
         obsdata = Observations(
-            obsfile, modelsedgrid.filters, obs_colnames=datamodel.obs_colnames
+            obsfile, modelsedgrid.filters, obs_colnames=obs_colnames
         )
         # trim the model sedgrid
         #   set n_detected = 0 to disable the trimming of models based on

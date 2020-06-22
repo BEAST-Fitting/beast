@@ -1,9 +1,4 @@
 #!/usr/bin/env python
-"""
-Script to run the BEAST on the PHAT-like data.
-Assumes that the datamodel.py file exists in the same directory as this script.
-  And it must be called datamodel.py
-"""
 
 # system imports
 import os
@@ -23,22 +18,20 @@ from beast.physicsmodel.model_grid import (
 from beast.physicsmodel.grid import SpectralGrid
 from beast.tools.run.helper_functions import parallel_wrapper
 # from beast.physicsmodel.stars.isochrone import ezIsoch
-from beast.tools import verify_params
-from beast.tools import subgridding_tools
-
-from . import datamodel
-import importlib
-
-# import pdb
+from beast.tools import beast_settings, subgridding_tools
 
 
-def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
+def create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1, subset=[None, None]):
     """
     Create the physics model grid.  If nsubs > 1, this will make sub-grids.
 
 
     Parameters
     ----------
+    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
+
     nsubs : int (default=1)
         number of subgrids to split the physics model into
 
@@ -52,69 +45,73 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+   # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
+    else:
+        raise TypeError(
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
+        )
 
     # filename for the SED grid
     modelsedgrid_filename = "%s/%s_seds.grid.hd5" % (
-        datamodel.project,
-        datamodel.project,
+        settings.project,
+        settings.project,
     )
 
     # grab the current subgrid slice
     subset_slice = slice(subset[0], subset[1])
 
     # make sure the project directory exists
-    create_project_dir(datamodel.project)
+    create_project_dir(settings.project)
 
     # download and load the isochrones
     (iso_fname, oiso) = make_iso_table(
-        datamodel.project,
-        oiso=datamodel.oiso,
-        logtmin=datamodel.logt[0],
-        logtmax=datamodel.logt[1],
-        dlogt=datamodel.logt[2],
-        z=datamodel.z,
+        settings.project,
+        oiso=settings.oiso,
+        logtmin=settings.logt[0],
+        logtmax=settings.logt[1],
+        dlogt=settings.logt[2],
+        z=settings.z,
     )
 
     # remove the isochrone points with logL=-9.999
     # oiso = ezIsoch(oiso.selectWhere("*", "logL > -9"))
     oiso.data = oiso[oiso["logL"] > -9]
 
-    if hasattr(datamodel, "add_spectral_properties_kwargs"):
-        extra_kwargs = datamodel.add_spectral_properties_kwargs
+    if hasattr(settings, "add_spectral_properties_kwargs"):
+        extra_kwargs = settings.add_spectral_properties_kwargs
     else:
         extra_kwargs = None
 
-    if hasattr(datamodel, "velocity"):
-        redshift = (datamodel.velocity / const.c).decompose().value
+    if hasattr(settings, "velocity"):
+        redshift = (settings.velocity / const.c).decompose().value
     else:
         redshift = 0
 
     # generate the spectral library (no dust extinction)
     (spec_fname, g_spec) = make_spectral_grid(
-        datamodel.project,
+        settings.project,
         oiso,
-        osl=datamodel.osl,
+        osl=settings.osl,
         redshift=redshift,
-        distance=datamodel.distances,
-        distance_unit=datamodel.distance_unit,
-        extLaw=datamodel.extLaw,
+        distance=settings.distances,
+        distance_unit=settings.distance_unit,
+        extLaw=settings.extLaw,
         add_spectral_properties_kwargs=extra_kwargs,
     )
 
     # add the stellar priors as weights
     #   also computes the grid weights for the stellar part
     (pspec_fname, g_pspec) = add_stellar_priors(
-        datamodel.project,
+        settings.project,
         g_spec,
-        age_prior_model=datamodel.age_prior_model,
-        mass_prior_model=datamodel.mass_prior_model,
-        met_prior_model=datamodel.met_prior_model,
-        distance_prior_model=datamodel.distance_prior_model,
+        age_prior_model=settings.age_prior_model,
+        mass_prior_model=settings.mass_prior_model,
+        met_prior_model=settings.met_prior_model,
+        distance_prior_model=settings.distance_prior_model,
     )
 
     # --------------------
@@ -126,16 +123,16 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
         #   effect of dust extinction applied before filter integration
         #   also computes the dust priors as weights
         make_extinguished_sed_grid(
-            datamodel.project,
+            settings.project,
             g_pspec,
-            datamodel.filters,
-            extLaw=datamodel.extLaw,
-            av=datamodel.avs,
-            rv=datamodel.rvs,
-            fA=datamodel.fAs,
-            rv_prior_model=datamodel.rv_prior_model,
-            av_prior_model=datamodel.av_prior_model,
-            fA_prior_model=datamodel.fA_prior_model,
+            settings.filters,
+            extLaw=settings.extLaw,
+            av=settings.avs,
+            rv=settings.rvs,
+            fA=settings.fAs,
+            rv_prior_model=settings.rv_prior_model,
+            av_prior_model=settings.av_prior_model,
+            fA_prior_model=settings.fA_prior_model,
             spec_fname=modelsedgrid_filename,
             add_spectral_properties_kwargs=extra_kwargs,
         )
@@ -152,7 +149,7 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
         # Make subgrids, by splitting the spectral grid into equal sized pieces
         custom_sub_pspec = subgridding_tools.split_grid(pspec_fname, nsubs)
 
-        file_prefix = "{0}/{0}_".format(datamodel.project)
+        file_prefix = "{0}/{0}_".format(settings.project)
 
         # function to process the subgrids individually
         def gen_subgrid(i, sub_name):
@@ -163,16 +160,16 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
             #   effect of dust extinction applied before filter integration
             #   also computes the dust priors as weights
             (sub_seds_fname, sub_g_seds) = make_extinguished_sed_grid(
-                datamodel.project,
+                settings.project,
                 sub_g_pspec,
-                datamodel.filters,
-                extLaw=datamodel.extLaw,
-                av=datamodel.avs,
-                rv=datamodel.rvs,
-                fA=datamodel.fAs,
-                rv_prior_model=datamodel.rv_prior_model,
-                av_prior_model=datamodel.av_prior_model,
-                fA_prior_model=datamodel.fA_prior_model,
+                settings.filters,
+                extLaw=settings.extLaw,
+                av=settings.avs,
+                rv=settings.rvs,
+                fA=settings.fAs,
+                rv_prior_model=settings.rv_prior_model,
+                av_prior_model=settings.av_prior_model,
+                fA_prior_model=settings.fA_prior_model,
                 add_spectral_properties_kwargs=extra_kwargs,
                 seds_fname=sub_seds_fname,
             )
@@ -191,7 +188,7 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
             "{}seds.gridsub{}.hd5".format(file_prefix, i) for i in range(nsubs)
         ]
 
-        outdir = os.path.join(".", datamodel.project)
+        outdir = os.path.join(".", settings.project)
         subgrid_names_file = os.path.join(outdir, "subgrid_fnames.txt")
 
         with open(subgrid_names_file, "w") as fname_file:
@@ -199,14 +196,17 @@ def create_physicsmodel(nsubs=1, nprocs=1, subset=[None, None]):
                 fname_file.write(fname + "\n")
 
 
-def split_create_physicsmodel(nsubs=1, nprocs=1):
+def split_create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1):
     """
     Making the physics model grid takes a while for production runs.  This
     creates scripts to run each subgrid as a separate job.
 
-
     Parameters
     ----------
+    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
+
     nsubs : int (default=1)
         number of subgrids to split the physics model into
 
@@ -216,17 +216,21 @@ def split_create_physicsmodel(nsubs=1, nprocs=1):
 
     """
 
-    # before doing ANYTHING, force datamodel to re-import (otherwise, any
-    # changes within this python session will not be loaded!)
-    importlib.reload(datamodel)
-    # check input parameters
-    verify_params.verify_input_format(datamodel)
+    # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
+    else:
+        raise TypeError(
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
+        )
 
     # make sure the project directory exists
-    create_project_dir(datamodel.project)
+    create_project_dir(settings.project)
 
     # directory for scripts
-    job_path = "./{0}/model_batch_jobs/".format(datamodel.project)
+    job_path = "./{0}/model_batch_jobs/".format(settings.project)
     if not os.path.isdir(job_path):
         os.mkdir(job_path)
 
@@ -241,6 +245,7 @@ def split_create_physicsmodel(nsubs=1, nprocs=1):
 
             jf.write(
                 "python -m beast.tools.run.create_physicsmodel "
+                + " {0} ".format(settings.input_settings_file)
                 + " --nsubs "
                 + str(nsubs)
                 + " --nprocs "
@@ -263,6 +268,11 @@ def split_create_physicsmodel(nsubs=1, nprocs=1):
 if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
+    )
     parser.add_argument(
         "--nsubs",
         type=int,
@@ -288,8 +298,9 @@ if __name__ == "__main__":  # pragma: no cover
 
     args = parser.parse_args()
 
-    create_physicsmodel(nsubs=args.nsubs, nprocs=args.nprocs, subset=args.subset)
-
-    # print help if no arguments
-    if not any(vars(args).values()):
-        parser.print_help()
+    create_physicsmodel(
+        beast_settings_info=args.beast_settings_file,
+        nsubs=args.nsubs,
+        nprocs=args.nprocs,
+        subset=args.subset,
+    )

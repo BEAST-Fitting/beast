@@ -66,8 +66,7 @@ def cut_catalogs(
 
     # make sure something is chosen
     if (partial_overlap is False) and (flagged is False):
-        print("must choose a criteria to cut catalogs")
-        return
+        raise ValueError("must choose a criteria to cut catalogs")
 
     # run the cutting for the photometry file
     phot_cat, phot_good_stars = make_cuts(
