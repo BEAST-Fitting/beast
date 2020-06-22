@@ -1,6 +1,5 @@
 from tempfile import NamedTemporaryFile
-from beast.tools import beast_settings, get_libfiles
-from beast.tests.helpers import download_rename
+from beast.tools import beast_settings  # , get_libfiles
 from astropy.tests.helper import remote_data
 
 
@@ -15,7 +14,7 @@ def test_beast_settings():
     # make a temp file to hold the settings text file
     temp_file = NamedTemporaryFile(suffix=".txt")
     # also need to download some beast library files
-    get_libfiles.get_libfiles()
+    # get_libfiles.get_libfiles()
 
     with open(temp_file.name, "w") as beast_file:
 
