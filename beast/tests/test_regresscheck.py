@@ -59,7 +59,7 @@ class TestRegressionSuite:
     """
 
     # download the BEAST library files
-    # get_libfiles.get_libfiles()
+    get_libfiles.get_libfiles()
 
     # download the cached version for use and comparision
     # tmpdir = tempfile.TemporaryDirectory().name + "/"
