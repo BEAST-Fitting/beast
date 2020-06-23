@@ -157,7 +157,6 @@ class TestRegressionSuite:
 
     def test_add_stellar_priors_to_spectral_grid(self):
 
-        # gspec_fname = "/tmp/beast_example_phat_spec_grid.hd5"
         specgrid = SpectralGrid(self.spec_fname_cache, backend="memory")
 
         priors_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
