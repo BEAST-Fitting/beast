@@ -5,8 +5,9 @@ directly from their website
 :version: 1.1
 :author: MF
 """
-import os
-import inspect
+# import os
+# import inspect
+from pkg_resources import resource_filename
 
 from urllib.parse import urlencode
 from urllib import request
@@ -21,9 +22,11 @@ from beast.physicsmodel.stars.simpletable import SimpleTable as Table
 
 py3k = True
 
-localpath = "/".join(
-    os.path.abspath(inspect.getfile(inspect.currentframe())).split("/")[:-1]
-)
+# localpath = "/".join(
+#     os.path.abspath(inspect.getfile(inspect.currentframe())).split("/")[:-1]
+# )
+
+localpath = resource_filename("beast", "physicsmodel/stars/ezpadova")
 
 with open(localpath + "/parsec.json") as f:
     _cfg = json.load(f)
