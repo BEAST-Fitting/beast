@@ -54,8 +54,8 @@ from beast.tests.helpers import (
 @remote_data
 class TestRegressionSuite:
     """
-    The regression tests are done in a class to only download files used
-    for the calculations and comparisons once.
+    The regression tests are done in a class to so that files are only
+    downloaded once and can be used by multiple tests.
     """
 
     # download the BEAST library files
@@ -95,10 +95,12 @@ class TestRegressionSuite:
     # Standard BEAST fitting steps
 
     def test_padova_isochrone_download(self):
-
+        """
+        Generate the padova isochrone table and compare the result to a cached version.
+        """
         # download the file live from the website
         savename = tempfile.NamedTemporaryFile(suffix=".csv").name
-        iso_fname, oiso = make_iso_table(
+        (iso_fname, g) = make_iso_table(
             "test",
             iso_fname=savename,
             logtmin=6.0,
@@ -119,7 +121,11 @@ class TestRegressionSuite:
         compare_tables(table_cache, table_new)
 
     def test_make_kurucz_tlusty_spectral_grid(self):
-
+        """
+        Generate the spectral grid based on Kurucz and Tlusty stellar atmosphere
+        models based on a cached set of isochrones and compare the result to a cached
+        version.
+        """
         # read in the cached isochrones
         oiso = ezIsoch(self.iso_fname_cache)
 
@@ -139,7 +145,7 @@ class TestRegressionSuite:
         add_spectral_properties_kwargs = dict(filternames=self.filters)
 
         spec_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
-        spec_fname, g = make_spectral_grid(
+        (spec_fname, g) = make_spectral_grid(
             "test",
             oiso,
             osl=osl,
@@ -156,7 +162,10 @@ class TestRegressionSuite:
         compare_hdf5(self.spec_fname_cache, spec_fname)
 
     def test_add_stellar_priors_to_spectral_grid(self):
-
+        """
+        Add the stellar priors to the a cached spectral grid and compare
+        it to the cached version.
+        """
         specgrid = SpectralGrid(self.spec_fname_cache, backend="memory")
 
         priors_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
@@ -168,7 +177,10 @@ class TestRegressionSuite:
         compare_hdf5(self.priors_fname_cache, priors_fname)
 
     def test_make_extinguished_sed_grid(self):
-
+        """
+        Generate the extinguished SED grid using a cached version of the
+        spectral grid with priors and compare the result to a cached version.
+        """
         # Add in the filters
         add_spectral_properties_kwargs = dict(filternames=self.filters)
 
@@ -178,7 +190,7 @@ class TestRegressionSuite:
         #   effect of dust extinction applied before filter integration
         #   also computes the dust priors as weights
         seds_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
-        seds_fname, g_seds = make_extinguished_sed_grid(
+        (seds_fname, g) = make_extinguished_sed_grid(
             "test",
             g_pspec,
             self.filters,
@@ -197,6 +209,11 @@ class TestRegressionSuite:
         compare_hdf5(self.seds_fname_cache, seds_fname)
 
     def test_toothpick_noisemodel(self):
+        """
+        Generate the nosiemodel (aka observationmodel) using a cached version of
+        the artifical star test results (ASTs) and compare the result to a cached
+        version.
+        """
         # download files specific to this test
         asts_fname = download_rename("fake_stars_b15_27_all.hd5")
 
@@ -220,6 +237,10 @@ class TestRegressionSuite:
         compare_hdf5(self.noise_fname_cache, noise_fname)
 
     def test_trim_grid(self):
+        """
+        Generate trim the sed grid and noise model using cached versions of the
+        both and compare the result to a cached version.
+        """
         # read in the observed data
         obsdata = Observations(self.obs_fname_cache, self.filters, self.obs_colnames)
 
@@ -247,7 +268,11 @@ class TestRegressionSuite:
         compare_hdf5(self.noise_trim_fname_cache, noise_trim_fname, ctype="noise")
 
     def test_fit_grid(self):
-        # read in the the AST noise model
+        """
+        Fit a cached version of the observations with cached version of the
+        trimmed sed grid and noisemodel and compare the result to cached
+        versions of the stats and pdf1d files.
+        """        # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(self.noise_trim_fname_cache)
 
         # read in the observed data
@@ -285,6 +310,10 @@ class TestRegressionSuite:
     # ###################################################################
     # AST tests
     def test_ast_pick_models(self):
+        """
+        Generate the artifial star test (AST) inputs using a cached version of
+        the sed grid and compare the result to a cached version.
+        """
         # download files specific to this test
         cached_table_filename = download_rename("cache_inputAST.txt")
 
@@ -308,10 +337,12 @@ class TestRegressionSuite:
     # ###################################################################
     # simulation tests
     def test_simobs(self):
+        """
+        Simulate observations using cached versions of the sed grid and noise model
+        and compare the result to a cached version.
+        """
         # download files specific to this test
         simobs_fname_cache = download_rename("beast_example_phat_simobs.fits")
-
-        ################
 
         # get the physics model grid - includes priors
         modelsedgrid = SEDGrid(self.seds_fname_cache)
@@ -338,6 +369,10 @@ class TestRegressionSuite:
     # ###################################################################
     # tools tests
     def test_read_lnp_data(self):
+        """
+        Read in the lnp data from a cached file and test that selected values
+        are as expected.
+        """
         ldata = read_lnp_data(self.lnp_fname_cache)
 
         exp_keys = ["vals", "indxs"]
@@ -361,6 +396,10 @@ class TestRegressionSuite:
         )
 
     def test_read_noise_data(self):
+        """
+        Read in the noise model from a cached file and test that selected values
+        are as expected.
+        """
         ndata = read_noise_data(self.noise_trim_fname_cache)
 
         exp_keys = ["bias", "completeness", "error"]
@@ -388,6 +427,10 @@ class TestRegressionSuite:
         )
 
     def test_read_sed_data(self):
+        """
+        Read in the sed grid from a cached file and test that selected values
+        are as expected.
+        """
         requested_params = ["Av", "Rv", "f_A", "M_ini", "logA", "Z", "distance"]
 
         # check that when return_params=True, then just a list of parameters is returned
@@ -417,11 +460,14 @@ class TestRegressionSuite:
             )
 
     def test_get_lnp_grid_vals(self):
+        """
+        Read in the lnp and sed grid data from cached files and test that
+        selected values are as expected.
+        """
         ldata = read_lnp_data(self.lnp_fname_cache)
 
-        seds_trim_fname = download_rename("beast_example_phat_seds_trim.grid.hd5")
         requested_params = ["Av", "Rv", "f_A", "M_ini", "logA", "Z", "distance"]
-        sdata = read_sed_data(seds_trim_fname, param_list=requested_params)
+        sdata = read_sed_data(self.seds_trim_fname_cache, param_list=requested_params)
 
         lgvals_data = get_lnp_grid_vals(sdata, ldata)
 
@@ -452,11 +498,19 @@ class TestRegressionSuite:
             )
 
     def test_split_grid(self):
+        """
+        Split a cached version of a sed grid with various into a few different
+        subgrids and check the splits are as expected.
+        """
         split_and_check(self.seds_trim_fname_cache, 4)  # an edge case
         split_and_check(self.seds_trim_fname_cache, 3)  # an odd numer
         split_and_check(self.seds_trim_fname_cache, 1)  # an even number
 
     def test_reduce_grid_info(self):
+        """
+        Split a cached version of a sed grid and check that [not quite
+        sure what this is checking - details needed].
+        """
         sub_fnames = subgridding_tools.split_grid(self.seds_trim_fname_cache, 3)
 
         complete_g_info = subgridding_tools.subgrid_info(self.seds_trim_fname_cache)
@@ -483,6 +537,12 @@ class TestRegressionSuite:
                     raise AssertionError()
 
     def test_merge_pdf1d_stats(self):
+        """
+        Using cached versions of the observations, sed grid, and noise model,
+        split the grids and do the fitting on the subgrids and original
+        grid.  Merge the results from the subgrids and compare to the results
+        from fitting the full grid.
+        """
         ######################################
         # STEP 1: GET SOME DATA TO WORK WITH #
         ######################################
@@ -631,6 +691,8 @@ class TestRegressionSuite:
     def test_beast_settings():
         """
         Test that a given text file creates the expected beast_examples class.
+        This uses the library files downloaded as part of the init of this
+        class.
 
         Text is copied over from the phat_small example in beast-examples.
         """
@@ -1010,6 +1072,19 @@ class TestRegressionSuite:
 
 # specific helper functions
 def split_and_check(grid_fname, num_subgrids):
+    """
+    Split a sed grid into subgrids and test the contents of the subgrids
+    are as expected and concatenating the subgrid components (seds, grid)
+    gives the full sed grid.
+
+    Parameters
+    ----------
+    grid_fname : str
+        filename for the sed grid
+
+    num_subgrids : int
+        number of subgrids to split the sed grid into
+    """
     complete_g = SEDGrid(grid_fname)
     sub_fnames = subgridding_tools.split_grid(grid_fname, num_subgrids)
 
