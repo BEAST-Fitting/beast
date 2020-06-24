@@ -63,20 +63,17 @@ class TestRegressionSuite:
     # download the BEAST library files
     get_libfiles.get_libfiles()
 
-    # create the beast_settings object
-    # (copied over from the phat_small example in beast-examples)
-    settings = beast_settings.beast_settings("beast_settings_for_tests.txt")
-    # also make a version with 2 subgrids
-    settings_sg = copy.deepcopy(settings)
-    settings_sg.n_subgrid = 2
-    settings_sg.project = "beast_example_phat_subgrids"
-
 
     # download the cached version for use and comparision
     # tmpdir = tempfile.TemporaryDirectory().name + "/"
-
+    # - photometry and ASTs
+    obs_fname_cache = download_rename("b15_4band_det_27_A.fits")
+    asts_fname = download_rename("fake_stars_b15_27_all.hd5")
+    # - isochrones
     iso_fname_cache = download_rename("beast_example_phat_iso.csv")
+    # - spectra
     spec_fname_cache = download_rename("beast_example_phat_spec_grid.hd5")
+    # - spectra with priors
     priors_fname_cache = download_rename("beast_example_phat_spec_w_priors.grid.hd5")
     priors_sub0_fname_cache = download_rename(
         "beast_example_phat_subgrids_spec_w_priors.gridsub0.hd5"
@@ -84,6 +81,7 @@ class TestRegressionSuite:
     priors_sub1_fname_cache = download_rename(
         "beast_example_phat_subgrids_spec_w_priors.gridsub1.hd5"
     )
+    # - SED grids
     seds_fname_cache = download_rename("beast_example_phat_seds.grid.hd5")
     seds_sub0_fname_cache = download_rename(
         "beast_example_phat_subgrids_seds.gridsub0.hd5"
@@ -91,16 +89,31 @@ class TestRegressionSuite:
     seds_sub1_fname_cache = download_rename(
         "beast_example_phat_subgrids_seds.gridsub1.hd5"
     )
+    # - noise model
     noise_fname_cache = download_rename("beast_example_phat_noisemodel.grid.hd5")
+    # - trimmed files
     noise_trim_fname_cache = download_rename(
         "beast_example_phat_noisemodel_trim.grid.hd5"
     )
     seds_trim_fname_cache = download_rename("beast_example_phat_seds_trim.grid.hd5")
-    obs_fname_cache = download_rename("b15_4band_det_27_A.fits")
+    # - output files
     stats_fname_cache = download_rename("beast_example_phat_stats.fits")
     lnp_fname_cache = download_rename("beast_example_phat_lnp.hd5")
     pdf1d_fname_cache = download_rename("beast_example_phat_pdf1d.fits")
     pdf2d_fname_cache = download_rename("beast_example_phat_pdf2d.fits")
+
+
+    # create the beast_settings object
+    # (copied over from the phat_small example in beast-examples)
+    settings = beast_settings.beast_settings("beast_settings_for_tests.txt")
+    # update names of photometry and AST files
+    settings.obsfile = obs_fname_cache
+    settings.astfile = asts_fname
+    # also make a version with 2 subgrids
+    settings_sg = copy.deepcopy(settings)
+    settings_sg.n_subgrid = 2
+    settings_sg.project = "beast_example_phat_subgrids"
+
 
 
     # ###################################################################
@@ -213,8 +226,6 @@ class TestRegressionSuite:
         the artifical star test results (ASTs) and compare the result to a cached
         version.
         """
-        # download files specific to this test
-        asts_fname = download_rename("fake_stars_b15_27_all.hd5")
 
         # get the modelsedgrid on which to generate the noisemodel
         modelsedgrid = SEDGrid(self.seds_fname_cache)
@@ -223,7 +234,7 @@ class TestRegressionSuite:
         noise_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
         noisemodel.make_toothpick_noise_model(
             noise_fname,
-            asts_fname,
+            self.asts_fname,
             modelsedgrid,
             absflux_a_matrix=self.settings.absflux_a_matrix,
             use_rate=False,
