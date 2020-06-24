@@ -33,11 +33,11 @@ libs = dict(
     kurucz04="kurucz2004.grid.fits",
     tlusty09="tlusty.lowres.grid.fits",
     hstcovar="hst_whitedwarf_frac_covar.fits",
-    basel22="stellib_BaSeL_v2.2.grid.fits",
-    munari="atlas9-munari.hires.grid.fits",
-    btsettl="bt-settl.lowres.grid.fits",
-    aringer="Aringer.AGB.grid.fits"
+    # basel22="stellib_BaSeL_v2.2.grid.fits",
+    # munari="atlas9-munari.hires.grid.fits",
+    # btsettl="bt-settl.lowres.grid.fits",
     # elodie31 = 'Elodie_v3.1.grid.fits'
+    # aringer="Aringer.AGB.grid.fits"
 )
 
 # Make sure the configuration is coherent for the python installation
