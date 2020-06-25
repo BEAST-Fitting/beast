@@ -154,6 +154,9 @@ class TestRegressionSuite:
         # read in the cached isochrones
         oiso = ezIsoch(self.iso_fname_cache)
 
+        # remove the isochrone points with logL=-9.999
+        oiso.data = oiso[oiso["logL"] > -9]
+
         # calculate the redshift
         redshift = (self.settings.velocity / const.c).decompose().value
 
