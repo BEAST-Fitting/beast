@@ -91,6 +91,8 @@ class TestRegressionSuite:
     )
     # - noise model
     noise_fname_cache = download_rename("beast_example_phat_noisemodel.grid.hd5")
+    noise_sub0_fname_cache = download_rename("beast_example_phat_subgrids_noisemodel.gridsub0.hd5")
+    noise_sub1_fname_cache = download_rename("beast_example_phat_subgrids_noisemodel.gridsub1.hd5")
     # - trimmed files
     noise_trim_fname_cache = download_rename(
         "beast_example_phat_noisemodel_trim.grid.hd5"
@@ -856,7 +858,7 @@ class TestRegressionSuite:
             self.iso_fname_cache, format="ascii.csv", comment="#", delimiter=",",
         )
         table_new = Table.read(
-            "./beast_no_subgrid/beast_no_subgrid_iso.csv",
+            "./beast_example_phat/beast_example_phat_iso.csv",
             format="ascii.csv",
             comment="#",
             delimiter=",",
@@ -864,16 +866,15 @@ class TestRegressionSuite:
         compare_tables(table_cache, table_new)
         # - spectra with priors
         compare_hdf5(
-            self.priors_fname_cache, "./beast_no_subgrid/beast_no_subgrid_spec_w_priors.grid.hd5"
+            self.priors_fname_cache, "./beast_example_phat/beast_example_phat_spec_w_priors.grid.hd5"
         )
         # - SEDs grid
-        compare_hdf5(self.seds_fname_cache, "./beast_no_subgrid/beast_no_subgrid_seds.grid.hd5")
+        compare_hdf5(self.seds_fname_cache, "./beast_example_phat/beast_example_phat_seds.grid.hd5")
 
     def test_create_physicsmodel_with_subgrid(self):
         """
         Test create_physicsmodel.py, assuming two subgrids
         """
-
 
         # run create_physicsmodel
         create_physicsmodel.create_physicsmodel(
@@ -927,6 +928,51 @@ class TestRegressionSuite:
             "beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub1.hd5",
         ]
         assert subgrid_list == expected_list, "subgrid_fnames.txt has incorrect content"
+
+
+    def test_create_obsmodel_no_subgrid(self):
+        """
+        Test create_obsmodel.py, assuming no subgrids
+        """
+
+        # run create_obsmodel
+        create_obsmodel.create_obsmodel(
+            self.settings,
+            use_sd=False,
+            nsubs=self.settings.n_subgrid,
+            nprocs=1,
+            use_rate=False,
+        )
+
+        # check that files match
+        compare_hdf5(
+            self.noise_fname_cache,
+            "beast_example_phat/beast_example_phat_noisemodel.grid.hd5"
+        )
+
+    def test_create_obsmodel_with_subgrid(self):
+        """
+        Test create_obsmodel.py, assuming two subgrids
+        """
+
+        # run create_obsmodel
+        create_obsmodel.create_obsmodel(
+            self.settings_sg,
+            use_sd=False,
+            nsubs=self.settings_sg.n_subgrid,
+            nprocs=1,
+            use_rate=False,
+        )
+
+        # check that files match
+        compare_hdf5(
+            self.noise_sub0_fname_cache,
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_noisemodel.gridsub0.hd5"
+        )
+        compare_hdf5(
+            self.noise_sub1_fname_cache,
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_noisemodel.gridsub1.hd5"
+        )
 
 # specific helper functions
 def split_and_check(grid_fname, num_subgrids):
