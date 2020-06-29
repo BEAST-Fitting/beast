@@ -19,7 +19,7 @@ def plot_cmd(
     mag1_filter="F475W",
     mag2_filter="F814W",
     mag3_filter="F475W",
-    show_plot=True,
+    savefig=False,
 ):
     """
     Read in flux from real or simulated data in fitsfile and plot a
@@ -71,10 +71,14 @@ def plot_cmd(
     plt.xlabel("%s - %s" % (mag1_filter, mag2_filter))
     plt.ylabel(mag3_filter)
 
-    if show_plot:
-        plt.show()
+    # figname
+    basename = fitsfile.replace(".fits", "_plot")
+
+    # save or show fig
+    if savefig:
+        fig.savefig("{}.{}".format(basename, savefig))
     else:
-        return fig
+        plt.show()
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -111,14 +115,5 @@ if __name__ == "__main__":  # pragma: no cover
         mag1_filter=args.mag1,
         mag2_filter=args.mag2,
         mag3_filter=args.magy,
-        show_plot=False,
+        savefig=args.savefig,
     )
-
-    # figname
-    basename = args.filename.replace(".fits", "_plot")
-
-    # save or show fig
-    if args.savefig:
-        fig.savefig("{}.{}".format(basename, args.savefig))
-    else:
-        plt.show()

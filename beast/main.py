@@ -1,7 +1,7 @@
 import inspect
 import argparse
 
-from beast.tools import get_libfiles
+from beast.tools import get_libfiles, simulate_obs
 from beast.plotting import plot_cmd, plot_filters
 
 # cannot get plot_filters to work as the main parameter passed (filter_names)
@@ -18,15 +18,18 @@ def main():
     and parses them for the function given in the input
     """
     all_funcs = []
-    scripts = [get_libfiles, plot_cmd, plot_filters]  # scripts available
+    scripts = [
+        get_libfiles,
+        simulate_obs,
+        plot_cmd,
+        plot_filters,
+    ]  # scripts available
 
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(
-        dest="subparser_name", help="sub-command help"
-    )
+    subparsers = parser.add_subparsers(dest="subparser_name", help="sub-command help")
 
     for item in scripts:
-        scriptname = item.__name__.split('.')[-1]
+        scriptname = item.__name__.split(".")[-1]
         funcs_to_subcommand = inspect.getmembers(item, inspect.isfunction)
         for cfunc in funcs_to_subcommand:
             # only add the function that has the same name as the script file

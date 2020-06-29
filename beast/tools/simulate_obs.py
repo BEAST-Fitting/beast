@@ -14,7 +14,7 @@ def simulate_obs(
     output_catalog,
     nsim=100,
     compl_filter="F475W",
-    weight_to_use='weight',
+    weight_to_use="weight",
     ranseed=None,
 ):
     """
@@ -54,7 +54,8 @@ def simulate_obs(
 
     # numbers of samples to do
     # (ensure there are enough for even sampling of multiple model grids)
-    n_phys = len(physgrid_list)
+    n_phys = len(np.atleast_1d(physgrid_list))
+    nsim = int(nsim)
     samples_per_grid = int(np.ceil(nsim / n_phys))
 
     # list to hold all simulation tables
@@ -125,7 +126,7 @@ if __name__ == "__main__":  # pragma: no cover
         default="weight",
         type=str,
         help="""Set to either 'weight' (prior+grid), 'prior_weight', or
-        'grid_weight' to choose the weighting for SED selection."""
+        'grid_weight' to choose the weighting for SED selection.""",
     )
     parser.add_argument(
         "--ranseed", default=None, type=int, help="seed for random number generator"

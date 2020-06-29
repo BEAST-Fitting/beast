@@ -10,7 +10,8 @@ observations.
 This is done using the
 `beast.observationmodel.observations.gen_SimObs_from_sedgrid` function.
 The script
-`tools/simulate_obs.py` provides a commandline interface.  The module
+`tools/simulate_obs.py` can be run directly or using the `beast simulate_obs`
+command once the beast has been installed.  The module
 uses already created BEAST physics and observation model grids
 by sampling the full nD prior function that is part of the physics
 model grid.  The observation model grid provides the information on
@@ -32,7 +33,7 @@ weighted by their grid+prior weights; this can be changed with the
 
 .. code-block:: console
 
-   $ python simulate_obs.py physicsgrid obsgrid outfile \
+   $ beast simulate_obs physicsgrid obsgrid outfile \
                 --nsim 200 --compl_filter F475W
 
 The output file gives the simulated data in the observed data columns
@@ -65,12 +66,12 @@ sample call from the command line may be:
 
 .. code-block:: console
 
-   $ python plot_cmd.py outfile.fits --mag1 F475W --mag2 F814W --magy F475W
+   $ beast plot_cmd outfile.fits --mag1 F475W --mag2 F814W --mag3 F475W
 
-where `outfile.fits` may be the output from `tools/simulate_obs.py`.
-`mag1`-`mag2` is the color, and `magy` the magnitude.
+where `outfile.fits` may be the output from `simulate_obs`.
+`mag1`-`mag2` is the color, and `mag3` the magnitude.
 By default the figure is saved as `outfile_plot.png` in the directory
-of outfile.fits.
+of `outfile.fits`.
 
 **************
 Remove Filters
