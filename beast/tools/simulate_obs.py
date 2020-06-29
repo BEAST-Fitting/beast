@@ -73,7 +73,6 @@ def simulate_obs(
             modelsedgrid,
             noisegrid,
             nsim=samples_per_grid,
-            compl_filter=compl_filter,
             weight_to_use=weight_to_use,
             ranseed=ranseed,
         )
