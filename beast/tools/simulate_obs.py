@@ -13,7 +13,6 @@ def simulate_obs(
     noise_model_list,
     output_catalog,
     nsim=100,
-    compl_filter="F475W",
     weight_to_use="weight",
     ranseed=None,
 ):
@@ -39,9 +38,6 @@ def simulate_obs(
         Number of simulated objects to create.  If nsim/len(physgrid_list) isn't
         an integer, this will be increased so that each grid has the same
         number of samples.
-
-    compl_filter : string (default='F475W')
-        filter name to use for completeness
 
     weight_to_use : string (default='weight')
         Set to either 'weight' (prior+grid), 'prior_weight', or 'grid_weight' to
@@ -117,9 +113,6 @@ if __name__ == "__main__":  # pragma: no cover
     )
     parser.add_argument(
         "--nsim", default=100, type=int, help="number of simulated objects"
-    )
-    parser.add_argument(
-        "--compl_filter", default="F475W", help="filter name to use for completeness"
     )
     parser.add_argument(
         "--weight_to_use",
