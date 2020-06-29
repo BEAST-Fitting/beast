@@ -98,7 +98,7 @@ if __name__ == "__main__":  # pragma: no cover
         help="Choose filter for mag2 (color=mag1-mag2)",
     )
     parser.add_argument(
-        "--magy",
+        "--mag3",
         action="store",
         default="F475W",
         help="Choose filter for the magnitude",
@@ -114,6 +114,6 @@ if __name__ == "__main__":  # pragma: no cover
         args.filename,
         mag1_filter=args.mag1,
         mag2_filter=args.mag2,
-        mag3_filter=args.magy,
+        mag3_filter=args.mag3,
         savefig=args.savefig,
     )
