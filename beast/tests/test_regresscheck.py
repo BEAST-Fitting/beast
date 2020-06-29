@@ -62,13 +62,13 @@ class TestRegressionSuite:
     """
 
     # download the BEAST library files
-    get_libfiles.get_libfiles()
+    # get_libfiles.get_libfiles()
 
     # download the cached version for use and comparision
     # tmpdir = tempfile.TemporaryDirectory().name + "/"
     # - photometry and ASTs
     obs_fname_cache = download_rename("b15_4band_det_27_A.fits")
-    asts_fname = download_rename("fake_stars_b15_27_all.hd5")
+    asts_fname_cache = download_rename("fake_stars_b15_27_all.hd5")
     # - isochrones
     iso_fname_cache = download_rename("beast_example_phat_iso.csv")
     # - spectra
@@ -116,7 +116,7 @@ class TestRegressionSuite:
     )
     # update names of photometry and AST files
     settings.obsfile = obs_fname_cache
-    settings.astfile = asts_fname
+    settings.astfile = asts_fname_cache
     # also make a version with 2 subgrids
     settings_sg = copy.deepcopy(settings)
     settings_sg.n_subgrid = 2
@@ -240,7 +240,7 @@ class TestRegressionSuite:
         noise_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
         noisemodel.make_toothpick_noise_model(
             noise_fname,
-            self.asts_fname,
+            self.asts_fname_cache,
             modelsedgrid,
             absflux_a_matrix=self.settings.absflux_a_matrix,
             use_rate=False,
@@ -369,7 +369,7 @@ class TestRegressionSuite:
         noisegrid = noisemodel.get_noisemodelcat(self.noise_fname_cache)
 
         table_new = gen_SimObs_from_sedgrid(
-            modelsedgrid, noisegrid, nsim=100, compl_filter="f475w", ranseed=1234,
+            modelsedgrid, noisegrid, nsim=100, ranseed=1234,
         )
 
         # check that the simobs files are exactly the same

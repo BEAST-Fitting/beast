@@ -287,10 +287,22 @@ def gen_SimObs_from_sedgrid(
     qnames = list(sedgrid.keys())
     # simulated data
     for k, filter in enumerate(sedgrid.filters):
-        colname = "%s_RATE" % filter.split(sep="_")[-1].upper()
         simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
         simflux = np.random.normal(loc=simflux_wbias, scale=model_unc[sim_indx, k])
-        ot[colname] = Column(simflux / vega_flux[k])
+
+        bname = filter.split(sep="_")[-1].upper()
+        fluxname = f"{bname}_FLUX"
+        ot[fluxname] = Column(simflux)
+
+        colname = f"{bname}_RATE"
+        ot[colname] = Column(ot[fluxname] / vega_flux[k])
+
+        magname = f"{bname}_VEGA"
+        pindxs = ot[colname] > 0.0
+        nindxs = ot[colname] <= 0.0
+        ot[magname] = Column(ot[colname])
+        ot[magname][pindxs] = -2.5 * np.log10(ot[colname][pindxs])
+        ot[magname][nindxs] = -99.999
     # model parmaeters
     for qname in qnames:
         ot[qname] = Column(sedgrid[qname][sim_indx])

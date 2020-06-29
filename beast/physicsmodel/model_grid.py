@@ -149,6 +149,9 @@ def make_spectral_grid(
     if spec_fname is None:
         spec_fname = "%s/%s_spec_grid.hd5" % (project, project)
 
+    # remove the isochrone points with logL=-9.999
+    oiso.data = oiso[oiso["logL"] > -9]
+
     if not os.path.isfile(spec_fname):
         osl = osl or stellib.Kurucz()
 

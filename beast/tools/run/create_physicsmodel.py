@@ -17,6 +17,7 @@ from beast.physicsmodel.model_grid import (
 )
 from beast.physicsmodel.grid import SpectralGrid
 from beast.tools.run.helper_functions import parallel_wrapper
+
 # from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.tools import beast_settings, subgridding_tools
 
@@ -45,7 +46,7 @@ def create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1, subset=[None, No
 
     """
 
-   # process beast settings info
+    # process beast settings info
     if isinstance(beast_settings_info, str):
         settings = beast_settings.beast_settings(beast_settings_info)
     elif isinstance(beast_settings_info, beast_settings.beast_settings):
@@ -76,10 +77,6 @@ def create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1, subset=[None, No
         dlogt=settings.logt[2],
         z=settings.z,
     )
-
-    # remove the isochrone points with logL=-9.999
-    # oiso = ezIsoch(oiso.selectWhere("*", "logL > -9"))
-    oiso.data = oiso[oiso["logL"] > -9]
 
     if hasattr(settings, "add_spectral_properties_kwargs"):
         extra_kwargs = settings.add_spectral_properties_kwargs
@@ -269,9 +266,7 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "beast_settings_file",
-        type=str,
-        help="file name with beast settings",
+        "beast_settings_file", type=str, help="file name with beast settings",
     )
     parser.add_argument(
         "--nsubs",

@@ -20,6 +20,7 @@ def plot_cmd(
     mag2_filter="F814W",
     mag3_filter="F475W",
     savefig=False,
+    show_plot=True,
 ):
     """
     Read in flux from real or simulated data in fitsfile and plot a
@@ -36,7 +37,10 @@ def plot_cmd(
     mag3_filter:        str
         magnitude; default = 'F475W'
     savefig:            boolean
-        save figure; default = True
+        save figure; default = False
+    show_plot:          boolean
+        True, show the plot (to screen or a file)
+        False, return the fig
     """
 
     fits_data = fits.open(fitsfile)
@@ -75,10 +79,13 @@ def plot_cmd(
     basename = fitsfile.replace(".fits", "_plot")
 
     # save or show fig
-    if savefig:
-        fig.savefig("{}.{}".format(basename, savefig))
+    if show_plot:
+        if savefig:
+            fig.savefig("{}.{}".format(basename, savefig))
+        else:
+            plt.show()
     else:
-        plt.show()
+        return fig
 
 
 if __name__ == "__main__":  # pragma: no cover

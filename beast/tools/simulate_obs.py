@@ -74,7 +74,7 @@ def simulate_obs(
             noisegrid,
             nsim=samples_per_grid,
             weight_to_use=weight_to_use,
-            ranseed=ranseed,
+            ranseed=int(ranseed),
         )
 
         # append to the list
