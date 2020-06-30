@@ -4,6 +4,7 @@ import tempfile
 import numpy as np
 import copy
 import pytest
+import pkg_resources
 
 import tables
 
@@ -109,7 +110,10 @@ class TestRegressionSuite:
 
     # create the beast_settings object
     # (copied over from the phat_small example in beast-examples)
-    settings = beast_settings.beast_settings("beast_settings_for_tests.txt")
+    settings_path = pkg_resources.resource_filename("beast", "tests/")
+    settings = beast_settings.beast_settings(
+        settings_path + "beast_settings_for_tests.txt"
+    )
     # update names of photometry and AST files
     settings.obsfile = obs_fname_cache
     settings.astfile = asts_fname
