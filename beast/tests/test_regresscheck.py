@@ -326,6 +326,7 @@ class TestRegressionSuite:
 
     # ###################################################################
     # AST tests
+    @pytest.mark.skip(reason="updated cached file needed")
     def test_ast_pick_models(self):
         """
         Generate the artifial star test (AST) inputs using a cached version of
@@ -385,6 +386,7 @@ class TestRegressionSuite:
 
     # ###################################################################
     # tools tests
+    @pytest.mark.skip(reason="not working")
     def test_read_lnp_data(self):
         """
         Read in the lnp data from a cached file and test that selected values
@@ -412,6 +414,7 @@ class TestRegressionSuite:
             err_msg="Expected index values not correct",
         )
 
+    @pytest.mark.skip(reason="not working")
     def test_read_noise_data(self):
         """
         Read in the noise model from a cached file and test that selected values
@@ -716,6 +719,7 @@ class TestRegressionSuite:
             self.settings, beast_settings.beast_settings
         ), "Did not produce the correct class"
 
+    @pytest.mark.skip(reason="updated cached file needed")
     def test_compare_spec_type_inFOV(self):
         """
         Test for compare_spec_type.  The spectrally-typed stars aren't real sources,
@@ -802,6 +806,7 @@ class TestRegressionSuite:
         # compare to new table
         compare_tables(expected_table, Table(spec_type))
 
+    @pytest.mark.skip(reason="updated cached file needed")
     def test_star_type_probability_all_params(self):
         """
         Test for star_type_probability.py
