@@ -39,7 +39,7 @@ The output file gives the simulated data in the observed data columns
 identified in the physicsgrid file along with all the model parameters
 from the physicsgrid file.  The simulated observations in each band are given
 as `band_flux` in physical units (ergs cm^-2 s^-1 A^-1),
-'band_rate' as normalized Vega fluxes (`band_flux`/vega_flux to match how
+`band_rate` as normalized Vega fluxes (`band_flux`/vega_flux to match how
 the observed data are given), and `band_vega` as vega magnitudes with zero and
 negative fluxes given as -99.999.
 
