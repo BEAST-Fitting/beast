@@ -131,7 +131,6 @@ if __name__ == "__main__":  # pragma: no cover
         args.noise_model_lists,
         args.output_catalog,
         nsim=args.nsim,
-        compl_filter=args.compl_filter,
         weight_to_use=args.weight_to_use,
         ranseed=args.ranseed,
     )
