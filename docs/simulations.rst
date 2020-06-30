@@ -26,7 +26,7 @@ the script.  The output filename is also required.  Note that the extension
 of this file will determine the type of file output (e.g. filebase.fits for
 a FITS file).
 The number of observations to simulate is given by the `--nsim` parameter.
-The SEDs picked weighted by the product of the grid+prior weights
+The SEDs are picked weighted by the product of the grid+prior weights
 and the completeness from the noisemodel.  The grid+prior weights can be replaced
 with either grid or prior weights by explicitly setting the `--weight_to_use`
 parameter.
@@ -38,7 +38,7 @@ parameter.
 The output file gives the simulated data in the observed data columns
 identified in the physicsgrid file along with all the model parameters
 from the physicsgrid file.  The simulated observations in each band are given
-in as `band_flux` in physical units (ergs cm^-2 s^-1 A^-1),
+as `band_flux` in physical units (ergs cm^-2 s^-1 A^-1),
 'band_rate' as normalized Vega fluxes (`band_flux`/vega_flux to match how
 the observed data are given), and `band_vega` as vega magnitudes with zero and
 negative fluxes given as -99.999.
