@@ -1,16 +1,18 @@
 import os
+import shutil
 import tempfile
 import numpy as np
+import copy
+import pytest
+import pkg_resources
 
 import tables
 
 from astropy.tests.helper import remote_data
-from astropy import units
 from astropy import constants as const
 from astropy.table import Table
 from astropy.io import fits
 
-from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.physicsmodel.dust import extinction
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
@@ -42,6 +44,7 @@ from beast.tools.read_beast_data import (
     get_lnp_grid_vals,
 )
 from beast.tools.compare_spec_type import compare_spec_type
+from beast.tools.run import create_physicsmodel, create_obsmodel
 
 from beast.tests.helpers import (
     download_rename,
@@ -63,33 +66,61 @@ class TestRegressionSuite:
 
     # download the cached version for use and comparision
     # tmpdir = tempfile.TemporaryDirectory().name + "/"
-
+    # - photometry and ASTs
+    obs_fname_cache = download_rename("b15_4band_det_27_A.fits")
+    asts_fname = download_rename("fake_stars_b15_27_all.hd5")
+    # - isochrones
     iso_fname_cache = download_rename("beast_example_phat_iso.csv")
+    # - spectra
     spec_fname_cache = download_rename("beast_example_phat_spec_grid.hd5")
+    # - spectra with priors
     priors_fname_cache = download_rename("beast_example_phat_spec_w_priors.grid.hd5")
+    priors_sub0_fname_cache = download_rename(
+        "beast_example_phat_subgrids_spec_w_priors.gridsub0.hd5"
+    )
+    priors_sub1_fname_cache = download_rename(
+        "beast_example_phat_subgrids_spec_w_priors.gridsub1.hd5"
+    )
+    # - SED grids
     seds_fname_cache = download_rename("beast_example_phat_seds.grid.hd5")
+    seds_sub0_fname_cache = download_rename(
+        "beast_example_phat_subgrids_seds.gridsub0.hd5"
+    )
+    seds_sub1_fname_cache = download_rename(
+        "beast_example_phat_subgrids_seds.gridsub1.hd5"
+    )
+    # - noise model
     noise_fname_cache = download_rename("beast_example_phat_noisemodel.grid.hd5")
+    noise_sub0_fname_cache = download_rename(
+        "beast_example_phat_subgrids_noisemodel.gridsub0.hd5"
+    )
+    noise_sub1_fname_cache = download_rename(
+        "beast_example_phat_subgrids_noisemodel.gridsub1.hd5"
+    )
+    # - trimmed files
     noise_trim_fname_cache = download_rename(
         "beast_example_phat_noisemodel_trim.grid.hd5"
     )
     seds_trim_fname_cache = download_rename("beast_example_phat_seds_trim.grid.hd5")
-    obs_fname_cache = download_rename("b15_4band_det_27_A.fits")
+    # - output files
     stats_fname_cache = download_rename("beast_example_phat_stats.fits")
     lnp_fname_cache = download_rename("beast_example_phat_lnp.hd5")
     pdf1d_fname_cache = download_rename("beast_example_phat_pdf1d.fits")
     pdf2d_fname_cache = download_rename("beast_example_phat_pdf2d.fits")
 
-    # filters
-    filters = [
-        "HST_WFC3_F275W",
-        "HST_WFC3_F336W",
-        "HST_ACS_WFC_F475W",
-        "HST_ACS_WFC_F814W",
-        "HST_WFC3_F110W",
-        "HST_WFC3_F160W",
-    ]
-    basefilters = ["F275W", "F336W", "F475W", "F814W", "F110W", "F160W"]
-    obs_colnames = [f.lower() + "_rate" for f in basefilters]
+    # create the beast_settings object
+    # (copied over from the phat_small example in beast-examples)
+    settings_path = pkg_resources.resource_filename("beast", "tests/")
+    settings = beast_settings.beast_settings(
+        settings_path + "beast_settings_for_tests.txt"
+    )
+    # update names of photometry and AST files
+    settings.obsfile = obs_fname_cache
+    settings.astfile = asts_fname
+    # also make a version with 2 subgrids
+    settings_sg = copy.deepcopy(settings)
+    settings_sg.n_subgrid = 2
+    settings_sg.project = "beast_example_phat_subgrids"
 
     # ###################################################################
     # Standard BEAST fitting steps
@@ -103,10 +134,10 @@ class TestRegressionSuite:
         (iso_fname, g) = make_iso_table(
             "test",
             iso_fname=savename,
-            logtmin=6.0,
-            logtmax=10.13,
-            dlogt=1.0,
-            z=[0.03, 0.019, 0.008, 0.004],
+            logtmin=self.settings.logt[0],
+            logtmax=self.settings.logt[1],
+            dlogt=self.settings.logt[2],
+            z=self.settings.z,
         )
 
         # read the cached and new tables using astropy tables
@@ -129,33 +160,22 @@ class TestRegressionSuite:
         # read in the cached isochrones
         oiso = ezIsoch(self.iso_fname_cache)
 
-        # define the distance
-        distances = [24.47]
-        distance_unit = units.mag
+        # calculate the redshift
+        redshift = (self.settings.velocity / const.c).decompose().value
 
-        velocity = -300 * units.km / units.s
-        redshift = (velocity / const.c).decompose().value
-
-        # define the spectral libraries to use
-        osl = stellib.Tlusty() + stellib.Kurucz()
-
-        # define the extinction curve to use
-        extLaw = extinction.Gordon16_RvFALaw()
-
-        add_spectral_properties_kwargs = dict(filternames=self.filters)
-
+        # make the spectral grid
         spec_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
         (spec_fname, g) = make_spectral_grid(
             "test",
             oiso,
-            osl=osl,
+            osl=self.settings.osl,
             redshift=redshift,
-            distance=distances,
-            distance_unit=distance_unit,
+            distance=self.settings.distances,
+            distance_unit=self.settings.distance_unit,
             spec_fname=spec_fname,
             # filterLib=filter_fname,
-            extLaw=extLaw,
-            add_spectral_properties_kwargs=add_spectral_properties_kwargs,
+            extLaw=self.settings.extLaw,
+            add_spectral_properties_kwargs=self.settings.add_spectral_properties_kwargs,
         )
 
         # compare the new to the cached version
@@ -181,8 +201,6 @@ class TestRegressionSuite:
         Generate the extinguished SED grid using a cached version of the
         spectral grid with priors and compare the result to a cached version.
         """
-        # Add in the filters
-        add_spectral_properties_kwargs = dict(filternames=self.filters)
 
         g_pspec = SpectralGrid(self.priors_fname_cache, backend="memory")
 
@@ -193,7 +211,7 @@ class TestRegressionSuite:
         (seds_fname, g) = make_extinguished_sed_grid(
             "test",
             g_pspec,
-            self.filters,
+            self.settings.filters,
             seds_fname=seds_fname,
             extLaw=extinction.Gordon16_RvFALaw(),
             av=[0.0, 10.055, 1.0],
@@ -202,7 +220,7 @@ class TestRegressionSuite:
             av_prior_model={"name": "flat"},
             rv_prior_model={"name": "flat"},
             fA_prior_model={"name": "flat"},
-            add_spectral_properties_kwargs=add_spectral_properties_kwargs,
+            add_spectral_properties_kwargs=self.settings.add_spectral_properties_kwargs,
         )
 
         # compare the new to the cached version
@@ -214,22 +232,17 @@ class TestRegressionSuite:
         the artifical star test results (ASTs) and compare the result to a cached
         version.
         """
-        # download files specific to this test
-        asts_fname = download_rename("fake_stars_b15_27_all.hd5")
 
-        # get the modesedgrid on which to generate the noisemodel
+        # get the modelsedgrid on which to generate the noisemodel
         modelsedgrid = SEDGrid(self.seds_fname_cache)
-
-        # absflux calibration covariance matrix for HST specific filters (AC)
-        absflux_a_matrix = hst_frac_matrix(self.filters)
 
         # generate the AST noise model
         noise_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
         noisemodel.make_toothpick_noise_model(
             noise_fname,
-            asts_fname,
+            self.asts_fname,
             modelsedgrid,
-            absflux_a_matrix=absflux_a_matrix,
+            absflux_a_matrix=self.settings.absflux_a_matrix,
             use_rate=False,
         )
 
@@ -242,7 +255,9 @@ class TestRegressionSuite:
         both and compare the result to a cached version.
         """
         # read in the observed data
-        obsdata = Observations(self.obs_fname_cache, self.filters, self.obs_colnames)
+        obsdata = Observations(
+            self.obs_fname_cache, self.settings.filters, self.settings.obs_colnames
+        )
 
         # get the modesedgrid
         modelsedgrid = SEDGrid(self.seds_fname_cache)
@@ -272,11 +287,14 @@ class TestRegressionSuite:
         Fit a cached version of the observations with cached version of the
         trimmed sed grid and noisemodel and compare the result to cached
         versions of the stats and pdf1d files.
-        """        # read in the the AST noise model
+        """
+        # read in the the AST noise model
         noisemodel_vals = noisemodel.get_noisemodelcat(self.noise_trim_fname_cache)
 
         # read in the observed data
-        obsdata = Observations(self.obs_fname_cache, self.filters, self.obs_colnames)
+        obsdata = Observations(
+            self.obs_fname_cache, self.settings.filters, self.settings.obs_colnames
+        )
         # output files
         stats_fname = tempfile.NamedTemporaryFile(suffix=".fits").name
         pdf1d_fname = tempfile.NamedTemporaryFile(suffix=".fits").name
@@ -289,7 +307,7 @@ class TestRegressionSuite:
             threshold=-10.0,
             save_every_npts=100,
             lnp_npts=60,
-            max_nbins=50,
+            max_nbins=100,
             stats_outname=stats_fname,
             pdf1d_outname=pdf1d_fname,
             lnp_outname=lnp_fname,
@@ -322,7 +340,7 @@ class TestRegressionSuite:
         outname = tempfile.NamedTemporaryFile(suffix=".txt").name
         make_ast_input_list.pick_models(
             self.seds_fname_cache,
-            self.filters,
+            self.settings.filters,
             mag_cuts,
             outfile=outname,
             ranseed=1234,
@@ -548,7 +566,9 @@ class TestRegressionSuite:
         ######################################
 
         # read in the observed data
-        obsdata = Observations(self.obs_fname_cache, self.filters, self.obs_colnames)
+        obsdata = Observations(
+            self.obs_fname_cache, self.settings.filters, self.settings.obs_colnames
+        )
 
         #########################################################################################
         # STEP 2: SPLIT THE GRIDS AND GENERATE THE GRID INFO DICT AS IN THE SUBGRIDDING EXAMPLE #
@@ -687,257 +707,14 @@ class TestRegressionSuite:
                     err_msg="column {} is not close enough".format(c),
                 )
 
-    @staticmethod
-    def test_beast_settings():
+    def test_beast_settings(self):
         """
-        Test that a given text file creates the expected beast_examples class.
-        This uses the library files downloaded as part of the init of this
-        class.
-
-        Text is copied over from the phat_small example in beast-examples.
+        Test that a given text file creates the expected beast_settings class.
         """
-        # make a temp file to hold the settings text file
-        temp_file = tempfile.NamedTemporaryFile(suffix=".txt")
-
-        with open(temp_file.name, "w") as beast_file:
-
-            beast_file.write(
-                """
-                import numpy as np
-
-                from astropy import units
-
-                # BEAST imports
-                from beast.physicsmodel.stars import isochrone
-                from beast.physicsmodel.stars import stellib
-                from beast.physicsmodel.dust import extinction
-                from beast.observationmodel.noisemodel import absflux_covmat
-
-                # from extra_filters import make_integration_filter, make_top_hat_filter
-
-                # -----------------------------------------------------------------
-                # User inputs                                   [sec:conf]
-                # -----------------------------------------------------------------
-                # Parameters that are required to make models
-                # and to fit the data
-                # -----------------------------------------------------------------
-                # AC == authomatically created
-                # indicates where user's input change is NOT necessary/recommeded
-                # -----------------------------------------------------------------
-
-                # project : string
-                #   the name of the output results directory
-                project = "beast_example_phat"
-
-                # name of the survey
-                #  used for the creation of the unique name for each source
-                surveyname = "PHAT"
-
-                # filters : list of strings
-                #   full filter names in BEAST filter database
-                filters = [
-                    "HST_WFC3_F275W",
-                    "HST_WFC3_F336W",
-                    "HST_ACS_WFC_F475W",
-                    "HST_ACS_WFC_F814W",
-                    "HST_WFC3_F110W",
-                    "HST_WFC3_F160W",
-                ]
-
-                # basefilters : list of strings
-                #   short names for filters
-                basefilters = ["F275W", "F336W", "F475W", "F814W", "F110W", "F160W"]
-
-                # obs_colnames : list of strings
-                #   names of columns for filters in the observed catalog
-                #   need to match column names in the observed catalog,
-                #   input data MUST be in fluxes, NOT in magnitudes
-                #   fluxes MUST be in normalized Vega units
-                obs_colnames = [f.lower() + "_rate" for f in basefilters]
-                # obs_colnames = [ f.upper() + '_RATE' for f in basefilters ]
-
-                # obsfile : string
-                #   pathname of the observed catalog
-                obsfile = "data/b15_4band_det_27_A.fits"
-
-                # ------------------------------------------------------
-                # Artificial Star Test Input File Generation Parameters
-                # ------------------------------------------------------
-
-                # ast_models_selected_per_age : integer
-                # Number of models to pick per age (Default = 70).
-                ast_models_selected_per_age = 70
-
-                # ast_bands_above_maglimit : integer
-                # Number of filters that must be above the magnitude limit
-                # for an AST to be included in the list (Default = 3)
-                ast_bands_above_maglimit = 3
-
-
-                # ast_realization_per_model : integer
-                # Number of Realizations of each included AST model
-                # to be put into the list. (Default = 20)
-                ast_realization_per_model = 20
-
-
-                # ast_maglimit : float (single value or array with one value per filter)
-                # (1) option 1: [number] to change the number of mags fainter than
-                #                  the 90th percentile
-                #               faintest star in the photometry catalog to be used for
-                #                  the mag cut.
-                #               (Default = 1)
-                # (2) option 2: [space-separated list of numbers] to set custom faint end limits
-                #               (one value for each band).
-                ast_maglimit = [1.0]
-
-                # ast_with_positions :  (bool,optional)
-                # If True, the ast list is produced with X,Y positions.
-                # If False, the ast list is produced with only magnitudes.
-                ast_with_positions = True
-
-                # ast_density_table :  (string,optional)
-                # Name of density table created by
-                # tools/create_background_density_map.py, containing either the source
-                # density map or the background density map. If supplied, the ASTs will
-                # be repeated for each density bin in the table
-                ast_density_table = None
-                # ast_density_table = 'data/b15_4band_det_27_A_sourcedens_map.hd5'
-
-                # ast_N_bins : (int, optional)
-                # Number of source or background bins that you want ASTs repeated over
-                # ast_N_bins = 8
-
-                # ast_pixel_distribution : float (optional)
-                # (Used if ast_with_positions is True), minimum pixel separation between AST
-                # position and catalog star used to determine the AST spatial distribution
-                ast_pixel_distribution = 10.0
-
-                # ast_reference_image : string (optional, but required if ast_with_positions
-                # is True and no X and Y information  is present in the photometry catalog)
-                # Name of the reference image used by DOLPHOT when running the measured
-                # photometry.
-                ast_reference_image = None
-
-                # ast_coord_boundary : None, or list of two arrays (optional)
-                # If supplied, these RA/Dec coordinates will be used to limit the region
-                # over which ASTs are generated.  Input should be list of two arrays, the
-                # first RA and the second Dec, ordered sequentially around the region
-                # (either CW or CCW).
-                ast_coord_boundary = None
-
-                # -------------------------------------------
-                # Noise Model Artificial Star Test Parameters
-                # -------------------------------------------
-
-                # astfile : string
-                #   pathname of the AST files (single camera ASTs)
-                astfile = "data/fake_stars_b15_27_all.hd5"
-
-                # ast_colnames : list of strings
-                #   names of columns for filters in the AST catalog (AC)
-                ast_colnames = np.array(basefilters)
-
-                # noisefile : string
-                #   create a name for the noise model
-                noisefile = project + "/" + project + "_noisemodel.grid.hd5"
-
-                # absflux calibration covariance matrix for HST specific filters (AC)
-                absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
-
-                # -------------------------------------------
-                # Grid
-                # -------------------------------------------
-
-                # n_subgrid : integer
-                #     Number of sub-grids to use (1 means no subgrids).  These are
-                #     useful when the physics model grid is too large to read into
-                #     memory.
-                n_subgrid = 1
-
-                ################
-
-                # Distance/Velocity
-
-                # velocity of galaxy
-                velocity = -300 * units.km / units.s  # M31 velocity from SIMBAD
-
-                # Distances: distance to the galaxy [min, max, step] or [fixed number]
-                distances = [24.47]
-                # Distance unit (any length or units.mag)
-                distance_unit = units.mag
-                distance_prior_model = {'name': 'flat'}
-
-                ################
-
-                # Stellar grid definition
-
-                # log10(Age) -- [min,max,step] to generate the isochrones in years
-                #   example [6.0, 10.13, 1.0]
-                logt = [6.0, 10.13, 1.0]
-                age_prior_model = {'name': 'flat'}
-
-                # note: Mass is not sampled, instead the isochrone supplied
-                #       mass spacing is used instead
-                mass_prior_model = {"name": "kroupa"}
-
-                # Metallicity : list of floats
-                #   Here: Z == Z_initial, NOT Z(t) surface abundance
-                #   PARSECv1.2S accepts values 1.e-4 < Z < 0.06
-                #   example z = [0.03, 0.019, 0.008, 0.004]
-                #   can they be set as [min, max, step]?
-                z = [0.03, 0.019, 0.008, 0.004]
-                met_prior_model = {"name": "flat"}
-
-                #   Current Choices: Padova or MIST
-                #   PadovaWeb() -- `modeltype` param for iso sets from ezpadova
-                #      (choices: parsec12s_r14, parsec12s, 2010, 2008, 2002)
-                #   MISTWeb() -- `rotation` param (choices: vvcrit0.0=default, vvcrit0.4)
-                #
-                # Default: PARSEC+COLIBRI
-                oiso = isochrone.PadovaWeb()
-                # Alternative: PARSEC1.2S -- old grid parameters
-                # oiso = isochrone.PadovaWeb(modeltype='parsec12s', filterPMS=True)
-                # Alternative: MIST -- v1, no rotation
-                # oiso = isochrone.MISTWeb()
-
-                # Stellar Atmospheres library definition
-                osl = stellib.Tlusty() + stellib.Kurucz()
-
-                ################
-
-                # Dust extinction grid definition
-                extLaw = extinction.Gordon16_RvFALaw()
-
-                # A(V): dust column in magnitudes
-                #   acceptable avs > 0.0
-                #   example [min, max, step] = [0.0, 10.055, 1.0]
-                avs = [0.0, 10.055, 1.0]
-                av_prior_model = {"name": "flat"}
-
-                # R(V): dust average grain size
-                #   example [min, max, step] = [2.0,6.0,1.0]
-                rvs = [2.0, 6.0, 1.0]
-                rv_prior_model = {"name": "flat"}
-
-                # fA: mixture factor between "MW" and "SMCBar" extinction curves
-                #   example [min, max, step] = [0.0,1.0, 0.25]
-                fAs = [0.0, 1.0, 0.25]
-                fA_prior_model = {"name": "flat"}
-
-                ################
-
-                # add in the standard filters to enable output of stats and pdf1d values
-                # for the observed fitlers (AC)
-                add_spectral_properties_kwargs = dict(filternames=filters)
-                """
-            )
-
-        # create the settings
-        settings = beast_settings.beast_settings(temp_file.name)
 
         # assert it's the correct class
         assert isinstance(
-            settings, beast_settings.beast_settings
+            self.settings, beast_settings.beast_settings
         ), "Did not produce the correct class"
 
     def test_compare_spec_type_inFOV(self):
@@ -1069,8 +846,155 @@ class TestRegressionSuite:
         # compare to new table
         compare_tables(expected_star_prob, Table(star_prob))
 
+    # ###################################################################
+    # tools.run tests
 
+    @pytest.mark.usefixtures("setup_create_physicsmodel")
+    def test_create_physicsmodel_no_subgrid(self):
+        """
+        Test create_physicsmodel.py, assuming no subgrids
+        """
+
+        # run create_physicsmodel
+        create_physicsmodel.create_physicsmodel(
+            self.settings, nsubs=self.settings.n_subgrid, nprocs=1
+        )
+
+        # check that files match
+        # - isochrones
+        table_cache = Table.read(
+            self.iso_fname_cache, format="ascii.csv", comment="#", delimiter=",",
+        )
+        table_new = Table.read(
+            "./beast_example_phat/beast_example_phat_iso.csv",
+            format="ascii.csv",
+            comment="#",
+            delimiter=",",
+        )
+        compare_tables(table_cache, table_new)
+        # - spectra with priors
+        compare_hdf5(
+            self.priors_fname_cache,
+            "./beast_example_phat/beast_example_phat_spec_w_priors.grid.hd5",
+        )
+        # - SEDs grid
+        compare_hdf5(
+            self.seds_fname_cache,
+            "./beast_example_phat/beast_example_phat_seds.grid.hd5",
+        )
+
+    @pytest.mark.usefixtures("setup_create_physicsmodel")
+    def test_create_physicsmodel_with_subgrid(self):
+        """
+        Test create_physicsmodel.py, assuming two subgrids
+        """
+
+        # run create_physicsmodel
+        create_physicsmodel.create_physicsmodel(
+            self.settings_sg, nsubs=self.settings_sg.n_subgrid, nprocs=1
+        )
+
+        # check that files match
+
+        # - isochrones
+        table_cache = Table.read(
+            self.iso_fname_cache, format="ascii.csv", comment="#", delimiter=",",
+        )
+        table_new = Table.read(
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_iso.csv",
+            format="ascii.csv",
+            comment="#",
+            delimiter=",",
+        )
+        compare_tables(table_cache, table_new)
+
+        # - spectra with priors
+        compare_hdf5(
+            self.priors_fname_cache,
+            "./beast_example_phat_subgrids/beast_example_phat_subgrids_spec_w_priors.grid.hd5",
+        )
+        compare_hdf5(
+            self.priors_sub0_fname_cache,
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_spec_w_priors.gridsub0.hd5",
+        )
+        compare_hdf5(
+            self.priors_sub1_fname_cache,
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_spec_w_priors.gridsub1.hd5",
+        )
+
+        # - SEDs grid
+        compare_hdf5(
+            self.seds_sub0_fname_cache,
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub0.hd5",
+        )
+        compare_hdf5(
+            self.seds_sub1_fname_cache,
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub1.hd5",
+        )
+
+        # - list of subgrids
+        with open("./beast_example_phat_subgrids/subgrid_fnames.txt") as f:
+            temp = f.read()
+        subgrid_list = [x for x in temp.split("\n") if x != ""]
+        expected_list = [
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub0.hd5",
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub1.hd5",
+        ]
+        assert subgrid_list == expected_list, "subgrid_fnames.txt has incorrect content"
+
+    @pytest.mark.usefixtures("setup_create_obsmodel")
+    def test_create_obsmodel_no_subgrid(self):
+        """
+        Test create_obsmodel.py, assuming no subgrids
+        """
+        print("running test_create_obsmodel_no_subgrid")
+
+        # run create_obsmodel
+        create_obsmodel.create_obsmodel(
+            self.settings,
+            use_sd=False,
+            nsubs=self.settings.n_subgrid,
+            nprocs=1,
+            use_rate=False,
+        )
+
+        # check that files match
+        compare_hdf5(
+            self.noise_fname_cache,
+            "beast_example_phat/beast_example_phat_noisemodel.grid.hd5",
+        )
+
+    @pytest.mark.usefixtures("setup_create_obsmodel")
+    def test_create_obsmodel_with_subgrid(self):
+        """
+        Test create_obsmodel.py, assuming two subgrids
+        """
+        print("running test_create_obsmodel_with_subgrid")
+
+        # run create_obsmodel
+        create_obsmodel.create_obsmodel(
+            self.settings_sg,
+            use_sd=False,
+            nsubs=self.settings_sg.n_subgrid,
+            nprocs=1,
+            use_rate=False,
+        )
+
+        # check that files match
+        compare_hdf5(
+            self.noise_sub0_fname_cache,
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_noisemodel.gridsub0.hd5",
+        )
+        compare_hdf5(
+            self.noise_sub1_fname_cache,
+            "beast_example_phat_subgrids/beast_example_phat_subgrids_noisemodel.gridsub1.hd5",
+        )
+
+
+# ###################################################################
 # specific helper functions
+
+
 def split_and_check(grid_fname, num_subgrids):
     """
     Split a sed grid into subgrids and test the contents of the subgrids
@@ -1113,3 +1037,59 @@ def split_and_check(grid_fname, num_subgrids):
     # grid, we need to do this.
     for f in sub_fnames:
         os.remove(f)
+
+
+@pytest.fixture(scope="function")
+def setup_create_physicsmodel(request):
+    """
+    Make sure that the folders (and their contents) from the create_physicsmodel
+    tests get deleted after the tests run
+    """
+    # no setup needed
+
+    # run tests
+    yield
+
+    # remove folders
+    if os.path.isdir("./beast_example_phat"):
+        shutil.rmtree("./beast_example_phat")
+    if os.path.isdir("./beast_example_phat_subgrids"):
+        shutil.rmtree("./beast_example_phat_subgrids")
+
+
+@pytest.fixture(scope="function")
+def setup_create_obsmodel(request):
+    """
+    Make symlink to files needed for create_obsmodel test so that they're in
+    the proper folder.  Delete symlinks after create_obsmodel tests have run.
+    """
+    # print('setting up files for create_obsmodel')
+    # create folders
+    os.mkdir("./beast_example_phat")
+    os.mkdir("./beast_example_phat_subgrids")
+    # make symlinks to SED data
+    source_list = [
+        request.cls.seds_fname_cache,
+        request.cls.seds_sub0_fname_cache,
+        request.cls.seds_sub1_fname_cache,
+    ]
+    dest_list = [
+        "./beast_example_phat/beast_example_phat_seds.grid.hd5",
+        "./beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub0.hd5",
+        "./beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub1.hd5",
+    ]
+    for source, dest in zip(source_list, dest_list):
+        os.symlink(os.path.abspath(source), os.path.abspath(dest))
+    # make a subgrid file name list
+    with open("./beast_example_phat_subgrids/subgrid_fnames.txt", "w") as f:
+        f.write(dest_list[1] + "\n" + dest_list[2] + "\n")
+
+    # run tests
+    yield
+
+    # remove folders/symlinks
+    # print('teardown for create_obsmodel')
+    if os.path.isdir("./beast_example_phat"):
+        shutil.rmtree("./beast_example_phat")
+    if os.path.isdir("./beast_example_phat_subgrids"):
+        shutil.rmtree("./beast_example_phat_subgrids")
