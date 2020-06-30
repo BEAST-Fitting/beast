@@ -10,7 +10,8 @@ observations.
 This is done using the
 `beast.observationmodel.observations.gen_SimObs_from_sedgrid` function.
 The script
-`tools/simulate_obs.py` provides a commandline interface.  The module
+`tools/simulate_obs.py` can be run directly or using the `beast simulate_obs`
+command once the beast has been installed.  The module
 uses already created BEAST physics and observation model grids
 by sampling the full nD prior function that is part of the physics
 model grid.  The observation model grid provides the information on
@@ -25,21 +26,22 @@ the script.  The output filename is also required.  Note that the extension
 of this file will determine the type of file output (e.g. filebase.fits for
 a FITS file).
 The number of observations to simulate is given by the `--nsim` parameter.
-The filter to use for the completeness function is given by the
-`--compl_filter` parameter.  By default, the SEDs are randomly chosen, and
-weighted by their grid+prior weights; this can be changed with the
-`--weight_to_use` parameter.
+The SEDs are picked weighted by the product of the grid+prior weights
+and the completeness from the noisemodel.  The grid+prior weights can be replaced
+with either grid or prior weights by explicitly setting the `--weight_to_use`
+parameter.
 
 .. code-block:: console
 
-   $ python simulate_obs.py physicsgrid obsgrid outfile \
-                --nsim 200 --compl_filter F475W
+   $ beast simulate_obs physicsgrid obsgrid outfile --nsim 200
 
 The output file gives the simulated data in the observed data columns
 identified in the physicsgrid file along with all the model parameters
-from the physicsgrid file.  The names of the observed columns are
-`band_rate` and the units are normalized Vega fluxes (to match how
-the observed data are given).
+from the physicsgrid file.  The simulated observations in each band are given
+as `band_flux` in physical units (ergs cm^-2 s^-1 A^-1),
+'band_rate' as normalized Vega fluxes (`band_flux`/vega_flux to match how
+the observed data are given), and `band_vega` as vega magnitudes with zero and
+negative fluxes given as -99.999.
 
 When creating simulated observations, using the standard IMF mass prior will
 skew your catalog to lower-mass stars.  If you wish to have similar weights for
@@ -65,12 +67,12 @@ sample call from the command line may be:
 
 .. code-block:: console
 
-   $ python plot_cmd.py outfile.fits --mag1 F475W --mag2 F814W --magy F475W
+   $ beast plot_cmd outfile.fits --mag1 F475W --mag2 F814W --mag3 F475W
 
-where `outfile.fits` may be the output from `tools/simulate_obs.py`.
-`mag1`-`mag2` is the color, and `magy` the magnitude.
+where `outfile.fits` may be the output from `simulate_obs`.
+`mag1`-`mag2` is the color, and `mag3` the magnitude.
 By default the figure is saved as `outfile_plot.png` in the directory
-of outfile.fits.
+of `outfile.fits`.
 
 **************
 Remove Filters

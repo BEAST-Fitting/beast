@@ -208,7 +208,6 @@ def gen_SimObs_from_sedgrid(
     sedgrid,
     sedgrid_noisemodel,
     nsim=100,
-    compl_filter="F475W",
     ranseed=None,
     vega_fname=None,
     weight_to_use='weight',
@@ -234,9 +233,6 @@ def gen_SimObs_from_sedgrid(
     nsim : int
         number of observations to simulate
 
-    compl_filter : str
-        filter to use for completeness (required for toothpick model)
-
     ranseed : int
         used to set the seed to make the results reproducable
         useful for testing
@@ -258,29 +254,20 @@ def gen_SimObs_from_sedgrid(
     flux = sedgrid.seds
     n_models, n_filters = flux.shape
 
-    # hack to get things to run for now
-    short_filters = [filter.split(sep="_")[-1].upper() for filter in sedgrid.filters]
-    if compl_filter.upper() not in short_filters:
-        raise NotImplementedError(
-            "Requested completeness filter not present:"
-            + compl_filter.upper()
-            + "\nPossible filters:"
-            + "\n".join(short_filters)
-        )
-
-    filter_k = short_filters.index(compl_filter.upper())
-    print("Completeness from %s" % sedgrid.filters[filter_k])
-
     # cache the noisemodel values
     model_bias = sedgrid_noisemodel["bias"]
     model_unc = np.fabs(sedgrid_noisemodel["error"])
-    model_compl = sedgrid_noisemodel["completeness"]
+
+    # completeness from toothpick model so n band completeness values
+    # require only 1 completeness value for each model
+    # max picked to best "simulate" how the photometry detection is done
+    model_compl = np.max(sedgrid_noisemodel["completeness"], axis=1)
 
     # the combined prior and grid weights
     # using both as the grid weight needed to account for the finite size
     #   of each grid bin
     # if we change to interpolating between grid points, need to rethink this
-    gridweights = sedgrid[weight_to_use] * model_compl[:, filter_k]
+    gridweights = sedgrid[weight_to_use] * model_compl
     # need to sum to 1
     gridweights = gridweights / np.sum(gridweights)
 
@@ -300,10 +287,22 @@ def gen_SimObs_from_sedgrid(
     qnames = list(sedgrid.keys())
     # simulated data
     for k, filter in enumerate(sedgrid.filters):
-        colname = "%s_RATE" % filter.split(sep="_")[-1].upper()
         simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
         simflux = np.random.normal(loc=simflux_wbias, scale=model_unc[sim_indx, k])
-        ot[colname] = Column(simflux / vega_flux[k])
+
+        bname = filter.split(sep="_")[-1].upper()
+        fluxname = f"{bname}_FLUX"
+        ot[fluxname] = Column(simflux)
+
+        colname = f"{bname}_RATE"
+        ot[colname] = Column(ot[fluxname] / vega_flux[k])
+
+        magname = f"{bname}_VEGA"
+        pindxs = ot[colname] > 0.0
+        nindxs = ot[colname] <= 0.0
+        ot[magname] = Column(ot[colname])
+        ot[magname][pindxs] = -2.5 * np.log10(ot[colname][pindxs])
+        ot[magname][nindxs] = -99.999
     # model parmaeters
     for qname in qnames:
         ot[qname] = Column(sedgrid[qname][sim_indx])

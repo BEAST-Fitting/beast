@@ -19,6 +19,7 @@ def plot_cmd(
     mag1_filter="F475W",
     mag2_filter="F814W",
     mag3_filter="F475W",
+    savefig=False,
     show_plot=True,
 ):
     """
@@ -36,7 +37,10 @@ def plot_cmd(
     mag3_filter:        str
         magnitude; default = 'F475W'
     savefig:            boolean
-        save figure; default = True
+        save figure; default = False
+    show_plot:          boolean
+        True, show the plot (to screen or a file)
+        False, return the fig
     """
 
     fits_data = fits.open(fitsfile)
@@ -71,8 +75,15 @@ def plot_cmd(
     plt.xlabel("%s - %s" % (mag1_filter, mag2_filter))
     plt.ylabel(mag3_filter)
 
+    # figname
+    basename = fitsfile.replace(".fits", "_plot")
+
+    # save or show fig
     if show_plot:
-        plt.show()
+        if savefig:
+            fig.savefig("{}.{}".format(basename, savefig))
+        else:
+            plt.show()
     else:
         return fig
 
@@ -94,7 +105,7 @@ if __name__ == "__main__":  # pragma: no cover
         help="Choose filter for mag2 (color=mag1-mag2)",
     )
     parser.add_argument(
-        "--magy",
+        "--mag3",
         action="store",
         default="F475W",
         help="Choose filter for the magnitude",
@@ -110,15 +121,6 @@ if __name__ == "__main__":  # pragma: no cover
         args.filename,
         mag1_filter=args.mag1,
         mag2_filter=args.mag2,
-        mag3_filter=args.magy,
-        show_plot=False,
+        mag3_filter=args.mag3,
+        savefig=args.savefig,
     )
-
-    # figname
-    basename = args.filename.replace(".fits", "_plot")
-
-    # save or show fig
-    if args.savefig:
-        fig.savefig("{}.{}".format(basename, args.savefig))
-    else:
-        plt.show()

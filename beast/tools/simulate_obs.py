@@ -13,8 +13,7 @@ def simulate_obs(
     noise_model_list,
     output_catalog,
     nsim=100,
-    compl_filter="F475W",
-    weight_to_use='weight',
+    weight_to_use="weight",
     ranseed=None,
 ):
     """
@@ -40,9 +39,6 @@ def simulate_obs(
         an integer, this will be increased so that each grid has the same
         number of samples.
 
-    compl_filter : string (default='F475W')
-        filter name to use for completeness
-
     weight_to_use : string (default='weight')
         Set to either 'weight' (prior+grid), 'prior_weight', or 'grid_weight' to
         choose the weighting for SED selection.
@@ -54,7 +50,8 @@ def simulate_obs(
 
     # numbers of samples to do
     # (ensure there are enough for even sampling of multiple model grids)
-    n_phys = len(physgrid_list)
+    n_phys = len(np.atleast_1d(physgrid_list))
+    nsim = int(nsim)
     samples_per_grid = int(np.ceil(nsim / n_phys))
 
     # list to hold all simulation tables
@@ -76,9 +73,8 @@ def simulate_obs(
             modelsedgrid,
             noisegrid,
             nsim=samples_per_grid,
-            compl_filter=compl_filter,
             weight_to_use=weight_to_use,
-            ranseed=ranseed,
+            ranseed=int(ranseed),
         )
 
         # append to the list
@@ -118,14 +114,11 @@ if __name__ == "__main__":  # pragma: no cover
         "--nsim", default=100, type=int, help="number of simulated objects"
     )
     parser.add_argument(
-        "--compl_filter", default="F475W", help="filter name to use for completeness"
-    )
-    parser.add_argument(
         "--weight_to_use",
         default="weight",
         type=str,
         help="""Set to either 'weight' (prior+grid), 'prior_weight', or
-        'grid_weight' to choose the weighting for SED selection."""
+        'grid_weight' to choose the weighting for SED selection.""",
     )
     parser.add_argument(
         "--ranseed", default=None, type=int, help="seed for random number generator"
@@ -138,7 +131,6 @@ if __name__ == "__main__":  # pragma: no cover
         args.noise_model_lists,
         args.output_catalog,
         nsim=args.nsim,
-        compl_filter=args.compl_filter,
         weight_to_use=args.weight_to_use,
         ranseed=args.ranseed,
     )
