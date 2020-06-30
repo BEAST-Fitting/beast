@@ -1,7 +1,9 @@
 import os
+import shutil
 import tempfile
 import numpy as np
 import copy
+import pytest
 
 import tables
 
@@ -43,7 +45,7 @@ from beast.tools.read_beast_data import (
     get_lnp_grid_vals,
 )
 from beast.tools.compare_spec_type import compare_spec_type
-from beast.tools.run import create_physicsmodel
+from beast.tools.run import create_physicsmodel, create_obsmodel
 
 from beast.tests.helpers import (
     download_rename,
@@ -51,6 +53,7 @@ from beast.tests.helpers import (
     compare_tables,
     compare_fits,
 )
+import beast
 
 
 @remote_data
@@ -107,7 +110,9 @@ class TestRegressionSuite:
 
     # create the beast_settings object
     # (copied over from the phat_small example in beast-examples)
-    settings = beast_settings.beast_settings("beast_settings_for_tests.txt")
+    settings = beast_settings.beast_settings(
+        beast.__path__[0]+"/tests/beast_settings_for_tests.txt"
+    )
     # update names of photometry and AST files
     settings.obsfile = obs_fname_cache
     settings.astfile = asts_fname
@@ -302,7 +307,7 @@ class TestRegressionSuite:
             threshold=-10.0,
             save_every_npts=100,
             lnp_npts=60,
-            max_nbins=50,
+            max_nbins=100,
             stats_outname=stats_fname,
             pdf1d_outname=pdf1d_fname,
             lnp_outname=lnp_fname,
@@ -842,6 +847,7 @@ class TestRegressionSuite:
     # ###################################################################
     # tools.run tests
 
+    @pytest.mark.usefixtures("setup_create_physicsmodel")
     def test_create_physicsmodel_no_subgrid(self):
         """
         Test create_physicsmodel.py, assuming no subgrids
@@ -871,6 +877,7 @@ class TestRegressionSuite:
         # - SEDs grid
         compare_hdf5(self.seds_fname_cache, "./beast_example_phat/beast_example_phat_seds.grid.hd5")
 
+    @pytest.mark.usefixtures("setup_create_physicsmodel")
     def test_create_physicsmodel_with_subgrid(self):
         """
         Test create_physicsmodel.py, assuming two subgrids
@@ -930,10 +937,12 @@ class TestRegressionSuite:
         assert subgrid_list == expected_list, "subgrid_fnames.txt has incorrect content"
 
 
+    @pytest.mark.usefixtures("setup_create_obsmodel")
     def test_create_obsmodel_no_subgrid(self):
         """
         Test create_obsmodel.py, assuming no subgrids
         """
+        print('running test_create_obsmodel_no_subgrid')
 
         # run create_obsmodel
         create_obsmodel.create_obsmodel(
@@ -950,10 +959,12 @@ class TestRegressionSuite:
             "beast_example_phat/beast_example_phat_noisemodel.grid.hd5"
         )
 
+    @pytest.mark.usefixtures("setup_create_obsmodel")
     def test_create_obsmodel_with_subgrid(self):
         """
         Test create_obsmodel.py, assuming two subgrids
         """
+        print('running test_create_obsmodel_with_subgrid')
 
         # run create_obsmodel
         create_obsmodel.create_obsmodel(
@@ -974,7 +985,9 @@ class TestRegressionSuite:
             "beast_example_phat_subgrids/beast_example_phat_subgrids_noisemodel.gridsub1.hd5"
         )
 
+# ###################################################################
 # specific helper functions
+
 def split_and_check(grid_fname, num_subgrids):
     """
     Split a sed grid into subgrids and test the contents of the subgrids
@@ -1017,3 +1030,55 @@ def split_and_check(grid_fname, num_subgrids):
     # grid, we need to do this.
     for f in sub_fnames:
         os.remove(f)
+
+
+@pytest.fixture(scope='function')
+def setup_create_physicsmodel(request):
+    """
+    Make sure that the folders (and their contents) from the create_physicsmodel
+    tests get deleted after the tests run
+    """
+    # no setup needed
+
+    # run tests
+    yield
+
+    # remove folders
+    if os.path.isdir('./beast_example_phat'):
+        shutil.rmtree('./beast_example_phat')
+    if os.path.isdir('./beast_example_phat_subgrids'):
+        shutil.rmtree('./beast_example_phat_subgrids')
+
+
+@pytest.fixture(scope='function')
+def setup_create_obsmodel(request):
+    """
+    Make symlink to files needed for create_obsmodel test so that they're in
+    the proper folder.  Delete symlinks after create_obsmodel tests have run.
+    """
+    #print('setting up files for create_obsmodel')
+    # create folders
+    os.mkdir('./beast_example_phat')
+    os.mkdir('./beast_example_phat_subgrids')
+    # make symlinks to SED data
+    source_list = [request.cls.seds_fname_cache, request.cls.seds_sub0_fname_cache, request.cls.seds_sub1_fname_cache]
+    dest_list = [
+        "./beast_example_phat/beast_example_phat_seds.grid.hd5",
+        "./beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub0.hd5",
+        "./beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub1.hd5"
+    ]
+    for source,dest in zip(source_list, dest_list):
+        os.symlink(os.path.abspath(source), os.path.abspath(dest))
+    # make a subgrid file name list
+    with open("./beast_example_phat_subgrids/subgrid_fnames.txt", "w") as f:
+        f.write(dest_list[1]+"\n"+dest_list[2]+"\n")
+
+    # run tests
+    yield
+
+    # remove folders/symlinks
+    #print('teardown for create_obsmodel')
+    if os.path.isdir('./beast_example_phat'):
+        shutil.rmtree('./beast_example_phat')
+    if os.path.isdir('./beast_example_phat_subgrids'):
+        shutil.rmtree('./beast_example_phat_subgrids')
