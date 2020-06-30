@@ -64,16 +64,11 @@ class TestRegressionSuite:
     # download the BEAST library files
     get_libfiles.get_libfiles()
 
-<<<<<<< HEAD
     # download the cached version for use and comparision
-    # tmpdir = tempfile.TemporaryDirectory().name + "/"
     # - photometry and ASTs
     obs_fname_cache = download_rename("b15_4band_det_27_A.fits")
     asts_fname_cache = download_rename("fake_stars_b15_27_all.hd5")
     # - isochrones
-=======
-    # download the cached versions for use and comparision
->>>>>>> re-enabling get_libfiles in tests
     iso_fname_cache = download_rename("beast_example_phat_iso.csv")
     # - spectra
     spec_fname_cache = download_rename("beast_example_phat_spec_grid.hd5")
