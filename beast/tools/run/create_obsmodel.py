@@ -54,7 +54,7 @@ def create_obsmodel(
 
     """
 
-   # process beast settings info
+    # process beast settings info
     if isinstance(beast_settings_info, str):
         settings = beast_settings.beast_settings(beast_settings_info)
     elif isinstance(beast_settings_info, beast_settings.beast_settings):
@@ -132,7 +132,9 @@ def create_obsmodel(
         # if we're not splitting by source density
         else:
 
-            input_list = [(settings, sedfile, None, use_rate) for sedfile in modelsedgridfiles]
+            input_list = [
+                (settings, sedfile, None, use_rate) for sedfile in modelsedgridfiles
+            ]
 
             parallel_wrapper(gen_obsmodel, input_list, nprocs=nprocs)
 
@@ -205,9 +207,7 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "beast_settings_file",
-        type=str,
-        help="file name with beast settings",
+        "beast_settings_file", type=str, help="file name with beast settings",
     )
     parser.add_argument(
         "--use_sd",

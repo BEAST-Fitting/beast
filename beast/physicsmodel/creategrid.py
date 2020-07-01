@@ -23,6 +23,7 @@ from tqdm import tqdm
 from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+
 # from beast.external.eztables import Table
 from astropy.table import Table
 from beast.tools.helpers import generator
@@ -360,8 +361,9 @@ def make_extinguished_grid(
         print("Generating a final grid of {0:d} points".format(N))
     else:
         print(
-            "Generating a final grid of {0:d} points in {1:d}"
-            + " pieces".format(N, int(float(N0) / chunksize + 1.0))
+            "Generating a final grid of {0:d} points in {1:d} pieces".format(
+                N, int(float(N0) / chunksize + 1.0)
+            )
         )
 
     if chunksize <= 0:
@@ -607,9 +609,9 @@ def calc_absflux_cov_matrices(specgrid, sedgrid, filter_names):
     ] * np.square(sedgrid.seds[:, n_filters - 1])
     for k in range(n_filters - 1):
         cov_diag[:, k] = absflux_cov_mats[:, k, k] * np.square(sedgrid.seds[:, k])
-        for l in range(k + 1, n_filters):
+        for ll in range(k + 1, n_filters):
             cov_offdiag[:, m] = (
-                absflux_cov_mats[:, k, l] * sedgrid.seds[:, k] * sedgrid.seds[:, l]
+                absflux_cov_mats[:, k, ll] * sedgrid.seds[:, k] * sedgrid.seds[:, ll]
             )
             m += 1
 

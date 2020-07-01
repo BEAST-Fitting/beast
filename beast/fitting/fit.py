@@ -388,7 +388,7 @@ def Q_all_memory(
     g0_weights = np.log(g0["weight"][g0_indxs])
     if not do_not_normalize:
         # this variable used on the next line, so is used regardless of what flake8 says
-        g0_weights_sum = np.log(g0["weight"][g0_indxs].sum())  # noqa: E302
+        g0_weights_sum = np.log(g0["weight"][g0_indxs].sum())  # noqa: F841
         g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
 
     if len(g0["weight"]) != len(g0_indxs):

@@ -73,7 +73,7 @@ def plot_pdfs(pdf1d_file, pdf2d_file, starnum):
                         image = hdu_2d[pi + "+" + pj].data[starnum, :, :].T
                     except KeyError:
                         image = hdu_2d[pj + "+" + pi].data[starnum, :, :]
-                    except:
+                    except Exception:
                         raise
 
                     # create axis/labels
@@ -120,7 +120,7 @@ def plot_pdfs(pdf1d_file, pdf2d_file, starnum):
                         pass
                     except ValueError:
                         pass
-                    except:
+                    except Exception:
                         raise
 
                     ax.tick_params(
