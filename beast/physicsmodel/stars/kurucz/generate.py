@@ -8,6 +8,7 @@ import numpy as np
 
 # import glob
 # from matplotlib.nxutils import points_inside_poly
+import matplotlib.path as mpltPath
 import sys
 
 
@@ -98,8 +99,12 @@ def gen_spectral_grid_from_kurucz(outfile, osl, oiso, Z=0.02):
 
     progress = 0
     data = np.array([oiso.data["logg"], oiso.data["logT"]]).T
-    # Needs to be converted to use matplotlib.path.Path.contains_points
+    # converted to use matplotlib.path.Path.contains_points
+    #   (points_inside_poly deprecated and removed from numpy)
     # bound_cond = points_inside_poly(data, bounds)
+    bounds_path = mpltPath.Path(bounds)
+    bound_cond = bounds_path.contains_points(data)
+
     del data
     radii = get_radius(oiso.data["logL"], oiso.data["logT"])
     weights = (
