@@ -35,12 +35,12 @@ def generator(func):
 
 
 @generator
-def chunks(l, n):
+def chunks(ll, n):
     """ Yield successive n-sized chunks from l.
 
     Parameters
     ----------
-    l: iterable
+    ll: iterable
         object to iter over
 
     n: int
@@ -49,9 +49,9 @@ def chunks(l, n):
     Returns
     -------
     chunk: tuple
-        n values from l
+        n values from ll
     """
-    it = iter(l)
+    it = iter(ll)
     while True:
         chunk = tuple(itertools.islice(it, n))
         if chunk:

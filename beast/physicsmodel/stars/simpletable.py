@@ -2054,8 +2054,8 @@ class SimpleTable(object):
 
     def itervalues(self):
         """ Iterator over the lines of the table """
-        for l in self.data:
-            yield l
+        for ll in self.data:
+            yield ll
 
     def info(self):
         s = "\nTable: {name:s}\n       nrows={s.nrows:d}, ncols={s.ncols:d}, mem={size:s}"

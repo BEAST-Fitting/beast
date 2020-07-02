@@ -54,7 +54,7 @@ def parallel_wrapper(function, arg_tuples, nprocs=1):
 
     if nprocs > 1:
         p = Pool(nprocs)
-        for r in p.starmap(gen_subgrid, arg_tuples):
+        for r in p.starmap(function, arg_tuples):
             print(r)
     else:
         for a in arg_tuples:

@@ -220,7 +220,9 @@ def setup_batch_beast_fit(
                 if j != 0:
                     pf.close()
                     # slurm needs the job file to be executable
-                    os.chmod(joblist_file, stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
+                    #   flake8/codestyle error ignored as this if statement only executed
+                    #   for j > 0 and appropriate joblist_file defined in j - 1
+                    os.chmod(joblist_file, stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)  # noqa: F821
 
                     print(
                         "total sed_trim size [Gb] = ",

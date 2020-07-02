@@ -24,7 +24,6 @@ from beast.physicsmodel.model_grid import (
 )
 
 from beast.observationmodel.noisemodel import generic_noisemodel as noisemodel
-from beast.observationmodel.noisemodel.absflux_covmat import hst_frac_matrix
 from beast.observationmodel.ast import make_ast_input_list
 from beast.observationmodel.observations import Observations, gen_SimObs_from_sedgrid
 

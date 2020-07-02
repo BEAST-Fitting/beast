@@ -106,7 +106,7 @@ class MultiFilterASTs(NoiseModel):
                     cgood = cgood + 1
             gtindxs[k] = cgood
 
-        indxs, = np.where(gtindxs > 0)
+        (indxs,) = np.where(gtindxs > 0)
         n_indxs = len(indxs)
         if n_indxs <= 5:
             return False
@@ -221,7 +221,7 @@ class MultiFilterASTs(NoiseModel):
             it = list(range(n_models))
         for i in it:
             # find all the ASTs for this model
-            indxs, = np.where(self.data[filtername] == uvals[i])
+            (indxs,) = np.where(self.data[filtername] == uvals[i])
             n_asts = len(indxs)
 
             if n_asts > 5:
@@ -239,7 +239,7 @@ class MultiFilterASTs(NoiseModel):
                 else:
                     good_asts[i] = False
 
-        indxs, = np.where(good_asts)
+        (indxs,) = np.where(good_asts)
 
         return (
             all_covs[indxs, :, :],
@@ -338,7 +338,7 @@ class MultiFilterASTs(NoiseModel):
             indxs = result[1]
 
             # check if the distance is very small, set to a reasonable value
-            tindxs, = np.where(dist < 0.01)
+            (tindxs,) = np.where(dist < 0.01)
             if len(tindxs) > 0:
                 dist[tindxs] = 0.01
 
@@ -360,15 +360,15 @@ class MultiFilterASTs(NoiseModel):
                 ]
                 for k in range(n_filters - 1):
                     cur_cov_matrix[k, k] += absflux_cov_diag[i, k]
-                    for l in range(k + 1, n_filters):
-                        cur_cov_matrix[k, l] += absflux_cov_offdiag[i, m]
-                        cur_cov_matrix[l, k] += absflux_cov_offdiag[i, m]
+                    for ll in range(k + 1, n_filters):
+                        cur_cov_matrix[k, ll] += absflux_cov_offdiag[i, m]
+                        cur_cov_matrix[ll, k] += absflux_cov_offdiag[i, m]
                         m += 1
             elif generic_absflux_a_matrix is not None:
                 for k in range(n_filters):
-                    for l in range(n_filters):
-                        cur_cov_matrix[k, l] += (
-                            generic_absflux_a_matrix[k, l] * cur_flux[k] * cur_flux[l]
+                    for ll in range(n_filters):
+                        cur_cov_matrix[k, ll] += (
+                            generic_absflux_a_matrix[k, ll] * cur_flux[k] * cur_flux[ll]
                         )
 
             # compute the interpolated biases
@@ -394,9 +394,9 @@ class MultiFilterASTs(NoiseModel):
             for k in range(n_filters - 1):
                 icov_diag[i, k] = inv_cur_cov_matrix[k, k]
                 cov_diag[i, k] = cur_cov_matrix[k, k]
-                for l in range(k + 1, n_filters):
-                    icov_offdiag[i, m] = inv_cur_cov_matrix[k, l]
-                    cov_offdiag[i, m] = cur_cov_matrix[k, l]
+                for ll in range(k + 1, n_filters):
+                    icov_offdiag[i, m] = inv_cur_cov_matrix[k, ll]
+                    cov_offdiag[i, m] = cur_cov_matrix[k, ll]
                     m += 1
 
             # save the log of the determinat for normalization

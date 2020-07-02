@@ -9,11 +9,7 @@ from beast.tools.run.helper_functions import get_modelsubgridfiles
 
 
 def create_filenames(
-    beast_settings_info,
-    use_sd=True,
-    nsubs=1,
-    choose_sd_sub=None,
-    choose_subgrid=None,
+    beast_settings_info, use_sd=True, nsubs=1, choose_sd_sub=None, choose_subgrid=None,
 ):
     """
     Helper function to make all of the filenames.  SED grid and noise model
@@ -88,11 +84,7 @@ def create_filenames(
                     "_bin{0}_sub{1}.fits".format(choose_sd_sub[0], choose_sd_sub[1]),
                 )
             )
-            modelsedgrid_files.append(
-                "{0}/{0}_seds.grid.hd5".format(
-                    settings.project, choose_sd_sub[0], choose_sd_sub[1]
-                )
-            )
+            modelsedgrid_files.append("{0}/{0}_seds.grid.hd5".format(settings.project))
             modelsedgrid_trim_files.append(
                 "{0}/{0}_bin{1}_sub{2}_seds_trim.grid.hd5".format(
                     settings.project, choose_sd_sub[0], choose_sd_sub[1]
@@ -100,7 +92,7 @@ def create_filenames(
             )
             noise_files.append(
                 "{0}/{0}_noisemodel_bin{1}.grid.hd5".format(
-                    settings.project, choose_sd_sub[0], choose_sd_sub[1]
+                    settings.project, choose_sd_sub[0]
                 )
             )
             noise_trim_files.append(
@@ -158,7 +150,7 @@ def create_filenames(
                 )
                 noise_files.append(
                     "{0}/{0}_noisemodel_bin{1}.grid.hd5".format(
-                        settings.project, curr_sd, curr_sub
+                        settings.project, curr_sd
                     )
                 )
                 noise_trim_files.append(
@@ -240,9 +232,7 @@ def create_filenames(
                 )
 
                 modelsedgrid_files.append(
-                    "{0}/{0}_seds.gridsub{3}.hd5".format(
-                        settings.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
-                    )
+                    "{0}/{0}_seds.gridsub{1}.hd5".format(settings.project, gridsub)
                 )
                 modelsedgrid_trim_files.append(
                     "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_seds_trim.grid.hd5".format(
@@ -250,8 +240,8 @@ def create_filenames(
                     )
                 )
                 noise_files.append(
-                    "{0}/{0}_noisemodel_bin{1}.gridsub{3}.hd5".format(
-                        settings.project, choose_sd_sub[0], choose_sd_sub[1], gridsub
+                    "{0}/{0}_noisemodel_bin{1}.gridsub{2}.hd5".format(
+                        settings.project, choose_sd_sub[0], gridsub
                     )
                 )
                 noise_trim_files.append(
@@ -309,9 +299,7 @@ def create_filenames(
                 for gridsub in gridsub_list:
                     photometry_files.append(phot_file)
                     modelsedgrid_files.append(
-                        "{0}/{0}_seds.gridsub{3}.hd5".format(
-                            settings.project, curr_sd, curr_sub, gridsub
-                        )
+                        "{0}/{0}_seds.gridsub{1}.hd5".format(settings.project, gridsub)
                     )
                     modelsedgrid_trim_files.append(
                         "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}_gridsub{3}_seds_trim.grid.hd5".format(
@@ -319,8 +307,8 @@ def create_filenames(
                         )
                     )
                     noise_files.append(
-                        "{0}/{0}_noisemodel_bin{1}.gridsub{3}.hd5".format(
-                            settings.project, curr_sd, curr_sub, gridsub
+                        "{0}/{0}_noisemodel_bin{1}.gridsub{2}.hd5".format(
+                            settings.project, curr_sd, gridsub
                         )
                     )
                     noise_trim_files.append(

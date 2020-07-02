@@ -151,7 +151,7 @@ def split_catalog_using_map(
                 if i < tot_subfiles:
                     max_k = (i + 1) * n_per_file
                 else:
-                    max_k = N
+                    max_k = len(subcat)
 
                 subcat[sort_indxs[min_k:max_k]].write(
                     catfile.replace(".fits", "_bin{0}_sub{1}.fits".format(b, i)),
