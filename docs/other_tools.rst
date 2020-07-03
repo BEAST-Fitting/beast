@@ -3,6 +3,7 @@ BEAST Miscellaneous Tools
 #########################
 
 The following miscellaneous tools are useful for handling data formats and
+doing assorted data characterization.
 
 .. _other_beast_tools:
 
@@ -41,7 +42,8 @@ evaluating the depth of your observations.
   >>> depth = calculate_depth.calculate_depth(  #doctest: +SKIP
           'beast_example_phat_seds.grid.hd5',
           'beast_example_phat_noisemodel.grid.hd5',
-          completeness_value=[0.5, 0.75]
+          completeness_value=[0.5, 0.75],
+          vega_mag=True
       )
   >>> # Depth in F275W (Vega mag)
   >>> depth['HST_WFC3_F275W'] #doctest: +SKIP
