@@ -23,3 +23,31 @@ and save it to disk:
   >>>
   >>> # Convert the HDF5 file to a FITS file (yay!) and save it to disk
   >>> convert_hdf5_to_fits.st_file(file_name = phot_file) #doctest: +SKIP
+
+
+Observation Depth
+-----------------
+
+The noise model contains completeness information for each filter.  The
+`calculate_depth` tool uses that to find the Vega magnitude (or flux in
+erg/s/cm^2/A) at which a given completeness is reached.  This is useful for
+evaluating the depth of your observations.
+
+.. code-block:: python
+
+  >>> from beast.tools import calculate_depth #doctest: +SKIP
+  >>>
+  >>> # Find the 50% and 75% completeness for phat_small example
+  >>> depth = calculate_depth.calculate_depth(  #doctest: +SKIP
+          'beast_example_phat_seds.grid.hd5',
+          'beast_example_phat_noisemodel.grid.hd5',
+          completeness_value=[0.5, 0.75]
+      )
+  >>> # Depth in F275W (Vega mag)
+  >>> depth['HST_WFC3_F275W'] #doctest: +SKIP
+  [25.000309202589012, 24.80610510139205]
+  >>>
+  >>> # Depth in F814W (Vega mag)
+  >>> # NaNs show that ASTs don't go deep enough to evaluate 50% completeness
+  >>> depth['HST_ACS_WFC_F814W'] #doctest: +SKIP
+  [nan, 24.368742437736692]

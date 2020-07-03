@@ -33,6 +33,7 @@ from beast.fitting import fit
 from beast.tools import (
     get_libfiles,
     beast_settings,
+    calculate_depth,
     subgridding_tools,
     star_type_probability,
 )
@@ -848,6 +849,28 @@ class TestRegressionSuite:
 
         # compare to new table
         compare_tables(expected_star_prob, Table(star_prob))
+
+    def test_calculate_depth(self):
+        """
+        Test for calculate_depth.py
+        """
+        # calculate depth for 50% and 75% completeness
+        depth = calculate_depth.calculate_depth(
+            self.seds_fname_cache,
+            self.noise_fname_cache,
+            completeness_value=[0.5, 0.75],
+        )
+        # expected results
+        expected_dict = {
+            "HST_WFC3_F275W": [25.000309202589012, 24.80610510139205],
+            "HST_WFC3_F336W": [24.65974845352875, 24.338061586936263],
+            "HST_ACS_WFC_F475W": [np.nan, np.nan],
+            "HST_ACS_WFC_F814W": [np.nan, 24.368742437736692],
+            "HST_WFC3_F110W": [np.nan, np.nan],
+            "HST_WFC3_F160W": [21.99298441116123, 21.504534701422067],
+        }
+        # compare them
+        compare_tables(Table(expected_dict), Table(depth))
 
     # ###################################################################
     # tools.run tests
