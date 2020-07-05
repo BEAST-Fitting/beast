@@ -33,7 +33,7 @@ from beast.fitting import fit
 from beast.tools import (
     get_libfiles,
     beast_settings,
-    calculate_depth,
+    calc_depth_from_completeness,
     subgridding_tools,
     star_type_probability,
 )
@@ -850,15 +850,16 @@ class TestRegressionSuite:
         # compare to new table
         compare_tables(expected_star_prob, Table(star_prob))
 
-    def test_calculate_depth(self):
+    def test_calc_depth_from_completeness(self):
         """
         Test for calculate_depth.py
         """
         # calculate depth for 50% and 75% completeness
-        depth = calculate_depth.calculate_depth(
+        depth = calc_depth_from_completeness.calc_depth(
             self.seds_fname_cache,
             self.noise_fname_cache,
             completeness_value=[0.5, 0.75],
+            vega_mag=True,
         )
         # expected results
         expected_dict = {

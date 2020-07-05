@@ -5,7 +5,7 @@ import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 from beast.observationmodel.vega import Vega
 
 
-def calculate_depth(
+def calc_depth(
     physgrid_list,
     noise_model_list,
     completeness_value=0.5,
@@ -125,8 +125,6 @@ def calculate_depth(
                 depth_dict[filt].append(-2.5 * np.log10(comp_flux/vega_flux[f]))
             else:
                 depth_dict[filt].append(comp_flux)
-            if 'F475W' in filt:
-                import pdb; pdb.set_trace()
 
     # return the results
     return depth_dict

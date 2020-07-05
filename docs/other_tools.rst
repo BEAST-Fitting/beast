@@ -30,16 +30,16 @@ Observation Depth
 -----------------
 
 The noise model contains completeness information for each filter.  The
-`calculate_depth` tool uses that to find the Vega magnitude (or flux in
-erg/s/cm^2/A) at which a given completeness is reached.  This is useful for
+`calc_depth_from_completeness` tool uses that to find the Vega magnitude (or flux
+in erg/s/cm^2/A) at which a given completeness is reached.  This is useful for
 evaluating the depth of your observations.
 
 .. code-block:: python
 
-  >>> from beast.tools import calculate_depth #doctest: +SKIP
+  >>> from beast.tools import calc_depth_from_completeness #doctest: +SKIP
   >>>
   >>> # Find the 50% and 75% completeness for phat_small example
-  >>> depth = calculate_depth.calculate_depth(  #doctest: +SKIP
+  >>> depth = calc_depth_from_completeness.calc_depth(  #doctest: +SKIP
           'beast_example_phat_seds.grid.hd5',
           'beast_example_phat_noisemodel.grid.hd5',
           completeness_value=[0.5, 0.75],
