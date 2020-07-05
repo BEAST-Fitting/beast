@@ -67,7 +67,6 @@ def calc_depth(
             sed_grid = modelsedgrid.seds
         # get list of filters
         filter_list = modelsedgrid.filters
-        n_filter = len(filter_list)
 
         # read in the noise model
         noisegrid = noisemodel.get_noisemodelcat(str(noise_model))
@@ -77,7 +76,7 @@ def calc_depth(
         # put it all into a table
         table_dict = {filt: sed_grid[:, f] for f, filt in enumerate(filter_list)}
         table_dict.update(
-            {filt+"_compl": model_compl[:, f] for f, filt in enumerate(filter_list)}
+            {filt + "_compl": model_compl[:, f] for f, filt in enumerate(filter_list)}
         )
 
         # append to the list
@@ -90,17 +89,16 @@ def calc_depth(
     if vega_mag:
         _, vega_flux, _ = Vega(source=vega_fname).getFlux(filter_list)
 
-
     # ------ Calculate depth
 
     # initialize dictionary to hold results
-    depth_dict = {filt:[] for filt in filter_list}
+    depth_dict = {filt: [] for filt in filter_list}
 
     # grab numbers for each filter
     for f, filt in enumerate(filter_list):
 
         use_sed = compl_table[filt]
-        use_comp = compl_table[filt+"_compl"]
+        use_comp = compl_table[filt + "_compl"]
 
         # get sorted versions of data
         sort_ind = np.argsort(use_sed)
@@ -122,7 +120,7 @@ def calc_depth(
             comp_flux = sort_sed[first_ind]
             # save it
             if vega_mag:
-                depth_dict[filt].append(-2.5 * np.log10(comp_flux/vega_flux[f]))
+                depth_dict[filt].append(-2.5 * np.log10(comp_flux / vega_flux[f]))
             else:
                 depth_dict[filt].append(comp_flux)
 
