@@ -54,6 +54,9 @@ def simulate_obs(
     nsim = int(nsim)
     samples_per_grid = int(np.ceil(nsim / n_phys))
 
+    if ranseed is not None:
+        ranseed = int(ranseed)
+
     # list to hold all simulation tables
     simtable_list = []
 
@@ -74,7 +77,7 @@ def simulate_obs(
             noisegrid,
             nsim=samples_per_grid,
             weight_to_use=weight_to_use,
-            ranseed=int(ranseed),
+            ranseed=ranseed,
         )
 
         # append to the list
