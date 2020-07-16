@@ -19,7 +19,7 @@ def plot_cmd(
     mag1_filter="F475W",
     mag2_filter="F814W",
     mag3_filter="F475W",
-    savefig=None,
+    savefig=False,
     show_plot=True,
 ):
     """
@@ -36,7 +36,7 @@ def plot_cmd(
         2nd color filter
     mag3_filter : str (default='F475W')
         magnitude
-    savefig : str or None (default=None)
+    savefig : str (default=False)
         to save the figure, set this to the file extension (e.g., 'png', 'pdf')
     show_plot : boolean
         True, show the plot (to screen or a file)
