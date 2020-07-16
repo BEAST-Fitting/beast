@@ -72,7 +72,7 @@ sample call from the command line may be:
 where `outfile.fits` may be the output from `simulate_obs`.
 `mag1`-`mag2` is the color, and `mag3` the magnitude.  If you would like to save
 (rather than simply display) the figure, include ``--save_fig png`` (or another
-preferred file extension), and the figure with be saved as `outfile_plot.png` in
+preferred file extension), and the figure will be saved as `outfile_plot.png` in
 the directory of `outfile.fits`.
 
 **************
