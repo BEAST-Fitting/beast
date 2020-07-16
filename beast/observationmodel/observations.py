@@ -288,21 +288,36 @@ def gen_SimObs_from_sedgrid(
     # simulated data
     for k, filter in enumerate(sedgrid.filters):
         simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
+
         simflux = np.random.normal(loc=simflux_wbias, scale=model_unc[sim_indx, k])
 
         bname = filter.split(sep="_")[-1].upper()
         fluxname = f"{bname}_FLUX"
-        ot[fluxname] = Column(simflux)
-
         colname = f"{bname}_RATE"
-        ot[colname] = Column(ot[fluxname] / vega_flux[k])
-
         magname = f"{bname}_VEGA"
+        ot[fluxname] = Column(simflux)
+        ot[colname] = Column(ot[fluxname] / vega_flux[k])
         pindxs = ot[colname] > 0.0
         nindxs = ot[colname] <= 0.0
         ot[magname] = Column(ot[colname])
         ot[magname][pindxs] = -2.5 * np.log10(ot[colname][pindxs])
         ot[magname][nindxs] = -99.999
+
+        # add in the physical model values in a form similar to
+        # the output simulated (physics+obs models) values
+        # useful if using the simulated data to interpolate ASTs
+        #   (e.g. for MATCH)
+        fluxname = f"{bname}_INPUT_FLUX"
+        ratename = f"{bname}_INPUT_RATE"
+        magname = f"{bname}_INPUT_VEGA"
+        ot[fluxname] = Column(flux[sim_indx, k])
+        ot[ratename] = Column(ot[fluxname] / vega_flux[k])
+        pindxs = ot[ratename] > 0.0
+        nindxs = ot[ratename] <= 0.0
+        ot[magname] = Column(ot[ratename])
+        ot[magname][pindxs] = -2.5 * np.log10(ot[ratename][pindxs])
+        ot[magname][nindxs] = -99.999
+
     # model parmaeters
     for qname in qnames:
         ot[qname] = Column(sedgrid[qname][sim_indx])
