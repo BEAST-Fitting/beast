@@ -11,7 +11,13 @@ This is done using the
 `beast.observationmodel.observations.gen_SimObs_from_sedgrid` function.
 The script
 `tools/simulate_obs.py` can be run directly or using the `beast simulate_obs`
-command once the beast has been installed.  The module
+command once the beast has been installed.
+Simulations require already created BEAST physics and observation model grids.
+The physics model grid includes the ensemble parameters as these are the same
+as the BEAST :ref:`beast_priors`.
+If a different ensemble model is needed (e.g., with a different SFH), then a
+new physics model (and possible observations model) will be needed.
+The module
 uses already created BEAST physics and observation model grids
 by sampling the full nD prior function that is part of the physics
 model grid.  The observation model grid provides the information on
@@ -42,6 +48,8 @@ as `band_flux` in physical units (ergs cm^-2 s^-1 A^-1),
 `band_rate` as normalized Vega fluxes (`band_flux`/vega_flux to match how
 the observed data are given), and `band_vega` as vega magnitudes with zero and
 negative fluxes given as -99.999.
+The physicsgrid values without noise/bias are given as `band_input_flux`,
+`band_input_rate`, and `band_input_vega`.
 
 When creating simulated observations, using the standard IMF mass prior will
 skew your catalog to lower-mass stars.  If you wish to have similar weights for
