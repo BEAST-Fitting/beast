@@ -19,7 +19,7 @@ def plot_cmd(
     mag1_filter="F475W",
     mag2_filter="F814W",
     mag3_filter="F475W",
-    save_fig=None,
+    savefig=None,
     show_plot=True,
 ):
     """
@@ -36,7 +36,7 @@ def plot_cmd(
         2nd color filter
     mag3_filter : str (default='F475W')
         magnitude
-    save_fig : str or None (default=None)
+    savefig : str or None (default=None)
         to save the figure, set this to the file extension (e.g., 'png', 'pdf')
     show_plot : boolean
         True, show the plot (to screen or a file)
@@ -80,8 +80,8 @@ def plot_cmd(
 
     # save or show fig
     if show_plot:
-        if save_fig:
-            fig.savefig("{}.{}".format(basename, save_fig))
+        if savefig:
+            fig.savefig("{}.{}".format(basename, savefig))
         else:
             plt.show()
     else:
@@ -110,12 +110,6 @@ if __name__ == "__main__":  # pragma: no cover
         default="F475W",
         help="Choose filter for the magnitude",
     )
-    parser.add_argument(
-        "--save_fig",
-        action="store",
-        default=None,
-        help="To save the figure, set this to the file extension (e.g., 'png', 'pdf')",
-    )
 
     args = parser.parse_args()
 
@@ -125,5 +119,5 @@ if __name__ == "__main__":  # pragma: no cover
         mag1_filter=args.mag1,
         mag2_filter=args.mag2,
         mag3_filter=args.mag3,
-        save_fig=args.save_fig,
+        savefig=args.savefig,
     )
