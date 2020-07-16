@@ -293,12 +293,10 @@ def gen_SimObs_from_sedgrid(
 
         bname = filter.split(sep="_")[-1].upper()
         fluxname = f"{bname}_FLUX"
-        ot[fluxname] = Column(simflux)
-
         colname = f"{bname}_RATE"
-        ot[colname] = Column(ot[fluxname] / vega_flux[k])
-
         magname = f"{bname}_VEGA"
+        ot[fluxname] = Column(simflux)
+        ot[colname] = Column(ot[fluxname] / vega_flux[k])
         pindxs = ot[colname] > 0.0
         nindxs = ot[colname] <= 0.0
         ot[magname] = Column(ot[colname])
