@@ -396,7 +396,7 @@ class TestRegressionSuite(unittest.TestCase):
         noisegrid = noisemodel.get_noisemodelcat(self.noise_fname_cache)
 
         table_new = gen_SimObs_from_sedgrid(
-            modelsedgrid, noisegrid, nsim=100, ranseed=1234,
+            modelsedgrid, noisegrid, nsim=100, compl_filter="max", ranseed=1234,
         )
 
         # check that the simobs files are exactly the same
