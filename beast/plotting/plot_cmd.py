@@ -28,17 +28,17 @@ def plot_cmd(
 
     Parameters
     ----------
-    fitsfile:           str
+    fitsfile : str
         input fitsfile (includes full path to file); format = .fits
-    mag1_filter:        str
-        1st color filter; default = 'F475W'
-    mag2_filter:        str
-        2nd color filter; default = 'F814W'
-    mag3_filter:        str
-        magnitude; default = 'F475W'
-    savefig:            boolean
-        save figure; default = False
-    show_plot:          boolean
+    mag1_filter : str (default='F475W')
+        1st color filter
+    mag2_filter : str (default='F814W')
+        2nd color filter
+    mag3_filter : str (default='F475W')
+        magnitude
+    savefig : str (default=False)
+        to save the figure, set this to the file extension (e.g., 'png', 'pdf')
+    show_plot : boolean
         True, show the plot (to screen or a file)
         False, return the fig
     """
@@ -109,9 +109,6 @@ if __name__ == "__main__":  # pragma: no cover
         action="store",
         default="F475W",
         help="Choose filter for the magnitude",
-    )
-    parser.add_argument(
-        "--savefig", action="store", default="True", help="Save figure or plot it",
     )
 
     args = parser.parse_args()
