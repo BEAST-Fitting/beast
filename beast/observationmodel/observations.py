@@ -282,8 +282,6 @@ def gen_SimObs_from_sedgrid(
         print("Completeness from %s" % sedgrid.filters[filter_k])
         model_compl = sedgrid_noisemodel["completeness"][:, filter_k]
 
-    print(min(model_compl), max(model_compl))
-
     # the combined prior and grid weights
     # using both as the grid weight needed to account for the finite size
     #   of each grid bin
@@ -308,12 +306,7 @@ def gen_SimObs_from_sedgrid(
     qnames = list(sedgrid.keys())
     # simulated data
     for k, filter in enumerate(sedgrid.filters):
-        print(filter)
         simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
-        print(flux[sim_indx, k])
-        print(model_bias[sim_indx, k])
-        print(model_unc[sim_indx, k])
-        print(model_compl[sim_indx])
 
         simflux = np.random.normal(loc=simflux_wbias, scale=model_unc[sim_indx, k])
 

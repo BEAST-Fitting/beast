@@ -32,6 +32,9 @@ the script.  The output filename is also required.  Note that the extension
 of this file will determine the type of file output (e.g. filebase.fits for
 a FITS file).
 The number of observations to simulate is given by the `--nsim` parameter.
+The filter to use for the completeness function is given by the
+`--compl_filter` parameter (default=F475W).
+Set `compl_filter=max` to use the max completeness value across all the filters.  
 The SEDs are picked weighted by the product of the grid+prior weights
 and the completeness from the noisemodel.  The grid+prior weights can be replaced
 with either grid or prior weights by explicitly setting the `--weight_to_use`
@@ -39,7 +42,7 @@ parameter.
 
 .. code-block:: console
 
-   $ beast simulate_obs physicsgrid obsgrid outfile --nsim 200
+   $ beast simulate_obs physicsgrid obsgrid outfile --nsim 200 --compl_filter=F475W
 
 The output file gives the simulated data in the observed data columns
 identified in the physicsgrid file along with all the model parameters

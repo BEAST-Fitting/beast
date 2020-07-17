@@ -13,6 +13,7 @@ def simulate_obs(
     noise_model_list,
     output_catalog,
     nsim=100,
+    compl_filter="F475W",
     weight_to_use="weight",
     ranseed=None,
 ):
@@ -38,6 +39,10 @@ def simulate_obs(
         Number of simulated objects to create.  If nsim/len(physgrid_list) isn't
         an integer, this will be increased so that each grid has the same
         number of samples.
+
+    compl_filter : str (default=F475W)
+        filter to use for completeness (required for toothpick model)
+        set to max to use the max value in all filters
 
     weight_to_use : string (default='weight')
         Set to either 'weight' (prior+grid), 'prior_weight', or 'grid_weight' to
@@ -76,6 +81,7 @@ def simulate_obs(
             modelsedgrid,
             noisegrid,
             nsim=samples_per_grid,
+            compl_filter=compl_filter,
             weight_to_use=weight_to_use,
             ranseed=ranseed,
         )
@@ -117,6 +123,11 @@ if __name__ == "__main__":  # pragma: no cover
         "--nsim", default=100, type=int, help="number of simulated objects"
     )
     parser.add_argument(
+        "--compl_filter",
+        default="F475W",
+        help="filter for completeness, set to max for max of values from all filters",
+    )
+    parser.add_argument(
         "--weight_to_use",
         default="weight",
         type=str,
@@ -134,6 +145,7 @@ if __name__ == "__main__":  # pragma: no cover
         args.noise_model_lists,
         args.output_catalog,
         nsim=args.nsim,
+        compl_filter=args.compl_filter,
         weight_to_use=args.weight_to_use,
         ranseed=args.ranseed,
     )
