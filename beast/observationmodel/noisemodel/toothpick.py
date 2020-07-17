@@ -1,4 +1,3 @@
-
 import math
 
 import numpy as np
@@ -72,7 +71,9 @@ class MultiFilterASTs(NoiseModel):
 
         self.vega_flux = vega_flux
 
-    def set_data_mappings(self, in_pair=("in", "in"), out_pair=("out", "vega"), upcase=False):
+    def set_data_mappings(
+        self, in_pair=("in", "in"), out_pair=("out", "vega"), upcase=False
+    ):
         """
         Specify the mapping directly with the interface to PHAT-like ASTs
 
@@ -368,7 +369,9 @@ class MultiFilterASTs(NoiseModel):
 
             bias[:, i] = np.interp(flux[:, i], _fluxes, _biases[arg_sort])
             sigma[:, i] = np.interp(flux[:, i], _fluxes, _sigmas[arg_sort])
-            compl[:, i] = np.interp(flux[:, i], _fluxes, _compls[arg_sort])
+            compl[:, i] = np.interp(
+                flux[:, i], _fluxes, _compls[arg_sort], left=0.0, right=0.0
+            )
 
         return (bias, sigma, compl)
 

@@ -208,6 +208,7 @@ def gen_SimObs_from_sedgrid(
     sedgrid,
     sedgrid_noisemodel,
     nsim=100,
+    compl_filter="F475W",
     ranseed=None,
     vega_fname=None,
     weight_to_use='weight',
@@ -232,6 +233,10 @@ def gen_SimObs_from_sedgrid(
 
     nsim : int
         number of observations to simulate
+
+    compl_filter : str
+        filter to use for completeness (required for toothpick model)
+        set to max to use the max value in all filters
 
     ranseed : int
         used to set the seed to make the results reproducable
@@ -261,7 +266,23 @@ def gen_SimObs_from_sedgrid(
     # completeness from toothpick model so n band completeness values
     # require only 1 completeness value for each model
     # max picked to best "simulate" how the photometry detection is done
-    model_compl = np.max(sedgrid_noisemodel["completeness"], axis=1)
+    if compl_filter.lower() == 'max':
+        model_compl = np.max(sedgrid_noisemodel["completeness"], axis=1)
+    else:
+        short_filters = [filter.split(sep="_")[-1].upper() for filter in sedgrid.filters]
+        if compl_filter.upper() not in short_filters:
+            raise NotImplementedError(
+                "Requested completeness filter not present:"
+                + compl_filter.upper()
+                + "\nPossible filters:"
+                + "\n".join(short_filters)
+            )
+
+        filter_k = short_filters.index(compl_filter.upper())
+        print("Completeness from %s" % sedgrid.filters[filter_k])
+        model_compl = sedgrid_noisemodel["completeness"][:, filter_k]
+
+    print(min(model_compl), max(model_compl))
 
     # the combined prior and grid weights
     # using both as the grid weight needed to account for the finite size
@@ -287,7 +308,12 @@ def gen_SimObs_from_sedgrid(
     qnames = list(sedgrid.keys())
     # simulated data
     for k, filter in enumerate(sedgrid.filters):
+        print(filter)
         simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
+        print(flux[sim_indx, k])
+        print(model_bias[sim_indx, k])
+        print(model_unc[sim_indx, k])
+        print(model_compl[sim_indx])
 
         simflux = np.random.normal(loc=simflux_wbias, scale=model_unc[sim_indx, k])
 

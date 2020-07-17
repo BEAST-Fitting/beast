@@ -54,10 +54,21 @@ def plot_noisemodel(
     n_filter = len(filter_list)
 
     # figure
-    fig = plt.figure(figsize=(4 * n_filter, 10))
+    fig, ax = plt.subplots(nrows=3, ncols=n_filter, figsize=(25, 15))
+
+    # setup the plots
+    fontsize = 12
+    font = {"size": fontsize}
+
+    plt.rc("font", **font)
+
+    plt.rc("lines", linewidth=2)
+    plt.rc("axes", linewidth=2)
+    plt.rc("xtick.major", width=2)
+    plt.rc("ytick.major", width=2)
 
     # go through noise files
-    for n, nfile in enumerate(noise_file_list):
+    for n, nfile in enumerate(np.atleast_1d(noise_file_list)):
 
         print("* reading " + nfile)
 
@@ -67,20 +78,22 @@ def plot_noisemodel(
         # extract error and bias
         noise_err = noisemodel_vals["error"]
         noise_bias = noisemodel_vals["bias"]
+        noise_compl = noisemodel_vals["completeness"]
 
         # plot things
         for f, filt in enumerate(filter_list):
 
             # error is negative where it's been extrapolated -> trim those
             good_err = np.where(noise_err[:, f] > 0)[0]
+            # good_err = np.arange(len(noise_err[:, f]))
             plot_sed = sed_grid[good_err, f][::samp]
             plot_err = noise_err[good_err, f][::samp]
             plot_bias = noise_bias[good_err, f][::samp]
+            plot_compl = noise_compl[good_err, f][::samp]
 
-            # subplot region: bias
-            ax1 = plt.subplot(2, n_filter, f + 1)
-
-            (plot1,) = ax1.plot(
+            # bias
+            bax = ax[0, f]
+            bax.plot(
                 np.log10(plot_sed),
                 plot_bias / plot_sed,
                 marker="o",
@@ -91,17 +104,16 @@ def plot_noisemodel(
                 alpha=0.1,
             )
             if label is not None:
-                plot1.set_label(label[n])
+                bax.set_label(label[n])
 
-            ax1.tick_params(axis="both", which="major", labelsize=13)
+            bax.tick_params(axis="both", which="major")
             # ax.set_xlim(ax.get_xlim()[::-1])
-            plt.xlabel("log " + filt, fontsize=12)
-            plt.ylabel(r"Bias ($\mu$/F)", fontsize=12)
+            bax.set_xlabel("log " + filt)
+            bax.set_ylabel(r"Bias ($\mu$/F)")
 
-            # subplot region: error
-            ax2 = plt.subplot(2, n_filter, n_filter + f + 1)
-
-            (plot2,) = ax2.plot(
+            # error
+            eax = ax[1, f]
+            eax.plot(
                 np.log10(plot_sed),
                 plot_err / plot_sed,
                 marker="o",
@@ -112,22 +124,42 @@ def plot_noisemodel(
                 alpha=0.1,
             )
             if label is not None:
-                plot2.set_label(label[n])
+                eax.set_label(label[n])
 
-            ax2.tick_params(axis="both", which="major", labelsize=13)
+            eax.tick_params(axis="both", which="major")
             # ax.set_xlim(ax.get_xlim()[::-1])
-            plt.xlabel("log " + filt, fontsize=12)
-            plt.ylabel(r"Error ($\sigma$/F)", fontsize=12)
+            eax.set_xlabel("log " + filt)
+            eax.set_ylabel(r"Error ($\sigma$/F)")
+
+            # completeness
+            cax = ax[2, f]
+            cax.plot(
+                np.log10(plot_sed),
+                plot_compl,
+                marker="o",
+                linestyle="none",
+                mew=0,
+                ms=2,
+                color=color[n % len(color)],
+                alpha=0.1,
+            )
+            if label is not None:
+                cax.set_label(label[n])
+
+            cax.tick_params(axis="both", which="major")
+            # ax.set_xlim(ax.get_xlim()[::-1])
+            cax.set_xlabel("log " + filt)
+            cax.set_ylabel(r"Completeness")
 
             # do a legend if this is
             # (a) the leftmost panel
             # (b) the last line to be added
             # (c) there are labels set
             if (f == 0) and (n == len(noise_file_list) - 1) and (label is not None):
-                leg = ax1.legend(fontsize=12)
+                leg = bax.legend(fontsize=12)
                 for lh in leg.legendHandles:
                     lh._legmarker.set_alpha(1)
-                leg = ax2.legend(fontsize=12)
+                leg = eax.legend(fontsize=12)
                 for lh in leg.legendHandles:
                     lh._legmarker.set_alpha(1)
 

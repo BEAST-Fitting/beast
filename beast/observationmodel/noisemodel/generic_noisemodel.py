@@ -92,12 +92,14 @@ def make_toothpick_noise_model(
     # check if the noise model has been extrapolated at the faint flux levels
     # if so, then set the noise to a negative value (later may be used to
     # trim the model of "invalid" models)
+    # also set the completeness to zero for these models
     # we are assuming that extrapolation at high fluxes is ok as the noise
     # will be very small there
     for k in range(len(model.filters)):
         (indxs,) = np.where(sedgrid.seds[:, k] <= model._minmax_asts[0, k])
         if len(indxs) > 0:
             noise[indxs, k] *= -1.0
+            compl[indxs, k] = 0.0
 
     print("Writing to disk into {0:s}".format(outname))
     with tables.open_file(outname, "w") as outfile:
