@@ -138,7 +138,6 @@ def make_ast_inputs(beast_settings_info, pick_method):
                 mag_cuts=mag_cuts,
             )
 
-
     # if the SED file does exist, read them in
     else:
         print("Reading existing AST SEDs")
@@ -208,16 +207,16 @@ if __name__ == "__main__":  # pragma: no cover
     args = parser.parse_args()
 
     if args.random_seds:
-        make_ast_inputs(beast_settings_info=args.beast_settings_file,
-                "random_seds")
+        make_ast_inputs("random_seds",
+                        beast_settings_info=args.beast_settings_file)
 
     if args.suppl_seds:
-        make_ast_inputs(beast_settings_info=args.beast_settings_file,
-                "suppl_seds")
+        make_ast_inputs("suppl_seds",
+                        beast_settings_info=args.beast_settings_file)
 
     else:
-        make_ast_inputs(beast_settings_info=args.beast_settings_file,
-                "flux_bin_method")
+        make_ast_inputs("flux_bin_method",
+                        beast_settings_info=args.beast_settings_file)
 
     # print help if no arguments
     if not any(vars(args).values()):
