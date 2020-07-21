@@ -130,7 +130,7 @@ def make_ast_inputs(beast_settings_info, pick_method):
 
             chosen_seds = supplement_ast(
                 modelsedgrid_filename,
-                datamodel.filters,
+                settings.filters,
                 nAST=nAST,
                 existingASTfile=existingASTfile,
                 outASTfile=outfile_seds,
