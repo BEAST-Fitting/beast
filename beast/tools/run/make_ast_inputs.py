@@ -17,7 +17,7 @@ from beast.observationmodel.ast import make_ast_xy_list
 from beast.tools import beast_settings
 
 
-def make_ast_inputs(beast_settings_info, pick_method):
+def make_ast_inputs(pick_method,beast_settings_info):
     """
     Make the list of artificial stars to be run through the photometry pipeline
 
