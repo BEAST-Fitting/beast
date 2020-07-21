@@ -55,7 +55,7 @@ These functions are found in ``beast.observationmodel.ast.make_ast_input_list``.
 - `mag_limits`: Determines the magnitude limits for the models in each filter in
   the photometry file.
 
-- 'supplement_ast': Supplement the existing input ASTs that fulfill the user
+- `supplement_ast`: Supplement the existing input ASTs that fulfill the user
   defined magnitude limits.
 
 
