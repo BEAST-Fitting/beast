@@ -30,8 +30,8 @@ def make_ast_inputs(pick_method, beast_settings_info):
     pick_method : string (default = "flux_bin_method")
         If not specified, use the flux bin method to select SEDs as default.
         If set to "random_seds", randomly select SEDs from the model grid.
-        If set to "suppl_seds", supplement input ASTs on top of the existing
-        input ASTs.
+        If set to "suppl_seds", supplement the existing input ASTs by randomly
+        selecting additional SEDs from the list of non-selected models.
 
     """
 
