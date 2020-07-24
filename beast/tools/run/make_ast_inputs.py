@@ -208,21 +208,21 @@ if __name__ == "__main__":  # pragma: no cover
 
     if args.random_seds:
         make_ast_inputs(
-                        beast_settings_info=args.beast_settings_file,
-                        pick_method="random_seds"
-                        )
+            beast_settings_info=args.beast_settings_file,
+            pick_method="random_seds"
+        )
 
     if args.suppl_seds:
         make_ast_inputs(
-                        beast_settings_info=args.beast_settings_file,
-                        pick_method="suppl_seds"
-                        )
+            beast_settings_info=args.beast_settings_file,
+            pick_method="suppl_seds"
+        )
 
     else:
         make_ast_inputs(
-                        beast_settings_info=args.beast_settings_file,
-                        pick_method="flux_bin_method"
-                        )
+            beast_settings_info=args.beast_settings_file,
+            pick_method="flux_bin_method"
+        )
 
     # print help if no arguments
     if not any(vars(args).values()):
