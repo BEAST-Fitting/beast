@@ -429,11 +429,9 @@ def supplement_ast(
 
     if existingASTfile is not None and os.path.isfile(existingASTfile):
         print(
-            "{} exists. Will attempt to load SEDs for ASTs from there \
+             "{} exists. Will attempt to load SEDs for ASTs from there \
              and remove those SEDs from the SED grid".format(
-             existingASTfile
-             )
-        )
+                 existingASTfile))
 
         t = Table.read(existingASTfile, format="fits")
         sedsMags = np.delete(sedsMags, t["sedgrid_indx"], axis=0)
@@ -448,12 +446,13 @@ def supplement_ast(
             idx_filter = [i for i, iflt in enumerate(filters) if key in iflt]
             bright_cut = mag_cuts[key][0]
             faint_cut = mag_cuts[key][1]
-            tmp_cond = np.logical_and(sedsMags[:,idx_filter] >= bright_cut,
-                                      sedsMags[:,idx_filter] <= faint_cut
+            tmp_cond = np.logical_and(sedsMags[:, idx_filter] >= bright_cut,
+                                      sedsMags[:, idx_filter] <= faint_cut
                                       )
+
             cond = np.logical_or(cond, tmp_cond.ravel())
 
-        sedsMags = sedsMags[cond,:]
+        sedsMags = sedsMags[cond, :]
         sedsIndx = sedsIndx[cond]
 
     # Randomly select models
