@@ -430,9 +430,9 @@ def supplement_ast(
 
     if existingASTfile is not None and os.path.isfile(existingASTfile):
         print(
-             "{} exists. Will attempt to load SEDs for ASTs from there \
-             and remove those SEDs from the SED grid".format(
-                 existingASTfile))
+            "{} exists. Will attempt to load SEDs for ASTs from there \
+            and remove those SEDs from the SED grid".format(
+                existingASTfile))
 
         t = Table.read(existingASTfile, format="fits")
         sedsMags = np.delete(sedsMags, t["sedgrid_indx"], axis=0)
