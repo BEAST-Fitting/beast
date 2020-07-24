@@ -380,7 +380,8 @@ def supplement_ast(
     Creates an additional fake star catalog from a BEAST model grid
     that fulfills the customized conditions to supplement input ASTs.
     If the existing input AST parameter file is given, already selected
-    models will be excluded from this process.
+    models will be excluded from this process. The input artificial
+    stars are picked randomly from the remaining models.
 
     Parameters
     ----------
