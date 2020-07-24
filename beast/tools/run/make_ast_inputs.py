@@ -17,7 +17,7 @@ from beast.observationmodel.ast import make_ast_xy_list
 from beast.tools import beast_settings
 
 
-def make_ast_inputs(pick_method,beast_settings_info):
+def make_ast_inputs(pick_method, beast_settings_info):
     """
     Make the list of artificial stars to be run through the photometry pipeline
 
@@ -124,9 +124,9 @@ def make_ast_inputs(pick_method,beast_settings_info):
 
             print("Supplementing ASTs")
 
-            nAST = datamodel.ast_N_supplement
-            existingASTfile = datamodel.ast_existing_file
-            mag_cuts = datamodel.ast_suppl_maglimit
+            nAST = settings.ast_N_supplement
+            existingASTfile = settings.ast_existing_file
+            mag_cuts = settings.ast_suppl_maglimit
 
             chosen_seds = supplement_ast(
                 modelsedgrid_filename,
