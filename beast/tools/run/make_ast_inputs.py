@@ -17,7 +17,7 @@ from beast.observationmodel.ast import make_ast_xy_list
 from beast.tools import beast_settings
 
 
-def make_ast_inputs(pick_method, beast_settings_info):
+def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
     """
     Make the list of artificial stars to be run through the photometry pipeline
 
@@ -28,7 +28,7 @@ def make_ast_inputs(pick_method, beast_settings_info):
         if class: beast.tools.beast_settings.beast_settings instance
 
     pick_method : string (default = "flux_bin_method")
-        If not specified, use the flux bin method to select SEDs as default.
+        By default, use the flux bin method to select SEDs.
         If set to "random_seds", randomly select SEDs from the model grid.
         If set to "suppl_seds", supplement the existing input ASTs by randomly
         selecting additional SEDs from the list of non-selected models.
@@ -207,16 +207,22 @@ if __name__ == "__main__":  # pragma: no cover
     args = parser.parse_args()
 
     if args.random_seds:
-        make_ast_inputs("random_seds",
-                        beast_settings_info=args.beast_settings_file)
+        make_ast_inputs(
+                        beast_settings_info=args.beast_settings_file,
+                        pick_method="random_seds"
+                        )
 
     if args.suppl_seds:
-        make_ast_inputs("suppl_seds",
-                        beast_settings_info=args.beast_settings_file)
+        make_ast_inputs(
+                        beast_settings_info=args.beast_settings_file,
+                        pick_method="suppl_seds"
+                        )
 
     else:
-        make_ast_inputs("flux_bin_method",
-                        beast_settings_info=args.beast_settings_file)
+        make_ast_inputs(
+                        beast_settings_info=args.beast_settings_file,
+                        pick_method="flux_bin_method"
+                        )
 
     # print help if no arguments
     if not any(vars(args).values()):
