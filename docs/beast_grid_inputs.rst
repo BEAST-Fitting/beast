@@ -72,7 +72,7 @@ Choices:
     1/10-2x Solar, plus additional 4 pts from 1/1000-1/30x Solar for OSTAR
     grid.  Models are computed using solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://ui.adsabs.harvard.edu/abs/1998SSRv...85..161G/abstract>`_.
 
-* `BTSettl`_
+* BTSettl
    * PHOENIX model atmospheres by `Allard et al. 2016 <https://ui.adsabs.harvard.edu/abs/2016sf2a.conf..223A/abstract>`_, specializing in cool star
      atmospheres (T\ :sub:`eff` < 6000 K). Intrinsically high-res, resampled to
      2 Ang/pix grid (medres) and to match CK04 grid (lores). Models are
@@ -132,7 +132,6 @@ Choices:
      LMC Avg = G03_LMCAvg; Gordon+03's LMC2 Supershell Avg = G03_LMC2;
      Gordon, Cartledge, & Clayton 09's MW Avg = GCC09_MWAvg
 
- .. _BTSettl: https://phoenix.ens-lyon.fr/Grids/BT-Settl/
  .. _TLusty: http://tlusty.oca.eu/
  .. _Munari: https://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=J/A%2bA/442/1127
  .. _Kurucz: http://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs/castelli-and-kurucz-atlas

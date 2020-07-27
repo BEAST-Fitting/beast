@@ -1685,7 +1685,7 @@ class BTSettl(Stellib):
       http://adsabs.harvard.edu/abs/2016sf2a.conf..223A
       http://adsabs.harvard.edu/abs/2012RSPTA.370.2765A
 
-    Files available at: https://phoenix.ens-lyon.fr/Grids/BT-Settl/
+    Files used to be available at: (https)phoenix.ens-lyon.fr/Grids/BT-Settl/
 
     Current Library: AGSS2009 Abundances (due to grid availability)
     Spectra rebinned to match Kurucz, and custom 2 Ang medium resolution
