@@ -242,7 +242,7 @@ def split_create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1):
 
             jf.write(
                 "python -m beast.tools.run.create_physicsmodel "
-                + " {0} ".format(settings.input_settings_file)
+                + " {0} ".format(settings.settings_file)
                 + " --nsubs "
                 + str(nsubs)
                 + " --nprocs "
