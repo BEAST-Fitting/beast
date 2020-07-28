@@ -31,6 +31,11 @@ which the artificial SEDs can be chosen.
    results in uneven constraints on the noise model, since there will be very few
    stars that probe the brightest or faintest parts of the model grid.
 
+If the user needs to supplement their existing input ASTs in particular areas of
+the color-magnitude diagrams set by bright and faint magnitudes in each filter,
+the user can use '--suppl_seds' option when generating additional input ASTs. By
+default, new input ASTs will be randomly selected within the given magnitude ranges.
+
 
 Functions
 =========
@@ -49,6 +54,9 @@ These functions are found in ``beast.observationmodel.ast.make_ast_input_list``.
 
 - `mag_limits`: Determines the magnitude limits for the models in each filter in
   the photometry file.
+
+- `supplement_ast`: Supplement the existing input ASTs that fulfill the user
+  defined magnitude limits.
 
 
 Picking positions
@@ -83,6 +91,7 @@ Parameters used by the flux bin method of selecting SEDs
   Minimum number of model SEDs that need to fall into each bin (if
   `pick_models_toothpick_style` is used)
 
+
 Parameters used by the random SED selection method
 --------------------------------------------------
 
@@ -103,6 +112,29 @@ Parameters used by the random SED selection method
 - `ast_models_selected_per_age` : integer (Default = 70)
 
   Number of models to pick per age
+
+
+Parameters used by the supplementing AST method
+-----------------------------------------------
+- `ast_supplement` : bool
+  
+  If True, supplement the existing input ASTs
+
+- `ast_N_supplement` : integer (Default = 1000)
+
+  Number of unique model SEDs to select. These selected unique SEDs will be
+  repeated over N number of source density bins. In total, the user will supplement
+  ast_N_supplement x ast_N_bins
+
+- `ast_existing_file` : string (optional)
+
+  If the name of the existing input AST parameter file is supplied, additional
+  ASTs will be selected by excluding the SED models listed in that file.
+
+- `ast_suppl_maglimit` : dictionary (optional)
+
+  If supplied, these magnitude limits will be applied to the SED model grids
+  when selecting additional ASTs.
 
 
 Parameters used for selecting SED positions
