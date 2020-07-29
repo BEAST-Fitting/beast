@@ -78,11 +78,11 @@ First 3 primary, others derived
 * `logA`: log10 of the stellar age (in years)
 * `Z`: stellar metallicity
 * `M_act`: current stellar mass (in solar masses)
-* `logL`: log10 of the stellar luminosity
-* `logT`: log10 of the stellar effective temperature
-* `logg`: log10 of the stellar surface gravity
+* `logL`: log10 of the stellar luminosity (in solar luminosities)
+* `logT`: log10 of the stellar effective temperature (in Kelvin)
+* `logg`: log10 of the stellar surface gravity (cm s^-2)
 * `mbol`: bolometric magnitude
-* `radius`: stellar radius
+* `radius`: stellar radius (in solar radii)
 
 Predicted Fluxes
 """"""""""""""""
