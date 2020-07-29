@@ -290,7 +290,7 @@ def setup_batch_beast_fit(
             job_command = (
                 nice_str
                 + "python -m beast.tools.run.run_fitting "
-                + " {0} ".format(settings.input_settings_file)
+                + " {0} ".format(settings.settings_file)
                 + resume_str
                 + sd_str
                 + gs_str
