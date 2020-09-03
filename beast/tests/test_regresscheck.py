@@ -67,17 +67,19 @@ class TestRegressionSuite(unittest.TestCase):
         # download the BEAST library files
         get_libfiles.get_libfiles()
 
-        dset = "phat"
-        if dset == "metal":
+        cls.dset = "metal"
+        if cls.dset == "metal":
             cls.basesubdir = "metal_small/"
             cls.basename = f"{cls.basesubdir}beast_metal_small"
             cls.obsname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst_samp.fits"
             cls.astname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst.fake.fits"
+            cls.ast_use_rate = True
         else:
             cls.basesubdir = "phat_small/"
             cls.basename = f"{cls.basesubdir}beast_example_phat"
             cls.obsname = f"{cls.basesubdir}b15_4band_det_27_A.fits"
             cls.astname = f"{cls.basesubdir}fake_stars_b15_27_all.hd5"
+            cls.ast_use_rate = False
 
         # download the cached version for use and comparision
         # - photometry and ASTs
@@ -90,7 +92,9 @@ class TestRegressionSuite(unittest.TestCase):
         # - spectra
         cls.spec_fname_cache = download_rename(f"{cls.basename}_spec_grid.hd5")
         # - spectra with priors
-        cls.priors_fname_cache = download_rename(f"{cls.basename}_spec_w_priors.grid.hd5")
+        cls.priors_fname_cache = download_rename(
+            f"{cls.basename}_spec_w_priors.grid.hd5"
+        )
         # priors_sub0_fname_cache = download_rename(
         #     f"{basename}_subgrids_spec_w_priors.gridsub0.hd5"
         # )
@@ -117,12 +121,14 @@ class TestRegressionSuite(unittest.TestCase):
         cls.noise_trim_fname_cache = download_rename(
             f"{cls.basename}_noisemodel_trim.grid.hd5"
         )
-        cls.seds_trim_fname_cache = download_rename(f"{cls.basename}_seds_trim.grid.hd5")
+        cls.seds_trim_fname_cache = download_rename(
+            f"{cls.basename}_seds_trim.grid.hd5"
+        )
         # - output files
         cls.stats_fname_cache = download_rename(f"{cls.basename}_stats.fits")
         cls.lnp_fname_cache = download_rename(f"{cls.basename}_lnp.hd5")
         cls.pdf1d_fname_cache = download_rename(f"{cls.basename}_pdf1d.fits")
-        # pdf2d_fname_cache = download_rename(f"{basename}_pdf2d.fits")
+        cls.pdf2d_fname_cache = download_rename(f"{cls.basename}_pdf2d.fits")
 
         # create the beast_settings object
         # (copied over from the phat_small example in beast-examples)
@@ -259,7 +265,7 @@ class TestRegressionSuite(unittest.TestCase):
             self.asts_fname_cache,
             modelsedgrid,
             absflux_a_matrix=self.settings.absflux_a_matrix,
-            use_rate=False,
+            use_rate=self.ast_use_rate,
         )
 
         # compare the new to the cached version
@@ -327,6 +333,7 @@ class TestRegressionSuite(unittest.TestCase):
             stats_outname=stats_fname,
             pdf1d_outname=pdf1d_fname,
             lnp_outname=lnp_fname,
+            surveyname=self.settings.surveyname,
         )
 
         # check that the stats files are exactly the same
@@ -343,24 +350,26 @@ class TestRegressionSuite(unittest.TestCase):
 
     # ###################################################################
     # AST tests
-    @pytest.mark.skip(reason="updated cached file needed")
+    # @pytest.mark.skip(reason="updated cached file needed")
     def test_ast_pick_models(self):
         """
         Generate the artifial star test (AST) inputs using a cached version of
         the sed grid and compare the result to a cached version.
         """
         # download files specific to this test
-        cached_table_filename = download_rename("cache_inputAST.txt")
+        cached_table_filename = download_rename("phat_small/cache_inputAST.txt")
 
         mag_cuts = [1.0]
 
+        seds_fname = self.seds_fname_cache
+        if self.dset != "phat":
+            seds_fname = download_rename("phat_small/beast_example_phat_seds.grid.hd5")
+        else:
+            seds_fname = self.seds_fname_cache
+
         outname = tempfile.NamedTemporaryFile(suffix=".txt").name
         make_ast_input_list.pick_models(
-            self.seds_fname_cache,
-            self.settings.filters,
-            mag_cuts,
-            outfile=outname,
-            ranseed=1234,
+            seds_fname, self.settings.filters, mag_cuts, outfile=outname, ranseed=1234,
         )
 
         table_new = Table.read(outname, format="ascii")
@@ -829,13 +838,13 @@ class TestRegressionSuite(unittest.TestCase):
         # compare to new table
         compare_tables(expected_table, Table(spec_type))
 
-    @pytest.mark.skip(reason="updated cached file needed")
+    # @pytest.mark.skip(reason="updated cached file needed")
     def test_star_type_probability_all_params(self):
         """
         Test for star_type_probability.py
         """
         # download the needed files
-        star_prob_fname = download_rename("beast_example_phat_startype.fits")
+        star_prob_fname = download_rename("phat_small/beast_example_phat_startype.fits")
 
         # run star_type_probability
         star_prob = star_type_probability.star_type_probability(
@@ -918,7 +927,7 @@ class TestRegressionSuite(unittest.TestCase):
             self.iso_fname_cache, format="ascii.csv", comment="#", delimiter=",",
         )
         table_new = Table.read(
-            "./beast_example_phat/beast_example_phat_iso.csv",
+            f"./{self.settings.project}/{self.settings.project}_iso.csv",
             format="ascii.csv",
             comment="#",
             delimiter=",",
@@ -927,12 +936,12 @@ class TestRegressionSuite(unittest.TestCase):
         # - spectra with priors
         compare_hdf5(
             self.priors_fname_cache,
-            "./beast_example_phat/beast_example_phat_spec_w_priors.grid.hd5",
+            f"./{self.settings.project}/{self.settings.project}_spec_w_priors.grid.hd5",
         )
         # - SEDs grid
         compare_hdf5(
             self.seds_fname_cache,
-            "./beast_example_phat/beast_example_phat_seds.grid.hd5",
+            f"./{self.settings.project}/{self.settings.project}_seds.grid.hd5",
         )
 
     @pytest.mark.skip(reason="updated cached file needed")
@@ -1106,10 +1115,11 @@ def setup_create_physicsmodel(request):
     yield
 
     # remove folders
-    if os.path.isdir("./beast_example_phat"):
-        shutil.rmtree("./beast_example_phat")
-    if os.path.isdir("./beast_example_phat_subgrids"):
-        shutil.rmtree("./beast_example_phat_subgrids")
+    bname = f"./{request.cls.settings.project}"
+    if os.path.isdir(bname):
+        shutil.rmtree(bname)
+    if os.path.isdir(f"{bname}_subgrids"):
+        shutil.rmtree(f"{bname}_subgrids")
 
 
 @pytest.fixture(scope="function")
