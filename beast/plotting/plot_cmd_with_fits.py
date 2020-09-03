@@ -60,8 +60,10 @@ def plot(
     # read in data
     data_hdu = fits.open(data_fits_file)
     data_table = data_hdu[1].data
+    data_hdu.close()
     beast_hdu = fits.open(beast_fits_file)
     beast_table = beast_hdu[1].data
+    beast_hdu.close()
 
     # figure out the subset that were modeled
     data_cat = SkyCoord(

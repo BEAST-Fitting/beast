@@ -138,7 +138,8 @@ class PriorWeightsDust:
         """
         indx, = np.where(av == self.av_vals)
 
-        return np.asscalar(self.av_priors[indx])
+        # return np.asscalar(self.av_priors[indx])
+        return self.av_priors[indx]
 
     def get_rv_weight(self, rv):
         """
@@ -156,7 +157,8 @@ class PriorWeightsDust:
         """
         indx, = np.where(rv == self.rv_vals)
 
-        return np.asscalar(self.rv_priors[indx])
+        # return np.asscalar(self.rv_priors[indx])
+        return self.rv_priors[indx]
 
     def get_fA_weight(self, fA):
         """
@@ -174,7 +176,8 @@ class PriorWeightsDust:
         """
         indx, = np.where(fA == self.fA_vals)
 
-        return np.asscalar(self.fA_priors[indx])
+        # return np.asscalar(self.fA_priors[indx])
+        return self.fA_priors[indx]
 
     def get_weight(self, av, rv, fA):
         """

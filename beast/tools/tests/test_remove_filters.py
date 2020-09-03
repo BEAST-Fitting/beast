@@ -30,8 +30,8 @@ def test_remove_filters():
     """
 
     # download the needed files
-    obs_fname = download_rename("b15_4band_det_27_A.fits")
-    seds_fname = download_rename("beast_example_phat_seds_extrafilter.hd5")
+    obs_fname = download_rename("phat_small/b15_4band_det_27_A.fits")
+    seds_fname = download_rename("phat_small/beast_example_phat_seds_extrafilter.hd5")
 
     # name to use for the output grid
     temp_physgrid_file = "temp_newgrid.hd5"

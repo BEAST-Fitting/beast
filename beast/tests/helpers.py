@@ -5,6 +5,7 @@ import os.path
 import numpy as np
 import h5py
 import tempfile
+import requests
 
 from astropy.io import fits
 from astropy.utils.data import download_file
@@ -23,12 +24,20 @@ def download_rename(filename, tmpdir=""):
         name of file to download
     """
     url_loc = "http://www.stsci.edu/~kgordon/beast/"
+    #    url = f"{url_loc}{filename}"
+    # check if the file exists, return False if it doesn't
+    #    response = requests.head(url)
+    #    if response.status_code in [301, 302, 303, 307, 308, 200]:
     fname_dld = download_file("%s%s" % (url_loc, filename))
     extension = filename.split(".")[-1]
     # fname = f"{fname_dld}.{extension}"
     fname = tempfile.NamedTemporaryFile(suffix=f".{extension}").name
     os.rename(fname_dld, fname)
     return fname
+
+
+#    else:
+#        return False
 
 
 def compare_tables(table_cache, table_new, rtol=1e-7, otag=""):
@@ -108,6 +117,9 @@ def compare_fits(fname_cache, fname_new):
             fits_cache[qname].data,
             err_msg=("%s FITS extension not equal" % qname),
         )
+
+    fits_cache.close()
+    fits_new.close()
 
 
 def compare_hdf5(fname_cache, fname_new, ctype=None):
