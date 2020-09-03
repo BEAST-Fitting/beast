@@ -5,11 +5,13 @@ from beast.tools import beast_settings, subgridding_tools, merge_beast_stats
 from beast.tools.run import create_filenames
 
 
-def merge_files(beast_settings_info, use_sd=True, nsubs=1):
+def merge_files(beast_settings_info, use_sd=True, nsubs=1, partial=False):
     """
     Merge all of the results from the assorted fitting sub-files (divided by
     source density, subgrids, or both).
 
+    If fitting is in progress but you want to check results of completed stars,
+    set partial=True.  This is only relevant when using subgrids.
 
     Parameters
     ----------
@@ -22,6 +24,11 @@ def merge_files(beast_settings_info, use_sd=True, nsubs=1):
 
     nsubs : int (default=1)
         number of subgrids used for the physics model
+
+    partial : boolean (default=False)
+        If True, the output merged files will only have stars that have been
+        run across all subgrids.  If stars have only been fit in some subgrids
+        and not others, they will be discarded in the "partial" output files.
 
     """
 
@@ -96,6 +103,8 @@ def merge_files(beast_settings_info, use_sd=True, nsubs=1):
                 out_filebase = "{0}/bin{1}_sub{2}/{0}_bin{1}_sub{2}".format(
                     settings.project, sd_sub[0], sd_sub[1]
                 )
+                if partial:
+                    out_filebase += '_partial'
 
                 # - 1D PDFs and stats
                 (
@@ -106,19 +115,21 @@ def merge_files(beast_settings_info, use_sd=True, nsubs=1):
                     [stats_files[j] for j in ind],
                     re_run=False,
                     output_fname_base=out_filebase,
+                    partial=partial,
                 )
 
                 merged_pdf_files.append(merged_pdf1d_fname)
                 merged_stats_files.append(merged_stats_fname)
 
                 # - lnP files
-                merged_lnp_fname = subgridding_tools.merge_lnp(
-                    [lnp_files[j] for j in ind],
-                    re_run=False,
-                    output_fname_base=out_filebase,
-                    threshold=-10,
-                )
-                merged_lnp_files.append(merged_lnp_fname)
+                if not partial:
+                    merged_lnp_fname = subgridding_tools.merge_lnp(
+                        [lnp_files[j] for j in ind],
+                        re_run=False,
+                        output_fname_base=out_filebase,
+                        threshold=-10,
+                    )
+                    merged_lnp_files.append(merged_lnp_fname)
 
             # merge the merged stats files
             out_filebase = "{0}/{0}".format(settings.project)
