@@ -2,7 +2,12 @@ import inspect
 import argparse
 
 from beast.tools import get_libfiles, simulate_obs
-from beast.plotting import plot_cmd, plot_filters, plot_noisemodel
+from beast.plotting import (
+    plot_cmd,
+    plot_filters,
+    plot_noisemodel,
+    plot_toothpick_details,
+)
 
 # cannot get plot_filters to work as the main parameter passed (filter_names)
 # needs to allow multiple strings
@@ -24,6 +29,7 @@ def main():
         plot_cmd,
         plot_filters,
         plot_noisemodel,
+        plot_toothpick_details,
     ]  # scripts available
 
     parser = argparse.ArgumentParser()

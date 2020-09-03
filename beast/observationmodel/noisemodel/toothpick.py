@@ -281,12 +281,12 @@ class MultiFilterASTs(NoiseModel):
 
         shape = nbins, len(self.filters)
 
-        self._fluxes = np.empty(shape, dtype=float)
-        self._biases = np.empty(shape, dtype=float)
-        self._sigmas = np.empty(shape, dtype=float)
-        self._compls = np.empty(shape, dtype=float)
-        self._nasts = np.empty(shape[1], dtype=int)
-        self._minmax_asts = np.empty((2, shape[1]), dtype=float)
+        self._fluxes = np.zeros(shape, dtype=float)
+        self._biases = np.zeros(shape, dtype=float)
+        self._sigmas = np.zeros(shape, dtype=float)
+        self._compls = np.zeros(shape, dtype=float)
+        self._nasts = np.zeros(shape[1], dtype=int)
+        self._minmax_asts = np.zeros((2, shape[1]), dtype=float)
 
         if progress is True:
             it = tqdm(self.filters, desc="Fitting model")
