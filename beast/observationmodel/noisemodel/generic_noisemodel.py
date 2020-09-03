@@ -69,7 +69,9 @@ def make_toothpick_noise_model(
     if use_rate:
         # change the mappings for the out column to the rate column
         for cfilt in sedgrid.filters:
-            model.filter_aliases[cfilt + "_out"] = cfilt.split("_")[-1].upper() + "_RATE"
+            model.filter_aliases[cfilt + "_out"] = (
+                cfilt.split("_")[-1].upper() + "_RATE"
+            )
         model.fit_bins(nbins=30, completeness_mag_cut=-10)
     else:
         model.fit_bins(nbins=30, completeness_mag_cut=80)
@@ -86,17 +88,18 @@ def make_toothpick_noise_model(
             abs_calib_2 = np.diag(absflux_a_matrix)
 
         noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma ** 2)
+
+        # check if the noise model has been extrapolated at the faint or bright flux levels
+        # if so, then set the noise to a negative value (later may be used to
+        # trim the model of "invalid" models)
+        # if the noise model has been extrapolated, the completeness is set to zeros
+        for k in range(len(model.filters)):
+            (indxs,) = np.where(compl[:, k] <= 0.0)
+            if len(indxs) > 0:
+                noise[indxs, k] *= -1.0
+
     else:
         noise = sigma
-
-    # check if the noise model has been extrapolated at the faint or bright flux levels
-    # if so, then set the noise to a negative value (later may be used to
-    # trim the model of "invalid" models)
-    # if the noise model has been extrapolated, the completeness is set to zeros
-    for k in range(len(model.filters)):
-        (indxs,) = np.where(compl[:, k] <= 0.0)
-        if len(indxs) > 0:
-            noise[indxs, k] *= -1.0
 
     print("Writing to disk into {0:s}".format(outname))
     with tables.open_file(outname, "w") as outfile:

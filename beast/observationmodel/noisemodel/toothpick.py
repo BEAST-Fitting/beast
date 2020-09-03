@@ -371,7 +371,7 @@ class MultiFilterASTs(NoiseModel):
                 flux[:, i], _fluxes, _biases[arg_sort], left=0.0, right=0.0
             )
             sigma[:, i] = np.interp(
-                flux[:, i], _fluxes, _sigmas[arg_sort], left=-1.0, right=-1.0
+                flux[:, i], _fluxes, _sigmas[arg_sort], left=0.0, right=0.0
             )
             compl[:, i] = np.interp(
                 flux[:, i], _fluxes, _compls[arg_sort], left=0.0, right=0.0

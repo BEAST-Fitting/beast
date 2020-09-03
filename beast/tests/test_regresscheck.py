@@ -413,7 +413,6 @@ class TestRegressionSuite(unittest.TestCase):
 
     # ###################################################################
     # tools tests
-    @pytest.mark.skip(reason="not working")
     def test_read_lnp_data(self):
         """
         Read in the lnp data from a cached file and test that selected values
@@ -427,8 +426,8 @@ class TestRegressionSuite(unittest.TestCase):
 
         # check an entry for a single model (caching current values 20 Apr 2020)
         # fmt: off
-        exp_vals = [-56.83604431, -76.34762573, -17.55770874, -18.23323059, -10.53744507]
-        exp_indxs = [14639., 15015., 296., 12636., 1336.]
+        exp_vals = [-229.01898098, -818.39692688, -20.67518616, -64.62489319, -52.11108398]
+        exp_indxs = [19077., 19077., 17320., 2419., 15408.]
         # fmt: on
         np.testing.assert_allclose(
             ldata["vals"][0][0:5],
@@ -494,7 +493,7 @@ class TestRegressionSuite(unittest.TestCase):
             "Av": 0.0,
             "Rv": 2.0,
             "f_A": 1.0,
-            "M_ini": 4.0073261261,
+            "M_ini": 4.4145975113,
             "logA": 6.0,
             "Z": 0.008,
             "distance": 783429.642766212,
@@ -523,11 +522,11 @@ class TestRegressionSuite(unittest.TestCase):
         # check that otherwise, the requested lgvals data is returned
         expected_values = {
             "Av": [0.0, 0.0, 0.0, 0.0, 0.0],
-            "Rv": [2.0, 2.0, 2.0, 2.0, 2.0],
-            "f_A": [1.0, 1.0, 1.0, 1.0, 1.0],
-            "M_ini": [3.89416909, 3.92726111, 3.95603228, 2.04966068, 2.04999995],
+            "Rv": [2.0, 3.0, 3.0, 3.0, 3.0],
+            "f_A": [1., 0.25, 0.5, 0.75, 1.],
+            "M_ini": [2.95517373, 2.95517373, 2.95517373, 2.95517373, 2.95517373],
             "logA": [6.0, 6.0, 6.0, 9.0, 9.0],
-            "Z": [0.03, 0.03, 0.03, 0.004, 0.004],
+            "Z": [0.004, 0.004, 0.004, 0.004, 0.004],
             "distance": [
                 783429.64276621,
                 783429.64276621,

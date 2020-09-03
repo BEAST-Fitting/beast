@@ -291,7 +291,7 @@ def gen_SimObs_from_sedgrid(
     gridweights = gridweights / np.sum(gridweights)
 
     # set the random seed - mainly for testing
-    if not None:
+    if ranseed is not None:
         np.random.seed(ranseed)
 
     # sample to get the indexes of the picked models
