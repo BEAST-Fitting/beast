@@ -103,7 +103,7 @@ class MultiFilterASTs(NoiseModel):
         magflux_in,
         magflux_out,
         nbins=30,
-        min_per_bin=5,
+        min_per_bin=10,
         completeness_mag_cut=80,
         name_prefix=None,
         asarray=False,

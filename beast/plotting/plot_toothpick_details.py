@@ -29,7 +29,7 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
     model.set_data_mappings(upcase=True, in_pair=("in", "in"), out_pair=("out", "rate"))
 
     # compute binned biases, uncertainties, and completeness as a function of band flux
-    model.fit_bins(nbins=20, completeness_mag_cut=-10)
+    model.fit_bins(nbins=50, completeness_mag_cut=-10)
 
     nfilters = len(sedgrid.filters)
     fig, ax = plt.subplots(nrows=nfilters, figsize=(8, 8), sharex=True)
@@ -58,12 +58,12 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
             "b-",
         )
 
-        ax[i].set_ylim(-1e2, 1e2)
+        ax[i].set_ylim(-1e4, 1e4)
         ax[i].set_xscale("log")
         ax[i].set_ylabel(r"$(F_i - F_o)/F_i$")
 
     ax[nfilters - 1].set_xlabel(r"$F_i$")
-    ax[0].set_xlim(1e-21, 1e-13)
+    ax[0].set_xlim(1e-24, 1e-13)
 
     # figname
     basename = asts_filename.replace(".fits", "_plot")
