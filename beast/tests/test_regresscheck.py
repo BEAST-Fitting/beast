@@ -65,7 +65,7 @@ class TestRegressionSuite(unittest.TestCase):
     def setUpClass(cls):
 
         # download the BEAST library files
-        # get_libfiles.get_libfiles()
+        get_libfiles.get_libfiles()
 
         dset = "phat"
         if dset == "metal":
