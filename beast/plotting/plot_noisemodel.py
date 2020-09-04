@@ -176,7 +176,7 @@ if __name__ == "__main__":  # pragma: no cover
     plot_noisemodel(
         args.sed_file,
         args.noise_file_list,
-        args.phot_file,
+        args.plot_file,
         samp=args.samp,
         color=args.color,
         label=args.label,

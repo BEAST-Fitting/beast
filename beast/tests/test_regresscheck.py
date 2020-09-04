@@ -350,7 +350,7 @@ class TestRegressionSuite(unittest.TestCase):
 
     # ###################################################################
     # AST tests
-    @pytest.mark.skip(reason="need filters info: get from sed grid?")
+    @pytest.mark.skip(reason="need filters info: get from sed grid - will have to download")
     def test_ast_pick_models(self):
         """
         Generate the artifial star test (AST) inputs using a cached version of
