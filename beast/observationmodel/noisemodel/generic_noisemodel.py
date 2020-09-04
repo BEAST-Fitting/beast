@@ -29,6 +29,7 @@ def make_toothpick_noise_model(
     use_rate=True,
     vega_fname=None,
     absflux_a_matrix=None,
+    nfluxbins=50,
     **kwargs,
 ):
     """ toothpick noise model assumes that every filter is independent with
@@ -36,22 +37,25 @@ def make_toothpick_noise_model(
 
     Parameters
     ----------
-    outname: str
+    outname : str
         path and filename into which save the noise model
 
-    astfile: str
+    astfile : str
         path to the file into which are ASTs results
 
-    sedgrid: SEDGrid instance
+    sedgrid : SEDGrid instance
         sed model grid for everyone of which we will evaluate the model
 
-    use_rate: boolean
+    use_rate : boolean
         set to use the rate column (normalized vega flux)
         instead of out column (mags)
 
-    absflux_a_matrix: ndarray
+    absflux_a_matrix : ndarray
         absolute calibration a matrix giving the fractional uncertainties
         including correlated terms (off diagonals)
+
+    nfluxbins : int (default=50)
+        number of flux bins
 
     returns
     -------
@@ -72,9 +76,9 @@ def make_toothpick_noise_model(
             model.filter_aliases[cfilt + "_out"] = (
                 cfilt.split("_")[-1].upper() + "_RATE"
             )
-        model.fit_bins(nbins=30, completeness_mag_cut=-10)
+        model.fit_bins(nbins=nfluxbins, completeness_mag_cut=-10)
     else:
-        model.fit_bins(nbins=30, completeness_mag_cut=80)
+        model.fit_bins(nbins=nfluxbins, completeness_mag_cut=80)
 
     # evaluate the noise model for all the models in sedgrid
     bias, sigma, compl = model(sedgrid)

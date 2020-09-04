@@ -1,3 +1,4 @@
+# import numpy as np
 import matplotlib.pyplot as plt
 
 from beast.observationmodel.noisemodel import toothpick
@@ -32,7 +33,7 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
     model.fit_bins(nbins=50, completeness_mag_cut=-10)
 
     nfilters = len(sedgrid.filters)
-    fig, ax = plt.subplots(nrows=nfilters, figsize=(8, 8), sharex=True)
+    fig, ax = plt.subplots(nrows=nfilters, ncols=2, figsize=(12, 8), sharex=True)
 
     for i, cfilter in enumerate(sedgrid.filters):
         mag_in = model.data[model.filter_aliases[cfilter + "_in"]]
@@ -43,7 +44,11 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
 
         gvals = flux_out != 0.0
 
-        ax[i].plot(
+        # delt = np.absolute(((flux_in[gvals] - flux_out[gvals]) / flux_in[gvals]) - 1.0)
+        # gvals2 = delt < 0.01
+        # print(cfilter, flux_in[gvals][gvals2][0], flux_out[gvals][gvals2][0], delt[gvals2][0])
+
+        ax[i, 0].plot(
             flux_in[gvals],
             (flux_in[gvals] - flux_out[gvals]) / flux_in[gvals],
             "ko",
@@ -51,19 +56,43 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
             markersize=2,
         )
 
-        gmods = model._compls[:, i] > 0.0
-        ax[i].plot(
-            model._fluxes[gmods, i],
-            model._biases[gmods, i] / model._fluxes[gmods, i],
+        # not all bins are filled with good data
+        ngbins = model._nasts[i]
+        ax[i, 0].plot(
+            model._fluxes[0:ngbins, i],
+            model._biases[0:ngbins, i] / model._fluxes[0:ngbins, i],
             "b-",
         )
 
-        ax[i].set_ylim(-1e4, 1e4)
-        ax[i].set_xscale("log")
-        ax[i].set_ylabel(r"$(F_i - F_o)/F_i$")
+        ax[i, 0].errorbar(
+            model._fluxes[0:ngbins, i],
+            model._biases[0:ngbins, i] / model._fluxes[0:ngbins, i],
+            yerr=model._sigmas[0:ngbins, i] / model._fluxes[0:ngbins, i],
+            fmt="bo",
+            markersize=2,
+            alpha=0.5,
+        )
 
-    ax[nfilters - 1].set_xlabel(r"$F_i$")
-    ax[0].set_xlim(1e-24, 1e-13)
+        ax[i, 0].set_ylim(-5e0, 5e0)
+        ax[i, 0].set_xscale("log")
+        ax[i, 0].set_ylabel(r"$(F_i - F_o)/F_i$")
+
+        ax[i, 1].plot(
+            model._fluxes[0:ngbins, i],
+            model._compls[0:ngbins, i],
+            "b-",
+        )
+
+        ax[i, 1].yaxis.tick_right()
+        ax[i, 1].yaxis.set_label_position("right")
+        ax[i, 1].set_ylim(0, 1)
+        ax[i, 1].set_xscale("log")
+        sfilt = cfilter.split("_")[-1]
+        ax[i, 1].set_ylabel(f"C({sfilt})")
+
+    ax[nfilters - 1, 0].set_xlabel(r"$F_i$")
+    ax[nfilters - 1, 1].set_xlabel(r"$F_i$")
+    # ax[0, 0].set_xlim(1e-25, 1e-13)
 
     # figname
     basename = asts_filename.replace(".fits", "_plot")

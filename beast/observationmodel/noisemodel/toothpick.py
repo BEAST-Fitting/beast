@@ -256,7 +256,7 @@ class MultiFilterASTs(NoiseModel):
         else:
             return d
 
-    def fit(self, nbins=30, completeness_mag_cut=80, progress=True):
+    def fit(self, nbins=50, completeness_mag_cut=80, progress=True):
         """
         Alias of fit_bins
         """
@@ -264,7 +264,7 @@ class MultiFilterASTs(NoiseModel):
             nbins=nbins, completeness_mag_cut=completeness_mag_cut, progress=progress
         )
 
-    def fit_bins(self, nbins=30, completeness_mag_cut=80, progress=True):
+    def fit_bins(self, nbins=50, completeness_mag_cut=80, progress=True):
         """
         Compute the necessary statistics before evaluating the noise model
 
