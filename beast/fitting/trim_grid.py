@@ -81,15 +81,11 @@ def trim_models(
         model_icov_diag = sedgrid_noisemodel["icov_diag"]
         model_icov_offdiag = sedgrid_noisemodel["icov_offdiag"]
 
-    # identify the models that have been detected in enough bands
-    #   the idea here is that if the ASTs are not measured that means
-    #   that *none* were recovered and this implies
-    #   that no model with these values would be recovered and thus the
-    #   probability should always be zero
-    # use the completeness values for this cut
+    # has to be complete in all filters - otherwise observation model not defined
+    # toothpick model means that if compl = 0, then bias = 0, and sigma = 0 from ASTs
     above_ast = model_compl > 0
     sum_above_ast = np.sum(above_ast, axis=1)
-    (indxs,) = np.where(sum_above_ast >= n_detected)
+    (indxs,) = np.where(sum_above_ast >= n_filters)
     n_ast_indxs = len(indxs)
 
     print("number of original models = ", len(sedgrid.seds[:, 0]))
@@ -108,13 +104,13 @@ def trim_models(
         model_down = model_val - sigma_fac * model_unc[indxs, k]
         model_up = model_val + sigma_fac * model_unc[indxs, k]
 
-        print(k, min(model_val), max(model_val), min(model_bias[indxs, k]))
+        # print(k, min(model_val), max(model_val), min(model_bias[indxs, k]))
 
         (nindxs,) = np.where((model_up >= min_data[k]) & (model_down <= max_data[k]))
         if len(nindxs) > 0:
             indxs = indxs[nindxs]
 
-    exit()
+    # exit()
 
     if len(indxs) == 0:
         raise ValueError("no models that are within the data range")
