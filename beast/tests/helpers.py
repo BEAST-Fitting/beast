@@ -109,6 +109,9 @@ def compare_fits(fname_cache, fname_new):
             err_msg=("%s FITS extension not equal" % qname),
         )
 
+    fits_cache.close()
+    fits_new.close()
+
 
 def compare_hdf5(fname_cache, fname_new, ctype=None):
     """

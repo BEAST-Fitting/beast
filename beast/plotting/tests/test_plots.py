@@ -18,8 +18,8 @@ plt.switch_backend("agg")
 def test_indiv_plot():
 
     # download cached version of fitting results
-    stats_fname_cache = download_rename("beast_example_phat_stats.fits")
-    pdf1d_fname_cache = download_rename("beast_example_phat_pdf1d.fits")
+    stats_fname_cache = download_rename("phat_small/beast_example_phat_stats.fits")
+    pdf1d_fname_cache = download_rename("phat_small/beast_example_phat_pdf1d.fits")
 
     starnum = 0
 
@@ -52,6 +52,8 @@ def test_indiv_plot():
     # make the plot!
     plot_indiv_fit.plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum)
 
+    pdf1d_hdu.close()
+
     return fig
 
 
@@ -60,7 +62,7 @@ def test_indiv_plot():
 def test_plot_cmd():
 
     # Download example data from phat_small
-    fitsfile = download_rename("b15_4band_det_27_A.fits")
+    fitsfile = download_rename("phat_small/b15_4band_det_27_A.fits")
 
     # Plot CMD using defaults
     fig = plot_cmd.plot_cmd(fitsfile, show_plot=False)
@@ -73,10 +75,10 @@ def test_plot_cmd():
 def test_plot_cmd_with_fits():
 
     # Download example data from phat_small
-    fitsfile = download_rename("b15_4band_det_27_A.fits")
+    fitsfile = download_rename("phat_small/b15_4band_det_27_A.fits")
 
     # Download BEAST fits to example data
-    beast_fitsfile = download_rename("beast_example_phat_stats.fits")
+    beast_fitsfile = download_rename("phat_small/beast_example_phat_stats.fits")
 
     # Plot CMD using defaults
     fig = plot_cmd_with_fits.plot(fitsfile, beast_fitsfile)

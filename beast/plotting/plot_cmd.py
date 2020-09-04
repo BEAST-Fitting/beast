@@ -45,6 +45,7 @@ def plot_cmd(
 
     fits_data = fits.open(fitsfile)
     table = fits_data[1].data
+    fits_data.close()
 
     # Read in band_rate
     mag1_flux = table["%s" % (mag1_filter + "_rate")]

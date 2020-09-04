@@ -151,7 +151,7 @@ if __name__ == "__main__":  # pragma: no cover
         help="path+name of the noise model file(s)",
     )
     parser.add_argument(
-        "phot_file", type=str, help="name of the file to save the plot",
+        "plot_file", type=str, help="name of the file to save the plot",
     )
     parser.add_argument(
         "--samp", type=int, default=100, help="plot every Nth point",
@@ -176,7 +176,7 @@ if __name__ == "__main__":  # pragma: no cover
     plot_noisemodel(
         args.sed_file,
         args.noise_file_list,
-        args.phot_file,
+        args.plot_file,
         samp=args.samp,
         color=args.color,
         label=args.label,

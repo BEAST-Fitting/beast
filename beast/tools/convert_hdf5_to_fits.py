@@ -86,6 +86,8 @@ def st_file(file_name):
         file_name.replace("phot.hdf5", "st.fits"), format="fits", overwrite=True
     )
 
+    f.close()
+
 
 if __name__ == "__main__":
     st_file(file_name=None)

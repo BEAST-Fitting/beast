@@ -24,7 +24,7 @@ def test_splinter_noisemodel(frac_unc):
     make_splinter_noise_model(noise_fname, modelsedgrid, frac_unc=frac_unc)
 
     # read entire noisemodel back in
-    noisemodel = h5py.File(noise_fname)
+    noisemodel = h5py.File(noise_fname, "r")
 
     # read the estimated sigma and check if close to manually computed errors
     sigma = noisemodel["error"]

@@ -16,9 +16,6 @@ import matplotlib
 from astropy.table import Table
 from astropy.io import fits
 
-from astropy import units as ap_units
-from astropy.coordinates import SkyCoord as ap_SkyCoord
-
 from beast.plotting.beastplotlib import initialize_parser
 
 
@@ -74,11 +71,17 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum, stats=None, logx=False):
     if logx:
         xvals = np.log10(xvals)
 
-    if tagname == "Z":
-        (gindxs,) = np.where(pdf > 0.0)
-        ax.plot(xvals[gindxs], pdf[gindxs] / max(pdf[gindxs]), color="k")
-    else:
-        ax.plot(xvals, pdf / max(pdf), color="k")
+    # there is a problem when "Z" in the model grid is set to a single value
+    #  it shows up as two values here
+    #  likely an issue deep in the BEAST fit.py code - distance handled better
+    # if tagname == "Z":
+    #     print(xvals, pdf)
+    #     (gindxs,) = np.where(pdf > 0.0)
+    #     ax.plot(xvals[gindxs], pdf[gindxs] / max(pdf[gindxs]), color="k")
+    # else:
+    # if tagname == "Z":
+    #    print(xvals, pdf)
+    ax.plot(xvals, pdf / max(pdf), color="k")
 
     ax.yaxis.set_major_locator(MaxNLocator(6))
     ax.xaxis.set_major_locator(MaxNLocator(4))
@@ -170,18 +173,7 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
     mod_flux_wbias = np.empty((n_filters, 3), dtype=np.float)
     k = starnum
 
-    c = ap_SkyCoord(
-        ra=stats["RA"][k] * ap_units.degree,
-        dec=stats["DEC"][k] * ap_units.degree,
-        frame="icrs",
-    )
-    corname = (
-        "PHAT J"
-        + c.ra.to_string(
-            unit=ap_units.hourangle, sep="", precision=2, alwayssign=False, pad=True
-        )
-        + c.dec.to_string(sep="", precision=2, alwayssign=True, pad=True)
-    )
+    corname = stats["Name"][k]
 
     for i, cfilter in enumerate(filters):
         obs_flux[i] = stats[cfilter][k]

@@ -20,6 +20,7 @@ def test_sbatch_file():
 
     file = open(temp_file.name)
     content = file.read()
+    file.close()
 
     expected = """#!/bin/bash
 
