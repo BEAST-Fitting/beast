@@ -17,7 +17,7 @@ Installation
 ============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    How to install <install.rst>
    Running an example <example.rst>
@@ -27,7 +27,7 @@ User Documentation
 ==================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    BEAST run setup details <beast_setup.rst>
    Example production run workflow <workflow.rst>
@@ -47,7 +47,7 @@ Developer Documentation
 =======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    How to contribute <beast_development.rst>
    Internal Classes <development_classes.rst>
@@ -97,4 +97,5 @@ Reference API
    physicsmodel_api.rst
    observationmodel_api.rst
    fitting_api.rst
+   plotting_api.rst
    tools_api.rst

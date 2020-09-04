@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 """
 Plot the individual fit for a single observed star
-
-.. history::
-    Written 12 Jan 2016 by Karl D. Gordon
-      based on code written by Heddy Arab for the BEAST techniques paper figure
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,6 +13,9 @@ from astropy.table import Table
 from astropy.io import fits
 
 from beast.plotting.beastplotlib import initialize_parser
+
+
+__all__ = ["plot_beast_ifit"]
 
 
 def inverse_symlog(y):
