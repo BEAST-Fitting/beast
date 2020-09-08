@@ -211,14 +211,16 @@ that don't have full imaging coverage, and to create ds9 region files:
 
 
 The observed catalog should be split into separate files for each source
-density.  In addition, each source density catalog is split into a set of
-sub files to have at most 'n_per_file' sources.  The sources are sorted by
-the 'sort_col' flux before splitting to put sources with similar brightness
-together.  This splitting into sub files sorted by flux allows for trimming
-the BEAST physics+observation model, removing objects that are too bright
-or too faint to fit any of the sources in the file.  In addition, this
-allows for running the BEAST fitting in parallel with each sub file
-on a different core.
+density.  In addition, each source density catalog can be split into a set of
+sub-files to have at most 'n_per_file' sources (or, if there are very few stars
+in a source density bin, at least 'min_n_subfile' sub-files).  The sources are
+sorted by the 'sort_col' flux before splitting to put sources with similar
+brightness together.  This splitting into sub files sorted by flux allows for
+trimming the BEAST physics+observation model, removing objects that are too
+bright or too faint to fit any of the sources in the file; more sub-files mean a
+narrower range of flux in each one, so more is trimmed and fitting is faster.
+In addition, this allows for running the BEAST fitting in parallel with each
+sub-file on a different core.
 
 Command to split both the catalog and AST files by source density:
 
@@ -226,7 +228,7 @@ Command to split both the catalog and AST files by source density:
 
     $ python -m beast.tools.split_catalog_using_map.py phot_catalog_cut.fits \
           ast_catalog_cut.fits phot_catalog_sourceden_map.hd5 --bin_width 1 \
-          --n_per_file 6250 --sort_col F475W_RATE
+          --n_per_file 6250 --min_n_subfile 3 --sort_col F475W_RATE
 
 
 *****************
