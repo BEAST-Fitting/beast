@@ -6,6 +6,7 @@ import math
 import tables
 import string
 from itertools import islice
+import warnings
 
 import numexpr
 
@@ -51,6 +52,8 @@ def save_stats(
     total_log_norm,
     qnames,
     p,
+    filters,
+    wavelengths,
 ):
     """
     Save various fitting statistics to a file
@@ -108,7 +111,19 @@ def save_stats(
     summary_tab = Table(stats_dict)
 
     if stats_outname is not None:
-        summary_tab.write(stats_outname, overwrite=True)
+        # standard Table writing of FITS files does not support multiple extensions
+        # but reading does, so only have to do this when writing
+        ohdu = fits.HDUList()
+        ohdu.append(fits.table_to_hdu(summary_tab))
+
+        # create a table with the filter names and wavelengths
+        # useful for plotting the results
+        filters_tab = Table()
+        filters_tab["filternames"] = filters
+        filters_tab["wavelengths"] = wavelengths
+        ohdu.append(fits.table_to_hdu(filters_tab))
+
+        ohdu.writeto(stats_outname, overwrite=True)
 
 
 def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
@@ -385,6 +400,11 @@ def Q_all_memory(
     # remove weights that are less than zero
     (g0_indxs,) = np.where(g0["weight"] > 0.0)
 
+    for i, cfilter in enumerate(sedgrid.filters):
+        (incomp_indxs,) = np.where(obsmodel["completeness"][:, i] <= 0.0)
+        if len(incomp_indxs) > 0:
+            raise ValueError("models with zero completeness present in the observation model")
+
     g0_weights = np.log(g0["weight"][g0_indxs])
     if not do_not_normalize:
         # this variable used on the next line, so is used regardless of what flake8 says
@@ -392,8 +412,8 @@ def Q_all_memory(
         g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
 
     if len(g0["weight"]) != len(g0_indxs):
-        print("some zero weight models exist")
-        print("orig/g0_indxs", len(g0["weight"]), len(g0_indxs))
+        warnings.warn("some zero weight models exist")
+        warnings.warn("orig/g0_indxs", len(g0["weight"]), len(g0_indxs))
 
     # get the model SEDs
     if hasattr(g0.seds, "read"):
@@ -763,6 +783,8 @@ def Q_all_memory(
                         total_log_norm,
                         qnames,
                         p,
+                        sedgrid.filters,
+                        sedgrid.lamb,
                     )
 
                 # save the lnps
@@ -796,6 +818,8 @@ def Q_all_memory(
             total_log_norm,
             qnames,
             p,
+            sedgrid.filters,
+            sedgrid.lamb,
         )
 
     # save the lnps

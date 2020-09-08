@@ -29,6 +29,7 @@ def make_toothpick_noise_model(
     use_rate=True,
     vega_fname=None,
     absflux_a_matrix=None,
+    nfluxbins=50,
     **kwargs,
 ):
     """ toothpick noise model assumes that every filter is independent with
@@ -36,22 +37,25 @@ def make_toothpick_noise_model(
 
     Parameters
     ----------
-    outname: str
+    outname : str
         path and filename into which save the noise model
 
-    astfile: str
+    astfile : str
         path to the file into which are ASTs results
 
-    sedgrid: SEDGrid instance
+    sedgrid : SEDGrid instance
         sed model grid for everyone of which we will evaluate the model
 
-    use_rate: boolean
+    use_rate : boolean
         set to use the rate column (normalized vega flux)
         instead of out column (mags)
 
-    absflux_a_matrix: ndarray
+    absflux_a_matrix : ndarray
         absolute calibration a matrix giving the fractional uncertainties
         including correlated terms (off diagonals)
+
+    nfluxbins : int (default=50)
+        number of flux bins
 
     returns
     -------
@@ -69,10 +73,12 @@ def make_toothpick_noise_model(
     if use_rate:
         # change the mappings for the out column to the rate column
         for cfilt in sedgrid.filters:
-            model.filter_aliases[cfilt + "_out"] = cfilt.split("_")[-1].upper() + "_RATE"
-        model.fit_bins(nbins=30, completeness_mag_cut=-10)
+            model.filter_aliases[cfilt + "_out"] = (
+                cfilt.split("_")[-1].upper() + "_RATE"
+            )
+        model.fit_bins(nbins=nfluxbins, completeness_mag_cut=-10)
     else:
-        model.fit_bins(nbins=30, completeness_mag_cut=80)
+        model.fit_bins(nbins=nfluxbins, completeness_mag_cut=80)
 
     # evaluate the noise model for all the models in sedgrid
     bias, sigma, compl = model(sedgrid)
@@ -86,18 +92,18 @@ def make_toothpick_noise_model(
             abs_calib_2 = np.diag(absflux_a_matrix)
 
         noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma ** 2)
+
+        # check if the noise model has been extrapolated at the faint or bright flux levels
+        # if so, then set the noise to a negative value (later may be used to
+        # trim the model of "invalid" models)
+        # if the noise model has been extrapolated, the completeness is set to zeros
+        for k in range(len(model.filters)):
+            (indxs,) = np.where(compl[:, k] <= 0.0)
+            if len(indxs) > 0:
+                noise[indxs, k] *= -1.0
+
     else:
         noise = sigma
-
-    # check if the noise model has been extrapolated at the faint flux levels
-    # if so, then set the noise to a negative value (later may be used to
-    # trim the model of "invalid" models)
-    # we are assuming that extrapolation at high fluxes is ok as the noise
-    # will be very small there
-    for k in range(len(model.filters)):
-        (indxs,) = np.where(sedgrid.seds[:, k] <= model._minmax_asts[0, k])
-        if len(indxs) > 0:
-            noise[indxs, k] *= -1.0
 
     print("Writing to disk into {0:s}".format(outname))
     with tables.open_file(outname, "w") as outfile:

@@ -3,6 +3,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 from astropy.io import fits
 
+__all__ = ["plot_param_recovery"]
+
 
 def plot_param_recovery(
     sim_data_list,

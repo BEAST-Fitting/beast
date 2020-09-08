@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-""" Make a nice plot of the filter response functions
-
+"""
+Make a nice plot of the filter response functions
 """
 import numpy as np
 import matplotlib as mpl
@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 
 from beast.observationmodel import phot
 from beast.plotting.beastplotlib import initialize_parser
+
+__all__ = ["plot_filters"]
 
 
 def plot_filters(
@@ -87,17 +89,11 @@ def plot_filters(
 
 if __name__ == "__main__":  # pragma: no cover
     parser = initialize_parser()
-    # parser.add_argument(
-    #     "--tex", action="store", default="False", help="Use tex format for plot",
-    # )
     parser.add_argument(
         "--save_name",
         action="store",
         default="filters.appendVegaFilter",
         help="Save figure to file",
-    )
-    parser.add_argument(
-        "--savefig", action="store", default="True", help="Save figure to file",
     )
     args = parser.parse_args()
 

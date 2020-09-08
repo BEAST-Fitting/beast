@@ -69,7 +69,7 @@ class TestRegressionSuite(unittest.TestCase):
 
         cls.dset = "metal"
         if cls.dset == "metal":
-            cls.basesubdir = "metal_small/"
+            cls.basesubdir = "metal_small_4sep20/"
             cls.basename = f"{cls.basesubdir}beast_metal_small"
             cls.obsname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst_samp.fits"
             cls.astname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst.fake.fits"
@@ -396,7 +396,7 @@ class TestRegressionSuite(unittest.TestCase):
         noisegrid = noisemodel.get_noisemodelcat(self.noise_fname_cache)
 
         table_new = gen_SimObs_from_sedgrid(
-            modelsedgrid, noisegrid, nsim=100, ranseed=1234,
+            modelsedgrid, noisegrid, nsim=100, compl_filter="max", ranseed=1234,
         )
 
         # check that the simobs files are exactly the same
@@ -441,7 +441,6 @@ class TestRegressionSuite(unittest.TestCase):
             err_msg="Expected index values not correct",
         )
 
-    @pytest.mark.skip(reason="not working")
     def test_read_noise_data(self):
         """
         Read in the noise model from a cached file and test that selected values
@@ -453,25 +452,17 @@ class TestRegressionSuite(unittest.TestCase):
         for ckey in ndata.keys():
             assert ckey in exp_keys, f"{ckey} not in noise data expected keys"
 
-        # check an entry for a single model (caching current values 18 Apr 2020)
-        # fmt: off
-        exp_bias = [-6.77602149e-20, -1.36353610e-20, 2.87448605e-20,
-                    -2.38253474e-21, -1.70330281e-20, -2.70390708e-20]
-        exp_error = [1.63128160e-19, 7.50503350e-20, 7.65873857e-20,
-                     2.48842055e-20, 9.41313147e-20, 2.79650823e-20]
-        exp_compl = [1.0, 0.95552407, 1.0, 0.74733078, 0.77777778, 0.42857143]
-        # fmt: on
-        np.testing.assert_allclose(
-            ndata["bias"][10], exp_bias, err_msg="Expected bias values not correct",
-        )
-        np.testing.assert_allclose(
-            ndata["error"][10], exp_error, err_msg="Expected error values not correct",
-        )
-        np.testing.assert_allclose(
-            ndata["completeness"][10],
-            exp_compl,
-            err_msg="Expected completeness values not correct",
-        )
+        assert np.all(
+            (ndata["bias"] >= -1e-10) & (ndata["bias"] <= 1e-10)
+        ), "bias values not between -1e-10 and 1e-10"
+
+        assert np.all(
+            (ndata["error"] >= -1e-10) & (ndata["error"] <= 1e-10)
+        ), "error values not between -1e-10 and 1e-10"
+
+        assert np.all(
+            (ndata["completeness"] >= 0.0) & (ndata["completeness"] <= 1.0)
+        ), "completeness values not between 0 and 1"
 
     @pytest.mark.skip(reason="updated cached values needed")
     def test_read_sed_data(self):

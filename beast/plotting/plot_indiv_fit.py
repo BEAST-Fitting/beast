@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 """
 Plot the individual fit for a single observed star
-
-.. history::
-    Written 12 Jan 2016 by Karl D. Gordon
-      based on code written by Heddy Arab for the BEAST techniques paper figure
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,6 +13,9 @@ from astropy.table import Table
 from astropy.io import fits
 
 from beast.plotting.beastplotlib import initialize_parser
+
+
+__all__ = ["plot_indiv_fit"]
 
 
 def inverse_symlog(y):
@@ -127,7 +126,73 @@ def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum, stats=None, logx=False):
         ax.plot(pvals[1:3], [ym, ym], "-", color="m")
 
 
-def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
+def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
+    """
+    Plot the individual fit for a single observed star including best fit &
+    percentile parameters and various 1D pPDFs
+
+    Parameters
+    ----------
+    filebase : str
+        base filename of run
+
+    starnum : int
+        number of star in the stats file
+
+    savefig : str
+        set to the file extension fo the desired plot file (e.g., png, pdf, etc)
+
+    plotfig : boolean
+        plot the figure to a file or the screen based on savefig
+        otherwise return the fig object
+    """
+
+    starnum = int(starnum)
+
+    # determine how the stats/pdf1d filenames are to be set
+    if len(np.atleast_1d(filebase)) == 1:
+        stats_fname = f"{filebase}_stats.fits"
+        pdf1d_fname = f"{filebase}_pdf1d.fits"
+    else:
+        stats_fname = filebase[0]
+        pdf1d_fname = filebase[1]
+
+    # read in the stats
+    stats = Table.read(stats_fname, hdu=1)
+
+    # check how many extensions the stats file has
+    # determines how to get the filternames and wavelengths
+    with fits.open(stats_fname) as hdul:
+        nhdu = len(hdul)
+    if nhdu > 2:
+        filter_info = Table.read(stats_fname, hdu=2)
+        bfilters = filter_info["filternames"].data
+        waves = filter_info["wavelengths"].data
+        filters = [cfilter.decode("utf-8") for cfilter in bfilters]
+    else:  # PHAT values as default to support old stats files
+        filters = [
+            "HST_WFC3_F275W",
+            "HST_WFC3_F336W",
+            "HST_ACS_WFC_F475W",
+            "HST_ACS_WFC_F814W",
+            "HST_WFC3_F110W",
+            "HST_WFC3_F160W",
+        ]
+        waves = np.asarray(
+            [
+                2722.05531502,
+                3366.00507206,
+                4763.04670013,
+                8087.36760191,
+                11672.35909295,
+                15432.7387546,
+            ]
+        )
+
+    # open 1D PDF file
+    pdf1d_hdu = fits.open(pdf1d_fname)
+
+    fig, ax = plt.subplots(figsize=(8, 8))
 
     # setup the plot grid
     gridNrow, gridNcol = 5, 12
@@ -475,6 +540,16 @@ def plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum):
         ha="right",
     )
 
+    # show or save
+    if plotfig:
+        basename = filebase + "_ifit_starnum_" + str(starnum)
+        if savefig:
+            fig.savefig("{}.{}".format(basename, savefig))
+        else:
+            plt.show()
+    else:
+        return fig
+
 
 if __name__ == "__main__":  # pragma: no cover
 
@@ -485,53 +560,5 @@ if __name__ == "__main__":  # pragma: no cover
     )
     args = parser.parse_args()
 
-    starnum = args.starnum
-
-    # base filename
-    filebase = args.filebase
-
-    # read in the stats
-    stats = Table.read(filebase + "_stats.fits")
-
-    # open 1D PDF file
-    pdf1d_hdu = fits.open(filebase + "_pdf1d.fits")
-
-    # filters for PHAT
-    # filters = ['HST_WFC3_F225W', 'HST_WFC3_F275W', 'HST_WFC3_F336W',
-    #           'HST_ACS_WFC_F475W','HST_ACS_WFC_F550M',
-    #           'HST_ACS_WFC_F658N', 'HST_ACS_WFC_F814W',
-    #           'HST_WFC3_F110W', 'HST_WFC3_F160W']
-    # waves = np.asarray([2250., 2750.0, 3360.0,
-    #                    4750., 5500., 6580., 8140.,
-    #                    11000., 16000.])
-    filters = [
-        "HST_WFC3_F275W",
-        "HST_WFC3_F336W",
-        "HST_ACS_WFC_F475W",
-        "HST_ACS_WFC_F814W",
-        "HST_WFC3_F110W",
-        "HST_WFC3_F160W",
-    ]
-    waves = np.asarray(
-        [
-            2722.05531502,
-            3366.00507206,
-            4763.04670013,
-            8087.36760191,
-            11672.35909295,
-            15432.7387546,
-        ]
-    )
-
-    fig, ax = plt.subplots(figsize=(8, 8))
-
     # make the plot!
-    plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum)
-
-    # show or save
-    basename = filebase + "_ifit_starnum_" + str(starnum)
-    print(basename)
-    if args.savefig:
-        fig.savefig("{}.{}".format(basename, args.savefig))
-    else:
-        plt.show()
+    plot_indiv_fit(args.filebase, args.starnum, args.savefig)

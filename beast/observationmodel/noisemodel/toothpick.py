@@ -1,4 +1,3 @@
-
 import math
 
 import numpy as np
@@ -72,7 +71,9 @@ class MultiFilterASTs(NoiseModel):
 
         self.vega_flux = vega_flux
 
-    def set_data_mappings(self, in_pair=("in", "in"), out_pair=("out", "vega"), upcase=False):
+    def set_data_mappings(
+        self, in_pair=("in", "in"), out_pair=("out", "vega"), upcase=False
+    ):
         """
         Specify the mapping directly with the interface to PHAT-like ASTs
 
@@ -102,7 +103,7 @@ class MultiFilterASTs(NoiseModel):
         magflux_in,
         magflux_out,
         nbins=30,
-        min_per_bin=5,
+        min_per_bin=10,
         completeness_mag_cut=80,
         name_prefix=None,
         asarray=False,
@@ -129,7 +130,7 @@ class MultiFilterASTs(NoiseModel):
         nbins : int, optional
             Number of logrithmically spaced bins between the min/max values
 
-        min_per_bins : int,, optional
+        min_per_bin : int, optional
             Number of recovered ASTs required per bin for computation
 
         name_prefix : str, optional
@@ -255,7 +256,7 @@ class MultiFilterASTs(NoiseModel):
         else:
             return d
 
-    def fit(self, nbins=30, completeness_mag_cut=80, progress=True):
+    def fit(self, nbins=50, completeness_mag_cut=80, progress=True):
         """
         Alias of fit_bins
         """
@@ -263,7 +264,7 @@ class MultiFilterASTs(NoiseModel):
             nbins=nbins, completeness_mag_cut=completeness_mag_cut, progress=progress
         )
 
-    def fit_bins(self, nbins=30, completeness_mag_cut=80, progress=True):
+    def fit_bins(self, nbins=50, completeness_mag_cut=80, progress=True):
         """
         Compute the necessary statistics before evaluating the noise model
 
@@ -280,12 +281,12 @@ class MultiFilterASTs(NoiseModel):
 
         shape = nbins, len(self.filters)
 
-        self._fluxes = np.empty(shape, dtype=float)
-        self._biases = np.empty(shape, dtype=float)
-        self._sigmas = np.empty(shape, dtype=float)
-        self._compls = np.empty(shape, dtype=float)
-        self._nasts = np.empty(shape[1], dtype=int)
-        self._minmax_asts = np.empty((2, shape[1]), dtype=float)
+        self._fluxes = np.zeros(shape, dtype=float)
+        self._biases = np.zeros(shape, dtype=float)
+        self._sigmas = np.zeros(shape, dtype=float)
+        self._compls = np.zeros(shape, dtype=float)
+        self._nasts = np.zeros(shape[1], dtype=int)
+        self._minmax_asts = np.zeros((2, shape[1]), dtype=float)
 
         if progress is True:
             it = tqdm(self.filters, desc="Fitting model")
@@ -366,9 +367,15 @@ class MultiFilterASTs(NoiseModel):
             arg_sort = np.argsort(_fluxes)
             _fluxes = _fluxes[arg_sort]
 
-            bias[:, i] = np.interp(flux[:, i], _fluxes, _biases[arg_sort])
-            sigma[:, i] = np.interp(flux[:, i], _fluxes, _sigmas[arg_sort])
-            compl[:, i] = np.interp(flux[:, i], _fluxes, _compls[arg_sort])
+            bias[:, i] = np.interp(
+                flux[:, i], _fluxes, _biases[arg_sort], left=0.0, right=0.0
+            )
+            sigma[:, i] = np.interp(
+                flux[:, i], _fluxes, _sigmas[arg_sort], left=0.0, right=0.0
+            )
+            compl[:, i] = np.interp(
+                flux[:, i], _fluxes, _compls[arg_sort], left=0.0, right=0.0
+            )
 
         return (bias, sigma, compl)
 

@@ -4,8 +4,10 @@ from astropy.io import fits
 from matplotlib.colors import LogNorm
 from scipy.stats import binned_statistic_2d as stat2d
 
+__all__ = ["plot_param_err"]
 
-def plot(
+
+def plot_param_err(
     beast_stats_file,
     param_list=["Av", "Rv", "logA", "f_A", "M_ini", "Z", "logT", "logg", "logL"],
     n_bins=200,
@@ -14,7 +16,7 @@ def plot(
     """
     Make a plot of each parameter vs the parameter errors
 
-    Parameters with 'M_' (indicating mass) will have log10 taken to help with
+    Parameters with M (indicating mass) will have log10 taken to help with
     axis scaling
 
     Parameters

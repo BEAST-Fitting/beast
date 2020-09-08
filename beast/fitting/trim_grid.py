@@ -72,33 +72,27 @@ def trim_models(
         min_models[k] = np.amin(sedgrid.seds[:, k])
         max_models[k] = np.amax(sedgrid.seds[:, k])
 
-    # first remove all models that have any band with fluxes below the
-    #    faintest ASTs run
-    # when the noisemodel was computed, models with fluxes below the
-    #    faintest ASTs were tagged with a negative error/uncertainty
-    # identify the models that have been detected in enough bands
-    #   the idea here is that if the ASTs are not measured that means
-    #   that *none* were recovered and this implies
-    #   that no model with these values would be recovered and thus the
-    #   probability should always be zero
-    model_unc = sedgrid_noisemodel["error"]
-    above_ast = model_unc > 0
-    sum_above_ast = np.sum(above_ast, axis=1)
-    indxs, = np.where(sum_above_ast >= n_detected)
-
-    # cache the noisemodel values
+    # link to the noisemodel values
     model_bias = sedgrid_noisemodel["bias"]
-    model_unc = np.fabs(sedgrid_noisemodel["error"])
+    model_unc = sedgrid_noisemodel["error"]
     model_compl = sedgrid_noisemodel["completeness"]
     if trunchen:
         model_q_norm = sedgrid_noisemodel["q_norm"]
         model_icov_diag = sedgrid_noisemodel["icov_diag"]
         model_icov_offdiag = sedgrid_noisemodel["icov_offdiag"]
 
-    if len(indxs) <= 0:
-        raise ValueError("no models are brighter than the minimum ASTs run")
-
+    # has to be complete in all filters - otherwise observation model not defined
+    # toothpick model means that if compl = 0, then bias = 0, and sigma = 0 from ASTs
+    above_ast = model_compl > 0
+    sum_above_ast = np.sum(above_ast, axis=1)
+    (indxs,) = np.where(sum_above_ast >= n_filters)
     n_ast_indxs = len(indxs)
+
+    print("number of original models = ", len(sedgrid.seds[:, 0]))
+    print("number of ast trimmed models = ", n_ast_indxs)
+
+    if n_ast_indxs <= 0:
+        raise ValueError("no models are brighter than the minimum ASTs run")
 
     # Find models with fluxes (with margin) between faintest and brightest data
     for k in range(n_filters):
@@ -110,7 +104,9 @@ def trim_models(
         model_down = model_val - sigma_fac * model_unc[indxs, k]
         model_up = model_val + sigma_fac * model_unc[indxs, k]
 
-        nindxs, = np.where((model_up >= min_data[k]) & (model_down <= max_data[k]))
+        # print(k, min(model_val), max(model_val), min(model_bias[indxs, k]))
+
+        (nindxs,) = np.where((model_up >= min_data[k]) & (model_down <= max_data[k]))
         if len(nindxs) > 0:
             indxs = indxs[nindxs]
 

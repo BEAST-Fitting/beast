@@ -2,7 +2,21 @@ import inspect
 import argparse
 
 from beast.tools import get_libfiles, simulate_obs
-from beast.plotting import plot_cmd, plot_filters
+from beast.plotting import (
+    plot_indiv_fit,
+    plot_ast_histogram,
+    plot_chi2_hist,
+    plot_cmd,
+    plot_cmd_with_fits,
+    plot_completeness,
+    plot_filters,
+    plot_indiv_pdfs,
+    plot_noisemodel,
+    plot_param_err,
+    plot_param_recovery,
+    plot_toothpick_details,
+    plot_triangle,
+)
 
 # cannot get plot_filters to work as the main parameter passed (filter_names)
 # needs to allow multiple strings
@@ -21,8 +35,19 @@ def main():
     scripts = [
         get_libfiles,
         simulate_obs,
+        plot_indiv_fit,
+        plot_ast_histogram,
+        plot_chi2_hist,
         plot_cmd,
+        plot_cmd_with_fits,
+        plot_completeness,
         plot_filters,
+        plot_indiv_pdfs,
+        plot_noisemodel,
+        plot_param_err,
+        plot_param_recovery,
+        plot_toothpick_details,
+        plot_triangle,
     ]  # scripts available
 
     parser = argparse.ArgumentParser()
