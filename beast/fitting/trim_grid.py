@@ -110,8 +110,6 @@ def trim_models(
         if len(nindxs) > 0:
             indxs = indxs[nindxs]
 
-    # exit()
-
     if len(indxs) == 0:
         raise ValueError("no models that are within the data range")
 

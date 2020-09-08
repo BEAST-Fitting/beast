@@ -441,7 +441,6 @@ class TestRegressionSuite(unittest.TestCase):
             err_msg="Expected index values not correct",
         )
 
-    # @pytest.mark.skip(reason="not working")
     def test_read_noise_data(self):
         """
         Read in the noise model from a cached file and test that selected values

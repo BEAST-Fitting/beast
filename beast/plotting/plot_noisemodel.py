@@ -85,7 +85,6 @@ def plot_noisemodel(
 
             # error is negative where it's been extrapolated -> trim those
             good_err = np.where(noise_err[:, f] > 0)[0]
-            # good_err = np.arange(len(noise_err[:, f]))
             plot_sed = sed_grid[good_err, f][::samp]
             plot_err = noise_err[good_err, f][::samp]
             plot_bias = noise_bias[good_err, f][::samp]
