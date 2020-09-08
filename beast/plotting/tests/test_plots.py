@@ -50,7 +50,7 @@ def test_plot_cmd_with_fits():
     beast_fitsfile = download_rename("phat_small/beast_example_phat_stats.fits")
 
     # Plot CMD using defaults
-    fig = plot_cmd_with_fits.plot(fitsfile, beast_fitsfile)
+    fig = plot_cmd_with_fits.plot_cmd_with_fits(fitsfile, beast_fitsfile)
 
     return fig
 

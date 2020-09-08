@@ -9,6 +9,8 @@ from astropy.table import Table, vstack
 from beast.physicsmodel.grid import SEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 
+__all__ = ["plot_completeness"]
+
 
 def plot_completeness(
     physgrid_list,
@@ -19,6 +21,7 @@ def plot_completeness(
 ):
     """
     Make visualization of the completeness
+
     Parameters
     ----------
     physgrid_list : string or list of strings
@@ -38,7 +41,6 @@ def plot_completeness(
 
     output_plot_filename : string
         name of the file in which to save the output plot
-
     """
 
     n_params = len(param_list)
@@ -230,7 +232,6 @@ def setup_axis(compl_table, param):
 
     label : string
         the axis label to use
-
     """
 
     # mass isn't reguarly spaced, so take log and manually define bins

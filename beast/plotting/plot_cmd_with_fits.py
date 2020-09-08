@@ -6,8 +6,10 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import copy
 
+__all__ = ["plot_cmd_with_fits"]
 
-def plot(
+
+def plot_cmd_with_fits(
     data_fits_file,
     beast_fits_file,
     mag1_filter="F475W",
@@ -16,7 +18,8 @@ def plot(
     param="chi2min",
     log_param=False,
     plot_all=False,
-    savefig=True,
+    savefig=False,
+    show_plot=True,
 ):
     """
     Make a CMD with the data, and color-code points by some other fitted quantity
@@ -52,9 +55,12 @@ def plot(
         If False, only plot sources with Vega mags that are <99 in the
         mag1/mag2/mag3 filters
 
-    savefig : boolean (default=True)
+    savefig : boolean (default=False)
         Save figure to file, or just show it.
 
+    show_plot : boolean
+        True, show the plot (to screen or a file)
+        False, return the fig
     """
 
     # read in data
@@ -149,12 +155,17 @@ def plot(
         cbar_label = "Log " + param
     cbar.ax.set_ylabel(cbar_label, fontsize=13)  # , rotation=-90, va="bottom")
 
-    # plt.tight_layout()
-    # save figure
-    # fig.savefig(data_fits_file.replace(".fits", "_cmd.pdf"))
-    # plt.close("all")
+    # figname
+    basename = data_fits_file.replace(".fits", "_cmd")
 
-    return fig
+    # save or show fig
+    if show_plot:
+        if savefig:
+            fig.savefig("{}.{}".format(basename, savefig))
+        else:
+            plt.show()
+    else:
+        return fig
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -206,7 +217,7 @@ if __name__ == "__main__":  # pragma: no cover
     args = parser.parse_args()
 
     # plot the CMD
-    fig = plot(
+    fig = plot_cmd_with_fits(
         args.data_fits_file,
         args.beast_fits_file,
         mag1_filter=args.mag1,
@@ -215,12 +226,5 @@ if __name__ == "__main__":  # pragma: no cover
         param=args.param,
         log_param=args.log_param,
         savefig=args.savefig,
+        showfig=True,
     )
-
-    # figname
-    basename = args.data_fits_file.replace(".fits", "_plot")
-
-    if args.savefig:
-        fig.savefig("{}.{}".format(basename, args.savefig))
-    else:
-        plt.show()

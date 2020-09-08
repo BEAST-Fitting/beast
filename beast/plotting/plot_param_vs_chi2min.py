@@ -10,6 +10,8 @@ from matplotlib.colors import LogNorm
 # local imports
 from beast.plotting.beastplotlib import initialize_parser, plot_generic, set_params
 
+__all__ = ["make_param_vs_chi2min_plots"]
+
 
 def make_param_vs_chi2min_plots(stats, suffix="Exp", figsize=(20, 10)):
     """Makes a set of 6 diagnostic 2D histograms for BEAST output.

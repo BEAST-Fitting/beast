@@ -6,15 +6,17 @@ from astropy.table import Table
 from beast.physicsmodel.grid import SEDGrid
 from beast.observationmodel.vega import Vega
 
+__all__ = ["plot_ast_histogram"]
 
-def plot_ast(ast_file, sed_grid_file=None):
+
+def plot_ast_histogram(ast_file, sed_grid_file=None):
     """
     Make a histogram of the AST fluxes.  If an SED grid is given, also plot
     a comparison histogram of the SED fluxes.
 
     The histogram bins are set by the bins originally used to create the ASTs
     (using the flux bin method), which are saved in
-       ast_file.replace('inputAST','ASTfluxbins')
+    ast_file.replace('inputAST','ASTfluxbins')
     and are automatically read in.
 
     Output plot is saved in the same location/name as ast_file, but with a .png
@@ -28,7 +30,6 @@ def plot_ast(ast_file, sed_grid_file=None):
     sed_grid_file : string (default=None)
         name of SED grid file
     """
-
     # read in AST info
     ast_table = Table.read(ast_file, format="ascii")
     ast_fluxbins = Table.read(
@@ -114,4 +115,4 @@ if __name__ == "__main__":  # pragma: no cover
 
     args = parser.parse_args()
 
-    plot_ast(args.ast_file, sed_grid_file=args.sed_grid_file)
+    plot_ast_histogram(args.ast_file, sed_grid_file=args.sed_grid_file)

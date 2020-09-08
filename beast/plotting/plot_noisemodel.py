@@ -5,6 +5,8 @@ import argparse
 from beast.physicsmodel.grid import SEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
 
+__all__ = ["plot_noisemodel"]
+
 
 def plot_noisemodel(
     sed_file,

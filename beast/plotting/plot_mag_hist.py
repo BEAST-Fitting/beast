@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
 
+__all__ = ["plot_mag_hist"]
+
 
 def plot_mag_hist(data_file, stars_per_bin=100, max_bins=75):
     """

@@ -2,8 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
 
+__all__ = ["plot_chi2_hist"]
 
-def plot(beast_stats_file, n_bins=50):
+
+def plot_chi2_hist(beast_stats_file, n_bins=50):
     """
     Make a histogram of the chi2 values
 

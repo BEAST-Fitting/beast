@@ -452,7 +452,6 @@ class TestRegressionSuite(unittest.TestCase):
         for ckey in ndata.keys():
             assert ckey in exp_keys, f"{ckey} not in noise data expected keys"
 
-        # check that the values are reasonable
         assert np.all(
             (ndata["bias"] >= -1e-10) & (ndata["bias"] <= 1e-10)
         ), "bias values not between -1e-10 and 1e-10"

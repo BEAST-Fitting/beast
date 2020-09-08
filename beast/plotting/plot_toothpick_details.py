@@ -1,14 +1,20 @@
-# import numpy as np
 import matplotlib.pyplot as plt
 
 from beast.observationmodel.noisemodel import toothpick
 from beast.physicsmodel.grid import SEDGrid
 
+__all__ = ["plot_toothpick_details"]
+
 
 def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
     """
-    Plot the details of the toothpick noisemodel creation including the
-    individal AST results and the binned results
+    Plot the details of the toothpick noisemodel creation for each filter.
+    These plots show the individual AST results as points as
+    (flux_in - flux_out)/flux_in.  In addition, the binned values of these
+    points are plotted giving the bias term in the observation model.
+    Error bars around the binned bias values give the binned sigma term of
+    the observation model.  Finally, as a separate column of plots the
+    binned completeness in each filter is plotted.
 
     Parameters
     ----------
@@ -44,10 +50,6 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
 
         gvals = flux_out != 0.0
 
-        # delt = np.absolute(((flux_in[gvals] - flux_out[gvals]) / flux_in[gvals]) - 1.0)
-        # gvals2 = delt < 0.01
-        # print(cfilter, flux_in[gvals][gvals2][0], flux_out[gvals][gvals2][0], delt[gvals2][0])
-
         ax[i, 0].plot(
             flux_in[gvals],
             (flux_in[gvals] - flux_out[gvals]) / flux_in[gvals],
@@ -78,9 +80,7 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
         ax[i, 0].set_ylabel(r"$(F_i - F_o)/F_i$")
 
         ax[i, 1].plot(
-            model._fluxes[0:ngbins, i],
-            model._compls[0:ngbins, i],
-            "b-",
+            model._fluxes[0:ngbins, i], model._compls[0:ngbins, i], "b-",
         )
 
         ax[i, 1].yaxis.tick_right()
@@ -92,7 +92,12 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
 
     ax[nfilters - 1, 0].set_xlabel(r"$F_i$")
     ax[nfilters - 1, 1].set_xlabel(r"$F_i$")
-    # ax[0, 0].set_xlim(1e-25, 1e-13)
+
+    # add in the zero line
+    # do after all the data has been plotted to get the full x range
+    pxrange = ax[0, 0].get_xlim()
+    for i, cfilter in enumerate(sedgrid.filters):
+        ax[i, 0].plot(pxrange, [0.0, 0.0], "k--", alpha=0.5)
 
     # figname
     basename = asts_filename.replace(".fits", "_plot")

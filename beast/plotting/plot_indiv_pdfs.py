@@ -4,8 +4,10 @@ from matplotlib.gridspec import GridSpec
 from astropy.io import fits
 import copy
 
+__all__ = ["plot_indiv_pdfs"]
 
-def plot_pdfs(pdf1d_file, pdf2d_file, starnum):
+
+def plot_indiv_pdfs(pdf1d_file, pdf2d_file, starnum):
     """
     Make a triangle/corner plot with the 1D and 2D PDFs of a star
 
