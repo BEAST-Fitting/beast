@@ -40,6 +40,14 @@ def main():  # pragma: no cover
     )
 
     parser.add_argument(
+        "--min_n_subfile",
+        type=int,
+        default=None,
+        help="""Set the minimum number of subfiles to use per bin (relevant if a
+        bin has fewer than n_per_file but you still want flux-sorted subfiles)""",
+    )
+
+    parser.add_argument(
         "--sort_col",
         type=str,
         default="F475W_RATE",
@@ -55,6 +63,7 @@ def main():  # pragma: no cover
         args.n,
         args.bin_width,
         args.n_per_file,
+        args.min_n_subfile,
         args.sort_col,
     )
 
@@ -66,6 +75,7 @@ def split_main(
     n_bin=None,
     bin_width=None,
     n_per_file=6250,
+    min_n_subfile=None,
     sort_col="F475W_RATE",
 ):
 
@@ -75,7 +85,13 @@ def split_main(
     bdm = BinnedDensityMap.create(mapfile, N_bins=n_bin, bin_width=bin_width)
 
     print("Splitting catalog")
-    split_catalog_using_map(catfile, bdm, n_per_file=n_per_file, sort_col=sort_col)
+    split_catalog_using_map(
+        catfile,
+        bdm,
+        n_per_file=n_per_file,
+        min_n_subfile=min_n_subfile,
+        sort_col=sort_col,
+    )
     print("")
     print("Splitting ASTs")
     split_catalog_using_map(
@@ -89,6 +105,7 @@ def split_catalog_using_map(
     ra_colname="RA",
     dec_colname="DEC",
     n_per_file=6250,
+    min_n_subfile=None,
     sort_col="F475W_RATE",
 ):
     """
@@ -109,9 +126,15 @@ def split_catalog_using_map(
         If set, divide the split catalog into sub-catalogs with length
         n_per_file.  Good for photometry, not useful for ASTs.
 
+    min_n_subfile : int or None (default=None)
+        If set, each bin in the photometry catalog will be split into at least
+        this many subfiles. Useful if a bin has fewer than n_per_file stars but
+        you still want flux-sorted subfiles (which means more trimming and
+        faster fitting).
+
     sort_col : string (default="F475W_RATE")
-        If n_per_file is set, the catalog will be sorted by this column
-        before splitting into sub-catalogs.
+        If n_per_file or min_n_subfile is set, the catalog will be sorted by this
+        column before splitting into sub-catalogs.
 
 
     """
@@ -134,9 +157,29 @@ def split_catalog_using_map(
         subcat.write(catfile.replace(".fits", "_bin{}.fits".format(b)), overwrite=True)
 
         # write out sub-files, if chosen
-        if n_per_file is not None:
+        if (n_per_file is not None) or (min_n_subfile is not None):
 
-            tot_subfiles = int(np.ceil(len(sources_for_bin[0]) / n_per_file))
+            # calculate number of subfiles and number of stars per file
+            # - only n_per_file set
+            if (n_per_file is not None) and (min_n_subfile is None):
+                tot_subfiles = int(np.ceil(len(sources_for_bin[0]) / n_per_file))
+                curr_n_per_file = n_per_file
+            # - only min_n_subfile set
+            if (n_per_file is None) and (min_n_subfile is not None):
+                tot_subfiles = min_n_subfile
+                curr_n_per_file = int(np.ceil(len(sources_for_bin[0]) / tot_subfiles))
+            # - both are set: make sure the largest number of subfiles is used
+            if (n_per_file is not None) and (min_n_subfile is not None):
+                temp_tot_subfiles = int(np.ceil(len(sources_for_bin[0]) / n_per_file))
+                # n_per_file makes at least min_n_subfile -> use value from n_per_file
+                if min_n_subfile <= temp_tot_subfiles:
+                    tot_subfiles = temp_tot_subfiles
+                    curr_n_per_file = n_per_file
+                # n_per_file doesn't make enough subfiles -> use min_n_subfile
+                else:
+                    tot_subfiles = min_n_subfile
+                    curr_n_per_file = int(np.ceil(len(sources_for_bin[0]) / tot_subfiles))
+
             print(
                 "dividing into "
                 + str(tot_subfiles)
@@ -147,9 +190,9 @@ def split_catalog_using_map(
             sort_indxs = np.argsort(subcat[sort_col])
 
             for i in range(tot_subfiles):
-                min_k = i * n_per_file
+                min_k = i * curr_n_per_file
                 if i < tot_subfiles:
-                    max_k = (i + 1) * n_per_file
+                    max_k = (i + 1) * curr_n_per_file
                 else:
                     max_k = len(subcat)
 
