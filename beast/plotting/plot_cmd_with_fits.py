@@ -226,5 +226,5 @@ if __name__ == "__main__":  # pragma: no cover
         param=args.param,
         log_param=args.log_param,
         savefig=args.savefig,
-        showfig=True,
+        show_plot=True,
     )
