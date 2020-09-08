@@ -2,9 +2,6 @@ import matplotlib.pyplot as plt
 
 import pytest
 
-import numpy as np
-from astropy.table import Table
-from astropy.io import fits
 from astropy.tests.helper import remote_data
 
 from beast.plotting import plot_indiv_fit, plot_cmd, plot_cmd_with_fits, plot_filters
@@ -21,38 +18,10 @@ def test_indiv_plot():
     stats_fname_cache = download_rename("phat_small/beast_example_phat_stats.fits")
     pdf1d_fname_cache = download_rename("phat_small/beast_example_phat_pdf1d.fits")
 
-    starnum = 0
-
-    # read in the stats
-    stats = Table.read(stats_fname_cache)
-    # open 1D PDF file
-    pdf1d_hdu = fits.open(pdf1d_fname_cache)
-
-    filters = [
-        "HST_WFC3_F275W",
-        "HST_WFC3_F336W",
-        "HST_ACS_WFC_F475W",
-        "HST_ACS_WFC_F814W",
-        "HST_WFC3_F110W",
-        "HST_WFC3_F160W",
-    ]
-    waves = np.asarray(
-        [
-            2722.05531502,
-            3366.00507206,
-            4763.04670013,
-            8087.36760191,
-            11672.35909295,
-            15432.7387546,
-        ]
-    )
-
-    fig, ax = plt.subplots(figsize=(8, 8))
-
     # make the plot!
-    plot_indiv_fit.plot_beast_ifit(filters, waves, stats, pdf1d_hdu, starnum)
-
-    pdf1d_hdu.close()
+    fig = plot_indiv_fit.plot_indiv_fit(
+        [stats_fname_cache, pdf1d_fname_cache], 0, plotfig=False
+    )
 
     return fig
 

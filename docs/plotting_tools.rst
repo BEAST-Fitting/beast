@@ -25,7 +25,7 @@ Observation Models
 Fitting
 -------
 
-- `python -m beast.plotting.plot_indiv_fit`:
+- `beast plot_indiv_fit`:
   For a given star, makes a multi-panel plot that shows the PDFs and best fits
   of each parameter, as well as an SED (similar to Figure 14 in
   `Gordon+16 <https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).

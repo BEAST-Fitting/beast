@@ -3,6 +3,7 @@ import argparse
 
 from beast.tools import get_libfiles, simulate_obs
 from beast.plotting import (
+    plot_indiv_fit,
     plot_cmd,
     plot_filters,
     plot_noisemodel,
@@ -26,6 +27,7 @@ def main():
     scripts = [
         get_libfiles,
         simulate_obs,
+        plot_indiv_fit,
         plot_cmd,
         plot_filters,
         plot_noisemodel,

@@ -52,6 +52,8 @@ def save_stats(
     total_log_norm,
     qnames,
     p,
+    filters,
+    wavelengths,
 ):
     """
     Save various fitting statistics to a file
@@ -109,7 +111,19 @@ def save_stats(
     summary_tab = Table(stats_dict)
 
     if stats_outname is not None:
-        summary_tab.write(stats_outname, overwrite=True)
+        # standard Table writing of FITS files does not support multiple extensions
+        # but reading does, so only have to do this when writing
+        ohdu = fits.HDUList()
+        ohdu.append(fits.table_to_hdu(summary_tab))
+
+        # create a table with the filter names and wavelengths
+        # useful for plotting the results
+        filters_tab = Table()
+        filters_tab["filternames"] = filters
+        filters_tab["wavelengths"] = wavelengths
+        ohdu.append(fits.table_to_hdu(filters_tab))
+
+        ohdu.writeto(stats_outname, overwrite=True)
 
 
 def save_pdf1d(pdf1d_outname, save_pdf1d_vals, qnames):
@@ -769,6 +783,8 @@ def Q_all_memory(
                         total_log_norm,
                         qnames,
                         p,
+                        sedgrid.filters,
+                        sedgrid.lamb,
                     )
 
                 # save the lnps
@@ -802,6 +818,8 @@ def Q_all_memory(
             total_log_norm,
             qnames,
             p,
+            sedgrid.filters,
+            sedgrid.lamb,
         )
 
     # save the lnps
