@@ -256,18 +256,28 @@ def gen_SimObs_from_sedgrid(
         table giving the simulated observed fluxes as well as the
         physics model parmaeters
     """
-    flux = sedgrid.seds
+    n_models, n_filters = sedgrid.seds.shape
+
+    # only use models that have non-zero completeness in all filters
+    #  zero completeness means the observation model is not defined for that filters/flux
+    model_compl = np.fabs(sedgrid_noisemodel["completeness"])
+    ast_defined = model_compl > 0
+    sum_ast_defined = np.sum(ast_defined, axis=1)
+    goodobsmod = sum_ast_defined >= n_filters
+
+    flux = sedgrid.seds[goodobsmod, :]
     n_models, n_filters = flux.shape
 
     # cache the noisemodel values
-    model_bias = sedgrid_noisemodel["bias"]
-    model_unc = np.fabs(sedgrid_noisemodel["error"])
+    model_bias = sedgrid_noisemodel["bias"][goodobsmod, :]
+    model_unc = np.fabs(sedgrid_noisemodel["error"][goodobsmod, :])
+    model_compl = sedgrid_noisemodel["completeness"][goodobsmod, :]
 
     # completeness from toothpick model so n band completeness values
     # require only 1 completeness value for each model
     # max picked to best "simulate" how the photometry detection is done
     if compl_filter.lower() == 'max':
-        model_compl = np.max(sedgrid_noisemodel["completeness"], axis=1)
+        model_compl = np.max(model_compl, axis=1)
     else:
         short_filters = [filter.split(sep="_")[-1].upper() for filter in sedgrid.filters]
         if compl_filter.upper() not in short_filters:
@@ -280,13 +290,13 @@ def gen_SimObs_from_sedgrid(
 
         filter_k = short_filters.index(compl_filter.upper())
         print("Completeness from %s" % sedgrid.filters[filter_k])
-        model_compl = sedgrid_noisemodel["completeness"][:, filter_k]
+        model_compl = model_compl[:, filter_k]
 
     # the combined prior and grid weights
     # using both as the grid weight needed to account for the finite size
     #   of each grid bin
     # if we change to interpolating between grid points, need to rethink this
-    gridweights = sedgrid[weight_to_use] * model_compl
+    gridweights = sedgrid[weight_to_use][goodobsmod] * model_compl
     # need to sum to 1
     gridweights = gridweights / np.sum(gridweights)
 

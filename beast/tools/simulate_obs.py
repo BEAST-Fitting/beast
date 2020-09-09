@@ -52,7 +52,6 @@ def simulate_obs(
         seed for random number generator
 
     """
-
     # numbers of samples to do
     # (ensure there are enough for even sampling of multiple model grids)
     n_phys = len(np.atleast_1d(physgrid_list))

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 from functools import reduce
 
-from beast.plotting.beastplotlib import initialize_parser
+from beast.plotting.beastplotlib import initialize_parser, set_params
 
 
 __all__ = ["plot_cmd"]
@@ -69,12 +69,19 @@ def plot_cmd(
     col = mag1 - mag2
 
     fig = plt.figure(figsize=(9, 9))
+
+    # sets up plots to have larger fonts, wider lines, etc.
+    set_params()
+
     plt.plot(col, mag, ".")
 
     plt.gca().invert_yaxis()
 
     plt.xlabel("%s - %s" % (mag1_filter, mag2_filter))
     plt.ylabel(mag3_filter)
+    plt.title(fitsfile)
+
+    fig.tight_layout()
 
     # figname
     basename = fitsfile.replace(".fits", "_plot")
