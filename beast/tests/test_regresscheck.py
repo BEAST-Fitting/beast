@@ -14,7 +14,6 @@ from astropy.table import Table
 from astropy.io import fits
 
 from beast.physicsmodel.stars.isochrone import ezIsoch
-from beast.physicsmodel.dust import extinction
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel.model_grid import (
     make_iso_table,

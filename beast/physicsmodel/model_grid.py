@@ -9,6 +9,7 @@ from beast.physicsmodel.stars import isochrone, stellib
 from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.physicsmodel.dust import extinction
 from beast.physicsmodel.grid_and_prior_weights import compute_distance_age_mass_metallicity_weights
+from beast.tools.beast_info import add_to_beast_info_file
 
 __all__ = [
     "make_iso_table",
@@ -70,6 +71,12 @@ def make_iso_table(
         print("{0} Isochrones".format("_".join(iso_fname.split("_")[:-1])))
 
         t.write(iso_fname)
+
+    # save info to the beast info file
+    info = {"project": project,
+            "logt_input": [logtmin, logtmax, dlogt],
+            "z_input": z}
+    add_to_beast_info_file(project, info)
 
     # read in the isochrone data from the file
     #   not sure why this is needed, but reproduces previous ezpipe method
@@ -307,6 +314,14 @@ def add_stellar_priors(project, specgrid,
             for gk in specgrid:
                 gk.write(priors_fname, append=True)
 
+    # save info to the beast info file
+    info = {"distance_prior_model": distance_prior_model,
+            "age_prior_model": age_prior_model,
+            "mass_prior_model": mass_prior_model,
+            "met_prior_model": met_prior_model}
+    add_to_beast_info_file(project, info)
+
+    # read in spectralgrid from file (possible not needed, need to check)
     g = SpectralGrid(priors_fname, backend="memory")
 
     return (priors_fname, g)
@@ -418,6 +433,7 @@ def make_extinguished_sed_grid(
                 filterLib=filterLib,
             )
         else:
+            fAs = [1.0]
             g = creategrid.make_extinguished_grid(
                 specgrid,
                 filters,
@@ -436,6 +452,18 @@ def make_extinguished_sed_grid(
         else:
             for gk in g:
                 gk.write(seds_fname, append=True)
+
+    # save info to the beast info file
+    info = {"av_input": av,
+            "rv_input": rv,
+            "fA_input": fA,
+            "avs": avs,
+            "rvs": rvs,
+            "fAs": fAs,
+            "av_prior_model": av_prior_model,
+            "rv_prior_model": rv_prior_model,
+            "fA_prior_model": fA_prior_model}
+    add_to_beast_info_file(project, info)
 
     g = SEDGrid(seds_fname, backend="memory")
 
