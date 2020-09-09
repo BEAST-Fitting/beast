@@ -62,6 +62,10 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
 
         # not all bins are filled with good data
         ngbins = model._nasts[i]
+        print(model._minmax_asts[:, i])
+
+        print(model._fluxes[0:ngbins, i])
+
         ax[i, 0].plot(
             model._fluxes[0:ngbins, i],
             model._biases[0:ngbins, i] / model._fluxes[0:ngbins, i],

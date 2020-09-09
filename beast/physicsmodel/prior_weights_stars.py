@@ -40,7 +40,11 @@ def compute_age_prior_weights(logages, age_prior_model):
        weights needed according to the prior model
     """
     if age_prior_model["name"] == "flat" or age_prior_model["name"] == "flat_linear":
-        age_weights = np.full(len(logages), 1.0)
+        if "sfr" in age_prior_model.keys():
+            sfr = float(age_prior_model["sfr"])
+        else:
+            sfr = 1.0
+        age_weights = np.full(len(logages), sfr)
     elif age_prior_model["name"] == "flat_log":
         # flat in log space means use the native log(age) grid spacing
         # thus the priors weights are the inverse of the grid weights
@@ -83,7 +87,8 @@ def compute_age_prior_weights(logages, age_prior_model):
         )
 
     # normalize to avoid numerical issues (too small or too large)
-    age_weights /= np.average(age_weights)
+    # do not normalize as the absolute level now matters for simulations and megaBEAST
+    # age_weights /= np.average(age_weights)
 
     return age_weights
 

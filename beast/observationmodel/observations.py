@@ -2,10 +2,15 @@
 Defines a generic interface to observation catalog
 """
 import numpy as np
+from numpy.random import default_rng
 
 from astropy.table import Table, Column
 
 from beast.observationmodel.vega import Vega
+from beast.physicsmodel.prior_weights_stars import (
+    compute_mass_prior_weights,
+    compute_age_prior_weights,
+)
 
 __all__ = ["Observations", "gen_SimObs_from_sedgrid"]
 
@@ -31,7 +36,9 @@ class Observations(object):
         number of observations in the catalog
     """
 
-    def __init__(self, inputFile, filters, obs_colnames=None, vega_fname=None, desc=None):
+    def __init__(
+        self, inputFile, filters, obs_colnames=None, vega_fname=None, desc=None
+    ):
         """
         Parameters
         ----------
@@ -211,7 +218,9 @@ def gen_SimObs_from_sedgrid(
     compl_filter="F475W",
     ranseed=None,
     vega_fname=None,
-    weight_to_use='weight',
+    weight_to_use="weight",
+    age_prior_model=None,
+    mass_prior_model=None,
 ):
     """
     Generate simulated observations using the physics and observation grids.
@@ -276,10 +285,12 @@ def gen_SimObs_from_sedgrid(
     # completeness from toothpick model so n band completeness values
     # require only 1 completeness value for each model
     # max picked to best "simulate" how the photometry detection is done
-    if compl_filter.lower() == 'max':
+    if compl_filter.lower() == "max":
         model_compl = np.max(model_compl, axis=1)
     else:
-        short_filters = [filter.split(sep="_")[-1].upper() for filter in sedgrid.filters]
+        short_filters = [
+            filter.split(sep="_")[-1].upper() for filter in sedgrid.filters
+        ]
         if compl_filter.upper() not in short_filters:
             raise NotImplementedError(
                 "Requested completeness filter not present:"
@@ -292,11 +303,34 @@ def gen_SimObs_from_sedgrid(
         print("Completeness from %s" % sedgrid.filters[filter_k])
         model_compl = model_compl[:, filter_k]
 
-    # the combined prior and grid weights
+    # if the age and mass prior models are given, use them to determine the
+    # total number of stars to simulate
+    if (age_prior_model is not None) and (mass_prior_model is not None):
+        logage_range = [min(sedgrid["logA"]), max(sedgrid["logA"])]
+        mass_range = [min(sedgrid["M_ini"]), max(sedgrid["M_ini"])]
+
+        # compute the average mass of a star given the mass_prior_model
+        nmass = 100
+        masspts = np.logspace(np.log10(mass_range[0]), np.log10(mass_range[1]), nmass)
+        massprior = compute_mass_prior_weights(masspts, mass_prior_model)
+        avemass = np.trapz(masspts * massprior, masspts) / np.trapz(massprior, masspts)
+
+        # compute the total mass as a function of age
+        # age prior units are in solar masses/year
+        nage = 100
+        agepts = np.logspace(logage_range[0], logage_range[1], nage)
+        ageprior = compute_age_prior_weights(np.log10(agepts), age_prior_model)
+        # aveage = 0.5 * (agepts[1:] + agepts[0:-1])
+        aveageprior = 0.5 * (ageprior[1:] + ageprior[0:-1])
+        deltage = agepts[1:] - agepts[0:-1]
+        nstars = aveageprior * deltage / avemass
+        nsim = int(np.sum(nstars))
+
+    # the combined prior and grid weights (completeness is handled later)
     # using both as the grid weight needed to account for the finite size
     #   of each grid bin
     # if we change to interpolating between grid points, need to rethink this
-    gridweights = sedgrid[weight_to_use][goodobsmod] * model_compl
+    gridweights = sedgrid[weight_to_use][goodobsmod]
     # need to sum to 1
     gridweights = gridweights / np.sum(gridweights)
 
@@ -306,7 +340,15 @@ def gen_SimObs_from_sedgrid(
 
     # sample to get the indexes of the picked models
     indx = range(n_models)
-    sim_indx = np.random.choice(indx, size=nsim, p=gridweights)
+    totsim_indx = np.random.choice(indx, size=nsim, p=gridweights)
+
+    # now apply the completeness
+    print(f"number total stars = {nsim}")
+    rangen = default_rng()
+    compl_choice = rangen.random(nsim)
+    compl_indx = model_compl[totsim_indx] >= compl_choice
+    sim_indx = totsim_indx[compl_indx]
+    print(f"number of complete stars = {len(sim_indx)}")
 
     # get the vega fluxes for the filters
     _, vega_flux, _ = Vega(source=vega_fname).getFlux(sedgrid.filters)

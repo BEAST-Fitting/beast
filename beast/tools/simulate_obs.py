@@ -1,5 +1,6 @@
 import numpy as np
 import argparse
+import asdf
 
 from beast.physicsmodel.grid import SEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
@@ -11,6 +12,7 @@ from astropy.table import vstack
 def simulate_obs(
     physgrid_list,
     noise_model_list,
+    beastinfo_list,
     output_catalog,
     nsim=100,
     compl_filter="F475W",
@@ -29,7 +31,12 @@ def simulate_obs(
 
     noise_model_list : list of strings
         Name of the noise model file.  If there are multiple files for
-        physgrid_list (because of subgrids), list the noise model file
+        physgrid_list (because of subgrids), list the noise model files
+        associated with each physics model file.
+
+    beastinfo_list : list of strings
+        Name of the beast info file.  If there are multiple files for
+        physgrid_list (because of subgrids), list the beast info files
         associated with each physics model file.
 
     output_catalog : string
@@ -65,8 +72,10 @@ def simulate_obs(
     simtable_list = []
 
     # make a table for each physics model + noise model
-    for physgrid, noise_model in zip(
-        np.atleast_1d(physgrid_list), np.atleast_1d(noise_model_list)
+    for physgrid, noise_model, beastinfo in zip(
+        np.atleast_1d(physgrid_list),
+        np.atleast_1d(noise_model_list),
+        np.atleast_1d(beastinfo_list),
     ):
 
         # get the physics model grid - includes priors
@@ -75,10 +84,15 @@ def simulate_obs(
         # read in the noise model - includes bias, unc, and completeness
         noisegrid = noisemodel.get_noisemodelcat(str(noise_model))
 
+        with asdf.open(beastinfo) as af:
+            binfo = af.tree
+
         # generate the table
         simtable = gen_SimObs_from_sedgrid(
             modelsedgrid,
             noisegrid,
+            age_prior_model=binfo["age_prior_model"],
+            mass_prior_model=binfo["mass_prior_model"],
             nsim=samples_per_grid,
             compl_filter=compl_filter,
             weight_to_use=weight_to_use,
@@ -113,6 +127,13 @@ if __name__ == "__main__":  # pragma: no cover
         help="filename(s) of observation/noise grid(s)",
     )
     parser.add_argument(
+        "--beastinfo_list",
+        metavar="BEAST_INFO",
+        required=True,
+        nargs="+",
+        help="filename(s) of beast info file(s)",
+    )
+    parser.add_argument(
         "--output_catalog",
         "-c",
         required=True,
@@ -142,6 +163,7 @@ if __name__ == "__main__":  # pragma: no cover
     simulate_obs(
         args.physgrid_list,
         args.noise_model_lists,
+        args.beastinfo_list,
         args.output_catalog,
         nsim=args.nsim,
         compl_filter=args.compl_filter,
