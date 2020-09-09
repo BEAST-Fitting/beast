@@ -212,7 +212,13 @@ class TestRegressionSuite(unittest.TestCase):
 
         priors_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
         priors_fname, g = add_stellar_priors(
-            "test", specgrid, priors_fname=priors_fname
+            "test",
+            specgrid,
+            priors_fname=priors_fname,
+            age_prior_model=self.settings.age_prior_model,
+            mass_prior_model=self.settings.mass_prior_model,
+            met_prior_model=self.settings.met_prior_model,
+            distance_prior_model=self.settings.distance_prior_model,
         )
 
         # compare the new to the cached version
@@ -235,13 +241,13 @@ class TestRegressionSuite(unittest.TestCase):
             g_pspec,
             self.settings.filters,
             seds_fname=seds_fname,
-            extLaw=extinction.Gordon16_RvFALaw(),
-            av=[0.0, 10.055, 1.0],
-            rv=[2.0, 6.0, 1.0],
-            fA=[0.0, 1.0, 0.25],
-            av_prior_model={"name": "flat"},
-            rv_prior_model={"name": "flat"},
-            fA_prior_model={"name": "flat"},
+            extLaw=self.settings.extLaw,
+            av=self.settings.avs,
+            rv=self.settings.rvs,
+            fA=self.settings.fAs,
+            rv_prior_model=self.settings.rv_prior_model,
+            av_prior_model=self.settings.av_prior_model,
+            fA_prior_model=self.settings.fA_prior_model,
             add_spectral_properties_kwargs=self.settings.add_spectral_properties_kwargs,
         )
 
@@ -350,7 +356,9 @@ class TestRegressionSuite(unittest.TestCase):
 
     # ###################################################################
     # AST tests
-    @pytest.mark.skip(reason="need filters info: get from sed grid - will have to download")
+    @pytest.mark.skip(
+        reason="need filters info: get from sed grid - will have to download"
+    )
     def test_ast_pick_models(self):
         """
         Generate the artifial star test (AST) inputs using a cached version of
