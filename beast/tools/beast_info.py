@@ -4,19 +4,18 @@ import asdf
 __all__ = ["add_to_beast_info_file"]
 
 
-def add_to_beast_info_file(project, info):
+def add_to_beast_info_file(infoname, info):
     """
     Add information to the beast info file.
 
     Parameters
     ----------
-    project : str
-        name of project that gives the beast info filename
+    infoname : str
+        the beast info filename
 
     info : dict
         dictionary to add to the beast info file
     """
-    infoname = f"{project}/{project}_beast_info.asdf"
     if path.exists(infoname):
         with asdf.open(infoname) as af:
             tree = af.tree
