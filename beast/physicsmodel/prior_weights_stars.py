@@ -41,7 +41,7 @@ def compute_age_prior_weights(logages, age_prior_model):
     """
     if age_prior_model["name"] == "flat" or age_prior_model["name"] == "flat_linear":
         if "sfr" in age_prior_model.keys():
-            sfr = float(age_prior_model["sfr"])
+            sfr = age_prior_model["sfr"]
         else:
             sfr = 1.0
         age_weights = np.full(len(logages), sfr)
