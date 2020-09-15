@@ -306,6 +306,7 @@ def gen_SimObs_from_sedgrid(
     # if the age and mass prior models are given, use them to determine the
     # total number of stars to simulate
     if (age_prior_model is not None) and (mass_prior_model is not None):
+        prior_based = True
         logage_range = [min(sedgrid["logA"]), max(sedgrid["logA"])]
         mass_range = [min(sedgrid["M_ini"]), max(sedgrid["M_ini"])]
 
@@ -325,12 +326,17 @@ def gen_SimObs_from_sedgrid(
         deltage = agepts[1:] - agepts[0:-1]
         nstars = aveageprior * deltage / avemass
         nsim = int(np.sum(nstars))
+    else:
+        prior_based = False
 
     # the combined prior and grid weights (completeness is handled later)
     # using both as the grid weight needed to account for the finite size
     #   of each grid bin
     # if we change to interpolating between grid points, need to rethink this
-    gridweights = sedgrid[weight_to_use][goodobsmod]
+    if prior_based:
+        gridweights = sedgrid[weight_to_use][goodobsmod]
+    else:
+        gridweights = sedgrid[weight_to_use][goodobsmod] * model_compl
     # need to sum to 1
     gridweights = gridweights / np.sum(gridweights)
 
@@ -343,12 +349,16 @@ def gen_SimObs_from_sedgrid(
     totsim_indx = np.random.choice(indx, size=nsim, p=gridweights)
 
     # now apply the completeness
-    print(f"number total stars = {nsim}")
-    rangen = default_rng()
-    compl_choice = rangen.random(nsim)
-    compl_indx = model_compl[totsim_indx] >= compl_choice
-    sim_indx = totsim_indx[compl_indx]
-    print(f"number of complete stars = {len(sim_indx)}")
+    if prior_based:
+        print(f"number total stars = {nsim}")
+        rangen = default_rng()
+        compl_choice = rangen.random(nsim)
+        compl_indx = model_compl[totsim_indx] >= compl_choice
+        sim_indx = totsim_indx[compl_indx]
+        print(f"number of complete stars = {len(sim_indx)}")
+    else:
+        print(f"number of simulated stars = {nsim}")
+        sim_indx = totsim_indx
 
     # get the vega fluxes for the filters
     _, vega_flux, _ = Vega(source=vega_fname).getFlux(sedgrid.filters)
