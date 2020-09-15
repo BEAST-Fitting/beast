@@ -616,7 +616,7 @@ def merge_lnp(
     with tables.open_file(merged_lnp_fname, "w") as out_table:
         for i in range(n_star):
             star_label = "star_" + str(i)
-            star_group = out_table.create_group(star_label)
+            star_group = out_table.create_group("/", star_label)
             star_group.create_dataset(
                 "idx", data=np.array(merged_idx[star_label] + n_list_pad * [np.nan])
             )
