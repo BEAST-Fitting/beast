@@ -19,6 +19,8 @@ def test_symlog():
         1.00000000e01,
     ]
 
+    # test going to symlog
     np.allclose(symlog(y), exp_symlog)
 
+    # test converting back to liner
     np.allclose(inverse_symlog(exp_symlog), y)
