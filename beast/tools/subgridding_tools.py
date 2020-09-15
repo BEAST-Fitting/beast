@@ -618,17 +618,17 @@ def merge_lnp(
             out_table.create_array(
                 star_group,
                 "idx",
-                np.array(merged_idx[star_label] + n_list_pad * [np.nan]),
+                np.array(merged_idx[star_label] + int(n_list_pad[i]) * [np.nan]),
             )
             out_table.create_array(
                 star_group,
                 "lnp",
-                np.array(merged_lnp[star_label] + n_list_pad * [-np.inf]),
+                np.array(merged_lnp[star_label] + int(n_list_pad[i]) * [-np.inf]),
             )
             out_table.create_array(
                 star_group,
                 "subgrid",
-                np.array(merged_subgrid[star_label] + n_list_pad * [np.nan]),
+                np.array(merged_subgrid[star_label] + int(n_list_pad[i]) * [np.nan]),
             )
 
     return merged_lnp_fname
