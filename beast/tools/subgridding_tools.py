@@ -11,6 +11,7 @@ from astropy.table import Table
 
 from beast.observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
 from beast.physicsmodel.grid import SEDGrid
+
 # from beast.external import eztables
 from beast.fitting.fit import save_pdf1d
 from beast.fitting.fit_metrics import percentile
@@ -79,10 +80,7 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
 
         # Load a slice as a SEDGrid object
         sub_g = SEDGrid(
-            g.lamb[:],
-            seds=g.seds[slc],
-            grid=Table(g.grid[slc]),
-            backend="memory",
+            g.lamb[:], seds=g.seds[slc], grid=Table(g.grid[slc]), backend="memory",
         )
         if g.filters is not None:
             sub_g.header["filters"] = " ".join(g.filters)
@@ -616,16 +614,21 @@ def merge_lnp(
     with tables.open_file(merged_lnp_fname, "w") as out_table:
         for i in range(n_star):
             star_label = "star_" + str(i)
-            star_group = out_table.create_group("/", star_label)
-            star_group.create_dataset(
-                "idx", data=np.array(merged_idx[star_label] + n_list_pad * [np.nan])
+            star_group = out_table.create_group("/", star_label, title=star_label)
+            out_table.create_array(
+                star_group,
+                "idx",
+                np.array(merged_idx[star_label] + n_list_pad * [np.nan]),
             )
-            star_group.create_dataset(
-                "lnp", data=np.array(merged_lnp[star_label] + n_list_pad * [-np.inf])
+            out_table.create_array(
+                star_group,
+                "lnp",
+                np.array(merged_lnp[star_label] + n_list_pad * [-np.inf]),
             )
-            star_group.create_dataset(
+            out_table.create_array(
+                star_group,
                 "subgrid",
-                data=np.array(merged_subgrid[star_label] + n_list_pad * [np.nan]),
+                np.array(merged_subgrid[star_label] + n_list_pad * [np.nan]),
             )
 
     return merged_lnp_fname
