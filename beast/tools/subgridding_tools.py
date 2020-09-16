@@ -591,8 +591,8 @@ def merge_lnp(
             star_label = "star_" + str(i)
             # good indices
             keep_ind = np.where(
-                np.array(merged_lnp[star_label])
-                > (max(merged_lnp[star_label]) - threshold)
+                (np.array(merged_lnp[star_label]) - max(merged_lnp[star_label]))
+                > threshold
             )[0]
             good_list_len[i] = len(keep_ind)
             # save just those
