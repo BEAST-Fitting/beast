@@ -548,9 +548,9 @@ def merge_lnp(
 
     # create filename
     if output_fname_base is None:
-        merged_lnp_fname = "combined_lnp.fits"
+        merged_lnp_fname = "combined_lnp.hd5"
     else:
-        merged_lnp_fname = output_fname_base + "_lnp.fits"
+        merged_lnp_fname = output_fname_base + "_lnp.hd5"
 
     # check if we need to rerun
     if os.path.isfile(merged_lnp_fname) and (re_run is False):
