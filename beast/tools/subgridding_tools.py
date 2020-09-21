@@ -506,6 +506,11 @@ def merge_pdf1d_stats(
         ):
             stats_dict[col] = stats[0][col]
 
+
+    # also save the highest Pmax grid number
+    stats_dict['best_gridsub_tag'] = max_pmax_index_per_star
+
+    # save table to a file
     summary_tab = Table(stats_dict)
     summary_tab.write(stats_fname, overwrite=True)
 
