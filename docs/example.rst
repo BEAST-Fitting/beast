@@ -7,8 +7,8 @@ You can find examples of BEAST runs in the
 
 Inside each example, there is a run_beast*.py script.
 
-phat_small Example
-------------------
+metal_small Example
+-------------------
 
 This example is based on a *very* small amount of old PHAT data.
 
@@ -55,7 +55,7 @@ can be plotted using
 
 .. code-block:: console
 
-    $ python beast/plotting/plot_indiv_fit.py beast_example_phat/beast_example_phat
+    $ beast plot_indiv_fit beast_metal_small/beast_metal_small
 
 The argument for this script is the prefix of the output files. The output
 should look like this

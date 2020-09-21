@@ -22,5 +22,5 @@ def test_symlog():
     # test going to symlog
     np.allclose(symlog(y), exp_symlog)
 
-    # test converting back to liner
+    # test converting back to linear
     np.allclose(inverse_symlog(exp_symlog), y)
