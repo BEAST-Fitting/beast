@@ -244,20 +244,25 @@ def gen_SimObs_from_sedgrid(
         number of observations to simulate
 
     compl_filter : str
-        filter to use for completeness (required for toothpick model)
-        set to max to use the max value in all filters
+        Filter to use for completeness (required for toothpick model).
+        Set to max to use the max value in all filters.
 
     ranseed : int
-        used to set the seed to make the results reproducable
+        used to set the seed to make the results reproducable,
         useful for testing
 
     vega_fname : string
-        filename for the vega info
-        usefule for testing
+        filename for the vega info, useful for testing
 
     weight_to_use : string (default='weight')
         Set to either 'weight' (prior+grid), 'prior_weight', or 'grid_weight' to
         choose the weighting for SED selection.
+
+    age_prior_model : dict
+        age prior model in the BEAST dictonary format
+
+    mass_prior_model : dict
+        mass prior model in the BEAST dictonary format
 
     Returns
     -------
@@ -382,7 +387,7 @@ def gen_SimObs_from_sedgrid(
         nindxs = ot[colname] <= 0.0
         ot[magname] = Column(ot[colname])
         ot[magname][pindxs] = -2.5 * np.log10(ot[colname][pindxs])
-        ot[magname][nindxs] = -99.999
+        ot[magname][nindxs] = 99.999
 
         # add in the physical model values in a form similar to
         # the output simulated (physics+obs models) values
@@ -397,7 +402,7 @@ def gen_SimObs_from_sedgrid(
         nindxs = ot[ratename] <= 0.0
         ot[magname] = Column(ot[ratename])
         ot[magname][pindxs] = -2.5 * np.log10(ot[ratename][pindxs])
-        ot[magname][nindxs] = -99.999
+        ot[magname][nindxs] = 99.999
 
     # model parmaeters
     for qname in qnames:

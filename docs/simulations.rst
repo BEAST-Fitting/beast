@@ -31,11 +31,7 @@ rate versus time (age prior) multiplied by the total mass formed per unit time
 (mass prior).  This number of total stars formed is then the total mass divided
 by the average mass computed from the mass prior model.  This total number of
 stars is simulated and then the completeness function is applied to remove
-all the simulated stars that would not be observed.  This provides
-
-the star formation rate verus time in the age prior combined with the
-
-is given by the `--nsim` parameter.
+all the simulated stars that would not be observed.
 
 *********
 Toothpick
