@@ -60,4 +60,4 @@ can be plotted using
 The argument for this script is the prefix of the output files. The output
 should look like this
 
-.. image:: beast_example_phat_ifit_starnum_0.png
+.. image:: images/beast_metal_small_ifit_starnum_0.png
