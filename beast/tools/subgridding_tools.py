@@ -491,7 +491,10 @@ def merge_pdf1d_stats(
 
         elif col == "Pmax_indx":
             # index of the Pmax (to be useful, must be combined with best_gridsub_tag)
-            pmax_ind = stats[grindnr]["Pmax_indx"][np.arange(nobs), max_pmax_index_per_star]
+            all_pmax_ind = np.zeros((nobs, nsubgrids))
+            for gridnr, s in enumerate(stats):
+                all_pmax_ind[:, gridnr] = s[col]
+            stats_dict[col] = all_pmax_ind[np.arange(nobs), max_pmax_index_per_star]
 
         elif col == "total_log_norm":
             stats_dict[col] = np.log(weight.sum(axis=1)) + max_logweight
@@ -503,15 +506,11 @@ def merge_pdf1d_stats(
         # this. Actually specgrid_indx might make sense, since in my
         # particular case I'm splitting after the spec grid has been
         # created. Still leaving this out though.
-        elif (
-            not col == "chi2min_indx"
-            and not col == "specgrid_indx"
-        ):
+        elif not col == "chi2min_indx" and not col == "specgrid_indx":
             stats_dict[col] = stats[0][col]
 
-
     # also save the highest Pmax grid number
-    stats_dict['best_gridsub_tag'] = max_pmax_index_per_star
+    stats_dict["best_gridsub_tag"] = max_pmax_index_per_star
 
     # save table to a file
     summary_tab = Table(stats_dict)
