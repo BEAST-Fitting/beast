@@ -484,7 +484,7 @@ def merge_pdf1d_stats(
             stats_dict[col] = np.amin(all_chi2s, axis=1)
 
         elif col == "Pmax":
-            all_pmaxs = np.zeros((nobs, nsubgrids))
+            all_pmaxs = np.zeros((nobs, nsubgrids), dtype=int)
             for gridnr, s in enumerate(stats):
                 all_pmaxs[:, gridnr] = s[col]
             stats_dict[col] = np.amax(all_pmaxs, axis=1)
