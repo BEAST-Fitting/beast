@@ -484,14 +484,14 @@ def merge_pdf1d_stats(
             stats_dict[col] = np.amin(all_chi2s, axis=1)
 
         elif col == "Pmax":
-            all_pmaxs = np.zeros((nobs, nsubgrids), dtype=int)
+            all_pmaxs = np.zeros((nobs, nsubgrids))
             for gridnr, s in enumerate(stats):
                 all_pmaxs[:, gridnr] = s[col]
             stats_dict[col] = np.amax(all_pmaxs, axis=1)
 
         elif col == "Pmax_indx":
             # index of the Pmax (to be useful, must be combined with best_gridsub_tag)
-            all_pmax_ind = np.zeros((nobs, nsubgrids))
+            all_pmax_ind = np.zeros((nobs, nsubgrids), dtype=int)
             for gridnr, s in enumerate(stats):
                 all_pmax_ind[:, gridnr] = s[col]
             stats_dict[col] = all_pmax_ind[np.arange(nobs), max_pmax_index_per_star]
