@@ -489,6 +489,10 @@ def merge_pdf1d_stats(
                 all_pmaxs[:, gridnr] = s[col]
             stats_dict[col] = np.amax(all_pmaxs, axis=1)
 
+        elif col == "Pmax_indx":
+            # index of the Pmax (to be useful, must be combined with best_gridsub_tag)
+            pmax_ind = stats[grindnr]["Pmax_indx"][np.arange(nobs), max_pmax_index_per_star]
+
         elif col == "total_log_norm":
             stats_dict[col] = np.log(weight.sum(axis=1)) + max_logweight
 
@@ -501,7 +505,6 @@ def merge_pdf1d_stats(
         # created. Still leaving this out though.
         elif (
             not col == "chi2min_indx"
-            and not col == "Pmax_indx"
             and not col == "specgrid_indx"
         ):
             stats_dict[col] = stats[0][col]
