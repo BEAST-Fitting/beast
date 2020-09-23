@@ -25,7 +25,6 @@ def download_rename(filename, tmpdir=""):
     url_loc = "http://www.stsci.edu/~kgordon/beast/"
     fname_dld = download_file("%s%s" % (url_loc, filename))
     extension = filename.split(".")[-1]
-    # fname = f"{fname_dld}.{extension}"
     fname = tempfile.NamedTemporaryFile(suffix=f".{extension}").name
     os.rename(fname_dld, fname)
     return fname

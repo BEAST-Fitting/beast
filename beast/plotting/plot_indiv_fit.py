@@ -13,13 +13,10 @@ from astropy.table import Table
 from astropy.io import fits
 
 from beast.plotting.beastplotlib import initialize_parser
+from beast.tools.symlog import inverse_symlog, symlog_linthreshold
 
 
 __all__ = ["plot_indiv_fit"]
-
-
-def inverse_symlog(y):
-    return np.sign(y) / np.log(10) * np.expm1(np.abs(y) * np.log(10))
 
 
 def disp_str(stats, k, keyname):
@@ -178,16 +175,7 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
             "HST_WFC3_F110W",
             "HST_WFC3_F160W",
         ]
-        waves = np.asarray(
-            [
-                2722.05531502,
-                3366.00507206,
-                4763.04670013,
-                8087.36760191,
-                11672.35909295,
-                15432.7387546,
-            ]
-        )
+        waves = np.asarray([2722.05, 3366.01, 4763.05, 8087.37, 11672.36, 15432.74])
 
     # open 1D PDF file
     pdf1d_hdu = fits.open(pdf1d_fname)
@@ -226,8 +214,6 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
             ax.append(plt.subplot(gs[r, i * w : (i + 1) * w]))
 
     # plot the SED
-    # print(np.sort(stats.colnames))
-
     n_filters = len(filters)
 
     # get the observations
@@ -281,7 +267,8 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
     sed_ax.legend(loc="lower right", fontsize=9)
 
     sed_ax.set_ylabel(r"Flux [ergs s$^{-1}$ cm$^{-2}$ $\AA^{-1}$]")
-    sed_ax.set_yscale("log")
+    sed_ax.set_yscale("symlog", linthreshy=symlog_linthreshold)
+    sed_ax.grid(True)
 
     sed_ax.text(0.5, -0.07, r"$\lambda$ [$\AA$]", transform=sed_ax.transAxes, va="top")
     sed_ax.set_xlim(0.2, 2.0)

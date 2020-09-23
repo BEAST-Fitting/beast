@@ -8,7 +8,10 @@ from beast.physicsmodel import creategrid
 from beast.physicsmodel.stars import isochrone, stellib
 from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.physicsmodel.dust import extinction
-from beast.physicsmodel.grid_and_prior_weights import compute_distance_age_mass_metallicity_weights
+from beast.physicsmodel.grid_and_prior_weights import (
+    compute_distance_age_mass_metallicity_weights,
+)
+from beast.tools.beast_info import add_to_beast_info_file
 
 __all__ = [
     "make_iso_table",
@@ -26,30 +29,39 @@ def make_iso_table(
     dlogt=0.05,
     z=[0.0152],
     iso_fname=None,
+    info_fname=None,
 ):
     """
     The isochrone tables are loaded (downloading if necessary)
 
     Parameters
     ----------
-    project: str
+    project : str
         project name
 
-    oiso: isochrone.Isochrone object
+    oiso : isochrone.Isochrone object
         contains the full isochrones information
 
-    logtmin: float
+    logtmin : float
         log-age min
 
-    logtmax: float
+    logtmax : float
         log-age max
 
-    dlogt: float
+    dlogt : float
         log-age step to request
 
-    z: float or sequence
+    z : float or sequence
         list of metalicity values, where default (Z=0.152) is adopted Z_sun
         for PARSEC/COLIBRI models
+
+    iso_fname : str
+        Set to specify the filename to save the isochrones to, otherwise
+        saved to project/project_iso.csv
+
+    info_fname : str
+        Set to specify the filename to save beast info to, otherwise
+        saved to project/project_beast_info.asdf
 
     Returns
     -------
@@ -71,6 +83,12 @@ def make_iso_table(
 
         t.write(iso_fname)
 
+    # save info to the beast info file
+    info = {"project": project, "logt_input": [logtmin, logtmax, dlogt], "z_input": z}
+    if info_fname is None:
+        info_fname = f"{project}/{project}_beast_info.asdf"
+    add_to_beast_info_file(info_fname, info)
+
     # read in the isochrone data from the file
     #   not sure why this is needed, but reproduces previous ezpipe method
     oiso = ezIsoch(iso_fname)
@@ -91,7 +109,7 @@ def make_spectral_grid(
     filterLib=None,
     add_spectral_properties_kwargs=None,
     extLaw=None,
-    **kwargs
+    **kwargs,
 ):
     """
     The spectral grid is generated using the stellar parameters by
@@ -212,7 +230,7 @@ def make_spectral_grid(
                     g,
                     nameformat=nameformat,
                     filterLib=filterLib,
-                    **add_spectral_properties_kwargs
+                    **add_spectral_properties_kwargs,
                 )
 
             # extinction
@@ -243,14 +261,18 @@ def make_spectral_grid(
     return (spec_fname, g)
 
 
-def add_stellar_priors(project, specgrid,
-                       distance_prior_model={'name': 'flat'},
-                       age_prior_model={'name': 'flat'},
-                       mass_prior_model={'name': 'kroupa'},
-                       met_prior_model={'name': 'flat'},
-                       verbose=True,
-                       priors_fname=None,
-                       **kwargs):
+def add_stellar_priors(
+    project,
+    specgrid,
+    distance_prior_model={"name": "flat"},
+    age_prior_model={"name": "flat"},
+    mass_prior_model={"name": "kroupa"},
+    met_prior_model={"name": "flat"},
+    verbose=True,
+    priors_fname=None,
+    info_fname=None,
+    **kwargs,
+):
     """
     make_priors -- compute the weights for the stellar priors
 
@@ -277,6 +299,10 @@ def add_stellar_priors(project, specgrid,
     priors_fname: str
         full filename to which to save the spectral grid with priors
 
+    info_fname : str
+        Set to specify the filename to save beast info to, otherwise
+        saved to project/project_beast_info.asdf
+
     Returns
     -------
     fname: str
@@ -298,7 +324,8 @@ def add_stellar_priors(project, specgrid,
             age_prior_model=age_prior_model,
             mass_prior_model=mass_prior_model,
             met_prior_model=met_prior_model,
-            **kwargs)
+            **kwargs,
+        )
 
         # write to disk
         if hasattr(specgrid, "write"):
@@ -307,6 +334,18 @@ def add_stellar_priors(project, specgrid,
             for gk in specgrid:
                 gk.write(priors_fname, append=True)
 
+    # save info to the beast info file
+    info = {
+        "distance_prior_model": distance_prior_model,
+        "age_prior_model": age_prior_model,
+        "mass_prior_model": mass_prior_model,
+        "met_prior_model": met_prior_model,
+    }
+    if info_fname is None:
+        info_fname = f"{project}/{project}_beast_info.asdf"
+    add_to_beast_info_file(info_fname, info)
+
+    # read in spectralgrid from file (possible not needed, need to check)
     g = SpectralGrid(priors_fname, backend="memory")
 
     return (priors_fname, g)
@@ -328,7 +367,8 @@ def make_extinguished_sed_grid(
     verbose=True,
     seds_fname=None,
     filterLib=None,
-    **kwargs
+    info_fname=None,
+    **kwargs,
 ):
 
     """
@@ -381,6 +421,10 @@ def make_extinguished_sed_grid(
     filterLib:  str
         full filename to the filter library hd5 file
 
+    info_fname : str
+        Set to specify the filename to save beast info to, otherwise
+        saved to project/project_beast_info.asdf
+
     Returns
     -------
     fname: str
@@ -418,6 +462,7 @@ def make_extinguished_sed_grid(
                 filterLib=filterLib,
             )
         else:
+            fAs = [1.0]
             g = creategrid.make_extinguished_grid(
                 specgrid,
                 filters,
@@ -436,6 +481,22 @@ def make_extinguished_sed_grid(
         else:
             for gk in g:
                 gk.write(seds_fname, append=True)
+
+    # save info to the beast info file
+    info = {
+        "av_input": av,
+        "rv_input": rv,
+        "fA_input": fA,
+        "avs": avs,
+        "rvs": rvs,
+        "fAs": fAs,
+        "av_prior_model": av_prior_model,
+        "rv_prior_model": rv_prior_model,
+        "fA_prior_model": fA_prior_model,
+    }
+    if info_fname is None:
+        info_fname = f"{project}/{project}_beast_info.asdf"
+    add_to_beast_info_file(info_fname, info)
 
     g = SEDGrid(seds_fname, backend="memory")
 

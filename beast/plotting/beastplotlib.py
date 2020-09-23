@@ -235,22 +235,22 @@ def plot_generic(
 
 
 def set_params(
-    lw=1.5, universal_color="#262626", fontsize=12, helvetica=True, usetex=True
+    lw=2.0, universal_color="#262626", fontsize=14, helvetica=False, usetex=False
 ):
     """Configure some matplotlib rcParams.
 
     Parameters
     ----------
     lw : scalar
-        Linewidth of plot and axis lines. Default is 1.5.
+        Linewidth of plot and axis lines. Default is 2.0.
     universal_color : str, matplotlib named color, rgb tuple
         Color of text and axis spines. Default is #262626, off-black
     fontsize : scalar
-        Font size in points. Default is 12
+        Font size in points. Default is 14
     helvetica : boolean
-        Whether to try and change font to Helvetica. Default is true.
+        Whether to try and change font to Helvetica. Default is False.
     usetex : boolean
-        Whether to set rc.text.usetex = True. Default is true.
+        Whether to set rc.text.usetex = True. Default is False.
 
     Returns
     -------
