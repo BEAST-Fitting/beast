@@ -75,7 +75,7 @@ with a SFR=1e-5 M_sun/year and a Kroupa IMF.
    $ beast simulate_obs beast_metal_small_seds.grid.hd5 \
                         beast_metal_small_noisemodel.grid.hd5 \
                         sim_475w_prior.fits \
-                        --beastinfo beast_metal_small_beast_info.asdf
+                        --beastinfo_list beast_metal_small_beast_info.asdf
 
 .. image:: images/metal_small_sim_f475w_prior_plot.png
 
