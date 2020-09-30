@@ -73,7 +73,7 @@ def plot_cmd(
     # sets up plots to have larger fonts, wider lines, etc.
     set_params()
 
-    plt.plot(col, mag, ".")
+    plt.plot(col, mag, "k.", ms=0.1)
 
     plt.gca().invert_yaxis()
 

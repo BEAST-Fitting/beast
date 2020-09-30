@@ -388,7 +388,7 @@ def gen_SimObs_from_sedgrid(
     for k, filter in enumerate(sedgrid.filters):
         simflux_wbias = flux[sim_indx, k] + model_bias[sim_indx, k]
 
-        simflux = np.random.normal(loc=simflux_wbias, scale=model_unc[sim_indx, k])
+        simflux = rangen.normal(loc=simflux_wbias, scale=model_unc[sim_indx, k])
 
         bname = filter.split(sep="_")[-1].upper()
         fluxname = f"{bname}_FLUX"
