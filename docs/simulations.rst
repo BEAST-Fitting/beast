@@ -24,13 +24,12 @@ The number of observations to simulate is either calculated from the age and
 mass prior/ensemble models or can be explicitly specified by using the `nsim`
 parameter.
 
-If the `beastinfo` ASDF file is passed to the `simulate_obs` script,
-then the number of stars is computed based on the age/mass models.  This is
-done by computing the total mass formed by integrating the star formation
-rate versus time (age prior) multiplied by the total mass formed per unit time
-(mass prior).  This number of total stars formed is then the total mass divided
-by the average mass computed from the mass prior model.  This total number of
-stars is simulated and then the completeness function is applied to remove
+If the `beastinfo` ASDF file is passed to the `simulate_obs` script, then the
+number of stars is computed based on the age/mass models.  This is done by
+computing the mass formed for each unique age in the physics grid  (combination
+of age and mass priors) accounting for stars that have already disappeared and
+dividing by the average mass (mass prior model).  This number of stars is
+simulated at each age and then the completeness function is applied to remove
 all the simulated stars that would not be observed.
 
 *********

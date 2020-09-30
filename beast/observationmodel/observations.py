@@ -11,6 +11,7 @@ from beast.physicsmodel.prior_weights_stars import (
     compute_mass_prior_weights,
     compute_age_prior_weights,
 )
+from beast.physicsmodel.grid_weights_stars import compute_bin_boundaries
 
 __all__ = ["Observations", "gen_SimObs_from_sedgrid"]
 
@@ -271,21 +272,18 @@ def gen_SimObs_from_sedgrid(
         physics model parmaeters
     """
     n_models, n_filters = sedgrid.seds.shape
+    flux = sedgrid.seds
+
+    # cache the noisemodel values
+    model_bias = sedgrid_noisemodel["bias"]
+    model_unc = np.fabs(sedgrid_noisemodel["error"])
+    model_compl = sedgrid_noisemodel["completeness"]
 
     # only use models that have non-zero completeness in all filters
     #  zero completeness means the observation model is not defined for that filters/flux
-    model_compl = np.fabs(sedgrid_noisemodel["completeness"])
     ast_defined = model_compl > 0
     sum_ast_defined = np.sum(ast_defined, axis=1)
     goodobsmod = sum_ast_defined >= n_filters
-
-    flux = sedgrid.seds[goodobsmod, :]
-    n_models, n_filters = flux.shape
-
-    # cache the noisemodel values
-    model_bias = sedgrid_noisemodel["bias"][goodobsmod, :]
-    model_unc = np.fabs(sedgrid_noisemodel["error"][goodobsmod, :])
-    model_compl = sedgrid_noisemodel["completeness"][goodobsmod, :]
 
     # completeness from toothpick model so n band completeness values
     # require only 1 completeness value for each model
@@ -308,62 +306,77 @@ def gen_SimObs_from_sedgrid(
         print("Completeness from %s" % sedgrid.filters[filter_k])
         model_compl = model_compl[:, filter_k]
 
+    # initialize the random number generator
+    rangen = default_rng(ranseed)
+
     # if the age and mass prior models are given, use them to determine the
     # total number of stars to simulate
+    model_indx = np.arange(n_models)
     if (age_prior_model is not None) and (mass_prior_model is not None):
-        prior_based = True
-        logage_range = [min(sedgrid["logA"]), max(sedgrid["logA"])]
+        nsim = 0
+        # logage_range = [min(sedgrid["logA"]), max(sedgrid["logA"])]
         mass_range = [min(sedgrid["M_ini"]), max(sedgrid["M_ini"])]
 
-        # compute the average mass of a star given the mass_prior_model
+        # compute the total mass and average mass of a star given the mass_prior_model
         nmass = 100
         masspts = np.logspace(np.log10(mass_range[0]), np.log10(mass_range[1]), nmass)
         massprior = compute_mass_prior_weights(masspts, mass_prior_model)
-        avemass = np.trapz(masspts * massprior, masspts) / np.trapz(massprior, masspts)
+        totmass = np.trapz(massprior, masspts)
+        avemass = np.trapz(masspts * massprior, masspts) / totmass
 
-        # compute the total mass as a function of age
-        # age prior units are in solar masses/year
-        nage = 100
-        agepts = np.logspace(logage_range[0], logage_range[1], nage)
-        ageprior = compute_age_prior_weights(np.log10(agepts), age_prior_model)
-        # aveage = 0.5 * (agepts[1:] + agepts[0:-1])
-        aveageprior = 0.5 * (ageprior[1:] + ageprior[0:-1])
-        deltage = agepts[1:] - agepts[0:-1]
-        nstars = aveageprior * deltage / avemass
-        nsim = int(np.sum(nstars))
-    else:
-        prior_based = False
+        # compute the mass of the remaining stars at each age and
+        # simulate the stars assuming everything is complete
+        gridweights = sedgrid[weight_to_use]
+        gridweights = gridweights / np.sum(gridweights)
 
-    # the combined prior and grid weights (completeness is handled later)
-    # using both as the grid weight needed to account for the finite size
-    #   of each grid bin
-    # if we change to interpolating between grid points, need to rethink this
-    if prior_based:
-        gridweights = sedgrid[weight_to_use][goodobsmod]
-    else:
-        gridweights = sedgrid[weight_to_use][goodobsmod] * model_compl
-    # need to sum to 1
-    gridweights = gridweights / np.sum(gridweights)
+        grid_ages = np.unique(sedgrid["logA"])
+        ageprior = compute_age_prior_weights(grid_ages, age_prior_model)
+        bin_boundaries = compute_bin_boundaries(grid_ages)
+        bin_widths = np.diff(10 ** (bin_boundaries))
+        totsim_indx = np.array([], dtype=int)
+        for cage, cwidth, cprior in zip(grid_ages, bin_widths, ageprior):
+            gmods = sedgrid["logA"] == cage
+            cur_mass_range = [
+                min(sedgrid["M_ini"][gmods]),
+                max(sedgrid["M_ini"][gmods]),
+            ]
+            gmass = (masspts >= cur_mass_range[0]) & (masspts <= cur_mass_range[1])
+            curmasspts = masspts[gmass]
+            curmassprior = massprior[gmass]
+            totcurmass = np.trapz(curmassprior, curmasspts)
 
-    # set the random seed - mainly for testing
-    if ranseed is not None:
-        np.random.seed(ranseed)
+            # compute the mass remaining at each age -> this is the mass to simulate
+            simmass = cprior * cwidth * totcurmass / totmass
+            nsim_curage = int(round(simmass / avemass))
 
-    # sample to get the indexes of the picked models
-    indx = range(n_models)
-    totsim_indx = np.random.choice(indx, size=nsim, p=gridweights)
+            # simluate the stars at the current age
+            curweights = gridweights[gmods]
+            curweights /= np.sum(curweights)
+            cursim_indx = rangen.choice(
+                model_indx[gmods], size=nsim_curage, p=curweights
+            )
 
-    # now apply the completeness
-    if prior_based:
-        print(f"number total stars = {nsim}")
-        rangen = default_rng()
+            totsim_indx = np.concatenate((totsim_indx, cursim_indx))
+
+            nsim += nsim_curage
+            # totsimcurmass = np.sum(sedgrid["M_ini"][cursim_indx])
+            # print(cage, totcurmass / totmass, simmass, totsimcurmass, nsim_curage)
+
+        totsimmass = np.sum(sedgrid["M_ini"][totsim_indx])
+        print(f"number total simulated stars = {nsim}; mass = {totsimmass}")
         compl_choice = rangen.random(nsim)
         compl_indx = model_compl[totsim_indx] >= compl_choice
         sim_indx = totsim_indx[compl_indx]
-        print(f"number of complete stars = {len(sim_indx)}")
-    else:
+        totcompsimmass = np.sum(sedgrid["M_ini"][sim_indx])
+        print(f"number of simulated stars w/ completeness = {len(sim_indx)}; mass = {totcompsimmass}")
+
+    else:  # total number of stars to simulate set by command line input
+        gridweights = sedgrid[weight_to_use][goodobsmod] * model_compl[goodobsmod]
+        gridweights = gridweights / np.sum(gridweights)
+
+        # sample to get the indexes of the picked models
+        sim_indx = rangen.choice(model_indx[goodobsmod], size=nsim, p=gridweights)
         print(f"number of simulated stars = {nsim}")
-        sim_indx = totsim_indx
 
     # get the vega fluxes for the filters
     _, vega_flux, _ = Vega(source=vega_fname).getFlux(sedgrid.filters)
