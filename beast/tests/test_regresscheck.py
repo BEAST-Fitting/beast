@@ -14,7 +14,6 @@ from astropy.table import Table
 from astropy.io import fits
 
 from beast.physicsmodel.stars.isochrone import ezIsoch
-from beast.physicsmodel.dust import extinction
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel.model_grid import (
     make_iso_table,
@@ -153,6 +152,7 @@ class TestRegressionSuite(unittest.TestCase):
         """
         # download the file live from the website
         savename = tempfile.NamedTemporaryFile(suffix=".csv").name
+        infoname = tempfile.NamedTemporaryFile(suffix=".asdf").name
         (iso_fname, g) = make_iso_table(
             "test",
             iso_fname=savename,
@@ -160,6 +160,7 @@ class TestRegressionSuite(unittest.TestCase):
             logtmax=self.settings.logt[1],
             dlogt=self.settings.logt[2],
             z=self.settings.z,
+            info_fname=infoname,
         )
 
         # read the cached and new tables using astropy tables
@@ -211,8 +212,16 @@ class TestRegressionSuite(unittest.TestCase):
         specgrid = SpectralGrid(self.spec_fname_cache, backend="memory")
 
         priors_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
+        infoname = tempfile.NamedTemporaryFile(suffix=".asdf").name
         priors_fname, g = add_stellar_priors(
-            "test", specgrid, priors_fname=priors_fname
+            "test",
+            specgrid,
+            priors_fname=priors_fname,
+            age_prior_model=self.settings.age_prior_model,
+            mass_prior_model=self.settings.mass_prior_model,
+            met_prior_model=self.settings.met_prior_model,
+            distance_prior_model=self.settings.distance_prior_model,
+            info_fname=infoname,
         )
 
         # compare the new to the cached version
@@ -230,19 +239,21 @@ class TestRegressionSuite(unittest.TestCase):
         #   effect of dust extinction applied before filter integration
         #   also computes the dust priors as weights
         seds_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
+        infoname = tempfile.NamedTemporaryFile(suffix=".asdf").name
         (seds_fname, g) = make_extinguished_sed_grid(
             "test",
             g_pspec,
             self.settings.filters,
             seds_fname=seds_fname,
-            extLaw=extinction.Gordon16_RvFALaw(),
-            av=[0.0, 10.055, 1.0],
-            rv=[2.0, 6.0, 1.0],
-            fA=[0.0, 1.0, 0.25],
-            av_prior_model={"name": "flat"},
-            rv_prior_model={"name": "flat"},
-            fA_prior_model={"name": "flat"},
+            extLaw=self.settings.extLaw,
+            av=self.settings.avs,
+            rv=self.settings.rvs,
+            fA=self.settings.fAs,
+            rv_prior_model=self.settings.rv_prior_model,
+            av_prior_model=self.settings.av_prior_model,
+            fA_prior_model=self.settings.fA_prior_model,
             add_spectral_properties_kwargs=self.settings.add_spectral_properties_kwargs,
+            info_fname=infoname,
         )
 
         # compare the new to the cached version
@@ -329,7 +340,7 @@ class TestRegressionSuite(unittest.TestCase):
             threshold=-10.0,
             save_every_npts=100,
             lnp_npts=60,
-            max_nbins=100,
+            max_nbins=200,
             stats_outname=stats_fname,
             pdf1d_outname=pdf1d_fname,
             lnp_outname=lnp_fname,
@@ -350,7 +361,9 @@ class TestRegressionSuite(unittest.TestCase):
 
     # ###################################################################
     # AST tests
-    @pytest.mark.skip(reason="need filters info: get from sed grid - will have to download")
+    @pytest.mark.skip(
+        reason="need filters info: get from sed grid - will have to download"
+    )
     def test_ast_pick_models(self):
         """
         Generate the artifial star test (AST) inputs using a cached version of

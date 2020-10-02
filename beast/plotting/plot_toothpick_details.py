@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 
 from beast.observationmodel.noisemodel import toothpick
 from beast.physicsmodel.grid import SEDGrid
+from beast.plotting.beastplotlib import set_params
 
 __all__ = ["plot_toothpick_details"]
 
@@ -39,7 +40,8 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
     model.fit_bins(nbins=50, completeness_mag_cut=-10)
 
     nfilters = len(sedgrid.filters)
-    fig, ax = plt.subplots(nrows=nfilters, ncols=2, figsize=(12, 8), sharex=True)
+    fig, ax = plt.subplots(nrows=nfilters, ncols=2, figsize=(14, 10), sharex=True)
+    set_params()
 
     for i, cfilter in enumerate(sedgrid.filters):
         mag_in = model.data[model.filter_aliases[cfilter + "_in"]]
@@ -60,6 +62,7 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
 
         # not all bins are filled with good data
         ngbins = model._nasts[i]
+
         ax[i, 0].plot(
             model._fluxes[0:ngbins, i],
             model._biases[0:ngbins, i] / model._fluxes[0:ngbins, i],
