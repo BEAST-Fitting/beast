@@ -4,7 +4,7 @@ import numpy as np
 __all__ = ["create_graphic_model", "plot_graphic_model"]
 
 
-def create_graphic_model(nodes, edges, type):
+def create_graphic_model(nodes, edges, gtype):
     """
     Create a graphic model given nodes and edges
 
@@ -14,11 +14,11 @@ def create_graphic_model(nodes, edges, type):
         for each node {key, text, math}
     edges : dict
         for each edge {key, text, math}
-    type : str [default="text"]
+    gtype : str [default="text"]
         "text" for a verbose version, "math" for a compact version
     """
     mod = Digraph()
-    if type == "math":
+    if gtype == "math":
         tindx = 1
     else:
         tindx = 0
@@ -36,13 +36,13 @@ def create_graphic_model(nodes, edges, type):
     return mod
 
 
-def plot_graphic_model(type="text", savefig="png"):
+def plot_graphic_model(gtype="text", savefig="png"):
     """
     Plot the graphical model of the BEAST.
 
     Parameters
     ----------
-    type : str [default="text"]
+    gtype : str [default="text"]
         "text" for a verbose version, "math" for a compact version
     savefig : str
         set to the file extension of desired file to save image of model
@@ -95,7 +95,7 @@ def plot_graphic_model(type="text", savefig="png"):
         "AST": "Obs",
     }
 
-    beast = create_graphic_model(nodes, edges, type)
+    beast = create_graphic_model(nodes, edges, gtype)
 
     beast.render(f"beast-graphic-{type}", format=savefig)
 
