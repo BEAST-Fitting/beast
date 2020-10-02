@@ -177,6 +177,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
         else:
             make_ast_xy_list.pick_positions(
                 obsdata,
+                outfile_seds,
                 outfile,
                 settings.ast_pixel_distribution,
                 refimage=settings.ast_reference_image,
