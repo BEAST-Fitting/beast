@@ -2,7 +2,6 @@
 BEAST Fitting functions
 """
 import numpy as np
-import math
 import tables
 import string
 from itertools import islice
@@ -18,13 +17,12 @@ from astropy.table import Table
 from tqdm import tqdm
 
 from beast.physicsmodel import grid
-
+from beast.tools.symlog import symlog
 from beast.fitting.fit_metrics.likelihood import (
     N_covar_logLikelihood,
     N_logLikelihood_NM,
 )
 from beast.fitting.fit_metrics import expectation, percentile
-
 from beast.fitting.pdf1d import pdf1d
 from beast.fitting.pdf2d import pdf2d
 
@@ -317,7 +315,7 @@ def Q_all_memory(
     qnames_in,
     p=[16.0, 50.0, 84.0],
     gridbackend="cache",
-    max_nbins=100,
+    max_nbins=200,
     stats_outname=None,
     pdf1d_outname=None,
     pdf2d_outname=None,
@@ -353,7 +351,7 @@ def Q_all_memory(
     gridbackend : str or grid.GridBackend
         backend to use to load the grid if necessary (memory, cache, hdf)
         (see beast.core.grid)
-    max_nbins : int (default=100)
+    max_nbins : int (default=200)
         maxiumum number of bins to use for the 1D likelihood calculations
     save_every_npts : int
         set to save the files below (if set) every n stars
@@ -459,11 +457,7 @@ def Q_all_memory(
     #   save as symmetric log, since the fluxes can be negative
     model_seds_with_bias = np.asfortranarray(_seds + ast_bias)
     # full_model_flux = np.sign(logtempseds) * np.log10(1 + np.abs(logtempseds * math.log(10)))
-    full_model_flux = (
-        np.sign(model_seds_with_bias)
-        * np.log1p(np.abs(model_seds_with_bias * math.log(10)))
-        / math.log(10)
-    )
+    full_model_flux = symlog(model_seds_with_bias)
 
     # setup the arrays to temp store the results
     n_qnames = len(qnames)
@@ -910,7 +904,7 @@ def summary_table_memory(
     save_every_npts=None,
     lnp_npts=None,
     resume=False,
-    max_nbins=100,
+    max_nbins=200,
     stats_outname=None,
     pdf1d_outname=None,
     pdf2d_outname=None,
@@ -947,7 +941,7 @@ def summary_table_memory(
     use_full_cov_matrix : bool
         set to use the full covariance matrix if it is present in the
         noise model file
-    max_nbins : int (default=100)
+    max_nbins : int (default=200)
         maxiumum number of bins to use for the 1D likelihood calculations
     stats_outname : str
         set to output the stats file into a FITS file with extensions

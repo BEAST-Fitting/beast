@@ -1,5 +1,6 @@
 import numpy as np
 import argparse
+import asdf
 
 from beast.physicsmodel.grid import SEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
@@ -12,13 +13,14 @@ def simulate_obs(
     physgrid_list,
     noise_model_list,
     output_catalog,
+    beastinfo_list=None,
     nsim=100,
     compl_filter="F475W",
     weight_to_use="weight",
     ranseed=None,
 ):
     """
-    Wrapper for creating a simulated photometry.
+    Simulate photometry based on a physicsmodel grid(s) and observation model(s).
 
     Parameters
     ----------
@@ -29,16 +31,22 @@ def simulate_obs(
 
     noise_model_list : list of strings
         Name of the noise model file.  If there are multiple files for
-        physgrid_list (because of subgrids), list the noise model file
+        physgrid_list (because of subgrids), list the noise model files
         associated with each physics model file.
 
     output_catalog : string
         Name of the output simulated photometry catalog
 
+    beastinfo_list : list of strings (default=None)
+        Name of the beast info file.  The mass and age prior models are read
+        from this model to use to compute the number of stars to simulate. If
+        there are multiple files for physgrid_list (because of subgrids), list
+        the beast info files associated with each physics model file.
+
     n_sim : int (default=100)
-        Number of simulated objects to create.  If nsim/len(physgrid_list) isn't
-        an integer, this will be increased so that each grid has the same
-        number of samples.
+        Number of simulated objects to create if beastinfo_list is not given. If
+        nsim/len(physgrid_list) isn't an integer, this will be increased so that
+        each grid has the same number of samples.
 
     compl_filter : str (default=F475W)
         filter to use for completeness (required for toothpick model)
@@ -52,7 +60,6 @@ def simulate_obs(
         seed for random number generator
 
     """
-
     # numbers of samples to do
     # (ensure there are enough for even sampling of multiple model grids)
     n_phys = len(np.atleast_1d(physgrid_list))
@@ -66,9 +73,8 @@ def simulate_obs(
     simtable_list = []
 
     # make a table for each physics model + noise model
-    for physgrid, noise_model in zip(
-        np.atleast_1d(physgrid_list), np.atleast_1d(noise_model_list)
-    ):
+    for k, physgrid in enumerate(np.atleast_1d(physgrid_list)):
+        noise_model = np.atleast_1d(noise_model_list)[k]
 
         # get the physics model grid - includes priors
         modelsedgrid = SEDGrid(str(physgrid))
@@ -76,10 +82,21 @@ def simulate_obs(
         # read in the noise model - includes bias, unc, and completeness
         noisegrid = noisemodel.get_noisemodelcat(str(noise_model))
 
+        if beastinfo_list is not None:
+            with asdf.open(np.atleast_1d(beastinfo_list)[k]) as af:
+                binfo = af.tree
+                age_prior_model = binfo["age_prior_model"]
+                mass_prior_model = binfo["mass_prior_model"]
+        else:
+            age_prior_model = None
+            mass_prior_model = None
+
         # generate the table
         simtable = gen_SimObs_from_sedgrid(
             modelsedgrid,
             noisegrid,
+            age_prior_model=age_prior_model,
+            mass_prior_model=mass_prior_model,
             nsim=samples_per_grid,
             compl_filter=compl_filter,
             weight_to_use=weight_to_use,
@@ -120,6 +137,12 @@ if __name__ == "__main__":  # pragma: no cover
         help="filename for simulated observations",
     )
     parser.add_argument(
+        "--beastinfo_list",
+        metavar="BEAST_INFO",
+        nargs="+",
+        help="filename(s) of beast info file(s)",
+    )
+    parser.add_argument(
         "--nsim", default=100, type=int, help="number of simulated objects"
     )
     parser.add_argument(
@@ -144,6 +167,7 @@ if __name__ == "__main__":  # pragma: no cover
         args.physgrid_list,
         args.noise_model_lists,
         args.output_catalog,
+        beastinfo_list=args.beastinfo_list,
         nsim=args.nsim,
         compl_filter=args.compl_filter,
         weight_to_use=args.weight_to_use,

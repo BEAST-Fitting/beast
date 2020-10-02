@@ -11,6 +11,7 @@ from astropy.table import Table
 
 from beast.observationmodel.noisemodel.generic_noisemodel import get_noisemodelcat
 from beast.physicsmodel.grid import SEDGrid
+
 # from beast.external import eztables
 from beast.fitting.fit import save_pdf1d
 from beast.fitting.fit_metrics import percentile
@@ -79,10 +80,7 @@ def split_grid(grid_fname, num_subgrids, overwrite=False):
 
         # Load a slice as a SEDGrid object
         sub_g = SEDGrid(
-            g.lamb[:],
-            seds=g.seds[slc],
-            grid=Table(g.grid[slc]),
-            backend="memory",
+            g.lamb[:], seds=g.seds[slc], grid=Table(g.grid[slc]), backend="memory",
         )
         if g.filters is not None:
             sub_g.header["filters"] = " ".join(g.filters)
@@ -491,6 +489,13 @@ def merge_pdf1d_stats(
                 all_pmaxs[:, gridnr] = s[col]
             stats_dict[col] = np.amax(all_pmaxs, axis=1)
 
+        elif col == "Pmax_indx":
+            # index of the Pmax (to be useful, must be combined with best_gridsub_tag)
+            all_pmax_ind = np.zeros((nobs, nsubgrids), dtype=int)
+            for gridnr, s in enumerate(stats):
+                all_pmax_ind[:, gridnr] = s[col]
+            stats_dict[col] = all_pmax_ind[np.arange(nobs), max_pmax_index_per_star]
+
         elif col == "total_log_norm":
             stats_dict[col] = np.log(weight.sum(axis=1)) + max_logweight
 
@@ -501,13 +506,13 @@ def merge_pdf1d_stats(
         # this. Actually specgrid_indx might make sense, since in my
         # particular case I'm splitting after the spec grid has been
         # created. Still leaving this out though.
-        elif (
-            not col == "chi2min_indx"
-            and not col == "Pmax_indx"
-            and not col == "specgrid_indx"
-        ):
+        elif not col == "chi2min_indx" and not col == "specgrid_indx":
             stats_dict[col] = stats[0][col]
 
+    # also save the highest Pmax grid number
+    stats_dict["best_gridsub_tag"] = max_pmax_index_per_star
+
+    # save table to a file
     summary_tab = Table(stats_dict)
     summary_tab.write(stats_fname, overwrite=True)
 
@@ -550,9 +555,9 @@ def merge_lnp(
 
     # create filename
     if output_fname_base is None:
-        merged_lnp_fname = "combined_lnp.fits"
+        merged_lnp_fname = "combined_lnp.hd5"
     else:
-        merged_lnp_fname = output_fname_base + "_lnp.fits"
+        merged_lnp_fname = output_fname_base + "_lnp.hd5"
 
     # check if we need to rerun
     if os.path.isfile(merged_lnp_fname) and (re_run is False):
@@ -593,8 +598,8 @@ def merge_lnp(
             star_label = "star_" + str(i)
             # good indices
             keep_ind = np.where(
-                np.array(merged_lnp[star_label])
-                > (max(merged_lnp[star_label]) - threshold)
+                (np.array(merged_lnp[star_label]) - max(merged_lnp[star_label]))
+                > threshold
             )[0]
             good_list_len[i] = len(keep_ind)
             # save just those
@@ -616,16 +621,21 @@ def merge_lnp(
     with tables.open_file(merged_lnp_fname, "w") as out_table:
         for i in range(n_star):
             star_label = "star_" + str(i)
-            star_group = out_table.create_group(star_label)
-            star_group.create_dataset(
-                "idx", data=np.array(merged_idx[star_label] + n_list_pad * [np.nan])
+            star_group = out_table.create_group("/", star_label, title=star_label)
+            out_table.create_array(
+                star_group,
+                "idx",
+                np.array(merged_idx[star_label] + int(n_list_pad[i]) * [np.nan]),
             )
-            star_group.create_dataset(
-                "lnp", data=np.array(merged_lnp[star_label] + n_list_pad * [-np.inf])
+            out_table.create_array(
+                star_group,
+                "lnp",
+                np.array(merged_lnp[star_label] + int(n_list_pad[i]) * [-np.inf]),
             )
-            star_group.create_dataset(
+            out_table.create_array(
+                star_group,
                 "subgrid",
-                data=np.array(merged_subgrid[star_label] + n_list_pad * [np.nan]),
+                np.array(merged_subgrid[star_label] + int(n_list_pad[i]) * [np.nan]),
             )
 
     return merged_lnp_fname

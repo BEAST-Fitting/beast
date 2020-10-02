@@ -23,7 +23,7 @@ def run_fitting(
     choose_sd_sub=None,
     choose_subgrid=None,
     pdf2d_param_list=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
-    pdf_max_nbins=100,
+    pdf_max_nbins=200,
     resume=False,
 ):
     """

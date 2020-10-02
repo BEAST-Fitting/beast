@@ -2,26 +2,35 @@
 Simulations
 ###########
 
-Simulations of observations are useful for testing the sensitivity
-of a specific set of observations to BEAST model parameters.  This is
-useful for quantifying the BEAST performance for proposed and actual
-observations.
+Simulations of observations can be made based on already computed  physics and
+observation model grids.  Uses for such simulations include testing the
+sensitivity of a specific set of observations to BEAST model parameters and
+testing ensemble fitters like the MegaBEAST.
 
-This is done using the
-`beast.observationmodel.observations.gen_SimObs_from_sedgrid` function.
-The script
-`tools/simulate_obs.py` can be run directly or using the `beast simulate_obs`
-command once the beast has been installed.
+Simulations are done using the
+`beast.observationmodel.observations.gen_SimObs_from_sedgrid` function. The
+script `tools/simulate_obs.py` provides a command line interface and can be run
+using the `beast simulate_obs` command once the beast has been installed.
 Simulations require already created BEAST physics and observation model grids.
-The physics model grid includes the ensemble parameters as these are the same
-as the BEAST :ref:`beast_priors`.
-If a different ensemble model is needed (e.g., with a different SFH), then a
-new physics model (and possible observations model) will be needed.
-The module
-uses already created BEAST physics and observation model grids
-by sampling the full nD prior function that is part of the physics
-model grid.  The observation model grid provides the information on
+The physics model grid includes the ensemble parameters as these are the same as
+the BEAST :ref:`beast_priors`. If a different ensemble model is needed (e.g.,
+with a different SFH), then a new physics model (and possible observations
+model) will be needed. The module uses already created BEAST physics and
+observation model grids by sampling the full nD prior function that is part of
+the physics model grid.  The observation model grid provides the information on
 the flux uncertainties and biases as well as the completeness.
+
+The number of observations to simulate is either calculated from the age and
+mass prior/ensemble models or can be explicitly specified by using the `nsim`
+parameter.
+
+If the `beastinfo` ASDF file is passed to the `simulate_obs` script, then the
+number of stars is computed based on the age/mass models.  This is done by
+computing the mass formed for each unique age in the physics grid  (combination
+of age and mass priors) accounting for stars that have already disappeared and
+dividing by the average mass (mass prior model).  This number of stars is
+simulated at each age and then the completeness function is applied to remove
+all the simulated stars that would not be observed.
 
 *********
 Toothpick
@@ -31,10 +40,9 @@ The files for the physicsgrid and obsgrid files are required inputs to
 the script.  The output filename is also required.  Note that the extension
 of this file will determine the type of file output (e.g. filebase.fits for
 a FITS file).
-The number of observations to simulate is given by the `--nsim` parameter.
 The filter to use for the completeness function is given by the
 `--compl_filter` parameter (default=F475W).
-Set `compl_filter=max` to use the max completeness value across all the filters.  
+Set `compl_filter=max` to use the max completeness value across all the filters.
 The SEDs are picked weighted by the product of the grid+prior weights
 and the completeness from the noisemodel.  The grid+prior weights can be replaced
 with either grid or prior weights by explicitly setting the `--weight_to_use`
@@ -53,6 +61,39 @@ the observed data are given), and `band_vega` as vega magnitudes with zero and
 negative fluxes given as -99.999.
 The physicsgrid values without noise/bias are given as `band_input_flux`,
 `band_input_rate`, and `band_input_vega`.
+
+Examples
+--------
+
+Example for the `metal_small` example for a simulation based on the prior model.
+Plot created with `beast plot_cmd`.  Prior model has a flat star formation history
+with a SFR=1e-5 M_sun/year and a Kroupa IMF.
+
+.. code-block:: console
+
+   $ beast simulate_obs beast_metal_small_seds.grid.hd5 \
+                        beast_metal_small_noisemodel.grid.hd5 \
+                        sim_475w_prior.fits \
+                        --beastinfo_list beast_metal_small_beast_info.asdf
+
+.. image:: images/metal_small_sim_f475w_prior_plot.png
+
+Example for the `metal_small` example for a simulation based on input number of
+stars.  Plot created with `beast plot_cmd`.  Note that not all 1000 simulated
+sources are shown as the simulated sources include those with negative fluxes
+that cannot be plotted on a standard CMD.
+
+.. code-block:: console
+
+   $ beast simulate_obs beast_metal_small_seds.grid.hd5 \
+                        beast_metal_small_noisemodel.grid.hd5 \
+                        sim_475w_nsim.fits \
+                        --nsim=1000
+
+.. image:: images/metal_small_sim_f475w_nsim_plot.png
+
+High-mass star biased simulations
+---------------------------------
 
 When creating simulated observations, using the standard IMF mass prior will
 skew your catalog to lower-mass stars.  If you wish to have similar weights for
