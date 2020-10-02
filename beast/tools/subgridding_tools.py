@@ -373,7 +373,12 @@ def merge_pdf1d_stats(
                         raise AssertionError()
 
     # Load all the stats files
-    stats = [Table.read(f) for f in subgrid_stats_fnames]
+    stats = [Table.read(f, hdu=1) for f in subgrid_stats_fnames]
+    try:
+        filters_tab = Table.read(subgrid_stats_fnames[0], hdu=2)
+    except ValueError:
+        filters_tab = None
+        pass
 
     # First, let's read the arrays of weights (each subgrid has an array
     # of weights, containing one weight for each source).
@@ -513,8 +518,11 @@ def merge_pdf1d_stats(
     stats_dict["best_gridsub_tag"] = max_pmax_index_per_star
 
     # save table to a file
-    summary_tab = Table(stats_dict)
-    summary_tab.write(stats_fname, overwrite=True)
+    ohdu = fits.HDUList()
+    ohdu.append(fits.table_to_hdu(Table(stats_dict)))
+    if filters_tab is not None:
+        ohdu.append(fits.table_to_hdu(filters_tab))
+    ohdu.writeto(stats_fname, overwrite=True)
 
     print("Saved combined 1dpdfs in " + pdf1d_fname)
     print("Saved combined stats in " + stats_fname)
