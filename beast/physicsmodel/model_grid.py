@@ -433,20 +433,28 @@ def make_extinguished_sed_grid(
     g: SpectralGrid object
         spectral grid to transform
     """
+
+    # create the dust grid arrays so they can go into the beast_info file later
+    avs = np.arange(av[0], av[1] + 0.5 * av[2], av[2])
+    rvs = np.arange(rv[0], rv[1] + 0.5 * rv[2], rv[2])
+    if fA is not None:
+        fAs = np.arange(fA[0], fA[1] + 0.5 * fA[2], fA[2])
+    else:
+        fAs = [1.0]
+
+    # create SED file name if needed
     if seds_fname is None:
         seds_fname = "%s/%s_seds.grid.hd5" % (project, project)
+
+    # generate extinguished grids if SED file doesn't exist
     if not os.path.isfile(seds_fname):
 
         extLaw = extLaw or extinction.Cardelli()
-
-        avs = np.arange(av[0], av[1] + 0.5 * av[2], av[2])
-        rvs = np.arange(rv[0], rv[1] + 0.5 * rv[2], rv[2])
 
         if verbose:
             print("Make SEDS")
 
         if fA is not None:
-            fAs = np.arange(fA[0], fA[1] + 0.5 * fA[2], fA[2])
             g = creategrid.make_extinguished_grid(
                 specgrid,
                 filters,
@@ -462,7 +470,6 @@ def make_extinguished_sed_grid(
                 filterLib=filterLib,
             )
         else:
-            fAs = [1.0]
             g = creategrid.make_extinguished_grid(
                 specgrid,
                 filters,
