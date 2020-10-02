@@ -22,7 +22,7 @@ You will also need:
 
 One easy way to obtain the above is through the AstroConda Python stack:
 
-- First install `Miniconda <https://conda.io/miniconda.html>`_ which
+- First install `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ which
   contains the conda package manager. Once Miniconda is installed,
   you can use the `conda` command to install any other packages and create
   environments, etc.
