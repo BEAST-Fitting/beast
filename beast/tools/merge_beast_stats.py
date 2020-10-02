@@ -31,7 +31,6 @@ def merge_stats_files(stats_files, out_stats_filebase, reorder_tag_list=None):
         filters_tab = Table.read(stats_files[0], hdu=2)
     except ValueError:
         filters_tab = None
-        pass
 
     # loop through the stats files, building up the output table
     cats_list = []

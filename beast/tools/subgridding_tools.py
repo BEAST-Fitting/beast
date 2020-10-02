@@ -378,7 +378,6 @@ def merge_pdf1d_stats(
         filters_tab = Table.read(subgrid_stats_fnames[0], hdu=2)
     except ValueError:
         filters_tab = None
-        pass
 
     # First, let's read the arrays of weights (each subgrid has an array
     # of weights, containing one weight for each source).
