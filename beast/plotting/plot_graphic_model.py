@@ -86,7 +86,7 @@ def plot_graphic_model(type="text", savefig="png"):
         "fA": "D",
         "IMF": "M",
         "SFH": ("M", "t"),
-        "AMR": "Z",
+        "AMR": ("Z", "t"),
         "DP": "d",
         "FC": ("Av", "Rv", "fA"),
         "GC": ("Av", "Rv", "fA"),
