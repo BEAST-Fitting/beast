@@ -91,7 +91,7 @@ def plot_graphic_model(gtype="text", savefig="png"):
         "FC": ("Av", "Rv", "fA"),
         "GC": ("Av", "Rv", "fA"),
         "Obs": "Like",
-        "BF": ("Like", "Obs"),
+        "BF": "Obs",
         "AST": "Obs",
     }
 
