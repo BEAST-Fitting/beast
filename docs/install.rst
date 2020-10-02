@@ -7,8 +7,8 @@ Requirements
 
 Running the BEAST requires:
 
-- Python >=3.5
-- Astropy >=1.3
+- Python >= 3.7
+- Astropy >= 1.3
 
 In turn, Astropy depends on
 `other packages <http://docs.astropy.org/en/latest/install.html>`_ for
