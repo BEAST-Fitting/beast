@@ -29,7 +29,8 @@ User Documentation
 .. toctree::
    :maxdepth: 1
 
-   BEAST run setup details <beast_setup.rst>
+   Graphical Model <beast_graphical_model>
+   Run setup details <beast_setup.rst>
    Example production run workflow <workflow.rst>
    Stellar/Extinction Priors <beast_priors.rst>
    Running in parallel by using subgrids <subgrid_parallelism.rst>
@@ -40,7 +41,7 @@ User Documentation
    Other Tools <other_tools.rst>
    Format of BEAST grid files <beast_grid_format.rst>
    Details on BEAST libraries for grid <beast_grid_inputs.rst>
-   BEAST output files <outputs.rst>
+   Output files <outputs.rst>
    Known issues <beast_issues.rst>
 
 Developer Documentation
