@@ -69,7 +69,7 @@ def plot_graphic_model(gtype="text", savefig="png"):
         "GC": ("Instrinsic\nDust", "ID"),
         "Obs": ("Observation Model", "<&mu;<sub>i</sub>(F<sup>Mod</sup><sub>i</sub>), &sigma;<sub>i</sub>(F<sup>Mod</sup><sub>i</sub>)>"),
         "Like": ("Observed Band Fluxes", "Observed Band Fluxes"),
-        "AST": ("Artifical Star Test Parameters", "b(m), &sigma;(m)"),
+        "AST": ("Artifical Star Test Parameters", "b(m<sub>i</sub>), &sigma;(m<sub>i</sub>)"),
     }
 
     edges = {
