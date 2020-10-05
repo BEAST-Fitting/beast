@@ -216,8 +216,8 @@ def pick_models_toothpick_style(
 
     # Gather the selected model seds in a table
     sedsMags_table = {}
-    for k, filter in enumerate(filters):
-        sedsMags_table[filter] = sedsMags[chosen_idxs, k]
+    for k, filter_name in enumerate(filters):
+        sedsMags_table[filter_name] = sedsMags[chosen_idxs, k]
     sedsMags_table["sedgrid_indx"] = chosen_idxs
 
     sedsMags = Table(sedsMags_table)
