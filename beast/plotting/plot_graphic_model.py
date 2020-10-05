@@ -69,7 +69,7 @@ def plot_graphic_model(gtype="text", savefig="png"):
         "GC": ("Instrinsic\nDust", "ID"),
         "Obs": ("Observation Model", "<&mu;<sub>i</sub>(F<sup>Mod</sup><sub>i</sub>), &sigma;<sub>i</sub>(F<sup>Mod</sup><sub>i</sub>)>"),
         "Like": ("Observed Band Fluxes", "Observed Band Fluxes"),
-        "AST": ("Artifical Star Test Parameters", "b(m<sub>i</sub>), &sigma;(m<sub>i</sub>)"),
+        "AST": ("Artifical Star Test Parameters", "<b(m<sub>i</sub>), &sigma;(m<sub>i</sub>)>"),
     }
 
     edges = {
@@ -97,7 +97,7 @@ def plot_graphic_model(gtype="text", savefig="png"):
 
     beast = create_graphic_model(nodes, edges, gtype)
 
-    beast.render(f"beast-graphic-{type}", format=savefig)
+    beast.render(f"beast-graphic-{gtype}", format=savefig)
 
 
 if __name__ == "__main__":
