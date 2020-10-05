@@ -222,8 +222,6 @@ def pick_models_toothpick_style(
 
     sedsMags = Table(sedsMags_table)
 
-    print(sedsMags)
-
     if outfile is not None:
         ascii.write(
             sedsMags,
@@ -438,7 +436,6 @@ def supplement_ast(
 
     Nseds = sedsMags.shape[0]
     sedsIndx = np.arange(Nseds)
-    print(Nseds)
 
     if existingASTfile is not None and os.path.isfile(existingASTfile):
         print(
