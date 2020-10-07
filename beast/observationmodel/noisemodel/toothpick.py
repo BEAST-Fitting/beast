@@ -157,6 +157,8 @@ class MultiFilterASTs(NoiseModel):
                 name_prefix += "_"
 
         # check if any NaNs are present, remove if they are
+        # NaNs can be present due to the AST pipeline or in cases where
+        # there is missing data (e.g., chip gaps)
         if np.any(np.isnan(magflux_in)):
             gvals = np.isfinite(magflux_in) & np.isfinite(magflux_out)
             magflux_in = magflux_in[gvals]
