@@ -434,7 +434,7 @@ def make_extinguished_sed_grid(
         spectral grid to transform
     """
 
-    # create the dust grid arrays so they can go into the beast_info file later
+    # create the dust grid arrays
     avs = np.arange(av[0], av[1] + 0.5 * av[2], av[2])
     rvs = np.arange(rv[0], rv[1] + 0.5 * rv[2], rv[2])
     if fA is not None:
