@@ -6,6 +6,7 @@ import glob
 import argparse
 
 from astropy.table import Table, Column, vstack
+from astropy.io import fits
 
 
 def merge_stats_files(stats_files, out_stats_filebase, reorder_tag_list=None):
@@ -25,12 +26,18 @@ def merge_stats_files(stats_files, out_stats_filebase, reorder_tag_list=None):
         set, the tag names will be derived from the stats file names.
     """
 
+    # grab filter table if it exists
+    try:
+        filters_tab = Table.read(stats_files[0], hdu=2)
+    except ValueError:
+        filters_tab = None
+
     # loop through the stats files, building up the output table
     cats_list = []
     for i, cur_stat in enumerate(stats_files):
 
         # read in current catalog
-        cur_cat = Table.read(cur_stat)
+        cur_cat = Table.read(cur_stat, hdu=1)
 
         if reorder_tag_list is None:
             # get the source density and subregion name
@@ -54,7 +61,11 @@ def merge_stats_files(stats_files, out_stats_filebase, reorder_tag_list=None):
     full_cat = vstack(cats_list)
 
     # output the full pixel catalog
-    full_cat.write(out_stats_filebase + "_stats.fits", overwrite=True)
+    ohdu = fits.HDUList()
+    ohdu.append(fits.table_to_hdu(full_cat))
+    if filters_tab is not None:
+        ohdu.append(fits.table_to_hdu(filters_tab))
+    ohdu.writeto(out_stats_filebase + "_stats.fits", overwrite=True)
 
     # return the number of sources in the catalog for later use
     return len(full_cat)
