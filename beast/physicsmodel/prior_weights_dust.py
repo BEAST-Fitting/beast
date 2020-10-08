@@ -216,13 +216,13 @@ class PriorWeightsDust:
             self.av_priors = np.full(self.av_vals.shape, 1.0)
         elif model["name"] == "lognormal":
             self.av_priors = _lognorm(
-                self.av_vals, model["max_pos"], sigma=model["sigma"]
+                self.av_vals, model["mean"], sigma=model["sigma"]
             )
         elif model["name"] == "two_lognormal":
             self.av_priors = _two_lognorm(
                 self.av_vals,
-                model["max_pos1"],
-                model["max_pos2"],
+                model["mean1"],
+                model["mean2"],
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
                 N1=model["N1_to_N2"],
@@ -257,13 +257,13 @@ class PriorWeightsDust:
             self.rv_priors = np.full(self.rv_vals.shape, 1.0)
         elif model["name"] == "lognormal":
             self.rv_priors = _lognorm(
-                self.rv_vals, model["max_pos"], sigma=model["sigma"]
+                self.rv_vals, model["mean"], sigma=model["sigma"]
             )
         elif model["name"] == "two_lognormal":
             self.rv_priors = _two_lognorm(
                 self.rv_vals,
-                model["max_pos1"],
-                model["max_pos2"],
+                model["mean1"],
+                model["mean2"],
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
                 N1=model["N1_to_N2"],
@@ -296,13 +296,13 @@ class PriorWeightsDust:
             self.fA_priors = np.full(self.fA_vals.shape, 1.0)
         elif model["name"] == "lognormal":
             self.fA_priors = _lognorm(
-                self.fA_vals, model["max_pos"], sigma=model["sigma"]
+                self.fA_vals, model["mean"], sigma=model["sigma"]
             )
         elif model["name"] == "two_lognormal":
             self.fA_priors = _two_lognorm(
                 self.fA_vals,
-                model["max_pos1"],
-                model["max_pos2"],
+                model["mean1"],
+                model["mean2"],
                 sigma1=model["sigma1"],
                 sigma2=model["sigma2"],
                 N1=model["N1_to_N2"],

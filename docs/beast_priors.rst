@@ -262,13 +262,13 @@ The A(V) prior can be:
 
   av_prior_model = {'name': 'flat'}
 
-2. Lognormal with the maximum at the A(V) given by max_pos and the width
+2. Lognormal with the maximum at the A(V) given by mean and the width
 given by sigma.
 
 .. code-block:: python
 
   av_prior_model = {'name': 'lognormal',
-                    'max_pos': 2.0,
+                    'mean': 2.0,
                     'sigma': 1.0}
 
 3. Two lognormals (see above for definition of terms)
@@ -276,8 +276,8 @@ given by sigma.
 .. code-block:: python
 
   av_prior_model = {'name': 'two_lognormal',
-                    'max_pos1': 0.2,
-                    'max_pos2': 2.0,
+                    'mean1': 0.2,
+                    'mean2': 2.0,
                     'sigma1': 1.0,
                     'sigma2': 0.2,
                     'N1_to_N2': 1.0 / 5.0}
@@ -303,11 +303,11 @@ given by sigma.
 
     dust_prior_models = [
         {"name": "flat"},
-        {"name": "lognormal", "max_pos": 2.0, "sigma": 1.0},
+        {"name": "lognormal", "mean": 2.0, "sigma": 1.0},
         {
             "name": "two_lognormal",
-            "max_pos1": 0.2,
-            "max_pos2": 2.0,
+            "mean1": 0.2,
+            "mean2": 2.0,
             "sigma1": 1.0,
             "sigma2": 0.5,
             "N1_to_N2": 1.0 / 5.0
@@ -337,13 +337,13 @@ R(V)
 
   rv_prior_model = {'name': 'flat'}
 
-2. Lognormal with the maximum at the R(V) given by max_pos and the width
+2. Lognormal with the maximum at the R(V) given by mean and the width
 given by sigma.
 
 .. code-block:: python
 
   rv_prior_model = {'name': 'lognormal',
-                    'max_pos': 3.1,
+                    'mean': 3.1,
                     'sigma': 0.25}
 
 3. Two lognormals (see above for definition of terms)
@@ -351,8 +351,8 @@ given by sigma.
 .. code-block:: python
 
   rv_prior_model = {'name': 'two_lognormal',
-                    'max_pos1': 3.1,
-                    'max_pos1': 4.5,
+                    'mean1': 3.1,
+                    'mean1': 4.5,
                     'sigma1': 0.1,
                     'sigma2': 0.2,
                     'N1_to_N2': 2.0 / 5.0}
@@ -371,11 +371,11 @@ given by sigma.
 
     dust_prior_models = [
         {"name": "flat"},
-        {"name": "lognormal", "max_pos": 3.1, "sigma": 0.25},
+        {"name": "lognormal", "mean": 3.1, "sigma": 0.25},
         {
             "name": "two_lognormal",
-            "max_pos1": 3.1,
-            "max_pos2": 4.5,
+            "mean1": 3.1,
+            "mean2": 4.5,
             "sigma1": 0.1,
             "sigma2": 0.2,
             "N1_to_N2": 2.0 / 5.0
@@ -404,13 +404,13 @@ f_A
 
   fA_prior_model = {'name': 'flat'}
 
-2. Lognormal with the maximum at the f_A given by max_pos and the width
+2. Lognormal with the maximum at the f_A given by mean and the width
 given by sigma.
 
 .. code-block:: python
 
   fA_prior_model = {'name': 'lognormal',
-                    'max_pos': 0.8,
+                    'mean': 0.8,
                     'sigma': 0.1}
 
 3. Two lognormals (see above for definition of terms)
@@ -418,8 +418,8 @@ given by sigma.
 .. code-block:: python
 
   fA_prior_model = {'name': 'two_lognormal',
-                    'max_pos1': 0.1,
-                    'max_pos1': 0.8,
+                    'mean1': 0.1,
+                    'mean1': 0.8,
                     'sigma1': 0.1,
                     'sigma2': 0.2,
                     'N1_to_N2': 2.0 / 5.0}
@@ -438,11 +438,11 @@ given by sigma.
 
     dust_prior_models = [
         {"name": "flat"},
-        {"name": "lognormal", "max_pos": 0.8, "sigma": 0.1},
+        {"name": "lognormal", "mean": 0.8, "sigma": 0.1},
         {
             "name": "two_lognormal",
-            "max_pos1": 0.2,
-            "max_pos2": 0.8,
+            "mean1": 0.2,
+            "mean2": 0.8,
             "sigma1": 0.1,
             "sigma2": 0.2,
             "N1_to_N2": 2.0 / 5.0
