@@ -66,7 +66,9 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
 
 
 def read_noise_data(
-    filename, param_list=["bias", "completeness", "error"], filter_col=None,
+    filename,
+    param_list=["bias", "completeness", "error"],
+    filter_col=None,
 ):
     """
     Read some or all of the noise model parameters, for one or all of the filters
@@ -167,7 +169,7 @@ def read_sed_data(
     return sed_data
 
 
-def get_lnp_grid_vals(sed_data, lnp_data):
+def get_lnp_grid_vals(sed_data, lnp_data, verbose=False):
     """
     Acquire the SED parameter values for the locations where the lnp values
     were saved
@@ -207,7 +209,9 @@ def get_lnp_grid_vals(sed_data, lnp_data):
         lnp_grid_vals[param] = np.full((n_lnps, n_stars), np.nan, dtype=float)
 
     # loop over the stars and extract the requested BEAST data
-    for k in tqdm(range(n_stars), desc="extracting params for each lnP"):
+    for k in tqdm(
+        range(n_stars), desc="extracting params for each lnP", disable=not verbose
+    ):
         lnp_inds = lnp_data["indxs"][:, k]
         good_inds = np.isfinite(lnp_inds)
         for param in param_list:
