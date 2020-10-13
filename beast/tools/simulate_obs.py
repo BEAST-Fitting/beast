@@ -16,6 +16,7 @@ def simulate_obs(
     beastinfo_list=None,
     nsim=100,
     compl_filter="F475W",
+    complcut=None,
     weight_to_use="weight",
     ranseed=None,
 ):
@@ -52,13 +53,16 @@ def simulate_obs(
         filter to use for completeness (required for toothpick model)
         set to max to use the max value in all filters
 
+    complcut : float (defualt=None)
+        completeness cut for only including model seds above the cut
+        raning from 0.0 to 1.0.
+
     weight_to_use : string (default='weight')
         Set to either 'weight' (prior+grid), 'prior_weight', or 'grid_weight' to
         choose the weighting for SED selection.
 
     ranseed : int
         seed for random number generator
-
     """
     # numbers of samples to do
     # (ensure there are enough for even sampling of multiple model grids)
@@ -99,6 +103,7 @@ def simulate_obs(
             mass_prior_model=mass_prior_model,
             nsim=samples_per_grid,
             compl_filter=compl_filter,
+            complcut=complcut,
             weight_to_use=weight_to_use,
             ranseed=ranseed,
         )
@@ -158,7 +163,16 @@ if __name__ == "__main__":  # pragma: no cover
         'grid_weight' to choose the weighting for SED selection.""",
     )
     parser.add_argument(
-        "--ranseed", default=None, type=int, help="seed for random number generator"
+        "--ranseed", 
+        default=None, 
+        type=int, 
+        help="seed for random number generator"
+    )
+    parser.add_argument(
+        "--complcut", 
+        default=None, 
+        type=float, 
+        help="completeness cut for only including seds with higher completeness"
     )
     args = parser.parse_args()
 
@@ -170,6 +184,7 @@ if __name__ == "__main__":  # pragma: no cover
         beastinfo_list=args.beastinfo_list,
         nsim=args.nsim,
         compl_filter=args.compl_filter,
+        complcut=args.complcut,
         weight_to_use=args.weight_to_use,
         ranseed=args.ranseed,
     )

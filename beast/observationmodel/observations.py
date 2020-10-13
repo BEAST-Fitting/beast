@@ -217,6 +217,7 @@ def gen_SimObs_from_sedgrid(
     sedgrid_noisemodel,
     nsim=100,
     compl_filter="F475W",
+    complcut=None,
     ranseed=None,
     vega_fname=None,
     weight_to_use="weight",
@@ -247,6 +248,10 @@ def gen_SimObs_from_sedgrid(
     compl_filter : str
         Filter to use for completeness (required for toothpick model).
         Set to max to use the max value in all filters.
+
+    complcut : float (defualt=None)
+        completeness cut for only including model seds above the cut
+        raning from 0.0 to 1.0.
 
     ranseed : int
         used to set the seed to make the results reproducable,
@@ -280,8 +285,8 @@ def gen_SimObs_from_sedgrid(
     model_compl = sedgrid_noisemodel["completeness"]
 
     # only use models that have non-zero completeness in all filters
-    #  zero completeness means the observation model is not defined for that filters/flux
-    ast_defined = model_compl > 0
+    # zero completeness means the observation model is not defined for that filters/flux
+    ast_defined = model_compl > 0.0
     sum_ast_defined = np.sum(ast_defined, axis=1)
     goodobsmod = sum_ast_defined >= n_filters
 
@@ -305,6 +310,11 @@ def gen_SimObs_from_sedgrid(
         filter_k = short_filters.index(compl_filter.upper())
         print("Completeness from %s" % sedgrid.filters[filter_k])
         model_compl = model_compl[:, filter_k]
+
+    # if complcut is provided, only use models above that completeness cut 
+    # in addition to the non-zero completeness criterion
+    if complcut is not None:
+        goodobsmod = (goodobsmod) & (model_compl >= complcut)
 
     # initialize the random number generator
     rangen = default_rng(ranseed)
