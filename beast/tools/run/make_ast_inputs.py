@@ -161,7 +161,8 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 obsdata,
                 chosen_seds,
                 settings.ast_density_table,
-                settings.ast_N_bins,
+                settings.sd_Nbins,
+                settings.sd_binwidth,
                 settings.ast_realization_per_model,
                 outfile=outfile,
                 refimage=settings.ast_reference_image,
@@ -171,7 +172,6 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 set_coord_boundary=settings.ast_coord_boundary,
                 region_from_filters="all",
             )
-
         # if we're not using SD/background maps, SEDs will be distributed
         # based on catalog sources
         else:
@@ -188,9 +188,7 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "beast_settings_file",
-        type=str,
-        help="file name with beast settings",
+        "beast_settings_file", type=str, help="file name with beast settings",
     )
     parser.add_argument(
         "--random_seds",
@@ -209,20 +207,17 @@ if __name__ == "__main__":  # pragma: no cover
 
     if args.random_seds:
         make_ast_inputs(
-            beast_settings_info=args.beast_settings_file,
-            pick_method="random_seds"
+            beast_settings_info=args.beast_settings_file, pick_method="random_seds"
         )
 
     if args.suppl_seds:
         make_ast_inputs(
-            beast_settings_info=args.beast_settings_file,
-            pick_method="suppl_seds"
+            beast_settings_info=args.beast_settings_file, pick_method="suppl_seds"
         )
 
     else:
         make_ast_inputs(
-            beast_settings_info=args.beast_settings_file,
-            pick_method="flux_bin_method"
+            beast_settings_info=args.beast_settings_file, pick_method="flux_bin_method"
         )
 
     # print help if no arguments
