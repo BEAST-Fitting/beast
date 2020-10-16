@@ -178,7 +178,7 @@ class Observations(object):
         """returns the error on the flux of an observation from the number of
         counts (not used in the analysis)"""
 
-        fluxerr = np.empty(len(self.filters), dtype=float)
+        fluxerr = np.zeros(len(self.filters), dtype=float)
 
         for ek, ok in enumerate(self.filters):
             fluxerr[ek] = self.data[ok + "_err"][num]

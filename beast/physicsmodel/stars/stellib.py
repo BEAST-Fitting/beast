@@ -633,7 +633,7 @@ class Stellib(object):
         # SEDs are kept into a ndarray
         ndata = len(pts)
         _grid = {}
-        _grid["radius"] = np.empty(ndata, dtype=float)
+        _grid["radius"] = np.zeros(ndata, dtype=float)
 
         # stores the grid+prior weights (initialize to 1)
         _grid["weight"] = np.full(ndata, 1.0, dtype=float)
@@ -653,7 +653,7 @@ class Stellib(object):
         #   to the SED grid
         _grid["specgrid_indx"] = np.full(ndata, 0.0, dtype=float)
 
-        specs = np.empty((ndata, len(self.wavelength)), dtype=float)
+        specs = np.zeros((ndata, len(self.wavelength)), dtype=float)
 
         # copy meta data of pts into the resulting structure
         if hasattr(pts, "keys"):

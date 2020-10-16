@@ -38,7 +38,7 @@ def compute_bin_boundaries(tab):
        boundaries of the bins
     """
     temp = tab[1:] - np.diff(tab) / 2.0
-    tab2 = np.empty(len(tab) + 1)
+    tab2 = np.(len(tab) + 1)
     tab2[0] = tab[0] - np.diff(tab)[0] / 2.0
     tab2[-1] = tab[-1] + np.diff(tab)[-1] / 2.0
     tab2[1:-1] = temp
@@ -99,7 +99,7 @@ def compute_mass_grid_weights(masses):
     masses_bounds = compute_bin_boundaries(masses[sindxs])
 
     # compute the weights = bin widths
-    mass_weights = np.empty(len(masses))
+    mass_weights = np.zeros(len(masses))
     mass_weights[sindxs] = np.diff(masses_bounds)
 
     # normalize to avoid numerical issues (too small or too large)
@@ -129,7 +129,7 @@ def compute_metallicity_grid_weights(mets):
     mets_bounds = compute_bin_boundaries(mets[sindxs])
 
     # compute the weights = bin widths
-    mets_weights = np.empty(len(mets))
+    mets_weights = np.zeros(len(mets))
     mets_weights[sindxs] = np.diff(mets_bounds)
 
     # normalize to avoid numerical issues (too small or too large)
@@ -160,7 +160,7 @@ def compute_distance_grid_weights(dists):
     dists_bounds = compute_bin_boundaries(tdists[sindxs])
 
     # compute the weights = bin widths
-    dists_weights = np.empty(len(tdists))
+    dists_weights = np.zeros(len(tdists))
     dists_weights[sindxs] = np.diff(dists_bounds)
 
     # normalize to avoid numerical issues (too small or too large)
