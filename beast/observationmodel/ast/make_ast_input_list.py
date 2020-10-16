@@ -215,12 +215,7 @@ def pick_models_toothpick_style(
             print(bin_count)
 
     # Gather the selected model seds in a table
-    sedsMags_table = {}
-    for k, filter_name in enumerate(filters):
-        sedsMags_table[filter_name] = sedsMags[chosen_idxs, k]
-    sedsMags_table["sedgrid_indx"] = chosen_idxs
-
-    sedsMags = Table(sedsMags_table)
+    sedsMags = Table(sedsMags[chosen_idxs, :], names=filters)
 
     if outfile is not None:
         ascii.write(
@@ -444,10 +439,9 @@ def supplement_ast(
                 existingASTfile
             )
         )
-
-        t = Table.read(existingASTfile, format="ascii")
-        sedsMags = np.delete(sedsMags, np.array(t["sedgrid_indx"], dtype=int), axis=0)
-        sedsIndx = np.delete(sedsIndx, np.array(t["sedgrid_indx"], dtype=int))
+        t = Table.read(existingASTfile, format="fits")
+        sedsMags = np.delete(sedsMags, t["sedgrid_indx"], axis=0)
+        sedsIndx = np.delete(sedsIndx, t["sedgrid_indx"])
         Nseds = sedsMags.shape[0]
 
     # Apply selection conditions if supplied
