@@ -291,7 +291,7 @@ def regions_for_objects(ra, dec, wcs_info):
     """
 
     # generate the array needed for fast conversion
-    world = np.empty((len(ra), 2), float)
+    world = np.zeros((len(ra), 2), float)
     world[:, 0] = ra
     world[:, 1] = dec
 

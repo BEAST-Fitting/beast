@@ -2424,7 +2424,7 @@ class SimpleTable(object):
                 _globals[k] = v
 
         # evaluate expression, to obtain the final filter
-        r = np.empty(self.nrows, dtype=dtype)
+        r = np.zeros(self.nrows, dtype=dtype)
         r[:] = eval(expr, _globals, np.__dict__)
 
         return r

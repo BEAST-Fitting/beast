@@ -200,7 +200,7 @@ class MultiFilterASTs(NoiseModel):
         # get the indexs to the recovered fluxes
         (good_indxs,) = np.where(flux_out != 0.0)
 
-        ast_minmax = np.empty(2)
+        ast_minmax = np.zeros(2)
         ast_minmax[0] = np.amin(flux_in[good_indxs])
         ast_minmax[1] = np.amax(flux_in[good_indxs])
 
@@ -356,9 +356,9 @@ class MultiFilterASTs(NoiseModel):
                 + "be defined with the same number of filters"
             )
 
-        bias = np.empty((N, M), dtype=float)
-        sigma = np.empty((N, M), dtype=float)
-        compl = np.empty((N, M), dtype=float)
+        bias = np.zeros((N, M), dtype=float)
+        sigma = np.zeros((N, M), dtype=float)
+        compl = np.zeros((N, M), dtype=float)
 
         if progress is True:
             it = tqdm(list(range(M)), desc="Evaluating model")
