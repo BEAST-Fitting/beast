@@ -206,7 +206,7 @@ def get_lnp_grid_vals(sed_data, lnp_data, verbose=False):
     lnp_grid_vals = {}
     n_lnps, n_stars = lnp_data["indxs"].shape
     for param in param_list:
-        lnp_grid_vals[param] = np.full((n_lnps, n_stars), np.nan, dtype=float)
+        lnp_grid_vals[param] = np.zeros((n_lnps, n_stars), dtype=float)
 
     # loop over the stars and extract the requested BEAST data
     for k in tqdm(

@@ -32,26 +32,19 @@ The age prior is the star formation rate (SFR) and can be
 
   age_prior_model = {'name': 'flat'}
 
-or
+  or to set the star formation rate in M_sun/year, use
 
-.. code-block:: python
+  age_prior_model = {'name': 'flat'},
+                     'amp': sfr}
 
-  age_prior_model = {'name': 'flat_linear'}
-
-2. Flat in log age
-
-.. code-block:: python
-
-  age_prior_model = {'name': 'flat_log'}
-
-3. Set by bins spaced in logage.
+2. Set by bins spaced in logage (log10(years)).
 
 For example, step like priors can be specified by:
 
 .. code-block:: python
 
   age_prior_model = {'name': 'bins_histo',
-                     'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
+                     'x': [6.0, 7.0, 8.0, 9.0, 10.0],
                      'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
 
 Or using bin edges (where N = N_values+1) like those output by `np.histogram()`:
@@ -59,7 +52,7 @@ Or using bin edges (where N = N_values+1) like those output by `np.histogram()`:
 .. code-block:: python
 
   age_prior_model = {'name': 'bins_histo',
-                     'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
+                     'x': [6.0, 7.0, 8.0, 9.0, 10.0],
                      'values': [1.0, 2.0, 1.0, 5.0]}
 
 For example, lines connecting the bin value of the priors can be specified by:
@@ -67,7 +60,7 @@ For example, lines connecting the bin value of the priors can be specified by:
 .. code-block:: python
 
  age_prior_model = {'name': 'bins_interp',
-                    'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
+                    'x': [6.0, 7.0, 8.0, 9.0, 10.0],
                     'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
 
 4. An exponentially decreasing SFR (in time, but here increasing with age)
@@ -75,8 +68,8 @@ with a 0.1 Gyr time constant (with `tau` parameter in Gyr):
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'exp',
-                     'tau': 0.1}
+  age_prior_model = {'name': 'exponential',
+                     'a': 0.1}
 
 Plot showing examples of the possible age prior models with the parameters given above.
 
@@ -85,7 +78,7 @@ Plot showing examples of the possible age prior models with the parameters given
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_stars import compute_age_prior_weights
+    from beast.physicsmodel.priormodel import PriorAgeModel
 
     fig, ax = plt.subplots()
 
@@ -94,22 +87,22 @@ Plot showing examples of the possible age prior models with the parameters given
 
     age_prior_models = [
         {"name": "flat"},
-        {"name": "flat_log"},
         {
             "name": "bins_histo",
-            "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
+            "x": [6.0, 7.0, 8.0, 9.0, 10.0],
             "values": [1.0, 2.0, 1.0, 5.0, 3.0],
         },
         {
             "name": "bins_interp",
-            "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
+            "x": [6.0, 7.0, 8.0, 9.0, 10.0],
             "values": [1.0, 2.0, 1.0, 5.0, 3.0],
         },
-        {"name": "exp", "tau": 0.1}
+        {"name": "exponential", "a": 0.1}
     ]
 
     for ap_mod in age_prior_models:
-        ax.plot(logages, compute_age_prior_weights(logages, ap_mod), label=ap_mod["name"])
+        pmod = PriorAgeModel(ap_mod)
+        ax.plot(logages, pmod(logages), label=ap_mod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("log(age)")
@@ -152,7 +145,7 @@ Plot showing examples of the possible mass prior models with the parameters give
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_stars import compute_mass_prior_weights
+    from beast.physicsmodel.priormodel import PriorMassModel
 
     fig, ax = plt.subplots()
 
@@ -166,7 +159,8 @@ Plot showing examples of the possible mass prior models with the parameters give
     ]
 
     for mp_mod in mass_prior_models:
-        ax.plot(masses, compute_mass_prior_weights(masses, mp_mod), label=mp_mod["name"])
+        pmod = PriorMassModel(mp_mod)
+        ax.plot(masses, pmod(masses), label=mp_mod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("mass")
@@ -194,17 +188,18 @@ Plot showing examples of the possible metallicity prior models with the paramete
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_stars import compute_metallicity_prior_weights
+    from beast.physicsmodel.priormodel import PriorMetalicityModel
 
     fig, ax = plt.subplots()
 
     # met grid with linear spacing
     mets = np.linspace(0.004, 0.03)
 
-    met_prior_models = [{"name": "flat"},]
+    met_prior_models = [{"name": "flat"}]
 
     for mp_mod in met_prior_models:
-        ax.plot(mets, compute_metallicity_prior_weights(mets, mp_mod), label=mp_mod["name"])
+        pmod = PriorMetalicityModel(mp_mod)
+        ax.plot(mets, pmod(mets), label=mp_mod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("metallicity")
@@ -230,20 +225,21 @@ Plot showing examples of the possible distance prior models with the parameters 
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_stars import compute_distance_prior_weights
+    from beast.physicsmodel.priormodel import PriorDistanceModel
 
     fig, ax = plt.subplots()
 
     # met grid with linear spacing
     dists = np.linspace(8e6, 9e6)
 
-    distance_prior_models = [{"name": "flat"},]
+    met_prior_models = [{"name": "flat"}]
 
-    for mp_mod in distance_prior_models:
-        ax.plot(dists, compute_distance_prior_weights(dists, mp_mod), label=mp_mod["name"])
+    for mp_mod in met_prior_models:
+        pmod = PriorDistanceModel(mp_mod)
+        ax.plot(dists, pmod(dists), label=mp_mod["name"])
 
     ax.set_ylabel("probability")
-    ax.set_xlabel("distance [pc]")
+    ax.set_xlabel("distance")
     ax.legend(loc="best")
     plt.tight_layout()
     plt.show()
@@ -294,7 +290,7 @@ given by sigma.
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+    from beast.physicsmodel.priormodel import PriorDustModel
 
     fig, ax = plt.subplots()
 
@@ -316,11 +312,8 @@ given by sigma.
     ]
 
     for dmod in dust_prior_models:
-        dmodel = PriorWeightsDust(
-            avs, dmod, [1.0], {"name": "flat"}, [1.0], {"name": "flat"}
-        )
-
-        ax.plot(avs, dmodel.av_priors, label=dmod["name"])
+        pmod = PriorDustModel(dmod)
+        ax.plot(avs, pmod(avs), label=dmod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("A(V)")
@@ -362,7 +355,7 @@ given by sigma.
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+    from beast.physicsmodel.priormodel import PriorDustModel
 
     fig, ax = plt.subplots()
 
@@ -383,11 +376,8 @@ given by sigma.
     ]
 
     for dmod in dust_prior_models:
-        dmodel = PriorWeightsDust(
-            [1.0], {"name": "flat"}, rvs, dmod, [1.0], {"name": "flat"}
-        )
-
-        ax.plot(rvs, dmodel.rv_priors, label=dmod["name"])
+        pmod = PriorDustModel(dmod)
+        ax.plot(rvs, pmod(rvs), label=dmod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("R(V)")
@@ -455,6 +445,39 @@ given by sigma.
         )
 
         ax.plot(fAs, dmodel.fA_priors, label=dmod["name"])
+
+    ax.set_ylabel("probability")
+    ax.set_xlabel(r"$f_A$")
+    ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from beast.physicsmodel.priormodel import PriorDustModel
+
+    fig, ax = plt.subplots()
+
+    # fA grid with linear spacing
+    fAs = np.linspace(0.0, 1.0, num=200)
+
+    dust_prior_models = [
+        {"name": "flat"},
+        {"name": "lognormal", "mean": 0.8, "sigma": 0.1},
+        {
+            "name": "two_lognormal",
+            "mean1": 0.2,
+            "mean2": 0.8,
+            "sigma1": 0.1,
+            "sigma2": 0.2,
+            "N1_to_N2": 2.0 / 5.0
+        }
+    ]
+
+    for dmod in dust_prior_models:
+        pmod = PriorDustModel(dmod)
+        ax.plot(fAs, pmod(fAs), label=dmod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel(r"$f_A$")
