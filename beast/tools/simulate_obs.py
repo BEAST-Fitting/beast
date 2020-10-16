@@ -17,6 +17,7 @@ def simulate_obs(
     nsim=100,
     compl_filter="F475W",
     complcut=None,
+    magcut=None,
     weight_to_use="weight",
     ranseed=None,
 ):
@@ -57,8 +58,13 @@ def simulate_obs(
         completeness cut for only including model seds above the cut
         raning from 0.0 to 1.0.
 
+    magcut : float (defualt=None)
+        faint-end magnitude cut for only including model seds brighter than 
+        the given magnitude in compl_filter.
+
     weight_to_use : string (default='weight')
-        Set to either 'weight' (prior+grid), 'prior_weight', or 'grid_weight' to
+        Set to either 'weight' (prior+grid), 'prior_weight', 'grid_weight',
+        or 'uniform' (this option is valid only when nsim is supplied) to
         choose the weighting for SED selection.
 
     ranseed : int
@@ -72,6 +78,9 @@ def simulate_obs(
 
     if complcut is not None:
         complcut = float(complcut)
+
+    if magcut is not None:
+        magcut = float(magcut)
 
     if ranseed is not None:
         ranseed = int(ranseed)
@@ -107,6 +116,7 @@ def simulate_obs(
             nsim=samples_per_grid,
             compl_filter=compl_filter,
             complcut=complcut,
+            magcut=magcut,
             weight_to_use=weight_to_use,
             ranseed=ranseed,
         )
@@ -159,6 +169,18 @@ if __name__ == "__main__":  # pragma: no cover
         help="filter for completeness, set to max for max of values from all filters",
     )
     parser.add_argument(
+        "--complcut", 
+        default=None, 
+        type=float, 
+        help="completeness cut for selecting seds above the completeness cut"
+    )
+    parser.add_argument(
+        "--magcut", 
+        default=None, 
+        type=float, 
+        help="magnitdue cut for selecting seds brighter than the magcut in compl_filter"
+    )
+    parser.add_argument(
         "--weight_to_use",
         default="weight",
         type=str,
@@ -171,12 +193,6 @@ if __name__ == "__main__":  # pragma: no cover
         type=int, 
         help="seed for random number generator"
     )
-    parser.add_argument(
-        "--complcut", 
-        default=None, 
-        type=float, 
-        help="completeness cut for only including seds with higher completeness"
-    )
     args = parser.parse_args()
 
     # run observation simulator
@@ -188,6 +204,7 @@ if __name__ == "__main__":  # pragma: no cover
         nsim=args.nsim,
         compl_filter=args.compl_filter,
         complcut=args.complcut,
+        magcut=args.magcut,
         weight_to_use=args.weight_to_use,
         ranseed=args.ranseed,
     )
