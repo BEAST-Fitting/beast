@@ -32,6 +32,14 @@ dividing by the average mass (mass prior model).  This number of stars is
 simulated at each age and then the completeness function is applied to remove
 all the simulated stars that would not be observed.
 
+The `beast simulate_obs` also can be used to just simulate extra ASTs. This is very
+powerful if you need more ASTs for generating MATCH-optimized ASTs in addition to what 
+you already have from the DOLPHOT ASTs. This means that you can avoid extensive/additional
+DOLPHOT ASTs as long as your initial/existing DOLPHOT ASTs properly cover the entire
+CMD space (i.e., meeting the minimum requirement by MATCH should be enough.) by
+providing the information on the flux uncertainties, biases, and the completeness
+for the additionally selected model SEDs.
+
 *********
 Toothpick
 *********
@@ -45,12 +53,25 @@ The filter to use for the completeness function is given by the
 Set `compl_filter=max` to use the max completeness value across all the filters.
 The SEDs are picked weighted by the product of the grid+prior weights
 and the completeness from the noisemodel.  The grid+prior weights can be replaced
-with either grid or prior weights by explicitly setting the `--weight_to_use`
-parameter.
+with either grid, prior, or uniform weights by explicitly setting the `--weight_to_use`
+parameter. With the uniform weight, the SEDs are randomly selected from the given
+physicsgrid, and this option is only valid when `nsim` is explicitly set and useful
+for simulating ASTs. 
 
 .. code-block:: console
 
    $ beast simulate_obs physicsgrid obsgrid outfile --nsim 200 --compl_filter=F475W
+
+There are two optional keyword argments specific to the AST simulations: `--complcut`
+and `--magcut`. `--complcut` allows you to exclude model SEDs below the supplied
+completeness cut in the `--compl_filter`. Note that the brightest models will be exlcuded
+as well because of the rapid drop in completeness at the bright end. `--magcut` allows
+you to exclude model SEDs fainter than the supplied magnitude in the `--compl_filter`.
+
+.. code-block:: console
+
+   $ beast simulate_obs physicsgrid obsgrid outfile --nsim 100000 --compl_filter=F475W \
+                        --magcut 30 --weight_to_use uniform
 
 The output file gives the simulated data in the observed data columns
 identified in the physicsgrid file along with all the model parameters
