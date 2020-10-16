@@ -59,8 +59,8 @@ def simulate_obs(
         raning from 0.0 to 1.0.
 
     magcut : float (defualt=None)
-        faint-end magnitude cut for only including model seds brighter than 
-        the given magnitude in compl_filter.
+        faint-end magnitude cut for only including model seds brighter
+        than the given magnitude in compl_filter.
 
     weight_to_use : string (default='weight')
         Set to either 'weight' (prior+grid), 'prior_weight', 'grid_weight',
@@ -169,15 +169,15 @@ if __name__ == "__main__":  # pragma: no cover
         help="filter for completeness, set to max for max of values from all filters",
     )
     parser.add_argument(
-        "--complcut", 
-        default=None, 
-        type=float, 
+        "--complcut",
+        default=None,
+        type=float,
         help="completeness cut for selecting seds above the completeness cut"
     )
     parser.add_argument(
-        "--magcut", 
-        default=None, 
-        type=float, 
+        "--magcut",
+        default=None,
+        type=float,
         help="magnitdue cut for selecting seds brighter than the magcut in compl_filter"
     )
     parser.add_argument(
@@ -188,9 +188,9 @@ if __name__ == "__main__":  # pragma: no cover
         'grid_weight' to choose the weighting for SED selection.""",
     )
     parser.add_argument(
-        "--ranseed", 
-        default=None, 
-        type=int, 
+        "--ranseed",
+        default=None,
+        type=int,
         help="seed for random number generator"
     )
     args = parser.parse_args()
