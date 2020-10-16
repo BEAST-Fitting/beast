@@ -253,6 +253,10 @@ def gen_SimObs_from_sedgrid(
         completeness cut for only including model seds above the cut
         raning from 0.0 to 1.0.
 
+    magcut : float (defualt=None)
+        faint-end magnitude cut for only including model seds brighter than 
+        the given magnitude in compl_filter.
+
     ranseed : int
         used to set the seed to make the results reproducable,
         useful for testing
@@ -261,7 +265,8 @@ def gen_SimObs_from_sedgrid(
         filename for the vega info, useful for testing
 
     weight_to_use : string (default='weight')
-        Set to either 'weight' (prior+grid), 'prior_weight', or 'grid_weight' to
+        Set to either 'weight' (prior+grid), 'prior_weight', 'grid_weight',
+        or 'uniform' (this option is valid only when nsim is supplied) to
         choose the weighting for SED selection.
 
     age_prior_model : dict
@@ -278,6 +283,9 @@ def gen_SimObs_from_sedgrid(
     """
     n_models, n_filters = sedgrid.seds.shape
     flux = sedgrid.seds
+
+    # get the vega fluxes for the filters
+    _, vega_flux, _ = Vega(source=vega_fname).getFlux(sedgrid.filters)
 
     # cache the noisemodel values
     model_bias = sedgrid_noisemodel["bias"]
@@ -316,6 +324,13 @@ def gen_SimObs_from_sedgrid(
     if complcut is not None:
         goodobsmod = (goodobsmod) & (model_compl >= complcut)
 
+    # if magcut is provided, only use models brighter than the magnitude cut 
+    # in addition to the non-zero completeness criterion
+    if magcut is not None:
+        mag_compl_filter = -2.5 * np.log10(flux[:, filter_k] / vega_flux[filter_k])
+        goodobsmod = (goodobsmod) & (mag_compl_filter <= magcut)
+
+    # initialize the random number generator
     # initialize the random number generator
     rangen = default_rng(ranseed)
 
@@ -381,15 +396,20 @@ def gen_SimObs_from_sedgrid(
         print(f"number of simulated stars w/ completeness = {len(sim_indx)}; mass = {totcompsimmass}")
 
     else:  # total number of stars to simulate set by command line input
-        gridweights = sedgrid[weight_to_use][goodobsmod] * model_compl[goodobsmod]
-        gridweights = gridweights / np.sum(gridweights)
 
-        # sample to get the indexes of the picked models
-        sim_indx = rangen.choice(model_indx[goodobsmod], size=nsim, p=gridweights)
+        if weight_to_use == "uniform":
+            # sample to get the indexes of the picked models
+            sim_indx = rangen.choice(model_indx[goodobsmod], nsim)
+
+        else:
+            gridweights = sedgrid[weight_to_use][goodobsmod] * model_compl[goodobsmod]
+            gridweights = gridweights / np.sum(gridweights)
+
+            # sample to get the indexes of the picked models
+            sim_indx = rangen.choice(model_indx[goodobsmod], size=nsim, p=gridweights)
+
         print(f"number of simulated stars = {nsim}")
 
-    # get the vega fluxes for the filters
-    _, vega_flux, _ = Vega(source=vega_fname).getFlux(sedgrid.filters)
 
     # setup the output table
     ot = Table()
