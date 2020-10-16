@@ -218,6 +218,7 @@ def gen_SimObs_from_sedgrid(
     nsim=100,
     compl_filter="F475W",
     complcut=None,
+    magcut=None,
     ranseed=None,
     vega_fname=None,
     weight_to_use="weight",
@@ -327,8 +328,8 @@ def gen_SimObs_from_sedgrid(
     # if magcut is provided, only use models brighter than the magnitude cut 
     # in addition to the non-zero completeness criterion
     if magcut is not None:
-        mag_compl_filter = -2.5 * np.log10(flux[:, filter_k] / vega_flux[filter_k])
-        goodobsmod = (goodobsmod) & (mag_compl_filter <= magcut)
+        fluxcut_compl_filter = 10 ** (-0.4 * magcut) * vega_flux[filter_k]
+        goodobsmod = (goodobsmod) & (flux[:,filter_k] >= fluxcut_compl_filter)
 
     # initialize the random number generator
     # initialize the random number generator
