@@ -255,8 +255,8 @@ def gen_SimObs_from_sedgrid(
         raning from 0.0 to 1.0.
 
     magcut : float (defualt=None)
-        faint-end magnitude cut for only including model seds brighter than 
-        the given magnitude in compl_filter.
+        faint-end magnitude cut for only including model seds brighter
+        than the given magnitude in compl_filter.
 
     ranseed : int
         used to set the seed to make the results reproducable,
@@ -320,18 +320,17 @@ def gen_SimObs_from_sedgrid(
         print("Completeness from %s" % sedgrid.filters[filter_k])
         model_compl = model_compl[:, filter_k]
 
-    # if complcut is provided, only use models above that completeness cut 
+    # if complcut is provided, only use models above that completeness cut
     # in addition to the non-zero completeness criterion
     if complcut is not None:
         goodobsmod = (goodobsmod) & (model_compl >= complcut)
 
-    # if magcut is provided, only use models brighter than the magnitude cut 
+    # if magcut is provided, only use models brighter than the magnitude cut
     # in addition to the non-zero completeness criterion
     if magcut is not None:
         fluxcut_compl_filter = 10 ** (-0.4 * magcut) * vega_flux[filter_k]
-        goodobsmod = (goodobsmod) & (flux[:,filter_k] >= fluxcut_compl_filter)
+        goodobsmod = (goodobsmod) & (flux[:, filter_k] >= fluxcut_compl_filter)
 
-    # initialize the random number generator
     # initialize the random number generator
     rangen = default_rng(ranseed)
 
@@ -410,7 +409,6 @@ def gen_SimObs_from_sedgrid(
             sim_indx = rangen.choice(model_indx[goodobsmod], size=nsim, p=gridweights)
 
         print(f"number of simulated stars = {nsim}")
-
 
     # setup the output table
     ot = Table()
