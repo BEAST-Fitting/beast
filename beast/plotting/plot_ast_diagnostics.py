@@ -83,7 +83,7 @@ def plot_ast_diagnostics(ast_file_list, seds_filename, interpolate=True, savefig
             )
         )
 
-        if interpolate == True:
+        if interpolate:
             # interpolate all files with more than 100 detections
             if (
                 np.sum(model.data[model.filters[0].split("_")[-1] + "_VEGA"] != 99.999)
