@@ -70,6 +70,9 @@ def simulate_obs(
     nsim = int(nsim)
     samples_per_grid = int(np.ceil(nsim / n_phys))
 
+    if complcut is not None:
+        complcut = float(complcut)
+
     if ranseed is not None:
         ranseed = int(ranseed)
 
