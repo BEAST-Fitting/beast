@@ -226,8 +226,8 @@ Command to split both the catalog and AST files by source density:
 
   .. code-block:: console
 
-    $ python -m beast.tools.split_catalog_using_map.py phot_catalog_cut.fits \
-          ast_catalog_cut.fits phot_catalog_sourceden_map.hd5 --bin_width 1 \
+    $ python -m beast.tools.split_catalog_using_map beast_settings.txt \
+          phot_catalog_cut.fits ast_catalog_cut.fits phot_catalog_sourceden_map.hd5 \
           --n_per_file 6250 --min_n_subfile 3 --sort_col F475W_RATE
 
 
