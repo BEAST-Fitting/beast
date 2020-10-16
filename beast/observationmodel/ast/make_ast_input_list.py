@@ -439,6 +439,7 @@ def supplement_ast(
                 existingASTfile
             )
         )
+        print("existing AST file", existingASTfile)
         t = Table.read(existingASTfile, format="fits")
         sedsMags = np.delete(sedsMags, t["sedgrid_indx"], axis=0)
         sedsIndx = np.delete(sedsIndx, t["sedgrid_indx"])
@@ -481,7 +482,7 @@ def supplement_ast(
     # Randomly select models
     # Supplementing ASTs does not need to follow
     # the toothpick-way selection
-    chosen_idxs = np.random.choice(np.arange(len(sedsIndx)), nAST)
+    chosen_idxs = np.random.choice(len(sedsIndx), nAST)
     sedsIndx = sedsIndx[chosen_idxs]
 
     # Gather the selected model seds in a table
