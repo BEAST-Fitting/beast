@@ -432,8 +432,6 @@ def pick_positions_from_map(
         cs.append(Column(ast_x_list, name="X"))
         cs.append(Column(ast_y_list, name="Y"))
 
-    cs.append(Column(bin_indices, name="bin_idx"))
-
     for i, c in enumerate(cs):
         out_table.add_column(c, index=i)  # insert these columns from the left
 
