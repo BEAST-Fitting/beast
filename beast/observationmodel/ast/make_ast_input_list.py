@@ -375,6 +375,7 @@ def supplement_ast(
     outASTfile=None,
     outASTfile_params=None,
     mag_cuts=None,
+    color_cuts=None,
 ):
     """
     Creates an additional fake star catalog from a BEAST model grid
@@ -409,6 +410,9 @@ def supplement_ast(
     mag_cut: dictionary (optional, default=None)
         Ditionary of bright and faint magnitude limits for given filters
 
+    color_cut: dictionary (optional, default=None)
+        Ditionary of faint color limits for given filters
+
     Returns
     -------
     sedsMags: astropy Table
@@ -432,26 +436,45 @@ def supplement_ast(
         print(
             "{} exists. Will attempt to load SEDs for ASTs from there \
             and remove those SEDs from the SED grid".format(
-                existingASTfile))
-
+                existingASTfile
+            )
+        )
+        print("existing AST file", existingASTfile)
         t = Table.read(existingASTfile, format="fits")
         sedsMags = np.delete(sedsMags, t["sedgrid_indx"], axis=0)
         sedsIndx = np.delete(sedsIndx, t["sedgrid_indx"])
         Nseds = sedsMags.shape[0]
 
     # Apply selection conditions if supplied
+    # Just magnitude cuts
+    print("mag_cuts", mag_cuts)
+    print("color_cuts", color_cuts)
     if mag_cuts is not None:
-        cond = np.zeros(Nseds, dtype=bool)
-
+        cond = np.ones(Nseds, dtype=bool)
         for key in list(mag_cuts.keys()):
             idx_filter = [i for i, iflt in enumerate(filters) if key in iflt]
             bright_cut = mag_cuts[key][0]
             faint_cut = mag_cuts[key][1]
-            tmp_cond = np.logical_and(sedsMags[:, idx_filter] >= bright_cut,
-                                      sedsMags[:, idx_filter] <= faint_cut
-                                      )
+            tmp_cond = np.logical_and(
+                (sedsMags[:, idx_filter] >= bright_cut),
+                (sedsMags[:, idx_filter] <= faint_cut),
+            )
 
-            cond = np.logical_or(cond, tmp_cond.ravel())
+            if color_cuts is not None:
+                if key in color_cuts:
+                    for limit in color_cuts[key]:
+
+                        idx_color_filter = [
+                            i for i, iflt in enumerate(filters) if limit[0] in iflt
+                        ]
+                        tmp_cond = np.logical_and(
+                            tmp_cond,
+                            (
+                                sedsMags[:, idx_filter] - sedsMags[:, idx_color_filter]
+                                <= limit[1]
+                            ),
+                        )
+            cond = np.logical_and(cond, tmp_cond.ravel())
 
         sedsMags = sedsMags[cond, :]
         sedsIndx = sedsIndx[cond]
@@ -459,7 +482,7 @@ def supplement_ast(
     # Randomly select models
     # Supplementing ASTs does not need to follow
     # the toothpick-way selection
-    chosen_idxs = np.random.choices(np.arange(len(sedsIndx)), k=nAST)
+    chosen_idxs = np.random.choice(len(sedsIndx), nAST)
     sedsIndx = sedsIndx[chosen_idxs]
 
     # Gather the selected model seds in a table
@@ -478,7 +501,7 @@ def supplement_ast(
         grid_dict = {}
         for key in list(modelsedgrid.grid.keys()):
             grid_dict[key] = modelsedgrid.grid[key][sedsIndx]
-        grid_dict['sedgrid_indx'] = sedsIndx
+        grid_dict["sedgrid_indx"] = sedsIndx
         ast_params = Table(grid_dict)
         ast_params.write(outASTfile_params, overwrite=True)
 
