@@ -6,8 +6,14 @@ from beast.physicsmodel.grid_weights_stars import compute_bin_boundaries
 import beast.physicsmodel.priormodel_functions as pmfuncs
 
 
-__all__ = ["PriorModel", "PriorDustModel", "PriorAgeModel", "PriorMassModel",
-           "PriorMetalicityModel", "PriorDistanceModel"]
+__all__ = [
+    "PriorModel",
+    "PriorDustModel",
+    "PriorAgeModel",
+    "PriorMassModel",
+    "PriorMetallicityModel",
+    "PriorDistanceModel",
+]
 
 
 class PriorModel:
@@ -82,9 +88,7 @@ class PriorModel:
                 N2=1.0,
             )
         elif self.model["name"] == "exponential":
-            return pmfuncs._exponential(x, a=self.model["a"])
-        elif self.model["name"] == "exponential_logx":
-            return pmfuncs._exponential(x, a=self.model["a"])
+            return pmfuncs._exponential(x, tau=self.model["tau"])
         else:
             modname = self.model["name"]
             raise NotImplementedError(f"{modname} is not an allowed model")
@@ -108,19 +112,41 @@ class PriorAgeModel(PriorModel):
 
     def __init__(self, model):
         super().__init__(
-            model, allowed_models=["flat", "bins_histo", "bins_interp", "exponential"]
+            model,
+            allowed_models=[
+                "flat",
+                "flat_log",
+                "bins_histo",
+                "bins_interp",
+                "exponential",
+            ],
         )
 
+    def __call__(self, x):
+        """
+        Weights based on input model choice
 
-class PriorMetalicityModel(PriorModel):
+        Parameters
+        ----------
+        x : float
+            values for model evaluation
+        """
+        if self.model["name"] == "flat_log":
+            weights = 1.0 / np.diff(10 ** compute_bin_boundaries(x))
+            return weights / np.sum(weights)
+        elif self.model["name"] == "exponential":
+            return pmfuncs._exponential(10.0 ** x, tau=self.model["tau"] * 1e9)
+        else:
+            return super().__call__(x)
+
+
+class PriorMetallicityModel(PriorModel):
     """
     Prior model for metallicity parameter with specific allowed models.
     """
 
     def __init__(self, model):
-        super().__init__(
-            model, allowed_models=["flat"]
-        )
+        super().__init__(model, allowed_models=["flat"])
 
 
 class PriorDistanceModel(PriorModel):
@@ -129,9 +155,7 @@ class PriorDistanceModel(PriorModel):
     """
 
     def __init__(self, model):
-        super().__init__(
-            model, allowed_models=["flat"]
-        )
+        super().__init__(model, allowed_models=["flat"])
 
 
 class PriorMassModel(PriorModel):

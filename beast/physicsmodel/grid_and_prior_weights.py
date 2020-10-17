@@ -19,7 +19,7 @@ from beast.physicsmodel.grid_weights_stars import compute_age_grid_weights
 from beast.physicsmodel.grid_weights_stars import compute_mass_grid_weights
 from beast.physicsmodel.grid_weights_stars import compute_metallicity_grid_weights
 
-from PriorModel import (
+from beast.physicsmodel.priormodel import (
     PriorAgeModel,
     PriorMassModel,
     PriorMetallicityModel,

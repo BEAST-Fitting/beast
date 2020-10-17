@@ -25,7 +25,7 @@ def test_av_prior_weights():
             "sigma2": 0.2,
             "N1_to_N2": 1.0 / 5.0,
         },
-        {"name": "exponential", "a": 1.0},
+        {"name": "exponential", "tau": 1.0},
     ]
     # fmt: off
     expected_vals = [

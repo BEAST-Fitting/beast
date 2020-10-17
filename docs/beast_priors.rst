@@ -37,7 +37,13 @@ The age prior is the star formation rate (SFR) and can be
   age_prior_model = {'name': 'flat'},
                      'amp': sfr}
 
-2. Set by bins spaced in logage (log10(years)).
+2. Flat in log age
+
+.. code-block:: python
+
+  age_prior_model = {'name': 'flat_log'}
+
+3. Set by bins spaced in logage (log10(years)).
 
 For example, step like priors can be specified by:
 
@@ -87,6 +93,7 @@ Plot showing examples of the possible age prior models with the parameters given
 
     age_prior_models = [
         {"name": "flat"},
+        {"name": "flat_log"},
         {
             "name": "bins_histo",
             "x": [6.0, 7.0, 8.0, 9.0, 10.0],
@@ -97,7 +104,7 @@ Plot showing examples of the possible age prior models with the parameters given
             "x": [6.0, 7.0, 8.0, 9.0, 10.0],
             "values": [1.0, 2.0, 1.0, 5.0, 3.0],
         },
-        {"name": "exponential", "a": 0.1}
+        {"name": "exponential", "tau": 0.1}
     ]
 
     for ap_mod in age_prior_models:
@@ -188,7 +195,7 @@ Plot showing examples of the possible metallicity prior models with the paramete
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.priormodel import PriorMetalicityModel
+    from beast.physicsmodel.priormodel import PriorMetallicityModel
 
     fig, ax = plt.subplots()
 
@@ -198,7 +205,7 @@ Plot showing examples of the possible metallicity prior models with the paramete
     met_prior_models = [{"name": "flat"}]
 
     for mp_mod in met_prior_models:
-        pmod = PriorMetalicityModel(mp_mod)
+        pmod = PriorMetallicityModel(mp_mod)
         ax.plot(mets, pmod(mets), label=mp_mod["name"])
 
     ax.set_ylabel("probability")
@@ -278,12 +285,12 @@ given by sigma.
                     'sigma2': 0.2,
                     'N1_to_N2': 1.0 / 5.0}
 
-4. Exponential with decay rate 'a'
+4. Exponential with decay rate 'tau'
 
 .. code-block:: python
 
   av_prior_model = {'name': 'exponential',
-                    'a': 1.0}
+                    'tau': 1.0}
 
 .. plot::
 
@@ -308,7 +315,7 @@ given by sigma.
             "sigma2": 0.5,
             "N1_to_N2": 1.0 / 5.0
         },
-        {"name": "exponential", "a": 1.0},
+        {"name": "exponential", "tau": 1.0},
     ]
 
     for dmod in dust_prior_models:
@@ -415,42 +422,6 @@ given by sigma.
                     'N1_to_N2': 2.0 / 5.0}
 
 .. plot::
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-
-    from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
-
-    fig, ax = plt.subplots()
-
-    # fA grid with linear spacing
-    fAs = np.linspace(0.0, 1.0, num=200)
-
-    dust_prior_models = [
-        {"name": "flat"},
-        {"name": "lognormal", "mean": 0.8, "sigma": 0.1},
-        {
-            "name": "two_lognormal",
-            "mean1": 0.2,
-            "mean2": 0.8,
-            "sigma1": 0.1,
-            "sigma2": 0.2,
-            "N1_to_N2": 2.0 / 5.0
-        }
-    ]
-
-    for dmod in dust_prior_models:
-        dmodel = PriorWeightsDust(
-            [1.0], {"name": "flat"}, [1.0], {"name": "flat"}, fAs, dmod
-        )
-
-        ax.plot(fAs, dmodel.fA_priors, label=dmod["name"])
-
-    ax.set_ylabel("probability")
-    ax.set_xlabel(r"$f_A$")
-    ax.legend(loc="best")
-    plt.tight_layout()
-    plt.show()
 
     import numpy as np
     import matplotlib.pyplot as plt

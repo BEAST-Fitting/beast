@@ -82,23 +82,24 @@ def _two_lognorm(xs, max_pos1, max_pos2, sigma1=0.5, sigma2=0.5, N1=1.0, N2=1.0)
     return pointwise / normalization
 
 
-def _exponential(x, a=2.0, N=1.0):
+def _exponential(x, tau=2.0, amp=1.0):
     """
     Exponential distribution
+
     Parameters
     ----------
     x: vector
        x values
-    a: float
-       Decay Rate parameter in exp: N*e^-ax
-       Distribution Mean = 1/a
-    N: float
-       Multiplicative factor
+    tau: float
+       Decay Rate parameter in exp: N*e^-(x/tau)
+    amp: float
+       Amplitude for x = 0
+
     Returns
     -------
     exponential computed on the x grid
     """
-    return N * np.exp(-1.0 * a * x)
+    return amp * np.exp(-1.0 * x / tau)
 
 
 def _imf_flat(x):
