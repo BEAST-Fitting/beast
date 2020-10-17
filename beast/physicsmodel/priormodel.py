@@ -191,10 +191,9 @@ class PriorMassModel(PriorModel):
 
         # calculate the average prior in each mass bin
         mass_weights = np.zeros(len(x))
-        for i in range(len(sindxs)):
-            mass_weights[sindxs[i]] = (
-                quad(imf_func, mass_bounds[i], mass_bounds[i + 1])
-            )[0] / (mass_bounds[i + 1] - mass_bounds[i])
+        for i, cindx in enumerate(sindxs):
+            mass_weights[cindx] = (quad(imf_func, mass_bounds[i], mass_bounds[i + 1]))[0]
+            mass_weights[cindx] /= (mass_bounds[i + 1] - mass_bounds[i])
 
         # normalize to avoid numerical issues (too small or too large)
         mass_weights /= np.average(mass_weights)
