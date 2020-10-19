@@ -416,7 +416,6 @@ def pick_positions_from_map(
             j = bin_index + i * len(tile_sets)
             ast_x_list[j] = x
             ast_y_list[j] = y
-            bin_indices[j] = bin_index
 
     # I'm just mimicking the format that is produced by the examples
     cs = []
