@@ -32,13 +32,15 @@ dividing by the average mass (mass prior model).  This number of stars is
 simulated at each age and then the completeness function is applied to remove
 all the simulated stars that would not be observed.
 
-The `beast simulate_obs` also can be used to just simulate extra ASTs. This is very
-powerful if you need more ASTs for generating MATCH-optimized ASTs in addition to what 
-you already have from the DOLPHOT ASTs. This means that you can avoid extensive/additional
-DOLPHOT ASTs as long as your initial/existing DOLPHOT ASTs properly cover the entire
-CMD space (i.e., meeting the minimum requirement by MATCH should be enough.) by
-providing the information on the flux uncertainties, biases, and the completeness
-for the additionally selected model SEDs.
+The `beast simulate_obs` also can be used to just simulate extra ASTs. This
+simulation is replacing generating additional input artifical stars and running
+those through a photomtery pipeline. Thus, it is very powerful if you need more
+ASTs for generating MATCH-satisfied ASTs in addition to what you already have
+from the real ASTs. This means that you can avoid extensive/additional real ASTs
+as long as your initial/existing real ASTs properly cover the entire CMD space,
+i.e., a combination of BEAST-optimzed ASTs supplemented by MATCH-friendly ASTs
+should be enough. This simulation provides the information on the flux uncertainties,
+biases, and the completeness for the additionally selected model SEDs.
 
 *********
 Toothpick
