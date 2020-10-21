@@ -76,7 +76,7 @@ with:
 
 .. code-block:: console
 
-   $ python setup.py develop
+   $ tox -e develop
 
 
 Adding Branches
