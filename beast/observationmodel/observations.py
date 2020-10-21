@@ -252,7 +252,7 @@ def gen_SimObs_from_sedgrid(
 
     complcut : float (defualt=None)
         completeness cut for only including model seds above the cut
-        raning from 0.0 to 1.0.
+        where the completeness cut ranges between 0 and 1.
 
     magcut : float (defualt=None)
         faint-end magnitude cut for only including model seds brighter
@@ -398,7 +398,7 @@ def gen_SimObs_from_sedgrid(
     else:  # total number of stars to simulate set by command line input
 
         if weight_to_use == "uniform":
-            # sample to get the indexes of the picked models
+            # sample to get the indices of the picked models
             sim_indx = rangen.choice(model_indx[goodobsmod], nsim)
 
         else:
