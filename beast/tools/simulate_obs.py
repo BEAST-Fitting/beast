@@ -55,8 +55,8 @@ def simulate_obs(
         set to max to use the max value in all filters
 
     complcut : float (defualt=None)
-        completeness cut for only including model seds above the cut
-        raning from 0.0 to 1.0.
+        completeness cut for only including model seds above the given
+        completeness, where the cut ranges from 0 to 1.
 
     magcut : float (defualt=None)
         faint-end magnitude cut for only including model seds brighter
