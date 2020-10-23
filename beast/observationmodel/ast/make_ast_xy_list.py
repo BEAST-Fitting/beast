@@ -63,7 +63,8 @@ def pick_positions_from_map(
         each range of source density/background values.
 
     bin_width: int
-        The bin width for the range of  background density values.
+        The bin width for the range of  background density values, in units
+        of number of sources per square arcsecond.
         The bins will be picked on a linear grid, ranging from the
         minimum to the maximum value of the map. Then, each tile will be
         put in a bin, so that a set of tiles of the map is obtained for

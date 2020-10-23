@@ -31,7 +31,7 @@ def split_main(
 
     Parameters
     ----------
-    beast_settings_info : string or beast.tools.beast_settings.beast_settings instance
+    beast_settings_info : string or instance
         if string: file name with beast settings
         if class: beast.tools.beast_settings.beast_settings instance
 
