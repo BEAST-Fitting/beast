@@ -165,7 +165,8 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 obsdata,
                 chosen_seds,
                 settings.ast_density_table,
-                settings.ast_N_bins,
+                settings.sd_Nbins,
+                settings.sd_binwidth,
                 settings.ast_realization_per_model,
                 outfile=outfile,
                 refimage=settings.ast_reference_image,
@@ -175,7 +176,6 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 set_coord_boundary=settings.ast_coord_boundary,
                 region_from_filters="all",
             )
-
         # if we're not using SD/background maps, SEDs will be distributed
         # based on catalog sources
         else:
