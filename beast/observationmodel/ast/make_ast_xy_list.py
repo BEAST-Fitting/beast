@@ -5,7 +5,7 @@ import warnings
 
 from astropy.io import ascii, fits
 from astropy.table import Column, Table
-from astropy.wcs import WCS
+from astropy import wcs
 
 from shapely.geometry import box, Polygon
 
@@ -123,11 +123,11 @@ def pick_positions_from_map(
 
     # if refimage exists, extract WCS info
     if refimage is None:
-        wcs = None
+        ref_wcs = None
     else:
         with fits.open(refimage) as hdu:
             imagehdu = hdu[refimage_hdu]
-            wcs = WCS(imagehdu.header)
+            ref_wcs = wcs.WCS(imagehdu.header)
 
     # if appropriate information is given, extract the x/y positions so that
     # there are no ASTs generated outside of the catalog footprint
@@ -158,12 +158,12 @@ def pick_positions_from_map(
     # if only one of those exists and there's a refimage, convert to the other
     if xy_pos and not radec_pos and refimage:
         radec_pos = True
-        x_positions, y_positions = wcs.all_world2pix(
+        x_positions, y_positions = ref_wcs.all_world2pix(
             ra_positions, dec_positions, wcs_origin
         )
     if radec_pos and not xy_pos and refimage:
         xy_pos = True
-        ra_positions, dec_positions = wcs.all_pix2world(
+        ra_positions, dec_positions = ref_wcs.all_pix2world(
             x_positions, y_positions, wcs_origin
         )
 
@@ -199,7 +199,7 @@ def pick_positions_from_map(
         coord_boundary_radec = None
         # evaluate one or both
         if xy_pos and refimage:
-            bounds_x, bounds_y = wcs.all_world2pix(
+            bounds_x, bounds_y = ref_wcs.all_world2pix(
                 set_coord_boundary[0], set_coord_boundary[1], wcs_origin
             )
             coord_boundary_xy = Path(np.array([bounds_x, bounds_y]).T)
@@ -278,7 +278,7 @@ def pick_positions_from_map(
                 tile_box_radec = box(ra_min, dec_min, ra_max, dec_max)
                 tile_box_xy = None
                 if refimage:
-                    bounds_x, bounds_y = wcs.all_world2pix(
+                    bounds_x, bounds_y = ref_wcs.all_world2pix(
                         np.array([ra_min, ra_max]),
                         np.array([dec_min, dec_max]),
                         wcs_origin,
@@ -381,7 +381,7 @@ def pick_positions_from_map(
                 )
 
                 # if we can't convert this to x/y, do everything in RA/Dec
-                if wcs is None:
+                if ref_wcs is None:
                     x, y = ra, dec
 
                     # check that this x/y is within the catalog footprint
@@ -408,7 +408,7 @@ def pick_positions_from_map(
 
                 # if we can convert to x/y, do everything in x/y
                 else:
-                    [x], [y] = wcs.all_world2pix(
+                    [x], [y] = ref_wcs.all_world2pix(
                         np.array([ra]), np.array([dec]), wcs_origin
                     )
 
@@ -440,7 +440,7 @@ def pick_positions_from_map(
     cs.append(Column(np.ones(len(out_table), dtype=int), name="ones"))
 
     # positions were found using RA/Dec
-    if wcs is None:
+    if ref_wcs is None:
         cs.append(Column(ast_x_list, name="RA"))
         cs.append(Column(ast_y_list, name="DEC"))
     # positions were found using x/y
@@ -528,9 +528,9 @@ def pick_positions(
             raise RuntimeError(
                 "You must supply a Reference Image to determine spatial AST distribution."
             )
-        wcs = WCS(refimage)
+        ref_wcs = wcs.WCS(refimage)
 
-        x_positions, y_positions = wcs.all_world2pix(
+        x_positions, y_positions = ref_wcs.all_world2pix(
             ra_positions, dec_positions, wcs_origin
         )
 
