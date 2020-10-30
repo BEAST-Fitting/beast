@@ -109,9 +109,10 @@ def pick_positions_from_map(
 
     erode_boundary : None, or float (default=None)
         If provided, this number of arcseconds will be eroded from the region
-        over which ASTs are generated.  This is applied to both the catalog
-        boundary and the values from set_coord_boundary.  If the input catalog
-        only has x/y (no RA/Dec), a refimage is required.
+        over which ASTs are generated.  The purpose is to avoid placing ASTs
+        near the image edge.  Erosion is applied to both the catalog boundary
+        and the values from set_coord_boundary.  If the input catalog only has
+        x/y (no RA/Dec), a refimage is required.
 
     Returns
     -------
@@ -177,22 +178,24 @@ def pick_positions_from_map(
     erode_deg = None
     erode_pix = None
     if erode_boundary:
-        erode_deg = erode_boundary
+        erode_deg = erode_boundary / 3600
         if xy_pos and refimage:
-            erode_pix =
+            deg_per_pix = wcs.utils.proj_plane_pixel_scales(ref_wcs)[0]
+            erode_pix = erode_deg / deg_per_pix
 
-
-    # create path containing the positions
+    # create path containing the positions (eroded if chosen)
     catalog_boundary_xy = None
     catalog_boundary_radec = None
     if xy_pos:
-        catalog_boundary_xy = cut_catalogs.convexhull_path(x_positions, y_positions)
+        catalog_boundary_xy = erode_path(
+            cut_catalogs.convexhull_path(x_positions, y_positions), erode_pix
+        )
     if radec_pos:
-        catalog_boundary_radec = cut_catalogs.convexhull_path(
-            ra_positions, dec_positions
+        catalog_boundary_radec = erode_path(
+            cut_catalogs.convexhull_path(ra_positions, dec_positions), erode_deg
         )
 
-    # if coord_boundary set, define an additional boundary for ASTs
+    # if coord_boundary set, define an additional boundary for ASTs (eroded if chosen)
     if set_coord_boundary is not None:
         # initialize variables
         coord_boundary_xy = None
@@ -202,10 +205,13 @@ def pick_positions_from_map(
             bounds_x, bounds_y = ref_wcs.all_world2pix(
                 set_coord_boundary[0], set_coord_boundary[1], wcs_origin
             )
-            coord_boundary_xy = Path(np.array([bounds_x, bounds_y]).T)
+            coord_boundary_xy = erode_path(
+                Path(np.array([bounds_x, bounds_y]).T), erode_pix
+            )
         if radec_pos:
-            coord_boundary_radec = Path(
-                np.array([set_coord_boundary[0], set_coord_boundary[1]]).T
+            coord_boundary_radec = erode_path(
+                Path(np.array([set_coord_boundary[0], set_coord_boundary[1]]).T),
+                erode_deg
             )
 
     # if region_from_filters is set, define an additional boundary for ASTs
@@ -457,6 +463,34 @@ def pick_positions_from_map(
         ascii.write(out_table, outfile, overwrite=True, formats=formats)
 
     return out_table
+
+def erode_path(path_object, erode_amount):
+    """
+    Returns the original Path object, but eroded by the defined amount.
+
+    Parameters
+    ----------
+    path_object : Path object
+        the Path object to be eroded
+
+    erode_amount : float or None
+        If float, amount to erode. Units (pixels or degrees) should match units
+        of path_object. Absolute value will be used.
+        If None, don't do any eroding - return original path_object.
+
+    Returns
+    -------
+    Path object : the original path object (erode_amount=None) or the eroded
+    path object (erode_amount=float)
+    """
+
+    if erode_amount is None:
+        return path_object
+    else:
+        eroded_polygon = Polygon(path_object.vertices).buffer(-np.abs(erode_amount))
+        bounds_x = [float(i) for i in eroded_polygon.exterior.coords.xy[0]]
+        bounds_y = [float(i) for i in eroded_polygon.exterior.coords.xy[1]]
+        return Path(np.array([bounds_x, bounds_y]).T)
 
 
 def pick_positions(
