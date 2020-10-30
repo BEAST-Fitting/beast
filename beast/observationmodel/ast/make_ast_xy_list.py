@@ -26,6 +26,7 @@ def pick_positions_from_map(
     Nrealize=1,
     set_coord_boundary=None,
     region_from_filters=None,
+    erode_boundary=None,
 ):
     """
     Spreads a set of fake stars across regions of similar values,
@@ -106,6 +107,12 @@ def pick_positions_from_map(
         properly if the region is a convex polygon.  A solution to these needs
         to be figured out at some point.
 
+    erode_boundary : None, or float (default=None)
+        If provided, this number of arcseconds will be eroded from the region
+        over which ASTs are generated.  This is applied to both the catalog
+        boundary and the values from set_coord_boundary.  If the input catalog
+        only has x/y (no RA/Dec), a refimage is required.
+
     Returns
     -------
     astropy Table: List of fake stars, with magnitudes and positions
@@ -165,6 +172,15 @@ def pick_positions_from_map(
         raise RuntimeError(
             "Your catalog does not supply X/Y or RA/DEC information to ensure ASTs are within catalog boundary"
         )
+
+    # if erode_boundary is set, try to make a pixel version to go with xy positions
+    erode_deg = None
+    erode_pix = None
+    if erode_boundary:
+        erode_deg = erode_boundary
+        if xy_pos and refimage:
+            erode_pix =
+
 
     # create path containing the positions
     catalog_boundary_xy = None
