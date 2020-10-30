@@ -95,7 +95,7 @@ def plot_ast_diagnostics(
     wcs_sd = WCS(hdu_sd[0].header)
     source_sdin = wcs_sd.wcs_world2pix(source_astin[0], source_astin[1], 0)
 
-    ### In the first column, plot the reference image and the AST coordinates:
+    # In the first column, plot the reference image and the AST coordinates:
     inner_grid = outer_grid[0].subgridspec(2, 1, wspace=0.4, hspace=0.5)
     ax = fig.add_subplot(inner_grid[0], projection=wcs_sd)
     im = ax.imshow(hdu_sd[0].data, cmap="Greys", origin="lower")
@@ -119,7 +119,7 @@ def plot_ast_diagnostics(
         sources_for_bin = np.where(bin_foreach_source == b)
         bin_idxs.append([sources_for_bin])
 
-    ### In the second column, plot the CMDs of all the filters as a function of source density
+    # In the second column, plot the CMDs of all the filters as a function of source density
     inner_grid = outer_grid[1].subgridspec(nrows, 2, wspace=0.9, hspace=0.3)
 
     # Loop through the number of CMDs (= number of filters)
