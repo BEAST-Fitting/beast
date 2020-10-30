@@ -1,4 +1,5 @@
 import numpy as np
+import argparse
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 from astropy.io import fits
