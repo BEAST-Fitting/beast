@@ -145,7 +145,7 @@ def plot_ast_diagnostics(
         ax.set_ylabel(filters[j].split("_")[-1])
 
         colors = iter(cm.magma(np.linspace(0.0, 1.0, len(binnrs))))
-        for k, binnr in enumerate(binnrs):
+        for k in range(len(binnrs)):
             cat = ast_input[bin_idxs[k]]
             plot_cool_contours(
                 cat[filter_selections[0]] - cat[filter_selections[1]],
@@ -269,7 +269,6 @@ if __name__ == "__main__":  # pragma: no cover
         args.map_file,
         args.source_density_image,
         args.reference_image,
-        args.n_per_file,
-        args.min_n_subfile,
-        args.sort_col,
+        args.filter_selections,
+        args.savefig,
     )
