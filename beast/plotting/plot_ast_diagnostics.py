@@ -81,8 +81,8 @@ def plot_ast_diagnostics(
     nrows = int(ncmds / 2) + 1
 
     # Make a giant summary plot
-    fig = plt.figure(0, [16, nrows * 4])
-    outer_grid = fig.add_gridspec(1, 2, wspace=0.5, hspace=0.4)
+    fig = plt.figure(0, [14, nrows * 4])
+    outer_grid = fig.add_gridspec(1, 2, hspace=0.3)
 
     # Add RA and Dec information to the input AST file (which is just an ascii filewith only X,Y positions)
     hdu_ref = fits.open(reference_image)
@@ -96,7 +96,7 @@ def plot_ast_diagnostics(
 
     ### In the first column, plot the reference image and the AST coordinates:
     inner_grid = outer_grid[0].subgridspec(2, 1, wspace=0.4, hspace=0.5)
-    ax = fig.add_subplot(inner_grid[0])  # , projection=wcs_sd)
+    ax = fig.add_subplot(inner_grid[0], projection=wcs_sd)
     im = ax.imshow(hdu_sd[0].data, cmap="Greys", origin="lower")
     plt.colorbar(im, ax=ax, label=r"$\rm Source density$")
     ax.scatter(source_sdin[0], source_sdin[1], color="orange", marker=".", alpha=0.05)
@@ -119,7 +119,7 @@ def plot_ast_diagnostics(
         bin_idxs.append([sources_for_bin])
 
     ### In the second column, plot the CMDs of all the filters as a function of source density
-    inner_grid = outer_grid[1].subgridspec(nrows, 2, wspace=0.4, hspace=0.5)
+    inner_grid = outer_grid[1].subgridspec(nrows, 2, wspace=0.9, hspace=0.3)
 
     # Loop through the number of CMDs (= number of filters)
     for j in range(ncmds):
@@ -143,7 +143,7 @@ def plot_ast_diagnostics(
         )
         ax.set_ylabel(filters[j].split("_")[-1])
 
-        colors = iter(cm.magma(np.linspace(0.2, 0.8, len(binnrs))))
+        colors = iter(cm.magma(np.linspace(0.0, 1.0, len(binnrs))))
         for k, binnr in enumerate(binnrs):
             cat = ast_input[bin_idxs[k]]
             plot_cool_contours(
@@ -155,10 +155,20 @@ def plot_ast_diagnostics(
                 contour_lw=1,
             )
 
+        # hackish way to get the source density colorbar to work
+        im = ax.scatter(
+            np.arange(len(binnrs)) + 100,
+            np.arange(len(binnrs)),
+            c=binnrs,
+            cmap=cm.magma,
+        )
+        plt.colorbar(im, ax=ax, label="Source density bin")
+        # ax.set_aspect("equal")
+
         ax.set_xlim(kvals[0], kvals[1])
         ax.set_ylim(kvals[2], kvals[3])
 
-    plt.subplots_adjust(hspace=0.5)
+    plt.subplots_adjust()
     if savefig:
         plt.savefig(ast_file.replace(".txt", "_diagnostic.png"), format="png")
 
@@ -252,7 +262,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     args = parser.parse_args()
 
-    plot_ast_histogram(
+    plot_ast_diagnostics(
         args.beast_settings_info,
         args.ast_file,
         args.map_file,
