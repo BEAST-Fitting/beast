@@ -175,6 +175,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 Nrealize=1,
                 set_coord_boundary=settings.ast_coord_boundary,
                 region_from_filters="all",
+                erode_boundary=settings.ast_erode_selection_region,
             )
         # if we're not using SD/background maps, SEDs will be distributed
         # based on catalog sources

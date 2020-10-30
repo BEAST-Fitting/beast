@@ -211,7 +211,7 @@ def pick_positions_from_map(
         if radec_pos:
             coord_boundary_radec = erode_path(
                 Path(np.array([set_coord_boundary[0], set_coord_boundary[1]]).T),
-                erode_deg
+                erode_deg,
             )
 
     # if region_from_filters is set, define an additional boundary for ASTs
