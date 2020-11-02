@@ -464,6 +464,7 @@ def pick_positions_from_map(
 
     return out_table
 
+
 def erode_path(path_object, erode_amount):
     """
     Returns the original Path object, but eroded by the defined amount.
