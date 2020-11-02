@@ -39,6 +39,14 @@ One easy way to obtain the above is through the AstroConda Python stack:
 
     $ conda create -n astroconda stsci
 
+- Ensure the minimum Python requirements above are met. If needed, specify the 
+minimum version required
+
+.. code-block:: console
+
+    $ python --version
+    $ conda create -n astroconda stsci python=3.7
+
 - Make sure that the ``PyTables`` and ``hdf5`` packages are installed
 
 .. code-block:: console
