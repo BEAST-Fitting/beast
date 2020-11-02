@@ -60,7 +60,7 @@ def test_sedgrid(cformat, cback, copygrid):
     np.testing.assert_allclose(
         tgrid.cov_offdiag, cov_offdiag, err_msg="covoffdiag not equal"
     )
-    assert isinstance(tgrid.nbytes, int), "grid nbytes property not int"
+    assert isinstance(tgrid.nbytes, (int, np.integer)), "grid nbytes property not integer"
     compare_tables(tgrid.grid, gtable)
     assert tgrid.grid.keys() == list(cols.keys()), "colnames of grid not equal"
     assert tgrid.filters == filter_names, "filters of grid not equal"
@@ -113,7 +113,7 @@ def test_sedgrid(cformat, cback, copygrid):
         cov_offdiag,
         err_msg=f"{cformat} file grid cov_offdiag not equal",
     )
-    assert isinstance(dgrid.nbytes, int), f"{cformat} file grid nbytes property not int"
+    assert isinstance(dgrid.nbytes, (int, np.integer)), f"{cformat} file grid nbytes property not integer"
 
     dTable = dgrid.grid
     if (cback == "disk") and (cformat == ".hdf"):
@@ -173,13 +173,3 @@ def test_grid_warnings():
             a.grid = None
             a.write(f"testgridwriteerror.{ftype}")
         assert exc.value.args[0] == "Full data set not specified (lamb, seds, grid)"
-
-
-if __name__ == "__main__":
-    copygrid = True
-    test_sedgrid(".fits", "memory", copygrid)
-    test_sedgrid(".fits", "cache", copygrid)
-    test_sedgrid(".fits", "disk", copygrid)
-    test_sedgrid(".hdf", "memory", copygrid)
-    test_sedgrid(".hdf", "cache", copygrid)
-    test_sedgrid(".hdf", "disk", copygrid)
