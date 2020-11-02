@@ -71,13 +71,6 @@ In order to run a development installation, navigate to the directory in your
 
    $ pip install -e .
 
-Alternatively, you can perform a development install directly through Python
-with:
-
-.. code-block:: console
-
-   $ tox -e develop
-
 
 Adding Branches
 ===============
