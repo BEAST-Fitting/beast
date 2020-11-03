@@ -142,13 +142,16 @@ Parameters used by the supplementing AST method
   and 15<HST_WFC3_F814W<27 mag you need to set the following within the beast_settings file:
   .. code-block:: console
     # initialize and populate the dictionary of desired magnitude limits
+    
     ast_suppl_maglimits = {}
 
     # the magntidue limits are defined by the filter and a list of the limits in magnitudes
+
     ast_suppl_maglimits["HST_WFC3_F475W"] = [16,28]
     ast_suppl_maglimits["HST_WFC3_F814W"] = [15,27]
 
     # set the key word
+
     ast_suppl_maglimit = ast_suppl_maglimits
 
   or, equivalently:
@@ -168,16 +171,20 @@ Parameters used by the supplementing AST method
   to set the following within the beast_settings file:
 
   .. code-block:: console
+
     # initialize the dictionary of desired magnitude limits
+
     ast_suppl_colorlimits = {}
 
     # the color limits are defined by the first filter in the color (e.g, X for X-Y),
     # and the input is a list including the second filter (e.g., Y for X-Y) and the
-    # color limit in magnitudes
+    # color limit in magnitudes:
+
     ast_suppl_colorlimits["HST_WFC3_F475W"] = [["HST_WFC3_F814W",4]]
     ast_suppl_colorlimits["HST_WFC3_F336W"] = [["HST_WFC3_F475W",5], ["HST_WFC3_F814W",6]]
 
     # set the key word
+
     ast_suppl_colorlimit =  ast_suppl_colorlimits
 
 
