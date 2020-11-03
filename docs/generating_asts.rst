@@ -179,8 +179,8 @@ Parameters used by the supplementing AST method
     # the color limits are defined by the first filter in the color (e.g, X for X-Y),
     # and the input is a list including the second filter (e.g., Y for X-Y) and the
     # color limit in magnitudes:
-    ast_suppl_colorlimits["HST_WFC3_F475W"] = [["HST_WFC3_F814W",4]]
-    ast_suppl_colorlimits["HST_WFC3_F336W"] = [["HST_WFC3_F475W",5], ["HST_WFC3_F814W",6]]
+    ast_suppl_colorlimits["HST_WFC3_F475W"] = [["HST_WFC3_F814W",6]]
+    ast_suppl_colorlimits["HST_WFC3_F336W"] = [["HST_WFC3_F475W",5], ["HST_WFC3_F814W",4]]
 
     # set the key word
     ast_suppl_colorlimit =  ast_suppl_colorlimits

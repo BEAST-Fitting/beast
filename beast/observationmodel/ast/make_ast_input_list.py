@@ -430,7 +430,7 @@ def supplement_ast(
         ast_suppl_maglimit = ast_suppl_maglimits
 
     color_cut: dictionary (optional, default=None)
-        Dictionary of faint color limits for given filters.
+        Dictionary of red color limits for given filters.
         The way to specify the cuts is by updating the "ast_suppl_colorlimit" key
         in the beast_settings file. This is a dictionary that includes information
         for the color cuts as a function of the filters included in observation.
@@ -449,8 +449,8 @@ def supplement_ast(
         # the color limits are defined by the first filter in the color (e.g, X for X-Y),
         # and the input is a list including the second filter (e.g., Y for X-Y) and the
         # color limit in magnitudes
-        ast_suppl_colorlimits["HST_WFC3_F475W"] = [["HST_WFC3_F814W",4]]
-        ast_suppl_colorlimits["HST_WFC3_F336W"] = [["HST_WFC3_F475W",5], ["HST_WFC3_F814W",6]]
+        ast_suppl_colorlimits["HST_WFC3_F475W"] = [["HST_WFC3_F814W",6]]
+        ast_suppl_colorlimits["HST_WFC3_F336W"] = [["HST_WFC3_F475W",5], ["HST_WFC3_F814W",4]]
 
         # set the key word
         ast_suppl_colorlimit =  ast_suppl_colorlimits
