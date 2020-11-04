@@ -71,13 +71,6 @@ In order to run a development installation, navigate to the directory in your
 
    $ pip install -e .
 
-Alternatively, you can perform a development install directly through Python
-with:
-
-.. code-block:: console
-
-   $ python setup.py develop
-
 
 Adding Branches
 ===============
@@ -191,13 +184,13 @@ be viewed in a web browser by pointing to files in the `htmlconv` subdirectory
 
   .. code-block:: console
 
-     $ python setup.py test --remote-data --coverage
+     $ tox -e test -- --remote-data --coverage
 
 Make sure the documentation can be created.
 
   .. code-block:: console
 
-     $ python setup.py build_docs
+     $ tox -e build_docs
 
 The resulting HTML files are placed in the `docs/_build/html` subdirectory, and
 can be viewed in a web browser.
