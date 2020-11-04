@@ -39,8 +39,7 @@ One easy way to obtain the above is through the AstroConda Python stack:
 
     $ conda create -n astroconda stsci
 
-- Ensure the minimum Python requirements above are met. If needed, specify the 
-minimum version required
+- Ensure the minimum Python requirements above are met. If needed, specify the minimum version required
 
 .. code-block:: console
 
