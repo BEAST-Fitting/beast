@@ -218,10 +218,10 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
 
     # get the observations
     waves *= 1e-4
-    obs_flux = np.empty((n_filters), dtype=np.float)
-    mod_flux = np.empty((n_filters, 3), dtype=np.float)
-    mod_flux_nd = np.empty((n_filters, 3), dtype=np.float)
-    mod_flux_wbias = np.empty((n_filters, 3), dtype=np.float)
+    obs_flux = np.zeros((n_filters), dtype=np.float)
+    mod_flux = np.zeros((n_filters, 3), dtype=np.float)
+    mod_flux_nd = np.zeros((n_filters, 3), dtype=np.float)
+    mod_flux_wbias = np.zeros((n_filters, 3), dtype=np.float)
     k = starnum
 
     corname = stats["Name"][k]

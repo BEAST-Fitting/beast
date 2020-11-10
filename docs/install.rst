@@ -39,6 +39,13 @@ One easy way to obtain the above is through the AstroConda Python stack:
 
     $ conda create -n astroconda stsci
 
+- Ensure the minimum Python requirements above are met. If needed, specify the minimum version required
+
+.. code-block:: console
+
+    $ python --version
+    $ conda create -n astroconda stsci python=3.7
+
 - Make sure that the ``PyTables`` and ``hdf5`` packages are installed
 
 .. code-block:: console
@@ -89,7 +96,7 @@ downloading from Github
 
 .. code-block:: console
 
-     $ python setup.py install
+     $ pip install .
 
 If you are using conda, you may wish to create a conda environment with the
 dependencies before doing the install
@@ -98,14 +105,14 @@ dependencies before doing the install
 
      $ conda env create -n beast --file conda-environment.yml
      $ conda activate beast
-     $ python setup.py install
+     $ pip install .
 
 If you would like to modify beast, you may want to use links instead of
 installing, which is best done by replacing the last line with
 
 .. code-block:: console
 
-     $ python setup.py develop
+     $ pip install -e .
 
 
 Installation for Production Runs
@@ -157,7 +164,7 @@ you can make separate environments for development and production modes.
 
   .. code-block:: console
 
-    $ python setup.py develop
+    $ pip install -e .
 
 The BEAST production version is now ready for use.  Note, you need to
 activate this conda environment every time you want to use this installed

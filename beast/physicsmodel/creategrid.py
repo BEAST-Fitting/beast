@@ -181,15 +181,15 @@ def apply_distance_grid(specgrid, distances, redshift=0):
 
     # Add distance column if multiple distances are specified
     cols = {}
-    cols["distance"] = np.empty(N, dtype=float)
+    cols["distance"] = np.zeros(N, dtype=float)
 
     # Existing columns
     keys0 = list(g0.keys())
     for key in keys0:
-        cols[key] = np.empty(N, dtype=float)
+        cols[key] = np.zeros(N, dtype=float)
 
     n_sed_points = g0.seds.shape[1]
-    new_seds = np.empty((N, n_sed_points), dtype=float)
+    new_seds = np.zeros((N, n_sed_points), dtype=float)
 
     for count, distance in enumerate(tqdm(_distances, desc="Distance grid")):
 
@@ -376,22 +376,22 @@ def make_extinguished_grid(
         # iter over chunks of models
 
         # setup chunk outputs
-        cols = {"Av": np.empty(N, dtype=float), "Rv": np.empty(N, dtype=float)}
+        cols = {"Av": np.zeros(N, dtype=float), "Rv": np.zeros(N, dtype=float)}
 
         if with_fA:
-            cols["Rv_A"] = np.empty(N, dtype=float)
-            cols["f_A"] = np.empty(N, dtype=float)
+            cols["Rv_A"] = np.zeros(N, dtype=float)
+            cols["f_A"] = np.zeros(N, dtype=float)
 
         keys = list(g0.keys())
         for key in keys:
-            cols[key] = np.empty(N, dtype=float)
+            cols[key] = np.zeros(N, dtype=float)
 
         n_filters = len(filter_names)
-        _seds = np.empty((N, n_filters), dtype=float)
+        _seds = np.zeros((N, n_filters), dtype=float)
         if absflux_cov:
             n_offdiag = ((n_filters ** 2) - n_filters) / 2
-            _cov_diag = np.empty((N, n_filters), dtype=float)
-            _cov_offdiag = np.empty((N, n_offdiag), dtype=float)
+            _cov_diag = np.zeros((N, n_filters), dtype=float)
+            _cov_offdiag = np.zeros((N, n_offdiag), dtype=float)
 
         for count, pt in enumerate(tqdm(chunk_pts, desc="SED grid")):
 
@@ -437,7 +437,7 @@ def make_extinguished_grid(
                 if key not in keys:
                     k1 = N0 * count
                     k2 = N0 * (count + 1)
-                    cols.setdefault(key, np.empty(N, dtype=float))[
+                    cols.setdefault(key, np.zeros(N, dtype=float))[
                         k1:k2
                     ] = temp_results.grid[key]
 
@@ -595,8 +595,8 @@ def calc_absflux_cov_matrices(specgrid, sedgrid, filter_names):
     n_models = specgrid.seds.shape[0]
     n_filters = len(filter_names)
     n_offdiag = ((n_filters ** 2) - n_filters) / 2
-    cov_diag = np.empty((n_models, n_filters), dtype=np.float64)
-    cov_offdiag = np.empty((n_models, n_offdiag), dtype=np.float64)
+    cov_diag = np.zeros((n_models, n_filters), dtype=np.float64)
+    cov_offdiag = np.zeros((n_models, n_offdiag), dtype=np.float64)
 
     # pack the resulting covariance matrices into diganonal and
     # non-diagnonal terms

@@ -16,6 +16,8 @@ def simulate_obs(
     beastinfo_list=None,
     nsim=100,
     compl_filter="F475W",
+    complcut=None,
+    magcut=None,
     weight_to_use="weight",
     ranseed=None,
 ):
@@ -52,19 +54,33 @@ def simulate_obs(
         filter to use for completeness (required for toothpick model)
         set to max to use the max value in all filters
 
+    complcut : float (defualt=None)
+        completeness cut for only including model seds above the given
+        completeness, where the cut ranges from 0 to 1.
+
+    magcut : float (defualt=None)
+        faint-end magnitude cut for only including model seds brighter
+        than the given magnitude in compl_filter.
+
     weight_to_use : string (default='weight')
-        Set to either 'weight' (prior+grid), 'prior_weight', or 'grid_weight' to
+        Set to either 'weight' (prior+grid), 'prior_weight', 'grid_weight',
+        or 'uniform' (this option is valid only when nsim is supplied) to
         choose the weighting for SED selection.
 
     ranseed : int
         seed for random number generator
-
     """
     # numbers of samples to do
     # (ensure there are enough for even sampling of multiple model grids)
     n_phys = len(np.atleast_1d(physgrid_list))
     nsim = int(nsim)
     samples_per_grid = int(np.ceil(nsim / n_phys))
+
+    if complcut is not None:
+        complcut = float(complcut)
+
+    if magcut is not None:
+        magcut = float(magcut)
 
     if ranseed is not None:
         ranseed = int(ranseed)
@@ -99,6 +115,8 @@ def simulate_obs(
             mass_prior_model=mass_prior_model,
             nsim=samples_per_grid,
             compl_filter=compl_filter,
+            complcut=complcut,
+            magcut=magcut,
             weight_to_use=weight_to_use,
             ranseed=ranseed,
         )
@@ -151,6 +169,18 @@ if __name__ == "__main__":  # pragma: no cover
         help="filter for completeness, set to max for max of values from all filters",
     )
     parser.add_argument(
+        "--complcut",
+        default=None,
+        type=float,
+        help="completeness cut for selecting seds above the completeness cut"
+    )
+    parser.add_argument(
+        "--magcut",
+        default=None,
+        type=float,
+        help="magnitdue cut for selecting seds brighter than the magcut in compl_filter"
+    )
+    parser.add_argument(
         "--weight_to_use",
         default="weight",
         type=str,
@@ -158,7 +188,10 @@ if __name__ == "__main__":  # pragma: no cover
         'grid_weight' to choose the weighting for SED selection.""",
     )
     parser.add_argument(
-        "--ranseed", default=None, type=int, help="seed for random number generator"
+        "--ranseed",
+        default=None,
+        type=int,
+        help="seed for random number generator"
     )
     args = parser.parse_args()
 
@@ -170,6 +203,8 @@ if __name__ == "__main__":  # pragma: no cover
         beastinfo_list=args.beastinfo_list,
         nsim=args.nsim,
         compl_filter=args.compl_filter,
+        complcut=args.complcut,
+        magcut=args.magcut,
         weight_to_use=args.weight_to_use,
         ranseed=args.ranseed,
     )
