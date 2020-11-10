@@ -408,10 +408,52 @@ def supplement_ast(
         each model will be written to disk
 
     mag_cut: dictionary (optional, default=None)
-        Ditionary of bright and faint magnitude limits for given filters
+        Dictionary of bright and faint magnitude limits for given filters.
+        The way to specify the cuts is by updating the "ast_suppl_maglimit" key
+        in the beast_settings file. This is a dictionary that includes information
+        for the magnitude cuts as a function of the filters included in observation.
+
+        For example, for a field observed with HST_WFC3_F336W, HST_WFC3_F475W,
+        and HST_WFC3_F814W, to set a magnitude range limit of 16<HST_WFC3_F475W<28 mag,
+        and 15<HST_WFC3_F814W<27 mag you need to set the following within the beast_settings file:
+
+        # specify that the ast_supplement mode should be on
+        ast_supplement = True
+
+        # initialize and populate the dictionary of desired magnitude limits
+        ast_suppl_maglimits = {}
+        # the magntidue limits are defined by the filter and a list of the limits in magnitudes
+        ast_suppl_maglimits["HST_WFC3_F475W"] = [16,28]
+        ast_suppl_maglimits["HST_WFC3_F814W"] = [15,27]
+
+        # set the key word
+        ast_suppl_maglimit = ast_suppl_maglimits
 
     color_cut: dictionary (optional, default=None)
-        Ditionary of faint color limits for given filters
+        Dictionary of red color limits for given filters.
+        The way to specify the cuts is by updating the "ast_suppl_colorlimit" key
+        in the beast_settings file. This is a dictionary that includes information
+        for the color cuts as a function of the filters included in observation.
+
+        For example, for a field observed with HST_WFC3_F336W, HST_WFC3_F475W,
+        and HST_WFC3_F814W, to set a color range limit of HST_WFC3_F475W-HST_WFC3_F814W<6,
+        HST_WFC3_F336W-HST_WFC3_F475W<5 and HST_WFC3_F336W-HST_WFC3_F814W<4, you need
+        to set the following within the beast_settings file:
+
+        # specify that the ast_supplement mode should be on
+        ast_supplement = True
+
+        # initialize the dictionary of desired magnitude limits
+        ast_suppl_colorlimits = {}
+
+        # the color limits are defined by the first filter in the color (e.g, X for X-Y),
+        # and the input is a list including the second filter (e.g., Y for X-Y) and the
+        # color limit in magnitudes
+        ast_suppl_colorlimits["HST_WFC3_F475W"] = [["HST_WFC3_F814W",6]]
+        ast_suppl_colorlimits["HST_WFC3_F336W"] = [["HST_WFC3_F475W",5], ["HST_WFC3_F814W",4]]
+
+        # set the key word
+        ast_suppl_colorlimit =  ast_suppl_colorlimits
 
     Returns
     -------
