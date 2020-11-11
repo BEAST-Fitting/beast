@@ -71,7 +71,7 @@ def compare_spec_type(
         ra=beast_phot[ra_col] * u.degree, dec=beast_phot[dec_col] * u.degree
     )
     # read in BEAST results
-    beast_stats = Table.read(beast_stats_file)
+    beast_stats = Table.read(beast_stats_file, hdu=1)
     beast_stats_catalog = SkyCoord(
         ra=beast_stats["RA"] * u.degree, dec=beast_stats["DEC"] * u.degree
     )
