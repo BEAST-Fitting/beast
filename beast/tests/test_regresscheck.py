@@ -7,6 +7,7 @@ import pytest
 import unittest
 
 import tables
+import asdf
 
 from astropy.tests.helper import remote_data
 from astropy import constants as const
@@ -754,57 +755,38 @@ class TestRegressionSuite(unittest.TestCase):
             self.settings, beast_settings.beast_settings
         ), "Did not produce the correct class"
 
-    @pytest.mark.skip(reason="updated cached file needed")
     def test_compare_spec_type_inFOV(self):
         """
-        Test for compare_spec_type.  The spectrally-typed stars aren't real sources,
-        they're just invented for the purposes of documenting/testing the code.
+        Test for compare_spec_type.  Inputs and expected outputs created by
+        running generate_files_for_tests.py in beast-examples/metal_small.
 
         In this version, the stars are in the imaging field of view.
         """
+
+        # download cached file
+        compare_spec_type_fname = download_rename(
+            f"{cls.basename}_compare_spec_type.asdf"
+        )
+        with asdf.open(compare_spec_type_fname) as af:
+            compare_spec_type_info = copy.deepcopy(af.tree)
+
         # run compare_spec_type
         spec_type = compare_spec_type(
             self.obs_fname_cache,
             self.stats_fname_cache,
-            [11.2335881, 11.23342557],  # RA
-            [41.9001895, 41.90006316],  # Dec
-            ["A", "G"],  # Spectral type
-            [2, 7],  # Subtype
-            ["II", "II"],  # Luminosity class
-            match_radius=0.2,  # Match radius (arcsec)
+            **compare_spec_type_info["input"],
         )
 
         # expected output table
-        expected_table = Table(
-            {
-                "spec_ra": [11.2335881, 11.23342557],
-                "spec_dec": [41.9001895, 41.90006316],
-                "spec_type": ["A 2 II", "G 7 II"],
-                "spec_teff": [9000.0, 4916.666666666667],
-                "spec_logg": [2.7164474106543732, 1.7184474106543735],
-                "phot_cat_ind": [27, 8],
-                "stats_cat_ind": [27, 8],
-                "beast_teff_p50": [9046.250020338754, 4528.230977991138],
-                "beast_teff_p16": [8643.670633196869, 4335.617282355577],
-                "beast_teff_p84": [9536.391362054928, 4729.401710221546],
-                "beast_logg_p50": [2.714286917261312, 1.7684285714285717],
-                "beast_logg_p16": [2.636272525730954, 1.7014832653061227],
-                "beast_logg_p84": [2.799534708811963, 1.8353738775510207],
-                "teff_sigma": [-0.11488422362383206, 1.9308757510045778],
-                "logg_sigma": [0.025343687546173433, -0.7465969411324851],
-            }
-        )
+        expected_table = Table(compare_spec_type_info["output"])
 
         # compare to new table
         compare_tables(expected_table, Table(spec_type), rtol=2e-3)
 
-    @pytest.mark.skip(reason="updated cached file needed")
     def test_compare_spec_type_notFOV(self):
         """
-        Test for compare_spec_type.  The spectrally-typed stars aren't real sources,
-        they're just invented for the purposes of documenting/testing the code.
-
-        In this version, the stars are NOT in the imaging field of view.
+        Test for compare_spec_type.  In this version, the stars are NOT in the
+        imaging field of view.
         """
         # run compare_spec_type
         spec_type = compare_spec_type(
@@ -842,49 +824,70 @@ class TestRegressionSuite(unittest.TestCase):
         # compare to new table
         compare_tables(expected_table, Table(spec_type))
 
-    @pytest.mark.skip(reason="updated cached file needed")
     def test_star_type_probability_all_params(self):
         """
-        Test for star_type_probability.py
+        Test for star_type_probability.  Inputs and expected outputs created by
+        running generate_files_for_tests.py in beast-examples/metal_small.
+
+        In this version, all required parameters are present.
         """
-        # download the needed files
-        star_prob_fname = download_rename("phat_small/beast_example_phat_startype.fits")
+        # download cached file
+        star_prob_fname = download_rename(f"{cls.basename}_star_type_probability.asdf")
+        with asdf.open(star_prob_fname) as af:
+            star_prob_info = copy.deepcopy(af.tree)
 
         # run star_type_probability
         star_prob = star_type_probability.star_type_probability(
             self.pdf1d_fname_cache,
             self.pdf2d_fname_cache,
-            output_filebase=None,
-            ext_O_star_params={"min_M_ini": 10, "min_Av": 0.5, "max_Av": 5},
+            **star_prob_info["input"],
         )
 
         # expected output table
-        expected_star_prob = Table.read(star_prob_fname)
+        expected_star_prob = Table.read(star_prob_info["output"])
 
         # compare to new table
         compare_tables(expected_star_prob, Table(star_prob))
 
-    @pytest.mark.skip(reason="updated cached file needed")
     def test_star_type_probability_no_Av(self):
         """
-        Test for star_type_probability.py
+        Test for star_type_probability.
+
+        In this version, A_V was not saved in the 2D PDFs.
         """
-        # download the needed files
-        pdf2d_fname = download_rename("beast_example_phat_pdf2d_no_Av.fits")
-        star_prob_fname = download_rename("beast_example_phat_startype_no_Av.fits")
+
+        # download cached file
+        star_prob_fname = download_rename(f"{cls.basename}_star_type_probability.asdf")
+        with asdf.open(star_prob_fname) as af:
+            star_prob_info = copy.deepcopy(af.tree)
+
+        # edit the 2D PDF file to not have A_V info
+        temp_pdf2d_fname = tempfile.NamedTemporaryFile(suffix=".fits").name
+        temp_hdu_list = []
+        with fits.open(self.pdf2d_fname_cache) as hdu:
+            for ext in hdu:
+                if 'Av+' in ext.name or '+Av' in ext.name:
+                    continue
+                temp_hdu_list.append(ext)
+            fits.HDUList(temp_hdu_list).writeto(temp_pdf2d_fname)
+
+        # edit the expected output to have NaNs in columns that require A_V
+        # (currently, that's all columns)
+        expected_star_prob = Table(star_prob_info['output'])
+        for col in expected_star_prob.colnames:
+            if col == 'ext_O_star':
+                expected_star_prob[col] = np.nan
+            if col == 'dusty_agb':
+                expected_star_prob[col] = np.nan
 
         # run star_type_probability
         star_prob = star_type_probability.star_type_probability(
             self.pdf1d_fname_cache,
-            pdf2d_fname,
-            output_filebase=None,
-            ext_O_star_params={"min_M_ini": 10, "min_Av": 0.5, "max_Av": 5},
+            temp_pdf2d_fname,
+            **input,
         )
 
-        # expected output table
-        expected_star_prob = Table.read(star_prob_fname)
-
-        # compare to new table
+        # compare to expected table
         compare_tables(expected_star_prob, Table(star_prob))
 
     @pytest.mark.skip(reason="updated cached file needed")
