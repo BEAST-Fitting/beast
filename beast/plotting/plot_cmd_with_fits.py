@@ -6,6 +6,8 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 import copy
 
+from beast.plotting.beastplotlib import initialize_parser
+
 __all__ = ["plot_cmd_with_fits"]
 
 
@@ -55,8 +57,8 @@ def plot_cmd_with_fits(
         If False, only plot sources with Vega mags that are <99 in the
         mag1/mag2/mag3 filters
 
-    savefig : boolean (default=False)
-        Save figure to file, or just show it.
+    savefig : str (default=False)
+        to save the figure, set this to the file extension (e.g., 'png', 'pdf')
 
     show_plot : boolean
         True, show the plot (to screen or a file)
@@ -170,7 +172,7 @@ def plot_cmd_with_fits(
 
 if __name__ == "__main__":  # pragma: no cover
 
-    parser = argparse.ArgumentParser()
+    parser = initialize_parser()
     parser.add_argument(
         "data_fits_file", type=str, help="Path to FITS file with stellar photometry"
     )
@@ -207,11 +209,6 @@ if __name__ == "__main__":  # pragma: no cover
         "--log_param",
         action="store_true",
         help="choose whether to take the log of `param` for assigning color",
-    )
-    parser.add_argument(
-        "--savefig",
-        action="store_true",
-        help="choose whether to save the figure, or show it",
     )
 
     args = parser.parse_args()
