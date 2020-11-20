@@ -156,12 +156,10 @@ def plot_cmd_with_fits(
         cbar_label = "Log " + param
     cbar.ax.set_ylabel(cbar_label, fontsize=13)  # , rotation=-90, va="bottom")
 
-    # figname
-    basename = data_fits_file.replace(".fits", "_cmd")
-
     # save or show fig
     if show_plot:
         if savefig:
+            basename = beast_stats_file.replace(".fits", f"_cmd_{param}")
             fig.savefig("{}.{}".format(basename, savefig))
         else:
             plt.show()
