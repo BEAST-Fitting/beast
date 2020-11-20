@@ -13,7 +13,7 @@ __all__ = ["plot_cmd_with_fits"]
 
 def plot_cmd_with_fits(
     data_fits_file,
-    beast_fits_file,
+    beast_stats_file,
     mag1_filter="F475W",
     mag2_filter="F814W",
     mag3_filter="F475W",
@@ -32,16 +32,18 @@ def plot_cmd_with_fits(
     Parameters
     ----------
     data_fits_file : str
-        path+file for the stellar photometry
+        Path+file for the stellar photometry. Photometry will be matched to
+        sources in beast_stats_file using RA/Dec, so this can contain sources
+        that were not fit with the BEAST.
 
-    beast_fits_file : str
+    beast_stats_file : str
         path+file for the BEAST fitting results
 
     mag1_filter : str (default='F475W')
-        1st color filter
+        1st color filter (color=mag1-mag2)
 
     mag2_filter : str (default='F814W')
-        2nd color filter
+        2nd color filter (color=mag1-mag2)
 
     mag3_filter : str (default='F475W')
         filter for the magnitude
@@ -66,12 +68,10 @@ def plot_cmd_with_fits(
     """
 
     # read in data
-    data_hdu = fits.open(data_fits_file)
-    data_table = data_hdu[1].data
-    data_hdu.close()
-    beast_hdu = fits.open(beast_fits_file)
-    beast_table = beast_hdu[1].data
-    beast_hdu.close()
+    with fits.open(data_fits_file) as data_hdu:
+        data_table = data_hdu[1].data
+    with fits.open(beast_stats_file) as beast_hdu:
+        beast_table = beast_hdu[1].data
 
     # figure out the subset that were modeled
     data_cat = SkyCoord(
@@ -82,12 +82,11 @@ def plot_cmd_with_fits(
     )
     ind, sep, _ = beast_cat.match_to_catalog_sky(data_cat)
     data_table = data_table[ind]
-    # pdb.set_trace()
 
     # Read in band_rate
-    mag1_flux = data_table["%s" % (mag1_filter + "_rate")]
-    mag2_flux = data_table["%s" % (mag2_filter + "_rate")]
-    mag_flux = data_table["%s" % (mag3_filter + "_rate")]
+    mag1_flux = data_table[f"{mag1_filter}_rate"]
+    mag2_flux = data_table[f"{mag2_filter}_rate"]
+    mag_flux = data_table[f"{mag3_filter}_rate"]
 
     # read in parameter for color-coding
     color_data = beast_table[param]
@@ -145,7 +144,7 @@ def plot_cmd_with_fits(
     ax.set_ylim((np.percentile(mag, 0.01), np.percentile(mag, 99.99)))
 
     plt.gca().invert_yaxis()
-    plt.xlabel("%s - %s" % (mag1_filter, mag2_filter), fontsize=15)
+    plt.xlabel(f"{mag1_filter} - {mag2_filter}", fontsize=15)
     plt.ylabel(mag3_filter, fontsize=15)
     ax.tick_params(axis="both", labelsize=13)
 
@@ -177,7 +176,7 @@ if __name__ == "__main__":  # pragma: no cover
         "data_fits_file", type=str, help="Path to FITS file with stellar photometry"
     )
     parser.add_argument(
-        "beast_fits_file", type=str, help="Path to FITS file with BEAST fits"
+        "beast_stats_file", type=str, help="Path to FITS file with BEAST fits"
     )
 
     parser.add_argument(
@@ -216,7 +215,7 @@ if __name__ == "__main__":  # pragma: no cover
     # plot the CMD
     fig = plot_cmd_with_fits(
         args.data_fits_file,
-        args.beast_fits_file,
+        args.beast_stats_file,
         mag1_filter=args.mag1,
         mag2_filter=args.mag2,
         mag3_filter=args.magy,
