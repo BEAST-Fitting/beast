@@ -204,8 +204,9 @@ if __name__ == "__main__":  # pragma: no cover
     )
     parser.add_argument(
         "--log_param",
-        action="store_true",
-        help="choose whether to take the log of `param` for assigning color",
+        type=int,
+        default=0,
+        help="If you would like to take the log of `param` for assigning color, set this to 1 (True)",
     )
 
     args = parser.parse_args()
@@ -218,7 +219,7 @@ if __name__ == "__main__":  # pragma: no cover
         mag2_filter=args.mag2,
         mag3_filter=args.magy,
         param=args.param,
-        log_param=args.log_param,
+        log_param=bool(args.log_param),
         savefig=args.savefig,
         show_plot=True,
     )
