@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy import units as u
