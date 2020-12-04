@@ -148,11 +148,16 @@ class BinnedDensityMap(DensityMap):
         binned_density_map = DensityMap(density_map)
 
         if bin_mode == "linear":
+
             # Create the extra column here
             if (N_bins is None) and (bin_width is None):
                 bins = np.array(range(len(binned_density_map.tile_data)))
 
-            elif N_bins is not None:
+            if (N_bins is not None) and (bin_width is not None):
+                raise Exception("Both sd_Nbins and sd_binwidth are set in the beast_settings file. Please set only one!")
+                return
+
+            if N_bins is not None:
                 # Create the density bins
                 # [min, ., ., ., max]
                 tile_densities = binned_density_map.tile_data[input_column]
@@ -172,7 +177,7 @@ class BinnedDensityMap(DensityMap):
                     binned_density_map.tile_data[input_column], bin_edges
                 )
 
-            elif bin_width is not None:
+            if bin_width is not None:
                 tile_densities = binned_density_map.tile_data[input_column]
                 min_density = np.amin(tile_densities)
                 max_density = np.amax(tile_densities)
@@ -193,6 +198,7 @@ class BinnedDensityMap(DensityMap):
                     "is properly set in the beast_settings file for log binning "
                     "to proceed."
                 )
+                return
 
             elif N_bins is not None:
                 # Create the density bins
