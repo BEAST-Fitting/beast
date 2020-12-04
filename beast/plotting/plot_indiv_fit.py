@@ -270,7 +270,7 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
     sed_ax.set_yscale("symlog", linthreshy=symlog_linthreshold)
     sed_ax.grid(True)
 
-    sed_ax.text(0.5, -0.07, r"$\lambda$ [$\AA$]", transform=sed_ax.transAxes, va="top")
+    sed_ax.text(0.5, -0.07, r"$\lambda$ [$\mu m$]", transform=sed_ax.transAxes, va="top")
     sed_ax.set_xlim(0.2, 2.0)
     sed_ax.set_xscale("log")
     sed_ax.minorticks_off()
