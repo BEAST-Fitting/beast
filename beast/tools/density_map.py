@@ -211,8 +211,6 @@ class BinnedDensityMap(DensityMap):
                 min_density = np.amin(tile_densities[tile_densities > 0.0])
                 max_density = np.amax(tile_densities)
 
-                if min_density == 0:
-                    min_density = 0.01
                 bin_edges = np.logspace(
                     np.log10(min_density - 0.01 * abs(min_density)),
                     np.log10(max_density + 0.01 * abs(max_density)),
