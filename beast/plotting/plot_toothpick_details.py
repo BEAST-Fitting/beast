@@ -37,7 +37,14 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
     model.set_data_mappings(upcase=True, in_pair=("in", "in"), out_pair=("out", "rate"))
 
     # compute binned biases, uncertainties, and completeness as a function of band flux
-    model.fit_bins(nbins=50, completeness_mag_cut=-10)
+    ast_nonrecovered_frac = 0.5
+    model.fit_bins(
+        nbins=50,
+        completeness_mag_cut=-10,
+        ast_nonrecovered_frac=ast_nonrecovered_frac,
+        # min_flux=1e-22,
+        # max_flux=1e-14,
+    )
 
     nfilters = len(sedgrid.filters)
     fig, ax = plt.subplots(nrows=nfilters, ncols=2, figsize=(14, 10), sharex=True)
@@ -78,12 +85,22 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
             alpha=0.5,
         )
 
+        if ast_nonrecovered_frac is not None:
+            ax[i, 0].axhline(
+                ast_nonrecovered_frac, linestyle="--", alpha=0.25, color="k"
+            )
+            ax[i, 0].axhline(
+                -1.0 * ast_nonrecovered_frac, linestyle="--", alpha=0.25, color="k"
+            )
+
         ax[i, 0].set_ylim(-5e0, 5e0)
         ax[i, 0].set_xscale("log")
         ax[i, 0].set_ylabel(r"$(F_i - F_o)/F_i$")
 
         ax[i, 1].plot(
-            model._fluxes[0:ngbins, i], model._compls[0:ngbins, i], "b-",
+            model._fluxes[0:ngbins, i],
+            model._compls[0:ngbins, i],
+            "b-",
         )
 
         ax[i, 1].yaxis.tick_right()

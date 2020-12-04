@@ -1,4 +1,5 @@
 import math
+import copy
 
 import numpy as np
 
@@ -108,6 +109,9 @@ class MultiFilterASTs(NoiseModel):
         name_prefix=None,
         asarray=False,
         compute_stddev=False,
+        ast_nonrecovered_frac=0.5,
+        min_flux=None,
+        max_flux=None,
     ):
         """
         Computes sigma estimate for each bin, store the result in a
@@ -143,6 +147,18 @@ class MultiFilterASTs(NoiseModel):
         compute_stddev : bool, optional
             if True, uses np.mean()+np.std() to estimate avg bias+sigma;
             if False (default), uses np.percentiles
+
+        ast_nonrecovered_frac : float
+            fraction of (flux_in-flux_out)/flux_in to consider an ast not recovered
+            default = 0.5, set to None to disable
+
+        min_flux : float
+            min flux value in vega normalized fluxes for model bins
+            default = None which means calculated from magflux_in
+
+        max_flux : float
+            max flux value in vega normalized fluxes for model bins
+            default = None which means calculated from magflux_in
 
         Returns
         -------
@@ -183,12 +199,23 @@ class MultiFilterASTs(NoiseModel):
             (bad_indxs,) = np.where(magflux_out >= completeness_mag_cut)
             flux_out[bad_indxs] = 0.0
         else:
-            flux_out = magflux_out
+            flux_out = copy.copy(magflux_out)
 
         # convert the AST input from magnitudes to fluxes
         # always convert the magflux_in to fluxes (the way the ASTs are
         # reported)
         flux_in = 10 ** (-0.4 * magflux_in)
+
+        # set the flux_out to zero for all ASTs recovered with too large
+        # a difference in fluxes.  This removes sources that are below the
+        # the faintest detectable flux that are associated with a real nearby
+        # source (random chance that happens depending on the source density)
+        # based on input threshold ratio
+        if ast_nonrecovered_frac is not None:
+            (indxs,) = np.where(flux_out != 0.0)
+            absdiff = np.absolute((flux_in[indxs] - flux_out[indxs]) / flux_in[indxs])
+            (indxs2,) = np.where(absdiff > ast_nonrecovered_frac)
+            flux_out[indxs[indxs2]] = 0.0
 
         # storage the storage of the results
         ave_flux_in = np.zeros(nbins, dtype=float)
@@ -207,8 +234,14 @@ class MultiFilterASTs(NoiseModel):
         # setup the bins (done in log units due to dynamic range)
         #  add a very small value to the max to make sure all the data is
         #  included
-        min_flux = math.log10(min(flux_in))
-        max_flux = math.log10(max(flux_in) * 1.000001)
+        if min_flux is None:
+            min_flux = math.log10(min(flux_in))
+        else:
+            min_flux = math.log10(min_flux)
+        if max_flux is None:
+            max_flux = math.log10(max(flux_in) * 1.000001)
+        else:
+            max_flux = math.log10(max_flux)
         delta_flux = (max_flux - min_flux) / float(nbins)
         bin_min_vals = min_flux + np.arange(nbins) * delta_flux
         bin_max_vals = bin_min_vals + delta_flux
@@ -273,14 +306,37 @@ class MultiFilterASTs(NoiseModel):
             nbins=nbins, completeness_mag_cut=completeness_mag_cut, progress=progress
         )
 
-    def fit_bins(self, nbins=50, completeness_mag_cut=80, progress=True):
+    def fit_bins(
+        self,
+        nbins=50,
+        completeness_mag_cut=80,
+        ast_nonrecovered_frac=0.5,
+        min_flux=None,
+        max_flux=None,
+        progress=True,
+    ):
         """
         Compute the necessary statistics before evaluating the noise model
 
         Parameters
         ----------
+        nbins : int
+            number of bins between the min/max values
+
         completeness_mag_cut : float
             magnitude at which consider a star not recovered
+
+        ast_nonrecovered_frac : float
+            mark any ASTs with a fractional difference larger than this value
+            as nonrecovered
+
+        min_flux : float
+            min flux value in physical units for model bins
+            default = None which means calculated from ast input fluxes
+
+        max_flux : float
+            max flux value in physical units for model bins
+            default = None which means calculated from ast input fluxes
 
         progress : bool, optional
             if set, display a progress bar
@@ -307,11 +363,24 @@ class MultiFilterASTs(NoiseModel):
             mag_in = self.data[self.filter_aliases[filterk + "_in"]]
             magflux_out = self.data[self.filter_aliases[filterk + "_out"]]
 
+            # convert min/max fluxes to vega normalized fluxes
+            if min_flux is not None:
+                min_norm_flux = min_flux / self.vega_flux[e]
+            else:
+                min_norm_flux = min_flux
+            if max_flux is not None:
+                max_norm_flux = max_flux / self.vega_flux[e]
+            else:
+                max_norm_flux = max_flux
+
             d = self._compute_sigma_bins(
                 mag_in,
                 magflux_out,
                 nbins=nbins,
                 completeness_mag_cut=completeness_mag_cut,
+                ast_nonrecovered_frac=ast_nonrecovered_frac,
+                min_flux=min_norm_flux,
+                max_flux=max_norm_flux,
             )
 
             ncurasts = len(d["FLUX_IN"])
