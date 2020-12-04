@@ -1,13 +1,13 @@
-############
-Installation
-############
+#########################
+Installation instructions
+#########################
 
 Requirements
 ============
 
 Running the BEAST requires:
 
-- Python >=3.5
+- Python >=3.6
 - Astropy >=1.3
 
 In turn, Astropy depends on
@@ -48,33 +48,31 @@ One easy way to obtain the above is through the AstroConda Python stack:
     $ conda install -n astroconda hdf5
 
 
-Installing the BEAST
-====================
+Installation for Users
+======================
 
 In addition to installing the code, library files also need to be installed.
 See :ref:`library-files`.
 
 .. note::
-   The ``numpy`` must be installed before installing the beast.  This package
-   is needed as part of the install process, not just as a prerequisite for the
-   beast.
+   The ``numpy`` package must be installed before installing the BEAST. This package is needed as part of the installation process, not just as a prerequisite for running the BEAST.
 
 Using pip
 ---------
 
-``beast`` can be installed using pip
+``beast`` can be installed using pip:
 
 .. code-block:: console
 
     $ pip install beast
 
-if you already have an older version installed
+If you already have an older version installed, use:
 
 .. code-block:: console
 
     $ pip install --upgrade beast
 
-from the master trunk on the repository, considered developmental code
+Or, from the master trunk on the repository, considered developmental code:
 
 .. code-block:: console
 
@@ -100,66 +98,93 @@ dependencies before doing the install
      $ conda activate beast
      $ python setup.py install
 
-If you would like to modify beast, you may want to use links instead of
-installing, which is best done by replacing the last line with
+
+.. _Dev_install:
+
+Installation for Developers
+===========================
+
+If you plan on modifying the ``beast`` in addition to running the code, it may
+be useful to create a development installation. First, create a fork of the
+official ``beast`` repository and clone it:
 
 .. code-block:: console
 
-     $ python setup.py develop
+   $ git clone https://github.com/YourName/beast.git
+
+Optionally, you can rename this cloned copy:
+
+.. code-block:: console
+
+   $ git clone https://github.com/YourName/beast.git beast-YourName
+
+Set the value of the fork's 'upstream' to the official distribution so you
+can incorporate changes made by others to your development fork. In the clone
+of your fork, run the following:
+
+.. code-block:: console
+
+   $ git remote add upstream https://github.com/BEAST-Fitting/beast.git
+
+In order to run a development installation, navigate to the directory in your
+``beast`` repository that contains `setup.py`, and run:
+
+.. code-block:: console
+
+   $ pip install -e .
+
+Alternatively, you can perform a development install directly through Python
+with:
+
+.. code-block:: console
+
+   $ python setup.py develop
 
 
 Installation for Production Runs
 ================================
 
 Using a dedicated conda environment for production BEAST runs may be
-desirable.  Such an environment provides a way to ensure that
+desirable. Such an environment provides a way to ensure that
 production runs are reproducible by fixing the versions of all the
-software used.  The instructions below assume that the `astroconda channel
+software used. The instructions below assume that the `astroconda channel
 <https://astroconda.readthedocs.io/>`_ is being used.
 
-Create a conda environment.  Here we name it to include the BEAST version.
+Create a conda environment, and name it differently from your default and other environments:
 
   .. code-block:: console
 
-    $ conda create -n beast_v1.3 python=3.6
+    $ conda create -n beast_production python=3.6
 
-Activate the environment after all the packages are finished installing.
+Activate the environment after all the packages are finished installing:
 
   .. code-block:: console
 
-    $ source activate beast_v1.3
+    $ conda activate beast_production
 
-Install dependencies using conda (better for speed)
+Install dependencies using conda (better for speed):
 
   .. code-block:: console
 
     $ conda install astropy scipy h5py matplotlib cython
 
-Next, install the BEAST.  You have three options:
+Next, install the BEAST. You have three options:
 
-Option 1: Use pip to install the production version of the beast (currently v1.3)
+Option 1: Use pip to install a stable version of the BEAST (e.g. v1.3):
 
   .. code-block:: console
 
     $ pip install beast==1.3
 
-Option 2: Get the latest production branch, which can be ahead of pipy version
+Option 2: Get the latest production branch, which can be ahead of the pipy version:
 
   .. code-block:: console
 
     $ pip install git+https://github.com/BEAST-Fitting/beast.git@v1.x
 
-Option 3: If you'll be doing development, fork the beast (as described
-`here <https://beast.readthedocs.io/en/latest/beast_development.html>`_\),
-navigate into the first `beast` folder, and do this command.  Any changes
-you make will be immediately reflected in your calls to the BEAST code. Note that
-you can make separate environments for development and production modes.
+Option 3: If you'll be doing development, follow the instructions above (:ref:`Dev_install`). Note that you can make separate environments for development and production modes.
 
-  .. code-block:: console
-
-    $ python setup.py develop
-
-The BEAST production version is now ready for use.  Note, you need to
+The BEAST production version is now ready for use. Note, you need to
 activate this conda environment every time you want to use this installed
 version.
 
@@ -169,7 +194,7 @@ BEAST Library Files
 ===================
 
 For the BEAST to work properly, you need to place a set of files in a
-directory.  These files contain information related to filters,
+directory. These files contain information related to filters,
 stellar atmospheres, and in the future stellar evolution models.
 
 Manual download
@@ -180,14 +205,12 @@ The required library files can be manually acquired from:
 https://stsci.box.com/v/beastlibs
 
 Note that the archive at this link contains a folder called `files`. The
-*contents* of this folder are the library files required by beast. It is these
-files that need to be placed within (any of) the possible locations specified in :ref:`library_loc`.
+*contents* of this folder are the library files required by the BEAST. These files need to be placed within (any of) the possible locations specified in :ref:`library_loc`.
 
 Script download
 ---------------
 
-Alternatively, after installing the BEAST, run the following script and the library files
-will be downloaded into the location specified in :ref:`library_loc`
+Alternatively, after installing the BEAST, run the following script and the library files will be downloaded into the location specified in :ref:`library_loc`:
 
 .. code-block:: console
 
@@ -201,6 +224,6 @@ Location
 There are 2 possible locations for the required library files. The possible locations are
 (in the order the code will search for them):
 
-1. In a directory designated by a BEAST_LIBS environment variable
+1. In a directory designated by a BEAST_LIBS environment variable.
 2. In the ``.beast`` directory in the home directory of the current user (ie, ``~/.beast``);
    this is usually the easiest and will be automatically created if it doesn't exist.
