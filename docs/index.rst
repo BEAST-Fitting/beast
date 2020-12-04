@@ -19,11 +19,7 @@ Getting started
    :maxdepth: 1
 
    Installation instructions <install.rst>
-     For users <install.rst>
-     For developers <beast_development.rst>
-     For production runs <install.rst>
    Running an example <example.rst>
-   New User Interface <new_user_interface.rst>
 
 User Documentation
 ==================
@@ -44,15 +40,6 @@ User Documentation
    Details on BEAST libraries for grid <beast_grid_inputs.rst>
    BEAST output files <outputs.rst>
    Known issues <beast_issues.rst>
-
-Developer Documentation
-=======================
-
-.. toctree::
-   :maxdepth: 1
-
-   How to contribute <beast_development.rst>
-   Internal Classes <development_classes.rst>
 
 Reporting Issues
 ================
@@ -76,20 +63,21 @@ typo in the documentation to developing a major new feature. We welcome
 contributors who will abide by the `Python Software Foundation Code of Conduct
 <https://www.python.org/psf/conduct/>`_.
 
-``beast`` follows the same workflow and coding guidelines as
-`Astropy`_.  The following pages will help you get started with contributing
-fixes, code, or documentation (no git or GitHub experience necessary):
+More details on how to contribute to the ``beast`` can be found in the Developer Documentation:
 
-* `How to make a code contribution <https://docs.astropy.org/en/stable/development/workflow/development_workflow.html>`_
+.. toctree::
+   :maxdepth: 1
 
-* `Coding Guidelines <https://docs.astropy.org/en/stable/development/codeguide.html>`_
+   BEAST Contribution Workflow <beast_development.rst>
+   Internal Classes <development_classes.rst>
 
-* `Developer Documentation <https://docs.astropy.org/en/stable/#developer-documentation>`_
-
-
-For the complete list of contributors please see the `beast
-contributors page on Github
+For the complete list of contributors, please see the `beast
+contributors page on Git/hub
 <https://github.com/BEAST-Fitting/beast/graphs/contributors>`_.
+
+Publications
+============
+A list of publications using the BEAST, can be found :ref:`here<publications>`.
 
 Reference API
 =============
