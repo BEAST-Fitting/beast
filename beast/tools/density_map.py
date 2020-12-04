@@ -157,7 +157,6 @@ class BinnedDensityMap(DensityMap):
                 raise Exception(
                     "Both sd_Nbins and sd_binwidth are set in the beast_settings file. Please set only one!"
                 )
-                return
 
             if N_bins is not None:
                 # Create the density bins
@@ -200,7 +199,6 @@ class BinnedDensityMap(DensityMap):
                     "is properly set in the beast_settings file for log binning "
                     "to proceed."
                 )
-                return
 
             elif N_bins is not None:
                 # Create the density bins
