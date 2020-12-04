@@ -211,8 +211,6 @@ def pick_models_toothpick_style(
                     counter * chunksize, successes, successes / counter / chunksize
                 )
             )
-            print("Bin array:")
-            print(bin_count)
 
     # Gather the selected model seds in a table
     sedsMags = Table(sedsMags[chosen_idxs, :], names=filters)

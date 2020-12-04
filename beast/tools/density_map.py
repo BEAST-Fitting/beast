@@ -211,6 +211,7 @@ class BinnedDensityMap(DensityMap):
                     np.log10(max_density + 0.01 * abs(max_density)),
                     N_bins + 1,
                 )
+                print("bin edges: ", bin_edges)
 
                 # Find which bin each tile belongs to
                 # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
