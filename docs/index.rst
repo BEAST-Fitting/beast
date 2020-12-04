@@ -9,17 +9,19 @@ The stellar parameters are age (t), mass (M), metallicity (M), and distance (d).
 The dust extinction parameters are dust column (Av), average grain size (Rv),
 and mixing between type A and B extinction curves (fA).
 
-The full details of the BEAST are provide by
-Gordon et al. (2016, ApJ, 826, 104).
-<http://adsabs.harvard.edu/abs/2016ApJ...826..104G>
+The full details of the BEAST are provided by
+Gordon et al. (2016, ApJ, 826, 104): http://adsabs.harvard.edu/abs/2016ApJ...826..104G
 
-Installation
-============
+Getting started
+===============
 
 .. toctree::
    :maxdepth: 1
 
-   How to install <install.rst>
+   Installation instructions <install.rst>
+     For users <install.rst>
+     For developers <beast_development.rst>
+     For production runs <install.rst>
    Running an example <example.rst>
    New User Interface <new_user_interface.rst>
 
