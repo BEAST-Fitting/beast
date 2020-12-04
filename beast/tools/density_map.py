@@ -136,7 +136,7 @@ class BinnedDensityMap(DensityMap):
 
         self.bin_indices_used = np.sort(np.unique(bins))
 
-    def create(density_map, N_bins=None, bin_width=None):
+    def create(density_map, bin_mode="linear", N_bins=None, bin_width=None):
         """
         Creates a binned density map from a DensityMap file, or from an
         astropy table loaded from it. The tiles are grouped into
@@ -147,39 +147,72 @@ class BinnedDensityMap(DensityMap):
         # be file or table object)
         binned_density_map = DensityMap(density_map)
 
-        # Create the extra column here
-        if (N_bins is None) and (bin_width is None):
-            bins = np.array(range(len(binned_density_map.tile_data)))
+        if bin_mode == "linear":
+            # Create the extra column here
+            if (N_bins is None) and (bin_width is None):
+                bins = np.array(range(len(binned_density_map.tile_data)))
 
-        elif N_bins is not None:
-            # Create the density bins
-            # [min, ., ., ., max]
-            tile_densities = binned_density_map.tile_data[input_column]
-            min_density = np.amin(tile_densities)
-            max_density = np.amax(tile_densities)
-            bin_edges = np.linspace(
-                min_density - 0.01 * abs(min_density),
-                max_density + 0.01 * abs(max_density),
-                N_bins + 1,
-            )
+            elif N_bins is not None:
+                # Create the density bins
+                # [min, ., ., ., max]
+                tile_densities = binned_density_map.tile_data[input_column]
+                min_density = np.amin(tile_densities)
+                max_density = np.amax(tile_densities)
+                bin_edges = np.linspace(
+                    min_density - 0.01 * abs(min_density),
+                    max_density + 0.01 * abs(max_density),
+                    N_bins + 1,
+                )
 
-            # Find which bin each tile belongs to
-            # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
-            # We have purposely chosen our bin boundaries so that no points fall
-            # outside (or on the edge) of the [1,5] range
-            bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
+                # Find which bin each tile belongs to
+                # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
+                # We have purposely chosen our bin boundaries so that no points fall
+                # outside (or on the edge) of the [1,5] range
+                bins = np.digitize(
+                    binned_density_map.tile_data[input_column], bin_edges
+                )
 
-        elif bin_width is not None:
-            tile_densities = binned_density_map.tile_data[input_column]
-            min_density = np.amin(tile_densities)
-            max_density = np.amax(tile_densities)
-            tot_bins = np.ceil((max_density - min_density) / bin_width)
-            bin_edges = min_density + np.arange(tot_bins + 1) * bin_width
-            print("bin edges: ", bin_edges)
+            elif bin_width is not None:
+                tile_densities = binned_density_map.tile_data[input_column]
+                min_density = np.amin(tile_densities)
+                max_density = np.amax(tile_densities)
+                tot_bins = np.ceil((max_density - min_density) / bin_width)
+                bin_edges = min_density + np.arange(tot_bins + 1) * bin_width
+                print("bin edges: ", bin_edges)
 
-            # Find which bin each tile belongs to
-            bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
+                # Find which bin each tile belongs to
+                bins = np.digitize(
+                    binned_density_map.tile_data[input_column], bin_edges
+                )
 
+        if bin_mode == "log":
+            # Create the extra column here
+            if N_bins is None:
+                raise Exception(
+                    "Please make sure the number of source density bins (sd_Nbins) "
+                    "is properly set in the beast_settings file for log binning "
+                    "to proceed."
+                )
+
+            elif N_bins is not None:
+                # Create the density bins
+                # [min, ., ., ., max]
+                tile_densities = binned_density_map.tile_data[input_column]
+                min_density = np.amin(tile_densities)
+                max_density = np.amax(tile_densities)
+                bin_edges = np.logspace(
+                    np.log10(min_density - 0.01 * abs(min_density)),
+                    np.log10(max_density + 0.01 * abs(max_density)),
+                    N_bins + 1,
+                )
+
+                # Find which bin each tile belongs to
+                # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
+                # We have purposely chosen our bin boundaries so that no points fall
+                # outside (or on the edge) of the [1,5] range
+                bins = np.digitize(
+                    binned_density_map.tile_data[input_column], bin_edges
+                )
         # Upgrade to this subclass, and return
         return BinnedDensityMap(binned_density_map.tile_data, bins)
 

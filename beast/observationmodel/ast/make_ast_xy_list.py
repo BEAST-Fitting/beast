@@ -16,6 +16,7 @@ def pick_positions_from_map(
     catalog,
     chosen_seds,
     input_map,
+    bin_mode,
     N_bins,
     bin_width,
     Npermodel,
@@ -55,6 +56,14 @@ def pick_positions_from_map(
 
     input_map: str
         Path to a hd5 file containing the file written by a DensityMap
+
+    bin_mode: str
+        The convention for generating bins of source density. THe options
+        are "linear" (for linear binning) and "log" (for log binning). If "log",
+        the number of bins (N_bins) must be set. If "linear", either N_bins
+        or the bin width (bin_width), or both, or neither (resulting in
+        default integer binning by sources/arcsec^2) can be set.
+        Default: "linear"
 
     N_bins: int
         The number of bins for the range of background density values.
@@ -253,7 +262,7 @@ def pick_positions_from_map(
     print(Npermodel, " repeats of each model in each map bin")
 
     bdm = density_map.BinnedDensityMap.create(
-        input_map, N_bins=N_bins, bin_width=bin_width
+        input_map, bin_mode=bin_mode, N_bins=N_bins, bin_width=bin_width
     )
     tile_vals = bdm.tile_vals()
     max_val = np.amax(tile_vals)

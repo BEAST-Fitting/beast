@@ -80,7 +80,10 @@ def split_main(
         )
 
     bdm = BinnedDensityMap.create(
-        mapfile, N_bins=settings.sd_Nbins, bin_width=settings.sd_binwidth
+        mapfile,
+        bin_mode=settings.sd_binmode,
+        N_bins=settings.sd_Nbins,
+        bin_width=settings.sd_binwidth,
     )
 
     print("Splitting catalog")
