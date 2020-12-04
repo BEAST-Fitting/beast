@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 from matplotlib.colors import LogNorm
 from scipy.stats import binned_statistic_2d as stat2d
-from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
+from matplotlib.ticker import (MultipleLocator)
 
 __all__ = ["plot_param_err"]
 
