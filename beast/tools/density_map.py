@@ -154,7 +154,9 @@ class BinnedDensityMap(DensityMap):
                 bins = np.array(range(len(binned_density_map.tile_data)))
 
             if (N_bins is not None) and (bin_width is not None):
-                raise Exception("Both sd_Nbins and sd_binwidth are set in the beast_settings file. Please set only one!")
+                raise Exception(
+                    "Both sd_Nbins and sd_binwidth are set in the beast_settings file. Please set only one!"
+                )
                 return
 
             if N_bins is not None:
@@ -206,6 +208,9 @@ class BinnedDensityMap(DensityMap):
                 tile_densities = binned_density_map.tile_data[input_column]
                 min_density = np.amin(tile_densities)
                 max_density = np.amax(tile_densities)
+
+                if min_density == 0:
+                    min_density = 0.001
                 bin_edges = np.logspace(
                     np.log10(min_density - 0.01 * abs(min_density)),
                     np.log10(max_density + 0.01 * abs(max_density)),
@@ -220,6 +225,7 @@ class BinnedDensityMap(DensityMap):
                 bins = np.digitize(
                     binned_density_map.tile_data[input_column], bin_edges
                 )
+
         # Upgrade to this subclass, and return
         return BinnedDensityMap(binned_density_map.tile_data, bins)
 
