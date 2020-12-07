@@ -96,15 +96,15 @@ class TestRegressionSuite(unittest.TestCase):
             f"{cls.basename}_spec_w_priors.grid.hd5"
         )
         cls.priors_sub0_fname_cache = download_rename(
-             f"{cls.basename}_subgrids_spec_w_priors.gridsub0.hd5"
+            f"{cls.basename}_subgrids_spec_w_priors.gridsub0.hd5"
         )
         cls.priors_sub1_fname_cache = download_rename(
-             f"{cls.basename}_subgrids_spec_w_priors.gridsub1.hd5"
+            f"{cls.basename}_subgrids_spec_w_priors.gridsub1.hd5"
         )
         # - SED grids
         cls.seds_fname_cache = download_rename(f"{cls.basename}_seds.grid.hd5")
         cls.seds_sub0_fname_cache = download_rename(
-             f"{cls.basename}_subgrids_seds.gridsub0.hd5"
+            f"{cls.basename}_subgrids_seds.gridsub0.hd5"
         )
         cls.seds_sub1_fname_cache = download_rename(
             f"{cls.basename}_subgrids_seds.gridsub1.hd5"
@@ -842,9 +842,7 @@ class TestRegressionSuite(unittest.TestCase):
 
         # run star_type_probability
         star_prob = star_type_probability.star_type_probability(
-            self.pdf1d_fname_cache,
-            self.pdf2d_fname_cache,
-            **star_prob_info["input"],
+            self.pdf1d_fname_cache, self.pdf2d_fname_cache, **star_prob_info["input"],
         )
 
         # expected output table
@@ -870,25 +868,23 @@ class TestRegressionSuite(unittest.TestCase):
         temp_hdu_list = []
         with fits.open(self.pdf2d_fname_cache) as hdu:
             for ext in hdu:
-                if 'Av+' in ext.name or '+Av' in ext.name:
+                if "Av+" in ext.name or "+Av" in ext.name:
                     continue
                 temp_hdu_list.append(ext)
             fits.HDUList(temp_hdu_list).writeto(temp_pdf2d_fname)
 
         # edit the expected output to have NaNs in columns that require A_V
         # (currently, that's all columns)
-        expected_star_prob = Table(star_prob_info['output'])
+        expected_star_prob = Table(star_prob_info["output"])
         for col in expected_star_prob.colnames:
-            if col == 'ext_O_star':
+            if col == "ext_O_star":
                 expected_star_prob[col] = np.nan
-            if col == 'dusty_agb':
+            if col == "dusty_agb":
                 expected_star_prob[col] = np.nan
 
         # run star_type_probability
         star_prob = star_type_probability.star_type_probability(
-            self.pdf1d_fname_cache,
-            temp_pdf2d_fname,
-            **star_prob_info["input"],
+            self.pdf1d_fname_cache, temp_pdf2d_fname, **star_prob_info["input"],
         )
 
         # compare to expected table
