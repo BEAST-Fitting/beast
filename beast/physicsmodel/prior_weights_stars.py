@@ -194,7 +194,7 @@ def compute_mass_prior_weights(masses, mass_prior_model):
     mass_bounds = compute_bin_boundaries(masses[sindxs])
 
     # compute the weights = mass bin widths
-    mass_weights = np.empty(len(masses))
+    mass_weights = np.zeros(len(masses))
 
     # integrate the IMF over each bin
     if mass_prior_model["name"] == "kroupa":

@@ -66,8 +66,8 @@ def hst_frac_matrix(
 
     # setup multiplication images to make it easy to compute the results
     n_filters = len(filters)
-    mult_image = np.empty((n_waves, n_waves, n_filters))
-    mult_image_spec = np.empty((n_waves, n_waves, n_filters))
+    mult_image = np.zeros((n_waves, n_waves, n_filters))
+    mult_image_spec = np.zeros((n_waves, n_waves, n_filters))
     image_ones = np.full((n_waves, n_waves), 1.0)
     # band_ones = np.full((n_filters, n_filters), 1.0)
 
@@ -77,7 +77,7 @@ def hst_frac_matrix(
     # handle single spectrum or many spectra
     if len(spectrum[1].shape) > 1:
         n_models = spectrum[1].shape[0]
-        results = np.empty((n_models, n_filters, n_filters))
+        results = np.zeros((n_models, n_filters, n_filters))
     else:
         n_models = 1
         progress = False
@@ -88,7 +88,7 @@ def hst_frac_matrix(
     else:
         it = list(range(n_models))
 
-    frac_covar_bands = np.empty((n_filters, n_filters))
+    frac_covar_bands = np.zeros((n_filters, n_filters))
     for k in it:
         if n_models == 1:
             interp_spectrum = np.interp(waves, spectrum[0], spectrum[1])

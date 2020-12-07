@@ -1,4 +1,5 @@
 from os import path
+import copy
 import asdf
 
 __all__ = ["add_to_beast_info_file"]
@@ -18,7 +19,7 @@ def add_to_beast_info_file(infoname, info):
     """
     if path.exists(infoname):
         with asdf.open(infoname) as af:
-            tree = af.tree
+            tree = copy.deepcopy(af.tree)
     else:
         tree = {}
 

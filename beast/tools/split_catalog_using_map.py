@@ -13,76 +13,75 @@ import numpy as np
 from astropy.table import Table
 from beast.tools.density_map import BinnedDensityMap
 
-
-def main():  # pragma: no cover
-    parser = argparse.ArgumentParser()
-    parser.add_argument("catfile", type=str, help="catalog FITS file")
-    parser.add_argument("astfile", type=str, help="ast results fits file")
-    parser.add_argument(
-        "mapfile", type=str, help="background or source density map file"
-    )
-
-    nbin_or_binwidth = parser.add_mutually_exclusive_group()
-    nbin_or_binwidth.add_argument(
-        "--n",
-        type=int,
-        help="Number of regions to split the catalog in, the number of density bins",
-    )
-    nbin_or_binwidth.add_argument(
-        "--bin_width",
-        type=float,
-        default=None,
-        help="Width of the density bins for splitting catalog",
-    )
-
-    parser.add_argument(
-        "--n_per_file", type=int, default=6250, help="Number of sources per subfile"
-    )
-
-    parser.add_argument(
-        "--min_n_subfile",
-        type=int,
-        default=None,
-        help="""Set the minimum number of subfiles to use per bin (relevant if a
-        bin has fewer than n_per_file but you still want flux-sorted subfiles)""",
-    )
-
-    parser.add_argument(
-        "--sort_col",
-        type=str,
-        default="F475W_RATE",
-        help="If n_per_file set, sort catalog by this column before splitting",
-    )
-
-    args = parser.parse_args()
-
-    split_main(
-        args.catfile,
-        args.astfile,
-        args.mapfile,
-        args.n,
-        args.bin_width,
-        args.n_per_file,
-        args.min_n_subfile,
-        args.sort_col,
-    )
+from beast.tools import beast_settings
 
 
 def split_main(
+    beast_settings_info,
     catfile,
     astfile,
     mapfile,
-    n_bin=None,
-    bin_width=None,
     n_per_file=6250,
     min_n_subfile=None,
     sort_col="F475W_RATE",
 ):
+    """
+    Making the physics model grid takes a while for production runs.  This
+    creates scripts to run each subgrid as a separate job.
+
+    Parameters
+    ----------
+    beast_settings_info : string or instance
+        if string: file name with beast settings
+        if class: beast.tools.beast_settings.beast_settings instance
+
+    catfile : string
+        name of the photometry catalog file
+
+    astfile : string
+        name of the ast catalog file
+
+    mapfile : string
+        background or source density map file
+
+    n_per_file : int or None (default=6250)
+        If set, divide the split catalog into sub-catalogs with length
+        n_per_file.  Good for photometry, not useful for ASTs.
+
+    min_n_subfile : int or None (default=None)
+        If set, each bin in the photometry catalog will be split into at least
+        this many subfiles. Useful if a bin has fewer than n_per_file stars but
+        you still want flux-sorted subfiles (which means more trimming and
+        faster fitting).
+
+    sort_col : string (default="F475W_RATE")
+        If n_per_file or min_n_subfile is set, the catalog will be sorted by this
+        column before splitting into sub-catalogs.
+
+
+    """
+
+    # process beast settings info
+    if isinstance(beast_settings_info, str):
+        settings = beast_settings.beast_settings(beast_settings_info)
+    elif isinstance(beast_settings_info, beast_settings.beast_settings):
+        settings = beast_settings_info
+    else:
+        raise TypeError(
+            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
+        )
 
     # Create a binned density map, so both the observed and the ast
     # catalog can be split using a consistent grouping (= binning) of
     # the tiles
-    bdm = BinnedDensityMap.create(mapfile, N_bins=n_bin, bin_width=bin_width)
+    if not settings.sd_Nbins and not settings.sd_binwidth:
+        raise RuntimeError(
+            "You need to specify the source density binning parameters in beast_settings_info"
+        )
+
+    bdm = BinnedDensityMap.create(
+        mapfile, N_bins=settings.sd_Nbins, bin_width=settings.sd_binwidth
+    )
 
     print("Splitting catalog")
     split_catalog_using_map(
@@ -178,7 +177,9 @@ def split_catalog_using_map(
                 # n_per_file doesn't make enough subfiles -> use min_n_subfile
                 else:
                     tot_subfiles = min_n_subfile
-                    curr_n_per_file = int(np.ceil(len(sources_for_bin[0]) / tot_subfiles))
+                    curr_n_per_file = int(
+                        np.ceil(len(sources_for_bin[0]) / tot_subfiles)
+                    )
 
             print(
                 "dividing into "
@@ -203,4 +204,56 @@ def split_catalog_using_map(
 
 
 if __name__ == "__main__":  # pragma: no cover
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "beast_settings_info", type=str, help="file name with beast settings",
+    )
+    parser.add_argument("catfile", type=str, help="catalog FITS file")
+    parser.add_argument("astfile", type=str, help="ast results fits file")
+    parser.add_argument(
+        "mapfile", type=str, help="background or source density map file"
+    )
+
+    nbin_or_binwidth = parser.add_mutually_exclusive_group()
+    nbin_or_binwidth.add_argument(
+        "--n",
+        type=int,
+        help="Number of regions to split the catalog in, the number of density bins",
+    )
+    nbin_or_binwidth.add_argument(
+        "--bin_width",
+        type=float,
+        default=None,
+        help="Width of the density bins for splitting catalog",
+    )
+
+    parser.add_argument(
+        "--n_per_file", type=int, default=6250, help="Number of sources per subfile"
+    )
+
+    parser.add_argument(
+        "--min_n_subfile",
+        type=int,
+        default=None,
+        help="""Set the minimum number of subfiles to use per bin (relevant if a
+        bin has fewer than n_per_file but you still want flux-sorted subfiles)""",
+    )
+
+    parser.add_argument(
+        "--sort_col",
+        type=str,
+        default="F475W_RATE",
+        help="If n_per_file set, sort catalog by this column before splitting",
+    )
+
+    args = parser.parse_args()
+
+    split_main(
+        args.beast_settings_info,
+        args.catfile,
+        args.astfile,
+        args.mapfile,
+        args.n_per_file,
+        args.min_n_subfile,
+        args.sort_col,
+    )

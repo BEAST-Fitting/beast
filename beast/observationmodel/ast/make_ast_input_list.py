@@ -375,6 +375,7 @@ def supplement_ast(
     outASTfile=None,
     outASTfile_params=None,
     mag_cuts=None,
+    color_cuts=None,
 ):
     """
     Creates an additional fake star catalog from a BEAST model grid
@@ -407,7 +408,52 @@ def supplement_ast(
         each model will be written to disk
 
     mag_cut: dictionary (optional, default=None)
-        Ditionary of bright and faint magnitude limits for given filters
+        Dictionary of bright and faint magnitude limits for given filters.
+        The way to specify the cuts is by updating the "ast_suppl_maglimit" key
+        in the beast_settings file. This is a dictionary that includes information
+        for the magnitude cuts as a function of the filters included in observation.
+
+        For example, for a field observed with HST_WFC3_F336W, HST_WFC3_F475W,
+        and HST_WFC3_F814W, to set a magnitude range limit of 16<HST_WFC3_F475W<28 mag,
+        and 15<HST_WFC3_F814W<27 mag you need to set the following within the beast_settings file:
+
+        # specify that the ast_supplement mode should be on
+        ast_supplement = True
+
+        # initialize and populate the dictionary of desired magnitude limits
+        ast_suppl_maglimits = {}
+        # the magntidue limits are defined by the filter and a list of the limits in magnitudes
+        ast_suppl_maglimits["HST_WFC3_F475W"] = [16,28]
+        ast_suppl_maglimits["HST_WFC3_F814W"] = [15,27]
+
+        # set the key word
+        ast_suppl_maglimit = ast_suppl_maglimits
+
+    color_cut: dictionary (optional, default=None)
+        Dictionary of red color limits for given filters.
+        The way to specify the cuts is by updating the "ast_suppl_colorlimit" key
+        in the beast_settings file. This is a dictionary that includes information
+        for the color cuts as a function of the filters included in observation.
+
+        For example, for a field observed with HST_WFC3_F336W, HST_WFC3_F475W,
+        and HST_WFC3_F814W, to set a color range limit of HST_WFC3_F475W-HST_WFC3_F814W<6,
+        HST_WFC3_F336W-HST_WFC3_F475W<5 and HST_WFC3_F336W-HST_WFC3_F814W<4, you need
+        to set the following within the beast_settings file:
+
+        # specify that the ast_supplement mode should be on
+        ast_supplement = True
+
+        # initialize the dictionary of desired magnitude limits
+        ast_suppl_colorlimits = {}
+
+        # the color limits are defined by the first filter in the color (e.g, X for X-Y),
+        # and the input is a list including the second filter (e.g., Y for X-Y) and the
+        # color limit in magnitudes
+        ast_suppl_colorlimits["HST_WFC3_F475W"] = [["HST_WFC3_F814W",6]]
+        ast_suppl_colorlimits["HST_WFC3_F336W"] = [["HST_WFC3_F475W",5], ["HST_WFC3_F814W",4]]
+
+        # set the key word
+        ast_suppl_colorlimit =  ast_suppl_colorlimits
 
     Returns
     -------
@@ -432,26 +478,45 @@ def supplement_ast(
         print(
             "{} exists. Will attempt to load SEDs for ASTs from there \
             and remove those SEDs from the SED grid".format(
-                existingASTfile))
-
+                existingASTfile
+            )
+        )
+        print("existing AST file", existingASTfile)
         t = Table.read(existingASTfile, format="fits")
         sedsMags = np.delete(sedsMags, t["sedgrid_indx"], axis=0)
         sedsIndx = np.delete(sedsIndx, t["sedgrid_indx"])
         Nseds = sedsMags.shape[0]
 
     # Apply selection conditions if supplied
+    # Just magnitude cuts
+    print("mag_cuts", mag_cuts)
+    print("color_cuts", color_cuts)
     if mag_cuts is not None:
-        cond = np.zeros(Nseds, dtype=bool)
-
+        cond = np.ones(Nseds, dtype=bool)
         for key in list(mag_cuts.keys()):
             idx_filter = [i for i, iflt in enumerate(filters) if key in iflt]
             bright_cut = mag_cuts[key][0]
             faint_cut = mag_cuts[key][1]
-            tmp_cond = np.logical_and(sedsMags[:, idx_filter] >= bright_cut,
-                                      sedsMags[:, idx_filter] <= faint_cut
-                                      )
+            tmp_cond = np.logical_and(
+                (sedsMags[:, idx_filter] >= bright_cut),
+                (sedsMags[:, idx_filter] <= faint_cut),
+            )
 
-            cond = np.logical_or(cond, tmp_cond.ravel())
+            if color_cuts is not None:
+                if key in color_cuts:
+                    for limit in color_cuts[key]:
+
+                        idx_color_filter = [
+                            i for i, iflt in enumerate(filters) if limit[0] in iflt
+                        ]
+                        tmp_cond = np.logical_and(
+                            tmp_cond,
+                            (
+                                sedsMags[:, idx_filter] - sedsMags[:, idx_color_filter]
+                                <= limit[1]
+                            ),
+                        )
+            cond = np.logical_and(cond, tmp_cond.ravel())
 
         sedsMags = sedsMags[cond, :]
         sedsIndx = sedsIndx[cond]
@@ -459,7 +524,7 @@ def supplement_ast(
     # Randomly select models
     # Supplementing ASTs does not need to follow
     # the toothpick-way selection
-    chosen_idxs = np.random.choices(np.arange(len(sedsIndx)), k=nAST)
+    chosen_idxs = np.random.choice(len(sedsIndx), nAST)
     sedsIndx = sedsIndx[chosen_idxs]
 
     # Gather the selected model seds in a table
@@ -478,7 +543,7 @@ def supplement_ast(
         grid_dict = {}
         for key in list(modelsedgrid.grid.keys()):
             grid_dict[key] = modelsedgrid.grid[key][sedsIndx]
-        grid_dict['sedgrid_indx'] = sedsIndx
+        grid_dict["sedgrid_indx"] = sedsIndx
         ast_params = Table(grid_dict)
         ast_params.write(outASTfile_params, overwrite=True)
 

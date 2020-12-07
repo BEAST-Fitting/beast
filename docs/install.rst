@@ -7,8 +7,8 @@ Requirements
 
 Running the BEAST requires:
 
-- Python >=3.6
-- Astropy >=1.3
+- Python >= 3.6
+- Astropy >= 1.3
 
 In turn, Astropy depends on
 `other packages <http://docs.astropy.org/en/latest/install.html>`_ for
@@ -38,6 +38,13 @@ One easy way to obtain the above is through the AstroConda Python stack:
 .. code-block:: console
 
     $ conda create -n astroconda stsci
+
+- Ensure the minimum Python requirements above are met. If needed, specify the minimum version required
+
+.. code-block:: console
+
+    $ python --version
+    $ conda create -n astroconda stsci python=3.7
 
 - Make sure that the ``PyTables`` and ``hdf5`` packages are installed
 
@@ -87,7 +94,7 @@ downloading from Github
 
 .. code-block:: console
 
-     $ python setup.py install
+     $ pip install .
 
 If you are using conda, you may wish to create a conda environment with the
 dependencies before doing the install
@@ -96,7 +103,7 @@ dependencies before doing the install
 
      $ conda env create -n beast --file conda-environment.yml
      $ conda activate beast
-     $ python setup.py install
+     $ pip install .
 
 
 .. _Dev_install:

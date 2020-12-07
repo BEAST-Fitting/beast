@@ -116,9 +116,9 @@ class MultiFilterASTs(NoiseModel):
 
         # setup the variables for output
         n_filters = len(filters)
-        ifluxes = np.empty((n_filters), dtype=np.float32)
-        diffs = np.empty((n_filters, n_indxs), dtype=np.float32)
-        biases = np.empty((n_filters), dtype=np.float32)
+        ifluxes = np.zeros((n_filters), dtype=np.float32)
+        diffs = np.zeros((n_filters, n_indxs), dtype=np.float32)
+        biases = np.zeros((n_filters), dtype=np.float32)
         cov_matrix = np.full((n_filters, n_filters), 0.0, dtype=np.float32)
 
         for ck, cfilter in enumerate(filters):
@@ -202,13 +202,13 @@ class MultiFilterASTs(NoiseModel):
 
         # setup the output
         n_filters = len(filters)
-        all_covs = np.empty((n_models, n_filters, n_filters), dtype=np.float64)
-        all_corrs = np.empty((n_models, n_filters, n_filters), dtype=np.float32)
-        all_biases = np.empty((n_models, n_filters), dtype=np.float64)
-        all_ifluxes = np.empty((n_models, n_filters), dtype=np.float32)
-        all_compls = np.empty((n_models), dtype=np.float32)
+        all_covs = np.zeros((n_models, n_filters, n_filters), dtype=np.float64)
+        all_corrs = np.zeros((n_models, n_filters, n_filters), dtype=np.float32)
+        all_biases = np.zeros((n_models, n_filters), dtype=np.float64)
+        all_ifluxes = np.zeros((n_models, n_filters), dtype=np.float32)
+        all_compls = np.zeros((n_models), dtype=np.float32)
 
-        ast_minmax = np.empty((2, n_filters), dtype=np.float64)
+        ast_minmax = np.zeros((2, n_filters), dtype=np.float64)
         ast_minmax[0, :] = 1e99
         ast_minmax[1, :] = 1e-99
 
@@ -313,14 +313,14 @@ class MultiFilterASTs(NoiseModel):
                 + "be defined with the same number of filters"
             )
 
-        biases = np.empty((n_models, n_filters), dtype=np.float64)
-        sigmas = np.empty((n_models, n_filters), dtype=np.float64)
-        cov_diag = np.empty((n_models, n_filters), dtype=np.float64)
-        cov_offdiag = np.empty((n_models, n_offdiag), dtype=np.float64)
-        icov_diag = np.empty((n_models, n_filters), dtype=np.float64)
-        icov_offdiag = np.empty((n_models, n_offdiag), dtype=np.float64)
-        q_norm = np.empty((n_models), dtype=np.float64)
-        compls = np.empty((n_models), dtype=float)
+        biases = np.zeros((n_models, n_filters), dtype=np.float64)
+        sigmas = np.zeros((n_models, n_filters), dtype=np.float64)
+        cov_diag = np.zeros((n_models, n_filters), dtype=np.float64)
+        cov_offdiag = np.zeros((n_models, n_offdiag), dtype=np.float64)
+        icov_diag = np.zeros((n_models, n_filters), dtype=np.float64)
+        icov_offdiag = np.zeros((n_models, n_offdiag), dtype=np.float64)
+        q_norm = np.zeros((n_models), dtype=np.float64)
+        compls = np.zeros((n_models), dtype=float)
 
         if progress is True:
             it = tqdm(list(range(n_models)), desc="Evaluating model")
