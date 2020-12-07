@@ -332,6 +332,7 @@ class TestRegressionSuite(unittest.TestCase):
         # output files
         stats_fname = tempfile.NamedTemporaryFile(suffix=".fits").name
         pdf1d_fname = tempfile.NamedTemporaryFile(suffix=".fits").name
+        pdf2d_fname = tempfile.NamedTemporaryFile(suffix=".fits").name
         lnp_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
 
         fit.summary_table_memory(
@@ -340,10 +341,12 @@ class TestRegressionSuite(unittest.TestCase):
             self.seds_trim_fname_cache,
             threshold=-10.0,
             save_every_npts=100,
-            lnp_npts=60,
+            lnp_npts=500,
             max_nbins=200,
             stats_outname=stats_fname,
             pdf1d_outname=pdf1d_fname,
+            pdf2d_outname=pdf2d_fname,
+            pdf2d_param_list=["Av", "M_ini", "logT"],
             lnp_outname=lnp_fname,
             surveyname=self.settings.surveyname,
         )
@@ -357,8 +360,9 @@ class TestRegressionSuite(unittest.TestCase):
         # lnp files not checked as they are randomly sparsely sampled
         #   hence will be different every time the fitting is run
 
-        # check that the pdf1d files are exactly the same
+        # check that the pdf1d/pdf2d files are exactly the same
         compare_fits(self.pdf1d_fname_cache, pdf1d_fname)
+        compare_fits(self.pdf2d_fname_cache, pdf2d_fname)
 
     # ###################################################################
     # AST tests
@@ -670,7 +674,7 @@ class TestRegressionSuite(unittest.TestCase):
                 sub_seds_trim_fnames[i],
                 threshold=-40.0,
                 save_every_npts=100,
-                lnp_npts=60,
+                lnp_npts=500,
                 stats_outname=subgrid_stats_fnames[i],
                 pdf1d_outname=subgrid_pdf1d_fnames[i],
                 lnp_outname=subgrid_lnp_fnames[i],
@@ -694,7 +698,7 @@ class TestRegressionSuite(unittest.TestCase):
             self.seds_trim_fname_cache,
             threshold=-40.0,
             save_every_npts=100,
-            lnp_npts=60,
+            lnp_npts=500,
             stats_outname=normal_stats,
             pdf1d_outname=normal_pdf1d,
             lnp_outname=normal_lnp,
