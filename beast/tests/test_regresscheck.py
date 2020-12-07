@@ -69,7 +69,7 @@ class TestRegressionSuite(unittest.TestCase):
 
         cls.dset = "metal"
         if cls.dset == "metal":
-            cls.basesubdir = "metal_small_4sep20/"
+            cls.basesubdir = "metal_small/"
             cls.basename = f"{cls.basesubdir}beast_metal_small"
             cls.obsname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst_samp.fits"
             cls.astname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst.fake.fits"
@@ -95,28 +95,28 @@ class TestRegressionSuite(unittest.TestCase):
         cls.priors_fname_cache = download_rename(
             f"{cls.basename}_spec_w_priors.grid.hd5"
         )
-        # priors_sub0_fname_cache = download_rename(
-        #     f"{basename}_subgrids_spec_w_priors.gridsub0.hd5"
-        # )
-        # priors_sub1_fname_cache = download_rename(
-        #     f"{basename}_subgrids_spec_w_priors.gridsub1.hd5"
-        # )
+        cls.priors_sub0_fname_cache = download_rename(
+             f"{cls.basename}_subgrids_spec_w_priors.gridsub0.hd5"
+        )
+        cls.priors_sub1_fname_cache = download_rename(
+             f"{cls.basename}_subgrids_spec_w_priors.gridsub1.hd5"
+        )
         # - SED grids
         cls.seds_fname_cache = download_rename(f"{cls.basename}_seds.grid.hd5")
-        # seds_sub0_fname_cache = download_rename(
-        #     f"{basename}_subgrids_seds.gridsub0.hd5"
-        # )
-        # seds_sub1_fname_cache = download_rename(
-        #    f"{basename}_subgrids_seds.gridsub1.hd5"
-        # )
+        cls.seds_sub0_fname_cache = download_rename(
+             f"{cls.basename}_subgrids_seds.gridsub0.hd5"
+        )
+        cls.seds_sub1_fname_cache = download_rename(
+            f"{cls.basename}_subgrids_seds.gridsub1.hd5"
+        )
         # - noise model
         cls.noise_fname_cache = download_rename(f"{cls.basename}_noisemodel.grid.hd5")
-        # noise_sub0_fname_cache = download_rename(
-        #    f"{basename}_subgrids_noisemodel.gridsub0.hd5"
-        # )
-        # noise_sub1_fname_cache = download_rename(
-        #    f"{basename}_subgrids_noisemodel.gridsub1.hd5"
-        # )
+        cls.noise_sub0_fname_cache = download_rename(
+            f"{cls.basename}_subgrids_noisemodel.gridsub0.hd5"
+        )
+        cls.noise_sub1_fname_cache = download_rename(
+            f"{cls.basename}_subgrids_noisemodel.gridsub1.hd5"
+        )
         # - trimmed files
         cls.noise_trim_fname_cache = download_rename(
             f"{cls.basename}_noisemodel_trim.grid.hd5"
@@ -765,7 +765,7 @@ class TestRegressionSuite(unittest.TestCase):
 
         # download cached file
         compare_spec_type_fname = download_rename(
-            f"{cls.basename}_compare_spec_type.asdf"
+            f"{self.basename}_compare_spec_type.asdf"
         )
         with asdf.open(compare_spec_type_fname) as af:
             compare_spec_type_info = copy.deepcopy(af.tree)
@@ -832,7 +832,7 @@ class TestRegressionSuite(unittest.TestCase):
         In this version, all required parameters are present.
         """
         # download cached file
-        star_prob_fname = download_rename(f"{cls.basename}_star_type_probability.asdf")
+        star_prob_fname = download_rename(f"{self.basename}_star_type_probability.asdf")
         with asdf.open(star_prob_fname) as af:
             star_prob_info = copy.deepcopy(af.tree)
 
@@ -844,7 +844,7 @@ class TestRegressionSuite(unittest.TestCase):
         )
 
         # expected output table
-        expected_star_prob = Table.read(star_prob_info["output"])
+        expected_star_prob = Table(star_prob_info["output"])
 
         # compare to new table
         compare_tables(expected_star_prob, Table(star_prob))
@@ -857,7 +857,7 @@ class TestRegressionSuite(unittest.TestCase):
         """
 
         # download cached file
-        star_prob_fname = download_rename(f"{cls.basename}_star_type_probability.asdf")
+        star_prob_fname = download_rename(f"{self.basename}_star_type_probability.asdf")
         with asdf.open(star_prob_fname) as af:
             star_prob_info = copy.deepcopy(af.tree)
 
@@ -884,7 +884,7 @@ class TestRegressionSuite(unittest.TestCase):
         star_prob = star_type_probability.star_type_probability(
             self.pdf1d_fname_cache,
             temp_pdf2d_fname,
-            **input,
+            **star_prob_info["input"],
         )
 
         # compare to expected table
@@ -951,7 +951,6 @@ class TestRegressionSuite(unittest.TestCase):
             f"./{self.settings.project}/{self.settings.project}_seds.grid.hd5",
         )
 
-    @pytest.mark.skip(reason="updated cached file needed")
     @pytest.mark.usefixtures("setup_create_physicsmodel")
     def test_create_physicsmodel_with_subgrid(self):
         """
@@ -1034,7 +1033,6 @@ class TestRegressionSuite(unittest.TestCase):
             "beast_example_phat/beast_example_phat_noisemodel.grid.hd5",
         )
 
-    @pytest.mark.skip(reason="updated cached file needed")
     @pytest.mark.usefixtures("setup_create_obsmodel")
     def test_create_obsmodel_with_subgrid(self):
         """
