@@ -42,6 +42,12 @@ User Documentation
    Output files <outputs.rst>
    Known issues <beast_issues.rst>
 
+
+Publications
+============
+A list of publications using the BEAST, can be found :ref:`here<publications>`.
+
+
 Reporting Issues
 ================
 
@@ -76,9 +82,6 @@ For the complete list of contributors, please see the `beast
 contributors page on Git/hub
 <https://github.com/BEAST-Fitting/beast/graphs/contributors>`_.
 
-Publications
-============
-A list of publications using the BEAST, can be found :ref:`here<publications>`.
 
 Reference API
 =============
