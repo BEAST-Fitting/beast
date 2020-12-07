@@ -81,7 +81,7 @@ def plot_param_err(
         # plot
         h = stat2d(logT_p50, logL_p50, param_unc, bins=n_bins)
         plt.imshow(
-            h[0],
+            h[0].T,
             origin="lower",
             cmap=cmap,
             extent=[h[1].min(), h[1].max(), h[2].min(), h[2].max()],
