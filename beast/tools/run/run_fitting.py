@@ -82,7 +82,7 @@ def run_fitting(
         )
 
     # keep track of time
-    start_time = time.clock()
+    start_time = time.perf_counter()
 
     # --------------------
     # make lists of file names
@@ -208,7 +208,7 @@ def run_fitting(
     parallel_wrapper(fit_submodel, input_list, nprocs=nprocs)
 
     # see how long it took!
-    new_time = time.clock()
+    new_time = time.perf_counter()
     print("time to fit: ", (new_time - start_time) / 60.0, " min")
 
 

@@ -71,11 +71,11 @@ class Isochrone(object):
         idx = np.hstack([[0], np.cumsum(npts + 1)])
         # set up vectors for storage
         ntot = (npts + 1).sum()
-        newm = np.empty(ntot, dtype=float)
-        newdm = np.empty(ntot, dtype=float)
-        newt = np.empty(ntot, dtype=float)
-        newg = np.empty(ntot, dtype=float)
-        newl = np.empty(ntot, dtype=float)
+        newm = np.zeros(ntot, dtype=float)
+        newdm = np.zeros(ntot, dtype=float)
+        newt = np.zeros(ntot, dtype=float)
+        newg = np.zeros(ntot, dtype=float)
+        newl = np.zeros(ntot, dtype=float)
 
         for i in range(len(npts)):
             a, b = idx[i], idx[i] + npts[i] + 1

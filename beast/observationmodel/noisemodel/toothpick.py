@@ -156,6 +156,15 @@ class MultiFilterASTs(NoiseModel):
             if name_prefix[-1] != "_":
                 name_prefix += "_"
 
+        # check if any NaNs are present, remove if they are
+        # NaNs can be present due to the AST pipeline or in cases where
+        # there is missing data (e.g., chip gaps)
+        if np.any(np.isnan(magflux_in)):
+            gvals = np.isfinite(magflux_in) & np.isfinite(magflux_out)
+            magflux_in = magflux_in[gvals]
+            magflux_out = magflux_out[gvals]
+            print("removing NaNs")
+
         # convert the AST output from magnitudes to fluxes if needed
         #  this is designated by setting the completeness_mag_cut to a
         #  negative number
@@ -191,7 +200,7 @@ class MultiFilterASTs(NoiseModel):
         # get the indexs to the recovered fluxes
         (good_indxs,) = np.where(flux_out != 0.0)
 
-        ast_minmax = np.empty(2)
+        ast_minmax = np.zeros(2)
         ast_minmax[0] = np.amin(flux_in[good_indxs])
         ast_minmax[1] = np.amax(flux_in[good_indxs])
 
@@ -347,9 +356,9 @@ class MultiFilterASTs(NoiseModel):
                 + "be defined with the same number of filters"
             )
 
-        bias = np.empty((N, M), dtype=float)
-        sigma = np.empty((N, M), dtype=float)
-        compl = np.empty((N, M), dtype=float)
+        bias = np.zeros((N, M), dtype=float)
+        sigma = np.zeros((N, M), dtype=float)
+        compl = np.zeros((N, M), dtype=float)
 
         if progress is True:
             it = tqdm(list(range(M)), desc="Evaluating model")

@@ -98,7 +98,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 tmp_cuts = mag_cuts
                 min_mags = np.zeros(len(settings.filters))
                 for k, filtername in enumerate(obsdata.filters):
-                    sfiltername = obsdata.data.resolve_alias(filtername)
+                    sfiltername = obsdata.filter_aliases[filtername]
                     sfiltername = sfiltername.replace("rate", "vega")
                     sfiltername = sfiltername.replace("RATE", "VEGA")
                     (keep,) = np.where(obsdata[sfiltername] < 99.0)
@@ -127,6 +127,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
             nAST = settings.ast_N_supplement
             existingASTfile = settings.ast_existing_file
             mag_cuts = settings.ast_suppl_maglimit
+            color_cuts = settings.ast_suppl_colorlimit
 
             chosen_seds = supplement_ast(
                 modelsedgrid_filename,
@@ -136,6 +137,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 outASTfile=outfile_seds,
                 outASTfile_params=outfile_params,
                 mag_cuts=mag_cuts,
+                color_cuts=color_cuts,
             )
 
     # if the SED file does exist, read them in
@@ -154,6 +156,8 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
         print("Assigning positions to artifical stars")
 
         outfile = "./{0}/{0}_inputAST.txt".format(settings.project)
+        if pick_method == "suppl_seds":
+            outfile = "./{0}/{0}_inputAST_suppl.txt".format(settings.project)
 
         # if we're replicating SEDs across source density or background bins
         if settings.ast_density_table is not None:
@@ -161,7 +165,8 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 obsdata,
                 chosen_seds,
                 settings.ast_density_table,
-                settings.ast_N_bins,
+                settings.sd_Nbins,
+                settings.sd_binwidth,
                 settings.ast_realization_per_model,
                 outfile=outfile,
                 refimage=settings.ast_reference_image,
@@ -170,13 +175,14 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 Nrealize=1,
                 set_coord_boundary=settings.ast_coord_boundary,
                 region_from_filters="all",
+                erode_boundary=settings.ast_erode_selection_region,
             )
-
         # if we're not using SD/background maps, SEDs will be distributed
         # based on catalog sources
         else:
             make_ast_xy_list.pick_positions(
                 obsdata,
+                outfile_seds,
                 outfile,
                 settings.ast_pixel_distribution,
                 refimage=settings.ast_reference_image,
@@ -187,9 +193,7 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "beast_settings_file",
-        type=str,
-        help="file name with beast settings",
+        "beast_settings_file", type=str, help="file name with beast settings",
     )
     parser.add_argument(
         "--random_seds",
@@ -208,20 +212,17 @@ if __name__ == "__main__":  # pragma: no cover
 
     if args.random_seds:
         make_ast_inputs(
-            beast_settings_info=args.beast_settings_file,
-            pick_method="random_seds"
+            beast_settings_info=args.beast_settings_file, pick_method="random_seds"
         )
 
     if args.suppl_seds:
         make_ast_inputs(
-            beast_settings_info=args.beast_settings_file,
-            pick_method="suppl_seds"
+            beast_settings_info=args.beast_settings_file, pick_method="suppl_seds"
         )
 
     else:
         make_ast_inputs(
-            beast_settings_info=args.beast_settings_file,
-            pick_method="flux_bin_method"
+            beast_settings_info=args.beast_settings_file, pick_method="flux_bin_method"
         )
 
     # print help if no arguments

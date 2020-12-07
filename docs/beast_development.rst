@@ -50,11 +50,13 @@ fixes, code, or documentation (no git or GitHub experience necessary):
 * `Developer Documentation <https://docs.astropy.org/en/stable/#developer-documentation>`_
 
 
+
 Installation
 ============
 
 If you plan on modifying the ``beast`` in addition to running the code, it may
 be useful to create a development installation by following the :ref:`Dev_install` instructions.
+
 
 
 Adding Branches
@@ -169,13 +171,13 @@ be viewed in a web browser by pointing to files in the `htmlconv` subdirectory
 
   .. code-block:: console
 
-     $ python setup.py test --remote-data --coverage
+     $ tox -e test -- --remote-data --coverage
 
 Make sure the documentation can be created.
 
   .. code-block:: console
 
-     $ python setup.py build_docs
+     $ tox -e build_docs
 
 The resulting HTML files are placed in the `docs/_build/html` subdirectory, and
 can be viewed in a web browser.

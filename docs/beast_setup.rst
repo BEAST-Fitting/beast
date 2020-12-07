@@ -47,8 +47,9 @@ input parameters from beast_settings.txt.
 * ``ast_density_table``: (optional; string) name of density table, containing either the source density map or the background density map. If supplied, the ASTs will be repeated for each density bin in the table (default = None).
 * ``ast_N_bins``: (optional; int) number of source or background bins that you want ASTs repeated over.
 * ``ast_pixel_distribution``: (optional; float) minimum pixel separation between AST position and catalog star used to determine the AST spatial distribution. Used if ast_with_positions is True.
-* ``ast_reference_image``: (optional; string)   name of the reference image used by DOLPHOT when running the measured photometry. Required if ast_with_positions is True and no X,Y information is present in the photometry catalog.
+* ``ast_reference_image``: (optional; string) name of the reference image used by DOLPHOT when running the measured photometry. Required if ast_with_positions is True and no X,Y information is present in the photometry catalog.
 * ``ast_coord_boundary``: (optional; list of two arrays) if supplied, these RA/Dec coordinates will be used to limit the region over which ASTs are generated (default = None).
+* ``ast_erode_selection_region``: (optional; float) To avoid placing ASTs near the edge of the image, set this to the number of arcseconds (default=0.5, which is ~10 pixels for WFC3/UVIS) to shrink the allowed AST placement region.  This is applied by doing an erosion to both ast_coord_boundary (if set) and a convex hull around the photometry catalog.
 * ``astfile``:  pathname to the AST files (single camera ASTs).
 * ``ast_colnames``:  names of columns for filters in the AST catalog (default is the basefilter list).
 * ``noisefile`` : pathname to the output noise model file.
