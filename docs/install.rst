@@ -7,7 +7,7 @@ Requirements
 
 Running the BEAST requires:
 
-- Python >= 3.6
+- Python >= 3.7
 - Astropy >= 1.3
 
 In turn, Astropy depends on
@@ -140,13 +140,6 @@ In order to run a development installation, navigate to the directory in your
 
    $ pip install -e .
 
-Alternatively, you can perform a development install directly through Python
-with:
-
-.. code-block:: console
-
-   $ python setup.py develop
-
 
 Installation for Production Runs
 ================================
@@ -183,7 +176,7 @@ Option 1: Use pip to install a stable version of the BEAST (e.g. v1.3):
 
     $ pip install beast==1.3
 
-Option 2: Get the latest production branch, which can be ahead of the pipy version:
+Option 2: Get the latest production branch, which can be ahead of the pypi version:
 
   .. code-block:: console
 
