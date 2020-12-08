@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 from matplotlib.colors import LogNorm
 from scipy.stats import binned_statistic_2d as stat2d
+from matplotlib.ticker import MultipleLocator
 
 __all__ = ["plot_param_err"]
 
@@ -49,7 +50,7 @@ def plot_param_err(
     for p, param in enumerate(param_list):
 
         # first column subplot
-        plt.subplot(n_param, 2, p * 2 + 1)
+        ax1 = plt.subplot(n_param, 2, p * 2 + 1)
 
         param_p50 = stats_table[param + "_p50"]
         param_unc = (stats_table[param + "_p84"] - stats_table[param + "_p16"]) / 2
@@ -63,6 +64,7 @@ def plot_param_err(
 
         # axis labels
         plt.tick_params(axis="both", which="major", labelsize=13)
+        ax1.xaxis.set_minor_locator(MultipleLocator(0.5))
         # ax.set_xlim(ax.get_xlim()[::-1])
         param_label = param
         if "M_" in param:
@@ -71,7 +73,7 @@ def plot_param_err(
         plt.ylabel(r"$\sigma$ " + param_label, fontsize=14)
 
         # second column subplot
-        plt.subplot(n_param, 2, p * 2 + 2)
+        ax2 = plt.subplot(n_param, 2, p * 2 + 2)
 
         logT_p50 = stats_table["logT_p50"]
         logL_p50 = stats_table["logL_p50"]
@@ -87,6 +89,7 @@ def plot_param_err(
         )
         cbar = plt.colorbar()
         cbar.set_label(r"$\sigma$ " + param_label, fontsize=14)
+        ax2.invert_xaxis()
 
         # axis labels
         plt.tick_params(axis="both", which="major", labelsize=13)
