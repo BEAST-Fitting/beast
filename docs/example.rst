@@ -17,7 +17,7 @@ AstroConda environment
 
 .. code-block:: console
 
-    $ source activate astroconda
+    $ conda activate astroconda
 
 Verify that the current default Python is version 3
 

@@ -39,37 +39,22 @@ project is:
 - Resolve version conflicts as much as possible before sending pull requests
 
 
-Development Install
-===================
+``beast`` follows the same workflow and coding guidelines as
+`Astropy`_. The following pages will help you get started with contributing
+fixes, code, or documentation (no git or GitHub experience necessary):
+
+* `How to make a code contribution <https://docs.astropy.org/en/stable/development/workflow/development_workflow.html>`_
+
+* `Coding Guidelines <https://docs.astropy.org/en/stable/development/codeguide.html>`_
+
+* `Developer Documentation <https://docs.astropy.org/en/stable/#developer-documentation>`_
+
+
+Installation
+============
 
 If you plan on modifying the ``beast`` in addition to running the code, it may
-be useful to create a development installation. First, create a fork of the
-official ``beast`` repository and clone it:
-
-.. code-block:: console
-
-   $ git clone https://github.com/YourName/beast.git
-
-Optionally, you can rename this cloned copy:
-
-.. code-block:: console
-
-   $ git clone https://github.com/YourName/beast.git beast-YourName
-
-Set the value of the fork's 'upstream' to the official distribution so you
-can incorporate changes made by others to your development fork. In the clone
-of your fork, run the following:
-
-.. code-block:: console
-
-   $ git remote add upstream https://github.com/BEAST-Fitting/beast.git
-
-In order to run a development installation, navigate to the directory in your
-``beast`` repository that contains `setup.py`, and run:
-
-.. code-block:: console
-
-   $ pip install -e .
+be useful to create a development installation by following the :ref:`Dev_install` instructions.
 
 
 Adding Branches

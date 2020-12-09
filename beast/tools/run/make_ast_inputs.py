@@ -98,7 +98,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 tmp_cuts = mag_cuts
                 min_mags = np.zeros(len(settings.filters))
                 for k, filtername in enumerate(obsdata.filters):
-                    sfiltername = obsdata.data.resolve_alias(filtername)
+                    sfiltername = obsdata.filter_aliases[filtername]
                     sfiltername = sfiltername.replace("rate", "vega")
                     sfiltername = sfiltername.replace("RATE", "VEGA")
                     (keep,) = np.where(obsdata[sfiltername] < 99.0)
@@ -175,6 +175,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 Nrealize=1,
                 set_coord_boundary=settings.ast_coord_boundary,
                 region_from_filters="all",
+                erode_boundary=settings.ast_erode_selection_region,
             )
         # if we're not using SD/background maps, SEDs will be distributed
         # based on catalog sources

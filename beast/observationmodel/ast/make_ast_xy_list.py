@@ -5,7 +5,7 @@ import warnings
 
 from astropy.io import ascii, fits
 from astropy.table import Column, Table
-from astropy.wcs import WCS
+from astropy import wcs
 
 from shapely.geometry import box, Polygon
 
@@ -26,6 +26,7 @@ def pick_positions_from_map(
     Nrealize=1,
     set_coord_boundary=None,
     region_from_filters=None,
+    erode_boundary=None,
 ):
     """
     Spreads a set of fake stars across regions of similar values,
@@ -106,6 +107,13 @@ def pick_positions_from_map(
         properly if the region is a convex polygon.  A solution to these needs
         to be figured out at some point.
 
+    erode_boundary : None, or float (default=None)
+        If provided, this number of arcseconds will be eroded from the region
+        over which ASTs are generated.  The purpose is to avoid placing ASTs
+        near the image edge.  Erosion is applied to both the catalog boundary
+        and the values from set_coord_boundary.  If the input catalog only has
+        x/y (no RA/Dec), a refimage is required.
+
     Returns
     -------
     astropy Table: List of fake stars, with magnitudes and positions
@@ -116,11 +124,11 @@ def pick_positions_from_map(
 
     # if refimage exists, extract WCS info
     if refimage is None:
-        wcs = None
+        ref_wcs = None
     else:
         with fits.open(refimage) as hdu:
             imagehdu = hdu[refimage_hdu]
-            wcs = WCS(imagehdu.header)
+            ref_wcs = wcs.WCS(imagehdu.header)
 
     # if appropriate information is given, extract the x/y positions so that
     # there are no ASTs generated outside of the catalog footprint
@@ -151,12 +159,12 @@ def pick_positions_from_map(
     # if only one of those exists and there's a refimage, convert to the other
     if xy_pos and not radec_pos and refimage:
         radec_pos = True
-        x_positions, y_positions = wcs.all_world2pix(
+        x_positions, y_positions = ref_wcs.all_world2pix(
             ra_positions, dec_positions, wcs_origin
         )
     if radec_pos and not xy_pos and refimage:
         xy_pos = True
-        ra_positions, dec_positions = wcs.all_pix2world(
+        ra_positions, dec_positions = ref_wcs.all_pix2world(
             x_positions, y_positions, wcs_origin
         )
 
@@ -166,30 +174,44 @@ def pick_positions_from_map(
             "Your catalog does not supply X/Y or RA/DEC information to ensure ASTs are within catalog boundary"
         )
 
-    # create path containing the positions
+    # if erode_boundary is set, try to make a pixel version to go with xy positions
+    erode_deg = None
+    erode_pix = None
+    if erode_boundary:
+        erode_deg = erode_boundary / 3600
+        if xy_pos and refimage:
+            deg_per_pix = wcs.utils.proj_plane_pixel_scales(ref_wcs)[0]
+            erode_pix = erode_deg / deg_per_pix
+
+    # create path containing the positions (eroded if chosen)
     catalog_boundary_xy = None
     catalog_boundary_radec = None
     if xy_pos:
-        catalog_boundary_xy = cut_catalogs.convexhull_path(x_positions, y_positions)
+        catalog_boundary_xy = erode_path(
+            cut_catalogs.convexhull_path(x_positions, y_positions), erode_pix
+        )
     if radec_pos:
-        catalog_boundary_radec = cut_catalogs.convexhull_path(
-            ra_positions, dec_positions
+        catalog_boundary_radec = erode_path(
+            cut_catalogs.convexhull_path(ra_positions, dec_positions), erode_deg
         )
 
-    # if coord_boundary set, define an additional boundary for ASTs
+    # if coord_boundary set, define an additional boundary for ASTs (eroded if chosen)
     if set_coord_boundary is not None:
         # initialize variables
         coord_boundary_xy = None
         coord_boundary_radec = None
         # evaluate one or both
         if xy_pos and refimage:
-            bounds_x, bounds_y = wcs.all_world2pix(
+            bounds_x, bounds_y = ref_wcs.all_world2pix(
                 set_coord_boundary[0], set_coord_boundary[1], wcs_origin
             )
-            coord_boundary_xy = Path(np.array([bounds_x, bounds_y]).T)
+            coord_boundary_xy = erode_path(
+                Path(np.array([bounds_x, bounds_y]).T), erode_pix
+            )
         if radec_pos:
-            coord_boundary_radec = Path(
-                np.array([set_coord_boundary[0], set_coord_boundary[1]]).T
+            coord_boundary_radec = erode_path(
+                Path(np.array([set_coord_boundary[0], set_coord_boundary[1]]).T),
+                erode_deg,
             )
 
     # if region_from_filters is set, define an additional boundary for ASTs
@@ -262,7 +284,7 @@ def pick_positions_from_map(
                 tile_box_radec = box(ra_min, dec_min, ra_max, dec_max)
                 tile_box_xy = None
                 if refimage:
-                    bounds_x, bounds_y = wcs.all_world2pix(
+                    bounds_x, bounds_y = ref_wcs.all_world2pix(
                         np.array([ra_min, ra_max]),
                         np.array([dec_min, dec_max]),
                         wcs_origin,
@@ -365,7 +387,7 @@ def pick_positions_from_map(
                 )
 
                 # if we can't convert this to x/y, do everything in RA/Dec
-                if wcs is None:
+                if ref_wcs is None:
                     x, y = ra, dec
 
                     # check that this x/y is within the catalog footprint
@@ -392,7 +414,7 @@ def pick_positions_from_map(
 
                 # if we can convert to x/y, do everything in x/y
                 else:
-                    [x], [y] = wcs.all_world2pix(
+                    [x], [y] = ref_wcs.all_world2pix(
                         np.array([ra]), np.array([dec]), wcs_origin
                     )
 
@@ -424,7 +446,7 @@ def pick_positions_from_map(
     cs.append(Column(np.ones(len(out_table), dtype=int), name="ones"))
 
     # positions were found using RA/Dec
-    if wcs is None:
+    if ref_wcs is None:
         cs.append(Column(ast_x_list, name="RA"))
         cs.append(Column(ast_y_list, name="DEC"))
     # positions were found using x/y
@@ -441,6 +463,35 @@ def pick_positions_from_map(
         ascii.write(out_table, outfile, overwrite=True, formats=formats)
 
     return out_table
+
+
+def erode_path(path_object, erode_amount):
+    """
+    Returns the original Path object, but eroded by the defined amount.
+
+    Parameters
+    ----------
+    path_object : Path object
+        the Path object to be eroded
+
+    erode_amount : float or None
+        If float, amount to erode. Units (pixels or degrees) should match units
+        of path_object. Absolute value will be used.
+        If None, don't do any eroding - return original path_object.
+
+    Returns
+    -------
+    Path object : the original path object (erode_amount=None) or the eroded
+    path object (erode_amount=float)
+    """
+
+    if erode_amount is None:
+        return path_object
+    else:
+        eroded_polygon = Polygon(path_object.vertices).buffer(-np.abs(erode_amount))
+        bounds_x = [float(i) for i in eroded_polygon.exterior.coords.xy[0]]
+        bounds_y = [float(i) for i in eroded_polygon.exterior.coords.xy[1]]
+        return Path(np.array([bounds_x, bounds_y]).T)
 
 
 def pick_positions(
@@ -512,9 +563,9 @@ def pick_positions(
             raise RuntimeError(
                 "You must supply a Reference Image to determine spatial AST distribution."
             )
-        wcs = WCS(refimage)
+        ref_wcs = wcs.WCS(refimage)
 
-        x_positions, y_positions = wcs.all_world2pix(
+        x_positions, y_positions = ref_wcs.all_world2pix(
             ra_positions, dec_positions, wcs_origin
         )
 
