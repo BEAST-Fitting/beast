@@ -165,6 +165,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 obsdata,
                 chosen_seds,
                 settings.ast_density_table,
+                settings.sd_binmode,
                 settings.sd_Nbins,
                 settings.sd_binwidth,
                 settings.ast_realization_per_model,
