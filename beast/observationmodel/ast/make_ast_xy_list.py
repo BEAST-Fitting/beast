@@ -58,10 +58,10 @@ def pick_positions_from_map(
         Path to a hd5 file containing the file written by a DensityMap
 
     bin_mode: str
-        The convention for generating bins of source density. THe options
+        The convention for generating bins of source density. The options
         are "linear" (for linear binning) and "log" (for log binning). If "log",
         the number of bins (N_bins) must be set. If "linear", either N_bins
-        or the bin width (bin_width), or both, or neither (resulting in
+        or the bin width (bin_width), or neither (resulting in
         default integer binning by sources/arcsec^2) can be set.
         Default: "linear"
 
