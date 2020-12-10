@@ -164,8 +164,12 @@ How the sources are placed in the image is determined by the ast_source_density_
 variable in `beast_settings.txt`
 
 1. ast_source_density_table is set to `filebase_sourceden_map.hd5`:
-   For each source density or background bin, randomly place the SEDs
-   within pixels of that bin.  Repeat for each of the bins.
+   The source density or background image is split into bins, and for each bin,
+   all selected SEDs are randomly replicated within pixels of that bin. These bins
+   are determined by the beast_settings parameters, and can have linear (default)
+   or log spacing, where the user can determine the number or width of the bins
+   (set using sd_binmode, sd_binwidth and sd_Nbins in beast_settings). This same
+   binning scheme is used later to split the catalogs (next step).
 
 2. ast_source_density_table = None:
    Randomly choose a star from the photometry catalog, and place the
@@ -211,7 +215,10 @@ that don't have full imaging coverage, and to create ds9 region files:
 
 
 The observed catalog should be split into separate files for each source
-density.  In addition, each source density catalog can be split into a set of
+density bin. These bins are determined by the beast_settings parameters,
+and can have linear (default) or log spacing, where the user can determine
+the number or width of the bins (set using sd_binmode, sd_binwidth and sd_Nbins
+in beast_settings). In addition, each source density catalog can be split into a set of
 sub-files to have at most 'n_per_file' sources (or, if there are very few stars
 in a source density bin, at least 'min_n_subfile' sub-files).  The sources are
 sorted by the 'sort_col' flux before splitting to put sources with similar
