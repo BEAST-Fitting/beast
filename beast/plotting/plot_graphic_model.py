@@ -106,66 +106,6 @@ def plot_graphic_model(gtype="text", savefig="png"):
     beast.render(f"beast-graphic-{type}", format=savefig)
 
 
-def plot_file_flow(savefig="png"):
-    """
-    Plot a model showing what files are created at each stage of a BEAST
-    production run.
-
-    Parameters
-    ----------
-    savefig : str
-        set to the file extension of desired file to save image of model
-    """
-
-    nodes = {
-        "sed": ["SEDgrid"],
-        "phot1": ["phot_SD0-1"],
-        "fake1": ["phot_fake_SD0-1"],
-        "obs1": ["obsmodel_SD0-1"],
-        "phot1s0": ["phot_SD0-1_sub0"],
-        "phot1s1": ["phot_SD0-1_sub1"],
-        "phot1s2": ["phot_SD0-1_sub2"],
-        "sed1s0": ["SEDgrid_SD0-1_sub0_trim"],
-        "sed1s1": ["SEDgrid_SD0-1_sub1_trim"],
-        "sed1s2": ["SEDgrid_SD0-1_sub2_trim"],
-        "obs1s0": ["obsmodel_SD0-1_sub0_trim"],
-        "obs1s1": ["obsmodel_SD0-1_sub1_trim"],
-        "obs1s2": ["obsmodel_SD0-1_sub2_trim"],
-        "stat1s0": ["stats_SD0-1_sub0"],
-        "stat1s1": ["stats_SD0-1_sub1"],
-        "stat1s2": ["stats_SD0-1_sub2"],
-        "pdf1d1s0": ["pdf1d_SD0-1_sub0"],
-        "pdf1d1s1": ["pdf1d_SD0-1_sub1"],
-        "pdf1d1s2": ["pdf1d_SD0-1_sub2"],
-        "pdf2d1s0": ["pdf2d_SD0-1_sub0"],
-        "pdf2d1s1": ["pdf2d_SD0-1_sub1"],
-        "pdf2d1s2": ["pdf2d_SD0-1_sub2"],
-        "lnp1s0": ["lnp_SD0-1_sub0"],
-        "lnp1s1": ["lnp_SD0-1_sub1"],
-        "lnp1s2": ["lnp_SD0-1_sub2"],
-    }
-
-    edges = {
-        "phot1": ("phot1s0", "phot1s1", "phot1s2"),
-        "fake1": "obs1",
-        "phot1s0": ("sed1s0", "obs1s0"),
-        "phot1s1": ("sed1s1", "obs1s1"),
-        "phot1s2": ("sed1s2", "obs1s2"),
-        "sed": ("sed1s0", "sed1s1", "sed1s2"),
-        "obs1": ("obs1s0", "obs1s1", "obs1s2"),
-        "sed1s0": ("stat1s0", "pdf1d1s0", "pdf2d1s0", "lnp1s0"),
-        "obs1s0": ("stat1s0", "pdf1d1s0", "pdf2d1s0", "lnp1s0"),
-        "sed1s1": ("stat1s1", "pdf1d1s1", "pdf2d1s1", "lnp1s1"),
-        "obs1s1": ("stat1s1", "pdf1d1s1", "pdf2d1s1", "lnp1s1"),
-        "sed1s2": ("stat1s2", "pdf1d1s2", "pdf2d1s2", "lnp1s2"),
-        "obs1s2": ("stat1s2", "pdf1d1s2", "pdf2d1s2", "lnp1s2"),
-    }
-
-    beast = create_graphic_model(nodes, edges, "text")
-    beast.graph_attr['rankdir'] = 'LR'
-    beast.render("beast-file-flow", format=savefig)
-
 if __name__ == "__main__":
-    #plot_graphic_model("text")
-    #plot_graphic_model("math")
-    plot_file_flow()
+    plot_graphic_model("text")
+    plot_graphic_model("math")
