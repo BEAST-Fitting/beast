@@ -151,6 +151,12 @@ class BinnedDensityMap(DensityMap):
 
         if custom_bins is not None:
             bin_edges = custom_bins
+
+            # Find which bin each tile belongs to
+            # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
+            # We have purposely chosen our bin boundaries so that no points fall
+            # outside (or on the edge) of the [1,5] range
+            bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
         else:
             if bin_mode == "linear":
                 # Create the extra column here
@@ -174,6 +180,14 @@ class BinnedDensityMap(DensityMap):
                         N_bins + 1,
                     )
 
+                    # Find which bin each tile belongs to
+                    # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
+                    # We have purposely chosen our bin boundaries so that no points fall
+                    # outside (or on the edge) of the [1,5] range
+                    bins = np.digitize(
+                        binned_density_map.tile_data[input_column], bin_edges
+                    )
+
                 if bin_width is not None:
                     tile_densities = binned_density_map.tile_data[input_column]
                     min_density = np.amin(tile_densities)
@@ -181,6 +195,14 @@ class BinnedDensityMap(DensityMap):
                     tot_bins = np.ceil((max_density - min_density) / bin_width)
                     bin_edges = min_density + np.arange(tot_bins + 1) * bin_width
                     print("bin edges: ", bin_edges)
+
+                    # Find which bin each tile belongs to
+                    # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
+                    # We have purposely chosen our bin boundaries so that no points fall
+                    # outside (or on the edge) of the [1,5] range
+                    bins = np.digitize(
+                        binned_density_map.tile_data[input_column], bin_edges
+                    )
 
             if bin_mode == "log":
                 # Create the extra column here
@@ -207,11 +229,13 @@ class BinnedDensityMap(DensityMap):
                     )
                     print("bin edges: ", bin_edges)
 
-        # Find which bin each tile belongs to
-        # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
-        # We have purposely chosen our bin boundaries so that no points fall
-        # outside (or on the edge) of the [1,5] range
-        bins = np.digitize(binned_density_map.tile_data[input_column], bin_edges)
+                    # Find which bin each tile belongs to
+                    # e.g. one of these numbers: 0 [1, 2, 3, 4, 5] 6
+                    # We have purposely chosen our bin boundaries so that no points fall
+                    # outside (or on the edge) of the [1,5] range
+                    bins = np.digitize(
+                        binned_density_map.tile_data[input_column], bin_edges
+                    )
 
         # Upgrade to this subclass, and return
         return BinnedDensityMap(binned_density_map.tile_data, bins)
