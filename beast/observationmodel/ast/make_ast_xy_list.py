@@ -19,6 +19,7 @@ def pick_positions_from_map(
     bin_mode,
     N_bins,
     bin_width,
+    custom_bins,
     Npermodel,
     outfile=None,
     refimage=None,
