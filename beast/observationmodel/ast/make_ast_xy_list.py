@@ -67,8 +67,8 @@ def pick_positions_from_map(
 
     N_bins: int
         The number of bins for the range of background density values.
-        The bins will be picked on a linear grid, ranging from the
-        minimum to the maximum value of the map. Then, each tile will be
+        The bins will be picked on a linear grid or log grid (according to bin_mode)
+        ranging from the minimum to the maximum value of the map. Then, each tile will be
         put in a bin, so that a set of tiles of the map is obtained for
         each range of source density/background values.
 
@@ -79,6 +79,11 @@ def pick_positions_from_map(
         minimum to the maximum value of the map. Then, each tile will be
         put in a bin, so that a set of tiles of the map is obtained for
         each range of source density/background values.
+
+    custom_bins: list (default=None)
+        Custom values of bin edges for source or background density values.
+        Each tile will be put into a bin, so that a set of tiles of the
+        map is obtained for each range of source density/background values.
 
     refimage: str
         Path to fits image that is used for the positions. If none is
@@ -262,8 +267,13 @@ def pick_positions_from_map(
     print(Npermodel, " repeats of each model in each map bin")
 
     bdm = density_map.BinnedDensityMap.create(
-        input_map, bin_mode=bin_mode, N_bins=N_bins, bin_width=bin_width
+        input_map,
+        bin_mode=bin_mode,
+        N_bins=N_bins,
+        bin_width=bin_width,
+        custom_bins=custom_bins,
     )
+
     tile_vals = bdm.tile_vals()
     max_val = np.amax(tile_vals)
     min_val = np.amin(tile_vals)

@@ -168,6 +168,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 settings.sd_binmode,
                 settings.sd_Nbins,
                 settings.sd_binwidth,
+                settings.sd_custom,
                 settings.ast_realization_per_model,
                 outfile=outfile,
                 refimage=settings.ast_reference_image,
@@ -194,7 +195,9 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "beast_settings_file", type=str, help="file name with beast settings",
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
     )
     parser.add_argument(
         "--random_seds",

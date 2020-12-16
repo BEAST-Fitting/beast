@@ -168,8 +168,9 @@ variable in `beast_settings.txt`
    all selected SEDs are randomly replicated within pixels of that bin. These bins
    are determined by the beast_settings parameters, and can have linear (default)
    or log spacing, where the user can determine the number or width of the bins
-   (set using sd_binmode, sd_binwidth and sd_Nbins in beast_settings). This same
-   binning scheme is used later to split the catalogs (next step).
+   (set using sd_binmode, sd_binwidth and sd_Nbins in beast_settings). Alternatively,
+   the user can input a custom list of bin edges, which will override the other binning settings.
+   This same binning scheme is used later to split the catalogs (next step).
 
 2. ast_source_density_table = None:
    Randomly choose a star from the photometry catalog, and place the
@@ -218,7 +219,9 @@ The observed catalog should be split into separate files for each source
 density bin. These bins are determined by the beast_settings parameters,
 and can have linear (default) or log spacing, where the user can determine
 the number or width of the bins (set using sd_binmode, sd_binwidth and sd_Nbins
-in beast_settings). In addition, each source density catalog can be split into a set of
+in beast_settings). Alternatively, the user can input a custom list of bin edges,
+which will override the other binning settings.
+In addition, each source density catalog can be split into a set of
 sub-files to have at most 'n_per_file' sources (or, if there are very few stars
 in a source density bin, at least 'min_n_subfile' sub-files).  The sources are
 sorted by the 'sort_col' flux before splitting to put sources with similar
