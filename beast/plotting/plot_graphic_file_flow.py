@@ -2,13 +2,26 @@ from graphviz import Digraph
 import numpy as np
 from collections import defaultdict
 
-__all__ = ["plot_graphic_file_flow"]
+__all__ = [
+    "plot_graphic_file_flow",
+    "plot_graphic_file_flow_sd",
+    "plot_graphic_file_flow_subgrid",
+]
 
 
-def plot_graphic_file_flow(n_sd=1, n_sub=3, savefig="png"):
+def plot_graphic_file_flow():
+    """
+    Function to call the source density and subgrid functions
+    """
+
+    plot_graphic_file_flow_sd(n_sd=2, n_sub=3)
+    plot_graphic_file_flow_subgrid(n_sg=4)
+
+
+def plot_graphic_file_flow_sd(n_sd=1, n_sub=3, savefig="png"):
     """
     Plot a model showing what files are created at each stage of a BEAST
-    production run.
+    production run with source density binning.
 
     Parameters
     ----------
@@ -112,8 +125,8 @@ def plot_graphic_file_flow(n_sd=1, n_sub=3, savefig="png"):
             # -- invisible edges --
             # photometry + trimmed SED + trimmed obsmodel
             # -> nope, tends to make things more messy
-            #edges_invis[f"phot{s}s{b}"].append(f"sed{s}s{b}")
-            #edges_invis[f"sed{s}s{b}"].append(f"obs{s}s{b}")
+            # edges_invis[f"phot{s}s{b}"].append(f"sed{s}s{b}")
+            # edges_invis[f"sed{s}s{b}"].append(f"obs{s}s{b}")
             # output files
             edges_invis[f"stat{s}s{b}"].append(f"pdf1d{s}s{b}")
             edges_invis[f"pdf1d{s}s{b}"].append(f"pdf2d{s}s{b}")
@@ -122,19 +135,18 @@ def plot_graphic_file_flow(n_sd=1, n_sub=3, savefig="png"):
     # add the edges
     for ckey in edges.keys():
         for cval in edges[ckey]:
-            if 'phot' in ckey:
-                graph.edge(ckey, cval, color='#FDB62D')
-            elif 'fake' in ckey or 'obs' in ckey:
-                graph.edge(ckey, cval, color='#D7576B')
-            elif 'sed' in ckey:
-                graph.edge(ckey, cval, color='#4A02A0')
+            if "phot" in ckey:
+                graph.edge(ckey, cval, color="#FDB62D")
+            elif "fake" in ckey or "obs" in ckey:
+                graph.edge(ckey, cval, color="#D7576B")
+            elif "sed" in ckey:
+                graph.edge(ckey, cval, color="#4A02A0")
             else:
                 graph.edge(ckey, cval)
     # add invisible edges (to force ordering)
     for ckey in edges_invis.keys():
         for cval in edges_invis[ckey]:
-            graph.edge(ckey, cval, style='invis')
-
+            graph.edge(ckey, cval, style="invis")
 
     # append subgraphs
     graph.subgraph(sg1)
@@ -147,8 +159,143 @@ def plot_graphic_file_flow(n_sd=1, n_sub=3, savefig="png"):
     graph.graph_attr["rankdir"] = "LR"
 
     # save it
-    graph.render("beast-file-flow", format=savefig)
+    graph.render("beast-file-flow-sourceden", format=savefig)
+
+
+def plot_graphic_file_flow_subgrid(n_sg=3, savefig="png"):
+    """
+    Plot a model showing what files are created at each stage of a BEAST
+    production run with subgrids.
+
+    Parameters
+    ----------
+    n_sg : int (default=3)
+        number of subgrids to show
+
+    savefig : str (default='png')
+        set to the file extension of desired file to save image of model
+    """
+
+    # initialize graph
+    # (note: can't do dictionary for nodes like plot_graphic_model.py, because
+    # we need to exert more control over which things are lined up)
+    graph = Digraph(node_attr={"shape": "box"})
+
+    # first layer
+    with graph.subgraph() as sg:
+        sg.attr(rank="same")
+        sg.node("spec", "SpecGrid")
+        sg.node("phot", "phot")
+        sg.node("fake", "phot_fake")
+
+    # additional layers
+    sg1 = Digraph(node_attr={"shape": "box"})
+    sg2 = Digraph(node_attr={"shape": "box"})
+    sg3 = Digraph(node_attr={"shape": "box"})
+    sg4 = Digraph(node_attr={"shape": "box"})
+    sg5 = Digraph(node_attr={"shape": "box"})
+    sg6 = Digraph(node_attr={"shape": "box"})
+    _ = [x.attr(rank="same") for x in [sg1, sg2, sg3, sg4, sg5, sg6]]
+
+    # place phot/fake
+    # sg1.node('phot','phot')
+    # sg1.node('fake','phot_fake')
+
+    # items in last layer
+    sg6.node("stats", "stats_all")
+    sg6.node("pdf1d", "pdf1d_all")
+    sg6.node("pdf2d", "pdf2d_all")
+    sg6.node("lnp", "lnp_all")
+
+    # initialize dict of edges
+    edges = defaultdict(list)
+    # initialize dict of invisible edges
+    # these are used to force the order:
+    # https://stackoverflow.com/questions/44274518/how-can-i-control-within-level-node-order-in-graphvizs-dot/44274606
+    edges_invis = defaultdict(list)
+
+    # iterate through subgrids
+    for s in range(n_sg):
+
+        curr_sg = f"SG{s}"
+
+        # -- nodes --
+        sg1.node(f"spec{s}", f"SpecGrid_{curr_sg}")
+        sg2.node(f"sed{s}", f"SEDgrid_{curr_sg}")
+        sg2.node(f"obs{s}", f"obsmodel_{curr_sg}")
+        sg3.node(f"sed{s}t", f"SEDgrid_{curr_sg}_trim")
+        sg3.node(f"obs{s}t", f"obsmodel_{curr_sg}_trim")
+        sg4.node(f"lnps_{s}", f"likelihoods\nfor {curr_sg}")
+        sg5.node(f"stat{s}", f"stats_{curr_sg}")
+        sg5.node(f"pdf1d{s}", f"pdf1d_{curr_sg}")
+        sg5.node(f"pdf2d{s}", f"pdf2d_{curr_sg}")
+        sg5.node(f"lnp{s}", f"lnp_{curr_sg}")
+
+        # -- edges --
+        # spec to spec subgrid
+        edges["spec"].append(f"spec{s}")
+        # spec subgrid to SED subgrid
+        edges[f"spec{s}"].append(f"sed{s}")
+        # phot_fake to obsmodel
+        edges[f"fake"].append(f"obs{s}")
+        # SED to trimmed SED
+        edges[f"sed{s}"].append(f"sed{s}t")
+        # obsmodel to trimmed obsmodel
+        edges[f"obs{s}"].append(f"obs{s}t")
+        # photometry + trimmed SED + trimmed obsmodel to likelihoods
+        edges[f"phot"].append(f"lnps_{s}")
+        edges[f"sed{s}t"].append(f"lnps_{s}")
+        edges[f"obs{s}t"].append(f"lnps_{s}")
+        # likelihoods to output files
+        edges[f"lnps_{s}"] += [f"stat{s}", f"pdf1d{s}", f"pdf2d{s}", f"lnp{s}"]
+        # output files to combined files
+        edges[f"stat{s}"].append("stats_all")
+        edges[f"pdf1d{s}"].append("pdf1d_all")
+        edges[f"pdf2d{s}"].append("pdf2d_all")
+        edges[f"lnp{s}"].append("lnp_all")
+
+        # -- invisible edges --
+        # group subgrids together
+        edges_invis[f"sed{s}"].append(f"obs{s}")
+        edges_invis[f"sed{s}t"].append(f"obs{s}t")
+        if s < n_sg - 1:
+            edges_invis[f"obs{s}"].append(f"sed{s+1}")
+            edges_invis[f"obs{s}t"].append(f"sed{s+1}t")
+            edges_invis[f"lnps_{s}"].append(f"lnps_{s+1}")
+        # output files
+        edges_invis[f"stat{s}"].append(f"pdf1d{s}")
+        edges_invis[f"pdf1d{s}"].append(f"pdf2d{s}")
+        edges_invis[f"pdf2d{s}"].append(f"lnp{s}")
+
+    # add the edges
+    for ckey in edges.keys():
+        for cval in edges[ckey]:
+            if "phot" in ckey:
+                graph.edge(ckey, cval, color="#FDB62D")
+            elif "fake" in ckey or "obs" in ckey:
+                graph.edge(ckey, cval, color="#D7576B")
+            elif "spec" in ckey or "sed" in ckey:
+                graph.edge(ckey, cval, color="#4A02A0")
+            else:
+                graph.edge(ckey, cval)
+    # add invisible edges (to force ordering)
+    for ckey in edges_invis.keys():
+        for cval in edges_invis[ckey]:
+            graph.edge(ckey, cval, style="invis")
+
+    # append subgraphs
+    graph.subgraph(sg1)
+    graph.subgraph(sg2)
+    graph.subgraph(sg3)
+    graph.subgraph(sg4)
+    graph.subgraph(sg5)
+
+    # make the graph flow horizontally
+    graph.graph_attr["rankdir"] = "LR"
+
+    # save it
+    graph.render("beast-file-flow-subgrid", format=savefig)
 
 
 if __name__ == "__main__":
-    plot_graphic_file_flow(n_sd=2, n_sub=3)
+    plot_graphic_file_flow()
