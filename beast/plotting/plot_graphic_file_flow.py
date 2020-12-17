@@ -9,13 +9,28 @@ __all__ = [
 ]
 
 
-def plot_graphic_file_flow():
+def plot_graphic_file_flow(plot_type="both", savefig="png"):
     """
     Function to call the source density and subgrid functions
+
+    Parameters
+    ----------
+    plot_type : string
+        Choose either 'subgrid', 'sd', or 'both' (case insensitive)
+
+    savefig : str (default='png')
+        set to the file extension of desired file to save image of model
     """
 
-    plot_graphic_file_flow_sd(n_sd=2, n_sub=3)
-    plot_graphic_file_flow_subgrid(n_sg=4)
+    if plot_type.lower() == "sd":
+        plot_graphic_file_flow_sd(n_sd=2, n_sub=3, savefig=savefig)
+    elif plot_type.lower() == "subgrid":
+        plot_graphic_file_flow_subgrid(n_sg=4, savefig=savefig)
+    elif plot_type.lower() == "both":
+        plot_graphic_file_flow_sd(n_sd=2, n_sub=3, savefig=savefig)
+        plot_graphic_file_flow_subgrid(n_sg=4, savefig=savefig)
+    else:
+        raise ValueError("plot_type must be 'subgrid', 'sd', or 'both'")
 
 
 def plot_graphic_file_flow_sd(n_sd=1, n_sub=3, savefig="png"):
