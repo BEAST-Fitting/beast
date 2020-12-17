@@ -25,9 +25,9 @@ Based on equations in Gordon et al. (2016).
 Generated with the `beast plot_graphic_model --type=math --savefig=png`.
 
 
-###############################
+*******************************
 Graphical Model of Output Files
-###############################
+*******************************
 
 This visualizes how BEAST runs create files when using either (a) subgrids or
 (b) source density (SD) splitting.  To visualize the use of both, replace each

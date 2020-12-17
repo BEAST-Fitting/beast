@@ -173,7 +173,7 @@ def plot_graphic_file_flow_sd(n_sd=1, n_sub=3, savefig="png"):
     graph.graph_attr["rankdir"] = "LR"
 
     # save it
-    graph.render("beast-file-flow-sourceden", format=savefig)
+    graph.render("beast-graphic-file-flow-sourceden", format=savefig)
 
 
 def plot_graphic_file_flow_subgrid(n_sg=3, savefig="png"):
@@ -308,7 +308,7 @@ def plot_graphic_file_flow_subgrid(n_sg=3, savefig="png"):
     graph.graph_attr["rankdir"] = "LR"
 
     # save it
-    graph.render("beast-file-flow-subgrid", format=savefig)
+    graph.render("beast-graphic-file-flow-subgrid", format=savefig)
 
 
 if __name__ == "__main__":
