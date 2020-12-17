@@ -45,6 +45,6 @@ Generated with `beast plot_graphic_file_flow --plot_type=subgrid --savefig=png`.
 Source Density
 ==============
 
-.. image:: images/beast-graphic-file-flow-sd.png
+.. image:: images/beast-graphic-file-flow-sourceden.png
 
 Generated with `beast plot_graphic_file_flow --plot_type=sd --savefig=png`.
