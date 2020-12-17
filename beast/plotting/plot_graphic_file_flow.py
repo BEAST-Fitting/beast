@@ -1,5 +1,4 @@
 from graphviz import Digraph
-import numpy as np
 from collections import defaultdict
 
 __all__ = [
@@ -252,13 +251,13 @@ def plot_graphic_file_flow_subgrid(n_sg=3, savefig="png"):
         # spec subgrid to SED subgrid
         edges[f"spec{s}"].append(f"sed{s}")
         # phot_fake to obsmodel
-        edges[f"fake"].append(f"obs{s}")
+        edges["fake"].append(f"obs{s}")
         # SED to trimmed SED
         edges[f"sed{s}"].append(f"sed{s}t")
         # obsmodel to trimmed obsmodel
         edges[f"obs{s}"].append(f"obs{s}t")
         # photometry + trimmed SED + trimmed obsmodel to likelihoods
-        edges[f"phot"].append(f"lnps_{s}")
+        edges["phot"].append(f"lnps_{s}")
         edges[f"sed{s}t"].append(f"lnps_{s}")
         edges[f"obs{s}t"].append(f"lnps_{s}")
         # likelihoods to output files
