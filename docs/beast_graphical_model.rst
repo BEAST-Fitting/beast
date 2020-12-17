@@ -1,3 +1,4 @@
+.. _beast_graphical_model:
 
 ###############
 Graphical Model
@@ -22,3 +23,28 @@ Based on equations in Gordon et al. (2016).
 .. image:: images/beast-graphic-math.png
 
 Generated with the `beast plot_graphic_model --type=math --savefig=png`.
+
+
+###############################
+Graphical Model of Output Files
+###############################
+
+This visualizes how BEAST runs create files when using either (a) subgrids or
+(b) source density (SD) splitting.  To visualize the use of both, replace each
+SED subgrid branch with an instance of the SD file tree.
+
+
+Subgrids
+========
+
+.. image:: images/beast-graphic-file-flow-subgrid.png
+
+Generated with `beast plot_graphic_file_flow --plot_type=subgrid --savefig=png`.
+
+
+Source Density
+==============
+
+.. image:: images/beast-graphic-file-flow-sd.png
+
+Generated with `beast plot_graphic_file_flow --plot_type=sd --savefig=png`.
