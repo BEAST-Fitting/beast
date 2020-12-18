@@ -11,6 +11,8 @@ for the refitting, fixing issues, etc without rerunning everything.  This
 workflow has been tested on large (e.g., PHAT) and small (e.g. METAL)
 datasets.
 
+For visualizations of the code and files, see :ref:`BEAST Graphical Models
+<beast_graphical_model>`.
 
 *****
 Setup

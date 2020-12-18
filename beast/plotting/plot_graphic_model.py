@@ -52,7 +52,10 @@ def plot_graphic_model(gtype="text", savefig="png"):
         "BF": ("Band Fluxes", "<F<sup>Mod</sup><sub>i</sub>(&theta;)>"),
         "L": ("Instrisinc Spectrum", "<F<sub>&lambda;</sub>(&theta;<sub>star</sub>)>"),
         "D": ("Dust Extinction", "<D<sub>&lambda;</sub>(&theta;<sub>dust</sub>)>"),
-        "LD": ("Dust Extinguished Spectrum", "<F<sup>Mod</sup><sub>&lambda;</sub>(&theta;)>"),
+        "LD": (
+            "Dust Extinguished Spectrum",
+            "<F<sup>Mod</sup><sub>&lambda;</sub>(&theta;)>",
+        ),
         "F": ("Band Responses", "<B<sub>i</sub>(&lambda;)>"),
         "M": ("mass\nM", "M"),
         "t": ("age\nT", "t"),
@@ -67,7 +70,10 @@ def plot_graphic_model(gtype="text", savefig="png"):
         "DP": ("measured\ndistance", "P(d)"),
         "FC": ("Foreground\nDust", "FD"),
         "GC": ("Instrinsic\nDust", "ID"),
-        "Obs": ("Observation Model", "<&mu;<sub>i</sub>(F<sup>Mod</sup><sub>i</sub>), &sigma;<sub>i</sub>(F<sup>Mod</sup><sub>i</sub>)>"),
+        "Obs": (
+            "Observation Model",
+            "<&mu;<sub>i</sub>(F<sup>Mod</sup><sub>i</sub>), &sigma;<sub>i</sub>(F<sup>Mod</sup><sub>i</sub>)>",
+        ),
         "Like": ("Observed Band Fluxes", "Observed Band Fluxes"),
         "AST": ("Artifical Star Tests", "ASTs"),
     }
