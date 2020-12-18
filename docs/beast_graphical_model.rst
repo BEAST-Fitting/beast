@@ -1,8 +1,8 @@
 .. _beast_graphical_model:
 
-###############
-Graphical Model
-###############
+################
+Graphical Models
+################
 
 A graphical model is useful to visualize how the BEAST is structured and works.
 See Gordon et al. (2016, ApJ, 826, 104, <http://adsabs.harvard.edu/abs/2016ApJ...826..104G>)

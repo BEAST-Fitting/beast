@@ -27,7 +27,7 @@ User Documentation
 .. toctree::
    :maxdepth: 1
 
-   Graphical Model <beast_graphical_model.rst>
+   Graphical Models <beast_graphical_model.rst>
    Run setup details <beast_setup.rst>
    Example production run workflow <workflow.rst>
    Stellar/Extinction Priors <beast_priors.rst>
