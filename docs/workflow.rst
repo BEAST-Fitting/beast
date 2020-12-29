@@ -404,6 +404,15 @@ been implemented.
 
      $ python -m beast.tools.run.merge_files beast_settings.txt --use_sd 1
 
+If fitting using subgrids, it's possible to do a partial merge.  This is useful
+if you'd like to look at fitting results before all stars have finished fitting
+for all subgrids.  This find stars that have fits in all subgrids and merges
+just those.  Partial merge is only currently implemented for stats and 1D PDFs.
+
+  .. code-block:: console
+
+     $ python -m beast.tools.run.merge_files beast_settings.txt --nsubs 5 --partial 1
+
 
 Reorganize the results into spatial region files
 ================================================
