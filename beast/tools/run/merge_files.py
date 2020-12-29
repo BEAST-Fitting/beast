@@ -29,6 +29,7 @@ def merge_files(beast_settings_info, use_sd=True, nsubs=1, partial=False):
         If True, the output merged files will only have stars that have been
         run across all subgrids.  If stars have only been fit in some subgrids
         and not others, they will be discarded in the "partial" output files.
+        Currently only implemented for 1D PDFs and stats (not lnP) files.
 
     """
 
@@ -48,9 +49,7 @@ def merge_files(beast_settings_info, use_sd=True, nsubs=1, partial=False):
         )
 
     # get file name lists (to check if they exist and/or need to be resumed)
-    file_dict = create_filenames.create_filenames(
-        settings, use_sd=use_sd, nsubs=nsubs
-    )
+    file_dict = create_filenames.create_filenames(settings, use_sd=use_sd, nsubs=nsubs)
 
     # - input files
     # photometry_files = file_dict['photometry_files']
@@ -104,7 +103,7 @@ def merge_files(beast_settings_info, use_sd=True, nsubs=1, partial=False):
                     settings.project, sd_sub[0], sd_sub[1]
                 )
                 if partial:
-                    out_filebase += '_partial'
+                    out_filebase += "_partial"
 
                 # - 1D PDFs and stats
                 (
@@ -145,13 +144,17 @@ def merge_files(beast_settings_info, use_sd=True, nsubs=1, partial=False):
 
             # - 1D PDFs and stats
             subgridding_tools.merge_pdf1d_stats(
-                pdf_files, stats_files, output_fname_base=out_filebase
+                pdf_files, stats_files, output_fname_base=out_filebase, partial=partial,
             )
 
             # - lnP files
-            subgridding_tools.merge_lnp(
-                lnp_files, re_run=False, output_fname_base=out_filebase, threshold=-10,
-            )
+            if not partial:
+                subgridding_tools.merge_lnp(
+                    lnp_files,
+                    re_run=False,
+                    output_fname_base=out_filebase,
+                    threshold=-10,
+                )
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -159,9 +162,7 @@ if __name__ == "__main__":  # pragma: no cover
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "beast_settings_file",
-        type=str,
-        help="file name with beast settings",
+        "beast_settings_file", type=str, help="file name with beast settings",
     )
     parser.add_argument(
         "--use_sd",
@@ -179,9 +180,8 @@ if __name__ == "__main__":  # pragma: no cover
         "--partial",
         type=int,
         default=0,
-        help="set to True (1) if fitting is partially complete and you want to merge stars that are done",
+        help="set to True (1) if fitting is partially complete and you want to merge stars that are done (relevant to subgrids only)",
     )
-
 
     args = parser.parse_args()
 
@@ -189,7 +189,7 @@ if __name__ == "__main__":  # pragma: no cover
         beast_settings_info=args.beast_settings_file,
         use_sd=bool(args.use_sd),
         nsubs=args.nsubs,
-        partial=args.partial,
+        partial=bool(args.partial),
     )
 
     # print help if no arguments
