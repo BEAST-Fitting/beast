@@ -114,3 +114,44 @@ Then the file can be submitted:
  .. code-block:: console
 
     $ sbatch sbatch_file.script
+
+
+*******************
+BEAST XSEDE wrapper
+*******************
+
+This section will go through the `METAL XSEDE example
+<https://github.com/BEAST-Fitting/beast-examples/tree/master/metal_xsede>`_.
+The wrapper `run_beast_xsede.py` follows the
+:ref:`production run workflow<beast_standard_workflow>`,
+but at relevant steps, writes out `sbatch` files that the user can then submit
+to the `slurm` queue.  The example has addition supplementary files that will
+be described here, too.
+
+The XSEDE workflow generally goes as follows:
+
+ 1. Type ``sbatch submit_beast_wrapper.script`` to submit the wrapper.
+ 2. This will run the wrapper.  Once it reaches a step that writes `sbatch`
+    file(s), it will stop and write out a text file with the commands to run.
+    The wrapper is set up to loop through fields, so once it gets to that point
+    for one field, it'll continue on to the next field, until it's looped through
+    all fields and written all necessary `sbatch` files.
+ 3. Submit the `sbatch` commands.
+ 4. Once those have finished running, do ``sbatch submit_beast_wrapper.script``
+    to submit the wrapper again.  It'll see that new files exist, and progress
+    along the workflow until it reaches the next set of sbatch files.
+ 5. Repeat steps 3 and 4 until everything is done!
+
+For the wrapper `run_beast_xsede.py` itself, here is what happens when it runs:
+
+ 1. Make source density and background maps.  Determine which one has the most
+    dynamic range, and choose that one to split observations.
+ 2. Write out a `beast_settings` file for the field.
+ 3. Make SED grid
+    * If all subgrids don't exist: Write an `sbatch` script to make any missing
+      SED subgrids, then go to the next field.  For METAL, different fields have
+      different combinations of filters, so this step is really copying out the
+      necessary columns from the master grid file (details below).
+    * If all subgrids do exist: Continue onto step 4.
+ 4. Make quality cuts to photometry and fake stars
+ 5. 
