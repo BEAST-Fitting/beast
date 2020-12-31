@@ -128,6 +128,11 @@ but at relevant steps, writes out `sbatch` files that the user can then submit
 to the `slurm` queue.  The example has addition supplementary files that will
 be described here, too.
 
+
+====================
+`run_beast_xsede.py`
+====================
+
 The XSEDE workflow generally goes as follows:
 
  1. Type ``sbatch submit_beast_wrapper.script`` to submit the wrapper.
@@ -148,8 +153,8 @@ For the wrapper `run_beast_xsede.py` itself, here is what happens when it runs:
     dynamic range, and choose that one to split observations.
  2. Write out a `beast_settings` file for the field.
  3. Make SED grid
-    * If all subgrids exist: Continue onto step 4.
-    * If all subgrids don't exist: Write an `sbatch` script to make any missing
+    * If all SED subgrids exist: Continue onto step 4.
+    * If all SED subgrids don't exist: Write an `sbatch` script to make any missing
       SED subgrids.  For METAL, different fields have different combinations of
       filters, so this step is really copying out the necessary columns from the
       master grid file (details below).
@@ -188,3 +193,37 @@ For the wrapper `run_beast_xsede.py` itself, here is what happens when it runs:
      * If all output files don't exist: Write an `sbatch` script with whichever
        functions still need to be run.
        Once `sbatch` script is written, go to step 1 for the next field.
+
+==========================
+Creating master grid files
+==========================
+
+For METAL, different fields have different combinations of filters.  Rather than
+creating the SED grid from scratch for each field, we instead created two master
+SED grids (made with 10 subgrids) - one each for the LMC and SMC - that
+contain all filters.  The function to do this, `make_mastergrid`, is in
+`run_beast_xsede`.  It creates an `sbatch` file that can be run to generate
+the grids.  As described above, in Step 3, the relevant columns are copied out
+when creating the SED grid for a given field.
+
+================
+Additional files
+================
+
+There are several additional text files in the `XSEDE BEAST wrapper
+<https://github.com/BEAST-Fitting/beast-examples/tree/master/metal_xsede>`_
+folder.
+
+* `beast_settings_template_LMC.txt` and `beast_settings_template_SMC.txt`:
+  Template BEAST settings files for fields in the LMC and SMC.  For each field,
+  the relevant keywords get updated, and a field-specific settings file is
+  written out.
+* `beast_settings_LMC_mastergrid.txt` and `beast_settings_SMC_mastergrid.txt`:
+  These settings files are used when creating the master grid files.  They're
+  identical to the templates above, but with all METAL filters listed in the
+  `filters` keyword.
+* `metal_images_by_field.txt`: The METAL survey has filter ambiguities (e.g.,
+  the F475W filter in both ACS and WFC3).  We created this table to clearly
+  lay out for each field what filters were observed, the correspondence
+  between the filter names in the photometry table and the BEAST filter names,
+  and the paths to the photometry, fake stars, and fits images.
