@@ -148,10 +148,43 @@ For the wrapper `run_beast_xsede.py` itself, here is what happens when it runs:
     dynamic range, and choose that one to split observations.
  2. Write out a `beast_settings` file for the field.
  3. Make SED grid
+    * If all subgrids exist: Continue onto step 4.
     * If all subgrids don't exist: Write an `sbatch` script to make any missing
-      SED subgrids, then go to the next field.  For METAL, different fields have
-      different combinations of filters, so this step is really copying out the
-      necessary columns from the master grid file (details below).
-    * If all subgrids do exist: Continue onto step 4.
+      SED subgrids.  For METAL, different fields have different combinations of
+      filters, so this step is really copying out the necessary columns from the
+      master grid file (details below).
+      Once `sbatch` scripts are written, go to step 1 for the next field.
  4. Make quality cuts to photometry and fake stars
- 5. 
+ 5. Split the photometry and fake star catalogs by source density or background
+ 6. Make noise model
+    * If all noisemodels exist: Continue onto step 7.
+    * If all noisemodels don't exist: Write an `sbatch` script that will run
+      `create_obsmodel` (when run, this function will only generate missing
+      noise model files).
+      Once `sbatch` scripts are written, go to step 1 for the next field.
+ 7. Trim SED grids and noise models
+    * If all trimmed files exist: Continue onto step 8.
+    * If all trimmed files don't exist: The `make_trim_scripts` function will
+      write out any needed job files.  Since they're numbered sequentially,
+      write an `sbatch` file (using arrays) that can submit all of them at once.
+      Once `sbatch` script is written, go to step 1 for the next field.
+ 8. Do the fitting.  This runs `setup_batch_beast_fit`, which checks for files,
+    and opens existing files to check if all stars have been fit.  This can take
+    a while, especially when there are lots of files to open.  This also writes
+    out an `sbatch` file to do a partial merge, which you can choose to run if
+    you need it at some point.
+    * If all stars have been fit: Continue onto step 9.
+    * If all stars haven't been fit: Like the trimming step, any needed job
+      files are written out with sequential numbers, so this writes an `sbatch`
+      file using arrays that can submit all of them.
+      Once `sbatch` script is written, go to step 1 for the next field.
+ 9. Merge output files
+    * If all files are merged: Continue onto step 10.
+    * If all files aren't merged: Write an `sbatch` script that will run
+      `merge_files`.
+      Once `sbatch` script is written, go to step 1 for the next field.
+ 10. Run some analysis, such as making naive A_V maps.
+     * If all output files exist: This field is done! Continue onto the next field.
+     * If all output files don't exist: Write an `sbatch` script with whichever
+       functions still need to be run.
+       Once `sbatch` script is written, go to step 1 for the next field.
