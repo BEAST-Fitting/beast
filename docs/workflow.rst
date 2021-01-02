@@ -14,6 +14,9 @@ datasets.
 For visualizations of the code and files, see :ref:`BEAST Graphical Models
 <beast_graphical_model>`.
 
+To see an example of the workflow used on XSEDE, see :ref:`Running the BEAST on
+XSEDE <beast_xsede>`.
+
 *****
 Setup
 *****
