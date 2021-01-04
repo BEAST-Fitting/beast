@@ -41,10 +41,14 @@ Very broadly, these are the steps you follow to use XSEDE resources:
   helpdesk!).  You're welcome to reference the `METAL XSEDE proposal
   <https://www.overleaf.com/read/ysmvjxbbrtvf>`_.
 
-For METAL, we used a combination of Bridges Regular and Bridges Large.
+For METAL, we used a combination of Bridges Regular and Bridges Large.  As part
+of the proposal process, you'll also be required to get storage on the Bridges
+Pylon filesystem.
 
 * Bridges Regular: Charges by CPU usage (e.g., using 5 CPUs for 3 hours charges
-  15 CPU-hours).  Each CPU comes with 4.5GB of memory.
+  15 CPU-hours).  Each CPU comes with 4.5GB of memory.  There are `three
+  different configurations <https://www.psc.edu/resources/bridges/running-jobs/#rm-summary>`_
+  depending on your exact needs.
 * Bridges Large: Charges by memory usage (e.g., using 2 TB for 4 hours charges
   8 TB-hours).  Each 45GB comes with 1 CPU.  The minimum memory you can request
   for a given job is 128GB.
@@ -61,6 +65,36 @@ problem, as long as it's not so large that you get stuck waiting in the queue
 (e.g., >30 hours).
 
 
+*****
+Setup
+*****
+
+As with any new system, there is some setup to get everything up and running.
+Here are some notes to help get started on Bridges.
+
+* To log in, do ``ssh username@login.xsede.org`` and follow instructions for
+  two-factor authentication.  Then do ``gsissh bridges`` to get into Bridges,
+  and ``cd $SCRATCH`` to go to your Pylon storage.
+* XSEDE has `many different programs <https://portal.xsede.org/software>`_
+  already installed.  A more descriptive Bridges-specific list is `here
+  <https://www.psc.edu/resources/software/>`_.  To use any of these, simply load
+  the module: `module load <module_name>`.
+* Instructions for setting up anaconda and using environments are `here
+  <https://www.psc.edu/resources/software/anaconda/>`_.
+* If you want to use git to do things with the BEAST (rather than just using
+  pip), and you want to set up an ssh key pair between github and Bridges,
+  you'll need to follow the approval process `here <https://www.psc.edu/about-using-ssh/>`_.
+* There are `lots of options <https://www.psc.edu/resources/bridges/transferring-files/>`_
+  for transferring data.
+* Information for account administration, including monitoring your allocation,
+  is `here <https://www.psc.edu/resources/bridges/account-administration/>`_.
+* The `BEAST library files <https://beast.readthedocs.io/en/latest/install.html#beast-library-files>`_
+  should be in ``$SCRATCH``, not your home directory (it has limited storage
+  space).  However you choose to download the files, make sure they end up in a
+  folder on ``$SCRATCH``, and either make a symbolic link to ``~/.beast`` or
+  use the ``BEAST_LIBS`` environment variable.
+
+
 *************
 Using `slurm`
 *************
@@ -68,13 +102,18 @@ Using `slurm`
 If you're running on XSEDE or another system that uses the slurm queue, you may
 wish to use `write_sbatch_file.py`.  This will create a job file that can be
 submitted with ``sbatch``. More information about how this file is constructed
-can be found in the TACC user guide
-`here <https://portal.tacc.utexas.edu/archives/stampede#slurm-job-control>`_.
+can be found in the `TACC user guide
+<https://portal.tacc.utexas.edu/archives/stampede#slurm-job-control>`_.
+Bridges-specific information can be found
+`here <https://www.psc.edu/resources/bridges/running-jobs/>`_ and
+`here <https://www.psc.edu/resources/bridges/sample-batch-scripts/>`_.
+There are also many `slurm environment variables
+<https://portal.tacc.utexas.edu/archives/stampede#slurm-environment-variables>`_
+that can be incorporated into the script (several are included in the sbatch
+files written by the BEAST XSEDE wrapper).
 
 Here is an example call to `write_sbatch_file.py` that shows some of its
-functionality.  Note that for XSEDE, `many different programs
-<https://portal.xsede.org/software>`_ are already installed, so you just need to
-load the relevant module (e.g., anaconda).
+functionality.
 
  .. code-block:: console
 
@@ -114,6 +153,17 @@ Then the file can be submitted:
  .. code-block:: console
 
     $ sbatch sbatch_file.script
+
+
+To check on the status of running jobs, type ``squeue -u <username>``.
+`This page <https://docs.rc.fas.harvard.edu/kb/convenient-slurm-commands/>`_
+has a nice summary of slurm commands. There is more detailed information
+`here <https://docs.csc.fi/support/faq/how-much-memory-my-job-needs/>`_
+about how to monitor the resource usage of a running job and `here
+<https://stackoverflow.com/questions/24020420/find-out-the-cpu-time-and-memory-usage-of-a-slurm-job>`_
+about checking the resource usage of a completed job.  (For unknown reasons,
+when you do those checks, you may need to use ``<job_ID>.batch`` instead of just
+the job ID to display results correctly.)
 
 
 *******************
