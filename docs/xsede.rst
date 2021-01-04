@@ -11,7 +11,7 @@ Running the BEAST with a finely-spaced grid requires considerable computational
 resources, so you may choose to use `XSEDE <https://www.xsede.org/>`_.  This
 page gives an overview of running the BEAST on XSEDE based on the team's
 experience with METAL.  It includes applying for an allocation, using the
-`slurm` queue system, and documentation for the `XSEDE BEAST wrapper
+slurm queue system, and documentation for the `XSEDE BEAST wrapper
 <https://github.com/BEAST-Fitting/beast-examples/tree/master/metal_xsede>`_
 in `beast-examples <https://github.com/BEAST-Fitting/beast-examples>`_.
 
@@ -78,7 +78,7 @@ Here are some notes to help get started on Bridges.
 * XSEDE has `many different programs <https://portal.xsede.org/software>`_
   already installed.  A more descriptive Bridges-specific list is `here
   <https://www.psc.edu/resources/software/>`_.  To use any of these, simply load
-  the module: `module load <module_name>`.
+  the module: ``module load <module_name>``.
 * Instructions for setting up anaconda and using environments are `here
   <https://www.psc.edu/resources/software/anaconda/>`_.
 * If you want to use git to do things with the BEAST (rather than just using
@@ -121,7 +121,7 @@ functionality.
     $ python -m beast.tools.write_sbatch_file \
       'sbatch_file.script' './path/to/job/beast_batch_fit_X.joblist' \
       '/path/to/files/projectname/' \
-      --modules 'module load anaconda3' 'source activate beast_v1.4' \
+      --modules 'module load anaconda3' 'source activate beast_env' \
       --queue LM --run_time 2:30:00 --mem 250GB
 
 
@@ -142,7 +142,7 @@ This creates a file ``sbatch_file.script`` with these contents:
     # Load any necessary modules
     # Loading modules in the script ensures a consistent environment.
     module load anaconda3
-    source activate beast_v1.4
+    source activate beast_env
 
     # Launch a job
     ./path/to/job/beast_batch_fit_X.joblist
@@ -162,8 +162,8 @@ has a nice summary of slurm commands. There is more detailed information
 about how to monitor the resource usage of a running job and `here
 <https://stackoverflow.com/questions/24020420/find-out-the-cpu-time-and-memory-usage-of-a-slurm-job>`_
 about checking the resource usage of a completed job.  (For unknown reasons,
-when you do those checks, you may need to use ``<job_ID>.batch`` instead of just
-the job ID to display results correctly.)
+when you do those checks, you may need to use ``-j JobID.batch`` instead of just
+``-j JobID`` to display results correctly.)
 
 
 *******************
@@ -175,8 +175,8 @@ This section will go through the `METAL XSEDE example
 The wrapper `run_beast_xsede.py` follows the
 :ref:`production run workflow<beast_standard_workflow>`,
 but at relevant steps, writes out `sbatch` files that the user can then submit
-to the `slurm` queue.  The example has addition supplementary files that will
-be described here, too.
+to the slurm queue.  The example has additional supplementary files that are
+described at the end of this section.
 
 
 ==========================
@@ -185,13 +185,14 @@ Using `run_beast_xsede.py`
 
 The XSEDE workflow generally goes as follows:
 
-1. Type ``sbatch submit_beast_wrapper.script`` to submit the wrapper.
+1. Type ``sbatch submit_beast_wrapper.script`` to submit the workflow wrapper
+   `run_beast_xsede.py`.
 2. This will run the wrapper.  Once it reaches a step that writes `sbatch`
-   file(s), it will stop and write out a text file with the commands to run.
-   The wrapper is set up to loop through fields, so once it gets to that point
-   for one field, it'll continue on to the next field, until it's looped through
-   all fields and written all necessary `sbatch` files.
-3. Submit the `sbatch` commands.
+   file(s), it will record the necessary file submission command(s) and hop to the
+   next field. Once it's looped through all the fields, it will write out all of
+   the `sbatch` file submission commands to a text file.
+3. Submit the `sbatch` commands (either copy/paste from the text file or simply
+   execute the text file).
 4. Once those have finished running, do ``sbatch submit_beast_wrapper.script``
    to submit the wrapper again.  It'll see that new files exist, and progress
    along the workflow until it reaches the next set of sbatch files.
@@ -223,7 +224,7 @@ For the wrapper `run_beast_xsede.py` itself, here is what happens when it runs:
    * If all noisemodels exist: Continue onto step 7.
 
    * If all noisemodels don't exist: Write an `sbatch` script that will run
-     `create_obsmodel` (when run, this function will only generate missing
+     `create_obsmodel` (note that `create_obsmodel` knows to only generate missing
      noise model files).
      Once `sbatch` scripts are written, go to step 1 for the next field.
 
@@ -237,7 +238,7 @@ For the wrapper `run_beast_xsede.py` itself, here is what happens when it runs:
      Once `sbatch` script is written, go to step 1 for the next field.
 
 8. Do the fitting.  This runs `setup_batch_beast_fit`, which checks for files,
-   and opens existing files to check if all stars have been fit.  This can take
+   and opens any existing files to check if all stars have been fit.  This can take
    a while, especially when there are lots of files to open.  This also writes
    out an `sbatch` file to do a partial merge, which you can choose to run if
    you need it at some point.
@@ -282,14 +283,14 @@ when creating the SED grid for a given field.
 Additional files
 ================
 
-There are several additional text files in the `XSEDE BEAST wrapper
+There are several additional text files in the `XSEDE example
 <https://github.com/BEAST-Fitting/beast-examples/tree/master/metal_xsede>`_
 folder.
 
 * `beast_settings_template_LMC.txt` and `beast_settings_template_SMC.txt`:
   Template BEAST settings files for fields in the LMC and SMC.  For each field,
-  the relevant keywords get updated, and a field-specific settings file is
-  written out.
+  `run_beast_xsede` updates relevant keywords (project name, filters, etc), and
+  writes out a field-specific settings file.
 * `beast_settings_LMC_mastergrid.txt` and `beast_settings_SMC_mastergrid.txt`:
   These settings files are used when creating the master grid files.  They're
   identical to the templates above, but with all METAL filters listed in the
