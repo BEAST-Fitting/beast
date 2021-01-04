@@ -8,14 +8,14 @@ Running the BEAST on XSEDE
 :ref:`production run workflow<beast_standard_workflow>`)
 
 Running the BEAST with a finely-spaced grid requires considerable computational
-resources, so you may choose to use `XSEDE <https://www.xsede.org/>`_.  This
+resources, so you may choose to use `XSEDE <https://www.xsede.org/>`__.  This
 page gives an overview of running the BEAST on XSEDE based on the team's
 experience with METAL.  It includes applying for an allocation, using the
 slurm queue system, and documentation for the `XSEDE BEAST wrapper
-<https://github.com/BEAST-Fitting/beast-examples/tree/master/metal_xsede>`_
-in `beast-examples <https://github.com/BEAST-Fitting/beast-examples>`_.
+<https://github.com/BEAST-Fitting/beast-examples/tree/master/metal_xsede>`__
+in `beast-examples <https://github.com/BEAST-Fitting/beast-examples>`__.
 
-The XSEDE online `documentation <https://portal.xsede.org/documentation-overview>`_
+The XSEDE online `documentation <https://portal.xsede.org/documentation-overview>`__
 is quite extensive, and their help desk is very helpful and responsive.  Note
 that XSEDE also periodically runs free online workshops for different topics,
 several of which BEAST team members have attended.
@@ -27,19 +27,19 @@ XSEDE Allocations
 
 Very broadly, these are the steps you follow to use XSEDE resources:
 
-* Get a `startup allocation <https://portal.xsede.org/allocations/startup>`_.
+* Get a `startup allocation <https://portal.xsede.org/allocations/startup>`__.
   There's a convenient request form that only requires a short justification
   (both for the science and to explain why you don't currently have access to
   sufficient resources).
 * Run the BEAST on enough of your data to get a good estimate of the resources
   you'll need for a full production run.  Though if you're only doing a few
   fields, the startup allocation may be enough for your needs!
-* Submit a proposal for a `research allocation <https://portal.xsede.org/allocations/research>`_.
+* Submit a proposal for a `research allocation <https://portal.xsede.org/allocations/research>`__.
   Proposals are accepted every 3 months.  Be sure to carefully read the
   proposal requirements and/or watch the webinar, because it's not always clear
   what documents are required for what proposal types (if in doubt, ask the
   helpdesk!).  You're welcome to reference the `METAL XSEDE proposal
-  <https://www.overleaf.com/read/ysmvjxbbrtvf>`_.
+  <https://www.overleaf.com/read/ysmvjxbbrtvf>`__.
 
 For METAL, we used a combination of Bridges Regular and Bridges Large.  As part
 of the proposal process, you'll also be required to get storage on the Bridges
@@ -47,7 +47,7 @@ Pylon filesystem.
 
 * Bridges Regular: Charges by CPU usage (e.g., using 5 CPUs for 3 hours charges
   15 CPU-hours).  Each CPU comes with 4.5GB of memory.  There are `three
-  different configurations <https://www.psc.edu/resources/bridges/running-jobs/#rm-summary>`_
+  different configurations <https://www.psc.edu/resources/bridges/running-jobs/#rm-summary>`__
   depending on your exact needs.
 * Bridges Large: Charges by memory usage (e.g., using 2 TB for 4 hours charges
   8 TB-hours).  Each 45GB comes with 1 CPU.  The minimum memory you can request
@@ -75,20 +75,20 @@ Here are some notes to help get started on Bridges.
 * To log in, do ``ssh username@login.xsede.org`` and follow instructions for
   two-factor authentication.  Then do ``gsissh bridges`` to get into Bridges,
   and ``cd $SCRATCH`` to go to your Pylon storage.
-* XSEDE has `many different programs <https://portal.xsede.org/software>`_
+* XSEDE has `many different programs <https://portal.xsede.org/software>`__
   already installed.  A more descriptive Bridges-specific list is `here
-  <https://www.psc.edu/resources/software/>`_.  To use any of these, simply load
+  <https://www.psc.edu/resources/software/>`__.  To use any of these, simply load
   the module: ``module load <module_name>``.
 * Instructions for setting up anaconda and using environments are `here
-  <https://www.psc.edu/resources/software/anaconda/>`_.
+  <https://www.psc.edu/resources/software/anaconda/>`__.
 * If you want to use git to do things with the BEAST (rather than just using
   pip), and you want to set up an ssh key pair between github and Bridges,
-  you'll need to follow the approval process `here <https://www.psc.edu/about-using-ssh/>`_.
-* There are `lots of options <https://www.psc.edu/resources/bridges/transferring-files/>`_
+  you'll need to follow the approval process `here <https://www.psc.edu/about-using-ssh/>`__.
+* There are `lots of options <https://www.psc.edu/resources/bridges/transferring-files/>`__
   for transferring data.
 * Information for account administration, including monitoring your allocation,
-  is `here <https://www.psc.edu/resources/bridges/account-administration/>`_.
-* The `BEAST library files <https://beast.readthedocs.io/en/latest/install.html#beast-library-files>`_
+  is `here <https://www.psc.edu/resources/bridges/account-administration/>`__.
+* The `BEAST library files <https://beast.readthedocs.io/en/latest/install.html#beast-library-files>`__
   should be in ``$SCRATCH``, not your home directory (it has limited storage
   space).  However you choose to download the files, make sure they end up in a
   folder on ``$SCRATCH``, and either make a symbolic link to ``~/.beast`` or
@@ -103,12 +103,12 @@ If you're running on XSEDE or another system that uses the slurm queue, you may
 wish to use `write_sbatch_file.py`.  This will create a job file that can be
 submitted with ``sbatch``. More information about how this file is constructed
 can be found in the `TACC user guide
-<https://portal.tacc.utexas.edu/archives/stampede#slurm-job-control>`_.
+<https://portal.tacc.utexas.edu/archives/stampede#slurm-job-control>`__.
 Bridges-specific information can be found
-`here <https://www.psc.edu/resources/bridges/running-jobs/>`_ and
-`here <https://www.psc.edu/resources/bridges/sample-batch-scripts/>`_.
+`here <https://www.psc.edu/resources/bridges/running-jobs/>`__ and
+`here <https://www.psc.edu/resources/bridges/sample-batch-scripts/>`__.
 There are also many `slurm environment variables
-<https://portal.tacc.utexas.edu/archives/stampede#slurm-environment-variables>`_
+<https://portal.tacc.utexas.edu/archives/stampede#slurm-environment-variables>`__
 that can be incorporated into the script (several are included in the sbatch
 files written by the BEAST XSEDE wrapper).
 
@@ -156,11 +156,11 @@ Then the file can be submitted:
 
 
 To check on the status of running jobs, type ``squeue -u <username>``.
-`This page <https://docs.rc.fas.harvard.edu/kb/convenient-slurm-commands/>`_
+`This page <https://docs.rc.fas.harvard.edu/kb/convenient-slurm-commands/>`__
 has a nice summary of slurm commands. There is more detailed information
-`here <https://docs.csc.fi/support/faq/how-much-memory-my-job-needs/>`_
+`here <https://docs.csc.fi/support/faq/how-much-memory-my-job-needs/>`__
 about how to monitor the resource usage of a running job and `here
-<https://stackoverflow.com/questions/24020420/find-out-the-cpu-time-and-memory-usage-of-a-slurm-job>`_
+<https://stackoverflow.com/questions/24020420/find-out-the-cpu-time-and-memory-usage-of-a-slurm-job>`__
 about checking the resource usage of a completed job.  (For unknown reasons,
 when you do those checks, you may need to use ``-j JobID.batch`` instead of just
 ``-j JobID`` to display results correctly.)
@@ -171,7 +171,7 @@ BEAST XSEDE wrapper
 *******************
 
 This section will go through the `METAL XSEDE example
-<https://github.com/BEAST-Fitting/beast-examples/tree/master/metal_xsede>`_.
+<https://github.com/BEAST-Fitting/beast-examples/tree/master/metal_xsede>`__.
 The wrapper `run_beast_xsede.py` follows the
 :ref:`production run workflow<beast_standard_workflow>`,
 but at relevant steps, writes out `sbatch` files that the user can then submit
@@ -284,7 +284,7 @@ Additional files
 ================
 
 There are several additional text files in the `XSEDE example
-<https://github.com/BEAST-Fitting/beast-examples/tree/master/metal_xsede>`_
+<https://github.com/BEAST-Fitting/beast-examples/tree/master/metal_xsede>`__
 folder.
 
 * `beast_settings_template_LMC.txt` and `beast_settings_template_SMC.txt`:
