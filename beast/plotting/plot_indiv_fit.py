@@ -263,7 +263,7 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
         waves, mod_flux_nd[:, 1], mod_flux_nd[:, 2], color="y", alpha=0.1
     )
 
-    #can introduce a legend loc option if 'best' produces overlap
+    # can introduce a legend loc option if 'best' produces overlap
     sed_ax.legend(loc='best', fontsize=9)
 
     sed_ax.set_ylabel(r"Flux [ergs s$^{-1}$ cm$^{-2}$ $\AA^{-1}$]")
