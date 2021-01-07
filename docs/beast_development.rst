@@ -123,6 +123,11 @@ and `beast-dev1`).
 
      $ git add -A
 
+- If you add a file type in the `beast/` folder that's not typically included
+  (e.g., `.txt` or `.png`), you also need to list it in the ``[options.package_data]``
+  section in `setup.cfg`.  Even if the file exists in the repository, adding it
+  here is necessary for it to be included when the package is built.
+
 - To 'commit' all changes after adding desired files:
 
   .. code-block:: console
