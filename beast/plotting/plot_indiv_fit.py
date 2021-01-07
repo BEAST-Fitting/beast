@@ -263,11 +263,11 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
         waves, mod_flux_nd[:, 1], mod_flux_nd[:, 2], color="y", alpha=0.1
     )
 
-    # sed_ax.legend(loc='upper right', bbox_to_anchor=(1.25, 1.025), fontsize=8)
-    sed_ax.legend(loc="lower right", fontsize=9)
+    # can introduce a legend loc option if 'best' produces overlap
+    sed_ax.legend(loc='best', fontsize=9)
 
     sed_ax.set_ylabel(r"Flux [ergs s$^{-1}$ cm$^{-2}$ $\AA^{-1}$]")
-    sed_ax.set_yscale("symlog", linthreshy=symlog_linthreshold)
+    sed_ax.set_yscale("symlog", linthresh=symlog_linthreshold)
     sed_ax.grid(True)
 
     sed_ax.text(0.5, -0.07, r"$\lambda$ [$\mu m$]", transform=sed_ax.transAxes, va="top")
