@@ -616,7 +616,10 @@ def calc_nx_ny_from_pixsize(cat, pixsize_degrees):
 
     # Compute the required width of the bins expressed in RA and DEC to
     # reach the requested physical pixel size on the sky
-    dec_delt = pixsize_degrees.value
+    if type(pixsize_degrees) == astropy.units.quantity.Quantity:
+        dec_delt = pixsize_degrees.value
+    else:
+        dec_delt = pixsize_degrees
     cos_avg_dec = math.cos(math.radians((max_dec + min_dec) / 2))
     # ra_delt * cos(dec) = requested physical size
     # --> ra_delt \approx requested physical size / cos(avg dec)
