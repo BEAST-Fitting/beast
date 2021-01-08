@@ -168,7 +168,7 @@ if __name__ == "__main__":  # pragma: no cover
         "--use_sd",
         type=int,
         default=1,
-        help="set to True if the fitting used source density bins",
+        help="set to True (1) if the fitting used source density bins",
     )
     parser.add_argument(
         "--nsubs",
@@ -178,9 +178,8 @@ if __name__ == "__main__":  # pragma: no cover
     )
     parser.add_argument(
         "--partial",
-        type=int,
-        default=0,
-        help="set to True (1) if fitting is partially complete and you want to merge stars that are done (relevant to subgrids only)",
+        action="store_true",
+        help="Set this if fitting is partially complete and you want to merge stars that are done (relevant to subgrids only)",
     )
 
     args = parser.parse_args()
@@ -189,7 +188,7 @@ if __name__ == "__main__":  # pragma: no cover
         beast_settings_info=args.beast_settings_file,
         use_sd=bool(args.use_sd),
         nsubs=args.nsubs,
-        partial=bool(args.partial),
+        partial=args.partial,
     )
 
     # print help if no arguments

@@ -411,7 +411,7 @@ just those.  Partial merge is only currently implemented for stats and 1D PDFs.
 
   .. code-block:: console
 
-     $ python -m beast.tools.run.merge_files beast_settings.txt --nsubs 5 --partial 1
+     $ python -m beast.tools.run.merge_files beast_settings.txt --nsubs 5 --partial
 
 
 Reorganize the results into spatial region files
