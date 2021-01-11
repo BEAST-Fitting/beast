@@ -59,7 +59,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
     Nfilters = settings.ast_bands_above_maglimit
 
     # file names for stars and corresponding SED parameters
-    if settings.ast_supplement:
+    if pick_method == "suppl_seds":
         outfile_seds = "./{0}/{0}_inputAST_seds_suppl.txt".format(settings.project)
         outfile_params = "./{0}/{0}_ASTparams_suppl.fits".format(settings.project)
     else:
