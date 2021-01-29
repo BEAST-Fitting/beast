@@ -33,7 +33,7 @@ def plot_ast_histogram(ast_file, sed_grid_file=None):
     # read in AST info
     ast_table = Table.read(ast_file, format="ascii")
     ast_fluxbins = Table.read(
-        ast_file.replace("inputAST", "ASTfluxbins"), format="ascii"
+        ast_file.split("inputAST")[0] + "ASTfluxbins.txt", format="ascii"
     )
 
     # get filter names (and it's even in order!)
