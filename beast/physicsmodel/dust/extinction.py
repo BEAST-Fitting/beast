@@ -570,7 +570,10 @@ class Gordon16_RvFALaw(ExtinctionLaw):
         """
 
         Rv_B = self.BLaw.Rv
-        return 1.0 / (1.0 / (Rv * f_A) - (1.0 - f_A) / (f_A * Rv_B))
+        if f_A > 0:
+            return 1.0 / (1.0 / (Rv * f_A) - (1.0 - f_A) / (f_A * Rv_B))
+        else:
+            return 3.1  # not used, but needs to be non-zero
 
     def get_Rv(self, Rv_A, f_A=0.5):
         """
