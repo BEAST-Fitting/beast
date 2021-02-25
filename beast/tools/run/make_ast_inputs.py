@@ -172,7 +172,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 settings.ast_realization_per_model,
                 outfile=outfile,
                 refimage=settings.ast_reference_image,
-                refimage_hdu=1,
+                refimage_hdu=settings.ast_reference_image_hdu_extension,
                 wcs_origin=1,
                 Nrealize=1,
                 set_coord_boundary=settings.ast_coord_boundary,
