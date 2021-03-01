@@ -48,6 +48,7 @@ input parameters from beast_settings.txt.
 * ``ast_N_bins``: (optional; int) number of source or background bins that you want ASTs repeated over.
 * ``ast_pixel_distribution``: (optional; float) minimum pixel separation between AST position and catalog star used to determine the AST spatial distribution. Used if ast_with_positions is True.
 * ``ast_reference_image``: (optional; string) name of the reference image used by DOLPHOT when running the measured photometry. Required if ast_with_positions is True and no X,Y information is present in the photometry catalog.
+* ``ast_reference_image_hdu_extension``: (optional; int) extension number of the reference image file where the WCS information is stored. Required if ast_with_positions is True and no X,Y information is present in the photometry catalog.
 * ``ast_coord_boundary``: (optional; list of two arrays) if supplied, these RA/Dec coordinates will be used to limit the region over which ASTs are generated (default = None).
 * ``ast_erode_selection_region``: (optional; float) To avoid placing ASTs near the edge of the image, set this to the number of arcseconds (default=0.5, which is ~10 pixels for WFC3/UVIS) to shrink the allowed AST placement region.  This is applied by doing an erosion to both ast_coord_boundary (if set) and a convex hull around the photometry catalog.
 * ``astfile``:  pathname to the AST files (single camera ASTs).
