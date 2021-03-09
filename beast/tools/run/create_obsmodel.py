@@ -17,7 +17,6 @@ def create_obsmodel(
     nsubs=1,
     nprocs=1,
     subset=[None, None],
-    use_rate=True,
 ):
     """
     Create the observation models.  If nsubs > 1, this will find existing
@@ -45,12 +44,6 @@ def create_obsmodel(
     subset : list of two ints (default=[None,None])
         Only process subgrids in the range [start,stop].
         (only relevant if nsubs > 1)
-
-    use_rate : boolean (default=True)
-        Choose whether to use the rate or magnitude when creating the noise
-        model.  This should always be True, but is currently an option to be
-        compatible with the phat_small example (which has no rate info).
-        When that gets fixed, please remove this option!
 
     """
 

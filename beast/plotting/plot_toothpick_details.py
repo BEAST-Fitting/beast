@@ -40,7 +40,6 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
     ast_nonrecovered_frac = 0.5
     model.fit_bins(
         nbins=50,
-        completeness_mag_cut=-10,
         ast_nonrecovered_frac=ast_nonrecovered_frac,
         # min_flux=1e-22,
         # max_flux=1e-14,
