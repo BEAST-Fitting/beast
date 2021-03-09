@@ -13,7 +13,7 @@ def plot_noisemodel(
     noise_file_list,
     plot_file,
     samp=100,
-    color=["black", "red", "gold", "lime", "xkcd:azure"],
+    cmap_name='jet',
     label=None,
 ):
     """
@@ -38,8 +38,8 @@ def plot_noisemodel(
         plotting all of the SED points takes a long time for a viewer to load,
         so set this to plot every Nth point
 
-    color : list of strings (default=['black','red','gold','lime','xkcd:azure'])
-        colors to cycle through when making plots
+    cmap_name : string (default=plt.cm.jet)
+        name of a color map to use
 
     label : list of strings (default=None)
         if set, use these labels in a legend for each item in noise_file_list
@@ -68,6 +68,8 @@ def plot_noisemodel(
     plt.rc("axes", linewidth=2)
     plt.rc("xtick.major", width=2)
     plt.rc("ytick.major", width=2)
+
+    cmap = plt.get_cmap(cmap_name)
 
     # go through noise files
     for n, nfile in enumerate(np.atleast_1d(noise_file_list)):
@@ -101,16 +103,16 @@ def plot_noisemodel(
                 linestyle="none",
                 mew=0,
                 ms=2,
-                color=color[n % len(color)],
                 alpha=0.1,
+                label='SD bin%d' % (n),
             )
-            if label is not None:
-                bax.set_label(label[n])
 
             bax.tick_params(axis="both", which="major")
-            # ax.set_xlim(ax.get_xlim()[::-1])
             bax.set_xlabel("log " + filt)
             bax.set_ylabel(r"Bias ($\mu$/F)")
+            leg = bax.legend(loc='lower right', markerscale=3)
+            for lh in leg.legendHandles:
+                lh._legmarker.set_alpha(1)
 
             # error
             eax = ax[1, f]
@@ -121,14 +123,10 @@ def plot_noisemodel(
                 linestyle="none",
                 mew=0,
                 ms=2,
-                color=color[n % len(color)],
                 alpha=0.1,
             )
-            if label is not None:
-                eax.set_label(label[n])
 
             eax.tick_params(axis="both", which="major")
-            # ax.set_xlim(ax.get_xlim()[::-1])
             eax.set_xlabel("log " + filt)
             eax.set_ylabel(r"Error ($\sigma$/F)")
 
@@ -141,32 +139,16 @@ def plot_noisemodel(
                 linestyle="none",
                 mew=0,
                 ms=2,
-                color=color[n % len(color)],
                 alpha=0.1,
             )
-            if label is not None:
-                cax.set_label(label[n])
 
             cax.tick_params(axis="both", which="major")
-            # ax.set_xlim(ax.get_xlim()[::-1])
             cax.set_xlabel("log " + filt)
             cax.set_ylabel(r"Completeness")
 
-            # do a legend if this is
-            # (a) the leftmost panel
-            # (b) the last line to be added
-            # (c) there are labels set
-            if (f == 0) and (n == len(noise_file_list) - 1) and (label is not None):
-                leg = bax.legend(fontsize=12)
-                for lh in leg.legendHandles:
-                    lh._legmarker.set_alpha(1)
-                leg = eax.legend(fontsize=12)
-                for lh in leg.legendHandles:
-                    lh._legmarker.set_alpha(1)
-
     plt.tight_layout()
 
-    fig.savefig(plot_file)
+    fig.savefig(plot_file, dpi=300)
     plt.close(fig)
 
 
@@ -190,18 +172,10 @@ if __name__ == "__main__":  # pragma: no cover
         "--samp", type=int, default=100, help="plot every Nth point",
     )
     parser.add_argument(
-        "--color",
+        "--cmap_name",
         type=str,
-        nargs="+",
-        default=["black", "red", "gold", "lime", "xkcd:azure"],
-        help="colors to cycle through when making plots",
-    )
-    parser.add_argument(
-        "--label",
-        type=str,
-        nargs="+",
-        default=None,
-        help="if set, use these labels in a legend for each item in noise_file_list",
+        default="jet",
+        help="color map to use when making plots",
     )
 
     args = parser.parse_args()
@@ -211,8 +185,7 @@ if __name__ == "__main__":  # pragma: no cover
         args.noise_file_list,
         args.plot_file,
         samp=args.samp,
-        color=args.color,
-        label=args.label,
+        cmap_name=args.cmap_name,
     )
 
     # print help if no arguments
