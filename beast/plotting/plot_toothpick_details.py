@@ -47,7 +47,8 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
     )
 
     nfilters = len(sedgrid.filters)
-    fig, ax = plt.subplots(nrows=nfilters, ncols=2, figsize=(14, 10), sharex=True)
+    figsize_y = nfilters * 3
+    fig, ax = plt.subplots(nrows=nfilters, ncols=2, figsize=(14, figsize_y), sharex=True)
     set_params()
 
     for i, cfilter in enumerate(sedgrid.filters):
