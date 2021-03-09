@@ -56,7 +56,6 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
 
     modelsedgrid_filename = "./{0}/{0}_seds.grid.hd5".format(settings.project)
     Nrealize = settings.ast_realization_per_model
-    Nfilters = settings.ast_bands_above_maglimit
 
     # file names for stars and corresponding SED parameters
     if pick_method == "suppl_seds":
@@ -80,7 +79,6 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
             chosen_seds = pick_models_toothpick_style(
                 modelsedgrid_filename,
                 settings.filters,
-                Nfilters,
                 N_fluxes,
                 min_N_per_flux,
                 outfile=outfile_seds,
@@ -91,8 +89,8 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
         if pick_method == "random_pick":
 
             # construct magnitude cuts
-
             mag_cuts = settings.ast_maglimit
+            Nfilters = settings.ast_bands_above_maglimit
 
             if len(mag_cuts) == 1:
                 tmp_cuts = mag_cuts
