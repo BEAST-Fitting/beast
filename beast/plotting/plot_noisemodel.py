@@ -14,7 +14,6 @@ def plot_noisemodel(
     plot_file,
     samp=100,
     cmap_name='jet',
-    label=None,
 ):
     """
     Make a plot of the noise model: for each of the bandsm make plots of bias
@@ -40,9 +39,6 @@ def plot_noisemodel(
 
     cmap_name : string (default=plt.cm.jet)
         name of a color map to use
-
-    label : list of strings (default=None)
-        if set, use these labels in a legend for each item in noise_file_list
     """
 
     # read in the SED grid
