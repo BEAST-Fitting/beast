@@ -73,7 +73,7 @@ class MultiFilterASTs(NoiseModel):
         self.vega_flux = vega_flux
 
     def set_data_mappings(
-        self, in_pair=("in", "in"), out_pair=("out", "vega"), upcase=False
+        self, in_pair=("in", "in"), out_pair=("out", "rate"), upcase=False
     ):
         """
         Specify the mapping directly with the interface to PHAT-like ASTs
@@ -90,22 +90,30 @@ class MultiFilterASTs(NoiseModel):
         for k in self.filters:
             external_in = k.split("_")[-1] + "_" + in_pair[1]
             external_out = k.split("_")[-1] + "_" + out_pair[1]
+            external_out_flag = k.split("_")[-1] + "_flag"
+            external_out_mag = k.split("_")[-1] + "_vega"
             if upcase:
                 external_in = external_in.upper()
                 external_out = external_out.upper()
+                external_out_flag = external_out_flag.upper()
+                external_out_mag = external_out_mag.upper()
             else:
                 external_in = external_in.lower()
                 external_out = external_out.lower()
+                external_out_flag = external_out_flag.lower()
+                external_out_mag = external_out_mag.lower()
             self.filter_aliases[k + "_in"] = external_in
             self.filter_aliases[k + "_out"] = external_out
+            self.filter_aliases[k + "_flag"] = external_out_flag
+            self.filter_aliases[k + "_outmag"] = external_out_mag
 
     def _compute_sigma_bins(
         self,
-        magflux_in,
-        magflux_out,
+        mag_in,
+        flux_out,
+        fluxout_mag=None,
         nbins=30,
         min_per_bin=10,
-        completeness_mag_cut=80,
         name_prefix=None,
         asarray=False,
         compute_stddev=False,
@@ -121,15 +129,14 @@ class MultiFilterASTs(NoiseModel):
 
         Parameters
         ----------
-        magflux_in : ndarray
-             AST input mag or flux
+        mag_in : ndarray
+             AST input mag
 
-        magflux_out : ndarray
-             AST output mag or flux
+        flux_out : ndarray
+             AST output flux
 
-        completeness_mag_cut : float
-            magnitude at which consider a star not recovered
-            set to -1 if the magflux_out is in fluxes (not magnitudes)
+        fluxout_mag : ndarray
+            AST output mag, if present used to remove sources with mag > 90
 
         nbins : int, optional
             Number of logrithmically spaced bins between the min/max values
@@ -175,36 +182,23 @@ class MultiFilterASTs(NoiseModel):
         # check if any NaNs are present, remove if they are
         # NaNs can be present due to the AST pipeline or in cases where
         # there is missing data (e.g., chip gaps)
-        if np.any(np.isnan(magflux_in)):
-            gvals = np.isfinite(magflux_in) & np.isfinite(magflux_out)
-            magflux_in = magflux_in[gvals]
-            magflux_out = magflux_out[gvals]
+        if np.any(np.isnan(mag_in)):
+            gvals = np.isfinite(mag_in) & np.isfinite(flux_out)
+            mag_in = mag_in[gvals]
+            flux_out = flux_out[gvals]
             print("removing NaNs")
 
-        # convert the AST output from magnitudes to fluxes if needed
-        #  this is designated by setting the completeness_mag_cut to a
-        #  negative number
-        #    good_indxs gives the list of recovered sources
-        if completeness_mag_cut > 0:
-            # first remove cases that have input magnitudes below the cut
-            #   not sure why this is possible, but they exist and contain
-            #   *no information* as mag_in = mag_out = 99.99
-            (good_in_indxs,) = np.where(magflux_in < completeness_mag_cut)
-            if len(good_in_indxs) < len(magflux_in):
-                magflux_in = magflux_in[good_in_indxs]
-                magflux_out = magflux_out[good_in_indxs]
-
-            # now convert from input mags to normalized vega fluxes
-            flux_out = 10 ** (-0.4 * magflux_out)
-            (bad_indxs,) = np.where(magflux_out >= completeness_mag_cut)
-            flux_out[bad_indxs] = 0.0
-        else:
-            flux_out = copy.copy(magflux_out)
+        # get the output flux accounting for flagged sources
+        # that mean the source was not recovered
+        flux_out = copy.copy(flux_out)
+        if fluxout_mag is not None:
+            notrecovered = fluxout_mag > 90
+            flux_out[notrecovered] = 0.0
 
         # convert the AST input from magnitudes to fluxes
-        # always convert the magflux_in to fluxes (the way the ASTs are
+        # always convert the mag_in to fluxes (the way the ASTs are
         # reported)
-        flux_in = 10 ** (-0.4 * magflux_in)
+        flux_in = 10 ** (-0.4 * mag_in)
 
         # set the flux_out to zero for all ASTs recovered with too large
         # a difference in fluxes.  This removes sources that are below the
@@ -309,7 +303,6 @@ class MultiFilterASTs(NoiseModel):
     def fit_bins(
         self,
         nbins=50,
-        completeness_mag_cut=80,
         ast_nonrecovered_frac=0.5,
         min_flux=None,
         max_flux=None,
@@ -322,9 +315,6 @@ class MultiFilterASTs(NoiseModel):
         ----------
         nbins : int
             number of bins between the min/max values
-
-        completeness_mag_cut : float
-            magnitude at which consider a star not recovered
 
         ast_nonrecovered_frac : float
             mark any ASTs with a fractional difference larger than this value
@@ -361,7 +351,11 @@ class MultiFilterASTs(NoiseModel):
         for e, filterk in enumerate(it):
 
             mag_in = self.data[self.filter_aliases[filterk + "_in"]]
-            magflux_out = self.data[self.filter_aliases[filterk + "_out"]]
+            flux_out = self.data[self.filter_aliases[filterk + "_out"]]
+            if self.filter_aliases[filterk + "_outmag"] in self.data.colnames:
+                fluxout_mag = self.data[self.filter_aliases[filterk + "_outmag"]]
+            else:
+                fluxout_mag = None
 
             # convert min/max fluxes to vega normalized fluxes
             if min_flux is not None:
@@ -375,9 +369,9 @@ class MultiFilterASTs(NoiseModel):
 
             d = self._compute_sigma_bins(
                 mag_in,
-                magflux_out,
+                flux_out,
+                fluxout_mag=fluxout_mag,
                 nbins=nbins,
-                completeness_mag_cut=completeness_mag_cut,
                 ast_nonrecovered_frac=ast_nonrecovered_frac,
                 min_flux=min_norm_flux,
                 max_flux=max_norm_flux,
