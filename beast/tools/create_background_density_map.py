@@ -26,6 +26,8 @@ import itertools as it
 import os
 from shapely import geometry
 
+from beast.observationmodel.ast.make_ast_xy_list import erode_path
+
 
 def main():  # pragma: no cover
     parser = argparse.ArgumentParser()
@@ -36,6 +38,12 @@ def main():  # pragma: no cover
     commonparser = argparse.ArgumentParser(add_help=False)
     commonparser.add_argument(
         "-catfile", type=str, required=True, help="catalog FITS file"
+    )
+    commonparser.add_argument(
+        "-erode_boundary",
+        type=float,
+        required=False,
+        help="number of arcsec to erode the SD map boundary by",
     )
     npix_or_pixsize = commonparser.add_mutually_exclusive_group()
     npix_or_pixsize.add_argument("--npix", type=int, default=None, help="resolution")
@@ -116,13 +124,6 @@ def main():  # pragma: no cover
         metavar="FILTER_FLAG",
         help="if set, ignore sources with flag >= 99",
     )
-    sourceden_parser.add_argument(
-        "--erode_boundary",
-        type=str,
-        default=None,
-        metavar="ERODE_BOUNDARY",
-        help="number of arcsec to erode the SD map boundary by",
-    )
 
     # options unique to plot command
     plot_parser.add_argument(
@@ -161,22 +162,36 @@ def main_make_map(args):
     ra = cat["RA"]
     dec = cat["DEC"]
 
+    # if erode_boundary is set, erode catalog boundary to compute
+    # source densities on eroded region
+    if args.erode_boundary:
+        erode_deg = args.erode_boundary / 3600
+        min_ra = ra.min() + erode_deg
+        max_ra = ra.max() - erode_deg
+        min_dec = dec.min() + erode_deg
+        max_dec = dec.max() - erode_deg
+    else:
+        min_ra = ra.min()
+        max_ra = ra.max()
+        min_dec = dec.min()
+        max_dec = dec.max()
+
     if args.npix is not None:
         n_x, n_y = args.npix, args.npix
-        ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
-        dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
+        ra_grid = np.linspace(min_ra, max_ra, n_x + 1)
+        dec_grid = np.linspace(min_dec, max_dec, n_y + 1)
     elif args.pixsize is not None:
         pixsize_arcsecs = args.pixsize * u.arcsec
         pixsize_degrees = pixsize_arcsecs.to(u.degree)
         n_x, n_y, ra_delt, dec_delt = calc_nx_ny_from_pixsize(cat, pixsize_degrees)
         # the ra spacing needs to be larger, as 1 degree of RA ==
         # cos(DEC) degrees on the great circle
-        ra_grid = ra.min() + ra_delt * np.arange(0, n_x + 1, dtype=float)
-        dec_grid = dec.min() + dec_delt * np.arange(0, n_y + 1, dtype=float)
+        ra_grid = min_ra + ra_delt * np.arange(0, n_x + 1, dtype=float)
+        dec_grid = min_dec + dec_delt * np.arange(0, n_y + 1, dtype=float)
     else:
         n_x, n_y = 10, 10
-        ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
-        dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
+        ra_grid = np.linspace(min_ra, max_ra, n_x + 1)
+        dec_grid = np.linspace(min_dec, max_dec, n_y + 1)
 
     output_base = args.catfile.replace(".fits", "")
 
@@ -520,18 +535,6 @@ def make_source_dens_map(
     catalog_boundary = geometry.Polygon(
         cut_catalogs.convexhull_path(pix_x, pix_y).vertices
     )
-
-    # if erode_boundary is set, try to make a pixel version to go with xy positions
-    erode_deg = None
-    erode_pix = None
-    if erode_boundary:
-        erode_deg = erode_boundary / 3600
-
-        deg_per_pix = wcs.utils.proj_plane_pixel_scales(w)[0]
-        erode_pix = erode_deg / deg_per_pix
-
-        # erode the original catalog boundary created above
-        catalog_boundary = erode_path(catalog_boundary, erode_pix)
 
     n_x = len(ra_grid) - 1
     n_y = len(dec_grid) - 1
