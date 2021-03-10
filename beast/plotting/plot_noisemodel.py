@@ -65,7 +65,7 @@ def plot_noisemodel(
     plt.rc("xtick.major", width=2)
     plt.rc("ytick.major", width=2)
 
-    cmap = plt.get_cmap(cmap_name)
+    plt.set_cmap(cmap_name)
 
     # go through noise files
     for n, nfile in enumerate(np.atleast_1d(noise_file_list)):
