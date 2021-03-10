@@ -116,6 +116,13 @@ def main():  # pragma: no cover
         metavar="FILTER_FLAG",
         help="if set, ignore sources with flag >= 99",
     )
+    sourceden_parser.add_argument(
+        "--erode_boundary",
+        type=str,
+        default=None,
+        metavar="ERODE_BOUNDARY",
+        help="use same boundary conditions for source density map creation as for AST placment",
+    )
 
     # options unique to plot command
     plot_parser.add_argument(
@@ -182,6 +189,7 @@ def main_make_map(args):
             mag_name=args.mag_name,
             mag_cut=args.mag_cut,
             flag_name=args.flag_name,
+            erode_boundary=args.erode_boundary,
         )
 
     if args.subcommand == "background":
@@ -463,7 +471,7 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
 
 
 def make_source_dens_map(
-    cat, ra_grid, dec_grid, output_base, mag_name, mag_cut, flag_name
+    cat, ra_grid, dec_grid, output_base, mag_name, mag_cut, flag_name, erode_boundary
 ):
     """
     Computes the source density map and store it in a pyfits HDU
@@ -488,6 +496,13 @@ def make_source_dens_map(
     flag_name : string or None
         if set, ignore sources with flag >= 99
 
+    erode_boundary : None, or float (default=None)
+        If provided, this number of arcseconds will be eroded from the region
+        over which SD is estimated.  The purpose is to make sure that the SD
+        bins are the same ones used for placing ASTs (i.e., SD bins will not
+        fall outisde the region used for AST placement, thus ending up un/under-
+        populated).
+
     OUTPUT:
     -------
     FITS files written to disk.
@@ -505,6 +520,18 @@ def make_source_dens_map(
     catalog_boundary = geometry.Polygon(
         cut_catalogs.convexhull_path(pix_x, pix_y).vertices
     )
+
+    # if erode_boundary is set, try to make a pixel version to go with xy positions
+    erode_deg = None
+    erode_pix = None
+    if erode_boundary:
+        erode_deg = erode_boundary / 3600
+
+        deg_per_pix = wcs.utils.proj_plane_pixel_scales(w)[0]
+        erode_pix = erode_deg / deg_per_pix
+
+        # erode the original catalog boundary created above
+        catalog_boundary = erode_path(catalog_boundary, erode_pix)
 
     n_x = len(ra_grid) - 1
     n_y = len(dec_grid) - 1
@@ -669,7 +696,7 @@ def make_wcs_for_map(ra_grid, dec_grid):
 
 def get_pix_coords(cat, map_wcs):
     """get the pixel coordinates of all the sources in the catalog
-       according to the given wcs"""
+    according to the given wcs"""
     world = np.column_stack((cat["RA"], cat["DEC"]))
     print("working on converting ra, dec to pix x,y")
     pixcrd = map_wcs.wcs_world2pix(world, 1) - 0.5
