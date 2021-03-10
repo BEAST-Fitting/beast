@@ -121,7 +121,7 @@ def main():  # pragma: no cover
         type=str,
         default=None,
         metavar="ERODE_BOUNDARY",
-        help="use same boundary conditions for source density map creation as for AST placment",
+        help="number of arcsec to erode the SD map boundary by",
     )
 
     # options unique to plot command
@@ -499,9 +499,9 @@ def make_source_dens_map(
     erode_boundary : None, or float (default=None)
         If provided, this number of arcseconds will be eroded from the region
         over which SD is estimated.  The purpose is to make sure that the SD
-        bins are the same ones used for placing ASTs (i.e., SD bins will not
-        fall outisde the region used for AST placement, thus ending up un/under-
-        populated).
+        bins are the same ones used for placing ASTs (i.e., so that SD bins will not
+        fall outisde the region used for AST placement, thus ensuring all SD bins
+        are well-populated).
 
     OUTPUT:
     -------
