@@ -26,8 +26,6 @@ import itertools as it
 import os
 from shapely import geometry
 
-from beast.observationmodel.ast.make_ast_xy_list import erode_path
-
 
 def main():  # pragma: no cover
     parser = argparse.ArgumentParser()
