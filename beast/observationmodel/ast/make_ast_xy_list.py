@@ -321,7 +321,7 @@ def pick_positions_from_map(
 
                 # - erode_boundary
                 # if you only want to erode the boundary and not impose other
-                # coordinate boundary constraints, still discard SD tiles
+                # coordinate boundary constraints, still discard SD tiles that don't overlap
                 if (set_coord_boundary is None) and (erode_boundary is not None):
                     if catalog_boundary_xy and tile_box_xy:
                         if (
