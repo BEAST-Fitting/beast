@@ -188,13 +188,6 @@ class MultiFilterASTs(NoiseModel):
             flux_out = flux_out[gvals]
             print("removing NaNs")
 
-        # get the output flux accounting for flagged sources
-        # that mean the source was not recovered
-        flux_out = copy.copy(flux_out)
-        if fluxout_mag is not None:
-            notrecovered = fluxout_mag > 90
-            flux_out[notrecovered] = 0.0
-
         # convert the AST input from magnitudes to fluxes
         # always convert the mag_in to fluxes (the way the ASTs are
         # reported)
