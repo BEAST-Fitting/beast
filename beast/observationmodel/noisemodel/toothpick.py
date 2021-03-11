@@ -1,5 +1,4 @@
 import math
-import copy
 
 import numpy as np
 
@@ -90,28 +89,19 @@ class MultiFilterASTs(NoiseModel):
         for k in self.filters:
             external_in = k.split("_")[-1] + "_" + in_pair[1]
             external_out = k.split("_")[-1] + "_" + out_pair[1]
-            external_out_flag = k.split("_")[-1] + "_flag"
-            external_out_mag = k.split("_")[-1] + "_vega"
             if upcase:
                 external_in = external_in.upper()
                 external_out = external_out.upper()
-                external_out_flag = external_out_flag.upper()
-                external_out_mag = external_out_mag.upper()
             else:
                 external_in = external_in.lower()
                 external_out = external_out.lower()
-                external_out_flag = external_out_flag.lower()
-                external_out_mag = external_out_mag.lower()
             self.filter_aliases[k + "_in"] = external_in
             self.filter_aliases[k + "_out"] = external_out
-            self.filter_aliases[k + "_flag"] = external_out_flag
-            self.filter_aliases[k + "_outmag"] = external_out_mag
 
     def _compute_sigma_bins(
         self,
         mag_in,
         flux_out,
-        fluxout_mag=None,
         nbins=30,
         min_per_bin=10,
         name_prefix=None,
@@ -134,9 +124,6 @@ class MultiFilterASTs(NoiseModel):
 
         flux_out : ndarray
              AST output flux
-
-        fluxout_mag : ndarray
-            AST output mag, if present used to remove sources with mag > 90
 
         nbins : int, optional
             Number of logrithmically spaced bins between the min/max values
@@ -345,10 +332,6 @@ class MultiFilterASTs(NoiseModel):
 
             mag_in = self.data[self.filter_aliases[filterk + "_in"]]
             flux_out = self.data[self.filter_aliases[filterk + "_out"]]
-            if self.filter_aliases[filterk + "_outmag"] in self.data.colnames:
-                fluxout_mag = self.data[self.filter_aliases[filterk + "_outmag"]]
-            else:
-                fluxout_mag = None
 
             # convert min/max fluxes to vega normalized fluxes
             if min_flux is not None:
@@ -363,7 +346,6 @@ class MultiFilterASTs(NoiseModel):
             d = self._compute_sigma_bins(
                 mag_in,
                 flux_out,
-                fluxout_mag=fluxout_mag,
                 nbins=nbins,
                 ast_nonrecovered_frac=ast_nonrecovered_frac,
                 min_flux=min_norm_flux,
