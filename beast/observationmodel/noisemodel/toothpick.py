@@ -272,12 +272,12 @@ class MultiFilterASTs(NoiseModel):
         else:
             return d
 
-    def fit(self, nbins=50, completeness_mag_cut=80, progress=True):
+    def fit(self, nbins=50, progress=True):
         """
         Alias of fit_bins
         """
         return self.fit_bins(
-            nbins=nbins, completeness_mag_cut=completeness_mag_cut, progress=progress
+            nbins=nbins, progress=progress
         )
 
     def fit_bins(
