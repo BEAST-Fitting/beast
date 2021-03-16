@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import copy
 
 from beast.observationmodel.noisemodel import toothpick
 from beast.physicsmodel.grid import SEDGrid
