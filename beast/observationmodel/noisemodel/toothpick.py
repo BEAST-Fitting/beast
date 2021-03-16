@@ -107,7 +107,7 @@ class MultiFilterASTs(NoiseModel):
         name_prefix=None,
         asarray=False,
         compute_stddev=False,
-        ast_nonrecovered_frac=0.5,
+        ast_nonrecovered_ratio=2.0,
         min_flux=None,
         max_flux=None,
     ):
@@ -142,9 +142,9 @@ class MultiFilterASTs(NoiseModel):
             if True, uses np.mean()+np.std() to estimate avg bias+sigma;
             if False (default), uses np.percentiles
 
-        ast_nonrecovered_frac : float
-            fraction of (flux_in-flux_out)/flux_in to consider an ast not recovered
-            default = 0.5, set to None to disable
+        ast_nonrecovered_ratio : float
+            output/input flux ratio above which to consider an ast not recovered
+            default = 2.0, set to None to disable
 
         min_flux : float
             min flux value in vega normalized fluxes for model bins
@@ -181,14 +181,14 @@ class MultiFilterASTs(NoiseModel):
         flux_in = 10 ** (-0.4 * mag_in)
 
         # set the flux_out to zero for all ASTs recovered with too large
-        # a difference in fluxes.  This removes sources that are below the
+        # a ratio of output/input fluxes.  This removes sources that are below the
         # the faintest detectable flux that are associated with a real nearby
         # source (random chance that happens depending on the source density)
         # based on input threshold ratio
-        if ast_nonrecovered_frac is not None:
+        if ast_nonrecovered_ratio is not None:
             (indxs,) = np.where(flux_out != 0.0)
-            absdiff = np.absolute((flux_in[indxs] - flux_out[indxs]) / flux_in[indxs])
-            (indxs2,) = np.where(absdiff > ast_nonrecovered_frac)
+            absdiff = flux_out[indxs] / flux_in[indxs]
+            (indxs2,) = np.where(absdiff > ast_nonrecovered_ratio)
             flux_out[indxs[indxs2]] = 0.0
 
         # storage the storage of the results
@@ -283,7 +283,7 @@ class MultiFilterASTs(NoiseModel):
     def fit_bins(
         self,
         nbins=50,
-        ast_nonrecovered_frac=0.5,
+        ast_nonrecovered_ratio=2.0,
         min_flux=None,
         max_flux=None,
         progress=True,
@@ -296,8 +296,8 @@ class MultiFilterASTs(NoiseModel):
         nbins : int
             number of bins between the min/max values
 
-        ast_nonrecovered_frac : float
-            mark any ASTs with a fractional difference larger than this value
+        ast_nonrecovered_ratio : float
+            mark any ASTs with a an output/input flux ratio larger than this value
             as nonrecovered
 
         min_flux : float
@@ -347,7 +347,7 @@ class MultiFilterASTs(NoiseModel):
                 mag_in,
                 flux_out,
                 nbins=nbins,
-                ast_nonrecovered_frac=ast_nonrecovered_frac,
+                ast_nonrecovered_ratio=ast_nonrecovered_ratio,
                 min_flux=min_norm_flux,
                 max_flux=max_norm_flux,
             )
