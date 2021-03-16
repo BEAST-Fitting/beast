@@ -216,7 +216,7 @@ def gen_SimObs_from_sedgrid(
     sedgrid,
     sedgrid_noisemodel,
     nsim=100,
-    compl_filter="F475W",
+    compl_filter="max",
     complcut=None,
     magcut=None,
     ranseed=None,

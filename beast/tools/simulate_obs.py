@@ -15,7 +15,7 @@ def simulate_obs(
     output_catalog,
     beastinfo_list=None,
     nsim=100,
-    compl_filter="F475W",
+    compl_filter="max",
     complcut=None,
     magcut=None,
     weight_to_use="weight",
@@ -50,7 +50,7 @@ def simulate_obs(
         nsim/len(physgrid_list) isn't an integer, this will be increased so that
         each grid has the same number of samples.
 
-    compl_filter : str (default=F475W)
+    compl_filter : str (default=max)
         filter to use for completeness (required for toothpick model)
         set to max to use the max value in all filters
 
