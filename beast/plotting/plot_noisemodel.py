@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
+import re
 
 from beast.physicsmodel.grid import SEDGrid
 import beast.observationmodel.noisemodel.generic_noisemodel as noisemodel
@@ -69,8 +70,8 @@ def plot_noisemodel(
 
     # go through noise files after sorting them according to
     # their SD bin number
-    noise_file_list.sort(key=lambda f: int(''.join(filter(str.isdigit,f))))
-    bin_label = [re.findall(r"bin\d+", x)[0] for x in noise_file_list] 
+    noise_file_list.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
+    bin_label = [re.findall(r"bin\d+", x)[0] for x in noise_file_list]
     for n, nfile in enumerate(np.atleast_1d(noise_file_list)):
 
         print("* reading " + nfile)
