@@ -187,8 +187,8 @@ class MultiFilterASTs(NoiseModel):
         # based on input threshold ratio
         if ast_nonrecovered_ratio is not None:
             (indxs,) = np.where(flux_out != 0.0)
-            absdiff = flux_out[indxs] / flux_in[indxs]
-            (indxs2,) = np.where(absdiff > ast_nonrecovered_ratio)
+            flux_ratio = flux_out[indxs] / flux_in[indxs]
+            (indxs2,) = np.where(flux_ratio > ast_nonrecovered_ratio)
             flux_out[indxs[indxs2]] = 0.0
 
         # storage the storage of the results
