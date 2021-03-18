@@ -216,7 +216,7 @@ def gen_SimObs_from_sedgrid(
     sedgrid,
     sedgrid_noisemodel,
     nsim=100,
-    compl_filter="F475W",
+    compl_filter="max",
     complcut=None,
     magcut=None,
     ranseed=None,
@@ -295,7 +295,13 @@ def gen_SimObs_from_sedgrid(
 
     # only use models that have non-zero completeness in all filters
     # zero completeness means the observation model is not defined for that filters/flux
-    ast_defined = model_compl > 0.0
+    # if complcut is provided, only use models above that completeness cut
+    if complcut is not None:
+        finalcomplcut = complcut
+    else:
+        finalcomplcut = 0.0
+
+    ast_defined = model_compl > finalcomplcut
     sum_ast_defined = np.sum(ast_defined, axis=1)
     goodobsmod = sum_ast_defined >= n_filters
 
@@ -319,11 +325,6 @@ def gen_SimObs_from_sedgrid(
         filter_k = short_filters.index(compl_filter.upper())
         print("Completeness from %s" % sedgrid.filters[filter_k])
         model_compl = model_compl[:, filter_k]
-
-    # if complcut is provided, only use models above that completeness cut
-    # in addition to the non-zero completeness criterion
-    if complcut is not None:
-        goodobsmod = (goodobsmod) & (model_compl >= complcut)
 
     # if magcut is provided, only use models brighter than the magnitude cut
     # in addition to the non-zero completeness criterion
@@ -376,14 +377,15 @@ def gen_SimObs_from_sedgrid(
 
             # simluate the stars at the current age
             curweights = gridweights[gmods]
-            curweights /= np.sum(curweights)
-            cursim_indx = rangen.choice(
-                model_indx[gmods], size=nsim_curage, p=curweights
-            )
+            if np.sum(curweights) > 0:
+                curweights /= np.sum(curweights)
+                cursim_indx = rangen.choice(
+                    model_indx[gmods], size=nsim_curage, p=curweights
+                )
 
-            totsim_indx = np.concatenate((totsim_indx, cursim_indx))
+                totsim_indx = np.concatenate((totsim_indx, cursim_indx))
 
-            nsim += nsim_curage
+                nsim += nsim_curage
             # totsimcurmass = np.sum(sedgrid["M_ini"][cursim_indx])
             # print(cage, totcurmass / totmass, simmass, totsimcurmass, nsim_curage)
 

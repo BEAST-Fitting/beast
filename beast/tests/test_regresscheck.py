@@ -73,13 +73,6 @@ class TestRegressionSuite(unittest.TestCase):
             cls.basename = f"{cls.basesubdir}beast_metal_small"
             cls.obsname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst_samp.fits"
             cls.astname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst.fake.fits"
-            cls.ast_use_rate = True
-        else:
-            cls.basesubdir = "phat_small/"
-            cls.basename = f"{cls.basesubdir}beast_example_phat"
-            cls.obsname = f"{cls.basesubdir}b15_4band_det_27_A.fits"
-            cls.astname = f"{cls.basesubdir}fake_stars_b15_27_all.hd5"
-            cls.ast_use_rate = False
 
         # download the cached version for use and comparision
         # - photometry and ASTs
@@ -277,7 +270,6 @@ class TestRegressionSuite(unittest.TestCase):
             self.asts_fname_cache,
             modelsedgrid,
             absflux_a_matrix=self.settings.absflux_a_matrix,
-            use_rate=self.ast_use_rate,
         )
 
         # compare the new to the cached version
@@ -1026,7 +1018,6 @@ class TestRegressionSuite(unittest.TestCase):
             use_sd=False,
             nsubs=self.settings.n_subgrid,
             nprocs=1,
-            use_rate=False,
         )
 
         # check that files match
@@ -1049,7 +1040,6 @@ class TestRegressionSuite(unittest.TestCase):
             use_sd=False,
             nsubs=self.settings_sg.n_subgrid,
             nprocs=1,
-            use_rate=False,
         )
 
         # check that files match
