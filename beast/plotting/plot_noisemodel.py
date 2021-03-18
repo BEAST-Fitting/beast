@@ -13,7 +13,7 @@ def plot_noisemodel(
     noise_file_list,
     plot_file,
     samp=100,
-    cmap_name='jet',
+    cmap_name='viridis',
 ):
     """
     Make a plot of the noise model: for each of the bandsm make plots of bias
@@ -37,7 +37,7 @@ def plot_noisemodel(
         plotting all of the SED points takes a long time for a viewer to load,
         so set this to plot every Nth point
 
-    cmap_name : string (default=plt.cm.jet)
+    cmap_name : string (default=plt.cm.viridis)
         name of a color map to use
     """
 
@@ -67,7 +67,10 @@ def plot_noisemodel(
 
     plt.set_cmap(cmap_name)
 
-    # go through noise files
+    # go through noise files after sorting them according to
+    # their SD bin number
+    noise_file_list.sort(key=lambda f: int(''.join(filter(str.isdigit,f))))
+    bin_label = [re.findall(r"bin\d+", x)[0] for x in noise_file_list] 
     for n, nfile in enumerate(np.atleast_1d(noise_file_list)):
 
         print("* reading " + nfile)
@@ -100,7 +103,7 @@ def plot_noisemodel(
                 mew=0,
                 ms=2,
                 alpha=0.1,
-                label='SD bin%d' % (n),
+                label='SD %s' % (bin_label[n]),
             )
 
             bax.tick_params(axis="both", which="major")
