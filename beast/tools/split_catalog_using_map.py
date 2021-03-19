@@ -74,18 +74,21 @@ def split_main(
     # Create a binned density map, so both the observed and the ast
     # catalog can be split using a consistent grouping (= binning) of
     # the tiles
-    if not settings.sd_Nbins and not settings.sd_binwidth and not settings.sd_custom:
-        raise RuntimeError(
-            "You need to specify the source density binning parameters in beast_settings_info"
-        )
 
-    bdm = BinnedDensityMap.create(
-        mapfile,
-        bin_mode=settings.sd_binmode,
-        N_bins=settings.sd_Nbins,
-        bin_width=settings.sd_binwidth,
-        custom_bins=settings.sd_custom,
-    )
+    if all(
+        hasattr(settings, attr) for attr in ["sd_Nbins", "sd_binwidth", "sd_custom"]
+    ):
+        bdm = BinnedDensityMap.create(
+            mapfile,
+            bin_mode=settings.sd_binmode,
+            N_bins=settings.sd_Nbins,
+            bin_width=settings.sd_binwidth,
+            custom_bins=settings.sd_custom,
+        )
+    else:
+        raise RuntimeError(
+            "You need to specify the source density binning parameters in the beast_settings files"
+        )
 
     print("Splitting catalog")
     split_catalog_using_map(
