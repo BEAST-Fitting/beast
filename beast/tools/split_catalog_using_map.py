@@ -88,7 +88,7 @@ def split_main(
         )
     else:
         raise RuntimeError(
-            "You need to specify the source density binning parameters in the beast_settings files"
+            "You need to specify all source density binning parameters (sd_binmode, sd_Nbins, sd_binwidth, sd_custom) in the beast_settings file. Unused parameters should be set to 'None'."
         )
 
     print("Splitting catalog")
