@@ -50,7 +50,10 @@ class PriorModel:
                 amp = self.model["amp"]
             else:
                 amp = 1.0
-            return np.full(x.shape, amp)
+            if hasattr(x, 'shape'):
+                return np.full(x.shape, amp)
+            else:
+                return amp
         elif self.model["name"] == "bins_histo":
             # check if all ages within interpolation range
             if np.all(
