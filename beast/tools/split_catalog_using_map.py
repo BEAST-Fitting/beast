@@ -76,7 +76,8 @@ def split_main(
     # the tiles
 
     if all(
-        hasattr(settings, attr) for attr in ["sd_Nbins", "sd_binwidth", "sd_custom"]
+        hasattr(settings, attr)
+        for attr in ["sd_binmode", "sd_Nbins", "sd_binwidth", "sd_custom"]
     ):
         bdm = BinnedDensityMap.create(
             mapfile,
