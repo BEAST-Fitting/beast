@@ -28,11 +28,7 @@ class PriorModel:
         Parameters
         ----------
         model: dict
-          Choice of model type [default=flat]
-          flat = flat prior
-          lognormal = lognormal prior
-          two_lognormal = two lognormal prior
-          exponential = exponential prior
+          Choice of model type
         """
         if (allowed_models is not None) and (model["name"] not in allowed_models):
             modname = model["name"]
@@ -100,6 +96,14 @@ class PriorDustModel(PriorModel):
     """
 
     def __init__(self, model):
+        """
+        Initialize the dust prior model
+
+        Parameters
+        ----------
+        model : dict
+          Possible choices are flat, lognormal, two_lognormal, and exponential
+        """
         super().__init__(
             model, allowed_models=["flat", "lognormal", "two_lognormal", "exponential"]
         )
@@ -111,6 +115,14 @@ class PriorAgeModel(PriorModel):
     """
 
     def __init__(self, model):
+        """
+        Initialize the stellar age prior model
+
+        Parameters
+        ----------
+        model : dict
+          Possible choices are flat, flat_log, bins_histo, bins_interp, and exponential
+        """
         super().__init__(
             model,
             allowed_models=[
@@ -146,6 +158,14 @@ class PriorMetallicityModel(PriorModel):
     """
 
     def __init__(self, model):
+        """
+        Initialize the metallicity prior model
+
+        Parameters
+        ----------
+        model : dict
+          Possible choices are flat
+        """
         super().__init__(model, allowed_models=["flat"])
 
 
@@ -155,6 +175,14 @@ class PriorDistanceModel(PriorModel):
     """
 
     def __init__(self, model):
+        """
+        Initialize the distance prior model
+
+        Parameters
+        ----------
+        model : dict
+          Possible choices are flat
+        """
         super().__init__(model, allowed_models=["flat"])
 
 
@@ -164,6 +192,14 @@ class PriorMassModel(PriorModel):
     """
 
     def __init__(self, model):
+        """
+        Initialize the initial mass prior model
+
+        Parameters
+        ----------
+        model : dict
+          Possible choices are flat, slapeter, and kroupa
+        """
         super().__init__(model, allowed_models=["flat", "salpeter", "kroupa"])
 
     def __call__(self, x):

@@ -16,16 +16,16 @@ def _lognorm(x, max_pos, sigma=0.5, N=1.0):
 
     Parameters
     ----------
-    xs: vector
+    xs : vector
        x values
 
-    max_pos: float
+    max_pos : float
        Position of the lognormal function's maximum
 
-    sigma: float
+    sigma : float
        Sigma of the lognormal function
 
-    N: floats
+    N : floats
        Multiplicative factor
 
     Returns
@@ -53,22 +53,22 @@ def _two_lognorm(xs, max_pos1, max_pos2, sigma1=0.5, sigma2=0.5, N1=1.0, N2=1.0)
 
     Parameters
     ----------
-    xs: vector
+    xs : vector
        x values
 
-    max_pos1: float
+    max_pos1 : float
        Position of the lognormal function's maximum for component 1
-    max_pos2: float
+    max_pos2 : float
        Position of the lognormal function's maximum for component 2
 
-    sigma1: float
+    sigma1 : float
        Sigma of the lognormal function for component 1
-    sigma2: float
+    sigma2 : float
        Sigma of the lognormal function for component 2
 
-    N1: floats
+    N1 : floats
        Multiplicative factor for component 1
-    N2: floats
+    N2 : floats
        Multiplicative factor for component 2
 
     Returns
@@ -88,11 +88,11 @@ def _exponential(x, tau=2.0, amp=1.0):
 
     Parameters
     ----------
-    x: vector
+    x : vector
        x values
-    tau: float
+    tau : float
        Decay Rate parameter in exp: N*e^-(x/tau)
-    amp: float
+    amp : float
        Amplitude for x = 0
 
     Returns
