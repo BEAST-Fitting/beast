@@ -174,7 +174,7 @@ if __name__ == "__main__":  # pragma: no cover
     parser.add_argument(
         "--cmap_name",
         type=str,
-        default="jet",
+        default="viridis",
         help="color map to use when making plots",
     )
 
