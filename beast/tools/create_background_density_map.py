@@ -37,6 +37,12 @@ def main():  # pragma: no cover
     commonparser.add_argument(
         "-catfile", type=str, required=True, help="catalog FITS file"
     )
+    commonparser.add_argument(
+        "-erode_boundary",
+        type=float,
+        required=False,
+        help="number of arcsec to erode the SD map boundary by",
+    )
     npix_or_pixsize = commonparser.add_mutually_exclusive_group()
     npix_or_pixsize.add_argument("--npix", type=int, default=None, help="resolution")
     npix_or_pixsize.add_argument("--pixsize", type=float, default=None)
@@ -154,22 +160,36 @@ def main_make_map(args):
     ra = cat["RA"]
     dec = cat["DEC"]
 
+    # if erode_boundary is set, erode catalog boundary to compute
+    # source densities on eroded region
+    if args.erode_boundary:
+        erode_deg = args.erode_boundary / 3600
+        min_ra = ra.min() + erode_deg
+        max_ra = ra.max() - erode_deg
+        min_dec = dec.min() + erode_deg
+        max_dec = dec.max() - erode_deg
+    else:
+        min_ra = ra.min()
+        max_ra = ra.max()
+        min_dec = dec.min()
+        max_dec = dec.max()
+
     if args.npix is not None:
         n_x, n_y = args.npix, args.npix
-        ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
-        dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
+        ra_grid = np.linspace(min_ra, max_ra, n_x + 1)
+        dec_grid = np.linspace(min_dec, max_dec, n_y + 1)
     elif args.pixsize is not None:
         pixsize_arcsecs = args.pixsize * u.arcsec
         pixsize_degrees = pixsize_arcsecs.to(u.degree)
         n_x, n_y, ra_delt, dec_delt = calc_nx_ny_from_pixsize(cat, pixsize_degrees)
         # the ra spacing needs to be larger, as 1 degree of RA ==
         # cos(DEC) degrees on the great circle
-        ra_grid = ra.min() + ra_delt * np.arange(0, n_x + 1, dtype=float)
-        dec_grid = dec.min() + dec_delt * np.arange(0, n_y + 1, dtype=float)
+        ra_grid = min_ra + ra_delt * np.arange(0, n_x + 1, dtype=float)
+        dec_grid = min_dec + dec_delt * np.arange(0, n_y + 1, dtype=float)
     else:
         n_x, n_y = 10, 10
-        ra_grid = np.linspace(ra.min(), ra.max(), n_x + 1)
-        dec_grid = np.linspace(dec.min(), dec.max(), n_y + 1)
+        ra_grid = np.linspace(min_ra, max_ra, n_x + 1)
+        dec_grid = np.linspace(min_dec, max_dec, n_y + 1)
 
     output_base = args.catfile.replace(".fits", "")
 
@@ -182,6 +202,7 @@ def main_make_map(args):
             mag_name=args.mag_name,
             mag_cut=args.mag_cut,
             flag_name=args.flag_name,
+            erode_boundary=args.erode_boundary,
         )
 
     if args.subcommand == "background":
@@ -463,7 +484,7 @@ def measure_backgrounds(cat_table, ref_im, mask_radius, ann_width, cat_filter):
 
 
 def make_source_dens_map(
-    cat, ra_grid, dec_grid, output_base, mag_name, mag_cut, flag_name
+    cat, ra_grid, dec_grid, output_base, mag_name, mag_cut, flag_name, erode_boundary
 ):
     """
     Computes the source density map and store it in a pyfits HDU
@@ -487,6 +508,13 @@ def make_source_dens_map(
 
     flag_name : string or None
         if set, ignore sources with flag >= 99
+
+    erode_boundary : None, or float (default=None)
+        If provided, this number of arcseconds will be eroded from the region
+        over which SD is estimated.  The purpose is to make sure that the SD
+        bins are the same ones used for placing ASTs (i.e., so that SD bins will not
+        fall outisde the region used for AST placement, thus ensuring all SD bins
+        are well-populated).
 
     OUTPUT:
     -------
@@ -536,8 +564,10 @@ def make_source_dens_map(
             pix_box = geometry.box(i, j, i + 1, j + 1)
             # find fractional overlap area
             frac_area = catalog_boundary.intersection(pix_box).area
-            # stars per unit area
-            npts_map[i, j] = n_indxs / (pix_area * frac_area)
+
+            if frac_area > 0.1:
+                # stars per unit area
+                npts_map[i, j] = n_indxs / (pix_area * frac_area)
 
         # save the source density as an entry for each source
         source_dens[indxs] = npts_map[i, j]
@@ -669,7 +699,7 @@ def make_wcs_for_map(ra_grid, dec_grid):
 
 def get_pix_coords(cat, map_wcs):
     """get the pixel coordinates of all the sources in the catalog
-       according to the given wcs"""
+    according to the given wcs"""
     world = np.column_stack((cat["RA"], cat["DEC"]))
     print("working on converting ra, dec to pix x,y")
     pixcrd = map_wcs.wcs_world2pix(world, 1) - 0.5

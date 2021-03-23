@@ -319,6 +319,27 @@ def pick_positions_from_map(
 
                 # discard tile if there's no overlap with user-imposed regions
 
+                # - erode_boundary
+                # if you only want to erode the boundary and not impose other
+                # coordinate boundary constraints, still discard SD tiles that don't overlap
+                if (set_coord_boundary is None) and (erode_boundary is not None):
+                    if catalog_boundary_xy and tile_box_xy:
+                        if (
+                            Polygon(catalog_boundary_xy.vertices)
+                            .intersection(tile_box_xy)
+                            .area
+                            == 0
+                        ):
+                            keep_tile[j] = False
+                    elif catalog_boundary_radec and tile_box_radec:
+                        if (
+                            Polygon(catalog_boundary_radec.vertices)
+                            .intersection(tile_box_radec)
+                            .area
+                            == 0
+                        ):
+                            keep_tile[j] = False
+
                 # - set_coord_boundary
                 if set_coord_boundary is not None:
                     # coord boundary is input in RA/Dec, and tiles are RA/Dec,
