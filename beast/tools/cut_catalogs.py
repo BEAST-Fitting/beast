@@ -248,7 +248,9 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "input_phot_file", type=str, help="file name of the input photometry catalog",
+        "input_phot_file",
+        type=str,
+        help="file name of the input photometry catalog",
     )
     parser.add_argument(
         "output_phot_file",

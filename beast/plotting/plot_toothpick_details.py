@@ -37,17 +37,15 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
     model.set_data_mappings(upcase=True, in_pair=("in", "in"), out_pair=("out", "rate"))
 
     # compute binned biases, uncertainties, and completeness as a function of band flux
-    ast_nonrecovered_frac = 0.5
+    ast_nonrecovered_ratio = 2.0
     model.fit_bins(
         nbins=50,
-        completeness_mag_cut=-10,
-        ast_nonrecovered_frac=ast_nonrecovered_frac,
-        # min_flux=1e-22,
-        # max_flux=1e-14,
+        ast_nonrecovered_ratio=ast_nonrecovered_ratio,
     )
 
     nfilters = len(sedgrid.filters)
-    fig, ax = plt.subplots(nrows=nfilters, ncols=2, figsize=(14, 10), sharex=True)
+    figsize_y = nfilters * 3
+    fig, ax = plt.subplots(nrows=nfilters, ncols=2, figsize=(14, figsize_y), sharex=True)
     set_params()
 
     for i, cfilter in enumerate(sedgrid.filters):
@@ -61,7 +59,7 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
 
         ax[i, 0].plot(
             flux_in[gvals],
-            (flux_in[gvals] - flux_out[gvals]) / flux_in[gvals],
+            flux_out[gvals] / flux_in[gvals],
             "ko",
             alpha=0.1,
             markersize=2,
@@ -72,30 +70,26 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
 
         ax[i, 0].plot(
             model._fluxes[0:ngbins, i],
-            model._biases[0:ngbins, i] / model._fluxes[0:ngbins, i],
+            1. + model._biases[0:ngbins, i] / model._fluxes[0:ngbins, i],
             "b-",
         )
 
         ax[i, 0].errorbar(
             model._fluxes[0:ngbins, i],
-            model._biases[0:ngbins, i] / model._fluxes[0:ngbins, i],
+            1. + model._biases[0:ngbins, i] / model._fluxes[0:ngbins, i],
             yerr=model._sigmas[0:ngbins, i] / model._fluxes[0:ngbins, i],
             fmt="bo",
             markersize=2,
             alpha=0.5,
         )
 
-        if ast_nonrecovered_frac is not None:
+        if ast_nonrecovered_ratio is not None:
             ax[i, 0].axhline(
-                ast_nonrecovered_frac, linestyle="--", alpha=0.25, color="k"
-            )
-            ax[i, 0].axhline(
-                -1.0 * ast_nonrecovered_frac, linestyle="--", alpha=0.25, color="k"
+                ast_nonrecovered_ratio, linestyle="--", alpha=0.25, color="k"
             )
 
-        ax[i, 0].set_ylim(-5e0, 5e0)
-        ax[i, 0].set_xscale("log")
-        ax[i, 0].set_ylabel(r"$(F_i - F_o)/F_i$")
+        ax[i, 0].set_ylim(-10, 2.5)
+        ax[i, 0].set_ylabel(r"$F_o/F_i$")
 
         ax[i, 1].plot(
             model._fluxes[0:ngbins, i],
@@ -117,7 +111,7 @@ def plot_toothpick_details(asts_filename, seds_filename, savefig=False):
     # do after all the data has been plotted to get the full x range
     pxrange = ax[0, 0].get_xlim()
     for i, cfilter in enumerate(sedgrid.filters):
-        ax[i, 0].plot(pxrange, [0.0, 0.0], "k--", alpha=0.5)
+        ax[i, 0].plot(pxrange, [1.0, 1.0], "k--", alpha=0.5)
 
     # figname
     basename = asts_filename.replace(".fits", "_plot")

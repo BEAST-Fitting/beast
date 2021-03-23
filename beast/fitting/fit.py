@@ -564,7 +564,7 @@ def Q_all_memory(
     #     fill the variables
     # also - find the start position for the resumed run
     if resume:
-        stats_table = Table.read(stats_outname)
+        stats_table = Table.read(stats_outname, hdu=1)
 
         for k, qname in enumerate(qnames):
             best_vals[:, k] = stats_table["{0:s}_Best".format(qname)]

@@ -11,6 +11,8 @@ for the refitting, fixing issues, etc without rerunning everything.  This
 workflow has been tested on large (e.g., PHAT) and small (e.g. METAL)
 datasets.
 
+For visualizations of the code and files, see :ref:`BEAST Graphical Models
+<beast_graphical_model>`.
 
 *****
 Setup
@@ -158,14 +160,19 @@ to select additional model SEDs.
 
   .. code-block:: console
 
-     $ python -m beast.tools.run.make_ast_inputs --suppl_seds
+     $ python -m beast.tools.run.make_ast_inputs beast_settings.txt --suppl_seds
 
 How the sources are placed in the image is determined by the ast_source_density_table
 variable in `beast_settings.txt`
 
 1. ast_source_density_table is set to `filebase_sourceden_map.hd5`:
-   For each source density or background bin, randomly place the SEDs
-   within pixels of that bin.  Repeat for each of the bins.
+   The source density or background image is split into bins, and for each bin,
+   all selected SEDs are randomly replicated within pixels of that bin. These bins
+   are determined by the beast_settings parameters, and can have linear (default)
+   or log spacing, where the user can determine the number or width of the bins
+   (set using sd_binmode, sd_binwidth and sd_Nbins in beast_settings). Alternatively,
+   the user can input a custom list of bin edges, which will override the other binning settings.
+   This same binning scheme is used later to split the catalogs (next step).
 
 2. ast_source_density_table = None:
    Randomly choose a star from the photometry catalog, and place the
@@ -211,7 +218,12 @@ that don't have full imaging coverage, and to create ds9 region files:
 
 
 The observed catalog should be split into separate files for each source
-density.  In addition, each source density catalog can be split into a set of
+density bin. These bins are determined by the beast_settings parameters,
+and can have linear (default) or log spacing, where the user can determine
+the number or width of the bins (set using sd_binmode, sd_binwidth and sd_Nbins
+in beast_settings). Alternatively, the user can input a custom list of bin edges,
+which will override the other binning settings.
+In addition, each source density catalog can be split into a set of
 sub-files to have at most 'n_per_file' sources (or, if there are very few stars
 in a source density bin, at least 'min_n_subfile' sub-files).  The sources are
 sorted by the 'sort_col' flux before splitting to put sources with similar
@@ -391,6 +403,15 @@ been implemented.
   .. code-block:: console
 
      $ python -m beast.tools.run.merge_files beast_settings.txt --use_sd 1
+
+If fitting using subgrids, it's possible to do a partial merge.  This is useful
+if you'd like to look at fitting results before all stars have finished fitting
+for all subgrids.  This find stars that have fits in all subgrids and merges
+just those.  Partial merge is only currently implemented for stats and 1D PDFs.
+
+  .. code-block:: console
+
+     $ python -m beast.tools.run.merge_files beast_settings.txt --nsubs 5 --partial
 
 
 Reorganize the results into spatial region files

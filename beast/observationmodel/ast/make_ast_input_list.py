@@ -59,7 +59,6 @@ def mag_limits(seds, faint_cut, Nfilter=1, bright_cut=None):
 def pick_models_toothpick_style(
     sedgrid_fname,
     filters,
-    Nfilter,
     N_fluxes,
     min_N_per_flux,
     outfile=None,
@@ -81,10 +80,6 @@ def pick_models_toothpick_style(
 
     filters: list of string
         Names of the filters, to be used as columns of the output table
-
-    Nfilter: integer
-        In how many filters a fake star needs to be brighter than the
-        mag_cut value
 
     N_fluxes: integer
         The number of flux bins into which the dynamic range of the
@@ -211,8 +206,6 @@ def pick_models_toothpick_style(
                     counter * chunksize, successes, successes / counter / chunksize
                 )
             )
-            print("Bin array:")
-            print(bin_count)
 
     # Gather the selected model seds in a table
     sedsMags = Table(sedsMags[chosen_idxs, :], names=filters)

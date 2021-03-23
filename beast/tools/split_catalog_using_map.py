@@ -74,14 +74,22 @@ def split_main(
     # Create a binned density map, so both the observed and the ast
     # catalog can be split using a consistent grouping (= binning) of
     # the tiles
-    if not settings.sd_Nbins and not settings.sd_binwidth:
-        raise RuntimeError(
-            "You need to specify the source density binning parameters in beast_settings_info"
-        )
 
-    bdm = BinnedDensityMap.create(
-        mapfile, N_bins=settings.sd_Nbins, bin_width=settings.sd_binwidth
-    )
+    if all(
+        hasattr(settings, attr)
+        for attr in ["sd_binmode", "sd_Nbins", "sd_binwidth", "sd_custom"]
+    ):
+        bdm = BinnedDensityMap.create(
+            mapfile,
+            bin_mode=settings.sd_binmode,
+            N_bins=settings.sd_Nbins,
+            bin_width=settings.sd_binwidth,
+            custom_bins=settings.sd_custom,
+        )
+    else:
+        raise RuntimeError(
+            "You need to specify all source density binning parameters (sd_binmode, sd_Nbins, sd_binwidth, sd_custom) in the beast_settings file. Unused parameters should be set to 'None'."
+        )
 
     print("Splitting catalog")
     split_catalog_using_map(
@@ -206,7 +214,9 @@ def split_catalog_using_map(
 if __name__ == "__main__":  # pragma: no cover
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "beast_settings_info", type=str, help="file name with beast settings",
+        "beast_settings_info",
+        type=str,
+        help="file name with beast settings",
     )
     parser.add_argument("catfile", type=str, help="catalog FITS file")
     parser.add_argument("astfile", type=str, help="ast results fits file")

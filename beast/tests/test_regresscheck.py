@@ -7,6 +7,7 @@ import pytest
 import unittest
 
 import tables
+import asdf
 
 from astropy.tests.helper import remote_data
 from astropy import constants as const
@@ -68,17 +69,10 @@ class TestRegressionSuite(unittest.TestCase):
 
         cls.dset = "metal"
         if cls.dset == "metal":
-            cls.basesubdir = "metal_small_4sep20/"
+            cls.basesubdir = "metal_small/"
             cls.basename = f"{cls.basesubdir}beast_metal_small"
             cls.obsname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst_samp.fits"
             cls.astname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst.fake.fits"
-            cls.ast_use_rate = True
-        else:
-            cls.basesubdir = "phat_small/"
-            cls.basename = f"{cls.basesubdir}beast_example_phat"
-            cls.obsname = f"{cls.basesubdir}b15_4band_det_27_A.fits"
-            cls.astname = f"{cls.basesubdir}fake_stars_b15_27_all.hd5"
-            cls.ast_use_rate = False
 
         # download the cached version for use and comparision
         # - photometry and ASTs
@@ -94,28 +88,28 @@ class TestRegressionSuite(unittest.TestCase):
         cls.priors_fname_cache = download_rename(
             f"{cls.basename}_spec_w_priors.grid.hd5"
         )
-        # priors_sub0_fname_cache = download_rename(
-        #     f"{basename}_subgrids_spec_w_priors.gridsub0.hd5"
-        # )
-        # priors_sub1_fname_cache = download_rename(
-        #     f"{basename}_subgrids_spec_w_priors.gridsub1.hd5"
-        # )
+        cls.priors_sub0_fname_cache = download_rename(
+            f"{cls.basename}_subgrids_spec_w_priors.gridsub0.hd5"
+        )
+        cls.priors_sub1_fname_cache = download_rename(
+            f"{cls.basename}_subgrids_spec_w_priors.gridsub1.hd5"
+        )
         # - SED grids
         cls.seds_fname_cache = download_rename(f"{cls.basename}_seds.grid.hd5")
-        # seds_sub0_fname_cache = download_rename(
-        #     f"{basename}_subgrids_seds.gridsub0.hd5"
-        # )
-        # seds_sub1_fname_cache = download_rename(
-        #    f"{basename}_subgrids_seds.gridsub1.hd5"
-        # )
+        cls.seds_sub0_fname_cache = download_rename(
+            f"{cls.basename}_subgrids_seds.gridsub0.hd5"
+        )
+        cls.seds_sub1_fname_cache = download_rename(
+            f"{cls.basename}_subgrids_seds.gridsub1.hd5"
+        )
         # - noise model
         cls.noise_fname_cache = download_rename(f"{cls.basename}_noisemodel.grid.hd5")
-        # noise_sub0_fname_cache = download_rename(
-        #    f"{basename}_subgrids_noisemodel.gridsub0.hd5"
-        # )
-        # noise_sub1_fname_cache = download_rename(
-        #    f"{basename}_subgrids_noisemodel.gridsub1.hd5"
-        # )
+        cls.noise_sub0_fname_cache = download_rename(
+            f"{cls.basename}_subgrids_noisemodel.gridsub0.hd5"
+        )
+        cls.noise_sub1_fname_cache = download_rename(
+            f"{cls.basename}_subgrids_noisemodel.gridsub1.hd5"
+        )
         # - trimmed files
         cls.noise_trim_fname_cache = download_rename(
             f"{cls.basename}_noisemodel_trim.grid.hd5"
@@ -130,7 +124,7 @@ class TestRegressionSuite(unittest.TestCase):
         cls.pdf2d_fname_cache = download_rename(f"{cls.basename}_pdf2d.fits")
 
         # create the beast_settings object
-        # (copied over from the phat_small example in beast-examples)
+        # (copied over from the metal_small example in beast-examples)
         cls.settings_fname_cache = download_rename(
             f"{cls.basesubdir}beast_settings.txt"
         )
@@ -141,7 +135,7 @@ class TestRegressionSuite(unittest.TestCase):
         # also make a version with 2 subgrids
         cls.settings_sg = copy.deepcopy(cls.settings)
         cls.settings_sg.n_subgrid = 2
-        cls.settings_sg.project = f"{cls.basename}_subgrids"
+        cls.settings_sg.project = f"{cls.settings.project}_subgrids"
 
     # ###################################################################
     # Standard BEAST fitting steps
@@ -276,7 +270,6 @@ class TestRegressionSuite(unittest.TestCase):
             self.asts_fname_cache,
             modelsedgrid,
             absflux_a_matrix=self.settings.absflux_a_matrix,
-            use_rate=self.ast_use_rate,
         )
 
         # compare the new to the cached version
@@ -331,6 +324,7 @@ class TestRegressionSuite(unittest.TestCase):
         # output files
         stats_fname = tempfile.NamedTemporaryFile(suffix=".fits").name
         pdf1d_fname = tempfile.NamedTemporaryFile(suffix=".fits").name
+        pdf2d_fname = tempfile.NamedTemporaryFile(suffix=".fits").name
         lnp_fname = tempfile.NamedTemporaryFile(suffix=".hd5").name
 
         fit.summary_table_memory(
@@ -339,10 +333,12 @@ class TestRegressionSuite(unittest.TestCase):
             self.seds_trim_fname_cache,
             threshold=-10.0,
             save_every_npts=100,
-            lnp_npts=60,
+            lnp_npts=500,
             max_nbins=200,
             stats_outname=stats_fname,
             pdf1d_outname=pdf1d_fname,
+            pdf2d_outname=pdf2d_fname,
+            pdf2d_param_list=["Av", "M_ini", "logT"],
             lnp_outname=lnp_fname,
             surveyname=self.settings.surveyname,
         )
@@ -356,8 +352,9 @@ class TestRegressionSuite(unittest.TestCase):
         # lnp files not checked as they are randomly sparsely sampled
         #   hence will be different every time the fitting is run
 
-        # check that the pdf1d files are exactly the same
+        # check that the pdf1d/pdf2d files are exactly the same
         compare_fits(self.pdf1d_fname_cache, pdf1d_fname)
+        compare_fits(self.pdf2d_fname_cache, pdf2d_fname)
 
     # ###################################################################
     # AST tests
@@ -669,7 +666,7 @@ class TestRegressionSuite(unittest.TestCase):
                 sub_seds_trim_fnames[i],
                 threshold=-40.0,
                 save_every_npts=100,
-                lnp_npts=60,
+                lnp_npts=500,
                 stats_outname=subgrid_stats_fnames[i],
                 pdf1d_outname=subgrid_pdf1d_fnames[i],
                 lnp_outname=subgrid_lnp_fnames[i],
@@ -693,7 +690,7 @@ class TestRegressionSuite(unittest.TestCase):
             self.seds_trim_fname_cache,
             threshold=-40.0,
             save_every_npts=100,
-            lnp_npts=60,
+            lnp_npts=500,
             stats_outname=normal_stats,
             pdf1d_outname=normal_pdf1d,
             lnp_outname=normal_lnp,
@@ -754,57 +751,38 @@ class TestRegressionSuite(unittest.TestCase):
             self.settings, beast_settings.beast_settings
         ), "Did not produce the correct class"
 
-    @pytest.mark.skip(reason="updated cached file needed")
     def test_compare_spec_type_inFOV(self):
         """
-        Test for compare_spec_type.  The spectrally-typed stars aren't real sources,
-        they're just invented for the purposes of documenting/testing the code.
+        Test for compare_spec_type.  Inputs and expected outputs created by
+        running generate_files_for_tests.py in beast-examples/metal_small.
 
         In this version, the stars are in the imaging field of view.
         """
+
+        # download cached file
+        compare_spec_type_fname = download_rename(
+            f"{self.basename}_compare_spec_type.asdf"
+        )
+        with asdf.open(compare_spec_type_fname) as af:
+            compare_spec_type_info = copy.deepcopy(af.tree)
+
         # run compare_spec_type
         spec_type = compare_spec_type(
             self.obs_fname_cache,
             self.stats_fname_cache,
-            [11.2335881, 11.23342557],  # RA
-            [41.9001895, 41.90006316],  # Dec
-            ["A", "G"],  # Spectral type
-            [2, 7],  # Subtype
-            ["II", "II"],  # Luminosity class
-            match_radius=0.2,  # Match radius (arcsec)
+            **compare_spec_type_info["input"],
         )
 
         # expected output table
-        expected_table = Table(
-            {
-                "spec_ra": [11.2335881, 11.23342557],
-                "spec_dec": [41.9001895, 41.90006316],
-                "spec_type": ["A 2 II", "G 7 II"],
-                "spec_teff": [9000.0, 4916.666666666667],
-                "spec_logg": [2.7164474106543732, 1.7184474106543735],
-                "phot_cat_ind": [27, 8],
-                "stats_cat_ind": [27, 8],
-                "beast_teff_p50": [9046.250020338754, 4528.230977991138],
-                "beast_teff_p16": [8643.670633196869, 4335.617282355577],
-                "beast_teff_p84": [9536.391362054928, 4729.401710221546],
-                "beast_logg_p50": [2.714286917261312, 1.7684285714285717],
-                "beast_logg_p16": [2.636272525730954, 1.7014832653061227],
-                "beast_logg_p84": [2.799534708811963, 1.8353738775510207],
-                "teff_sigma": [-0.11488422362383206, 1.9308757510045778],
-                "logg_sigma": [0.025343687546173433, -0.7465969411324851],
-            }
-        )
+        expected_table = Table(compare_spec_type_info["output"])
 
         # compare to new table
         compare_tables(expected_table, Table(spec_type), rtol=2e-3)
 
-    @pytest.mark.skip(reason="updated cached file needed")
     def test_compare_spec_type_notFOV(self):
         """
-        Test for compare_spec_type.  The spectrally-typed stars aren't real sources,
-        they're just invented for the purposes of documenting/testing the code.
-
-        In this version, the stars are NOT in the imaging field of view.
+        Test for compare_spec_type.  In this version, the stars are NOT in the
+        imaging field of view.
         """
         # run compare_spec_type
         spec_type = compare_spec_type(
@@ -842,49 +820,66 @@ class TestRegressionSuite(unittest.TestCase):
         # compare to new table
         compare_tables(expected_table, Table(spec_type))
 
-    @pytest.mark.skip(reason="updated cached file needed")
     def test_star_type_probability_all_params(self):
         """
-        Test for star_type_probability.py
+        Test for star_type_probability.  Inputs and expected outputs created by
+        running generate_files_for_tests.py in beast-examples/metal_small.
+
+        In this version, all required parameters are present.
         """
-        # download the needed files
-        star_prob_fname = download_rename("phat_small/beast_example_phat_startype.fits")
+        # download cached file
+        star_prob_fname = download_rename(f"{self.basename}_star_type_probability.asdf")
+        with asdf.open(star_prob_fname) as af:
+            star_prob_info = copy.deepcopy(af.tree)
 
         # run star_type_probability
         star_prob = star_type_probability.star_type_probability(
-            self.pdf1d_fname_cache,
-            self.pdf2d_fname_cache,
-            output_filebase=None,
-            ext_O_star_params={"min_M_ini": 10, "min_Av": 0.5, "max_Av": 5},
+            self.pdf1d_fname_cache, self.pdf2d_fname_cache, **star_prob_info["input"],
         )
 
         # expected output table
-        expected_star_prob = Table.read(star_prob_fname)
+        expected_star_prob = Table(star_prob_info["output"])
 
         # compare to new table
         compare_tables(expected_star_prob, Table(star_prob))
 
-    @pytest.mark.skip(reason="updated cached file needed")
     def test_star_type_probability_no_Av(self):
         """
-        Test for star_type_probability.py
+        Test for star_type_probability.
+
+        In this version, A_V was not saved in the 2D PDFs.
         """
-        # download the needed files
-        pdf2d_fname = download_rename("beast_example_phat_pdf2d_no_Av.fits")
-        star_prob_fname = download_rename("beast_example_phat_startype_no_Av.fits")
+
+        # download cached file
+        star_prob_fname = download_rename(f"{self.basename}_star_type_probability.asdf")
+        with asdf.open(star_prob_fname) as af:
+            star_prob_info = copy.deepcopy(af.tree)
+
+        # edit the 2D PDF file to not have A_V info
+        temp_pdf2d_fname = tempfile.NamedTemporaryFile(suffix=".fits").name
+        temp_hdu_list = []
+        with fits.open(self.pdf2d_fname_cache) as hdu:
+            for ext in hdu:
+                if "Av+" in ext.name or "+Av" in ext.name:
+                    continue
+                temp_hdu_list.append(ext)
+            fits.HDUList(temp_hdu_list).writeto(temp_pdf2d_fname)
+
+        # edit the expected output to have NaNs in columns that require A_V
+        # (currently, that's all columns)
+        expected_star_prob = Table(star_prob_info["output"])
+        for col in expected_star_prob.colnames:
+            if col == "ext_O_star":
+                expected_star_prob[col] = np.nan
+            if col == "dusty_agb":
+                expected_star_prob[col] = np.nan
 
         # run star_type_probability
         star_prob = star_type_probability.star_type_probability(
-            self.pdf1d_fname_cache,
-            pdf2d_fname,
-            output_filebase=None,
-            ext_O_star_params={"min_M_ini": 10, "min_Av": 0.5, "max_Av": 5},
+            self.pdf1d_fname_cache, temp_pdf2d_fname, **star_prob_info["input"],
         )
 
-        # expected output table
-        expected_star_prob = Table.read(star_prob_fname)
-
-        # compare to new table
+        # compare to expected table
         compare_tables(expected_star_prob, Table(star_prob))
 
     @pytest.mark.skip(reason="updated cached file needed")
@@ -914,6 +909,7 @@ class TestRegressionSuite(unittest.TestCase):
     # ###################################################################
     # tools.run tests
 
+    @pytest.mark.skip(reason="need to fix issue with folder teardown")
     @pytest.mark.usefixtures("setup_create_physicsmodel")
     def test_create_physicsmodel_no_subgrid(self):
         """
@@ -948,7 +944,7 @@ class TestRegressionSuite(unittest.TestCase):
             f"./{self.settings.project}/{self.settings.project}_seds.grid.hd5",
         )
 
-    @pytest.mark.skip(reason="updated cached file needed")
+    @pytest.mark.skip(reason="need to fix issue with folder teardown")
     @pytest.mark.usefixtures("setup_create_physicsmodel")
     def test_create_physicsmodel_with_subgrid(self):
         """
@@ -967,7 +963,7 @@ class TestRegressionSuite(unittest.TestCase):
             self.iso_fname_cache, format="ascii.csv", comment="#", delimiter=",",
         )
         table_new = Table.read(
-            "beast_example_phat_subgrids/beast_example_phat_subgrids_iso.csv",
+            "beast_metal_small_subgrids/beast_metal_small_subgrids_iso.csv",
             format="ascii.csv",
             comment="#",
             delimiter=",",
@@ -977,38 +973,38 @@ class TestRegressionSuite(unittest.TestCase):
         # - spectra with priors
         compare_hdf5(
             self.priors_fname_cache,
-            "./beast_example_phat_subgrids/beast_example_phat_subgrids_spec_w_priors.grid.hd5",
+            "./beast_metal_small_subgrids/beast_metal_small_subgrids_spec_w_priors.grid.hd5",
         )
         compare_hdf5(
             self.priors_sub0_fname_cache,
-            "beast_example_phat_subgrids/beast_example_phat_subgrids_spec_w_priors.gridsub0.hd5",
+            "beast_metal_small_subgrids/beast_metal_small_subgrids_spec_w_priors.gridsub0.hd5",
         )
         compare_hdf5(
             self.priors_sub1_fname_cache,
-            "beast_example_phat_subgrids/beast_example_phat_subgrids_spec_w_priors.gridsub1.hd5",
+            "beast_metal_small_subgrids/beast_metal_small_subgrids_spec_w_priors.gridsub1.hd5",
         )
 
         # - SEDs grid
         compare_hdf5(
             self.seds_sub0_fname_cache,
-            "beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub0.hd5",
+            "beast_metal_small_subgrids/beast_metal_small_subgrids_seds.gridsub0.hd5",
         )
         compare_hdf5(
             self.seds_sub1_fname_cache,
-            "beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub1.hd5",
+            "beast_metal_small_subgrids/beast_metal_small_subgrids_seds.gridsub1.hd5",
         )
 
         # - list of subgrids
-        with open("./beast_example_phat_subgrids/subgrid_fnames.txt") as f:
+        with open("./beast_metal_small_subgrids/subgrid_fnames.txt") as f:
             temp = f.read()
         subgrid_list = [x for x in temp.split("\n") if x != ""]
         expected_list = [
-            "beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub0.hd5",
-            "beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub1.hd5",
+            "beast_metal_small_subgrids/beast_metal_small_subgrids_seds.gridsub0.hd5",
+            "beast_metal_small_subgrids/beast_metal_small_subgrids_seds.gridsub1.hd5",
         ]
         assert subgrid_list == expected_list, "subgrid_fnames.txt has incorrect content"
 
-    @pytest.mark.skip(reason="updated cached file needed")
+    @pytest.mark.skip(reason="need to fix issue with folder teardown")
     @pytest.mark.usefixtures("setup_create_obsmodel")
     def test_create_obsmodel_no_subgrid(self):
         """
@@ -1022,16 +1018,15 @@ class TestRegressionSuite(unittest.TestCase):
             use_sd=False,
             nsubs=self.settings.n_subgrid,
             nprocs=1,
-            use_rate=False,
         )
 
         # check that files match
         compare_hdf5(
             self.noise_fname_cache,
-            "beast_example_phat/beast_example_phat_noisemodel.grid.hd5",
+            "beast_metal_small/beast_metal_small_noisemodel.grid.hd5",
         )
 
-    @pytest.mark.skip(reason="updated cached file needed")
+    @pytest.mark.skip(reason="need to fix issue with folder teardown")
     @pytest.mark.usefixtures("setup_create_obsmodel")
     def test_create_obsmodel_with_subgrid(self):
         """
@@ -1045,17 +1040,16 @@ class TestRegressionSuite(unittest.TestCase):
             use_sd=False,
             nsubs=self.settings_sg.n_subgrid,
             nprocs=1,
-            use_rate=False,
         )
 
         # check that files match
         compare_hdf5(
             self.noise_sub0_fname_cache,
-            "beast_example_phat_subgrids/beast_example_phat_subgrids_noisemodel.gridsub0.hd5",
+            "beast_metal_small_subgrids/beast_metal_small_subgrids_noisemodel.gridsub0.hd5",
         )
         compare_hdf5(
             self.noise_sub1_fname_cache,
-            "beast_example_phat_subgrids/beast_example_phat_subgrids_noisemodel.gridsub1.hd5",
+            "beast_metal_small_subgrids/beast_metal_small_subgrids_noisemodel.gridsub1.hd5",
         )
 
 
@@ -1119,11 +1113,11 @@ def setup_create_physicsmodel(request):
     yield
 
     # remove folders
-    bname = f"./{request.cls.settings.project}"
-    if os.path.isdir(bname):
-        shutil.rmtree(bname)
-    if os.path.isdir(f"{bname}_subgrids"):
-        shutil.rmtree(f"{bname}_subgrids")
+    basename = f"./{request.cls.settings.project}"
+    if os.path.isdir(basename):
+        shutil.rmtree(basename)
+    if os.path.isdir(f"{basename}_subgrids"):
+        shutil.rmtree(f"{basename}_subgrids")
 
 
 @pytest.fixture(scope="function")
@@ -1134,8 +1128,9 @@ def setup_create_obsmodel(request):
     """
     # print('setting up files for create_obsmodel')
     # create folders
-    os.mkdir("./beast_example_phat")
-    os.mkdir("./beast_example_phat_subgrids")
+    basename = f"./{request.cls.settings.project}"
+    os.mkdir(basename)
+    os.mkdir(f"{basename}_subgrids")
     # make symlinks to SED data
     source_list = [
         request.cls.seds_fname_cache,
@@ -1143,14 +1138,14 @@ def setup_create_obsmodel(request):
         request.cls.seds_sub1_fname_cache,
     ]
     dest_list = [
-        "./beast_example_phat/beast_example_phat_seds.grid.hd5",
-        "./beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub0.hd5",
-        "./beast_example_phat_subgrids/beast_example_phat_subgrids_seds.gridsub1.hd5",
+        "./beast_metal_small/beast_metal_small_seds.grid.hd5",
+        "./beast_metal_small_subgrids/beast_metal_small_subgrids_seds.gridsub0.hd5",
+        "./beast_metal_small_subgrids/beast_metal_small_subgrids_seds.gridsub1.hd5",
     ]
     for source, dest in zip(source_list, dest_list):
         os.symlink(os.path.abspath(source), os.path.abspath(dest))
     # make a subgrid file name list
-    with open("./beast_example_phat_subgrids/subgrid_fnames.txt", "w") as f:
+    with open("./beast_metal_small_subgrids/subgrid_fnames.txt", "w") as f:
         f.write(dest_list[1] + "\n" + dest_list[2] + "\n")
 
     # run tests
@@ -1158,7 +1153,7 @@ def setup_create_obsmodel(request):
 
     # remove folders/symlinks
     # print('teardown for create_obsmodel')
-    if os.path.isdir("./beast_example_phat"):
-        shutil.rmtree("./beast_example_phat")
-    if os.path.isdir("./beast_example_phat_subgrids"):
-        shutil.rmtree("./beast_example_phat_subgrids")
+    if os.path.isdir(basename):
+        shutil.rmtree(basename)
+    if os.path.isdir(f"{basename}_subgrids"):
+        shutil.rmtree(f"{basename}_subgrids")

@@ -56,10 +56,9 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
 
     modelsedgrid_filename = "./{0}/{0}_seds.grid.hd5".format(settings.project)
     Nrealize = settings.ast_realization_per_model
-    Nfilters = settings.ast_bands_above_maglimit
 
     # file names for stars and corresponding SED parameters
-    if settings.ast_supplement:
+    if pick_method == "suppl_seds":
         outfile_seds = "./{0}/{0}_inputAST_seds_suppl.txt".format(settings.project)
         outfile_params = "./{0}/{0}_ASTparams_suppl.fits".format(settings.project)
     else:
@@ -80,7 +79,6 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
             chosen_seds = pick_models_toothpick_style(
                 modelsedgrid_filename,
                 settings.filters,
-                Nfilters,
                 N_fluxes,
                 min_N_per_flux,
                 outfile=outfile_seds,
@@ -91,8 +89,8 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
         if pick_method == "random_pick":
 
             # construct magnitude cuts
-
             mag_cuts = settings.ast_maglimit
+            Nfilters = settings.ast_bands_above_maglimit
 
             if len(mag_cuts) == 1:
                 tmp_cuts = mag_cuts
@@ -161,16 +159,23 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
 
         # if we're replicating SEDs across source density or background bins
         if settings.ast_density_table is not None:
+            if hasattr(settings, "ast_reference_image_hdu_extension"):
+                hdu_ext = settings.ast_reference_image_hdu_extension
+            else:
+                hdu_ext = 1
+
             make_ast_xy_list.pick_positions_from_map(
                 obsdata,
                 chosen_seds,
                 settings.ast_density_table,
+                settings.sd_binmode,
                 settings.sd_Nbins,
                 settings.sd_binwidth,
+                settings.sd_custom,
                 settings.ast_realization_per_model,
                 outfile=outfile,
                 refimage=settings.ast_reference_image,
-                refimage_hdu=1,
+                refimage_hdu=hdu_ext,
                 wcs_origin=1,
                 Nrealize=1,
                 set_coord_boundary=settings.ast_coord_boundary,
@@ -193,7 +198,9 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "beast_settings_file", type=str, help="file name with beast settings",
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
     )
     parser.add_argument(
         "--random_seds",

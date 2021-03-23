@@ -1,5 +1,4 @@
 import math
-import copy
 
 import numpy as np
 
@@ -73,7 +72,7 @@ class MultiFilterASTs(NoiseModel):
         self.vega_flux = vega_flux
 
     def set_data_mappings(
-        self, in_pair=("in", "in"), out_pair=("out", "vega"), upcase=False
+        self, in_pair=("in", "in"), out_pair=("out", "rate"), upcase=False
     ):
         """
         Specify the mapping directly with the interface to PHAT-like ASTs
@@ -101,15 +100,14 @@ class MultiFilterASTs(NoiseModel):
 
     def _compute_sigma_bins(
         self,
-        magflux_in,
-        magflux_out,
+        mag_in,
+        flux_out,
         nbins=30,
         min_per_bin=10,
-        completeness_mag_cut=80,
         name_prefix=None,
         asarray=False,
         compute_stddev=False,
-        ast_nonrecovered_frac=0.5,
+        ast_nonrecovered_ratio=2.0,
         min_flux=None,
         max_flux=None,
     ):
@@ -121,15 +119,11 @@ class MultiFilterASTs(NoiseModel):
 
         Parameters
         ----------
-        magflux_in : ndarray
-             AST input mag or flux
+        mag_in : ndarray
+             AST input mag
 
-        magflux_out : ndarray
-             AST output mag or flux
-
-        completeness_mag_cut : float
-            magnitude at which consider a star not recovered
-            set to -1 if the magflux_out is in fluxes (not magnitudes)
+        flux_out : ndarray
+             AST output flux
 
         nbins : int, optional
             Number of logrithmically spaced bins between the min/max values
@@ -148,9 +142,9 @@ class MultiFilterASTs(NoiseModel):
             if True, uses np.mean()+np.std() to estimate avg bias+sigma;
             if False (default), uses np.percentiles
 
-        ast_nonrecovered_frac : float
-            fraction of (flux_in-flux_out)/flux_in to consider an ast not recovered
-            default = 0.5, set to None to disable
+        ast_nonrecovered_ratio : float
+            output/input flux ratio above which to consider an ast not recovered
+            default = 2.0, set to None to disable
 
         min_flux : float
             min flux value in vega normalized fluxes for model bins
@@ -175,46 +169,26 @@ class MultiFilterASTs(NoiseModel):
         # check if any NaNs are present, remove if they are
         # NaNs can be present due to the AST pipeline or in cases where
         # there is missing data (e.g., chip gaps)
-        if np.any(np.isnan(magflux_in)):
-            gvals = np.isfinite(magflux_in) & np.isfinite(magflux_out)
-            magflux_in = magflux_in[gvals]
-            magflux_out = magflux_out[gvals]
+        if np.any(np.isnan(mag_in)):
+            gvals = np.isfinite(mag_in) & np.isfinite(flux_out)
+            mag_in = mag_in[gvals]
+            flux_out = flux_out[gvals]
             print("removing NaNs")
 
-        # convert the AST output from magnitudes to fluxes if needed
-        #  this is designated by setting the completeness_mag_cut to a
-        #  negative number
-        #    good_indxs gives the list of recovered sources
-        if completeness_mag_cut > 0:
-            # first remove cases that have input magnitudes below the cut
-            #   not sure why this is possible, but they exist and contain
-            #   *no information* as mag_in = mag_out = 99.99
-            (good_in_indxs,) = np.where(magflux_in < completeness_mag_cut)
-            if len(good_in_indxs) < len(magflux_in):
-                magflux_in = magflux_in[good_in_indxs]
-                magflux_out = magflux_out[good_in_indxs]
-
-            # now convert from input mags to normalized vega fluxes
-            flux_out = 10 ** (-0.4 * magflux_out)
-            (bad_indxs,) = np.where(magflux_out >= completeness_mag_cut)
-            flux_out[bad_indxs] = 0.0
-        else:
-            flux_out = copy.copy(magflux_out)
-
         # convert the AST input from magnitudes to fluxes
-        # always convert the magflux_in to fluxes (the way the ASTs are
+        # always convert the mag_in to fluxes (the way the ASTs are
         # reported)
-        flux_in = 10 ** (-0.4 * magflux_in)
+        flux_in = 10 ** (-0.4 * mag_in)
 
         # set the flux_out to zero for all ASTs recovered with too large
-        # a difference in fluxes.  This removes sources that are below the
+        # a ratio of output/input fluxes.  This removes sources that are below the
         # the faintest detectable flux that are associated with a real nearby
         # source (random chance that happens depending on the source density)
         # based on input threshold ratio
-        if ast_nonrecovered_frac is not None:
+        if ast_nonrecovered_ratio is not None:
             (indxs,) = np.where(flux_out != 0.0)
-            absdiff = np.absolute((flux_in[indxs] - flux_out[indxs]) / flux_in[indxs])
-            (indxs2,) = np.where(absdiff > ast_nonrecovered_frac)
+            flux_ratio = flux_out[indxs] / flux_in[indxs]
+            (indxs2,) = np.where(flux_ratio > ast_nonrecovered_ratio)
             flux_out[indxs[indxs2]] = 0.0
 
         # storage the storage of the results
@@ -298,19 +272,18 @@ class MultiFilterASTs(NoiseModel):
         else:
             return d
 
-    def fit(self, nbins=50, completeness_mag_cut=80, progress=True):
+    def fit(self, nbins=50, progress=True):
         """
         Alias of fit_bins
         """
         return self.fit_bins(
-            nbins=nbins, completeness_mag_cut=completeness_mag_cut, progress=progress
+            nbins=nbins, progress=progress
         )
 
     def fit_bins(
         self,
         nbins=50,
-        completeness_mag_cut=80,
-        ast_nonrecovered_frac=0.5,
+        ast_nonrecovered_ratio=2.0,
         min_flux=None,
         max_flux=None,
         progress=True,
@@ -323,11 +296,8 @@ class MultiFilterASTs(NoiseModel):
         nbins : int
             number of bins between the min/max values
 
-        completeness_mag_cut : float
-            magnitude at which consider a star not recovered
-
-        ast_nonrecovered_frac : float
-            mark any ASTs with a fractional difference larger than this value
+        ast_nonrecovered_ratio : float
+            mark any ASTs with a an output/input flux ratio larger than this value
             as nonrecovered
 
         min_flux : float
@@ -361,7 +331,7 @@ class MultiFilterASTs(NoiseModel):
         for e, filterk in enumerate(it):
 
             mag_in = self.data[self.filter_aliases[filterk + "_in"]]
-            magflux_out = self.data[self.filter_aliases[filterk + "_out"]]
+            flux_out = self.data[self.filter_aliases[filterk + "_out"]]
 
             # convert min/max fluxes to vega normalized fluxes
             if min_flux is not None:
@@ -375,10 +345,9 @@ class MultiFilterASTs(NoiseModel):
 
             d = self._compute_sigma_bins(
                 mag_in,
-                magflux_out,
+                flux_out,
                 nbins=nbins,
-                completeness_mag_cut=completeness_mag_cut,
-                ast_nonrecovered_frac=ast_nonrecovered_frac,
+                ast_nonrecovered_ratio=ast_nonrecovered_ratio,
                 min_flux=min_norm_flux,
                 max_flux=max_norm_flux,
             )

@@ -26,7 +26,6 @@ def make_toothpick_noise_model(
     outname,
     astfile,
     sedgrid,
-    use_rate=True,
     vega_fname=None,
     absflux_a_matrix=None,
     nfluxbins=50,
@@ -46,10 +45,6 @@ def make_toothpick_noise_model(
     sedgrid : SEDGrid instance
         sed model grid for everyone of which we will evaluate the model
 
-    use_rate : boolean
-        set to use the rate column (normalized vega flux)
-        instead of out column (mags)
-
     absflux_a_matrix : ndarray
         absolute calibration a matrix giving the fractional uncertainties
         including correlated terms (off diagonals)
@@ -67,18 +62,10 @@ def make_toothpick_noise_model(
     model = toothpick.MultiFilterASTs(astfile, sedgrid.filters, vega_fname=vega_fname)
 
     # set the column mappings as the external file is BAND_VEGA or BAND_IN
-    model.set_data_mappings(upcase=True)
+    model.set_data_mappings(in_pair=("in", "in"), out_pair=("out", "rate"), upcase=True)
 
     # compute binned biases and uncertainties as a function of flux
-    if use_rate:
-        # change the mappings for the out column to the rate column
-        for cfilt in sedgrid.filters:
-            model.filter_aliases[cfilt + "_out"] = (
-                cfilt.split("_")[-1].upper() + "_RATE"
-            )
-        model.fit_bins(nbins=nfluxbins, completeness_mag_cut=-10)
-    else:
-        model.fit_bins(nbins=nfluxbins, completeness_mag_cut=80)
+    model.fit_bins(nbins=nfluxbins)
 
     # evaluate the noise model for all the models in sedgrid
     bias, sigma, compl = model(sedgrid)

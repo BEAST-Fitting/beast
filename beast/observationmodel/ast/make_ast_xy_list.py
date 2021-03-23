@@ -16,8 +16,10 @@ def pick_positions_from_map(
     catalog,
     chosen_seds,
     input_map,
+    bin_mode,
     N_bins,
     bin_width,
+    custom_bins,
     Npermodel,
     outfile=None,
     refimage=None,
@@ -56,10 +58,18 @@ def pick_positions_from_map(
     input_map: str
         Path to a hd5 file containing the file written by a DensityMap
 
+    bin_mode: str
+        The convention for generating bins of source density. The options
+        are "linear" (for linear binning) and "log" (for log binning). If "log",
+        the number of bins (N_bins) must be set. If "linear", either N_bins
+        or the bin width (bin_width), or neither (resulting in
+        default integer binning by sources/arcsec^2) can be set.
+        Default: "linear"
+
     N_bins: int
         The number of bins for the range of background density values.
-        The bins will be picked on a linear grid, ranging from the
-        minimum to the maximum value of the map. Then, each tile will be
+        The bins will be picked on a linear grid or log grid (according to bin_mode)
+        ranging from the minimum to the maximum value of the map. Then, each tile will be
         put in a bin, so that a set of tiles of the map is obtained for
         each range of source density/background values.
 
@@ -70,6 +80,11 @@ def pick_positions_from_map(
         minimum to the maximum value of the map. Then, each tile will be
         put in a bin, so that a set of tiles of the map is obtained for
         each range of source density/background values.
+
+    custom_bins: list (default=None)
+        Custom values of bin edges for source or background density values.
+        Each tile will be put into a bin, so that a set of tiles of the
+        map is obtained for each range of source density/background values.
 
     refimage: str
         Path to fits image that is used for the positions. If none is
@@ -253,8 +268,13 @@ def pick_positions_from_map(
     print(Npermodel, " repeats of each model in each map bin")
 
     bdm = density_map.BinnedDensityMap.create(
-        input_map, N_bins=N_bins, bin_width=bin_width
+        input_map,
+        bin_mode=bin_mode,
+        N_bins=N_bins,
+        bin_width=bin_width,
+        custom_bins=custom_bins,
     )
+
     tile_vals = bdm.tile_vals()
     max_val = np.amax(tile_vals)
     min_val = np.amin(tile_vals)
@@ -298,6 +318,27 @@ def pick_positions_from_map(
                     )
 
                 # discard tile if there's no overlap with user-imposed regions
+
+                # - erode_boundary
+                # if you only want to erode the boundary and not impose other
+                # coordinate boundary constraints, still discard SD tiles that don't overlap
+                if (set_coord_boundary is None) and (erode_boundary is not None):
+                    if catalog_boundary_xy and tile_box_xy:
+                        if (
+                            Polygon(catalog_boundary_xy.vertices)
+                            .intersection(tile_box_xy)
+                            .area
+                            == 0
+                        ):
+                            keep_tile[j] = False
+                    elif catalog_boundary_radec and tile_box_radec:
+                        if (
+                            Polygon(catalog_boundary_radec.vertices)
+                            .intersection(tile_box_radec)
+                            .area
+                            == 0
+                        ):
+                            keep_tile[j] = False
 
                 # - set_coord_boundary
                 if set_coord_boundary is not None:
