@@ -27,7 +27,6 @@ def plot_ast_diagnostics(ast_file_list, seds_filename, interpolate=True, savefig
     savefig : str (default=False)
         to save the figure, set this to the file extension (e.g., 'png', 'pdf')
     """
-
     # fetch the number of filters needed
     sedgrid = SEDGrid(seds_filename, backend="cache")
     seds = sedgrid.seds
