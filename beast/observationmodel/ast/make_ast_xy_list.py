@@ -360,7 +360,7 @@ def pick_positions_from_map(
                             .area
                             == 0
                         ):
-                        keep_tile[j] = False
+                            keep_tile[j] = False
                     elif filt_reg_boundary_xy and tile_box_xy:
                         if (
                             Polygon(filt_reg_boundary_xy.vertices)
