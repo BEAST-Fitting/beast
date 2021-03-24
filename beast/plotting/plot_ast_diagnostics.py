@@ -43,7 +43,6 @@ def plot_ast_diagnostics(ast_file_list, seds_filename, interpolate=True, savefig
     if "bin" in ast_file_list[0]:
         # go through each file
         for n, nfile in enumerate(ast_file_list):
-            asts_filename = nfile
             # figure out the source density number
             number = int(nfile.split(".")[-2].split("bin")[-1])
             # if it's larger than the previous max, replace it
@@ -69,7 +68,11 @@ def plot_ast_diagnostics(ast_file_list, seds_filename, interpolate=True, savefig
         )
 
         # compute binned biases, uncertainties, and completeness as a function of band flux
-        model.fit_bins(nbins=50, completeness_mag_cut=-10)
+        ast_nonrecovered_ratio = 2.0
+        model.fit_bins(
+            nbins=50,
+            ast_nonrecovered_ratio=ast_nonrecovered_ratio,
+        )
 
         print(asts_filename)
         print("Source density : %i" % number)
