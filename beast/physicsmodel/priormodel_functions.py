@@ -16,7 +16,7 @@ def _lognorm(x, max_pos, sigma=0.5, N=1.0):
 
     Parameters
     ----------
-    xs : vector
+    x : vector
        x values
 
     max_pos : float
@@ -36,14 +36,14 @@ def _lognorm(x, max_pos, sigma=0.5, N=1.0):
     mu = np.log(max_pos) + sigma ** 2
 
     # avoid zero or negative due to log
-    (indxs,) = np.where(x > 0)
+    pmask = x > 0
 
     lnorm = np.zeros(len(x))
 
-    log_x = np.log(x[indxs])
-    normalization = sqrt_2pi / (x[indxs] * sigma)
+    log_x = np.log(x[pmask])
+    normalization = sqrt_2pi / (x[pmask] * sigma)
 
-    lnorm[indxs] = N * normalization * np.exp(-0.5 * ((log_x - mu) / sigma) ** 2)
+    lnorm[pmask] = N * normalization * np.exp(-0.5 * ((log_x - mu) / sigma) ** 2)
     return lnorm
 
 

@@ -50,7 +50,7 @@ class PriorModel:
                 amp = self.model["amp"]
             else:
                 amp = 1.0
-            if hasattr(x, 'shape'):
+            if hasattr(x, "shape"):
                 return np.full(x.shape, amp)
             else:
                 return amp
@@ -231,8 +231,10 @@ class PriorMassModel(PriorModel):
         # calculate the average prior in each mass bin
         mass_weights = np.zeros(len(x))
         for i, cindx in enumerate(sindxs):
+            # fmt: off
             mass_weights[cindx] = (quad(imf_func, mass_bounds[i], mass_bounds[i + 1]))[0]
-            mass_weights[cindx] /= (mass_bounds[i + 1] - mass_bounds[i])
+            # fmt: on
+            mass_weights[cindx] /= mass_bounds[i + 1] - mass_bounds[i]
 
         # normalize to avoid numerical issues (too small or too large)
         mass_weights /= np.average(mass_weights)

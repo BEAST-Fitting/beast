@@ -30,18 +30,20 @@ The age prior is the star formation rate (SFR) and can be
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'flat'}
+  age_prior_model = {"name": "flat"}
 
-  or to set the star formation rate in M_sun/year, use
+or to set the star formation rate in M_sun/year, use
 
-  age_prior_model = {'name': 'flat'},
-                     'amp': sfr}
+.. code-block:: python
+
+  age_prior_model = {"name": "flat"},
+                     "amp": sfr}
 
 2. Flat in log age
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'flat_log'}
+  age_prior_model = {"name": "flat_log"}
 
 3. Set by bins spaced in logage (log10(years)).
 
@@ -49,33 +51,33 @@ For example, step like priors can be specified by:
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'bins_histo',
-                     'x': [6.0, 7.0, 8.0, 9.0, 10.0],
-                     'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
+  age_prior_model = {"name": "bins_histo",
+                     "x": [6.0, 7.0, 8.0, 9.0, 10.0],
+                     "values": [1.0, 2.0, 1.0, 5.0, 3.0]}
 
 Or using bin edges (where N = N_values+1) like those output by `np.histogram()`:
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'bins_histo',
-                     'x': [6.0, 7.0, 8.0, 9.0, 10.0],
-                     'values': [1.0, 2.0, 1.0, 5.0]}
+  age_prior_model = {"name": "bins_histo",
+                     "x": [6.0, 7.0, 8.0, 9.0, 10.0],
+                     "values": [1.0, 2.0, 1.0, 5.0]}
 
 For example, lines connecting the bin value of the priors can be specified by:
 
 .. code-block:: python
 
- age_prior_model = {'name': 'bins_interp',
-                    'x': [6.0, 7.0, 8.0, 9.0, 10.0],
-                    'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
+ age_prior_model = {"name": "bins_interp",
+                    "x": [6.0, 7.0, 8.0, 9.0, 10.0],
+                    "values": [1.0, 2.0, 1.0, 5.0, 3.0]}
 
 4. An exponentially decreasing SFR (in time, but here increasing with age)
 with a 0.1 Gyr time constant (with `tau` parameter in Gyr):
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'exponential',
-                     'a': 0.1}
+  age_prior_model = {"name": "exponential",
+                     "tau": 0.1}
 
 Plot showing examples of the possible age prior models with the parameters given above.
 
@@ -128,13 +130,13 @@ The two mass function supported are:
 
 .. code-block:: python
 
-  mass_prior_model = {'name': 'kroupa'}
+  mass_prior_model = {"name": "kroupa"}
 
 2. Salpeter (details needed)
 
 .. code-block:: python
 
-  mass_prior_model = {'name': 'salpeter'}
+  mass_prior_model = {"name": "salpeter"}
 
 There is also a flat mass prior.  This is useful for creating grids for BEAST
 verification (see :doc:`Simulations <simulations>`), and should not be
@@ -142,7 +144,7 @@ used for a standard fitting run.
 
 .. code-block:: python
 
-  mass_prior_model = {'name': 'flat'}
+  mass_prior_model = {"name": "flat"}
 
 
 Plot showing examples of the possible mass prior models with the parameters given above.
@@ -186,7 +188,7 @@ The metallicity prior can be
 
 .. code-block:: python
 
-  met_prior_model = {'name': 'flat'}
+  met_prior_model = {"name": "flat"}
 
 Plot showing examples of the possible metallicity prior models with the parameters given above.
 
@@ -223,7 +225,7 @@ The distance prior can be
 
 .. code-block:: python
 
-  distance_prior_model = {'name': 'flat'}
+  distance_prior_model = {"name": "flat"}
 
 Plot showing examples of the possible distance prior models with the parameters given above.
 
@@ -263,34 +265,34 @@ The A(V) prior can be:
 
 .. code-block:: python
 
-  av_prior_model = {'name': 'flat'}
+  av_prior_model = {"name": "flat"}
 
 2. Lognormal with the maximum at the A(V) given by mean and the width
 given by sigma.
 
 .. code-block:: python
 
-  av_prior_model = {'name': 'lognormal',
-                    'mean': 2.0,
-                    'sigma': 1.0}
+  av_prior_model = {"name": "lognormal",
+                    "mean": 2.0,
+                    "sigma": 1.0}
 
 3. Two lognormals (see above for definition of terms)
 
 .. code-block:: python
 
-  av_prior_model = {'name': 'two_lognormal',
-                    'mean1': 0.2,
-                    'mean2': 2.0,
-                    'sigma1': 1.0,
-                    'sigma2': 0.2,
-                    'N1_to_N2': 1.0 / 5.0}
+  av_prior_model = {"name": "two_lognormal",
+                    "mean1": 0.2,
+                    "mean2": 2.0,
+                    "sigma1": 1.0,
+                    "sigma2": 0.2,
+                    "N1_to_N2": 1.0 / 5.0}
 
-4. Exponential with decay rate 'tau'
+4. Exponential with decay rate "tau"
 
 .. code-block:: python
 
-  av_prior_model = {'name': 'exponential',
-                    'tau': 1.0}
+  av_prior_model = {"name": "exponential",
+                    "tau": 1.0}
 
 .. plot::
 
@@ -335,27 +337,27 @@ R(V)
 
 .. code-block:: python
 
-  rv_prior_model = {'name': 'flat'}
+  rv_prior_model = {"name": "flat"}
 
 2. Lognormal with the maximum at the R(V) given by mean and the width
 given by sigma.
 
 .. code-block:: python
 
-  rv_prior_model = {'name': 'lognormal',
-                    'mean': 3.1,
-                    'sigma': 0.25}
+  rv_prior_model = {"name": "lognormal",
+                    "mean": 3.1,
+                    "sigma": 0.25}
 
 3. Two lognormals (see above for definition of terms)
 
 .. code-block:: python
 
-  rv_prior_model = {'name': 'two_lognormal',
-                    'mean1': 3.1,
-                    'mean1': 4.5,
-                    'sigma1': 0.1,
-                    'sigma2': 0.2,
-                    'N1_to_N2': 2.0 / 5.0}
+  rv_prior_model = {"name": "two_lognormal",
+                    "mean1": 3.1,
+                    "mean1": 4.5,
+                    "sigma1": 0.1,
+                    "sigma2": 0.2,
+                    "N1_to_N2": 2.0 / 5.0}
 
 .. plot::
 
@@ -399,27 +401,27 @@ f_A
 
 .. code-block:: python
 
-  fA_prior_model = {'name': 'flat'}
+  fA_prior_model = {"name": "flat"}
 
 2. Lognormal with the maximum at the f_A given by mean and the width
 given by sigma.
 
 .. code-block:: python
 
-  fA_prior_model = {'name': 'lognormal',
-                    'mean': 0.8,
-                    'sigma': 0.1}
+  fA_prior_model = {"name": "lognormal",
+                    "mean": 0.8,
+                    "sigma": 0.1}
 
 3. Two lognormals (see above for definition of terms)
 
 .. code-block:: python
 
-  fA_prior_model = {'name': 'two_lognormal',
-                    'mean1': 0.1,
-                    'mean1': 0.8,
-                    'sigma1': 0.1,
-                    'sigma2': 0.2,
-                    'N1_to_N2': 2.0 / 5.0}
+  fA_prior_model = {"name": "two_lognormal",
+                    "mean1": 0.1,
+                    "mean1": 0.8,
+                    "sigma1": 0.1,
+                    "sigma2": 0.2,
+                    "N1_to_N2": 2.0 / 5.0}
 
 .. plot::
 

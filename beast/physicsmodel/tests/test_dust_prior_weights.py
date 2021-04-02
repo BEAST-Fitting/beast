@@ -6,13 +6,12 @@ from beast.physicsmodel.priormodel import PriorDustModel
 
 def test_av_prior_weights():
     """
-    Test the av dust prior weights
+    Test the A(V) dust prior weights
     """
 
     av_vals = np.array([0.0, 2.0, 4.0, 6.0, 8.0, 10.0])
 
     # Test A(V) priors
-    #  (with random input values)
 
     models = [
         {"name": "flat"},
@@ -57,13 +56,12 @@ def test_av_prior_weights():
 
 def test_rv_prior_weights():
     """
-    Test the rv dust prior weights
+    Test the R(V) dust prior weights
     """
 
     rv_vals = np.array([2.0, 3.0, 4.0, 5.0, 6.0])
 
-    # Test A(V) priors
-    #  (with random input values)
+    # Test R(V) priors
 
     models = [
         {"name": "flat"},
@@ -98,13 +96,12 @@ def test_rv_prior_weights():
 
 def test_fA_prior_weights():
     """
-    Test the fA dust prior weights
+    Test the f_A dust prior weights
     """
 
     fA_vals = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
-    # Test A(V) priors
-    #  (with random input values)
+    # Test f_A priors
 
     models = [
         {"name": "flat"},
