@@ -22,7 +22,7 @@ from tqdm import tqdm
 
 from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
-from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+from beast.physicsmodel.priormodel import PriorDustModel
 
 # from beast.external.eztables import Table
 from astropy.table import Table
@@ -322,10 +322,12 @@ def make_extinguished_grid(
     # ========================
     # basically the dot product from all input 1d vectors
     # setup interation over the full dust parameter grid
+
+    # setup the dust prior models
+    av_prior = PriorDustModel(av_prior_model)
+    rv_prior = PriorDustModel(rv_prior_model)
     if with_fA:
-        dustpriors = PriorWeightsDust(
-            avs, av_prior_model, rvs, rv_prior_model, fAs, fA_prior_model
-        )
+        fA_prior = PriorDustModel(fA_prior_model)
 
         it = np.nditer(np.ix_(avs, rvs, fAs))
         niter = np.size(avs) * np.size(rvs) * np.size(fAs)
@@ -344,10 +346,6 @@ def make_extinguished_grid(
         if npts == 0:
             raise AttributeError("No valid points")
     else:
-        dustpriors = PriorWeightsDust(
-            avs, av_prior_model, rvs, rv_prior_model, [1.0], fA_prior_model
-        )
-
         it = np.nditer(np.ix_(avs, rvs))
         npts = np.size(avs) * np.size(rvs)
         pts = ((float(ak), float(rk)) for ak, rk in it)
@@ -397,7 +395,7 @@ def make_extinguished_grid(
 
             if with_fA:
                 Av, Rv, f_A = pt
-                dust_prior_weight = dustpriors.get_weight(Av, Rv, f_A)
+                dust_prior_weight = av_prior(Av) * rv_prior(Rv) * fA_prior(f_A)
                 Rv_MW = extLaw.get_Rv_A(Rv, f_A)
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_A, inplace=False)
                 # add extra "spectral bands" if requested
@@ -417,7 +415,7 @@ def make_extinguished_grid(
 
             else:
                 Av, Rv = pt
-                dust_prior_weight = dustpriors.get_weight(Av, Rv, 1.0)
+                dust_prior_weight = av_prior(Av) * rv_prior(Rv)
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
 
                 if add_spectral_properties_kwargs is not None:

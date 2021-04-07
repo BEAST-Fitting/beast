@@ -30,53 +30,54 @@ The age prior is the star formation rate (SFR) and can be
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'flat'}
+  age_prior_model = {"name": "flat"}
 
-or
+or to set the star formation rate in M_sun/year, use
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'flat_linear'}
+  age_prior_model = {"name": "flat"},
+                     "amp": sfr}
 
 2. Flat in log age
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'flat_log'}
+  age_prior_model = {"name": "flat_log"}
 
-3. Set by bins spaced in logage.
+3. Set by bins spaced in logage (log10(years)).
 
 For example, step like priors can be specified by:
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'bins_histo',
-                     'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
-                     'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
+  age_prior_model = {"name": "bins_histo",
+                     "x": [6.0, 7.0, 8.0, 9.0, 10.0],
+                     "values": [1.0, 2.0, 1.0, 5.0, 3.0]}
 
 Or using bin edges (where N = N_values+1) like those output by `np.histogram()`:
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'bins_histo',
-                     'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
-                     'values': [1.0, 2.0, 1.0, 5.0]}
+  age_prior_model = {"name": "bins_histo",
+                     "x": [6.0, 7.0, 8.0, 9.0, 10.0],
+                     "values": [1.0, 2.0, 1.0, 5.0]}
 
 For example, lines connecting the bin value of the priors can be specified by:
 
 .. code-block:: python
 
- age_prior_model = {'name': 'bins_interp',
-                    'logages': [6.0, 7.0, 8.0, 9.0, 10.0],
-                    'values': [1.0, 2.0, 1.0, 5.0, 3.0]}
+ age_prior_model = {"name": "bins_interp",
+                    "x": [6.0, 7.0, 8.0, 9.0, 10.0],
+                    "values": [1.0, 2.0, 1.0, 5.0, 3.0]}
 
 4. An exponentially decreasing SFR (in time, but here increasing with age)
 with a 0.1 Gyr time constant (with `tau` parameter in Gyr):
 
 .. code-block:: python
 
-  age_prior_model = {'name': 'exp',
-                     'tau': 0.1}
+  age_prior_model = {"name": "exponential",
+                     "tau": 0.1}
 
 Plot showing examples of the possible age prior models with the parameters given above.
 
@@ -85,7 +86,7 @@ Plot showing examples of the possible age prior models with the parameters given
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_stars import compute_age_prior_weights
+    from beast.physicsmodel.priormodel import PriorAgeModel
 
     fig, ax = plt.subplots()
 
@@ -97,19 +98,20 @@ Plot showing examples of the possible age prior models with the parameters given
         {"name": "flat_log"},
         {
             "name": "bins_histo",
-            "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
+            "x": [6.0, 7.0, 8.0, 9.0, 10.0],
             "values": [1.0, 2.0, 1.0, 5.0, 3.0],
         },
         {
             "name": "bins_interp",
-            "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
+            "x": [6.0, 7.0, 8.0, 9.0, 10.0],
             "values": [1.0, 2.0, 1.0, 5.0, 3.0],
         },
-        {"name": "exp", "tau": 0.1}
+        {"name": "exponential", "tau": 0.1}
     ]
 
     for ap_mod in age_prior_models:
-        ax.plot(logages, compute_age_prior_weights(logages, ap_mod), label=ap_mod["name"])
+        pmod = PriorAgeModel(ap_mod)
+        ax.plot(logages, pmod(logages), label=ap_mod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("log(age)")
@@ -128,13 +130,13 @@ The two mass function supported are:
 
 .. code-block:: python
 
-  mass_prior_model = {'name': 'kroupa'}
+  mass_prior_model = {"name": "kroupa"}
 
 2. Salpeter (details needed)
 
 .. code-block:: python
 
-  mass_prior_model = {'name': 'salpeter'}
+  mass_prior_model = {"name": "salpeter"}
 
 There is also a flat mass prior.  This is useful for creating grids for BEAST
 verification (see :doc:`Simulations <simulations>`), and should not be
@@ -142,7 +144,7 @@ used for a standard fitting run.
 
 .. code-block:: python
 
-  mass_prior_model = {'name': 'flat'}
+  mass_prior_model = {"name": "flat"}
 
 
 Plot showing examples of the possible mass prior models with the parameters given above.
@@ -152,7 +154,7 @@ Plot showing examples of the possible mass prior models with the parameters give
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_stars import compute_mass_prior_weights
+    from beast.physicsmodel.priormodel import PriorMassModel
 
     fig, ax = plt.subplots()
 
@@ -166,7 +168,8 @@ Plot showing examples of the possible mass prior models with the parameters give
     ]
 
     for mp_mod in mass_prior_models:
-        ax.plot(masses, compute_mass_prior_weights(masses, mp_mod), label=mp_mod["name"])
+        pmod = PriorMassModel(mp_mod)
+        ax.plot(masses, pmod(masses), label=mp_mod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("mass")
@@ -185,7 +188,7 @@ The metallicity prior can be
 
 .. code-block:: python
 
-  met_prior_model = {'name': 'flat'}
+  met_prior_model = {"name": "flat"}
 
 Plot showing examples of the possible metallicity prior models with the parameters given above.
 
@@ -194,17 +197,18 @@ Plot showing examples of the possible metallicity prior models with the paramete
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_stars import compute_metallicity_prior_weights
+    from beast.physicsmodel.priormodel import PriorMetallicityModel
 
     fig, ax = plt.subplots()
 
     # met grid with linear spacing
     mets = np.linspace(0.004, 0.03)
 
-    met_prior_models = [{"name": "flat"},]
+    met_prior_models = [{"name": "flat"}]
 
     for mp_mod in met_prior_models:
-        ax.plot(mets, compute_metallicity_prior_weights(mets, mp_mod), label=mp_mod["name"])
+        pmod = PriorMetallicityModel(mp_mod)
+        ax.plot(mets, pmod(mets), label=mp_mod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("metallicity")
@@ -221,7 +225,7 @@ The distance prior can be
 
 .. code-block:: python
 
-  distance_prior_model = {'name': 'flat'}
+  distance_prior_model = {"name": "flat"}
 
 Plot showing examples of the possible distance prior models with the parameters given above.
 
@@ -230,20 +234,21 @@ Plot showing examples of the possible distance prior models with the parameters 
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_stars import compute_distance_prior_weights
+    from beast.physicsmodel.priormodel import PriorDistanceModel
 
     fig, ax = plt.subplots()
 
     # met grid with linear spacing
     dists = np.linspace(8e6, 9e6)
 
-    distance_prior_models = [{"name": "flat"},]
+    met_prior_models = [{"name": "flat"}]
 
-    for mp_mod in distance_prior_models:
-        ax.plot(dists, compute_distance_prior_weights(dists, mp_mod), label=mp_mod["name"])
+    for mp_mod in met_prior_models:
+        pmod = PriorDistanceModel(mp_mod)
+        ax.plot(dists, pmod(dists), label=mp_mod["name"])
 
     ax.set_ylabel("probability")
-    ax.set_xlabel("distance [pc]")
+    ax.set_xlabel("distance")
     ax.legend(loc="best")
     plt.tight_layout()
     plt.show()
@@ -260,41 +265,41 @@ The A(V) prior can be:
 
 .. code-block:: python
 
-  av_prior_model = {'name': 'flat'}
+  av_prior_model = {"name": "flat"}
 
-2. Lognormal with the maximum at the A(V) given by max_pos and the width
+2. Lognormal with the maximum at the A(V) given by mean and the width
 given by sigma.
 
 .. code-block:: python
 
-  av_prior_model = {'name': 'lognormal',
-                    'max_pos': 2.0,
-                    'sigma': 1.0}
+  av_prior_model = {"name": "lognormal",
+                    "mean": 2.0,
+                    "sigma": 1.0}
 
 3. Two lognormals (see above for definition of terms)
 
 .. code-block:: python
 
-  av_prior_model = {'name': 'two_lognormal',
-                    'max_pos1': 0.2,
-                    'max_pos2': 2.0,
-                    'sigma1': 1.0,
-                    'sigma2': 0.2,
-                    'N1_to_N2': 1.0 / 5.0}
+  av_prior_model = {"name": "two_lognormal",
+                    "mean1": 0.2,
+                    "mean2": 2.0,
+                    "sigma1": 1.0,
+                    "sigma2": 0.2,
+                    "N1_to_N2": 1.0 / 5.0}
 
-4. Exponential with decay rate 'a'
+4. Exponential with decay rate "tau"
 
 .. code-block:: python
 
-  av_prior_model = {'name': 'exponential',
-                    'a': 1.0}
+  av_prior_model = {"name": "exponential",
+                    "tau": 1.0}
 
 .. plot::
 
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+    from beast.physicsmodel.priormodel import PriorDustModel
 
     fig, ax = plt.subplots()
 
@@ -303,24 +308,21 @@ given by sigma.
 
     dust_prior_models = [
         {"name": "flat"},
-        {"name": "lognormal", "max_pos": 2.0, "sigma": 1.0},
+        {"name": "lognormal", "mean": 2.0, "sigma": 1.0},
         {
             "name": "two_lognormal",
-            "max_pos1": 0.2,
-            "max_pos2": 2.0,
+            "mean1": 0.2,
+            "mean2": 2.0,
             "sigma1": 1.0,
             "sigma2": 0.5,
             "N1_to_N2": 1.0 / 5.0
         },
-        {"name": "exponential", "a": 1.0},
+        {"name": "exponential", "tau": 1.0},
     ]
 
     for dmod in dust_prior_models:
-        dmodel = PriorWeightsDust(
-            avs, dmod, [1.0], {"name": "flat"}, [1.0], {"name": "flat"}
-        )
-
-        ax.plot(avs, dmodel.av_priors, label=dmod["name"])
+        pmod = PriorDustModel(dmod)
+        ax.plot(avs, pmod(avs), label=dmod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("A(V)")
@@ -335,34 +337,34 @@ R(V)
 
 .. code-block:: python
 
-  rv_prior_model = {'name': 'flat'}
+  rv_prior_model = {"name": "flat"}
 
-2. Lognormal with the maximum at the R(V) given by max_pos and the width
+2. Lognormal with the maximum at the R(V) given by mean and the width
 given by sigma.
 
 .. code-block:: python
 
-  rv_prior_model = {'name': 'lognormal',
-                    'max_pos': 3.1,
-                    'sigma': 0.25}
+  rv_prior_model = {"name": "lognormal",
+                    "mean": 3.1,
+                    "sigma": 0.25}
 
 3. Two lognormals (see above for definition of terms)
 
 .. code-block:: python
 
-  rv_prior_model = {'name': 'two_lognormal',
-                    'max_pos1': 3.1,
-                    'max_pos1': 4.5,
-                    'sigma1': 0.1,
-                    'sigma2': 0.2,
-                    'N1_to_N2': 2.0 / 5.0}
+  rv_prior_model = {"name": "two_lognormal",
+                    "mean1": 3.1,
+                    "mean1": 4.5,
+                    "sigma1": 0.1,
+                    "sigma2": 0.2,
+                    "N1_to_N2": 2.0 / 5.0}
 
 .. plot::
 
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+    from beast.physicsmodel.priormodel import PriorDustModel
 
     fig, ax = plt.subplots()
 
@@ -371,11 +373,11 @@ given by sigma.
 
     dust_prior_models = [
         {"name": "flat"},
-        {"name": "lognormal", "max_pos": 3.1, "sigma": 0.25},
+        {"name": "lognormal", "mean": 3.1, "sigma": 0.25},
         {
             "name": "two_lognormal",
-            "max_pos1": 3.1,
-            "max_pos2": 4.5,
+            "mean1": 3.1,
+            "mean2": 4.5,
             "sigma1": 0.1,
             "sigma2": 0.2,
             "N1_to_N2": 2.0 / 5.0
@@ -383,11 +385,8 @@ given by sigma.
     ]
 
     for dmod in dust_prior_models:
-        dmodel = PriorWeightsDust(
-            [1.0], {"name": "flat"}, rvs, dmod, [1.0], {"name": "flat"}
-        )
-
-        ax.plot(rvs, dmodel.rv_priors, label=dmod["name"])
+        pmod = PriorDustModel(dmod)
+        ax.plot(rvs, pmod(rvs), label=dmod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("R(V)")
@@ -402,34 +401,34 @@ f_A
 
 .. code-block:: python
 
-  fA_prior_model = {'name': 'flat'}
+  fA_prior_model = {"name": "flat"}
 
-2. Lognormal with the maximum at the f_A given by max_pos and the width
+2. Lognormal with the maximum at the f_A given by mean and the width
 given by sigma.
 
 .. code-block:: python
 
-  fA_prior_model = {'name': 'lognormal',
-                    'max_pos': 0.8,
-                    'sigma': 0.1}
+  fA_prior_model = {"name": "lognormal",
+                    "mean": 0.8,
+                    "sigma": 0.1}
 
 3. Two lognormals (see above for definition of terms)
 
 .. code-block:: python
 
-  fA_prior_model = {'name': 'two_lognormal',
-                    'max_pos1': 0.1,
-                    'max_pos1': 0.8,
-                    'sigma1': 0.1,
-                    'sigma2': 0.2,
-                    'N1_to_N2': 2.0 / 5.0}
+  fA_prior_model = {"name": "two_lognormal",
+                    "mean1": 0.1,
+                    "mean1": 0.8,
+                    "sigma1": 0.1,
+                    "sigma2": 0.2,
+                    "N1_to_N2": 2.0 / 5.0}
 
 .. plot::
 
     import numpy as np
     import matplotlib.pyplot as plt
 
-    from beast.physicsmodel.prior_weights_dust import PriorWeightsDust
+    from beast.physicsmodel.priormodel import PriorDustModel
 
     fig, ax = plt.subplots()
 
@@ -438,11 +437,11 @@ given by sigma.
 
     dust_prior_models = [
         {"name": "flat"},
-        {"name": "lognormal", "max_pos": 0.8, "sigma": 0.1},
+        {"name": "lognormal", "mean": 0.8, "sigma": 0.1},
         {
             "name": "two_lognormal",
-            "max_pos1": 0.2,
-            "max_pos2": 0.8,
+            "mean1": 0.2,
+            "mean2": 0.8,
             "sigma1": 0.1,
             "sigma2": 0.2,
             "N1_to_N2": 2.0 / 5.0
@@ -450,11 +449,8 @@ given by sigma.
     ]
 
     for dmod in dust_prior_models:
-        dmodel = PriorWeightsDust(
-            [1.0], {"name": "flat"}, [1.0], {"name": "flat"}, fAs, dmod
-        )
-
-        ax.plot(fAs, dmodel.fA_priors, label=dmod["name"])
+        pmod = PriorDustModel(dmod)
+        ax.plot(fAs, pmod(fAs), label=dmod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel(r"$f_A$")
