@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
+import tables
 
 from astropy.table import Table
 
 from beast.observationmodel.noisemodel import toothpick
 from beast.plotting.beastplotlib import set_params
+from beast.config import __ROOT__
 
 __all__ = ["plot_toothpick_details"]
 
@@ -123,10 +125,12 @@ def plot_toothpick_details(asts_filename, savefig=False):
     else:
         plt.show()
 
+
 def fetch_filters(filename):
     """
     For any FITS table file (gst, ast, etc.), collect the filters based on the
-    columns containing "VEGA".
+    columns containing "VEGA". Returns a sorted list of the full BEAST filter
+    names, assuming the camera is HST_WFC3.
 
     Parameters
     ----------
@@ -136,44 +140,44 @@ def fetch_filters(filename):
     Returns
     -------
     filters : list
-        list of full filter names
+        list of full BEAST filter names
 
     """
-
-    # all possible filters
-    gst_filter_names = [
-        "F225W",
-        "F275W",
-        "F336W",
-        "F475W",
-        "F814W",
-        "F110W",
-        "F160W",
-        "F657N",
-    ]
-    beast_filter_names = [
-        "HST_WFC3_F225W",
-        "HST_WFC3_F275W",
-        "HST_WFC3_F336W",
-        "HST_WFC3_F475W",
-        "HST_WFC3_F814W",
-        "HST_WFC3_F110W",
-        "HST_WFC3_F160W",
-        "HST_WFC3_F657N",
-    ]
 
     data = Table.read(filename)
 
     # extract every filter mentioned in the table
     # find all columns mentioning VEGA
-    filter_cols = [c for c in data.colnames if "VEGA" in c]
-    filters = [f.split("_")[0] for f in filter_cols]
+    filters = [f.split("_")[0] for f in ast_data.columns if "VEGA" in f]
 
-    # match with the gst filter list
-    filter_ids = [gst_filter_names.index(i) for i in filters]
-    filter_ids.sort()
+    # sort the list of filters based on wavelength
+    # i.e. anything < 200nm is in the IR
+    rep = 0
+    for n in range(len(filters)):
+        if "L" in filters[n-rep]:
+            num = (int(filters[n-rep][-5:-2]))
 
-    gst_filter_names = [gst_filter_names[i] for i in filter_ids]
-    beast_filter_names = [beast_filter_names[i] for i in filter_ids]
+        else:
+            num = (int(filters[n-rep][-4:-1]))
 
-    return beast_filter_names
+        if num < 200:
+            filters.append(filters.pop(filters.index('{0}'.format(filters[n-rep]))))
+            rep += 1
+
+    # add camera prefix
+    filters = ["HST_WFC3_" + f for f in filters]
+
+    #check to see that the filters actually exist
+    source = "{0}/vega.hd5".format(__ROOT__)
+    hdu = tables.open_file(source)
+    hdu.close()
+
+    beast_filters = hdf.root.sed.cols.FNAME[:]
+    beast_filters = [ele.decode() for ele in beast_filters]
+
+    missing_filters = set(filters).difference(beast_filters)
+
+    if missing_filters:
+        print("Missing HST WFC3 equivalent filter for {0}".format(missing_filters))
+
+    return filters
