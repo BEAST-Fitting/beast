@@ -181,18 +181,18 @@ def compare_spec_type(
 
         # if there's not a close enough match, put in placeholder values
         else:
-            spec_match["spec_teff"].append(None)
-            spec_match["spec_logg"].append(None)
-            spec_match["phot_cat_ind"].append(None)
-            spec_match["stats_cat_ind"].append(None)
-            spec_match["beast_teff_p50"].append(None)
-            spec_match["beast_teff_p16"].append(None)
-            spec_match["beast_teff_p84"].append(None)
-            spec_match["beast_logg_p50"].append(None)
-            spec_match["beast_logg_p16"].append(None)
-            spec_match["beast_logg_p84"].append(None)
-            spec_match["teff_sigma"].append(None)
-            spec_match["logg_sigma"].append(None)
+            spec_match["spec_teff"].append(np.nan)
+            spec_match["spec_logg"].append(np.nan)
+            spec_match["phot_cat_ind"].append(np.nan)
+            spec_match["stats_cat_ind"].append(np.nan)
+            spec_match["beast_teff_p50"].append(np.nan)
+            spec_match["beast_teff_p16"].append(np.nan)
+            spec_match["beast_teff_p84"].append(np.nan)
+            spec_match["beast_logg_p50"].append(np.nan)
+            spec_match["beast_logg_p16"].append(np.nan)
+            spec_match["beast_logg_p84"].append(np.nan)
+            spec_match["teff_sigma"].append(np.nan)
+            spec_match["logg_sigma"].append(np.nan)
 
     # write out the table
     if output_filebase is not None:
@@ -201,7 +201,6 @@ def compare_spec_type(
         )
     else:
         return dict(spec_match)
-
 
 def lookup_param(input_function, spec_type, spec_subtype, lumin_class):
     """
