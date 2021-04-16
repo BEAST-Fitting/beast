@@ -102,6 +102,7 @@ class MultiFilterASTs(NoiseModel):
         self,
         mag_in,
         flux_out,
+        cut_flag,
         nbins=30,
         min_per_bin=10,
         name_prefix=None,
@@ -120,10 +121,14 @@ class MultiFilterASTs(NoiseModel):
         Parameters
         ----------
         mag_in : ndarray
-             AST input mag
+            AST input mag
 
         flux_out : ndarray
-             AST output flux
+            AST output flux
+
+        cut_flag : ndarray
+            flag set to 1 if the source has been cut (user decision based often
+            based on photometry parameters)
 
         nbins : int, optional
             Number of logrithmically spaced bins between the min/max values
@@ -179,6 +184,13 @@ class MultiFilterASTs(NoiseModel):
         # always convert the mag_in to fluxes (the way the ASTs are
         # reported)
         flux_in = 10 ** (-0.4 * mag_in)
+
+        # set the fluxes to zero for all sources with CUT_FLAG > 0
+        #   these are the sources that are not recovered
+        # user determined flag
+        #   often this flag is set by sharpness, roundness, non-measured bands
+        cmask = cut_flag > 0
+        flux_out[cmask] = 0.0
 
         # set the flux_out to zero for all ASTs recovered with too large
         # a ratio of output/input fluxes.  This removes sources that are below the
@@ -323,6 +335,11 @@ class MultiFilterASTs(NoiseModel):
         self._nasts = np.zeros(shape[1], dtype=int)
         self._minmax_asts = np.zeros((2, shape[1]), dtype=float)
 
+        # check that the CUT_FLAG column is present
+        if "CUT_FLAG" not in self.data.colnames:
+            raise ValueError("required CUT_FLAG column not present in AST output file")
+
+        # setup iterator incuding progress bar if desired
         if progress is True:
             it = tqdm(self.filters, desc="Fitting model")
         else:
@@ -346,6 +363,7 @@ class MultiFilterASTs(NoiseModel):
             d = self._compute_sigma_bins(
                 mag_in,
                 flux_out,
+                self.data["CUT_FLAG"],
                 nbins=nbins,
                 ast_nonrecovered_ratio=ast_nonrecovered_ratio,
                 min_flux=min_norm_flux,

@@ -7,10 +7,7 @@ from numpy.random import default_rng
 from astropy.table import Table, Column
 
 from beast.observationmodel.vega import Vega
-from beast.physicsmodel.prior_weights_stars import (
-    compute_mass_prior_weights,
-    compute_age_prior_weights,
-)
+from beast.physicsmodel.priormodel import PriorAgeModel, PriorMassModel
 from beast.physicsmodel.grid_weights_stars import compute_bin_boundaries
 
 __all__ = ["Observations", "gen_SimObs_from_sedgrid"]
@@ -346,7 +343,8 @@ def gen_SimObs_from_sedgrid(
         # compute the total mass and average mass of a star given the mass_prior_model
         nmass = 100
         masspts = np.logspace(np.log10(mass_range[0]), np.log10(mass_range[1]), nmass)
-        massprior = compute_mass_prior_weights(masspts, mass_prior_model)
+        mass_prior = PriorMassModel(mass_prior_model)
+        massprior = mass_prior(masspts)
         totmass = np.trapz(massprior, masspts)
         avemass = np.trapz(masspts * massprior, masspts) / totmass
 
@@ -356,7 +354,8 @@ def gen_SimObs_from_sedgrid(
         gridweights = gridweights / np.sum(gridweights)
 
         grid_ages = np.unique(sedgrid["logA"])
-        ageprior = compute_age_prior_weights(grid_ages, age_prior_model)
+        age_prior = PriorAgeModel(age_prior_model)
+        ageprior = age_prior(grid_ages)
         bin_boundaries = compute_bin_boundaries(grid_ages)
         bin_widths = np.diff(10 ** (bin_boundaries))
         totsim_indx = np.array([], dtype=int)

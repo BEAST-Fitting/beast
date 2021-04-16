@@ -1,186 +1,140 @@
 import numpy as np
 
-from beast.physicsmodel.prior_weights_stars import (
-    compute_distance_prior_weights,
-    compute_age_prior_weights,
-    compute_mass_prior_weights,
-    compute_metallicity_prior_weights,
-    imf_kroupa,
+from beast.physicsmodel.priormodel import (
+    PriorAgeModel,
+    PriorMassModel,
+    PriorMetallicityModel,
+    PriorDistanceModel,
 )
 
 
-def test_flat_age_prior_weights():
+def test_age_prior_weights():
     """
-    Test for flat age prior
+    Test the age prior weights
     """
+
     log_age = np.array([6.0, 7.0, 8.0, 9.0, 10.0])
-    log_age_prior_model = {"name": "flat", "sfr": 1.0}
-    log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
-    expected_log_age_prior = [1, 1, 1, 1, 1]
-    np.testing.assert_allclose(
-        log_age_prior, expected_log_age_prior, err_msg=("Flat age prior error")
-    )
 
-
-def test_flat_log_age_prior_weights():
-    """
-    Test for flat log age prior
-    """
-    log_age = np.array([6.0, 7.0, 8.0, 9.0, 10.0])
-    log_age_prior_model = {"name": "flat_log", "sfr": 1.0}
-    log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
-    expected_log_age_prior = [2.2222e03, 2.2222e02, 2.2222e01, 2.2222e00, 2.2222e-01]
-    np.testing.assert_allclose(
-        log_age_prior, expected_log_age_prior, err_msg=("Flat log, log age prior error")
-    )
-
-
-def test_bins_histo_age_prior_weights():
-    """
-    Test for bin histogram age prior
-    """
-    log_age = np.array([7.0, 8.0, 9.0])
-    log_age_prior_model = {
-        "name": "bins_histo",
-        "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
-        "values": [1.0, 2.0, 1.0, 5.0, 3.0],
-    }
-    log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
-    expected_log_age_prior = [2.0, 1.0, 5.0]
-    np.testing.assert_allclose(
-        log_age_prior,
-        expected_log_age_prior,
-        err_msg=("Bin histogram log age prior error"),
-    )
-
-
-def test_bins_interp_age_prior_weights():
-    """
-    Test for bin interpolation age prior
-    """
-    log_age = np.array([6.0, 7.0, 8.0, 9.0, 10.0])
-    log_age_prior_model = {
-        "name": "bins_interp",
-        "logages": [6.0, 7.0, 8.0, 9.0, 10.0],
-        "values": [1.0, 2.0, 1.0, 5.0, 3.0],
-    }
-    log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
-    expected_log_age_prior = [1.0, 2.0, 1.0, 5.0, 3.0]
-    np.testing.assert_allclose(
-        log_age_prior,
-        expected_log_age_prior,
-        err_msg=("Bin histogram log age prior error"),
-    )
-
-
-def test_exp_age_prior_weights():
-    """
-    Test for exponential age prior with a tau = 0.1
-    """
-    log_age = np.array([6.0, 7.0, 8.0, 9.0, 10.0])
-    log_age_prior_model = {"name": "exp", "tau": 0.1}
-    log_age_prior = compute_age_prior_weights(log_age, log_age_prior_model)
-    expected_log_age_prior = [
-        9.900498e-01,
-        9.048374e-01,
-        3.678794e-01,
-        4.539993e-05,
-        3.720076e-44,
+    models = [
+        {"name": "flat"},
+        {"name": "flat", "amp": 0.1},
+        {"name": "flat_log"},
+        {
+            "name": "bins_histo",
+            "x": [6.0, 7.0, 8.0, 9.0, 10.0],
+            "values": [1.0, 2.0, 1.0, 5.0, 3.0],
+        },
+        {  # case when values has one entry less than x -> assumed that last x has 0 SFR
+            "name": "bins_histo",
+            "x": [6.0, 7.0, 8.0, 9.0, 10.0],
+            "values": [1.0, 2.0, 1.0, 5.0],
+        },
+        {
+            "name": "bins_interp",
+            "x": [6.0, 7.0, 8.0, 9.0, 10.0],
+            "values": [1.0, 2.0, 1.0, 5.0, 3.0],
+        },
+        {"name": "exponential", "tau": 0.1},
     ]
-    np.testing.assert_allclose(
-        log_age_prior,
-        expected_log_age_prior,
-        err_msg=("Exponential log age prior error"),
-        rtol=1e-6,
-    )
-
-
-def test_imf_kroupa():
-    """
-    Test for creating kroupa IMF
-    """
-    mass = np.array([0.1, 1, 2, 3, 4, 50])
-    imf = imf_kroupa(mass)
-    expected_imf = [
-        3.99052463e01,
-        1.00000000e00,
-        2.03063099e-01,
-        7.99136770e-02,
-        4.12346222e-02,
-        1.23699798e-04,
+    # fmt: off
+    expected_vals = [
+        [1.0, 1.0, 1.0, 1.0, 1.0],
+        [0.1, 0.1, 0.1, 0.1, 0.1],
+        [9.00009e-01, 9.00009e-02, 9.00009e-03, 9.00009e-04, 9.00009e-05],
+        [1.0, 2.0, 1.0, 5.0, 3.0],
+        [1.0, 2.0, 1.0, 5.0, 0.0],
+        [1.0, 2.0, 1.0, 5.0, 3.0],
+        [9.900498e-01, 9.048374e-01, 3.678794e-01, 4.539993e-05, 3.720076e-44]
     ]
-    np.testing.assert_allclose(
-        imf, expected_imf, err_msg=("Kroupa IMF calculation error")
-    )
+    # fmt: on
+
+    for cmod, cvals in zip(models, expected_vals):
+        age_prior = PriorAgeModel(cmod)
+        mname = cmod["name"]
+        np.testing.assert_allclose(
+            age_prior(log_age),
+            cvals,
+            atol=1e-6,
+            err_msg=f"A problem occurred while setting the age priors to {mname}.",
+        )
 
 
-def test_kroupa_mass_prior_weight():
+def test_mass_prior_weights():
     """
-    Test the kroupa mass prior
+    Test the mass prior weights
     """
+
     mass = np.array([1, 2, 3, 4, 5])
-    mass_prior_model = {"name": "kroupa"}
-    weights = compute_mass_prior_weights(mass, mass_prior_model)
-    expected_weights = [3.97740709, 0.60861986, 0.22874078, 0.11618704, 0.06904523]
-    np.testing.assert_allclose(
-        weights,
-        expected_weights,
-        err_msg=("Stellar mass prior weight error (kroupa IMF)"),
-    )
+
+    models = [
+        {"name": "flat"},
+        {"name": "salpeter"},
+        {"name": "kroupa"},
+    ]
+    # fmt: off
+    expected_vals = [
+        [1.0, 1.0, 1.0, 1.0, 1.0],
+        [4.02338441, 0.58842044, 0.21633931, 0.10825509, 0.06360075],
+        [3.97740709, 0.60861986, 0.22874078, 0.11618704, 0.06904523],
+    ]
+    # fmt: on
+
+    for cmod, cvals in zip(models, expected_vals):
+        mass_prior = PriorMassModel(cmod)
+        mname = cmod["name"]
+        np.testing.assert_allclose(
+            mass_prior(mass),
+            cvals,
+            atol=1e-6,
+            err_msg=f"A problem occurred while setting the mass priors to {mname}.",
+        )
 
 
-def test_salpeter_mass_prior_weight():
+def test_met_prior_weights():
     """
-    Test the salpeter mass prior
+    Test the metallicity prior weights
     """
-    mass = np.array([1, 2, 3, 4, 5])
-    mass_prior_model = {"name": "salpeter"}
-    weights = compute_mass_prior_weights(mass, mass_prior_model)
-    expected_weights = [4.02338441, 0.58842044, 0.21633931, 0.10825509, 0.06360075]
-    np.testing.assert_allclose(
-        weights,
-        expected_weights,
-        err_msg=("Stellar mass prior weight error (salpeter IMF)"),
-    )
+
+    met = np.array([0.01, 0.1, 1.0])
+
+    models = [{"name": "flat"}]
+    # fmt: off
+    expected_vals = [
+        [1.0, 1.0, 1.0]
+    ]
+    # fmt: on
+
+    for cmod, cvals in zip(models, expected_vals):
+        met_prior = PriorMetallicityModel(cmod)
+        mname = cmod["name"]
+        np.testing.assert_allclose(
+            met_prior(met),
+            cvals,
+            atol=1e-6,
+            err_msg=f"A problem occurred while setting the metallicity priors to {mname}.",
+        )
 
 
-def test_flat_mass_prior_weight():
+def test_dist_prior_weights():
     """
-    Test the flat mass prior
+    Test the distance prior weights
     """
-    mass = np.array([1, 2, 3, 4, 5])
-    mass_prior_model = {"name": "flat"}
-    weights = compute_mass_prior_weights(mass, mass_prior_model)
-    np.testing.assert_allclose(
-        weights,
-        np.full((len(weights)), 1.0),
-        err_msg=("Stellar mass prior weight error (flat IMF)"),
-    )
 
+    dist = np.array([10.0, 100.0, 1000.0])
 
-def test_flat_metallicity_prior_weight():
-    """
-    Test the flat metallicity prior
-    """
-    z = [10.0, 100.0, 1000.0]
-    z_prior_model = {"name": "flat"}
-    weights = compute_metallicity_prior_weights(z, z_prior_model)
-    np.testing.assert_allclose(
-        weights,
-        np.full((len(weights)), 1.0),
-        err_msg=("Stellar flat metallicity prior weight error"),
-    )
+    models = [{"name": "flat"}]
+    # fmt: off
+    expected_vals = [
+        [1.0, 1.0, 1.0]
+    ]
+    # fmt: on
 
-
-def test_flat_distance_prior_weight():
-    """
-    Test the flat distance prior
-    """
-    dists = [10.0, 100.0, 1000.0]
-    dist_prior_model = {"name": "flat"}
-    weights = compute_distance_prior_weights(dists, dist_prior_model)
-    np.testing.assert_allclose(
-        weights,
-        np.full((len(weights)), 1.0),
-        err_msg=("Stellar flat distance prior weight error"),
-    )
+    for cmod, cvals in zip(models, expected_vals):
+        dist_prior = PriorDistanceModel(cmod)
+        mname = cmod["name"]
+        np.testing.assert_allclose(
+            dist_prior(dist),
+            cvals,
+            atol=1e-6,
+            err_msg=f"A problem occurred while setting the distance priors to {mname}.",
+        )
