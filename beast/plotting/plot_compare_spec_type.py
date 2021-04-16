@@ -48,13 +48,13 @@ def plot_compare_spec_type(
 
     teff_spec = t["spec_teff"][~np.isnan(t["spec_teff"])]
     teff_beast = t["beast_teff_p50"][~np.isnan(t["beast_teff_p50"])]
-    teff_beast_1sig = (t["beast_teff_p84"][~np.isnan(t["beast_teff_p84"])] -
-                       t["beast_teff_p16"][~np.isnan(t["beast_teff_p16"])]) / 2.
+    teff_beast_1sig = (t["beast_teff_p84"][~np.isnan(t["beast_teff_p84"])]
+                       - t["beast_teff_p16"][~np.isnan(t["beast_teff_p16"])]) / 2.
 
     logg_spec = t["spec_logg"][~np.isnan(t["spec_logg"])]
     logg_beast = t["beast_logg_p50"][~np.isnan(t["beast_logg_p50"])]
-    logg_beast_1sig = (t["beast_logg_p84"][~np.isnan(t["beast_logg_p84"])] -
-                       t["beast_logg_p16"][~np.isnan(t["beast_logg_p16"])]) / 2.
+    logg_beast_1sig = (t["beast_logg_p84"][~np.isnan(t["beast_logg_p84"])]
+                       - t["beast_logg_p16"][~np.isnan(t["beast_logg_p16"])]) / 2.
 
     fig, ax = plt.subplots(figsize=(10, 5))
     axt = plt.subplot(121)
@@ -65,7 +65,7 @@ def plot_compare_spec_type(
     tylim = axt.get_ylim()
 
     axg = plt.subplot(122)
-    plt.errorbar(logg_beast, logg_spec, xerr=logg_beast_1sig, ms=3,  fmt='o')
+    plt.errorbar(logg_beast, logg_spec, xerr=logg_beast_1sig, ms=3, fmt='o')
     plt.ylabel('log(g) Lit. [cm $s^{-2}$]', fontsize=14)
     plt.xlabel('log(g) BEAST [cm $s^{-2}$]', fontsize=14)
     gxlim = axg.get_xlim()
