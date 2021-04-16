@@ -11,7 +11,8 @@ def write_sbatch_file(
     job_name="beast",
     stdout_file=None,
     egress=False,
-    queue="LM",
+    queue="EM",
+    nodes="24",
     run_time="1:00:00",
     mem="128GB",
     array=None,
@@ -47,10 +48,13 @@ def write_sbatch_file(
         If your job will need connections to external sites (e.g., for downloading
         stellar tracks), set this to True.
 
-    queue : string (default='LM')
+    queue : string (default='EM')
         the queue to submit your job to
-        'RM' = bridges regular
-        'LM' = bridges large
+        'RM' = bridges2 regular
+        'EM' = bridges2 extreme
+
+    nodes : string (default = "24")
+        the number of nodes (min for EM on Bridges2 is 24)
 
     run_time : string (default='1:00:00')
         Maximum run time (hh:mm:ss).  If your job is shorter, it's fine.
@@ -77,6 +81,9 @@ def write_sbatch_file(
 
         if egress:
             f.write("#SBATCH -C EGRESS\n")
+
+        if nodes:
+            f.write("#SBATCH -n " + nodes + "\n")
 
         f.write("#SBATCH -p " + queue + "\n")
         f.write("#SBATCH -t " + run_time + "\n")
@@ -114,7 +121,9 @@ if __name__ == "__main__":  # pragma: no cover
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "file_name", type=str, help="file in which to save the job submission settings",
+        "file_name",
+        type=str,
+        help="file in which to save the job submission settings",
     )
     parser.add_argument(
         "job_command",
@@ -153,7 +162,10 @@ if __name__ == "__main__":  # pragma: no cover
         help="If your job will need connections to external sites, set this to 1 (True)",
     )
     parser.add_argument(
-        "--queue", type=str, default="LM", help="the queue to submit your job to",
+        "--queue",
+        type=str,
+        default="LM",
+        help="the queue to submit your job to",
     )
     parser.add_argument(
         "--run_time",
