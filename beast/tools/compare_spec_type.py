@@ -202,6 +202,7 @@ def compare_spec_type(
     else:
         return dict(spec_match)
 
+
 def lookup_param(input_function, spec_type, spec_subtype, lumin_class):
     """
     For given spectral classification, evaluate a function to find the
