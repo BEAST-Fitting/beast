@@ -148,32 +148,32 @@ def fetch_filters(filename):
 
     # extract every filter mentioned in the table
     # find all columns mentioning VEGA
-    filters = [f.split("_")[0] for f in ast_data.columns if "VEGA" in f]
+    filters = [f.split("_")[0] for f in data.columns if "VEGA" in f]
 
     # sort the list of filters based on wavelength
     # i.e. anything < 200nm is in the IR
     rep = 0
     for n in range(len(filters)):
-        if "L" in filters[n-rep]:
-            num = (int(filters[n-rep][-5:-2]))
+        if "L" in filters[n - rep]:
+            num = (int(filters[n - rep][-5:-2]))
 
         else:
-            num = (int(filters[n-rep][-4:-1]))
+            num = (int(filters[n - rep][-4:-1]))
 
         if num < 200:
-            filters.append(filters.pop(filters.index('{0}'.format(filters[n-rep]))))
+            filters.append(filters.pop(filters.index('{0}'.format(filters[n - rep]))))
             rep += 1
 
     # add camera prefix
     filters = ["HST_WFC3_" + f for f in filters]
 
-    #check to see that the filters actually exist
+    # check to see that the filters actually exist
     source = "{0}/vega.hd5".format(__ROOT__)
-    hdu = tables.open_file(source)
-    hdu.close()
+    hdf = tables.open_file(source)
 
     beast_filters = hdf.root.sed.cols.FNAME[:]
     beast_filters = [ele.decode() for ele in beast_filters]
+    hdf.close()
 
     missing_filters = set(filters).difference(beast_filters)
 
