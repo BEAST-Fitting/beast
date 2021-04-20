@@ -10,8 +10,8 @@ def write_sbatch_file(
     modules=["module load anaconda3", "source activate bdev"],
     job_name="beast",
     stdout_file=None,
-    egress=False,
-    queue="LM",
+    queue="EM",
+    nodes="24",
     run_time="1:00:00",
     mem="128GB",
     array=None,
@@ -43,14 +43,13 @@ def write_sbatch_file(
     stdout_file : string (default=None)
         If set, any output to the terminal will go into this file
 
-    egress : boolean (default=False)
-        If your job will need connections to external sites (e.g., for downloading
-        stellar tracks), set this to True.
-
-    queue : string (default='LM')
+    queue : string (default='EM')
         the queue to submit your job to
-        'RM' = bridges regular
-        'LM' = bridges large
+        'RM' = bridges2 regular
+        'EM' = bridges2 extreme
+
+    nodes : string (default = "24")
+        the number of nodes (min for EM on Bridges2 is 24)
 
     run_time : string (default='1:00:00')
         Maximum run time (hh:mm:ss).  If your job is shorter, it's fine.
@@ -75,10 +74,11 @@ def write_sbatch_file(
         if stdout_file is not None:
             f.write("#SBATCH -o " + stdout_file + "\n")
 
-        if egress:
-            f.write("#SBATCH -C EGRESS\n")
-
         f.write("#SBATCH -p " + queue + "\n")
+
+        if nodes:
+            f.write("#SBATCH -n " + nodes + "\n")
+
         f.write("#SBATCH -t " + run_time + "\n")
         f.write("#SBATCH --mem " + mem + "\n")
 
@@ -114,7 +114,9 @@ if __name__ == "__main__":  # pragma: no cover
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "file_name", type=str, help="file in which to save the job submission settings",
+        "file_name",
+        type=str,
+        help="file in which to save the job submission settings",
     )
     parser.add_argument(
         "job_command",
@@ -147,13 +149,10 @@ if __name__ == "__main__":  # pragma: no cover
         help="If set, any output to the terminal will go into this file",
     )
     parser.add_argument(
-        "--egress",
-        type=int,
-        default=0,
-        help="If your job will need connections to external sites, set this to 1 (True)",
-    )
-    parser.add_argument(
-        "--queue", type=str, default="LM", help="the queue to submit your job to",
+        "--queue",
+        type=str,
+        default="EM",
+        help="the queue to submit your job to",
     )
     parser.add_argument(
         "--run_time",
@@ -188,7 +187,6 @@ if __name__ == "__main__":  # pragma: no cover
         modules=args.modules,
         job_name=args.job_name,
         stdout_file=args.stdout_file,
-        egress=bool(args.egress),
         queue=args.queue,
         run_time=args.run_time,
         mem=args.mem,
