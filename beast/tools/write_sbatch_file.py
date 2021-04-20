@@ -74,10 +74,11 @@ def write_sbatch_file(
         if stdout_file is not None:
             f.write("#SBATCH -o " + stdout_file + "\n")
 
+        f.write("#SBATCH -p " + queue + "\n")
+
         if nodes:
             f.write("#SBATCH -n " + nodes + "\n")
 
-        f.write("#SBATCH -p " + queue + "\n")
         f.write("#SBATCH -t " + run_time + "\n")
         f.write("#SBATCH --mem " + mem + "\n")
 
