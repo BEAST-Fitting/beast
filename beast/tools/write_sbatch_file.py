@@ -10,7 +10,6 @@ def write_sbatch_file(
     modules=["module load anaconda3", "source activate bdev"],
     job_name="beast",
     stdout_file=None,
-    egress=False,
     queue="EM",
     nodes="24",
     run_time="1:00:00",
@@ -44,10 +43,6 @@ def write_sbatch_file(
     stdout_file : string (default=None)
         If set, any output to the terminal will go into this file
 
-    egress : boolean (default=False)
-        If your job will need connections to external sites (e.g., for downloading
-        stellar tracks), set this to True.
-
     queue : string (default='EM')
         the queue to submit your job to
         'RM' = bridges2 regular
@@ -78,9 +73,6 @@ def write_sbatch_file(
 
         if stdout_file is not None:
             f.write("#SBATCH -o " + stdout_file + "\n")
-
-        if egress:
-            f.write("#SBATCH -C EGRESS\n")
 
         if nodes:
             f.write("#SBATCH -n " + nodes + "\n")
@@ -156,15 +148,9 @@ if __name__ == "__main__":  # pragma: no cover
         help="If set, any output to the terminal will go into this file",
     )
     parser.add_argument(
-        "--egress",
-        type=int,
-        default=0,
-        help="If your job will need connections to external sites, set this to 1 (True)",
-    )
-    parser.add_argument(
         "--queue",
         type=str,
-        default="LM",
+        default="EM",
         help="the queue to submit your job to",
     )
     parser.add_argument(
@@ -200,7 +186,6 @@ if __name__ == "__main__":  # pragma: no cover
         modules=args.modules,
         job_name=args.job_name,
         stdout_file=args.stdout_file,
-        egress=bool(args.egress),
         queue=args.queue,
         run_time=args.run_time,
         mem=args.mem,
