@@ -119,7 +119,7 @@ def _imf_flat(x):
     return 1.0
 
 
-def _imf_salpeter(x):
+def _imf_salpeter(x, slope=2.35):
     """
     Compute a Salpeter IMF
 
@@ -128,12 +128,15 @@ def _imf_salpeter(x):
     x : numpy vector
       masses
 
+    slope : float
+        powerlaw slope [default=2.35]
+
     Returns
     -------
     imf : numpy vector
       unformalized IMF
     """
-    return x ** (-2.35)
+    return x ** (-1.0 * slope)
 
 
 def _imf_kroupa(in_x):

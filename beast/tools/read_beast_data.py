@@ -49,7 +49,7 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
         lnp_sizes = [lnp_hdf[sname]["lnp"][()].shape[0] for sname in star_key_list]
         # - set arrays to the maximum size
         lnp_vals = np.full((np.max(lnp_sizes), tot_stars), -np.inf)
-        lnp_indxs = np.full((np.max(lnp_sizes), tot_stars), np.nan)
+        lnp_indxs = np.full((np.max(lnp_sizes), tot_stars), -1)
 
         # loop over all the stars (groups)
         for k, sname in enumerate(star_key_list):
