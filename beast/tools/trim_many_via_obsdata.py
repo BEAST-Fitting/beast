@@ -26,7 +26,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    start_time = time.clock()
+    start_time = time.time()
 
     # read in trim file
     f = open(args.trimfile, "r")
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # get the column names for the photometry file
     obs_colnames = file_lines[1].split()
 
-    new_time = time.clock()
+    new_time = time.time()
     print("time to read: ", (new_time - start_time) / 60.0, " min")
 
     old_noisefile = ""
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
         print("working on " + sed_trimname)
 
-        start_time = time.clock()
+        start_time = time.time()
 
         if noisefile == old_noisefile:
             print("not reading noisefile - same as last")
@@ -99,5 +99,5 @@ if __name__ == "__main__":
             sigma_fac=3.0,
         )
 
-        new_time = time.clock()
+        new_time = time.time()
         print("time to trim: ", (new_time - start_time) / 60.0, " min")
