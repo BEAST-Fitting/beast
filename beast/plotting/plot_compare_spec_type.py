@@ -82,6 +82,8 @@ def plot_compare_spec_type(
     axg.set_xlim(gxlim)
     axg.set_ylim(gylim)
 
+    plt.subplots_adjust(wspace=0.25)
+
     if savefig:
         figname = match_file.replace('fits', savefig)
         fig.savefig('%s' % figname)
