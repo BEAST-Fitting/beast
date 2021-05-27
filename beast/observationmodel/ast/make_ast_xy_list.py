@@ -171,18 +171,6 @@ def pick_positions_from_map(
             ra_positions = catalog.data["ra"][:]
             dec_positions = catalog.data["dec"][:]
 
-    # # if only one of those exists and there's a refimage, convert to the other
-    # if xy_pos and not radec_pos and refimage:
-    #     radec_pos = True
-    #     x_positions, y_positions = ref_wcs.all_world2pix(
-    #         ra_positions, dec_positions, wcs_origin
-    #     )
-    # if radec_pos and not xy_pos and refimage:
-    #     xy_pos = True
-    #     ra_positions, dec_positions = ref_wcs.all_pix2world(
-    #         x_positions, y_positions, wcs_origin
-    #     )
-
     # if only one of those exists and there's a refimage, convert to the other
     if xy_pos and not radec_pos and refimage:
         radec_pos = True
