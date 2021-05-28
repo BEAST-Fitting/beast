@@ -4,13 +4,17 @@ Running Example
 
 You can find examples of BEAST runs in the
 `beast-examples repository <https://github.com/BEAST-Fitting/beast-examples>`_
-
-Inside each example, there is a run_beast*.py script.
+There are a number of different examples for different uses.  Some are included
+for historical purposes (e.g., `phat_small` was used for testing for early
+BEAST versions) and generally should not be used.  The main example that is
+maintained and will work with the latest BEAST code is `metal_small`.
 
 metal_small Example
 -------------------
 
-This example is based on a *very* small amount of old PHAT data.
+This example is based on a small amount of METAL program data.
+METAL is an HST program (PI: J. Roman-Duval) that included parallel imaging
+of regions in the Large Magellanic Cloud.
 
 If you installed Python through AstroConda, first activate the correct
 AstroConda environment
@@ -55,9 +59,9 @@ can be plotted using
 
 .. code-block:: console
 
-    $ beast plot_indiv_fit beast_metal_small/beast_metal_small
+    $ beast plot_indiv_fit beast_metal_small/beast_metal_small --starnum=1
 
 The argument for this script is the prefix of the output files. The output
 should look like this
 
-.. image:: images/beast_metal_small_ifit_starnum_0.png
+.. image:: images/beast_metal_small_ifit_starnum_1.png
