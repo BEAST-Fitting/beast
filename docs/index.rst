@@ -24,22 +24,31 @@ Getting started
 User Documentation
 ==================
 
+Basics:
+
+.. toctree::
+   :maxdepth: 1
+
+   Run setup <beast_setup.rst>
+   Photometry files <photometry_files.rst>
+   Output files <outputs.rst>
+
+Detals:
+
 .. toctree::
    :maxdepth: 1
 
    Graphical Models <beast_graphical_model.rst>
-   Run setup details <beast_setup.rst>
-   Example production run workflow <workflow.rst>
    Stellar/Extinction Priors <beast_priors.rst>
-   Running in parallel by using subgrids <subgrid_parallelism.rst>
    Generating AST inputs <generating_asts.rst>
    Simulating observations <simulations.rst>
+   Example production run workflow <workflow.rst>
+   Running in parallel by using subgrids <subgrid_parallelism.rst>
    Plotting Tools <plotting_tools.rst>
    Analysis Tools <analysis_tools.rst>
    Other Tools <other_tools.rst>
    Format of BEAST grid files <beast_grid_format.rst>
    Details on BEAST libraries for grid <beast_grid_inputs.rst>
-   Output files <outputs.rst>
    Known issues <beast_issues.rst>
 
 
