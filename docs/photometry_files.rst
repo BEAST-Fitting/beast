@@ -5,7 +5,7 @@ Photometry Files
 Observed Photometry file
 ========================
 
-The photometry file used by the BEAST are composed of tables with one row
+The photometry files used by the BEAST are composed of tables with one row
 per source.  The table should have columns
 giving the measured fluxes in all photemetric bands to be fit and the ra & dec
 coordinates of each source.
@@ -59,10 +59,10 @@ Pre-processing of files
 
 As part of the usual workflow for BEAST fitting, pre-processing of the observed
 and AST photometry files is done.
-For the observed photometry file, all sources that will be fit must be removed.
+For the observed photometry file, all sources that will not be fit must be removed.
 Such sources may have
-characteristics of known bad sources (e.g., crowding, sharpness, S/N in a band, etc.)
-or not have measurements in all bands.
+characteristics of known bad sources (e.g., crowding, sharpness, etc.)
+or not have measured fluxes in all bands.
 Not having measurements in all bands can be due to not observing that point
 on the sky in all bands, saturation in some bands due to a bright source, or
 a cosmic ray corrupting the measurement in one or more bands for that source.
