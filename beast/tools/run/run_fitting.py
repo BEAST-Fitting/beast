@@ -3,6 +3,7 @@ import os
 import argparse
 import time
 import pickle
+import glob
 
 
 # BEAST imports
@@ -110,7 +111,18 @@ def run_fitting(
     if pdf2d_param_list is None:
         pdf2d_files = [None for i in range(len(pdf2d_files))]
     lnp_files = file_dict["lnp_files"]
-
+    
+    # check to see that output files actual exist
+    for i in np.arange(len(stats_files)):
+        if not glob.glob(stats_files[i]):
+            stats_files[i] = None
+            
+        if not glob.glob(pdf_files[i]):
+            pdf_files[i] = None
+            
+        if not glob.glob(pdf2d_files[i]):
+            pdf2d_files[i] = None
+            
     # total number of files
     n_files = len(photometry_files)
 
