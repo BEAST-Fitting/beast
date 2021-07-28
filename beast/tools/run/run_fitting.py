@@ -109,7 +109,7 @@ def run_fitting(
     if pdf2d_param_list is None:
         pdf2d_files = [None for i in range(len(pdf2d_files))]
     lnp_files = file_dict["lnp_files"]
-               
+
     # total number of files
     n_files = len(photometry_files)
 
