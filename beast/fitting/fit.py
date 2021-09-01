@@ -292,7 +292,7 @@ def setup_param_bins(qname, max_nbins, g0, full_model_flux, filters, grid_info_d
 
     # needed for mass parameters as they are stored as linear values
     # computationally, less bins needed if 1D PDFs done as log spacing
-    if qname in set(["M_ini", "M_act", "radius"]):
+    if qname in set(["M_ini", "M_act", "radius", "Z"]):
         logspacing = True
     else:
         logspacing = False
