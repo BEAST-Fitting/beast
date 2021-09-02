@@ -275,8 +275,10 @@ def setup_param_bins(qname, max_nbins, g0, full_model_flux, filters, grid_info_d
         # unique values across all the subgrids to make the 1dpdfs
         # compatible
         n_uniq = grid_info_dict[qname]["num_unique"]
+        uniqvals = grid_info_dict[qname]["unique_vals"]
     else:
-        n_uniq = len(np.unique(qname_vals))
+        uniqvals = np.unique(qname_vals)
+        n_uniq = len(uniqvals)
 
     if n_uniq > max_nbins:
         # limit the number of bins in the 1D likelihood for speed
@@ -285,14 +287,14 @@ def setup_param_bins(qname, max_nbins, g0, full_model_flux, filters, grid_info_d
         nbins = n_uniq
 
     # temp code for BEAST paper figure
-    if qname == "Z":
-        nbins = nbins + 1
+    # if qname == "Z":
+    #     nbins = nbins + 1
 
     # setup for the fast 1D/2D PDFs
 
     # needed for mass parameters as they are stored as linear values
     # computationally, less bins needed if 1D PDFs done as log spacing
-    if qname in set(["M_ini", "M_act", "radius", "Z"]):
+    if qname in set(["M_ini", "M_act", "radius"]):
         logspacing = True
     else:
         logspacing = False
@@ -304,7 +306,7 @@ def setup_param_bins(qname, max_nbins, g0, full_model_flux, filters, grid_info_d
         minval = None
         maxval = None
 
-    return qname_vals, nbins, logspacing, minval, maxval
+    return qname_vals, nbins, logspacing, minval, maxval, uniqvals
 
 
 def Q_all_memory(
@@ -401,7 +403,9 @@ def Q_all_memory(
     for i, cfilter in enumerate(sedgrid.filters):
         (incomp_indxs,) = np.where(obsmodel["completeness"][:, i] <= 0.0)
         if len(incomp_indxs) > 0:
-            raise ValueError("models with zero completeness present in the observation model")
+            raise ValueError(
+                "models with zero completeness present in the observation model"
+            )
 
     g0_weights = np.log(g0["weight"][g0_indxs])
     if not do_not_normalize:
@@ -483,13 +487,18 @@ def Q_all_memory(
     for qname in qnames:
 
         # get bin properties
-        qname_vals, nbins, logspacing, minval, maxval = setup_param_bins(
+        qname_vals, nbins, logspacing, minval, maxval, uniqvals = setup_param_bins(
             qname, max_nbins, g0, full_model_flux, filters, grid_info_dict
         )
 
         # generate the fast 1d pdf mapping
         _tpdf1d = pdf1d(
-            qname_vals, nbins, logspacing=logspacing, minval=minval, maxval=maxval
+            qname_vals,
+            nbins,
+            logspacing=logspacing,
+            minval=minval,
+            maxval=maxval,
+            uniqvals=uniqvals,
         )
         fast_pdf1d_objs.append(_tpdf1d)
 
@@ -526,6 +535,7 @@ def Q_all_memory(
                 logspacing_p1,
                 minval_p1,
                 maxval_p1,
+                uniqvals_p1,
             ) = setup_param_bins(
                 qname_1, max_nbins, g0, full_model_flux, filters, grid_info_dict
             )
@@ -535,6 +545,7 @@ def Q_all_memory(
                 logspacing_p2,
                 minval_p2,
                 maxval_p2,
+                uniqvals_p2,
             ) = setup_param_bins(
                 qname_2, max_nbins, g0, full_model_flux, filters, grid_info_dict
             )

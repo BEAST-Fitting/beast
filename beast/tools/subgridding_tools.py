@@ -270,6 +270,7 @@ def reduce_grid_info(grid_fnames, noise_fnames=None, nprocs=1, cap_unique=1000):
             "min": union_min[q],
             "max": union_max[q],
             "num_unique": len(union_unique[q]),
+            "unique_vals": union_unique[q],
         }
 
     return result_dict
