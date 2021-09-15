@@ -16,6 +16,7 @@ from beast.physicsmodel.grid import SEDGrid
 from beast.fitting.fit import save_pdf1d
 from beast.fitting.fit_metrics import percentile
 from beast.tools import read_beast_data
+from beast.tools.symlog import symlog
 
 
 def uniform_slices(num_points, num_slices):
@@ -158,13 +159,8 @@ def subgrid_info(grid_fname, noise_fname=None):
         # The following is also in fit.py, so we're kind of doing double
         # work here, but it's necessary if we want to know the proper
         # ranges for these values.
-        full_model_flux = seds[:] + noisemodel["bias"]
-        logtempseds = np.array(full_model_flux)
-        full_model_flux = (
-            np.sign(logtempseds)
-            * np.log1p(np.abs(logtempseds * math.log(10)))
-            / math.log(10)
-        )
+        lin_full_model_flux = seds[:] + noisemodel["bias"]
+        full_model_flux = symlog(lin_full_model_flux)
 
         filters = sedgrid.filters
         for i, f in enumerate(filters):

@@ -71,9 +71,15 @@ class pdf1d:
                 self.bin_vals = np.array(uniqvals)
                 self.bin_edges = np.zeros(self.nbins + 1)
                 if self.nbins > 1:
-                    self.bin_edges[1:-1] = 0.5 * (self.bin_vals[0:-1] + self.bin_vals[1:])
-                    self.bin_edges[0] = self.bin_vals[0] - (self.bin_edges[1] - self.bin_vals[0])
-                    self.bin_edges[-1] = self.bin_vals[-1] + (self.bin_vals[-1] - self.bin_edges[-2])
+                    self.bin_edges[1:-1] = 0.5 * (
+                        self.bin_vals[0:-1] + self.bin_vals[1:]
+                    )
+                    self.bin_edges[0] = self.bin_vals[0] - (
+                        self.bin_edges[1] - self.bin_vals[0]
+                    )
+                    self.bin_edges[-1] = self.bin_vals[-1] + (
+                        self.bin_vals[-1] - self.bin_edges[-2]
+                    )
                 else:
                     self.bin_edges[0] = 0.95 * self.bin_vals[0]
                     self.bin_edges[1] = 1.05 * self.bin_vals[0]
