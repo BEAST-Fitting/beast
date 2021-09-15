@@ -69,7 +69,7 @@ class TestRegressionSuite(unittest.TestCase):
 
         cls.dset = "metal"
         if cls.dset == "metal":
-            cls.basesubdir = "metal_small_16Apr21/"
+            cls.basesubdir = "metal_small_15Sep21/"
             cls.basename = f"{cls.basesubdir}beast_metal_small"
             cls.obsname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst_samp.fits"
             cls.astname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst.fake.fits"
@@ -1014,10 +1014,7 @@ class TestRegressionSuite(unittest.TestCase):
 
         # run create_obsmodel
         create_obsmodel.create_obsmodel(
-            self.settings,
-            use_sd=False,
-            nsubs=self.settings.n_subgrid,
-            nprocs=1,
+            self.settings, use_sd=False, nsubs=self.settings.n_subgrid, nprocs=1,
         )
 
         # check that files match
@@ -1036,10 +1033,7 @@ class TestRegressionSuite(unittest.TestCase):
 
         # run create_obsmodel
         create_obsmodel.create_obsmodel(
-            self.settings_sg,
-            use_sd=False,
-            nsubs=self.settings_sg.n_subgrid,
-            nprocs=1,
+            self.settings_sg, use_sd=False, nsubs=self.settings_sg.n_subgrid, nprocs=1,
         )
 
         # check that files match
