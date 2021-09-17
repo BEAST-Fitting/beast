@@ -5,7 +5,9 @@ import numpy as np
 
 
 class pdf1d:
-    def __init__(self, gridvals, nbins, logspacing=False, minval=None, maxval=None):
+    def __init__(
+        self, gridvals, nbins, logspacing=False, minval=None, maxval=None, uniqvals=None
+    ):
         """
         Create an object which can be used to efficiently generate a 1D pdf
         for an observed object
@@ -21,6 +23,8 @@ class pdf1d:
         minval, maxval : float, optional
             override the range for the bins. this can be useful to make
             sure that the pdfs for different runs have the same bins
+        uniqvals : ndarray, optional
+            unique values for the full physics grid
         """
         self.nbins = nbins
         self.n_gridvals = len(gridvals)
@@ -29,6 +33,9 @@ class pdf1d:
         # grab copy of gridvals that can be edited without messing with original
         tgridvals = np.array(gridvals)
         self.n_indxs = len(gridvals)
+
+        if uniqvals is None:
+            uniqvals = np.unique(gridvals)
 
         if len(tgridvals) <= 0:
             # this is a hack to just get the code to work when
@@ -55,10 +62,27 @@ class pdf1d:
                 self.bin_delta = 1
 
             # set values for the bin middles/edges
-            self.bin_vals = self.min_val + np.arange(self.nbins) * self.bin_delta
-            self.bin_edges = (
-                self.min_val + (np.arange(self.nbins + 1) - 0.5) * self.bin_delta
-            )
+            if len(uniqvals) > self.nbins:
+                self.bin_vals = self.min_val + np.arange(self.nbins) * self.bin_delta
+                self.bin_edges = (
+                    self.min_val + (np.arange(self.nbins + 1) - 0.5) * self.bin_delta
+                )
+            else:
+                self.bin_vals = np.array(uniqvals)
+                self.bin_edges = np.zeros(self.nbins + 1)
+                if self.nbins > 1:
+                    self.bin_edges[1:-1] = 0.5 * (
+                        self.bin_vals[0:-1] + self.bin_vals[1:]
+                    )
+                    self.bin_edges[0] = self.bin_vals[0] - (
+                        self.bin_edges[1] - self.bin_vals[0]
+                    )
+                    self.bin_edges[-1] = self.bin_vals[-1] + (
+                        self.bin_vals[-1] - self.bin_edges[-2]
+                    )
+                else:
+                    self.bin_edges[0] = 0.95 * self.bin_vals[0]
+                    self.bin_edges[1] = 1.05 * self.bin_vals[0]
 
             # get PDF bin associated with each grid val
             pdf_bin_num = np.digitize(tgridvals, self.bin_edges)
@@ -67,9 +91,11 @@ class pdf1d:
             # (like the IDL version returned by the histogram function)
             pdf_bin_indxs = []
 
+            used_nindxs = 0
             for i in range(nbins):
                 # find the indicies for the current bin
-                cur_bin_indxs, = np.where(pdf_bin_num == (i + 1))
+                (cur_bin_indxs,) = np.where(pdf_bin_num == (i + 1))
+                used_nindxs += len(cur_bin_indxs)
 
                 # save them
                 pdf_bin_indxs.append(cur_bin_indxs)
@@ -81,6 +107,12 @@ class pdf1d:
                 self.bin_edges = np.power(10.0, self.bin_edges)
 
             self.pdf_bin_indxs = pdf_bin_indxs
+
+            if used_nindxs != self.n_indxs:
+                print(used_nindxs, self.n_indxs)
+                raise ValueError(
+                    "Not all the physics grid model points mapped to 1d ppdf bins - should not happen"
+                )
 
     def gen1d(self, gindxs, weights):
         """
