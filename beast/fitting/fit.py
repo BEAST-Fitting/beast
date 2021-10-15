@@ -879,11 +879,11 @@ def IAU_names_and_extra_info(obsdata, surveyname="PHAT", extraInfo=False):
                 + c.ra.to_string(
                     unit=ap_units.hourangle,
                     sep="",
-                    precision=2,
+                    precision=4,
                     alwayssign=False,
                     pad=True,
                 )
-                + c.dec.to_string(sep="", precision=2, alwayssign=True, pad=True)
+                + c.dec.to_string(sep="", precision=3, alwayssign=True, pad=True)
             )
             r["Name"] = _tnames
 
