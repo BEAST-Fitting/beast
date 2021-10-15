@@ -7,7 +7,7 @@ from beast.plotting.beastplotlib import set_params
 __all__ = ["plot_toothpick_details"]
 
 
-def plot_toothpick_details(asts_filename, settings_filename, savefig=True):
+def plot_toothpick_details(asts_filename, settings_filename, savefig=False):
     """
     Plot the details of the toothpick noisemodel creation for each filter.
     These plots show the individual AST results as points as
