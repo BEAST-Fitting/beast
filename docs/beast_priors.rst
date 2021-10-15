@@ -131,7 +131,7 @@ The mass function supported are:
 Functional form from Kroupa (2001, MNRAS, 322, 231) with alpha0,1,2,3 slopes
 for <0.08, 0.08-0.5, 0.5-1.0, >1.0 solar masses.
 
-No alpha0,1,2,3 values gives the defaults listed 2nd example.
+No alpha0,1,2,3 values gives the defaults listed in 2nd example.
 
 .. code-block:: python
 
@@ -152,14 +152,13 @@ With explicit values for the alphas (all need to be specified).
 
 Functional form from Salpeter (1955, ApJ, 121, 161).
 
-No slope value gives the default listed 2nd example.
+No slope value gives the default listed in 2nd example.
 
 .. code-block:: python
 
-  mass_prior_model = {"name": "salpeter",
-                      "slope": 2.35}
+  mass_prior_model = {"name": "salpeter"}
 
-Whit an explict value for the slope.
+With an explicit value for the slope.
 
 .. code-block:: python
 
