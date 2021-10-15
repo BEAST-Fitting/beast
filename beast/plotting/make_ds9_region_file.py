@@ -3,7 +3,7 @@ from astropy.coordinates import Angle
 from astropy import units as u
 
 
-def region_file_fits(input_file, col_color=None, col_thresh=None):
+def region_file_fits(input_file, col_color=None, col_thresh=None, polygon=True):
     """
     Make a ds9 region file out of the catalog or AST fits file.
 
@@ -23,6 +23,10 @@ def region_file_fits(input_file, col_color=None, col_thresh=None):
 
     col_thresh : float (default=None)
         sources with values greater than this will have regions colored differently
+
+    polygon : boolean (default=True)
+        generate a simple polygon as a region file, only recording the vertices
+        assumes the footprint of the input catalog has four vertices
     """
 
     with open(input_file.replace(".fits", ".reg"), "w") as ds9_file:
@@ -36,6 +40,29 @@ def region_file_fits(input_file, col_color=None, col_thresh=None):
         # figure out which column names are the RA and Dec
         ra_col = [x for x in cat.colnames if "RA" in x.upper()][0]
         dec_col = [x for x in cat.colnames if "DEC" in x.upper()][0]
+
+        # generate a polygon from the vertices of the catalog footprint
+        if polygon:
+            ra = cat[ra_col]
+            dec = cat[dec_col]
+
+            min_ra = min(ra)
+            min_dec = min(dec)
+            max_ra = max(ra)
+            max_dec = max(dec)
+            dec_at_min_ra = cat[dec_col][ra == min_ra][0]
+            dec_at_max_ra = cat[dec_col][ra == max_ra][0]
+            ra_at_min_dec = cat[ra_col][dec == min_dec][0]
+            ra_at_max_dec = cat[ra_col][dec == max_dec][0]
+
+            ds9_file.write("polygon(" + Angle(min_ra, u.deg).to_string(unit=u.hour, sep=":") + "," +
+                           Angle(dec_at_min_ra, u.deg).to_string(unit=u.deg, sep=":") + "," +
+                           Angle(ra_at_min_dec, u.deg).to_string(unit=u.hour, sep=":") + "," +
+                           Angle(min_dec, u.deg).to_string(unit=u.deg, sep=":") + "," +
+                           Angle(max_ra, u.deg).to_string(unit=u.hour, sep=":") + "," +
+                           Angle(dec_at_max_ra, u.deg).to_string(unit=u.deg, sep=":") + "," +
+                           Angle(ra_at_max_dec, u.deg).to_string(unit=u.hour, sep=":") + "," +
+                           Angle(max_dec, u.deg).to_string(unit=u.deg, sep=":") + ") # color=green \n")
 
         # no differently colored regions
         if col_color is None:
