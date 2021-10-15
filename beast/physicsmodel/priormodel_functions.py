@@ -184,12 +184,12 @@ def _imf_kroupa(in_x, alpha0=0.3, alpha1=1.3, alpha2=2.3, alpha3=2.3):
         imf[indxs] = (x[indxs] ** ialpha2) * fac1
 
     (indxs,) = np.where((x >= m1) & (x < m2))
-    fac2 = (m2 ** ialpha2) / (m2 ** ialpha1)
+    fac2 = fac1 * (m2 ** ialpha2) / (m2 ** ialpha1)
     if len(indxs) > 0:
         imf[indxs] = (x[indxs] ** ialpha1) * fac2
 
     (indxs,) = np.where(x < m1)
-    fac2 = fac1 * ((m1 ** ialpha1) / (m1 ** ialpha0))
+    fac2 = fac2 * ((m1 ** ialpha1) / (m1 ** ialpha0))
     if len(indxs) > 0:
         imf[indxs] = (x[indxs] ** ialpha0) * fac2
 

@@ -124,19 +124,49 @@ Mass
 ----
 
 The mass prior is set by the choice of an Initial Mass Function (IMF).
-The two mass function supported are:
+The mass function supported are:
 
-1. Kroupa (details needed)
+1. Kroupa
+
+Functional form from Kroupa (2001, MNRAS, 322, 231) with alpha0,1,2,3 slopes
+for <0.08, 0.08-0.5, 0.5-1.0, >1.0 solar masses.
+
+No alpha0,1,2,3 values gives the defaults listed 2nd example.
 
 .. code-block:: python
 
   mass_prior_model = {"name": "kroupa"}
 
-2. Salpeter (details needed)
+With explicit values for the alphas (all need to be specified).
 
 .. code-block:: python
 
-  mass_prior_model = {"name": "salpeter"}
+  mass_prior_model = {"name": "kroupa",
+                      "alpha0": 0.3,
+                      "alpha1": 1.3,
+                      "alpha2": 2.3,
+                      "alpha3": 2.3}
+
+
+2. Salpeter
+
+Functional form from Salpeter (1955, ApJ, 121, 161).
+
+No slope value gives the default listed 2nd example.
+
+.. code-block:: python
+
+  mass_prior_model = {"name": "salpeter",
+                      "slope": 2.35}
+
+Whit an explict value for the slope.
+
+.. code-block:: python
+
+  mass_prior_model = {"name": "salpeter",
+                      "slope": 2.35}
+
+3. Flat
 
 There is also a flat mass prior.  This is useful for creating grids for BEAST
 verification (see :doc:`Simulations <simulations>`), and should not be
