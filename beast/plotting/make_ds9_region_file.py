@@ -15,7 +15,7 @@ def region_file_fits(input_file, col_color=None, col_thresh=None, polygon=True):
 
     Parameters
     ----------
-    input_files : string
+    input_file : string
         path+file of the catalog or AST fits file
 
     col_color : string (default=None)
@@ -55,14 +55,14 @@ def region_file_fits(input_file, col_color=None, col_thresh=None, polygon=True):
             ra_at_min_dec = cat[ra_col][dec == min_dec][0]
             ra_at_max_dec = cat[ra_col][dec == max_dec][0]
 
-            ds9_file.write("polygon(" + Angle(min_ra, u.deg).to_string(unit=u.hour, sep=":") + "," +
-                           Angle(dec_at_min_ra, u.deg).to_string(unit=u.deg, sep=":") + "," +
-                           Angle(ra_at_min_dec, u.deg).to_string(unit=u.hour, sep=":") + "," +
-                           Angle(min_dec, u.deg).to_string(unit=u.deg, sep=":") + "," +
-                           Angle(max_ra, u.deg).to_string(unit=u.hour, sep=":") + "," +
-                           Angle(dec_at_max_ra, u.deg).to_string(unit=u.deg, sep=":") + "," +
-                           Angle(ra_at_max_dec, u.deg).to_string(unit=u.hour, sep=":") + "," +
-                           Angle(max_dec, u.deg).to_string(unit=u.deg, sep=":") + ") # color=green \n")
+            ds9_file.write("polygon(" + Angle(min_ra, u.deg).to_string(unit=u.hour, sep=":") + ","
+                           + Angle(dec_at_min_ra, u.deg).to_string(unit=u.deg, sep=":") + ","
+                           + Angle(ra_at_min_dec, u.deg).to_string(unit=u.hour, sep=":") + ","
+                           + Angle(min_dec, u.deg).to_string(unit=u.deg, sep=":") + ","
+                           + Angle(max_ra, u.deg).to_string(unit=u.hour, sep=":") + ","
+                           + Angle(dec_at_max_ra, u.deg).to_string(unit=u.deg, sep=":") + ","
+                           + Angle(ra_at_max_dec, u.deg).to_string(unit=u.hour, sep=":") + ","
+                           + Angle(max_dec, u.deg).to_string(unit=u.deg, sep=":") + ") # color=green \n")
 
         # no differently colored regions
         if col_color is None:
@@ -103,7 +103,7 @@ def region_file_txt(input_file, col_color=None, col_thresh=None):
 
     Parameters
     ----------
-    input_files : string
+    input_file : string
         path+file of the AST input file
 
     col_color : string (default=None)
