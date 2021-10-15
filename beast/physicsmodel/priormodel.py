@@ -221,9 +221,20 @@ class PriorMassModel(PriorModel):
         mass_bounds = compute_bin_boundaries(x[sindxs])
 
         # integrate the IMF over each bin
+        args = None
         if self.model["name"] == "kroupa":
+            if "alpha0" in self.model.keys():  # assume other alphas also present
+                args = (
+                    self.model["alpha0"],
+                    self.model["alpha1"],
+                    self.model["alpha2"],
+                    self.model["alpha3"],
+                )
             imf_func = pmfuncs._imf_kroupa
         elif self.model["name"] == "salpeter":
+            if "slope" in self.model.keys():
+                slope = self.model["slope"]
+                args = (slope,)
             imf_func = pmfuncs._imf_salpeter
         elif self.model["name"] == "flat":
             imf_func = pmfuncs._imf_flat
@@ -232,7 +243,10 @@ class PriorMassModel(PriorModel):
         mass_weights = np.zeros(len(x))
         for i, cindx in enumerate(sindxs):
             # fmt: off
-            mass_weights[cindx] = (quad(imf_func, mass_bounds[i], mass_bounds[i + 1]))[0]
+            if args is not None:
+                mass_weights[cindx] = (quad(imf_func, mass_bounds[i], mass_bounds[i + 1], args))[0]
+            else:
+                mass_weights[cindx] = (quad(imf_func, mass_bounds[i], mass_bounds[i + 1]))[0]
             # fmt: on
             mass_weights[cindx] /= mass_bounds[i + 1] - mass_bounds[i]
 
