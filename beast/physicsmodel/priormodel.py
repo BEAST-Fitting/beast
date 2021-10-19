@@ -54,29 +54,38 @@ class PriorModel:
                 return np.full(x.shape, amp)
             else:
                 return amp
-        elif self.model["name"] == "bins_histo":
+        elif self.model["name"] in ["bins_histo", "bins_interp"]:
+            for ckey in ["x", "values"]:
+                if ckey not in self.model.keys():
+                    raise ValueError(f"{ckey} not in prior model keys")
             # check if all ages within interpolation range
-            if np.all(
-                [np.max(x) <= cval <= np.min(x) for cval in self.model["values"]]
-            ):
-                raise ValueError("bins_histo requested bins outside of model range")
+            mod_x = self.model["x"]
+            if np.any([(cval > np.max(mod_x)) or (cval < np.min(mod_x)) for cval in x]):
+                raise ValueError("requested x outside of model x range")
 
-            # interpolate according to bins, assuming value is constant from i to i+1
-            # and allow for bin edges input
-            if len(self.model["values"]) == len(self.model["x"]) - 1:
-                self.model["values"].append(0.0)
-            interfunc = interp1d(self.model["x"], self.model["values"], kind="zero")
-            return interfunc(x)
-        elif self.model["name"] == "bins_interp":
-            # interpolate model to grid ages
-            return np.interp(
-                x,
-                np.array(self.model["x"]),
-                np.array(self.model["values"]),
-            )
+            if self.model["name"] == "bins_histo":
+                # interpolate according to bins, assuming value is constant from i to i+1
+                # and allow for bin edges input
+                if len(self.model["values"]) == len(self.model["x"]) - 1:
+                    self.model["values"].append(0.0)
+                interfunc = interp1d(self.model["x"], self.model["values"], kind="zero")
+                return interfunc(x)
+            else:
+                # interpolate model to grid ages
+                return np.interp(
+                    x,
+                    np.array(self.model["x"]),
+                    np.array(self.model["values"]),
+                )
         elif self.model["name"] == "lognormal":
+            for ckey in ["mean", "sigma"]:
+                if ckey not in self.model.keys():
+                    raise ValueError(f"{ckey} not in prior model keys")
             return pmfuncs._lognorm(x, self.model["mean"], sigma=self.model["sigma"])
         elif self.model["name"] == "two_lognormal":
+            for ckey in ["mean1", "sigma1", "mean2", "sigma2"]:
+                if ckey not in self.model.keys():
+                    raise ValueError(f"{ckey} not in prior model keys")
             return pmfuncs._two_lognorm(
                 x,
                 self.model["mean1"],
@@ -87,6 +96,9 @@ class PriorModel:
                 N2=1.0,
             )
         elif self.model["name"] == "exponential":
+            for ckey in ["tau"]:
+                if ckey not in self.model.keys():
+                    raise ValueError(f"{ckey} not in prior model keys")
             return pmfuncs._exponential(x, tau=self.model["tau"])
         else:
             modname = self.model["name"]
