@@ -10,13 +10,13 @@ __all__ = [
 ]
 
 
-def _lognorm(x, max_pos, sigma=0.5, N=1.0):
+def _lognorm(in_x, max_pos, sigma=0.5, N=1.0):
     """
     Lognormal distribution
 
     Parameters
     ----------
-    x : vector
+    in_x : vector
        x values
 
     max_pos : float
@@ -35,6 +35,9 @@ def _lognorm(x, max_pos, sigma=0.5, N=1.0):
     sqrt_2pi = 1.0 / np.sqrt(2 * np.pi)
     mu = np.log(max_pos) + sigma ** 2
 
+    # make it work for a single value or an array
+    x = np.atleast_1d(in_x)
+
     # avoid zero or negative due to log
     pmask = x > 0
 
@@ -44,7 +47,11 @@ def _lognorm(x, max_pos, sigma=0.5, N=1.0):
     normalization = sqrt_2pi / (x[pmask] * sigma)
 
     lnorm[pmask] = N * normalization * np.exp(-0.5 * ((log_x - mu) / sigma) ** 2)
-    return lnorm
+
+    if hasattr(x, "shape"):
+        return lnorm
+    else:
+        return lnorm[0]
 
 
 def _two_lognorm(xs, max_pos1, max_pos2, sigma1=0.5, sigma2=0.5, N1=1.0, N2=1.0):
