@@ -57,7 +57,7 @@ class PriorModel:
         elif self.model["name"] in ["bins_histo", "bins_interp"]:
             for ckey in ["x", "values"]:
                 if ckey not in self.model.keys():
-                    raise ValueError(f"{ckey} not in prior model keys")
+                    raise KeyError(f"{ckey} not in prior model keys")
             # check if all ages within interpolation range
             mod_x = self.model["x"]
             if np.any([(cval > np.max(mod_x)) or (cval < np.min(mod_x)) for cval in x]):
