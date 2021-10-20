@@ -7,6 +7,8 @@ from astropy.table import Table
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
+import beast.plotting.plot_compare_spec_type as plot_match
+
 
 def compare_spec_type(
     phot_cat_file,
@@ -19,6 +21,7 @@ def compare_spec_type(
     match_radius=1.0,
     bright_filter="F475W",
     output_filebase=None,
+    plot=False
 ):
     """
     BEAST verification: compare spectrally-typed stars to BEAST fits
@@ -55,6 +58,9 @@ def compare_spec_type(
     output_filebase : string (default=None)
         Prefix for saving the file of match info ("_spectype_match.fits" will be
         appended).  If None, will return the table rather than saving it.
+
+    plot : boolean (default=False)
+        Plot stars found to be a match.
 
     Returns
     -------
@@ -181,24 +187,26 @@ def compare_spec_type(
 
         # if there's not a close enough match, put in placeholder values
         else:
-            spec_match["spec_teff"].append(None)
-            spec_match["spec_logg"].append(None)
-            spec_match["phot_cat_ind"].append(None)
-            spec_match["stats_cat_ind"].append(None)
-            spec_match["beast_teff_p50"].append(None)
-            spec_match["beast_teff_p16"].append(None)
-            spec_match["beast_teff_p84"].append(None)
-            spec_match["beast_logg_p50"].append(None)
-            spec_match["beast_logg_p16"].append(None)
-            spec_match["beast_logg_p84"].append(None)
-            spec_match["teff_sigma"].append(None)
-            spec_match["logg_sigma"].append(None)
+            spec_match["spec_teff"].append(np.nan)
+            spec_match["spec_logg"].append(np.nan)
+            spec_match["phot_cat_ind"].append(np.nan)
+            spec_match["stats_cat_ind"].append(np.nan)
+            spec_match["beast_teff_p50"].append(np.nan)
+            spec_match["beast_teff_p16"].append(np.nan)
+            spec_match["beast_teff_p84"].append(np.nan)
+            spec_match["beast_logg_p50"].append(np.nan)
+            spec_match["beast_logg_p16"].append(np.nan)
+            spec_match["beast_logg_p84"].append(np.nan)
+            spec_match["teff_sigma"].append(np.nan)
+            spec_match["logg_sigma"].append(np.nan)
 
     # write out the table
     if output_filebase is not None:
-        Table(spec_match).write(
-            output_filebase + "_spectype_match.fits", overwrite=True
-        )
+        spec_match_table = output_filebase + "_spectype_match.fits"
+        Table(spec_match).write(spec_match_table, overwrite=True)
+
+        if plot:
+            plot_match.plot_compare_spec_type(spec_match_table, savefig='png')
     else:
         return dict(spec_match)
 
