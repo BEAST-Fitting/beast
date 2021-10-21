@@ -69,7 +69,7 @@ class TestRegressionSuite(unittest.TestCase):
 
         cls.dset = "metal"
         if cls.dset == "metal":
-            cls.basesubdir = "metal_small_15Sep21/"
+            cls.basesubdir = "metal_small_20Oct21/"
             cls.basename = f"{cls.basesubdir}beast_metal_small"
             cls.obsname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst_samp.fits"
             cls.astname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst.fake.fits"
@@ -802,18 +802,18 @@ class TestRegressionSuite(unittest.TestCase):
                 "spec_ra": [1.0],
                 "spec_dec": [1.0],
                 "spec_type": ["B 4 V"],
-                "spec_teff": [None],
-                "spec_logg": [None],
-                "phot_cat_ind": [None],
-                "stats_cat_ind": [None],
-                "beast_teff_p50": [None],
-                "beast_teff_p16": [None],
-                "beast_teff_p84": [None],
-                "beast_logg_p50": [None],
-                "beast_logg_p16": [None],
-                "beast_logg_p84": [None],
-                "teff_sigma": [None],
-                "logg_sigma": [None],
+                "spec_teff": [np.nan],
+                "spec_logg": [np.nan],
+                "phot_cat_ind": [np.nan],
+                "stats_cat_ind": [np.nan],
+                "beast_teff_p50": [np.nan],
+                "beast_teff_p16": [np.nan],
+                "beast_teff_p84": [np.nan],
+                "beast_logg_p50": [np.nan],
+                "beast_logg_p16": [np.nan],
+                "beast_logg_p84": [np.nan],
+                "teff_sigma": [np.nan],
+                "logg_sigma": [np.nan],
             }
         )
 
