@@ -30,8 +30,7 @@ Data Parameters
 * `field`: field in the brick
 * `inside_brick`: inside the brick boundaries
 * `inside_chipgap`: in ACS chip gap
-* Photometry: listed as *flux* (not mag), units are normalized Vega fluxes
-  (e.g., flux/flux_vega)
+* `Fluxes`: units are ergs/(cm^2 s A)
 
   * `HST_WFC3_F275W`
   * `HST_WFC3_F336W`
