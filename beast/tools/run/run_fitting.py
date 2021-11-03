@@ -4,7 +4,6 @@ import argparse
 import time
 import pickle
 
-
 # BEAST imports
 from beast.fitting import fit
 from beast.physicsmodel.grid import SEDGrid

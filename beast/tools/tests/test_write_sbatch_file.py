@@ -10,8 +10,8 @@ def test_sbatch_file():
         "/pylon5/as5pi7p/lhagen",
         modules=["module load anaconda3", "source activate bdev"],
         job_name="LMCgrid",
-        egress=True,
-        queue="LM",
+        queue="EM",
+        nodes="24",
         stdout_file="/pylon5/as5pi7p/lhagen/mastergrid_LMC/model_batch_jobs/logs/%A_%a.out",
         run_time="35:00:00",
         mem="570GB",
@@ -26,8 +26,8 @@ def test_sbatch_file():
 
 #SBATCH -J LMCgrid
 #SBATCH -o /pylon5/as5pi7p/lhagen/mastergrid_LMC/model_batch_jobs/logs/%A_%a.out
-#SBATCH -C EGRESS
-#SBATCH -p LM
+#SBATCH -p EM
+#SBATCH -n 24
 #SBATCH -t 35:00:00
 #SBATCH --mem 570GB
 #SBATCH --array=1-9

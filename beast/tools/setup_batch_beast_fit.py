@@ -189,7 +189,7 @@ def setup_batch_beast_fit(
             obs = Table.read(phot_file)
 
             # get the fit results catalog
-            t = Table.read(stats_files[i])
+            t = Table.read(stats_files[i], hdu=1)
             # get the number of stars that have been fit
             (indxs,) = np.where(t["Pmax"] != 0.0)
 
