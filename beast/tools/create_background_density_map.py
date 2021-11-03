@@ -565,7 +565,7 @@ def make_source_dens_map(
             # find fractional overlap area
             frac_area = catalog_boundary.intersection(pix_box).area
 
-            if frac_area > 0.1:
+            if frac_area > 0.5:
                 # stars per unit area
                 npts_map[i, j] = n_indxs / (pix_area * frac_area)
 
