@@ -223,7 +223,7 @@ def setup_spatial_regions(cat_filename, pix_size=10.0):
     """
 
     # read in the catalog file
-    cat = Table.read(cat_filename)
+    cat = Table.read(cat_filename, hdu=1)
 
     # min/max ra
     min_ra = cat["RA"].min()
