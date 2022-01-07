@@ -106,6 +106,9 @@ Choices:
    * ``extinction.Gordon16_RvFALaw()``: Mixture model of MW (Type A;
      Fitzpatrick 99) and SMC (Type B; Gordon+03) extinction curves.
    * Adjustable parameters include: A_V, R_V, and f_A.
+   * By default, the curve is extended below 912A to correctly apply
+     extinction in short wavelength by merging the observed curves with
+     theoretical curves (see `Choi et al. 2020 <https://ui.adsabs.harvard.edu/abs/2020ApJ...902...54C/abstract>`_ for the details)
 
 * Fitzpatrick 99
    * ``extinction.Fitzpatrick99()``: Default Milky Way extinction curve model.
