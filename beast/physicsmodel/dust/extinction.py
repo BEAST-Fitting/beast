@@ -503,7 +503,7 @@ class Gordon16_RvFALaw(ExtinctionLaw):
             np.min([self.ALaw.x_range[1], self.BLaw.x_range[1]]),
         ]
 
-    def function(self, lamb, Av=1, Rv=3.1, Alambda=True, f_A=0.5, **kwargs):
+    def function(self, lamb, Av=1, Rv=3.1, Alambda=True, f_A=0.5, draine_extend=True, **kwargs):
         """
         Gordon16_RvFALaw
 
@@ -515,14 +515,18 @@ class Gordon16_RvFALaw(ExtinctionLaw):
         Av: float
             desired A(V) (default 1.0)
 
+        Rv: float
+            R(V) of mixture law (default to 3.1)
+       
         Alambda: bool
             if set returns +2.5*1./log(10.)*tau, tau otherwise
 
         f_A: float
             set the mixture ratio between the two laws (default 0.5)
 
-        Rv: float
-            R(V) of mixture law (default to 3.1)
+        draine_extend: bool
+            if set correctly extends the extinction curve to below 912 A
+            based on theoretical curves (Weingartner&Draine 2001; Draine 2003)
 
         Returns
         -------
@@ -537,8 +541,8 @@ class Gordon16_RvFALaw(ExtinctionLaw):
         Rv_A = self.get_Rv_A(Rv, f_A)
 
         # compute the two components
-        k_A = self.ALaw.function(_lamb, Av=Av, Rv=Rv_A, Alambda=Alambda)
-        k_B = self.BLaw.function(_lamb, Av=Av, Alambda=Alambda)
+        k_A = self.ALaw.function(_lamb, Av=Av, Rv=Rv_A, Alambda=Alambda, draine_extend=draine_extend)
+        k_B = self.BLaw.function(_lamb, Av=Av, Alambda=Alambda, draine_extend=draine_extend)
 
         # return the mixture
         return f_A * k_A + (1.0 - f_A) * k_B
