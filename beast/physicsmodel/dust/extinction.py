@@ -517,7 +517,7 @@ class Gordon16_RvFALaw(ExtinctionLaw):
 
         Rv: float
             R(V) of mixture law (default to 3.1)
-       
+
         Alambda: bool
             if set returns +2.5*1./log(10.)*tau, tau otherwise
 
