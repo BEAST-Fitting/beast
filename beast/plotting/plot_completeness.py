@@ -34,7 +34,7 @@ def plot_completeness(
         associated with each physics model file.
 
     param_list : list of strings
-        names of the parameters to plot
+        names of the parameters to plot. Two or more parameters need to be specified.
 
     compl_filter : str
         filter to use for completeness (required for toothpick model)
@@ -165,6 +165,7 @@ def plot_completeness(
 
                 # create histogram and labels
                 x_col, x_bins, x_label = setup_axis(compl_table, pi)
+                y_col, y_bins, y_label = setup_axis(compl_table, pj)
                 compl_hist, _, _ = binned_statistic(
                     x_col, compl_table["compl"], statistic="mean", bins=x_bins,
                 )
@@ -194,13 +195,15 @@ def plot_completeness(
                 if i == n_params - 1:
                     ax.set_xlabel(x_label, fontsize=label_font)
                     plt.xticks(rotation=-45)
+                if i == 0:
+                    ax.set_ylabel(y_label, fontsize=label_font)
 
     # plt.subplots_adjust(wspace=0.05, hspace=0.05)
     plt.tight_layout()
 
     # add a colorbar
     gs = GridSpec(nrows=20, ncols=n_params)
-    cax = fig.add_subplot(gs[0, 2:])
+    cax = fig.add_subplot(gs[0, 1:])
     cbar = plt.colorbar(im, cax=cax, orientation="horizontal")
     cbar.set_label("Completeness", fontsize=label_font)
     cbar.ax.tick_params(labelsize=tick_font)
