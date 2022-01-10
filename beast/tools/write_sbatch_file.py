@@ -13,7 +13,6 @@ def write_sbatch_file(
     queue="EM",
     nodes="24",
     run_time="1:00:00",
-    mem="128GB",
     array=None,
 ):
     """
@@ -54,10 +53,6 @@ def write_sbatch_file(
     run_time : string (default='1:00:00')
         Maximum run time (hh:mm:ss).  If your job is shorter, it's fine.
 
-    mem : string (default='128GB')
-        For bridges large, the memory to allocate to the job. If your job uses
-        less memory than this, the full amount will still be charged.
-
     array : list of two ints (default=None)
         If set, #SBATCH --array=[0]-[1] will be included. In this case, make
         sure to use "${SLURM_ARRAY_TASK_ID}" somewhere in the job command.
@@ -76,11 +71,9 @@ def write_sbatch_file(
 
         f.write("#SBATCH -p " + queue + "\n")
 
-        if nodes:
-            f.write("#SBATCH -n " + nodes + "\n")
+        f.write("#SBATCH -n " + nodes + "\n")
 
         f.write("#SBATCH -t " + run_time + "\n")
-        f.write("#SBATCH --mem " + mem + "\n")
 
         if array is not None:
             f.write("#SBATCH --array={0}-{1}\n".format(array[0], array[1]))
@@ -161,12 +154,10 @@ if __name__ == "__main__":  # pragma: no cover
         help="Maximum run time (hh:mm:ss).  If your job is shorter, it's fine.",
     )
     parser.add_argument(
-        "--mem",
+        "--nodes",
         type=str,
-        default="128GB",
-        help="""For bridges large, the memory to allocate to the job.
-                If your job uses less memory than this, the full amount
-                will still be charged.""",
+        default="24",
+        help="""Number of nodes to allocate to a job""",
     )
     parser.add_argument(
         "--array",
@@ -189,7 +180,7 @@ if __name__ == "__main__":  # pragma: no cover
         stdout_file=args.stdout_file,
         queue=args.queue,
         run_time=args.run_time,
-        mem=args.mem,
+        nodes=args.nodes,
         array=args.array,
     )
 
