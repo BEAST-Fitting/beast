@@ -171,6 +171,12 @@ class MultiFilterASTs(NoiseModel):
             if name_prefix[-1] != "_":
                 name_prefix += "_"
 
+        # set the fluxes to zero for all sources with CUT_FLAG > 0
+        #   these are the sources that are not recovered
+        # user determined flag
+        #   often this flag is set by sharpness, roundness, non-measured bands
+        cmask = cut_flag > 0
+
         # check if any NaNs are present, remove if they are
         # NaNs can be present due to the AST pipeline or in cases where
         # there is missing data (e.g., chip gaps)
@@ -178,6 +184,7 @@ class MultiFilterASTs(NoiseModel):
             gvals = np.isfinite(mag_in) & np.isfinite(flux_out)
             mag_in = mag_in[gvals]
             flux_out = flux_out[gvals]
+            cmask = cmask[gvals]
             print("removing NaNs")
 
         # convert the AST input from magnitudes to fluxes
@@ -185,11 +192,6 @@ class MultiFilterASTs(NoiseModel):
         # reported)
         flux_in = 10 ** (-0.4 * mag_in)
 
-        # set the fluxes to zero for all sources with CUT_FLAG > 0
-        #   these are the sources that are not recovered
-        # user determined flag
-        #   often this flag is set by sharpness, roundness, non-measured bands
-        cmask = cut_flag > 0
         flux_out[cmask] = 0.0
 
         # set the flux_out to zero for all ASTs recovered with too large
