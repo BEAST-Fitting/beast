@@ -29,9 +29,6 @@ class ExtinctionLaw(object):
     """
     Extinction Law Template Class
 
-    Parameters
-    ----------
-
     Attributes
     ----------
     name : string
