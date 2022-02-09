@@ -9,7 +9,6 @@ import unittest
 import tables
 import asdf
 
-from astropy.tests.helper import remote_data
 from astropy import constants as const
 from astropy.table import Table
 from astropy.io import fits
@@ -54,7 +53,7 @@ from beast.tests.helpers import (
 )
 
 
-@remote_data
+@pytest.mark.remote_data
 class TestRegressionSuite(unittest.TestCase):
     """
     The regression tests are done in a class to so that files are only
