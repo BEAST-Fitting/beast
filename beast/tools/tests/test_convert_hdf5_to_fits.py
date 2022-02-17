@@ -1,4 +1,4 @@
-from astropy.tests.helper import remote_data
+import pytest
 from astropy.table import Table
 from astropy.io import fits
 from beast.tools.convert_hdf5_to_fits import st_file
@@ -6,7 +6,7 @@ from beast.tools.convert_hdf5_to_fits import st_file
 from beast.tests.helpers import download_rename, compare_tables
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_convert_hd5_to_fits():
 
     # Pick some random .hd5 file to convert
