@@ -16,7 +16,7 @@ This also include functions to keep libraries up to date
 """
 import sys
 import numpy
-
+import argparse
 import tables
 from scipy.integrate import trapz
 
@@ -579,11 +579,11 @@ class __newFilterTable__(tables.IsDescription):
 
 def append_filter(
     lamb,
-    flux,
+    throughput,
     tablename,
     observatory,
     instrument,
-    name,
+    filtername,
     comment=None,
     filterLib=__default__,
     updateVegaLib=True,
@@ -594,10 +594,10 @@ def append_filter(
     Parameters
     ----------
     lamb: ndarray(dtype=float)
-        wavelength of the filter definition
+        wavelength of the filter definition in Angstrom
 
-    flux: ndarray(dtype=float)
-        transimission of the filter
+    throughput: ndarray(dtype=float)
+        total throughput of the filter
 
     tablename: str
         table name in the library
@@ -606,9 +606,9 @@ def append_filter(
         observatory of the filter (Ground, HST, Spitzer, ...)
 
     instrument: str
-        instrument associated with the filter
+        instrument associated with the filter (WFC3, ACS, ...)
 
-    name: str
+    filtername: str
         name of the filter
 
     comment: str, optional
@@ -629,7 +629,7 @@ def append_filter(
         return
 
     # Gen Filter object including relevant details
-    filtInst = list(filter(lamb, flux, name=name))
+    filtInst = Filter(lamb, throughput, name=filtername)
     # Add a new line in the content table
     newRow = contentTab.row
     newRow["TABLENAME"] = tablename
@@ -659,7 +659,7 @@ def append_filter(
     newTab.flush()
     ftab.flush()
     ftab.close()
-    print("% {0}: Filter {1} added to {2}".format(sys.argv[0], name, filterLib))
+    print("% {0}: Filter {1} added to {2}".format(sys.argv[0], filtername, filterLib))
     if updateVegaLib:
         appendVegaFilter(filtInst)
 
@@ -733,3 +733,44 @@ def appendVegaFilter(filtInst, VegaLib=__default_vega__):
     sedTab.flush()
     vtab.close()
     print("% {0}: Filter {1} added to {2}".format(sys.argv[0], filtInst.name, VegaLib))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "filter_throughput_curve",
+        type=str,
+        default=None,
+        help="filename of filter throughput curve to be added into the BEAST filter library",
+    )
+    parser.add_argument(
+        "--tablename",
+        type=str,
+        help="Table name for the filter",
+    )
+    parser.add_argument(
+        "--observatory",
+        type=str,
+        help="Observatory for the filter (e.g., HST, GALEX)",
+    )
+    parser.add_argument(
+        "--instrument",
+        type=str,
+        help="Instrument associated with the filter (WFC3, ACS, ...)",
+    )
+    parser.add_argument(
+        "--filtername",
+        type=str,
+        help="Name for the filter",
+    )
+
+    args = parser.parse_args()
+
+    if args.filter_throughput_curve:
+        lamb, throughput = numpy.loadtxt(args.filter_throughput_curve, usecols=(0,1), unpack=True)
+        append_filter(lamb, throughput, args.tablename, args.observatory, args.instrument,
+            args.filtername
+        )
+
+    if not any(vars(args).values()):
+        parser.print_help()
