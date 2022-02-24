@@ -768,9 +768,9 @@ if __name__ == "__main__":
 
     if args.filter_throughput_curve:
         lamb, throughput = numpy.loadtxt(args.filter_throughput_curve, usecols=(0, 1),
-                unpack=True)
+                                         unpack=True)
         append_filter(lamb, throughput, args.tablename, args.observatory, args.instrument,
-                     args.filtername)
+                      args.filtername)
 
     if not any(vars(args).values()):
         parser.print_help()
