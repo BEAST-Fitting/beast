@@ -88,7 +88,7 @@ def make_libfile():
     galex = ["fuv", "nuv"]
 
     # Open hd5 file for writing
-    hf = h5py.File(__ROOT__ + "filters_v1.hd5", "w")
+    hf = h5py.File(__ROOT__ + "filters.hd5", "w")
 
     # Create group for nice hierarchical structure
     f = hf.create_group("filters")
