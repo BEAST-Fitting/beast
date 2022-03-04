@@ -221,7 +221,7 @@ def make_libfile():
         # populate contents lists with relevant information
         tablenames.append(filter_name)
         observatories.append("HST")
-        instruments.append("WFC")
+        instruments.append("WFPC2")
         names.append(newfilt.name)
         norms.append(newfilt.norm.value)
         cwaves.append(newfilt.cl.value)
