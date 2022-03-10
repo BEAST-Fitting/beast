@@ -74,7 +74,7 @@ For more on setting up priors, see :ref:`BEAST priors <beast_priors>`.
   - ``logt``: age grid range parameters (min, max, step).
   - ``age_prior_model``: specify a prior for age parameter.
   - ``mass_prior_model``: specify a stellar IMF.
-  - ``z``: metallicity grid points.
+  - ``z``: metallicity grid points. For PARSEC, 1e-4<=z<=0.02; For MIST, -4.0<=[Z/H]<=0.5
   - ``met_prior_model``: specify a prior for metallicity parameter.
   - ``oiso``: isochrone model grid. Current choices: Padova or MIST. Default: PARSEC+CALIBRI: ``oiso = isochrone.PadovaWeb()``
   - ``osl``: stellar library definition. Options include Kurucz, Tlusty, BTSettl, Munari, Elodie and BaSel. You can also generate an object from the union of multiple individual libraries: ``osl = stellib.Tlusty() + stellib.Kurucz()``
