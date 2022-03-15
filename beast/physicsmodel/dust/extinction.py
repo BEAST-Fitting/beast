@@ -2,7 +2,7 @@
 Extinction Curves
 """
 import numpy as np
-from scipy import interpolate, interp
+from scipy import interpolate
 
 from astropy import units
 
