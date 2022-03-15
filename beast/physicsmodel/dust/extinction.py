@@ -650,9 +650,9 @@ class Generalized_DustExt(ExtinctionLaw):
             self.extcurve_class = getattr(dustext_extend, curve)
             if hasattr(self.extcurve_class, "Rv_range"):
                 self.hasRvParam = True
-                self.Rv = self.extcurve_class.Rv
             else:
                 self.hasRvParam = False
+                self.Rv = self.extcurve_class.Rv
         else:
             raise ValueError(
                 curve

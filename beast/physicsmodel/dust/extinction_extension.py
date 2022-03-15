@@ -116,7 +116,7 @@ class F19_D03_extension(F19):
 
         # compute the F19 curve for the input Rv over the F19 defined wavelength range
         gvals_f19 = (x > super().x_range[0]) & (x < super().x_range[1])
-        fmod = super().evaluate(x[gvals_f19], Rv)
+        fmod = super().evaluate(in_x[gvals_f19], Rv)
 
         # now merge the two smoothly
         outmod = copy.copy(dmod)
@@ -220,7 +220,7 @@ class G03_SMCBar_WD01_extension(G03_SMCBar):
 
         # compute the F19 curve for the input Rv over the F19 defined wavelength range
         gvals_g03 = (x > super().x_range[0]) & (x < super().x_range[1])
-        fmod = super().evaluate(x[gvals_g03])
+        fmod = super().evaluate(in_x[gvals_g03])
 
         # now merge the two smoothly
         outmod = copy.copy(dmod)
