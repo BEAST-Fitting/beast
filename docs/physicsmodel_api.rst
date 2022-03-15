@@ -14,6 +14,8 @@ Dust
 
 .. automodapi:: beast.physicsmodel.dust.extinction
 
+.. automodapi:: beast.physicsmodel.dust.extinction_extension
+
 Weights
 =======
 
