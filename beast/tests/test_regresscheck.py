@@ -68,7 +68,7 @@ class TestRegressionSuite(unittest.TestCase):
 
         cls.dset = "metal"
         if cls.dset == "metal":
-            cls.basesubdir = "metal_small_20Oct21/"
+            cls.basesubdir = "metal_small_22Mar22/"
             cls.basename = f"{cls.basesubdir}beast_metal_small"
             cls.obsname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst_samp.fits"
             cls.astname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst.fake.fits"
