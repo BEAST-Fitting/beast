@@ -11,6 +11,7 @@ import dust_extinction.averages as dustext_avg
 from dust_extinction.helpers import _test_valid_x_range
 
 from beast.config import __ROOT__
+import beast.physicsmodel.dust.extinction_extension as dustext_extend
 
 __all__ = [
     "ExtinctionLaw",
@@ -645,6 +646,13 @@ class Generalized_DustExt(ExtinctionLaw):
             self.extcurve_class = getattr(dustext_avg, curve)
             self.hasRvParam = False
             self.Rv = self.extcurve_class.Rv
+        elif curve in dustext_extend.__all__:
+            self.extcurve_class = getattr(dustext_extend, curve)
+            if hasattr(self.extcurve_class, "Rv_range"):
+                self.hasRvParam = True
+                self.Rv = self.extcurve_class.Rv
+            else:
+                self.hasRvParam = False
         else:
             raise ValueError(
                 curve
