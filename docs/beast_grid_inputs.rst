@@ -120,10 +120,10 @@ Choices:
 * `beast.physicsmodel.dust.extinction_extension` (recommended of sub 912 A extinction needed)
    * all the observation based models stop at or before 912 A as hydrogen dominates extinction below this wavelength
    * For work that interested in sub 912 A information (e.g., ionizing photon measurements), these models extend the
-     dust extinction to shorter than 912 A wavelengths by smoothly merging dust grain models with an observed extinction model
+     dust extinction to 100 A by smoothly merging dust grain models with an observed extinction model
      starting at 1675 A.  Thus, the extinction between around 1150 A and 1675 A is a combination of the observed extinction curve and
      the dust grain model extinction curve.  Most observational based extinction curves do not go all the way to 912 A due to lack
-     of measurements. 
+     of measurements.
    * `F19_D03_extension`: Extension of Fitzpatrick+19 Milky Way Rv dependent model with Draine03 grain models.
    * `G03_SMCBar_WD01_extension`: Extension of Gordon+03 SMCBar average with the Weingarter & Draine01 SMCBar grain model.
 
