@@ -5,8 +5,10 @@ from dust_extinction.parameter_averages import F19
 from dust_extinction.averages import G03_SMCBar
 from dust_extinction.grain_models import WD01, D03
 
-from beast.physicsmodel.dust.extinction_extension import (F19_D03_extension,
-    G03_SMCBar_WD01_extension)
+from beast.physicsmodel.dust.extinction_extension import (
+    F19_D03_extension,
+    G03_SMCBar_WD01_extension,
+)
 
 
 def test_F19_D03_ext():
