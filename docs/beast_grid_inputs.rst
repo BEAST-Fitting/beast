@@ -102,35 +102,49 @@ providing fully self-consistent treatment of reddening.
 
 Choices:
 
-* Gordon+16
+* Generalized_RvFaLaw (recommended)
+   * allows for any choice of the extinction curve model for the A and B components
+   * recommended
+      * A: F19 - based on spectroscopy in UV and optical and does a bit better than F99 in the optical
+      * B: G03_SMCBar - best average for the SMC "bumpless" extinction curve
+      * In beast_settings file:
+        extLaw = extinction.Generalized_RvFALaw(ALaw=extinction.Generalized_DustExt(curve='F19'), BLaw=extinction.Generalized_DustExt(curve='G03_SMCBar'))
+
+* `dust_extinction`_ Package Extinction Curves (recommended)
+   * ``extinction.Generalized_DustExt()``: Wrapper for any extinction curve
+     class available via dust_extinction python package.
+   * Select curve class via string parameter: `curve`
+   * Example call, for Fitzpatrick+19: ``extinction.Generalized_DustExt('F19')``
+   * For the most possible models, see `dust_extinction docs <https://dust-extinction.readthedocs.io/en/stable/>`_
+
+* `beast.physicsmodel.dust.extinction_extension` (recommended of sub 912 A extinction needed)
+   * all the observation based models stop at or before 912 A as hydrogen dominates extinction below this wavelength
+   * For work that interested in sub 912 A information (e.g., ionizing photon measurements), these models extend the
+     dust extinction to 100 A by smoothly merging dust grain models with an observed extinction model
+     starting at 1675 A.  Thus, the extinction between around 1150 A and 1675 A is a combination of the observed extinction curve and
+     the dust grain model extinction curve.  Most observational based extinction curves do not go all the way to 912 A due to lack
+     of measurements.
+   * `F19_D03_extension`: Extension of Fitzpatrick+19 Milky Way Rv dependent model with Draine03 grain models.
+   * `G03_SMCBar_WD01_extension`: Extension of Gordon+03 SMCBar average with the Weingarter & Draine01 SMCBar grain model.
+
+* Gordon+16 (original mixture dust extinction model)
    * ``extinction.Gordon16_RvFALaw()``: Mixture model of MW (Type A;
      Fitzpatrick 99) and SMC (Type B; Gordon+03) extinction curves.
    * Adjustable parameters include: A_V, R_V, and f_A.
 
-* Fitzpatrick 99
+* Fitzpatrick 99 (may be deprecated, superceded by dust_extinction package)
    * ``extinction.Fitzpatrick99()``: Default Milky Way extinction curve model.
    * Adjustable parameters: R_V
 
-* Gordon+03
+* Gordon+03 (may be deprecated, superceded by dust_extinction package)
    * ``extinction.Gordon03_SMCBar()``: Empirically-derived SMC Bar dust
      extinction curve.
    * Adjustable A_V, R_V fixed at 2.74
 
-* Cardelli, Clayton, and Mathis 89
+* Cardelli, Clayton, and Mathis 89 (may be deprecated, superceded by dust_extinction package)
    * ``extinction.Cardelli89()``: Well-known Milky Way extinction curve model,
-     but advise use of ``Fitzpatrick99()`` model instead.
+     but advise use of ``dust_extinction F19`` model instead.
    * Adjustable parameters: R_V
-
-* `dust_extinction`_ Package Extinction Curves
-   * ``extinction.Generalized_DustExt()``: Wrapper for any extinction curve
-     class available via dust_extinction python package.
-   * Select curve class via string parameter: `curve`
-   * Example call, for Fitzpatrick 04: ``extinction.Generalized_DustExt('F04')``
-   * R_V-dependent models available: Cardelli+89=CCM89, O'Donnell94=O94,
-     Fitzpatrick99=F99, Fitzpatrick04=F04, MaizApellaniz+14=M14
-   * Average model available: Gordon+03's SMC Bar Avg = G03_SMCBar; Gordon+03's
-     LMC Avg = G03_LMCAvg; Gordon+03's LMC2 Supershell Avg = G03_LMC2;
-     Gordon, Cartledge, & Clayton 09's MW Avg = GCC09_MWAvg
 
  .. _TLusty: http://tlusty.oca.eu/
  .. _Munari: https://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=J/A%2bA/442/1127
