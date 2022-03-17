@@ -141,7 +141,7 @@ def verify_input_format(settings):
         "list_float_grid",
     ]
     parameters_limits = [
-        [0.0, 0.1],
+        [-4.0, 0.5],
         None,
         None,
         [-inf, 10.15],
