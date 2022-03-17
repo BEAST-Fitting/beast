@@ -61,7 +61,7 @@ class F19_D03_extension(F19):
     """
 
     # update the wavelength range (in micron^-1)
-    x_range = [0.3, 1.0 / 0.0250]
+    x_range = [0.3, 1.0 / 0.01]
 
     def evaluate(self, in_x, Rv):
         """
@@ -183,7 +183,7 @@ class G03_SMCBar_WD01_extension(G03_SMCBar):
     """
 
     # update the wavelength range (in micron^-1)
-    x_range = [0.3, 1.0 / 0.0250]
+    x_range = [0.3, 1.0 / 0.01]
 
     def evaluate(self, in_x):
         """
