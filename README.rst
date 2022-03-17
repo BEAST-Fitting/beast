@@ -31,8 +31,8 @@ Build Status/Checks
     :target: https://lgtm.com/projects/g/BEAST-Fitting/beast/context:python
     :alt: Language grade: Python
 
-.. image:: https://api.codacy.com/project/badge/Grade/59b793e92c8542509d4217351f988de0
-    :target: https://www.codacy.com/manual/kgordon/beast?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BEAST-Fitting/beast&amp;utm_campaign=Badge_Grade
+.. image:: https://app.codacy.com/project/badge/Grade/3ebbffbfb2634e6fad620b4931be3cbc
+    :target: https://www.codacy.com/gh/BEAST-Fitting/beast/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BEAST-Fitting/beast&amp;utm_campaign=Badge_Grade
     :alt: Codacy grade
 
 Packaging
