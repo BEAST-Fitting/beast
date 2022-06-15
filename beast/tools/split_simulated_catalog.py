@@ -3,12 +3,9 @@
 Split a simulated catalog and a set of AST results by number of sources
 (to improve fitting efficiency for large grids).
 """
-import shutil
 import argparse
 import numpy as np
 from astropy.table import Table
-from beast.tools.density_map import BinnedDensityMap
-
 from beast.tools import beast_settings
 
 
@@ -53,17 +50,6 @@ def split_main(
 
     """
 
-    # process beast settings info
-    if isinstance(beast_settings_info, str):
-        settings = beast_settings.beast_settings(beast_settings_info)
-    elif isinstance(beast_settings_info, beast_settings.beast_settings):
-        settings = beast_settings_info
-    else:
-        raise TypeError(
-            "beast_settings_info must be string or beast.tools.beast_settings.beast_settings instance"
-        )
-
-
     print("Splitting catalog")
     split_simulated_catalog(
         catfile,
@@ -71,10 +57,6 @@ def split_main(
         min_n_subfile=min_n_subfile,
         sort_col=sort_col,
     )
-
-    #print("")
-    #print("Copying AST file")
-    #shutil(astfile, astfile.replace('.fits', '_bin0.fits'))
 
 def split_simulated_catalog(
     catfile,
@@ -158,11 +140,6 @@ def split_simulated_catalog(
 
 if __name__ == "__main__":  # pragma: no cover
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "beast_settings_info",
-        type=str,
-        help="file name with beast settings",
-    )
     parser.add_argument("catfile", type=str, help="catalog FITS file")
     parser.add_argument("astfile", type=str, help="ast results fits file")
     parser.add_argument(
@@ -187,7 +164,6 @@ if __name__ == "__main__":  # pragma: no cover
     args = parser.parse_args()
 
     split_main(
-        args.beast_settings_info,
         args.catfile,
         args.astfile,
         args.n_per_file,
