@@ -6,7 +6,6 @@ Split a simulated catalog and a set of AST results by number of sources
 import argparse
 import numpy as np
 from astropy.table import Table
-from beast.tools import beast_settings
 
 
 def split_main(
@@ -57,6 +56,7 @@ def split_main(
         min_n_subfile=min_n_subfile,
         sort_col=sort_col,
     )
+
 
 def split_simulated_catalog(
     catfile,
