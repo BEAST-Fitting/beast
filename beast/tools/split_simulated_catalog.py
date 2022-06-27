@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-Split a simulated catalog and a set of AST results by number of sources
-(to improve fitting efficiency for large grids).
+Split a catalog and AST results into grid subbins to improve fitting efficiency for large physics grids.
+This is almost identical to split_catalog_using_map except this function does not require spatial
+information (e.g. RA, DEC) to sort by source density or background emission density, making it
+optimal for simulated catalogs.
 """
 import argparse
 import numpy as np
@@ -32,7 +34,7 @@ def split_main(
     astfile : string
         name of the ast catalog file
 
-    n_per_file : int or None (default=6250)
+    n_per_file : int or None (default=1000)
         If set, divide the split catalog into sub-catalogs with length
         n_per_file.  Good for photometry, not useful for ASTs.
 
