@@ -8,6 +8,7 @@ from os.path import exists
 from numpy import inf
 import warnings
 
+from beast.physicsmodel.stars import isochrone
 
 def verify_range(param, param_name, param_lim):
     # check if input param limits make sense
@@ -140,15 +141,30 @@ def verify_input_format(settings):
         "list_float_grid",
         "list_float_grid",
     ]
-    parameters_limits = [
-        [-4.0, 0.5],
-        None,
-        None,
-        [-inf, 10.15],
-        [0.0, inf],
-        [1.0, 7.0],
-        [0.0, 1.0],
-    ]
+
+    print(settings.oiso.name)
+    if settings.oiso.name == "MESA/MIST isochrones":
+        print('Working on the MIST isochrone')
+        parameters_limits = [
+            [0.0142E-4, 0.0142*10**(0.5)],
+            None,
+            None,
+            [5, 10.3],
+            [0.0, inf],
+            [1.0, 7.0],
+            [0.0, 1.0],
+        ]
+    if settings.oiso.name == "Padova CMD isochrones":
+        print('Working on the PARSEC isochrone')
+        parameters_limits = [
+            [1E-4, 0.06],
+            None,
+            None,
+            [-inf, 10.15],
+            [0.0, inf],
+            [1.0, 7.0],
+            [0.0, 1.0],
+        ]
 
     for i, param_ in enumerate(parameters):
         verify_one_input_format(
