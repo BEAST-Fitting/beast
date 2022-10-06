@@ -8,7 +8,6 @@ from os.path import exists
 from numpy import inf
 import warnings
 
-from beast.physicsmodel.stars import isochrone
 
 def verify_range(param, param_name, param_lim):
     # check if input param limits make sense
@@ -146,7 +145,7 @@ def verify_input_format(settings):
     if settings.oiso.name == "MESA/MIST isochrones":
         print('Working on the MIST isochrone')
         parameters_limits = [
-            [0.0142E-4, 0.0142*10**(0.5)],
+            [0.0142E-4, 0.0142 * 10**(0.5)],
             None,
             None,
             [5, 10.3],
