@@ -169,7 +169,8 @@ def main_make_map(args):
 
     # if diffSpike is set, remove entries with DiffSpike_FLAG==True
     if args.diffSpike:
-        keep = cat[args.diffSpike] == False
+        diffSpike_flag = args.diffSpike.upper()
+        keep = cat[diffSpike_flag] == False
         cat = cat[keep]
 
     ra = cat["RA"]
