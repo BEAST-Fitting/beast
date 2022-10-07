@@ -49,8 +49,7 @@ def cut_catalogs(
         the source will not be removed.
 
     flagged : boolean (default=False)
-        if True, remove sources with flag=99 in flag_filter.  Note that this
-        will only be applied to sources with RATE>0 in flag_filter.
+        if True, remove sources with RATE=0 in flag_filter.
 
     flag_filter : string or list of strings (default=None)
         if flagged is True, set this to the filter(s) to use
@@ -158,7 +157,7 @@ def make_cuts(cat_file, partial_overlap=False, flagged=False, flag_filter=None):
 
     # read in the catalog
     cat = Table.read(cat_file)
-    filters = [c[0:-5] for c in cat.colnames if "RATE" in c and "RATERR" not in c]
+    filters = [c[0:-5] for c in cat.colnames if "VEGA" in c]
     n_stars = len(cat)
 
     # array to keep track of which ones are good
@@ -175,7 +174,7 @@ def make_cuts(cat_file, partial_overlap=False, flagged=False, flag_filter=None):
     # flagged sources
     if flagged is True:
         for fl in np.atleast_1d(flag_filter):
-            good_stars[(cat[fl + "_FLAG"] >= 99) & (cat[fl + "_RATE"] > 0)] = 0
+            good_stars[(cat[fl + "_RATE"] > 0)] = 0
 
     # return results
     return cat, good_stars
