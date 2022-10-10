@@ -174,7 +174,7 @@ def make_cuts(cat_file, partial_overlap=False, flagged=False, flag_filter=None):
     # flagged sources
     if flagged is True:
         for fl in np.atleast_1d(flag_filter):
-            good_stars[(cat[fl + "_RATE"] > 0)] = 0
+            good_stars[(cat[fl + "_RATE"] != 0)] = 0
 
     # return results
     return cat, good_stars
