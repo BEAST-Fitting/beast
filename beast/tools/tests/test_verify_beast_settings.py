@@ -21,6 +21,7 @@ class settings_mock:
     fA_prior_model = {"name": "flat"}
     oiso = isochrone.MISTWeb()
 
+
 class settings_mock_nofA(settings_mock):
     """Mock beast_settings w/ fAs=None"""
 
