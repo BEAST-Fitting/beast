@@ -1,4 +1,5 @@
 import pytest
+from beast.physicsmodel.stars import isochrone
 from beast.tools import verify_beast_settings
 
 
@@ -18,7 +19,7 @@ class settings_mock:
     rv_prior_model = {"name": "flat"}
     fAs = [0.0, 1.0, 0.25]
     fA_prior_model = {"name": "flat"}
-
+    oiso = isochrone.MISTWeb()
 
 class settings_mock_nofA(settings_mock):
     """Mock beast_settings w/ fAs=None"""
