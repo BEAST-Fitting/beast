@@ -1,9 +1,18 @@
-2.0 (unreleased)
+2.0 (2022-11-11)
 ================
 
-- Migrated to the new package template (APE17)
-- Moved from travis to github actions for CI
-- Moved from coveralls to codecov for test coverage reporting
+- fix bug in filter/vega files for HST bands
+- improvements to AST generation
+- improvements to simulated catalog generation
+- improvements to splitting and merging for subgrids
+- merging of stellar and dust prior code (support for megabeast dev)
+- updates to batch file generation for large runs
+- code restructuring to reduce complexity and duplication
+- migrated to the new package template (APE17)
+- moved from travis to github actions for CI
+- moved from coveralls to codecov for test coverage reporting
+- updates to testing structure and code
+- various documentation updates and bugfixes
 
 1.4 (2020-5-15)
 ===============
