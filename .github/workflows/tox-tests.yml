@@ -63,7 +63,7 @@ jobs:
         python -m pip install tox
     - name: Test with tox
       run: |
-        tox -e py38-devdeps
+        tox -e py39-devdeps
 
   # LTS version test
   lts_test:
@@ -74,14 +74,14 @@ jobs:
     - name: Set up python for astropy lts test
       uses: actions/setup-python@v1
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Install base dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install tox
     - name: Test with tox
       run: |
-        tox -e py38-astropylts
+        tox -e 39-astropylts
 
   # Coverage test
   cov_test:
