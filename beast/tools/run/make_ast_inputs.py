@@ -164,6 +164,11 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
             else:
                 hdu_ext = 1
 
+            if hasattr(settings, "region_from_filters"):
+                region_from_filters = settings.region_from_filters
+            else:
+                region_from_filters = 'all'
+
             make_ast_xy_list.pick_positions_from_map(
                 obsdata,
                 chosen_seds,
@@ -177,9 +182,8 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 refimage=settings.ast_reference_image,
                 refimage_hdu=hdu_ext,
                 wcs_origin=1,
-                Nrealize=1,
                 set_coord_boundary=settings.ast_coord_boundary,
-                region_from_filters="all",
+                region_from_filters=region_from_filters,
                 erode_boundary=settings.ast_erode_selection_region,
             )
         # if we're not using SD/background maps, SEDs will be distributed
