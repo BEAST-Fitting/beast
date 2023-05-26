@@ -35,7 +35,10 @@ def main():  # pragma: no cover
     # common options for both types of map
     commonparser = argparse.ArgumentParser(add_help=False)
     commonparser.add_argument(
-        "-catfile", type=str, required=True, help="catalog FITS file"
+        "-catfile",
+        type=str,
+        required=True,
+        help="catalog FITS file"
     )
     commonparser.add_argument(
         "-erode_boundary",
@@ -122,6 +125,13 @@ def main():  # pragma: no cover
         metavar="FILTER_FLAG",
         help="if set, ignore sources with flag >= 99",
     )
+    sourceden_parser.add_argument(
+        "--diffSpike",
+        type=str,
+        default=None,
+        metavar="DiffractionSpike_FLAG",
+        help="if set, ignore sources with flag == True",
+    )
 
     # options unique to plot command
     plot_parser.add_argument(
@@ -156,6 +166,12 @@ def main_make_map(args):
     cat = Table.read(args.catfile)
     for name in cat.colnames:
         cat.rename_column(name, name.upper())
+
+    # if diffSpike is set, remove entries with DiffSpike_FLAG==True
+    if args.diffSpike:
+        diffspike_flag = args.diffSpike.upper()
+        keep = cat[diffspike_flag] == 0
+        cat = cat[keep]
 
     ra = cat["RA"]
     dec = cat["DEC"]

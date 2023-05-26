@@ -40,11 +40,12 @@ Adding source density to observations
 =====================================
 
 Create a new version of the observations that includes a column with the
-source density.  The user chooses one band to use as the reference, and chooses
-the magnitude range of sources to use for calculating the source density
-(generally, this would be the range over which the catalog is complete).  The
-user can also choose a band for which sources that have '[band]_FLAG == 99' are
-ignored.
+source density.  The user chooses one band to use as the reference
+(F475W is default), and chooses (generally, this would be the range over
+which the catalog is complete). The user can also choose a band for which
+sources that have '[band]_FLAG == 99' are ignored. If the observation catalog
+has a column to indicate diffraction spike artifacts, the --diffSpike option
+can be set to exclude those sources from source density calculation.
 
 Three files are created.  The prefix is derived from the name of the input
 photometry catalog.
@@ -55,14 +56,23 @@ photometry catalog.
 * [prefix]_sourceden_map.hd5: contains information about the map grid
 
 Command to create the observed catalog with source density column with
-a pixel scale of 5 arcsec using the 'phot_catalog.fits' catalog.
+a pixel scale of 5 arcsec over a given magnitude range (20--26) with 100%
+in F475W (by default) using the 'phot_catalog.fits' catalog.
 
   .. code-block:: console
 
      $ python -m beast.tools.create_background_density_map sourceden \
-       -catfile phot_catalog.fits --pixsize 5.
+       -catfile phot_catalog.fits --pixsize 5.0 --mag_cut 20 26
 
+Set --diffSpike to the column name for a diffraction spike flag in the
+observation catalog to compute source density after diffraction spike artifact
+removal.
 
+  .. code-block:: console
+
+     $ python -m beast.tools.create_background_density_map sourceden \
+       -catfile phot_catalog.fits --pixsize 5.0 --mag_cut 20 26 \
+       --diffSpike DiffSpike_FLAG
 
 Adding background to observations
 =================================

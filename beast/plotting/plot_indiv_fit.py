@@ -25,7 +25,7 @@ def disp_str(stats, k, keyname):
         stats[keyname + "_p84"][k],
         stats[keyname + "_p16"][k],
     ]
-    if keyname == "M_ini":
+    if keyname in ["M_ini", "Z"]:
         dvals = np.log10(dvals)
     if keyname == "distance":
         if dvals[0] > 1000:
@@ -218,10 +218,10 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
 
     # get the observations
     waves *= 1e-4
-    obs_flux = np.zeros((n_filters), dtype=np.float)
-    mod_flux = np.zeros((n_filters, 3), dtype=np.float)
-    mod_flux_nd = np.zeros((n_filters, 3), dtype=np.float)
-    mod_flux_wbias = np.zeros((n_filters, 3), dtype=np.float)
+    obs_flux = np.zeros((n_filters), dtype=float)
+    mod_flux = np.zeros((n_filters, 3), dtype=float)
+    mod_flux_nd = np.zeros((n_filters, 3), dtype=float)
+    mod_flux_wbias = np.zeros((n_filters, 3), dtype=float)
     k = starnum
 
     corname = stats["Name"][k]
@@ -289,7 +289,7 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
         "d(kpc)",
         "R(V)",
         r"f$_\mathcal{A}$",
-        "Z",
+        "log(Z)",
         r"log(T$_\mathrm{eff})$",
         "log(g)",
         "log(L)",
@@ -313,7 +313,7 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
             transform=sed_ax.transAxes,
         )
         best_val = stats[keys[i] + "_Best"][k]
-        if keys[i] == "M_ini":
+        if keys[i] in ["M_ini", "Z"]:
             best_val = np.log10(best_val)
         if keys[i] == "distance":
             best_val /= 1000.0
@@ -404,7 +404,7 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
         next(ax_iter), pdf1d_hdu, "f_A", r"f$_\mathcal{A}$", starnum, stats=stats
     )
     last_secondary_ax = next(ax_iter)
-    plot_1dpdf(last_secondary_ax, pdf1d_hdu, "Z", "Z", starnum, stats=stats)
+    plot_1dpdf(last_secondary_ax, pdf1d_hdu, "Z", "log(Z)", starnum, logx=True, stats=stats)
 
     # plot the derived parameter 1D PDFs
     first_derived_ax = next(ax_iter)

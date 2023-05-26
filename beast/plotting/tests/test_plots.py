@@ -1,8 +1,5 @@
 import matplotlib.pyplot as plt
-
 import pytest
-
-from astropy.tests.helper import remote_data
 
 from beast.plotting import plot_indiv_fit, plot_cmd, plot_cmd_with_fits, plot_filters
 from beast.tests.helpers import download_rename
@@ -10,7 +7,7 @@ from beast.tests.helpers import download_rename
 plt.switch_backend("agg")
 
 
-@remote_data
+@pytest.mark.remote_data
 @pytest.mark.mpl_image_compare(tolerance=25)
 def test_indiv_plot():
 
@@ -26,7 +23,7 @@ def test_indiv_plot():
     return fig
 
 
-@remote_data
+@pytest.mark.remote_data
 @pytest.mark.mpl_image_compare(tolerance=10)
 def test_plot_cmd():
 
@@ -39,7 +36,7 @@ def test_plot_cmd():
     return fig
 
 
-@remote_data
+@pytest.mark.remote_data
 @pytest.mark.mpl_image_compare(tolerance=55)
 def test_plot_cmd_with_fits():
 
@@ -55,7 +52,7 @@ def test_plot_cmd_with_fits():
     return fig
 
 
-@remote_data
+@pytest.mark.remote_data
 @pytest.mark.mpl_image_compare(tolerance=18)
 def test_plot_filters():
 

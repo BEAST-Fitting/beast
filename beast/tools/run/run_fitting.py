@@ -21,7 +21,7 @@ def run_fitting(
     nprocs=1,
     choose_sd_sub=None,
     choose_subgrid=None,
-    pdf2d_param_list=['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance'],
+    pdf2d_param_list=None,
     pdf_max_nbins=200,
     resume=False,
 ):
@@ -59,8 +59,9 @@ def run_fitting(
         If this is set, the fitting with just be for this subgrid index.
         If nsubs=1, this is ignored.
 
-    pdf2d_param_list : list of strings or None
+    pdf2d_param_list : list of strings or None (default=None)
         If set, do 2D PDFs of these parameters.  If None, don't make 2D PDFs.
+        Sample list: ['Av', 'Rv', 'f_A', 'M_ini', 'logA', 'Z', 'distance']
 
     pdf_max_nbins : int (default=100)
         Maxiumum number of bins to use for the 1D and 2D PDFs

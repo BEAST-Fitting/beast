@@ -48,8 +48,8 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
         # - find the lengths of the sparse likelihoods
         lnp_sizes = [lnp_hdf[sname]["lnp"][()].shape[0] for sname in star_key_list]
         # - set arrays to the maximum size
-        lnp_vals = np.full((np.max(lnp_sizes), tot_stars), -np.inf)
-        lnp_indxs = np.full((np.max(lnp_sizes), tot_stars), np.nan)
+        lnp_vals = np.full((np.max(lnp_sizes), tot_stars), -np.inf, dtype=float)
+        lnp_indxs = np.full((np.max(lnp_sizes), tot_stars), np.nan, dtype=int)
 
         # loop over all the stars (groups)
         for k, sname in enumerate(star_key_list):
@@ -66,9 +66,7 @@ def read_lnp_data(filename, nstars=None, shift_lnp=True):
 
 
 def read_noise_data(
-    filename,
-    param_list=["bias", "completeness", "error"],
-    filter_col=None,
+    filename, param_list=["bias", "completeness", "error"], filter_col=None
 ):
     """
     Read some or all of the noise model parameters, for one or all of the filters

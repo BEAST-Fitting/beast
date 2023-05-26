@@ -1,10 +1,10 @@
+import pytest
 from beast.tools import remove_filters, read_beast_data
 from beast.tests.helpers import download_rename
-from astropy.tests.helper import remote_data
 import os
 
 
-@remote_data
+@pytest.mark.remote_data
 def test_remove_filters():
     """
     Test for remove_filters.py

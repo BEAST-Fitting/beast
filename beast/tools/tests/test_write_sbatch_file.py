@@ -14,7 +14,6 @@ def test_sbatch_file():
         nodes="24",
         stdout_file="/pylon5/as5pi7p/lhagen/mastergrid_LMC/model_batch_jobs/logs/%A_%a.out",
         run_time="35:00:00",
-        mem="570GB",
         array=[1, 9],
     )
 
@@ -29,7 +28,6 @@ def test_sbatch_file():
 #SBATCH -p EM
 #SBATCH -n 24
 #SBATCH -t 35:00:00
-#SBATCH --mem 570GB
 #SBATCH --array=1-9
 
 # move to appropriate directory

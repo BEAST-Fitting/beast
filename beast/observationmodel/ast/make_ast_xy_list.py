@@ -20,12 +20,11 @@ def pick_positions_from_map(
     N_bins,
     bin_width,
     custom_bins,
-    Npermodel,
+    Nrealize,
     outfile=None,
     refimage=None,
     refimage_hdu=1,
     wcs_origin=1,
-    Nrealize=1,
     set_coord_boundary=None,
     region_from_filters=None,
     erode_boundary=None,
@@ -86,6 +85,14 @@ def pick_positions_from_map(
         Each tile will be put into a bin, so that a set of tiles of the
         map is obtained for each range of source density/background values.
 
+    Nrealize: integer
+        The number of times each model should be repeated for each
+        background regime. This is to sample the variance due to
+        variations within each region, for each individual model.
+
+    outfile: str
+        Path to an output file to store input AST information.
+
     refimage: str
         Path to fits image that is used for the positions. If none is
         given, the ra and dec will be put in the x and y output columns
@@ -99,11 +106,6 @@ def pick_positions_from_map(
         As described in the WCS documentation: "the coordinate in the upper
         left corner of the image. In FITS and Fortran standards, this is 1.
         In Numpy and C standards this is 0."
-
-    Nrealize: integer
-        The number of times each model should be repeated for each
-        background regime. This is to sample the variance due to
-        variations within each region, for each individual model.
 
     set_coord_boundary : None, or list of 2 numpy arrays
         If provided, these RA/Dec coordinates will be used to limit the
@@ -174,13 +176,14 @@ def pick_positions_from_map(
     # if only one of those exists and there's a refimage, convert to the other
     if xy_pos and not radec_pos and refimage:
         radec_pos = True
-        x_positions, y_positions = ref_wcs.all_world2pix(
-            ra_positions, dec_positions, wcs_origin
+        ra_positions, dec_positions = ref_wcs.all_pix2world(
+            x_positions, y_positions, wcs_origin
+
         )
     if radec_pos and not xy_pos and refimage:
         xy_pos = True
-        ra_positions, dec_positions = ref_wcs.all_pix2world(
-            x_positions, y_positions, wcs_origin
+        x_positions, y_positions = ref_wcs.all_world2pix(
+            ra_positions, dec_positions, wcs_origin
         )
 
     # if no x/y or ra/dec in the catalog, raise error
@@ -265,7 +268,7 @@ def pick_positions_from_map(
             )
 
     # Load the background map
-    print(Npermodel, " repeats of each model in each map bin")
+    print(Nrealize, " repeats of each model in each map bin")
 
     bdm = density_map.BinnedDensityMap.create(
         input_map,
@@ -404,7 +407,7 @@ def pick_positions_from_map(
     for bin_index, tile_set in enumerate(
         tqdm(
             tile_sets,
-            desc="{:.2f} models per map bin".format(Nseds_per_region / Npermodel),
+            desc="{:.2f} models per map bin".format(Nseds_per_region / Nrealize),
         )
     ):
         start = bin_index * Nseds_per_region

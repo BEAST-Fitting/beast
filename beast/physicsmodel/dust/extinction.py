@@ -2,7 +2,7 @@
 Extinction Curves
 """
 import numpy as np
-from scipy import interpolate, interp
+from scipy import interpolate
 
 from astropy import units
 
@@ -11,6 +11,7 @@ import dust_extinction.averages as dustext_avg
 from dust_extinction.helpers import _test_valid_x_range
 
 from beast.config import __ROOT__
+import beast.physicsmodel.dust.extinction_extension as dustext_extend
 
 __all__ = [
     "ExtinctionLaw",
@@ -28,9 +29,6 @@ libdir = __ROOT__
 class ExtinctionLaw(object):
     """
     Extinction Law Template Class
-
-    Parameters
-    ----------
 
     Attributes
     ----------
@@ -194,7 +192,7 @@ class Fitzpatrick99(ExtinctionLaw):
         self.name = "Fitzpatrick99"
         self.x_range = [0.3, 10.0]
 
-    def function(self, lamb, Av=1, Rv=3.1, Alambda=True, draine_extend=False, **kwargs):
+    def function(self, lamb, Av=1, Rv=3.1, Alambda=True, **kwargs):
         """
         Fitzpatrick99 extinction Law
 
@@ -211,9 +209,6 @@ class Fitzpatrick99(ExtinctionLaw):
 
         Alambda: bool
             if set returns +2.5*1./log(10.)*tau, tau otherwise
-
-        draine_extend: bool
-            if set extends the extinction curve to below 912 A
 
         Returns
         -------
@@ -267,12 +262,11 @@ class Fitzpatrick99(ExtinctionLaw):
             )
 
             # FUV portion
-            if not draine_extend:
-                fuvind = np.where(x >= 5.9)
-                k[fuvind] += c4 * (
-                    0.5392 * ((x[fuvind] - 5.9) ** 2)
-                    + 0.05644 * ((x[fuvind] - 5.9) ** 3)
-                )
+            fuvind = np.where(x >= 5.9)
+            k[fuvind] += c4 * (
+                0.5392 * ((x[fuvind] - 5.9) ** 2)
+                + 0.05644 * ((x[fuvind] - 5.9) ** 3)
+            )
 
             k[ind] += Rv
             yspluv += Rv
@@ -311,30 +305,6 @@ class Fitzpatrick99(ExtinctionLaw):
         # convert from A(lambda)/E(B-V) to A(lambda)/A(V)
         k /= Rv
 
-        # FUV portion from Draine curves
-        if draine_extend:
-            fuvind = np.where(x >= 5.9)
-            tmprvs = np.arange(2.0, 6.1, 0.1)
-            diffRv = Rv - tmprvs
-            if min(abs(diffRv)) < 1e-8:
-                dfname = libdir + "MW_Rv%s_ext.txt" % ("{0:.1f}".format(Rv))
-                l_draine, k_draine = np.loadtxt(dfname, usecols=(0, 1), unpack=True)
-            else:
-                add, = np.where(diffRv < 0.0)
-                Rv1 = tmprvs[add[0] - 1]
-                Rv2 = tmprvs[add[0]]
-                dfname = libdir + "MW_Rv%s_ext.txt" % ("{0:.1f}".format(Rv1))
-                l_draine, k_draine1 = np.loadtxt(dfname, usecols=(0, 1), unpack=True)
-                dfname = libdir + "MW_Rv%s_ext.txt" % ("{0:.1f}".format(Rv2))
-                l_draine, k_draine2 = np.loadtxt(dfname, usecols=(0, 1), unpack=True)
-                frac = diffRv[add[0] - 1] / (Rv2 - Rv1)
-                k_draine = (1.0 - frac) * k_draine1 + frac * k_draine2
-
-            dind = np.where((1.0 / l_draine) >= 5.9)
-            k[fuvind] = interp(
-                x[fuvind], 1.0 / l_draine[dind][::-1], k_draine[dind][::-1]
-            )
-
         # setup the output
         if Alambda:
             return k * Av
@@ -360,7 +330,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
         self.x_range = [0.3, 10.0]
 
     def function(
-        self, lamb, Av=1, Rv=2.74, Alambda=True, draine_extend=False, **kwargs
+        self, lamb, Av=1, Rv=2.74, Alambda=True, **kwargs
     ):
         """
         Gordon03_SMCBar extinction law
@@ -437,17 +407,9 @@ class Gordon03_SMCBar(ExtinctionLaw):
         # FUV portion
         ind = np.where(x >= 5.9)
         if np.size(ind) > 0:
-            if draine_extend:
-                dfname = libdir + "SMC_Rv2.74_norm.txt"
-                l_draine, k_draine = np.loadtxt(dfname, usecols=(0, 1), unpack=True)
-                dind = np.where((1.0 / l_draine) >= 5.9)
-                k[ind] = interp(
-                    x[ind], 1.0 / l_draine[dind][::-1], k_draine[dind][::-1]
-                )
-            else:
-                k[ind] += c4 * (
-                    0.5392 * ((x[ind] - 5.9) ** 2) + 0.05644 * ((x[ind] - 5.9) ** 3)
-                )
+            k[ind] += c4 * (
+                0.5392 * ((x[ind] - 5.9) ** 2) + 0.05644 * ((x[ind] - 5.9) ** 3)
+            )
 
         # Opt/NIR part
         ind = np.where(x < xcutuv)
@@ -648,6 +610,13 @@ class Generalized_DustExt(ExtinctionLaw):
             self.extcurve_class = getattr(dustext_avg, curve)
             self.hasRvParam = False
             self.Rv = self.extcurve_class.Rv
+        elif curve in dustext_extend.__all__:
+            self.extcurve_class = getattr(dustext_extend, curve)
+            if hasattr(self.extcurve_class, "Rv_range"):
+                self.hasRvParam = True
+            else:
+                self.hasRvParam = False
+                self.Rv = self.extcurve_class.Rv
         else:
             raise ValueError(
                 curve
