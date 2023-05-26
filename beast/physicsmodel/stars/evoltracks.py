@@ -58,7 +58,7 @@ class EvolTracks(object):
         """
         print("not implemented")
 
-    def plot_tracks(self, ax, xval="logT", yval="logL", linestyle="-"):
+    def plot_tracks(self, ax, xval="logT", yval="logL", linestyle="-", color="k"):
         """
         Plot the tracks with the input x, y choices
 
@@ -75,6 +75,9 @@ class EvolTracks(object):
 
         linestyle : string
             matplotlib linestyle
+
+        color : string
+            matplotlib color
         """
         if xval not in self.data.keys():
             raise ValueError("xval choice not in data table")
@@ -85,8 +88,11 @@ class EvolTracks(object):
         uvals, indices = np.unique(self.data["M_ini"], return_inverse=True)
         for k, cval in enumerate(uvals):
             cindxs = np.where(k == indices)
+            # ax.plot(
+            #     self.data[xval][cindxs], self.data[yval][cindxs], linestyle=linestyle, color=color,
+            # )
             ax.plot(
-                self.data[xval][cindxs], self.data[yval][cindxs], linestyle=linestyle
+                self.data[xval][cindxs], self.data[yval][cindxs], "o", color=color, markersize=2
             )
 
         ax.set_xlabel(self.alabels[xval])
@@ -263,7 +269,7 @@ class ETMist(EvolTracks):
             f"{__ROOT__}MIST/MIST_FeH{cstr:.2f}.fits" for cstr in self.orig_FeH
         ]
 
-    def get_orig_tables(self):
+    def load_orig_tables(self, filename=None):
         """
         Read the tracks from the original files
 
@@ -272,10 +278,13 @@ class ETMist(EvolTracks):
         orig_tracks : astropy Table
             Table with evolutionary track info as columns for all metallicities
         """
-        if isinstance(self.orig_files, list):
-            files = self.orig_files
+        if filename is None:
+            if isinstance(self.orig_files, list):
+                files = self.orig_files
+            else:
+                files = [self.orig_files]
         else:
-            files = [self.orig_files]
+            files = filename
 
         itables = [Table.read(cfile) for cfile in files]
         if len(itables) > 1:
@@ -303,6 +312,7 @@ class ETMist(EvolTracks):
             Description of returned object.
         """
         orig_tracks = self.get_orig_tracks()
+        self.data = orig_tracks
 
         # first interpolate for mass spacing
 
