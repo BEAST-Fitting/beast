@@ -301,7 +301,7 @@ def alpha_shape(coords, alpha):
     edge1 = filtered[:, (0, 1)]
     edge2 = filtered[:, (1, 2)]
     edge3 = filtered[:, (2, 0)]
-    edge_points = np.unique(np.concatenate((edge1,edge2,edge3)), axis=0).tolist()
+    edge_points = np.unique(np.concatenate((edge1, edge2, edge3)), axis=0).tolist()
     m = geometry.MultiLineString(edge_points)
     triangles = list(polygonize(m))
 
