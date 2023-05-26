@@ -263,7 +263,7 @@ def convexhull_path(x_coord, y_coord, concave_alpha, input_ast_file):
     path_object = Path(np.array(concave_hull.boundary.xy).T)
 
     # create diagnostic plot
-    fig, ax = plt.subplots(1, 1, figsize=(5, 4))
+    ax = plt.subplots(1, 1, figsize=(5, 4))
     ax.scatter(x_coord, y_coord, s=1)
     ax.plot(path_object.vertices.T[0], path_object.vertices.T[1], c="r")
     ax.set_xlabel("x")
