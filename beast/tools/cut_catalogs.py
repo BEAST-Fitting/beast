@@ -2,6 +2,7 @@ import numpy as np
 import argparse
 
 from astropy.table import Table
+from matplotlib.path import Path
 
 # concave hull
 from shapely.ops import unary_union, polygonize
@@ -262,15 +263,16 @@ def convexhull_path(x_coord, y_coord, concave_alpha, input_ast_file):
     path_object = Path(np.array(concave_hull.boundary.xy).T)
 
     # create diagnostic plot
-    fig, ax = plt.subplots(1,1, figsize=(5,4))
+    fig, ax = plt.subplots(1, 1, figsize=(5, 4))
     ax.scatter(x_coord, y_coord, s=1)
     ax.plot(path_object.vertices.T[0], path_object.vertices.T[1], c="r")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
-    ax.set_title(r"$\alpha$ = " + str(concave_alpha) )
-    plt.savefig(str(input_ast_file)+"_plot.png", bbox_inches="tight")
+    ax.set_title(r"$\alpha$ = " + str(concave_alpha))
+    plt.savefig(str(input_ast_file) + "_plot.png", bbox_inches="tight")
 
     return path_object
+
 
 def alpha_shape(coords, alpha):
     """
@@ -289,17 +291,17 @@ def alpha_shape(coords, alpha):
 
     tri = Delaunay(coords)
     triangles = coords[tri.simplices]
-    a = ((triangles[:,0,0] - triangles[:,1,0]) ** 2 + (triangles[:,0,1] - triangles[:,1,1]) ** 2) ** 0.5
-    b = ((triangles[:,1,0] - triangles[:,2,0]) ** 2 + (triangles[:,1,1] - triangles[:,2,1]) ** 2) ** 0.5
-    c = ((triangles[:,2,0] - triangles[:,0,0]) ** 2 + (triangles[:,2,1] - triangles[:,0,1]) ** 2) ** 0.5
-    s = ( a + b + c ) / 2.0
-    areas = (s*(s-a)*(s-b)*(s-c)) ** 0.5
+    a = ((triangles[:, 0, 0] - triangles[:, 1, 0]) ** 2 + (triangles[:, 0, 1] - triangles[:, 1, 1]) ** 2) ** 0.5
+    b = ((triangles[:, 1, 0] - triangles[:, 2, 0]) ** 2 + (triangles[:, 1, 1] - triangles[:, 2, 1]) ** 2) ** 0.5
+    c = ((triangles[:, 2, 0] - triangles[:, 0, 0]) ** 2 + (triangles[:, 2, 1] - triangles[:, 0, 1]) ** 2) ** 0.5
+    s = (a + b + c) / 2.0
+    areas = (s * (s - a) * (s - b) * (s - c)) ** 0.5
     circums = a * b * c / (4.0 * areas)
     filtered = triangles[circums < (1.0 / alpha)]
-    edge1 = filtered[:,(0,1)]
-    edge2 = filtered[:,(1,2)]
-    edge3 = filtered[:,(2,0)]
-    edge_points = np.unique(np.concatenate((edge1,edge2,edge3)), axis = 0).tolist()
+    edge1 = filtered[:, (0, 1)]
+    edge2 = filtered[:, (1, 2)]
+    edge3 = filtered[:, (2, 0)]
+    edge_points = np.unique(np.concatenate((edge1,edge2,edge3)), axis=0).tolist()
     m = geometry.MultiLineString(edge_points)
     triangles = list(polygonize(m))
 
