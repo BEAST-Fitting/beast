@@ -10,7 +10,7 @@ from astropy import constants as const
 # BEAST imports
 from beast.physicsmodel.create_project_dir import create_project_dir
 from beast.physicsmodel.model_grid import (
-    make_iso_table,
+    make_evoltrack_table,
     make_spectral_grid,
     add_stellar_priors,
     make_extinguished_sed_grid,
@@ -69,12 +69,11 @@ def create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1, subset=[None, No
     create_project_dir(settings.project)
 
     # download and load the isochrones
-    (iso_fname, oiso) = make_iso_table(
+    (iso_fname, oiso) = make_evoltrack_table(
         settings.project,
-        oiso=settings.oiso,
-        logtmin=settings.logt[0],
-        logtmax=settings.logt[1],
-        dlogt=settings.logt[2],
+        oet=settings.oiso,
+        age_info=settings.logt,
+        mass_info=settings.logmass,
         z=settings.z,
     )
 

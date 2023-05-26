@@ -171,6 +171,23 @@ def verify_input_format(settings):
             [1.0, 7.0],
             [0.0, 1.0],
         ]
+    if settings.oiso.name == "MIST EvolTracks":
+        print('Working on the MIST Evolutionary Tracks')
+        parameters[3] = settings.logmass
+        parameters_names[3] = "logmass"
+
+        parameters_limits = [
+            settings.oiso.z_range,
+            None,
+            None,
+            settings.oiso.logmass_range,
+            [0.0, inf],
+            [1.0, 7.0],
+            [0.0, 1.0],
+        ]
+    else:
+        print("setup needed for ", settings.oiso.name)
+        exit()
 
     for i, param_ in enumerate(parameters):
         verify_one_input_format(
