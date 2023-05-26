@@ -65,10 +65,18 @@ def convert_ascii_to_fits_one_met(infiles, FeH, outfilename):
 
 
 if __name__ == "__main__":
-    FeH = [0.0, 0.25, 0.5]
-    FeH_str = ["p0.00", "p0.25", "p0.50"]
+    # fmt: off
+    FeH = [-4.00, -3.50, -3.00, -2.50, -2.00, -1.75,
+           -1.50, -1.25, -1.00, -0.75, -0.25, 0.0,
+           0.25, 0.5]
+    FeH_str = ["m4.00", "m3.50", "m3.00", "m2.50", "m2.00", "m1.75",
+               "m1.50", "m1.25", "m1.00", "m0.75", "m0.25", "p0.00",
+               "p0.25", "p0.50"]
+    # fmt: on
 
     for cFeH, cFeH_str in zip(FeH, FeH_str):
-        cfiles = glob(f"{__ROOT__}/MIST/MIST_v1.2_feh_{cFeH_str}_afe_p0.0_vvcrit0.4_EEPS/*.eep")
-        outfile = f"MIST_FeH{cFeH:.2f}.fits"
+        cfiles = glob(
+            f"{__ROOT__}/MIST/MIST_v1.2_feh_{cFeH_str}_afe_p0.0_vvcrit0.4_EEPS/*.eep"
+        )
+        outfile = f"MIST_FeH{cFeH:.2f}_vvcrit0.4.fits"
         convert_ascii_to_fits_one_met(cfiles, cFeH, outfile)

@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # regrid the evolutionary tracks to uniform log(mass) and variable age
     print("size orig = ", len(et.data["M_ini"]))
 
-    logmass_range = [-1.0, 3.0]
+    logmass_range = [-1.0, 2.47]
     condense = args.condense
     logmass_delta = 0.05
     logT_delta = 0.05
