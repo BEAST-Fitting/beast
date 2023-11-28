@@ -25,7 +25,8 @@ jobs:
         #
         # Only run on ubuntu by default, but can add other os's to the test matrix here.
         # For example -- os: [ubuntu-latest, macos-latest, windows-latest]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # windows-latest not possible due to how temp files are used in tests currently
+        os: [ubuntu-latest, macos-latest]
 
         # Test python version 3.x
         python-ver: [9, 10, 11]
