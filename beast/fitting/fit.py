@@ -392,7 +392,7 @@ def Q_all_memory(
     N/A
     """
 
-    if type(sedgrid) == str:
+    if isinstance(sedgrid, str):
         g0 = grid.SEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
@@ -988,7 +988,7 @@ def summary_table_memory(
 
     """
 
-    if type(sedgrid) == str:
+    if isinstance(sedgrid, str):
         g0 = grid.SEDGrid(sedgrid, backend=gridbackend)
     else:
         g0 = sedgrid
