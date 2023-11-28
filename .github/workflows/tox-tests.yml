@@ -99,7 +99,7 @@ jobs:
         python -m pip install tox
     - name: Test with tox
       run: |
-        tox -e py311-cov
+        tox -e py311-cov -- --remote-data
     - name: Upload coverage to codecov
       uses: codecov/codecov-action@v1
       with:
