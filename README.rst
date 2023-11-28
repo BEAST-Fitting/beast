@@ -27,10 +27,6 @@ Build Status/Checks
    :target: https://codecov.io/gh/BEAST-Fitting/beast
    :alt: Test Coverage Status
 
-.. image:: https://img.shields.io/lgtm/grade/python/g/BEAST-Fitting/beast.svg?logo=lgtm&logoWidth=18
-    :target: https://lgtm.com/projects/g/BEAST-Fitting/beast/context:python
-    :alt: Language grade: Python
-
 .. image:: https://app.codacy.com/project/badge/Grade/3ebbffbfb2634e6fad620b4931be3cbc
     :target: https://www.codacy.com/gh/BEAST-Fitting/beast/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BEAST-Fitting/beast&amp;utm_campaign=Badge_Grade
     :alt: Codacy grade
