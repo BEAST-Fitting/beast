@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.integrate import quad
+import astropy.units as u
 
 from beast.physicsmodel.grid_weights_stars import compute_bin_boundaries
 import beast.physicsmodel.priormodel_functions as pmfuncs
@@ -104,14 +105,14 @@ class PriorModel:
             for ckey in ["dist_0", "tau", "amp"]:
                 if ckey not in self.model.keys():
                     raise ValueError(f"{ckey} not in prior model keys")
-            return pmfuncs._absexponential(x, dist_0=self.model["dist_0"],
+            return pmfuncs._absexponential(x, dist_0=self.model["dist_0"].to(u.pc).value,
                                            tau=self.model["tau"],
                                            amp=self.model["amp"])
         elif self.model["name"] == "step":
             for ckey in ["dist_0", "amp_1", "amp_2"]:
                 if ckey not in self.model.keys():
                     raise ValueError(f"{ckey} not in prior model keys")
-            return pmfuncs._step(x, dist_0=self.model["dist_0"],
+            return pmfuncs._step(x, dist_0=self.model["dist_0"].to(u.pc).value,
                                  amp_1=self.model["amp_1"],
                                  amp_2=self.model["amp_2"])
         else:
