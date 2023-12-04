@@ -4,6 +4,8 @@ __all__ = [
     "_lognorm",
     "_two_lognorm",
     "_exponential",
+    "_absexponential",
+    "_step",
     "_imf_salpeter",
     "_imf_kroupa",
     "_imf_flat",
@@ -107,6 +109,54 @@ def _exponential(x, tau=2.0, amp=1.0):
     exponential computed on the x grid
     """
     return amp * np.exp(-1.0 * x / tau)
+
+
+def _absexponential(x, dist_0, tau=2.0, amp=1.0):
+    """
+    Absolute value of exponential distribution
+    Used for stellar density distriction versus distance
+
+    Parameters
+    ----------
+    x : vector
+       x values
+    dist_0 : float
+       distance at peak amplitude
+    tau : float
+       Decay Rate parameter in exp: e^-(abs(d - dist_0)/tau)
+    amp : float
+       Amplitude for dist_0
+
+    Returns
+    -------
+    absolute value of exponential computed on the x grid
+    """
+    return amp * np.exp(-1.0 * np.absolute(x - dist_0) / tau)
+
+
+def _step(x, dist_0, amp_1=0.0, amp_2=1.0):
+    """
+    Step function
+
+    Parameters
+    ----------
+    x : vector
+       x values
+    dist_0 : float
+       distance of step
+    amp_1 : float
+       Amplitude before dist_0
+    amp_2 : float
+       Amplitude after dist_0
+
+    Returns
+    -------
+    Step function evaluted on the x grid
+    """
+    y = np.full((len(x)), amp_1)
+    y[x >= dist_0] += amp_2
+
+    return y
 
 
 def _imf_flat(x):

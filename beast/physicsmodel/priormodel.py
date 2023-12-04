@@ -96,10 +96,24 @@ class PriorModel:
                 N2=1.0,
             )
         elif self.model["name"] == "exponential":
-            for ckey in ["tau"]:
+            for ckey in ["tau", "amp"]:
                 if ckey not in self.model.keys():
                     raise ValueError(f"{ckey} not in prior model keys")
             return pmfuncs._exponential(x, tau=self.model["tau"])
+        elif self.model["name"] == "absexponential":
+            for ckey in ["dist_0", "tau", "amp"]:
+                if ckey not in self.model.keys():
+                    raise ValueError(f"{ckey} not in prior model keys")
+            return pmfuncs._absexponential(x, dist_0=self.model["dist_0"],
+                                           tau=self.model["tau"],
+                                           amp=self.model["amp"])
+        elif self.model["name"] == "step":
+            for ckey in ["dist_0", "amp_1", "amp_2"]:
+                if ckey not in self.model.keys():
+                    raise ValueError(f"{ckey} not in prior model keys")
+            return pmfuncs._step(x, dist_0=self.model["dist_0"],
+                                 amp_1=self.model["amp_1"],
+                                 amp_2=self.model["amp_2"])
         else:
             modname = self.model["name"]
             raise NotImplementedError(f"{modname} is not an allowed model")
@@ -120,7 +134,7 @@ class PriorDustModel(PriorModel):
           Possible choices are flat, lognormal, two_lognormal, and exponential
         """
         super().__init__(
-            model, allowed_models=["flat", "lognormal", "two_lognormal", "exponential"]
+            model, allowed_models=["flat", "lognormal", "two_lognormal", "step"]
         )
 
 
@@ -198,7 +212,7 @@ class PriorDistanceModel(PriorModel):
         model : dict
           Possible choices are flat
         """
-        super().__init__(model, allowed_models=["flat"])
+        super().__init__(model, allowed_models=["flat", "absexponential"])
 
 
 class PriorMassModel(PriorModel):
