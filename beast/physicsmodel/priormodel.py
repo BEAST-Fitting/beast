@@ -106,7 +106,7 @@ class PriorModel:
                 if ckey not in self.model.keys():
                     raise ValueError(f"{ckey} not in prior model keys")
             return pmfuncs._absexponential(x, dist_0=self.model["dist_0"].to(u.pc).value,
-                                           tau=self.model["tau"],
+                                           tau=self.model["tau"].to(u.pc).value,
                                            amp=self.model["amp"])
         elif self.model["name"] == "step":
             for ckey in ["dist_0", "amp_1", "amp_2"]:

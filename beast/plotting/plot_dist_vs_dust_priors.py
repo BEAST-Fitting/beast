@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy.modeling.models import Gaussian2D
 from astropy.visualization import simple_norm
+import astropy.units as u
 
 from beast.plotting.beastplotlib import initialize_parser
 from beast.physicsmodel.priormodel import PriorDustModel, PriorDistanceModel
@@ -18,16 +19,16 @@ if __name__ == "__main__":  # pragma: no cover
 
     fig, ax = plt.subplots(2, 2, figsize=(10, 8))
 
-    dist = np.arange(50., 70., 0.05)
+    dist = np.arange(50., 70., 0.05) * 1e3
 
     distmod = {"name": "absexponential",
-              "dist_0": 60.,
-              "tau": 5.0,
+              "dist_0": 60. * u.kpc,
+              "tau": 5.0 * u.kpc,
               "amp": 1.0}
     #distmod = {"name": "flat"}
     distprior = PriorDistanceModel(distmod)
     ax[1, 0].plot(dist, distprior(dist), "k-")
-    ax[1, 0].set_xlabel("distance")
+    ax[1, 0].set_xlabel("distance [pc]")
     ax[1, 0].set_ylabel("# stars prior")
 
     rng = np.random.default_rng()
@@ -43,12 +44,12 @@ if __name__ == "__main__":  # pragma: no cover
     for i in range(len(x)):
         for j in range(len(y)):
             avmod = {"name": "step",
-                    "dist_0": 60.,
+                    "dist_0": 60. * u.kpc,
                     "amp_1": 0.0,
                     "amp_2": skyprior(x[i], y[j])}
             avprior = PriorDustModel(avmod)
             ax[0, 0].plot(dist, avprior(dist), "k-", alpha=0.1)
-            ax[0, 0].set_xlabel("distance")
+            ax[0, 0].set_xlabel("distance [pc]")
             ax[0, 0].set_ylabel("A(V) prior")
 
             # sample from the priors
@@ -62,7 +63,7 @@ if __name__ == "__main__":  # pragma: no cover
                 allavs = np.concatenate((allavs, avsamp))
 
     ax[0, 1].hist2d(alldists, allavs, bins=20, norm="log")
-    ax[0, 1].set_xlabel("distance")
+    ax[0, 1].set_xlabel("distance [pc]")
     ax[0, 1].set_ylabel("A(V) samples")
 
     # display the on sky distribution
