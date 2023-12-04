@@ -316,12 +316,15 @@ given by sigma.
                     "sigma2": 0.2,
                     "N1_to_N2": 1.0 / 5.0}
 
-4. Exponential with decay rate "tau"
+4. Step at a specified distance.  Distance must have units.  Models
+the effect of having a dust cloud located at a certain distance.
 
 .. code-block:: python
 
-  av_prior_model = {"name": "exponential",
-                    "tau": 1.0}
+  av_prior_model = {"name": "step",
+                    "dist_0": 60 * u.kpc,
+                    "amp_1": 0.1,
+                    "amp_2": 1.0}
 
 .. plot::
 
@@ -346,7 +349,6 @@ given by sigma.
             "sigma2": 0.5,
             "N1_to_N2": 1.0 / 5.0
         },
-        {"name": "exponential", "tau": 1.0},
     ]
 
     for dmod in dust_prior_models:
@@ -355,6 +357,36 @@ given by sigma.
 
     ax.set_ylabel("probability")
     ax.set_xlabel("A(V)")
+    ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import astropy.units as u
+
+    from beast.physicsmodel.priormodel import PriorDustModel
+
+    fig, ax = plt.subplots()
+
+    # distance grid with linear spacing
+    dists = np.linspace(50., 70.0, num=200)
+
+    dust_prior_models = [
+      {"name": "step",
+       "dist_0": 60 * u.kpc,
+       "amp_1": 0.1,
+       "amp_2": 1.0}
+    ]
+
+    for dmod in dust_prior_models:
+        pmod = PriorDustModel(dmod)
+        ax.plot(dists, pmod(dists), label=dmod["name"])
+
+    ax.set_ylabel("A(V)")
+    ax.set_xlabel("distance [pc]")
     ax.legend(loc="best")
     plt.tight_layout()
     plt.show()
@@ -419,6 +451,36 @@ given by sigma.
 
     ax.set_ylabel("probability")
     ax.set_xlabel("R(V)")
+    ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import astropy.units as u
+
+    from beast.physicsmodel.priormodel import PriorDustModel
+
+    fig, ax = plt.subplots()
+
+    # distance grid with linear spacing
+    dists = np.linspace(50., 70.0, num=200)
+
+    dust_prior_models = [
+      {"name": "step",
+       "dist_0": 60 * u.kpc,
+       "amp_1": 3.1,
+       "amp_2": 4.5}
+    ]
+
+    for dmod in dust_prior_models:
+        pmod = PriorDustModel(dmod)
+        ax.plot(dists, pmod(dists), label=dmod["name"])
+
+    ax.set_ylabel("R(V)")
+    ax.set_xlabel("distance [pc]")
     ax.legend(loc="best")
     plt.tight_layout()
     plt.show()

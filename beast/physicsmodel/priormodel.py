@@ -37,7 +37,7 @@ class PriorModel:
         # save the model
         self.model = model
 
-    def __call__(self, x):
+    def __call__(self, x, y=None):
         """
         Weights based on input model choice
 
@@ -45,6 +45,8 @@ class PriorModel:
         ----------
         x : float
             values for model evaluation
+        y : float
+            secondary values for 2D priors
         """
         if self.model["name"] == "flat":
             if "amp" in self.model.keys():
@@ -102,19 +104,25 @@ class PriorModel:
                     raise ValueError(f"{ckey} not in prior model keys")
             return pmfuncs._exponential(x, tau=self.model["tau"])
         elif self.model["name"] == "absexponential":
-            for ckey in ["dist_0", "tau", "amp"]:
+            for ckey in ["dist0", "tau", "amp"]:
                 if ckey not in self.model.keys():
                     raise ValueError(f"{ckey} not in prior model keys")
-            return pmfuncs._absexponential(x, dist_0=self.model["dist_0"].to(u.pc).value,
+            return pmfuncs._absexponential(x, dist0=self.model["dist0"].to(u.pc).value,
                                            tau=self.model["tau"].to(u.pc).value,
                                            amp=self.model["amp"])
         elif self.model["name"] == "step":
-            for ckey in ["dist_0", "amp_1", "amp_2"]:
+            for ckey in ["dist0", "amp1", "amp2", "lgsigma1", "lgsigma2"]:
                 if ckey not in self.model.keys():
                     raise ValueError(f"{ckey} not in prior model keys")
-            return pmfuncs._step(x, dist_0=self.model["dist_0"].to(u.pc).value,
-                                 amp_1=self.model["amp_1"],
-                                 amp_2=self.model["amp_2"])
+            if y is None:
+                raise ValueError(f"y values not passed required for 2D priors")
+            if len(x) != len(y):
+                raise ValueError(f"x and y values not the same length, required for 2D priors")
+            return pmfuncs._step(x, y, dist0=self.model["dist0"].to(u.pc).value,
+                                 amp1=self.model["amp1"],
+                                 amp2=self.model["amp2"],
+                                 lgsigma1=self.model["lgsigma1"],
+                                 lgsigma2=self.model["lgsigma2"])
         else:
             modname = self.model["name"]
             raise NotImplementedError(f"{modname} is not an allowed model")

@@ -111,7 +111,7 @@ def _exponential(x, tau=2.0, amp=1.0):
     return amp * np.exp(-1.0 * x / tau)
 
 
-def _absexponential(x, dist_0, tau=2.0, amp=1.0):
+def _absexponential(x, dist0, tau=2.0, amp=1.0):
     """
     Absolute value of exponential distribution
     Used for stellar density distriction versus distance
@@ -120,21 +120,21 @@ def _absexponential(x, dist_0, tau=2.0, amp=1.0):
     ----------
     x : vector
        x values
-    dist_0 : float
+    dist0 : float
        distance at peak amplitude
     tau : float
-       Decay Rate parameter in exp: e^-(abs(d - dist_0)/tau)
+       Decay Rate parameter in exp: e^-(abs(d - dist0)/tau)
     amp : float
-       Amplitude for dist_0
+       Amplitude for dist0
 
     Returns
     -------
     absolute value of exponential computed on the x grid
     """
-    return amp * np.exp(-1.0 * np.absolute(x - dist_0) / tau)
+    return amp * np.exp(-1.0 * np.absolute(x - dist0) / tau)
 
 
-def _step(x, dist_0, amp_1=0.0, amp_2=1.0):
+def _step(x, y, dist0, amp1=0.0, amp2=1.0, lgsigma1=0.1, lgsigma2=0.1):
     """
     Step function
 
@@ -142,21 +142,31 @@ def _step(x, dist_0, amp_1=0.0, amp_2=1.0):
     ----------
     x : vector
        x values
-    dist_0 : float
+    dist0 : float
        distance of step
-    amp_1 : float
-       Amplitude before dist_0
-    amp_2 : float
-       Amplitude after dist_0
-
+    amp1 : float
+       Amplitude before dist0
+    amp2 : float
+       Amplitude after dist0
+    lgsigma1 : float
+       log-normal sigma for amp1
+    lgsigma2 : float
+       log-normal sigma for amp2
+              
     Returns
     -------
     Step function evaluted on the x grid
     """
-    y = np.full((len(x)), amp_1)
-    y[x >= dist_0] += amp_2
+    probs = x * 0.0
+    gvals = y < dist0
+    probs[gvals] = _lognorm(x[gvals], amp1, sigma=lgsigma1)
+    # amp1 includes as all are affected
+    #  not quite correct, likely the 2nd log-normal should be convolved by the 1st
+    #  but how to do this analytically?
+    gvals = y >= dist0
+    probs[gvals] += _lognorm(x[gvals], amp1 + amp2, sigma=lgsigma2)
 
-    return y
+    return probs
 
 
 def _imf_flat(x):
