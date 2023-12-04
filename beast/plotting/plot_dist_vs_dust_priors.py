@@ -19,13 +19,15 @@ if __name__ == "__main__":  # pragma: no cover
 
     fig, ax = plt.subplots(2, 2, figsize=(10, 8))
 
-    dist = np.arange(50., 70., 0.05) * 1e3
+    dist = np.arange(50.0, 70.0, 0.05) * 1e3
 
-    distmod = {"name": "absexponential",
-              "dist_0": 60. * u.kpc,
-              "tau": 5.0 * u.kpc,
-              "amp": 1.0}
-    #distmod = {"name": "flat"}
+    distmod = {
+        "name": "absexponential",
+        "dist_0": 60.0 * u.kpc,
+        "tau": 5.0 * u.kpc,
+        "amp": 1.0,
+    }
+    # distmod = {"name": "flat"}
     distprior = PriorDistanceModel(distmod)
     ax[1, 0].plot(dist, distprior(dist), "k-")
     ax[1, 0].set_xlabel("distance [pc]")
@@ -37,16 +39,20 @@ if __name__ == "__main__":  # pragma: no cover
     distsum /= distsum[-1]
 
     # generate a 2D Gaussian for the distribtion on sky
-    skyprior = Gaussian2D(amplitude=1.0, x_mean=0.5, y_mean=0.5, x_stddev=0.2, y_stddev=0.2)
+    skyprior = Gaussian2D(
+        amplitude=1.0, x_mean=0.5, y_mean=0.5, x_stddev=0.2, y_stddev=0.2
+    )
     x = np.arange(0.0, 1.0, 0.03)
     y = np.arange(0.0, 1.0, 0.03)
     alldists = None
     for i in range(len(x)):
         for j in range(len(y)):
-            avmod = {"name": "step",
-                    "dist_0": 60. * u.kpc,
-                    "amp_1": 0.0,
-                    "amp_2": skyprior(x[i], y[j])}
+            avmod = {
+                "name": "step",
+                "dist_0": 60.0 * u.kpc,
+                "amp_1": 0.0,
+                "amp_2": skyprior(x[i], y[j]),
+            }
             avprior = PriorDustModel(avmod)
             ax[0, 0].plot(dist, avprior(dist), "k-", alpha=0.1)
             ax[0, 0].set_xlabel("distance [pc]")
@@ -69,7 +75,7 @@ if __name__ == "__main__":  # pragma: no cover
     # display the on sky distribution
     imx, imy = np.meshgrid(x, y)
     image = skyprior(imx, imy)
-    #norm = simple_norm(image, 'sqrt')
+    # norm = simple_norm(image, 'sqrt')
     ax[1, 1].imshow(image, origin="lower")
     ax[1, 1].set_xlabel("x")
     ax[1, 1].set_ylabel("y")
