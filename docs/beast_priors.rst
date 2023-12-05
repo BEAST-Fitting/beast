@@ -256,21 +256,37 @@ The distance prior can be
 
   distance_prior_model = {"name": "flat"}
 
+2. Absolute(Exponential) distribution with an exponential scale height (tau) before and
+after a fiducial distance (dist0) and an amplitude (amp).
+
+.. code-block:: python
+
+  distance_prior_model = {"name": "absexponential",
+                          "dist0": 60.0*u.kpc,
+                          "tau": 5.*u.kpc,
+                          "amp": 1.0}
+
 Plot showing examples of the possible distance prior models with the parameters given above.
 
 .. plot::
 
     import numpy as np
     import matplotlib.pyplot as plt
+    import astropy.units as u
 
     from beast.physicsmodel.priormodel import PriorDistanceModel
 
     fig, ax = plt.subplots()
 
     # met grid with linear spacing
-    dists = np.linspace(8e6, 9e6)
+    dists = np.arange(50., 70, 0.1) * 1e3
 
-    met_prior_models = [{"name": "flat"}]
+    met_prior_models = [
+      {"name": "flat"},
+      {"name": "absexponential",
+       "dist0": 60.0*u.kpc,
+       "tau": 5.*u.kpc,
+       "amp": 1.0}]
 
     for mp_mod in met_prior_models:
         pmod = PriorDistanceModel(mp_mod)
@@ -372,18 +388,25 @@ the effect of having a dust cloud located at a certain distance.
     fig, ax = plt.subplots()
 
     # distance grid with linear spacing
-    dists = np.linspace(50., 70.0, num=200)
+    d1, d2 = (50., 70.)
+    dists = np.linspace(d1, d2, num=200)
+    av1, av2 = (0.0, 2.0)
+    avs = np.arange(av1, av2, 0.025)
+    distim, avim = np.meshgrid(dists, avs)
 
-    dust_prior_models = [
-      {"name": "step",
-       "dist_0": 60 * u.kpc,
-       "amp_1": 0.1,
-       "amp_2": 1.0}
-    ]
+    dustmod = {"name": "step",
+       "dist0": 60 * u.kpc,
+       "amp1": 0.1,
+       "amp2": 1.0,
+       "lgsigma1": 0.05,
+       "lgsigma2": 0.05}
 
-    for dmod in dust_prior_models:
-        pmod = PriorDustModel(dmod)
-        ax.plot(dists, pmod(dists), label=dmod["name"])
+    dustprior = PriorDustModel(dustmod)
+    probim = dustprior(avim, y=distim)
+
+    ax.imshow(
+        probim, origin="lower", aspect="auto", extent=[d1, d2, av1, av2], norm="log"
+    )
 
     ax.set_ylabel("A(V)")
     ax.set_xlabel("distance [pc]")

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-#from astropy.visualization import SqrtStretch, LogStretch, ImageNormalize
+
+# from astropy.visualization import SqrtStretch, LogStretch, ImageNormalize
 from astropy.modeling.models import Gaussian2D
 import astropy.units as u
 
@@ -89,9 +90,11 @@ if __name__ == "__main__":  # pragma: no cover
             #     alldists = np.concatenate((alldists, distsamp))
             #     allavs = np.concatenate((allavs, avsamp))
 
-    #ax[0, 1].hist2d(alldists, allavs, bins=20, norm="log")
-    #norm = ImageNormalize(vmin=1e-5, vmax=1, stretch=LogStretch())
-    ax[0, 1].imshow(sumprobim, origin="lower", aspect="auto", extent=[d1, d2, av1, av2], norm="log")
+    # ax[0, 1].hist2d(alldists, allavs, bins=20, norm="log")
+    # norm = ImageNormalize(vmin=1e-5, vmax=1, stretch=LogStretch())
+    ax[0, 1].imshow(
+        sumprobim, origin="lower", aspect="auto", extent=[d1, d2, av1, av2], norm="log"
+    )
     ax[0, 1].set_xlabel("distance [kpc]")
     ax[0, 1].set_ylabel("A(V)")
 

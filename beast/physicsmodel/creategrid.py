@@ -432,15 +432,15 @@ def make_extinguished_grid(
             #   moved here in 2023 to support distance based dust priors
             dists = g0.grid["distance"].data
             if av_prior_model["name"] == "step":
-                av_weights = av_prior(dists)
+                av_weights = av_prior(np.full((len(dists)), Av), y=dists)
             else:
                 av_weights = av_prior(Av)
             if rv_prior_model["name"] == "step":
-                rv_weights = rv_prior(dists)
+                rv_weights = rv_prior(np.full((len(dists)), Rv), y=dists)
             else:
                 rv_weights = rv_prior(Rv)
             if fA_prior_model["name"] == "step":
-                f_A_weights = fA_prior(dists)
+                f_A_weights = fA_prior(np.full((len(dists)), f_A), y=dists)
             else:
                 if with_fA:
                     f_A_weights = fA_prior(f_A)
