@@ -47,10 +47,7 @@ def test_av_prior_weights():
     # test error output when unsupported model is given
     with pytest.raises(NotImplementedError) as exc_av:
         PriorDustModel({"name": "exp"})
-    assert (
-        str(exc_av.value)
-        == "exp is not an allowed model"
-    )
+    assert str(exc_av.value) == "exp is not an allowed model"
 
 
 def test_av_prior_weights_2d():
@@ -58,16 +55,18 @@ def test_av_prior_weights_2d():
     Test the A(V) dust prior weights for 2D priors
     """
 
-    dist_vals = np.array([50., 59., 61., 70.]) * 1e3
+    dist_vals = np.array([50.0, 59.0, 61.0, 70.0]) * 1e3
     av_vals = np.array([0.1, 0.9, 1.1, 2.0])
 
     # Test A(V) priors
-    model = {"name": "step",
-             "dist0": 60 * u.kpc,
-             "amp1": 0.1,
-             "damp2": 1.0,
-             "lgsigma1": 0.05,
-             "lgsigma2": 0.05}
+    model = {
+        "name": "step",
+        "dist0": 60 * u.kpc,
+        "amp1": 0.1,
+        "damp2": 1.0,
+        "lgsigma1": 0.05,
+        "lgsigma2": 0.05,
+    }
 
     # fmt: off
     expected_vals = [7.968878e+01, 0.000000e+00, 7.244435e+00, 6.544045e-31]
@@ -128,16 +127,18 @@ def test_rv_prior_weights_2d():
     Test the R(V) dust prior weights for 2D priors
     """
 
-    dist_vals = np.array([50., 59., 61., 70.]) * 1e3
+    dist_vals = np.array([50.0, 59.0, 61.0, 70.0]) * 1e3
     rv_vals = np.array([3.1, 3.8, 4.6, 5.5])
 
     # Test A(V) priors
-    model = {"name": "step",
-             "dist0": 60 * u.kpc,
-             "amp1": 3.1,
-             "damp2": 1.5,
-             "lgsigma1": 0.05,
-             "lgsigma2": 0.05}
+    model = {
+        "name": "step",
+        "dist0": 60 * u.kpc,
+        "amp1": 3.1,
+        "damp2": 1.5,
+        "lgsigma1": 0.05,
+        "lgsigma2": 0.05,
+    }
 
     # fmt: off
     expected_vals = [2.570606e+00, 6.449322e-04, 1.732365e+00, 2.918564e-03]
@@ -151,6 +152,7 @@ def test_rv_prior_weights_2d():
         atol=1e-6,
         err_msg=f"A problem occurred while setting the 2D R(V) priors to {mname}.",
     )
+
 
 def test_fA_prior_weights():
     """
@@ -197,16 +199,18 @@ def test_fA_prior_weights_2d():
     Test the fA dust prior weights for 2D priors
     """
 
-    dist_vals = np.array([50., 59., 61., 70.]) * 1e3
+    dist_vals = np.array([50.0, 59.0, 61.0, 70.0]) * 1e3
     fA_vals = np.array([0.1, 0.5, 0.9, 0.3])
 
     # Test A(V) priors
-    model = {"name": "step",
-             "dist0": 60 * u.kpc,
-             "amp1": 0.1,
-             "damp2": 0.8,
-             "lgsigma1": 0.05,
-             "lgsigma2": 0.1}
+    model = {
+        "name": "step",
+        "dist0": 60 * u.kpc,
+        "amp1": 0.1,
+        "damp2": 0.8,
+        "lgsigma1": 0.05,
+        "lgsigma2": 0.1,
+    }
 
     # fmt: off
     expected_vals = [7.968878e+001, 8.158912e-224, 4.410584e+000, 2.728553e-026]
