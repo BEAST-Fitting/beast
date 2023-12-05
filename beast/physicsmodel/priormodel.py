@@ -96,11 +96,6 @@ class PriorModel:
                 N1=self.model["N1_to_N2"],
                 N2=1.0,
             )
-        elif self.model["name"] == "exponential":
-            for ckey in ["tau", "amp"]:
-                if ckey not in self.model.keys():
-                    raise ValueError(f"{ckey} not in prior model keys")
-            return pmfuncs._exponential(x, tau=self.model["tau"], amp=self.model["amp"])
         elif self.model["name"] == "absexponential":
             for ckey in ["dist0", "tau", "amp"]:
                 if ckey not in self.model.keys():
