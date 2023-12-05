@@ -62,7 +62,7 @@ if __name__ == "__main__":  # pragma: no cover
                 "name": "step",
                 "dist0": 60.0 * u.kpc,
                 "amp1": 0.1,
-                "amp2": skyprior(xi, yi),
+                "damp2": skyprior(xi, yi),
                 "lgsigma1": 0.05,
                 "lgsigma2": 0.05,
             }

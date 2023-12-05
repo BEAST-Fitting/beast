@@ -76,9 +76,7 @@ class PriorModel:
             else:
                 # interpolate model to grid ages
                 return np.interp(
-                    x,
-                    np.array(self.model["x"]),
-                    np.array(self.model["values"]),
+                    x, np.array(self.model["x"]), np.array(self.model["values"]),
                 )
         elif self.model["name"] == "lognormal":
             for ckey in ["mean", "sigma"]:
@@ -107,22 +105,31 @@ class PriorModel:
             for ckey in ["dist0", "tau", "amp"]:
                 if ckey not in self.model.keys():
                     raise ValueError(f"{ckey} not in prior model keys")
-            return pmfuncs._absexponential(x, dist0=self.model["dist0"].to(u.pc).value,
-                                           tau=self.model["tau"].to(u.pc).value,
-                                           amp=self.model["amp"])
+            return pmfuncs._absexponential(
+                x,
+                dist0=self.model["dist0"].to(u.pc).value,
+                tau=self.model["tau"].to(u.pc).value,
+                amp=self.model["amp"],
+            )
         elif self.model["name"] == "step":
-            for ckey in ["dist0", "amp1", "amp2", "lgsigma1", "lgsigma2"]:
+            for ckey in ["dist0", "amp1", "damp2", "lgsigma1", "lgsigma2"]:
                 if ckey not in self.model.keys():
                     raise ValueError(f"{ckey} not in prior model keys")
             if y is None:
-                raise ValueError(f"y values not passed required for 2D priors")
+                raise ValueError("y values not passed required for 2D priors")
             if len(x) != len(y):
-                raise ValueError(f"x and y values not the same length, required for 2D priors")
-            return pmfuncs._step(x, y, dist0=self.model["dist0"].to(u.pc).value,
-                                 amp1=self.model["amp1"],
-                                 amp2=self.model["amp2"],
-                                 lgsigma1=self.model["lgsigma1"],
-                                 lgsigma2=self.model["lgsigma2"])
+                raise ValueError(
+                    "x and y values not the same length, required for 2D priors"
+                )
+            return pmfuncs._step(
+                x,
+                y,
+                dist0=self.model["dist0"].to(u.pc).value,
+                amp1=self.model["amp1"],
+                damp2=self.model["damp2"],
+                lgsigma1=self.model["lgsigma1"],
+                lgsigma2=self.model["lgsigma2"],
+            )
         else:
             modname = self.model["name"]
             raise NotImplementedError(f"{modname} is not an allowed model")

@@ -134,7 +134,7 @@ def _absexponential(x, dist0, tau=2.0, amp=1.0):
     return amp * np.exp(-1.0 * np.absolute(x - dist0) / tau)
 
 
-def _step(x, y, dist0, amp1=0.0, amp2=1.0, lgsigma1=0.1, lgsigma2=0.1):
+def _step(x, y, dist0, amp1=0.0, damp2=1.0, lgsigma1=0.1, lgsigma2=0.1):
     """
     Step function
 
@@ -146,8 +146,8 @@ def _step(x, y, dist0, amp1=0.0, amp2=1.0, lgsigma1=0.1, lgsigma2=0.1):
        distance of step
     amp1 : float
        Amplitude before dist0
-    amp2 : float
-       Amplitude after dist0
+    damp2 : float
+       Delta amplitude after dist0 (e.g. afterwards amp = amp1 + damp2)
     lgsigma1 : float
        log-normal sigma for amp1
     lgsigma2 : float
@@ -164,7 +164,7 @@ def _step(x, y, dist0, amp1=0.0, amp2=1.0, lgsigma1=0.1, lgsigma2=0.1):
     #  not quite correct, likely the 2nd log-normal should be convolved by the 1st
     #  but how to do this analytically?
     gvals = y >= dist0
-    probs[gvals] += _lognorm(x[gvals], amp1 + amp2, sigma=lgsigma2)
+    probs[gvals] += _lognorm(x[gvals], amp1 + damp2, sigma=lgsigma2)
 
     return probs
 
@@ -234,10 +234,10 @@ def _imf_kroupa(in_x, alpha0=0.3, alpha1=1.3, alpha2=2.3, alpha3=2.3):
     m2 = 0.5
     m3 = 1.0
 
-    ialpha0 = -1. * alpha0
-    ialpha1 = -1. * alpha1
-    ialpha2 = -1. * alpha2
-    ialpha3 = -1. * alpha3
+    ialpha0 = -1.0 * alpha0
+    ialpha1 = -1.0 * alpha1
+    ialpha2 = -1.0 * alpha2
+    ialpha3 = -1.0 * alpha3
 
     imf = np.full((len(x)), 0.0)
 

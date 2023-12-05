@@ -1,6 +1,7 @@
 2.1 (unreleased)
 ================
-- No changes yet
+- added 2D dust prior step model that also depends on distance
+- added absexponential distance prior
 
 2.0 (2022-11-11)
 ================
