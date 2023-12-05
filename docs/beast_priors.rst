@@ -77,7 +77,8 @@ with a 0.1 Gyr time constant (with `tau` parameter in Gyr):
 .. code-block:: python
 
   age_prior_model = {"name": "exponential",
-                     "tau": 0.1}
+                     "tau": 0.1,
+                     "amp": 1.0}
 
 Plot showing examples of the possible age prior models with the parameters given above.
 
@@ -106,7 +107,7 @@ Plot showing examples of the possible age prior models with the parameters given
             "x": [6.0, 7.0, 8.0, 9.0, 10.0],
             "values": [1.0, 2.0, 1.0, 5.0, 3.0],
         },
-        {"name": "exponential", "tau": 0.1}
+        {"name": "exponential", "tau": 0.1, "amp": 1.0}
     ]
 
     for ap_mod in age_prior_models:
