@@ -414,6 +414,7 @@ A(V) after dist0 is amp1 + damp2.
 
     ax.set_ylabel("A(V)")
     ax.set_xlabel("distance [kpc]")
+    ax.set_title("step")
     plt.tight_layout()
     plt.show()
 
@@ -490,6 +491,7 @@ R(V) after dist0 is amp1 + damp2.
 
     ax.set_ylabel("probability")
     ax.set_xlabel("R(V)")
+    ax.set_title("step")
     ax.legend(loc="best")
     plt.tight_layout()
     plt.show()
@@ -528,36 +530,7 @@ R(V) after dist0 is amp1 + damp2.
 
     ax.set_ylabel("R(V)")
     ax.set_xlabel("distance [kpc]")
-    plt.tight_layout()
-    plt.show()
-
-.. plot::
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import astropy.units as u
-
-    from beast.physicsmodel.priormodel import PriorDustModel
-
-    fig, ax = plt.subplots()
-
-    # distance grid with linear spacing
-    dists = np.linspace(50., 70.0, num=200)
-
-    dust_prior_models = [
-      {"name": "step",
-       "dist_0": 60 * u.kpc,
-       "amp_1": 3.1,
-       "amp_2": 4.5}
-    ]
-
-    for dmod in dust_prior_models:
-        pmod = PriorDustModel(dmod)
-        ax.plot(dists, pmod(dists), label=dmod["name"])
-
-    ax.set_ylabel("R(V)")
-    ax.set_xlabel("distance [pc]")
-    ax.legend(loc="best")
+    ax.set_title("step")
     plt.tight_layout()
     plt.show()
 

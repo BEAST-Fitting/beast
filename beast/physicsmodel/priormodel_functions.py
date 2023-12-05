@@ -151,8 +151,8 @@ def _step(x, y, dist0, amp1=0.0, damp2=1.0, lgsigma1=0.1, lgsigma2=0.1):
     lgsigma1 : float
        log-normal sigma for amp1
     lgsigma2 : float
-       log-normal sigma for amp2
-              
+       log-normal sigma for amp2  
+
     Returns
     -------
     Step function evaluted on the x grid
