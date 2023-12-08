@@ -81,6 +81,7 @@ def make_libfile():
         "f555w",
         "f606w",
         "f625w",
+        "f658n",
         "f775w",
         "f814w",
     ]
