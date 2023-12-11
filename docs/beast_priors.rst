@@ -281,16 +281,17 @@ Plot showing examples of the possible distance prior models with the parameters 
     # met grid with linear spacing
     dists = np.arange(50., 70, 0.1) * 1e3
 
-    met_prior_models = [
+    distance_prior_models = [
       {"name": "flat"},
       {"name": "absexponential",
         "dist0": 60.0*u.kpc,
         "tau": 5.*u.kpc,
-        "amp": 1.0}]
+        "amp": 1.0}
+      ]
 
-    for mp_mod in met_prior_models:
-        pmod = PriorDistanceModel(mp_mod)
-        ax.plot(dists, pmod(dists), label=mp_mod["name"])
+    for dp_mod in distance_prior_models:
+        pmod = PriorDistanceModel(dp_mod)
+        ax.plot(dists, pmod(dists), label=dp_mod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("distance")
