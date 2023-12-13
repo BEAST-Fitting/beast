@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.integrate import quad
+import astropy.units as u
 
 from beast.physicsmodel.grid_weights_stars import compute_bin_boundaries
 import beast.physicsmodel.priormodel_functions as pmfuncs
@@ -36,7 +37,7 @@ class PriorModel:
         # save the model
         self.model = model
 
-    def __call__(self, x):
+    def __call__(self, x, y=None):
         """
         Weights based on input model choice
 
@@ -44,6 +45,8 @@ class PriorModel:
         ----------
         x : float
             values for model evaluation
+        y : float
+            secondary values for 2D priors
         """
         if self.model["name"] == "flat":
             if "amp" in self.model.keys():
@@ -73,9 +76,7 @@ class PriorModel:
             else:
                 # interpolate model to grid ages
                 return np.interp(
-                    x,
-                    np.array(self.model["x"]),
-                    np.array(self.model["values"]),
+                    x, np.array(self.model["x"]), np.array(self.model["values"]),
                 )
         elif self.model["name"] == "lognormal":
             for ckey in ["mean", "sigma"]:
@@ -95,11 +96,35 @@ class PriorModel:
                 N1=self.model["N1_to_N2"],
                 N2=1.0,
             )
-        elif self.model["name"] == "exponential":
-            for ckey in ["tau"]:
+        elif self.model["name"] == "absexponential":
+            for ckey in ["dist0", "tau", "amp"]:
                 if ckey not in self.model.keys():
                     raise ValueError(f"{ckey} not in prior model keys")
-            return pmfuncs._exponential(x, tau=self.model["tau"])
+            return pmfuncs._absexponential(
+                x,
+                dist0=self.model["dist0"].to(u.pc).value,
+                tau=self.model["tau"].to(u.pc).value,
+                amp=self.model["amp"],
+            )
+        elif self.model["name"] == "step":
+            for ckey in ["dist0", "amp1", "damp2", "lgsigma1", "lgsigma2"]:
+                if ckey not in self.model.keys():
+                    raise ValueError(f"{ckey} not in prior model keys")
+            if y is None:
+                raise ValueError("y values not passed required for 2D priors")
+            if len(x) != len(y):
+                raise ValueError(
+                    "x and y values not the same length, required for 2D priors"
+                )
+            return pmfuncs._step(
+                x,
+                y,
+                dist0=self.model["dist0"].to(u.pc).value,
+                amp1=self.model["amp1"],
+                damp2=self.model["damp2"],
+                lgsigma1=self.model["lgsigma1"],
+                lgsigma2=self.model["lgsigma2"],
+            )
         else:
             modname = self.model["name"]
             raise NotImplementedError(f"{modname} is not an allowed model")
@@ -120,7 +145,7 @@ class PriorDustModel(PriorModel):
           Possible choices are flat, lognormal, two_lognormal, and exponential
         """
         super().__init__(
-            model, allowed_models=["flat", "lognormal", "two_lognormal", "exponential"]
+            model, allowed_models=["flat", "lognormal", "two_lognormal", "step"]
         )
 
 
@@ -198,7 +223,7 @@ class PriorDistanceModel(PriorModel):
         model : dict
           Possible choices are flat
         """
-        super().__init__(model, allowed_models=["flat"])
+        super().__init__(model, allowed_models=["flat", "absexponential"])
 
 
 class PriorMassModel(PriorModel):

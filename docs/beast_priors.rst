@@ -256,25 +256,42 @@ The distance prior can be
 
   distance_prior_model = {"name": "flat"}
 
+2. Absolute(Exponential) distribution with an exponential scale height (tau) before and
+after a fiducial distance (dist0) and an amplitude (amp).
+
+.. code-block:: python
+
+  distance_prior_model = {"name": "absexponential",
+                          "dist0": 60.0*u.kpc,
+                          "tau": 5.*u.kpc,
+                          "amp": 1.0}
+
 Plot showing examples of the possible distance prior models with the parameters given above.
 
 .. plot::
 
     import numpy as np
     import matplotlib.pyplot as plt
+    import astropy.units as u
 
     from beast.physicsmodel.priormodel import PriorDistanceModel
 
     fig, ax = plt.subplots()
 
     # met grid with linear spacing
-    dists = np.linspace(8e6, 9e6)
+    dists = np.arange(50., 70, 0.1) * 1e3
 
-    met_prior_models = [{"name": "flat"}]
+    distance_prior_models = [
+      {"name": "flat"},
+      {"name": "absexponential",
+        "dist0": 60.0*u.kpc,
+        "tau": 5.*u.kpc,
+        "amp": 1.0}
+      ]
 
-    for mp_mod in met_prior_models:
-        pmod = PriorDistanceModel(mp_mod)
-        ax.plot(dists, pmod(dists), label=mp_mod["name"])
+    for dp_mod in distance_prior_models:
+        pmod = PriorDistanceModel(dp_mod)
+        ax.plot(dists, pmod(dists), label=dp_mod["name"])
 
     ax.set_ylabel("probability")
     ax.set_xlabel("distance")
@@ -316,12 +333,18 @@ given by sigma.
                     "sigma2": 0.2,
                     "N1_to_N2": 1.0 / 5.0}
 
-4. Exponential with decay rate "tau"
+4. Step at a specified distance.  Distance must have units.  Models
+the effect of having a dust cloud located at a certain distance.
+A(V) after dist0 is amp1 + damp2.
 
 .. code-block:: python
 
-  av_prior_model = {"name": "exponential",
-                    "tau": 1.0}
+  av_prior_model = {"name": "step",
+                    "dist0": 60 * u.kpc,
+                    "amp1": 0.1,
+                    "damp2": 1.0,
+                    "lgsigma1": 0.05,
+                    "lgsigma2": 0.05}
 
 .. plot::
 
@@ -346,7 +369,6 @@ given by sigma.
             "sigma2": 0.5,
             "N1_to_N2": 1.0 / 5.0
         },
-        {"name": "exponential", "tau": 1.0},
     ]
 
     for dmod in dust_prior_models:
@@ -356,6 +378,44 @@ given by sigma.
     ax.set_ylabel("probability")
     ax.set_xlabel("A(V)")
     ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import astropy.units as u
+
+    from beast.physicsmodel.priormodel import PriorDustModel
+
+    fig, ax = plt.subplots()
+
+    # distance grid with linear spacing
+    d1, d2 = (50.e3, 70.e3)
+    dists = np.linspace(d1, d2, num=100)
+    av1, av2 = (0.0, 2.0)
+    avs = np.arange(av1, av2, 0.025)
+    distim, avim = np.meshgrid(dists, avs)
+
+    dustmod = {
+        "name": "step",
+        "dist0": 60 * u.kpc,
+        "amp1": 0.1,
+        "damp2": 1.0,
+        "lgsigma1": 0.05,
+        "lgsigma2": 0.05}
+
+    dustprior = PriorDustModel(dustmod)
+    probim = dustprior(avim, y=distim)
+
+    ax.imshow(
+        probim, origin="lower", aspect="auto", extent=[d1, d2, av1, av2], norm="log"
+    )
+
+    ax.set_ylabel("A(V)")
+    ax.set_xlabel("distance [kpc]")
+    ax.set_title("step")
     plt.tight_layout()
     plt.show()
 
@@ -388,6 +448,19 @@ given by sigma.
                     "sigma2": 0.2,
                     "N1_to_N2": 2.0 / 5.0}
 
+4. Step at a specified distance.  Distance must have units.  Models
+the effect of having a dust cloud located at a certain distance.
+R(V) after dist0 is amp1 + damp2.
+
+.. code-block:: python
+
+  rv_prior_model = {"name": "step",
+                    "dist0": 60 * u.kpc,
+                    "amp1": 0.1,
+                    "damp2": 1.0,
+                    "lgsigma1": 0.05,
+                    "lgsigma2": 0.05}
+
 .. plot::
 
     import numpy as np
@@ -419,7 +492,46 @@ given by sigma.
 
     ax.set_ylabel("probability")
     ax.set_xlabel("R(V)")
+    ax.set_title("step")
     ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import astropy.units as u
+
+    from beast.physicsmodel.priormodel import PriorDustModel
+
+    fig, ax = plt.subplots()
+
+    # distance grid with linear spacing
+    d1, d2 = (50.e3, 70.e3)
+    dists = np.linspace(d1, d2, num=100)
+    rv1, rv2 = (2.0, 6.0)
+    rvs = np.arange(rv1, rv2, 0.05)
+    distim, rvim = np.meshgrid(dists, rvs)
+
+    dustmod = {
+        "name": "step",
+        "dist0": 60 * u.kpc,
+        "amp1": 3.1,
+        "damp2": 1.4,
+        "lgsigma1": 0.01,
+        "lgsigma2": 0.01}
+
+    dustprior = PriorDustModel(dustmod)
+    probim = dustprior(rvim, y=distim)
+
+    ax.imshow(
+        probim, origin="lower", aspect="auto", extent=[d1, d2, rv1, rv2], norm="log"
+    )
+
+    ax.set_ylabel("R(V)")
+    ax.set_xlabel("distance [kpc]")
+    ax.set_title("step")
     plt.tight_layout()
     plt.show()
 
@@ -451,6 +563,19 @@ given by sigma.
                     "sigma1": 0.1,
                     "sigma2": 0.2,
                     "N1_to_N2": 2.0 / 5.0}
+
+4. Step at a specified distance.  Distance must have units.  Models
+the effect of having a dust cloud located at a certain distance.
+f_A after dist0 is amp1 + damp2.
+
+.. code-block:: python
+
+  fA_prior_model = {"name": "step",
+                    "dist0": 60 * u.kpc,
+                    "amp1": 0.1,
+                    "damp2": 0.8,
+                    "lgsigma1": 0.1,
+                    "lgsigma2": 0.01}
 
 .. plot::
 
@@ -484,5 +609,42 @@ given by sigma.
     ax.set_ylabel("probability")
     ax.set_xlabel(r"$f_A$")
     ax.legend(loc="best")
+    plt.tight_layout()
+    plt.show()
+
+.. plot::
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import astropy.units as u
+
+    from beast.physicsmodel.priormodel import PriorDustModel
+
+    fig, ax = plt.subplots()
+
+    # distance grid with linear spacing
+    d1, d2 = (50.e3, 70.e3)
+    dists = np.linspace(d1, d2, num=100)
+    fA1, fA2 = (0.0, 1.0)
+    fAs = np.arange(fA1, fA2, 0.01)
+    distim, fAim = np.meshgrid(dists, fAs)
+
+    dustmod = {
+        "name": "step",
+        "dist0": 60 * u.kpc,
+        "amp1": 0.1,
+        "damp2": 0.8,
+        "lgsigma1": 0.1,
+        "lgsigma2": 0.01}
+
+    dustprior = PriorDustModel(dustmod)
+    probim = dustprior(fAim, y=distim)
+
+    ax.imshow(
+        probim, origin="lower", aspect="auto", extent=[d1, d2, fA1, fA2], norm="log"
+    )
+
+    ax.set_ylabel(r"$f_A$")
+    ax.set_xlabel("distance [kpc]")
     plt.tight_layout()
     plt.show()

@@ -82,7 +82,6 @@ def compute_distance_age_mass_metallicity_weights(
         total_dist_prior_weight[dz] = np.sum(_tgrid[dindxs]["prior_weight"])
         total_dist_weight[dz] = np.sum(_tgrid[dindxs]["weight"])
 
-    # ensure that the distance prior is uniform
     if n_dist > 1:
         # get the distance weights
         dist_grid_weights = compute_distance_grid_weights(uniq_dists)

@@ -1,4 +1,5 @@
 import numpy as np
+import astropy.units as u
 
 from beast.physicsmodel.priormodel import (
     PriorAgeModel,
@@ -128,12 +129,21 @@ def test_dist_prior_weights():
     Test the distance prior weights
     """
 
-    dist = np.array([10.0, 100.0, 1000.0])
+    dist = np.array([53.0, 60.0, 69.0]) * 1e3
 
-    models = [{"name": "flat"}]
+    models = [
+        {"name": "flat"},
+        {
+            "name": "absexponential",
+            "dist0": 60.0 * u.kpc,
+            "tau": 5.0 * u.kpc,
+            "amp": 1.0,
+        },
+    ]
     # fmt: off
     expected_vals = [
-        [1.0, 1.0, 1.0]
+        [1.0, 1.0, 1.0],
+        [0.246597, 1.0, 0.165299]
     ]
     # fmt: on
 

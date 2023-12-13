@@ -395,7 +395,6 @@ def make_extinguished_grid(
 
             if with_fA:
                 Av, Rv, f_A = pt
-                dust_prior_weight = av_prior(Av) * rv_prior(Rv) * fA_prior(f_A)
                 Rv_MW = extLaw.get_Rv_A(Rv, f_A)
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_A, inplace=False)
                 # add extra "spectral bands" if requested
@@ -415,7 +414,6 @@ def make_extinguished_grid(
 
             else:
                 Av, Rv = pt
-                dust_prior_weight = av_prior(Av) * rv_prior(Rv)
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
 
                 if add_spectral_properties_kwargs is not None:
@@ -429,6 +427,27 @@ def make_extinguished_grid(
                 # adding the dust parameters to the models
                 cols["Av"][N0 * count : N0 * (count + 1)] = Av
                 cols["Rv"][N0 * count : N0 * (count + 1)] = Rv
+
+            # compute the dust weights
+            #   moved here in 2023 to support distance based dust priors
+            dists = g0.grid["distance"].data
+            if av_prior_model["name"] == "step":
+                av_weights = av_prior(np.full((len(dists)), Av), y=dists)
+            else:
+                av_weights = av_prior(Av)
+            if rv_prior_model["name"] == "step":
+                rv_weights = rv_prior(np.full((len(dists)), Rv), y=dists)
+            else:
+                rv_weights = rv_prior(Rv)
+            if fA_prior_model["name"] == "step":
+                f_A_weights = fA_prior(np.full((len(dists)), f_A), y=dists)
+            else:
+                if with_fA:
+                    f_A_weights = fA_prior(f_A)
+                else:
+                    f_A_weights = 1.0
+
+            dust_prior_weight = av_weights * rv_weights * f_A_weights
 
             # get new attributes if exist
             for key in list(temp_results.grid.keys()):
