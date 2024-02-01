@@ -4,6 +4,8 @@ __all__ = [
     "_lognorm",
     "_two_lognorm",
     "_exponential",
+    "_absexponential",
+    "_step",
     "_imf_salpeter",
     "_imf_kroupa",
     "_imf_flat",
@@ -109,6 +111,64 @@ def _exponential(x, tau=2.0, amp=1.0):
     return amp * np.exp(-1.0 * x / tau)
 
 
+def _absexponential(x, dist0, tau=2.0, amp=1.0):
+    """
+    Absolute value of exponential distribution
+    Used for stellar density distriction versus distance
+
+    Parameters
+    ----------
+    x : vector
+       x values
+    dist0 : float
+       distance at peak amplitude
+    tau : float
+       Decay Rate parameter in exp: e^-(abs(d - dist0)/tau)
+    amp : float
+       Amplitude for dist0
+
+    Returns
+    -------
+    absolute value of exponential computed on the x grid
+    """
+    return amp * np.exp(-1.0 * np.absolute(x - dist0) / tau)
+
+
+def _step(x, y, dist0, amp1=0.0, damp2=1.0, lgsigma1=0.1, lgsigma2=0.1):
+    """
+    Step function
+
+    Parameters
+    ----------
+    x : vector
+       x values
+    dist0 : float
+       distance of step
+    amp1 : float
+       Amplitude before dist0
+    damp2 : float
+       Delta amplitude after dist0 (e.g. afterwards amp = amp1 + damp2)
+    lgsigma1 : float
+       log-normal sigma for amp1
+    lgsigma2 : float
+       log-normal sigma for amp2
+
+    Returns
+    -------
+    Step function evaluted on the x grid
+    """
+    probs = x * 0.0
+    gvals = y < dist0
+    probs[gvals] = _lognorm(x[gvals], amp1, sigma=lgsigma1)
+    # amp1 includes as all are affected
+    #  not quite correct, likely the 2nd log-normal should be convolved by the 1st
+    #  but how to do this analytically?
+    gvals = y >= dist0
+    probs[gvals] += _lognorm(x[gvals], amp1 + damp2, sigma=lgsigma2)
+
+    return probs
+
+
 def _imf_flat(x):
     """
     Compute a flat IMF (useful for simulations, not for normal BEAST runs)
@@ -174,10 +234,10 @@ def _imf_kroupa(in_x, alpha0=0.3, alpha1=1.3, alpha2=2.3, alpha3=2.3):
     m2 = 0.5
     m3 = 1.0
 
-    ialpha0 = -1. * alpha0
-    ialpha1 = -1. * alpha1
-    ialpha2 = -1. * alpha2
-    ialpha3 = -1. * alpha3
+    ialpha0 = -1.0 * alpha0
+    ialpha1 = -1.0 * alpha1
+    ialpha2 = -1.0 * alpha2
+    ialpha3 = -1.0 * alpha3
 
     imf = np.full((len(x)), 0.0)
 

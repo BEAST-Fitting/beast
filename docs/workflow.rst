@@ -519,11 +519,11 @@ Using `slurm`
 *************
 
 Many of the steps described above require considerable computational resources,
-especially if your grid is large.  If you're running on `XSEDE <https://www.xsede.org/>`_
+especially if your grid is large.  If you're running on `ACCESS <https://access-ci.org/>`_
 or another system that uses the slurm queue, you may wish to use
 `write_sbatch_file.py`.  This will create a job file that can be submitted with ``sbatch``.
-More information about how this file is constructed can be found in the TACC user guide
-`here <https://portal.tacc.utexas.edu/archives/stampede#slurm-job-control>`_.
+More information on the slurm queue system can be found 
+`here <https://slurm.schedmd.com/quickstart.html>`_.
 
 Here is an example call to `write_sbatch_file.py` that shows some of its
 functionality.
