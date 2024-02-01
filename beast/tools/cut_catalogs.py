@@ -1,9 +1,14 @@
 import numpy as np
 import argparse
-from matplotlib.path import Path
-from scipy.spatial import ConvexHull
 
 from astropy.table import Table
+from matplotlib.path import Path
+
+# concave hull
+from shapely.ops import unary_union, polygonize
+import shapely.geometry as geometry
+from scipy.spatial import Delaunay
+import matplotlib.pyplot as plt
 
 
 def cut_catalogs(
@@ -12,10 +17,12 @@ def cut_catalogs(
     input_ast_file=None,
     output_ast_file=None,
     partial_overlap=False,
+    concave_alpha=100,
     flagged=False,
     flag_filter=None,
     region_file=False,
     no_write=False,
+
 ):
     """
     Remove sources from the input photometry catalog that are
@@ -48,6 +55,12 @@ def cut_catalogs(
         source was not recovered, and since we need to keep that information,
         the source will not be removed.
 
+    concave_alpha : float (default=100)
+        convex hull is computed using photometry catalog. Concave hull will be
+        computed using Delauney triangulation with set value and a diagnostic
+        plot will be created. Given the large average number of sources in each
+        photometry catalog, concave_alpha value might need to be between 100-1000.
+
     flagged : boolean (default=False)
         if True, remove sources with RATE=0 in flag_filter.
 
@@ -79,6 +92,7 @@ def cut_catalogs(
             int(len(phot_cat) - np.sum(phot_good_stars)), input_phot_file
         )
     )
+
     new_phot_cat = phot_cat[phot_good_stars == 1]
 
     # if chosen, run the cutting for the AST file
@@ -93,7 +107,8 @@ def cut_catalogs(
         # do convex hull
         ra_col = [x for x in phot_cat.colnames if "RA" in x.upper()][0]
         dec_col = [x for x in phot_cat.colnames if "DEC" in x.upper()][0]
-        phot_cat_boundary = convexhull_path(new_phot_cat[ra_col], new_phot_cat[dec_col])
+        phot_cat_boundary = convexhull_path(new_phot_cat[ra_col], new_phot_cat[dec_col],
+                                            concave_alpha, input_ast_file)
         # check if points are inside
         ra_col = [x for x in ast_cat.colnames if "RA" in x.upper()][0]
         dec_col = [x for x in ast_cat.colnames if "DEC" in x.upper()][0]
@@ -217,7 +232,7 @@ def write_ds9(cat, good_stars, ds9_file_name):
                 )
 
 
-def convexhull_path(x_coord, y_coord):
+def convexhull_path(x_coord, y_coord, concave_alpha, input_ast_file):
     """
     Find the convex hull for the given coordinates and make a Path object
     from it.
@@ -226,6 +241,12 @@ def convexhull_path(x_coord, y_coord):
     ----------
     x_coord, y_coord: arrays
         Arrays of coordinates (can be x/y or ra/dec)
+
+    concave_alpha : float (default=100)
+        convex hull is computed using photometry catalog. Concave hull will be
+        computed using Delauney triangulation with set value and a diagnostic
+        plot will be created. Given the large average number of sources in each
+        photometry catalog, concave_alpha value might need to be between 100-1000.
 
     Returns
     -------
@@ -236,11 +257,58 @@ def convexhull_path(x_coord, y_coord):
     coords = np.array(
         [x_coord, y_coord]
     ).T  # there's a weird astropy datatype issue that requires numpy coercion
-    hull = ConvexHull(coords)
-    bounds_x, bounds_y = coords[hull.vertices, 0], coords[hull.vertices, 1]
-    path_object = Path(np.array([bounds_x, bounds_y]).T)
+
+    print("using concave hull, alpha: " + str(concave_alpha) + " (default: 100)")
+    concave_hull = alpha_shape(coords, concave_alpha)
+    path_object = Path(np.array(concave_hull.boundary.xy).T)
+
+    # create diagnostic plot
+    fig = plt.figure(figsize=(5, 4))
+    ax = fig.subplots(1, 1)
+    ax.scatter(x_coord, y_coord, s=1)
+    ax.plot(path_object.vertices.T[0], path_object.vertices.T[1], c="r")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_title(r"$\alpha$ = " + str(concave_alpha))
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.savefig(str(input_ast_file) + "_plot.png", bbox_inches="tight")
 
     return path_object
+
+
+def alpha_shape(coords, alpha):
+    """
+    https://gist.github.com/dwyerk/10561690
+    Compute the alpha shape (concave hull) of a set of points.
+    @param points: Iterable container of points.
+    @param alpha: alpha value to influence the
+        gooeyness of the border. Smaller numbers
+        don't fall inward as much as larger numbers.
+        Too large, and you lose everything!
+    """
+    if len(coords) < 4:
+        # When you have a triangle, there is no sense
+        # in computing an alpha shape.
+        return geometry.MultiPoint(list(coords)).convex_hull
+
+    tri = Delaunay(coords)
+    triangles = coords[tri.simplices]
+    a = ((triangles[:, 0, 0] - triangles[:, 1, 0]) ** 2 + (triangles[:, 0, 1] - triangles[:, 1, 1]) ** 2) ** 0.5
+    b = ((triangles[:, 1, 0] - triangles[:, 2, 0]) ** 2 + (triangles[:, 1, 1] - triangles[:, 2, 1]) ** 2) ** 0.5
+    c = ((triangles[:, 2, 0] - triangles[:, 0, 0]) ** 2 + (triangles[:, 2, 1] - triangles[:, 0, 1]) ** 2) ** 0.5
+    s = (a + b + c) / 2.0
+    areas = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+    circums = a * b * c / (4.0 * areas)
+    filtered = triangles[circums < (1.0 / alpha)]
+    edge1 = filtered[:, (0, 1)]
+    edge2 = filtered[:, (1, 2)]
+    edge3 = filtered[:, (2, 0)]
+    edge_points = np.unique(np.concatenate((edge1, edge2, edge3)), axis=0).tolist()
+    m = geometry.MultiLineString(edge_points)
+    triangles = list(polygonize(m))
+
+    return unary_union(triangles)
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -273,6 +341,12 @@ if __name__ == "__main__":  # pragma: no cover
         default=False,
         action="store_true",
         help="if True, remove sources in regions without full imaging coverage",
+    )
+    parser.add_argument(
+        "--concave_alpha",
+        default=100,
+        type=float,
+        help="use Delauney triangulation to compute concave hull",
     )
     parser.add_argument(
         "--flagged",
@@ -308,6 +382,7 @@ if __name__ == "__main__":  # pragma: no cover
         input_ast_file=args.input_ast_file,
         output_ast_file=args.output_ast_file,
         partial_overlap=args.partial_overlap,
+        concave_alpha=args.concave_alpha,
         flagged=args.flagged,
         flag_filter=args.flag_filter,
         region_file=args.region_file,
