@@ -33,12 +33,13 @@ Basics:
    Photometry files <photometry_files.rst>
    Output files <outputs.rst>
 
-Detals:
+Details:
 
 .. toctree::
    :maxdepth: 1
 
    Graphical Models <beast_graphical_model.rst>
+   Appending additional filters <append_filters.rst>
    Stellar/Extinction Priors <beast_priors.rst>
    Generating AST inputs <generating_asts.rst>
    Simulating observations <simulations.rst>
