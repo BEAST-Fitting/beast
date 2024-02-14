@@ -7,18 +7,7 @@ Requirements
 
 Running the BEAST requires:
 
-- Python >= 3.7
-- Astropy >= 1.3
-
-In turn, Astropy depends on
-`other packages <http://docs.astropy.org/en/latest/install.html>`_ for
-optional features. From these you will need:
-
-- `hdf5 <http://h5py.org/>`_ to read/write `Table` objects from/to HDF5 files.
-
-You will also need:
-
-- `PyTables <http://www.pytables.org/>`_ to manage large amounts of data.
+- Python >= 3.8
 
 One easy way to obtain the above is through the AstroConda Python stack:
 
@@ -27,33 +16,19 @@ One easy way to obtain the above is through the AstroConda Python stack:
   you can use the `conda` command to install any other packages and create
   environments, etc.
 
-- Setup the AstroConda Channel
+- Create a conda environment for the BEAST.
+Replace <env_name> with the name of the conda environment you want (e.g., `beast`).
+The specific version of python can be different than 3.11, note it must be at least 3.8.
 
 .. code-block:: console
 
-    $ conda config --add channels http://ssb.stsci.edu/astroconda
+    $ conda create -n <env_name> python=3.11
 
-- Install AstroConda with Python 3 (recommended)
-
-.. code-block:: console
-
-    $ conda create -n astroconda stsci
-
-- Ensure the minimum Python requirements above are met. If needed, specify the minimum version required
+- Switch to this newly create conda environment
 
 .. code-block:: console
 
-    $ python --version
-    $ conda create -n astroconda stsci python=3.7
-
-- Make sure that the ``PyTables`` and ``hdf5`` packages are installed
-
-.. code-block:: console
-
-    $ conda install -n astroconda pytables
-
-    $ conda install -n astroconda hdf5
-
+    $ conda activate <env_name>
 
 Installation for Users
 ======================
@@ -61,13 +36,10 @@ Installation for Users
 In addition to installing the code, library files also need to be installed.
 See :ref:`library-files`.
 
-.. note::
-   The ``numpy`` package must be installed before installing the BEAST. This package is needed as part of the installation process, not just as a prerequisite for running the BEAST.
-
 Using pip
 ---------
 
-``beast`` can be installed using pip:
+``beast`` can be installed using pip.  This installs the latest released version.
 
 .. code-block:: console
 
@@ -79,7 +51,7 @@ If you already have an older version installed, use:
 
     $ pip install --upgrade beast
 
-Or, from the master trunk on the repository, considered developmental code:
+Or, from the repository directly.  This installs the development version with the latest features.
 
 .. code-block:: console
 
@@ -147,14 +119,13 @@ Installation for Production Runs
 Using a dedicated conda environment for production BEAST runs may be
 desirable. Such an environment provides a way to ensure that
 production runs are reproducible by fixing the versions of all the
-software used. The instructions below assume that the `astroconda channel
-<https://astroconda.readthedocs.io/>`_ is being used.
+software used.
 
 Create a conda environment, and name it differently from your default and other environments:
 
   .. code-block:: console
 
-    $ conda create -n beast_production python=3.6
+    $ conda create -n beast_production python=3.11
 
 Activate the environment after all the packages are finished installing:
 
@@ -170,17 +141,17 @@ Install dependencies using conda (better for speed):
 
 Next, install the BEAST. You have three options:
 
-Option 1: Use pip to install a stable version of the BEAST (e.g. v1.3):
+Option 1: Use pip to install a stable version of the BEAST (e.g. v2.0):
 
   .. code-block:: console
 
-    $ pip install beast==1.3
+    $ pip install beast==2.0
 
 Option 2: Get the latest production branch, which can be ahead of the pypi version:
 
   .. code-block:: console
 
-    $ pip install git+https://github.com/BEAST-Fitting/beast.git@v1.x
+    $ pip install git+https://github.com/BEAST-Fitting/beast.git@v2.x
 
 Option 3: If you'll be doing development, follow the instructions above (:ref:`Dev_install`). Note that you can make separate environments for development and production modes.
 

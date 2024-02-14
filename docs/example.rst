@@ -16,19 +16,6 @@ This example is based on a small amount of METAL program data.
 METAL is an HST program (PI: J. Roman-Duval) that included parallel imaging
 of regions in the Large Magellanic Cloud.
 
-If you installed Python through AstroConda, first activate the correct
-AstroConda environment
-
-.. code-block:: console
-
-    $ conda activate astroconda
-
-Verify that the current default Python is version 3
-
-.. code-block:: console
-
-    $ python --version
-
 Next, bring up the BEAST help message, which describes the available switch
 options, with
 
