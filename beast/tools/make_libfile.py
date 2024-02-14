@@ -317,7 +317,6 @@ def make_libfile():
         pwaves.append(newfilt.lpivot.value)
         comments.append("")
 
-
     # Loop through GALEX filters:
     for filt in galex:
         # define ir mode
