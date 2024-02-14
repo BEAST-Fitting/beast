@@ -17,8 +17,8 @@ One easy way to obtain the above is through the AstroConda Python stack:
   environments, etc.
 
 - Create a conda environment for the BEAST.
-Replace <env_name> with the name of the conda environment you want (e.g., `beast`).
-The specific version of python can be different than 3.11, note it must be at least 3.8.
+  Replace <env_name> with the name of the conda environment you want (e.g., `beast`).
+  The specific version of python can be different than 3.11, note it must be at least 3.8.
 
 .. code-block:: console
 
