@@ -85,7 +85,7 @@ def make_libfile():
         "f814w",
     ]
 
-    acs_hrc = [
+    acs_sbc = [
         "f115lp",
         "f125lp",
         "f140lp",
@@ -280,8 +280,8 @@ def make_libfile():
         pwaves.append(newfilt.lpivot.value)
         comments.append("avg of wfc1 and wfc2")
 
-    # Loop through ACS HRC filters
-    for filt in acs_hrc:
+    # Loop through ACS SBC filters
+    for filt in acs_sbc:
 
         # define ir mode
         mode = "acs, sbc, " + filt
