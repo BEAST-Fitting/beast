@@ -84,6 +84,16 @@ def make_libfile():
         "f775w",
         "f814w",
     ]
+
+    acs_hrc = [
+        "f115lp",
+        "f125lp",
+        "f140lp",
+        "f150lp",
+        "f165lp",
+        "f122m",
+    ]
+
     # galex
     galex = ["fuv", "nuv"]
 
@@ -228,7 +238,7 @@ def make_libfile():
         pwaves.append(newfilt.lpivot.value)
         comments.append("avg of 1, 2, 3, 4")
 
-    # Loop through ACS filters
+    # Loop through ACS WFC filters
     for filt in acs_wfc:
 
         # define wfc1, wfc2 modes
@@ -269,6 +279,44 @@ def make_libfile():
         cwaves.append(newfilt.cl.value)
         pwaves.append(newfilt.lpivot.value)
         comments.append("avg of wfc1 and wfc2")
+
+    # Loop through ACS HRC filters
+    for filt in acs_hrc:
+
+        # define ir mode
+        mode = "acs, sbc, " + filt
+
+        # pull bandpasses from stsynphot for the two uvis modes
+        bp = stsyn.band(mode)
+
+        # extract the wavelength array
+        wave = bp.waveset
+
+        # define the filter name
+        filter_name = "HST_ACS_SBC_" + filt.upper()
+
+        # build array of wavelength and throughput
+        arr = np.array(
+            list(zip(wave.value.astype(np.float64), bp(wave).astype(np.float64))),
+            dtype=[("WAVELENGTH", "float64"), ("THROUGHPUT", "float64")],
+        )
+
+        # append dataset to the hdf5 filters group
+        f.create_dataset(filter_name, data=arr)
+
+        # generate filter instance to compute relevant info
+        newfilt = phot.Filter(wave, bp(wave), name=filt.upper())
+
+        # populate contents lists with relevant information
+        tablenames.append(filter_name)
+        observatories.append("HST")
+        instruments.append("ACS")
+        names.append(newfilt.name)
+        norms.append(newfilt.norm.value)
+        cwaves.append(newfilt.cl.value)
+        pwaves.append(newfilt.lpivot.value)
+        comments.append("")
+
 
     # Loop through GALEX filters:
     for filt in galex:
