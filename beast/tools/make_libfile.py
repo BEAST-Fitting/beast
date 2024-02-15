@@ -397,14 +397,14 @@ def make_filters_libfile():
                 "ngroup": 10,
                 "nint": 1,
                 "readout_pattern": "deep2",
-                "subarray": "full"
+                "subarray": "full",
             },
             "instrument": {
                 "aperture": "sw",
                 "disperser": "null",
                 "filter": filt,
                 "instrument": "nircam",
-                "mode": "sw_imaging"
+                "mode": "sw_imaging",
             },
         }
 
@@ -453,14 +453,14 @@ def make_filters_libfile():
                 "ngroup": 10,
                 "nint": 1,
                 "readout_pattern": "deep2",
-                "subarray": "full"
+                "subarray": "full",
             },
             "instrument": {
                 "aperture": "lw",
                 "disperser": "null",
                 "filter": filt,
                 "instrument": "nircam",
-                "mode": "lw_imaging"
+                "mode": "lw_imaging",
             },
         }
 
@@ -509,14 +509,14 @@ def make_filters_libfile():
                 "ngroup": 10,
                 "nint": 1,
                 "readout_pattern": "nis",
-                "subarray": "full"
+                "subarray": "full",
             },
             "instrument": {
                 "aperture": "imager",
                 "disperser": "null",
                 "filter": filt,
                 "instrument": "niriss",
-                "mode": "imaging"
+                "mode": "imaging",
             },
         }
 
@@ -669,7 +669,9 @@ def make_vega_libfile():
     vega = h5py.File(__default_vega__, "w")
 
     vega.create_dataset("spectrum", data=vega_old)
-    flist = phot.load_filters(filters, interp=True, lamb=vl, filterLib=__default_filtlist__)
+    flist = phot.load_filters(
+        filters, interp=True, lamb=vl, filterLib=__default_filtlist__
+    )
 
     fname = []
     cwave = []
@@ -684,21 +686,21 @@ def make_vega_libfile():
         mag.append(-2.5 * np.log10(flux))
 
     contents = np.array(
-            list(
-                zip(
-                    fname,
-                    cwave,
-                    lum,
-                    mag,
-                )
-            ),
-            dtype=[
-                ("FNAME", "S30"),
-                ("CWAVE", "<f8"),
-                ("LUM", "<f8"),
-                ("MAG", "<f8"),
-            ],
-        )
+        list(
+            zip(
+                fname,
+                cwave,
+                lum,
+                mag,
+            )
+        ),
+        dtype=[
+            ("FNAME", "S30"),
+            ("CWAVE", "<f8"),
+            ("LUM", "<f8"),
+            ("MAG", "<f8"),
+        ],
+    )
 
     vega.create_dataset("sed", data=contents)
     vega.close()
