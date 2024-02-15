@@ -678,10 +678,10 @@ def make_vega_libfile():
     lum = []
     mag = []
 
-    for i in range(len(flist)):
-        fname.append(flist[i].name)
-        cwave.append(flist[i].cl)
-        flux = flist[i].getFlux(vl, vf)
+    for cfilt in flist:
+        fname.append(cfilt.name)
+        cwave.append(cfilt.cl)
+        flux = cfilt.getFlux(vl, vf)
         lum.append(flux)
         mag.append(-2.5 * np.log10(flux))
 
