@@ -1,9 +1,11 @@
 # script to generate BEAST library files
+import os
 import numpy as np
 
 import stsynphot as stsyn
 from pandeia.engine.instrument_factory import InstrumentFactory
 import astropy.units as u
+from astropy.table import QTable
 
 import h5py
 
@@ -11,7 +13,7 @@ from beast.config import __ROOT__
 from beast.observationmodel import phot
 
 
-def make_libfile():
+def make_filters_libfile():
     """
     Extract filters from STSYNPHOT and save to main library file.
     """
@@ -644,5 +646,64 @@ def make_libfile():
     hf.close()
 
 
+def make_vega_libfile():
+
+    # Read an updated filters.hd5 lib
+    __default_filtlist__ = __ROOT__ + "/filters.hd5"
+    filtlist = QTable.read(__default_filtlist__, path="content")
+    filters = [cfilt.decode("UTF-8") for cfilt in filtlist["TABLENAME"].data]
+
+    # filenames for vega info
+    __default_vega__ = __ROOT__ + "/vega.hd5"
+    __default_vega_old__ = __ROOT__ + "/vega_old.hd5"
+
+    # rename the current file so we can write a new version
+    os.rename(__default_vega__, __default_vega_old__)
+
+    # Get a spectrum from the need-to-be updated vega lib
+    vega_old = QTable.read(__default_vega_old__, path="spectrum")
+    vl = vega_old["WAVELENGTH"].data
+    vf = vega_old["FLUX"].data
+
+    # Write out an updated vega.hd5 file
+    vega = h5py.File(__default_vega__, "w")
+
+    vega.create_dataset("spectrum", data=vega_old)
+    flist = phot.load_filters(filters, interp=True, lamb=vl, filterLib=__default_filtlist__)
+
+    fname = []
+    cwave = []
+    lum = []
+    mag = []
+
+    for i in range(len(flist)):
+        fname.append(flist[i].name)
+        cwave.append(flist[i].cl)
+        flux = flist[i].getFlux(vl, vf)
+        lum.append(flux)
+        mag.append(-2.5 * np.log10(flux))
+
+    contents = np.array(
+            list(
+                zip(
+                    fname,
+                    cwave,
+                    lum,
+                    mag,
+                )
+            ),
+            dtype=[
+                ("FNAME", "S30"),
+                ("CWAVE", "<f8"),
+                ("LUM", "<f8"),
+                ("MAG", "<f8"),
+            ],
+        )
+
+    vega.create_dataset("sed", data=contents)
+    vega.close()
+
+
 if __name__ == "__main__":  # pragma: no cover
-    make_libfile()
+    make_filters_libfile()
+    make_vega_libfile()
