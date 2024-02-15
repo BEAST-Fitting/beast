@@ -443,7 +443,6 @@ def make_libfile():
         pwaves.append(newfilt.lpivot.value)
         comments.append("")
 
-
     for filt in jwst_nircam_lw:
         # mock configuration
         conf = {
