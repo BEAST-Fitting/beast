@@ -112,21 +112,18 @@ def make_libfile():
         "f122m",
     ]
 
-    jwst_miri = [
-        "f560w",
-        "f770w",
-        "f1000w",
-        "f1065c",
-        "f1140c",
-        "f1130w",
-        "f1280w",
-        "f1500w",
-        "f1550c",
-        "f1800w",
-        "f2100w",
-        "f2300c",
-        "f2550w",
-    ]
+    # fmt: off
+    jwst_nircam_sw = ["f150w2", "f070w", "f090w", "f115w", "f150w", "f200w",
+                      "f140m", "f162m", "f182m", "f210m",
+                      "f164n", "f187n", "f212n"]
+
+    jwst_nircam_lw = ["f332w2", "f277w", "f356w", "f444w",
+                      "f250m", "f300m", "f335m", "f360m", "f410m", "f430m", "f460m", "f480m",
+                      "f323n", "f405n", "f466n", "f470n"]
+
+    jwst_miri = ["f560w", "f770w", "f1000w", "f1130w", "f1280w", "f1500w", "f1800w", "f2100w", "f2550w",
+                 "f1065c", "f1140c", "f1550c", "f2300c"]
+    # fmt: on
 
     # galex
     galex = ["fuv", "nuv"]
@@ -387,6 +384,121 @@ def make_libfile():
         pwaves.append(newfilt.lpivot.value)
         comments.append("")
 
+    for filt in jwst_nircam_sw:
+        # mock configuration
+        conf = {
+            "detector": {
+                "nexp": 1,
+                "ngroup": 10,
+                "nint": 1,
+                "readout_pattern": "deep2",
+                "subarray": "full"
+            },
+            "instrument": {
+                "aperture": "sw",
+                "disperser": "null",
+                "filter": filt,
+                "instrument": "nircam",
+                "mode": "sw_imaging"
+            },
+        }
+
+        # create a configured instrument
+        instrument_factory = InstrumentFactory(config=conf)
+
+        # set up your wavelengths
+        pwave = np.logspace(np.log10(0.5), np.log10(7.0), 501) * u.micron
+
+        # get the throughput of the instrument over the desired wavelength range
+        eff = instrument_factory.get_total_eff(pwave.value)
+
+        # get wavelengths in Angstroms
+        wave = pwave.to(u.AA)
+
+        # define the filter name
+        filter_name = "JWST_NIRCAM_" + filt.upper()
+
+        # build array of wavelength and throughput
+        arr = np.array(
+            list(zip(wave.value.astype(np.float64), eff.astype(np.float64))),
+            dtype=[("WAVELENGTH", "float64"), ("THROUGHPUT", "float64")],
+        )
+
+        # append dataset to the hdf5 filters group
+        f.create_dataset(filter_name, data=arr)
+
+        # generate filter instance to compute relevant info
+        newfilt = phot.Filter(wave, eff, name=filt.upper())
+
+        # populate contents lists with relevant information
+        tablenames.append(filter_name)
+        observatories.append("JWST")
+        instruments.append("NIRCAM")
+        names.append(newfilt.name)
+        norms.append(newfilt.norm.value)
+        cwaves.append(newfilt.cl.value)
+        pwaves.append(newfilt.lpivot.value)
+        comments.append("")
+
+
+    for filt in jwst_nircam_lw:
+        # mock configuration
+        conf = {
+            "detector": {
+                "nexp": 1,
+                "ngroup": 10,
+                "nint": 1,
+                "readout_pattern": "deep2",
+                "subarray": "full"
+            },
+            "instrument": {
+                "aperture": "lw",
+                "disperser": "null",
+                "filter": filt,
+                "instrument": "nircam",
+                "mode": "lw_imaging"
+            },
+        }
+
+        # create a configured instrument
+        instrument_factory = InstrumentFactory(config=conf)
+
+        # set up your wavelengths
+        pwave = np.logspace(np.log10(0.5), np.log10(7.0), 501) * u.micron
+
+        # get the throughput of the instrument over the desired wavelength range
+        eff = instrument_factory.get_total_eff(pwave.value)
+
+        # get wavelengths in Angstroms
+        wave = pwave.to(u.AA)
+
+        # define the filter name
+        filter_name = "JWST_NIRCAM_" + filt.upper()
+
+        # build array of wavelength and throughput
+        arr = np.array(
+            list(zip(wave.value.astype(np.float64), eff.astype(np.float64))),
+            dtype=[("WAVELENGTH", "float64"), ("THROUGHPUT", "float64")],
+        )
+
+        # append dataset to the hdf5 filters group
+        f.create_dataset(filter_name, data=arr)
+
+        # generate filter instance to compute relevant info
+        newfilt = phot.Filter(wave, eff, name=filt.upper())
+
+        # populate contents lists with relevant information
+        tablenames.append(filter_name)
+        observatories.append("JWST")
+        instruments.append("NIRCAM")
+        names.append(newfilt.name)
+        norms.append(newfilt.norm.value)
+        cwaves.append(newfilt.cl.value)
+        pwaves.append(newfilt.lpivot.value)
+        comments.append("")
+
+
+
     for filt in jwst_miri:
         # mock configuration
         conf = {
@@ -435,8 +547,8 @@ def make_libfile():
 
         # populate contents lists with relevant information
         tablenames.append(filter_name)
-        observatories.append("GALEX")
-        instruments.append("GALEX")
+        observatories.append("JWST")
+        instruments.append("MIRI")
         names.append(newfilt.name)
         norms.append(newfilt.norm.value)
         cwaves.append(newfilt.cl.value)
