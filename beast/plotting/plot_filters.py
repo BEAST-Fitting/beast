@@ -16,7 +16,7 @@ def plot_filters(
     filter_names,
     filterLib=None,
     save_name="beast_filters",
-    xlim=[3e3, 1e3],
+    xlim=None,
     ylim=[1e-4, 2],
     show_plot=True,
 ):
@@ -42,7 +42,8 @@ def plot_filters(
     fig, ax = plt.subplots(1, 1, figsize=(10, 6))
 
     # wavelength grid in angstroms for response functions
-    waves = np.logspace(3, np.log10(3e4), 501)
+    #  cover all HST and JWST wavelengths
+    waves = np.logspace(np.log10(912.), np.log10(3e5), 1001)
 
     # read in the filter response functions
     flist = phot.load_filters(
@@ -60,6 +61,7 @@ def plot_filters(
     # ax.set_prop_cycle(color=[cmap(i) for i in color_indices])
     color = iter(cmap(np.linspace(0.2, 0.8, len(filter_names))))
 
+    dxlim = [3e5, 912.]
     for f in flist:
         c = next(color)
         ax.plot(f.wavelength, f.transmit, color=c, lw=2)
@@ -73,10 +75,13 @@ def plot_filters(
             color=c,
         )
         gvals = (f.transmit > ylim[0]) & (f.transmit < ylim[1])
-        if min(f.wavelength[gvals]) < xlim[0]:
-            xlim[0] = min(f.wavelength[gvals])
-        if max(f.wavelength[gvals]) > xlim[1]:
-            xlim[1] = max(f.wavelength[gvals])
+        if min(f.wavelength[gvals]) < dxlim[0]:
+            dxlim[0] = min(f.wavelength[gvals])
+        if max(f.wavelength[gvals]) > dxlim[1]:
+            dxlim[1] = max(f.wavelength[gvals])
+
+    if xlim is None:
+        xlim = dxlim
 
     ax.set_xscale("log")
     ax.set_yscale("log")
