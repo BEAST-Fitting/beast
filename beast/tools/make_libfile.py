@@ -2,6 +2,8 @@
 import numpy as np
 
 import stsynphot as stsyn
+from pandeia.engine.instrument_factory import InstrumentFactory
+import astropy.units as u
 
 import h5py
 
@@ -18,23 +20,39 @@ def make_libfile():
         "f218w",
         "f225w",
         "f275w",
+        "f280n",
         "f336w",
+        "f343n",
+        "f373n",
         "f390m",
         "f390w",
+        "f395n",
         "f410m",
         "f438w",
         "f467m",
+        "f469n",
         "f475w",
+        "f487n",
+        "f502n",
         "f547m",
         "f555w",
         "f606w",
         "f621m",
         "f625w",
+        "f631n",
+        "f645n",
+        "f656n",
+        "f657n",
+        "f658n",
+        "f665n",
+        "f673n",
+        "f680n",
         "f689m",
         "f763m",
         "f775w",
         "f814w",
         "f845m",
+        "f953n",
     ]
 
     wfc3_ir = [
@@ -92,6 +110,22 @@ def make_libfile():
         "f150lp",
         "f165lp",
         "f122m",
+    ]
+
+    jwst_miri = [
+        "f560w",
+        "f770w",
+        "f1000w",
+        "f1065c",
+        "f1140c",
+        "f1130w",
+        "f1280w",
+        "f1500w",
+        "f1550c",
+        "f1800w",
+        "f2100w",
+        "f2300c",
+        "f2550w",
     ]
 
     # galex
@@ -342,6 +376,62 @@ def make_libfile():
 
         # generate filter instance to compute relevant info
         newfilt = phot.Filter(wave, bp(wave), name=filt.upper())
+
+        # populate contents lists with relevant information
+        tablenames.append(filter_name)
+        observatories.append("GALEX")
+        instruments.append("GALEX")
+        names.append(newfilt.name)
+        norms.append(newfilt.norm.value)
+        cwaves.append(newfilt.cl.value)
+        pwaves.append(newfilt.lpivot.value)
+        comments.append("")
+
+    for filt in jwst_miri:
+        # mock configuration
+        conf = {
+            "detector": {
+                "nexp": 1,
+                "ngroup": 10,
+                "nint": 1,
+                "readout_pattern": "fastr1",
+                "subarray": "full",
+            },
+            "dynamic_scene": True,
+            "instrument": {
+                "aperture": "imager",
+                "filter": filt,
+                "instrument": "miri",
+                "mode": "imaging",
+            },
+        }
+
+        # create a configured instrument
+        instrument_factory = InstrumentFactory(config=conf)
+
+        # set up your wavelengths
+        pwave = np.logspace(np.log10(3.0), np.log10(40.0), 501) * u.micron
+
+        # get the throughput of the instrument over the desired wavelength range
+        eff = instrument_factory.get_total_eff(pwave.value)
+
+        # get wavelengths in Angstroms
+        wave = pwave.to(u.AA)
+
+        # define the filter name
+        filter_name = "JWST_MIRI_" + filt.upper()
+
+        # build array of wavelength and throughput
+        arr = np.array(
+            list(zip(wave.value.astype(np.float64), eff.astype(np.float64))),
+            dtype=[("WAVELENGTH", "float64"), ("THROUGHPUT", "float64")],
+        )
+
+        # append dataset to the hdf5 filters group
+        f.create_dataset(filter_name, data=arr)
+
+        # generate filter instance to compute relevant info
+        newfilt = phot.Filter(wave, eff, name=filt.upper())
 
         # populate contents lists with relevant information
         tablenames.append(filter_name)
