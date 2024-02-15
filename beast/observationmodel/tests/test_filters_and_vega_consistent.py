@@ -1,6 +1,7 @@
 from astropy.table import QTable
 
 from beast.config import __ROOT__
+from beast.tools import get_libfiles
 from beast.observationmodel.vega import Vega
 from beast.observationmodel import phot
 
@@ -9,6 +10,10 @@ def test_filters_and_vega_consistent():
     Test to ensure that the filters.hd5 and vega.hd5 are consistent.
     In other words, both have the same filters.
     """
+
+    # download the BEAST library files
+    get_libfiles.get_libfiles(vega_filters_only=True)
+
     ftab = QTable.read(__ROOT__ + "filters.hd5", path="content")
     vtab = QTable.read(__ROOT__ + "vega.hd5", path="sed")
 
