@@ -120,7 +120,7 @@ def make_libfile():
     jwst_nircam_lw = ["f332w2", "f277w", "f356w", "f444w",
                       "f250m", "f300m", "f335m", "f360m", "f410m", "f430m", "f460m", "f480m",
                       "f323n", "f405n", "f466n", "f470n"]
-    
+
     jwst_niriss = ["f090w", "f115w", "f150w", "f200w", "f277w", "f356w", "f444w",
                    "f140m", "f158m", "f380m", "f430m", "f480m"]
 
