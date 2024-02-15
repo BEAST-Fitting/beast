@@ -2,8 +2,7 @@ from astropy.table import QTable
 
 from beast.config import __ROOT__
 from beast.tools import get_libfiles
-from beast.observationmodel.vega import Vega
-from beast.observationmodel import phot
+
 
 def test_filters_and_vega_consistent():
     """
@@ -28,6 +27,7 @@ def test_filters_and_vega_consistent():
         if cfilt not in ftab["TABLENAME"].data:
             otxt = f"{otxt} {cfilt}"
     assert otxt == "", "filters in vega.hd5 missing from filters.hd5:" + otxt
+
 
 if __name__ == "__main__":  # pragma: no cover
     test_filters_and_vega_consistent()

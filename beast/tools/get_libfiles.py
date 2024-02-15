@@ -20,8 +20,7 @@ def get_libfiles(vega_filters_only=False):
     Download all the library files needed by the BEAST
     """
     for ckey, clib in libs.items():
-        if ((not vega_filters_only) or
-            (vega_filters_only & (ckey in ["vega", "filters"]))):
+        if ((not vega_filters_only) or (vega_filters_only & (ckey in ["vega", "filters"]))):
             _download_rename(clib, libs_server, __ROOT__)
 
 
