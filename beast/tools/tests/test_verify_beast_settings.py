@@ -1,4 +1,5 @@
 import pytest
+import warnings
 from beast.physicsmodel.stars import isochrone
 from beast.tools import verify_beast_settings
 
@@ -36,7 +37,8 @@ class settings_mock_allowwarn(settings_mock_nofA):
 
 def test_verifyparams_nowarning():
     """Test: verify_beast_settings for case of no warnings or exceptions."""
-    with pytest.warns(None) as record:
+    # with pytest.warns(None) as record:
+    with warnings.catch_warnings(record=True) as record:
         verify_beast_settings.verify_input_format(settings_mock())
     assert len(record) == 0
 
