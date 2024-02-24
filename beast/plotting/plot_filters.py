@@ -15,12 +15,10 @@ __all__ = ["plot_filters"]
 def plot_filters(
     filter_names,
     filterLib=None,
-    save_name="beast_filters",
     xlim=None,
     ylim=[1e-4, 2],
     show_plot=True,
 ):
-
     """Plots transmission curves in log-log space.
 
     Parameters
@@ -43,7 +41,7 @@ def plot_filters(
 
     # wavelength grid in angstroms for response functions
     #  cover all HST and JWST wavelengths
-    waves = np.logspace(np.log10(912.), np.log10(3e5), 1001)
+    waves = np.logspace(np.log10(912.0), np.log10(3e5), 1001)
 
     # read in the filter response functions
     flist = phot.load_filters(
@@ -61,24 +59,25 @@ def plot_filters(
     # ax.set_prop_cycle(color=[cmap(i) for i in color_indices])
     color = iter(cmap(np.linspace(0.2, 0.8, len(filter_names))))
 
-    dxlim = [3e5, 912.]
+    dxlim = np.array([3e5, 912.0]) * 1e-4
     for f in flist:
+        wavelength = f.wavelength * 1e-4
         c = next(color)
-        ax.plot(f.wavelength, f.transmit, color=c, lw=2)
-        ax.fill_between(f.wavelength, f.transmit, alpha=0.2, color=c)
+        ax.plot(wavelength, f.transmit, color=c, lw=2)
+        ax.fill_between(wavelength, f.transmit, alpha=0.2, color=c)
         yval_text = max(f.transmit * 0.1)
         ax.text(
-            np.nanmean(f.wavelength[f.transmit > yval_text]),
+            np.nanmean(wavelength[f.transmit > yval_text]),
             1.3 * np.nanmax(f.transmit[f.transmit > yval_text]),
             f.name.split("_")[-1],
             ha="center",
             color=c,
         )
         gvals = (f.transmit > ylim[0]) & (f.transmit < ylim[1])
-        if min(f.wavelength[gvals]) < dxlim[0]:
-            dxlim[0] = min(f.wavelength[gvals])
-        if max(f.wavelength[gvals]) > dxlim[1]:
-            dxlim[1] = max(f.wavelength[gvals])
+        if min(wavelength[gvals]) < dxlim[0]:
+            dxlim[0] = min(wavelength[gvals])
+        if max(wavelength[gvals]) > dxlim[1]:
+            dxlim[1] = max(wavelength[gvals])
 
     if xlim is None:
         xlim = dxlim
@@ -87,11 +86,11 @@ def plot_filters(
     ax.set_yscale("log")
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
-    ax.set_xlabel(r"$\lambda$ [$\AA$]")
+    ax.set_xlabel(r"$\lambda$ [$\mu m$]")
     ax.set_ylabel(r"$B_i(\lambda)$")
 
     # ax.set_xticks([0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 2.0])
-    ax.get_xaxis().set_major_formatter(mpl.ticker.ScalarFormatter())
+    # ax.get_xaxis().set_major_formatter(mpl.ticker.ScalarFormatter())
 
     fig.tight_layout()
 
@@ -119,10 +118,9 @@ if __name__ == "__main__":  # pragma: no cover
         "HST_WFC3_F110W",
         "HST_WFC3_F160W",
     ]
-    parser.add_argument("filter_names",
-                        help="names of filters",
-                        nargs='+',
-                        default=def_filter_names)
+    parser.add_argument(
+        "filter_names", help="names of filters", nargs="+", default=def_filter_names
+    )
     args = parser.parse_args()
 
     fig = plot_filters(args.filter_names, show_plot=False)
