@@ -19,7 +19,7 @@ def make_filters_libfile():
     """
 
     # fmt: off
-    wfc3_uvis = ["f218w","f225w", "f275w", "f336w", "f390w", "f438w",
+    wfc3_uvis = ["f218w", "f225w", "f275w", "f336w", "f390w", "f438w",
                  "f475w", "f555w", "f606w", "f625w", "f775w", "f814w",
                  "f390m", "f410m", "f467m", "f547m", "f621m", "f689m", "f763m", "f845m",
                  "f280n", "f343n", "f373n", "f395n", "f469n", "f487n", "f502n", "f631n",
