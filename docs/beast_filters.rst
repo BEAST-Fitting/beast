@@ -16,6 +16,10 @@ Imaging, UVIS, Wide
 
    from beast.plotting.plot_filters import plot_filters
 
+   # required to get the filters library needed for building on RTD
+   from beast.tools import get_libfiles
+   get_libfiles.get_libfiles(vega_filters_only=True)
+
    wfc3_uvis = ["f218w","f225w", "f275w", "f336w", "f390w", "f438w",
                 "f475w", "f555w", "f606w", "f625w", "f775w", "f814w"]
    filters = [f"HST_WFC3_{cfilt.upper()}" for cfilt in wfc3_uvis]
