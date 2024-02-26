@@ -137,7 +137,8 @@ BEAST Filters
 =============
 
 The filters are defined in ``beast/libs/filters.hd5``. The file
-has been updated in March, 2022 using stsynphot to have correct, 
+has been updated in Feb 2024 using stsynphot (HST/GALEX) and 
+pandeia (JWST) to have correct, 
 total throughput for HST filters and to remove unused filters. 
 The file contains two groups:
 
@@ -154,128 +155,5 @@ The filters currently included in the BEAST filter library are as follows.
 
 Please do not forget updating ``beast/libs/vega.hd5`` as well when making 
 any updates in ``beast/libs/filters.hd5``. Vega fluxes and magnitudes in 
-udpated filters need to be correspondingly recomputed and saved in vega.hd5.
-
-+--------------------------+
-| HST_WFC3_F218W           |
-+--------------------------+
-| HST_WFC3_F225W           |
-+--------------------------+
-| HST_WFC3_F275W           |
-+--------------------------+
-| HST_WFC3_F336W           |
-+--------------------------+
-| HST_WFC3_F390M           |
-+--------------------------+
-| HST_WFC3_F390W           |
-+--------------------------+
-| HST_WFC3_F410M           |
-+--------------------------+
-| HST_WFC3_F438W           |
-+--------------------------+
-| HST_WFC3_F467M           |
-+--------------------------+
-| HST_WFC3_F475W           |
-+--------------------------+
-| HST_WFC3_F547M           |
-+--------------------------+
-| HST_WFC3_F555W           |
-+--------------------------+
-| HST_WFC3_F606W           |
-+--------------------------+
-| HST_WFC3_F621M           |
-+--------------------------+
-| HST_WFC3_F625W           |
-+--------------------------+
-| HST_WFC3_F689M           |
-+--------------------------+
-| HST_WFC3_F763M           |
-+--------------------------+
-| HST_WFC3_F775W           |
-+--------------------------+
-| HST_WFC3_F814W           |
-+--------------------------+
-| HST_WFC3_F845M           |
-+--------------------------+
-| HST_WFC3_F098M           |
-+--------------------------+
-| HST_WFC3_F105W           |
-+--------------------------+
-| HST_WFC3_F110W           |
-+--------------------------+
-| HST_WFC3_F125W           |
-+--------------------------+
-| HST_WFC3_F127M           |
-+--------------------------+
-| HST_WFC3_F139M           |
-+--------------------------+
-| HST_WFC3_F140W           |
-+--------------------------+
-| HST_WFC3_F153M           |
-+--------------------------+
-| HST_WFC3_F160W           |
-+--------------------------+
-| HST_WFPC2_F122M          |
-+--------------------------+
-| HST_WFPC2_F157W          |
-+--------------------------+
-| HST_WFPC2_F336W          |
-+--------------------------+
-| HST_WFPC2_F410M          |
-+--------------------------+
-| HST_WFPC2_F467M          |
-+--------------------------+
-| HST_WFPC2_F547M          |
-+--------------------------+
-| HST_WFPC2_F439W          |
-+--------------------------+
-| HST_WFPC2_F569W          |
-+--------------------------+
-| HST_WFPC2_F675W          |
-+--------------------------+
-| HST_WFPC2_F791W          |
-+--------------------------+
-| HST_WFPC2_F170W          |
-+--------------------------+
-| HST_WFPC2_F185W          |
-+--------------------------+
-| HST_WFPC2_F218W          |
-+--------------------------+
-| HST_WFPC2_F255W          |
-+--------------------------+
-| HST_WFPC2_F300W          |
-+--------------------------+
-| HST_WFPC2_F380W          |
-+--------------------------+
-| HST_WFPC2_F555W          |
-+--------------------------+
-| HST_WFPC2_F622W          |
-+--------------------------+
-| HST_WFPC2_F450W          |
-+--------------------------+
-| HST_WFPC2_F606W          |
-+--------------------------+
-| HST_WFPC2_F702W          |
-+--------------------------+
-| HST_WFPC2_F814W          |
-+--------------------------+
-| HST_ACS_WFC_F435W        |
-+--------------------------+
-| HST_ACS_WFC_F475W        |
-+--------------------------+
-| HST_ACS_WFC_F550M        |
-+--------------------------+
-| HST_ACS_WFC_F555W        |
-+--------------------------+
-| HST_ACS_WFC_F606W        |
-+--------------------------+
-| HST_ACS_WFC_F625W        |
-+--------------------------+
-| HST_ACS_WFC_F775W        |
-+--------------------------+
-| HST_ACS_WFC_F814W        |
-+--------------------------+
-| GALEX_FUV                |
-+--------------------------+
-| GALEX_NUV                |
-+--------------------------+
+updated filters need to be correspondingly recomputed and saved in vega.hd5.
+See :doc:`beast_filters` for the full current set of included filters.
