@@ -30,6 +30,7 @@ Basics:
    :maxdepth: 1
 
    Run setup <beast_setup.rst>
+   Filters supported <beast_filters.rst>
    Photometry files <photometry_files.rst>
    Output files <outputs.rst>
 
