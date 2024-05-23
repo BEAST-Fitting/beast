@@ -86,7 +86,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
                 bins_outfile=bins_outfile,
             )
 
-        if pick_method == "random_pick":
+        if pick_method == "random_seds":
 
             # construct magnitude cuts
             mag_cuts = settings.ast_maglimit
