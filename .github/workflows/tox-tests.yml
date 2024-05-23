@@ -27,8 +27,8 @@ jobs:
         # For example -- os: [ubuntu-latest, macos-latest, windows-latest]
         # windows-latest not possible due to how temp files are used in tests currently
         # macos failing due to an issue installing h5py - KDG 14may24
-        os: [ubuntu-latest, macos-latest]
-        # os: [ubuntu-latest]
+        # os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
 
         # Test python version 3.x
         python-ver: [10, 11, 12]
