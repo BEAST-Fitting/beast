@@ -86,7 +86,7 @@ def plot_graphic_file_flow_sd(n_sd=1, n_sub=3, savefig="png"):
     # iterate through source density bins
     for s in range(n_sd):
 
-        curr_sd = f"SD{s}-{s+1}"
+        curr_sd = f"SD{s}-{s + 1}"
 
         # files for this source density bin
         sg1.node(f"phot{s}", f"phot_{curr_sd}")
@@ -273,9 +273,9 @@ def plot_graphic_file_flow_subgrid(n_sg=3, savefig="png"):
         edges_invis[f"sed{s}"].append(f"obs{s}")
         edges_invis[f"sed{s}t"].append(f"obs{s}t")
         if s < n_sg - 1:
-            edges_invis[f"obs{s}"].append(f"sed{s+1}")
-            edges_invis[f"obs{s}t"].append(f"sed{s+1}t")
-            edges_invis[f"lnps_{s}"].append(f"lnps_{s+1}")
+            edges_invis[f"obs{s}"].append(f"sed{s + 1}")
+            edges_invis[f"obs{s}t"].append(f"sed{s + 1}t")
+            edges_invis[f"lnps_{s}"].append(f"lnps_{s + 1}")
         # output files
         edges_invis[f"stat{s}"].append(f"pdf1d{s}")
         edges_invis[f"pdf1d{s}"].append(f"pdf2d{s}")
