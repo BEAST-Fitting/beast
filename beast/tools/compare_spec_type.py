@@ -9,6 +9,7 @@ from astropy import units as u
 
 import beast.plotting.plot_compare_spec_type as plot_match
 
+__all__ = ["compare_spec_type"]
 
 def compare_spec_type(
     phot_cat_file,
