@@ -902,6 +902,11 @@ def IAU_names_and_extra_info(obsdata, surveyname="PHAT", extraInfo=False):
         obsfiltname = obsdata.filter_aliases[filtername]
         r[filtername] = (obsdata.data[obsfiltname] * obsdata.vega_flux[k]).astype(float)
 
+    # if running a simulation, propagate beast_idx numbers to resort to input obs file
+    if "beast_idx" in list(obsdata.data.keys()):
+        r["beast_idx"] = obsdata.data["beast_idx"]
+
+
     return r
 
 
