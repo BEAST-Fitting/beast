@@ -8,7 +8,7 @@ based on EZPADOVA
 :author: MF
 """
 
-from pkg_resources import resource_filename
+from importlib_resources import files, as_file
 
 from urllib import request
 from urllib.request import urlopen
@@ -20,11 +20,10 @@ from ..simpletable import SimpleTable as Table
 
 py3k = True
 
-localpath = resource_filename("beast", "physicsmodel/stars/ezmist")
+localpath = str(files('beast.physicsmodel.stars.ezmist').joinpath('mist.json'))
 
-with open(localpath + "/mist.json") as f:
+with open(localpath) as f:
     _cfg = json.load(f)
-
 
 # Help messages
 # -------------

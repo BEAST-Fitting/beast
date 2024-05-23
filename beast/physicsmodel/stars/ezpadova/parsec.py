@@ -5,8 +5,8 @@ directly from their website
 :version: 1.1
 :author: MF
 """
-
-from pkg_resources import resource_filename
+import beast
+from importlib_resources import files, as_file
 
 from urllib.parse import urlencode
 from urllib import request
@@ -21,9 +21,9 @@ from beast.physicsmodel.stars.simpletable import SimpleTable as Table
 
 py3k = True
 
-localpath = resource_filename("beast", "physicsmodel/stars/ezpadova")
+localpath = str(files('beast.physicsmodel.stars.ezpadova').joinpath('parsec.json'))
 
-with open(localpath + "/parsec.json") as f:
+with open(localpath) as f:
     _cfg = json.load(f)
     map_carbon_stars = _cfg["map_carbon_stars"]
     map_phot = _cfg["map_phot"]

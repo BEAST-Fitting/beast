@@ -1,7 +1,7 @@
 import numpy as np
 from collections import defaultdict
 from scipy.interpolate import RegularGridInterpolator
-import pkg_resources
+from importlib_resources import files
 
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
@@ -258,9 +258,9 @@ def setup_teff_table():
         function to interpolate across the T_eff table
     """
 
-    # read in the table
-    data_path = pkg_resources.resource_filename("beast", "tools/data/")
-    teff_table = Table.read(data_path + "effective_temperature.txt", format="ascii")
+    data_path = str(files("beast.tools.data").joinpath("effective_temperature.txt"))
+    print(data_path)
+    teff_table = Table.read(data_path, format="ascii")
     # make each row a number rather than a letter+number
     teff_table["row_id"] = np.zeros(len(teff_table))
     for i in range(len(teff_table)):
@@ -299,9 +299,8 @@ def setup_logg_table():
         function to interpolate across the log(g) table
     """
 
-    # read in the table
-    data_path = pkg_resources.resource_filename("beast", "tools/data/")
-    logg_table = Table.read(data_path + "surface_gravity.txt", format="ascii")
+    data_path = str(files("beast.tools.data").joinpath("surface_gravity.txt"))
+    logg_table = Table.read(data_path, format="ascii")
     # make each row a number rather than a letter+number
     logg_table["row_id"] = np.zeros(len(logg_table))
     for i in range(len(logg_table)):
