@@ -906,7 +906,6 @@ def IAU_names_and_extra_info(obsdata, surveyname="PHAT", extraInfo=False):
     if "beast_idx" in list(obsdata.data.keys()):
         r["beast_idx"] = obsdata.data["beast_idx"]
 
-
     return r
 
 

@@ -95,7 +95,6 @@ def split_simulated_catalog(
     # add index column to help sort merged files later
     cat["beast_idx"] = np.arange(len(cat))
 
-
     # write out sub-files, if chosen
     if (n_per_file is not None) or (min_n_subfile is not None):
 
