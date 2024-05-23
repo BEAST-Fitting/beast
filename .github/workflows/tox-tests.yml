@@ -95,14 +95,14 @@ jobs:
     - name: Set up python for coverage test
       uses: actions/setup-python@v4
       with:
-        python-version: 3.12
+        python-version: 3.9
     - name: Install base dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install tox
     - name: Test with tox
       run: |
-        tox -e py312-cov -- --remote-data
+        tox -e py309-cov -- --remote-data
     - name: Upload coverage to codecov
       uses: codecov/codecov-action@v1
       with:

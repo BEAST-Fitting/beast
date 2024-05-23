@@ -242,8 +242,6 @@ The commits to the ``beast`` repository can be visualized using `gource`.  This
 creates a movie showing the time evolution of the code and who made the
 changes.
 
-Version created 22 Jan 2018:  <http://stsci.edu/~kgordon/beast/beast_repo.mp4>
-
 Command to create it:
 
     .. code-block:: console
