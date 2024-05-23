@@ -11,6 +11,7 @@ import beast.plotting.plot_compare_spec_type as plot_match
 
 __all__ = ["compare_spec_type"]
 
+
 def compare_spec_type(
     phot_cat_file,
     beast_stats_file,
@@ -260,7 +261,6 @@ def setup_teff_table():
     """
 
     data_path = str(files("beast.tools.data").joinpath("effective_temperature.txt"))
-    print(data_path)
     teff_table = Table.read(data_path, format="ascii")
     # make each row a number rather than a letter+number
     teff_table["row_id"] = np.zeros(len(teff_table))
