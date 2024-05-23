@@ -6,7 +6,7 @@ directly from their website
 :author: MF
 """
 import beast
-from importlib_resources import files, as_file
+from importlib_resources import files
 
 from urllib.parse import urlencode
 from urllib import request

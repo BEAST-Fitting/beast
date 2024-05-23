@@ -8,7 +8,7 @@ based on EZPADOVA
 :author: MF
 """
 
-from importlib_resources import files, as_file
+from importlib_resources import files
 
 from urllib import request
 from urllib.request import urlopen
