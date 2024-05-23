@@ -5,7 +5,7 @@ directly from their website
 :version: 1.1
 :author: MF
 """
-import beast
+
 from importlib_resources import files
 
 from urllib.parse import urlencode
