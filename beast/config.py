@@ -13,6 +13,9 @@ __USE_NUMEXPR__ = True
 # __NTHREADS__ = 6
 __NTHREADS__ = 1
 
+# useful constant(s)
+solar_metalicity = 0.0153
+
 # library directory
 beast_envvar = "BEAST_LIBS"
 userhome = expanduser("~")

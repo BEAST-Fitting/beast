@@ -6,6 +6,7 @@ from astropy import units
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel import creategrid
 from beast.physicsmodel.stars import isochrone, stellib
+from beast.physicsmodel.stars import evoltracks
 from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.physicsmodel.dust import extinction
 from beast.physicsmodel.grid_and_prior_weights import (
@@ -14,50 +15,48 @@ from beast.physicsmodel.grid_and_prior_weights import (
 from beast.tools.beast_info import add_to_beast_info_file
 
 __all__ = [
-    "make_iso_table",
+    "make_evoltrack_table",
     "make_spectral_grid",
     "add_stellar_priors",
     "make_extinguished_sed_grid",
 ]
 
 
-def make_iso_table(
+def make_evoltrack_table(
     project,
-    oiso=None,
-    logtmin=6.0,
-    logtmax=10.13,
-    dlogt=0.05,
+    oet=None,
+    age_info=[6.0, 10.13, 0.05],
+    mass_info=[-1.0, 3.0, 0.05],
     z=[0.0152],
-    iso_fname=None,
+    et_fname=None,
     info_fname=None,
 ):
     """
-    The isochrone tables are loaded (downloading if necessary)
+    The evolutionary track table are loaded.
+    Determined based on evolutionary tracks directly or isochrones derived
+    from evolutionary tracks.
 
     Parameters
     ----------
     project : str
         project name
 
-    oiso : isochrone.Isochrone object
-        contains the full isochrones information
+    oet : evoltracks.EvolTracks or isochrone.Isochrone object
+        contains the full evolutionary track information
 
-    logtmin : float
-        log-age min
+    age_info : list
+        age information needed for isochrones [logtmin, logtmax, dlogt]
 
-    logtmax : float
-        log-age max
-
-    dlogt : float
-        log-age step to request
+    mass_info : list
+        mass information needed for evolutionary tracks [logmmin, logmmax, dlogm]
 
     z : float or sequence
         list of metalicity values, where default (Z=0.152) is adopted Z_sun
         for PARSEC/COLIBRI models
 
-    iso_fname : str
-        Set to specify the filename to save the isochrones to, otherwise
-        saved to project/project_iso.csv
+    et_fname : str
+        Set to specify the filename to save the gridded evolutionary tracks
+        to, otherwise saved to project/project_et.csv
 
     info_fname : str
         Set to specify the filename to save beast info to, otherwise
@@ -68,32 +67,44 @@ def make_iso_table(
     fname: str
        name of saved file
 
-    oiso: isochrone.Isochrone object
-        contains the full isochrones information
+    oet: evoltracks.EvolTracks or isochrone.Isochrone object
+        contains the full evolutionary track information
     """
-    if iso_fname is None:
-        iso_fname = "%s/%s_iso.csv" % (project, project)
-    if not os.path.isfile(iso_fname):
-        if oiso is None:
-            oiso = isochrone.PadovaWeb()
+    if et_fname is None:
+        et_fname = "%s/%s_et.csv" % (project, project)
+    if not os.path.isfile(et_fname):
+        if oet is None:
+            oet = isochrone.PadovaWeb()
 
-        t = oiso._get_t_isochrones(max(5.0, logtmin), min(10.13, logtmax), dlogt, z)
-        t.header["NAME"] = "{0} Isochrones".format("_".join(iso_fname.split("_")[:-1]))
-        print("{0} Isochrones".format("_".join(iso_fname.split("_")[:-1])))
+        if isinstance(oet, isochrone.Isochrone):
+            logtmin, logtmax, dlogt = age_info
+            t = oet._get_t_isochrones(max(5.0, logtmin), min(10.13, logtmax), dlogt, z)
+            t.header["NAME"] = "{0} Isochrones".format("_".join(et_fname.split("_")[:-1]))
+            print("{0} Isochrones".format("_".join(et_fname.split("_")[:-1])))
+            info = {"project": project, "logt_input": age_info, "z_input": z}
+            t.write(et_fname)
+            # maybe needed as ezIsoch is a proxy for a Table
+            # maybe we can just use a table????
+            oet = ezIsoch(et_fname)
+        elif isinstance(oet, evoltracks.EvolTracks):
+            tab = oet.get_evoltracks(mass_info, z)
+            tab.header["NAME"] = "{0} EvolTracks".format("_".join(et_fname.split("_")[:-1]))
+            print("{0} EvolTracks".format("_".join(et_fname.split("_")[:-1])))
+            info = {"project": project, "logm_input": mass_info, "z_input": z}
+        else:
+            print(f"Type {type(oet)} of evolutionary track not supported")
 
-        t.write(iso_fname)
+    else:
+        # read in the isochrone data from the file
+        #   not sure why this is needed, but reproduces previous ezpipe method
+        oet = ezIsoch(et_fname)
 
     # save info to the beast info file
-    info = {"project": project, "logt_input": [logtmin, logtmax, dlogt], "z_input": z}
     if info_fname is None:
         info_fname = f"{project}/{project}_beast_info.asdf"
     add_to_beast_info_file(info_fname, info)
 
-    # read in the isochrone data from the file
-    #   not sure why this is needed, but reproduces previous ezpipe method
-    oiso = ezIsoch(iso_fname)
-
-    return (iso_fname, oiso)
+    return (et_fname, oet)
 
 
 def make_spectral_grid(
