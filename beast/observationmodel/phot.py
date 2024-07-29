@@ -14,11 +14,11 @@ This also include functions to keep libraries up to date
     edges, the error due to this "interpolation" are extremely large in
     comparison to the uncertainties induced by trapeze integration.
 """
+
 import sys
 import numpy
 
 import tables
-from scipy.integrate import trapz
 
 from beast.config import __ROOT__
 
@@ -133,9 +133,11 @@ Filter object information:
         self.name = name
         self.wavelength = wavelength
         self.transmit = transmit
-        self.norm = trapz(transmit, wavelength)
-        self.lT = trapz(wavelength * transmit, wavelength)
-        self.lpivot = numpy.sqrt(self.lT / trapz(transmit / wavelength, wavelength))
+        self.norm = numpy.trapz(transmit, wavelength)
+        self.lT = numpy.trapz(wavelength * transmit, wavelength)
+        self.lpivot = numpy.sqrt(
+            self.lT / numpy.trapz(transmit / wavelength, wavelength)
+        )
         self.cl = self.lT / self.norm
 
 
@@ -230,14 +232,14 @@ class IntegrationFilter(object):
         self.name = name
         self.wavelength = wavelength
         self.transmit = transmit
-        self.norm = trapz(transmit, wavelength)
-        self.lT = trapz(transmit * wavelength, wavelength)
-        self.lpivot = numpy.sqrt(self.lT / trapz(1.0 / wavelength, wavelength))
+        self.norm = numpy.trapz(transmit, wavelength)
+        self.lT = numpy.trapz(transmit * wavelength, wavelength)
+        self.lpivot = numpy.sqrt(self.lT / numpy.trapz(1.0 / wavelength, wavelength))
         self.cl = self.lT / self.norm
 
 
 def __load__(fname, ftab, interp=True, lamb=None, integrationFilter=False):
-    """ Load a given filter from the library
+    """Load a given filter from the library
 
     Parameters
     ----------
@@ -278,7 +280,7 @@ def __load__(fname, ftab, interp=True, lamb=None, integrationFilter=False):
 
 
 def load_all_filters(interp=True, lamb=None, filterLib=None):
-    """ load all filters from the library
+    """load all filters from the library
 
     Parameters
     ----------
@@ -307,26 +309,26 @@ def load_all_filters(interp=True, lamb=None, filterLib=None):
 
 
 def load_filters(names, interp=True, lamb=None, filterLib=None):
-    """ load a limited set of filters
+    """load a limited set of filters
 
-        Parameters
-        ----------
-        names: list[str]
-            normalized names according to filtersLib
+    Parameters
+    ----------
+    names: list[str]
+        normalized names according to filtersLib
 
-        interp: bool
-            reinterpolate the filters over given lambda points
+    interp: bool
+        reinterpolate the filters over given lambda points
 
-        lamb: ndarray[float, ndim=1]
-            desired wavelength definition of the filter
+    lamb: ndarray[float, ndim=1]
+        desired wavelength definition of the filter
 
-        filterLib: path
-            path to the filter library hd5 file
+    filterLib: path
+        path to the filter library hd5 file
 
-        Returns
-        -------
-        filters: list[filter]
-            list of filter objects
+    Returns
+    -------
+    filters: list[filter]
+        list of filter objects
     """
     if filterLib is None:
         filterLib = __default__
@@ -336,24 +338,24 @@ def load_filters(names, interp=True, lamb=None, filterLib=None):
 
 
 def load_Integrationfilters(flist, interp=True, lamb=None):
-    """ load a limited set of filters
+    """load a limited set of filters
 
-        Parameters
-        ----------
-        flist: sequence(filter)
-            list of filter object instances
+    Parameters
+    ----------
+    flist: sequence(filter)
+        list of filter object instances
 
-        interp: bool
-            reinterpolate the filters over given lambda points
+    interp: bool
+        reinterpolate the filters over given lambda points
 
-        lamb: ndarray[float, ndim=1]
-            desired wavelength definition of the filter
+    lamb: ndarray[float, ndim=1]
+        desired wavelength definition of the filter
 
 
-        Returns
-        -------
-        filters: list[filter]
-            list of filter objects
+    Returns
+    -------
+    filters: list[filter]
+        list of filter objects
     """
     filters = [
         __load__(fname, ftab=None, interp=interp, lamb=lamb, integrationFilter=True)
@@ -396,7 +398,7 @@ def extractPhotometry(lamb, spec, flist, absFlux=True):
         # apply absolute flux conversion if requested
         if absFlux:
             s0 /= distc
-        a = trapz(tmp[None, :] * s0, lamb[xl], axis=1)
+        a = numpy.trapz(tmp[None, :] * s0, lamb[xl], axis=1)
         seds[e] = a / k.lT  # divide by integral (lambda T dlambda)
         cls[e] = k.cl
 
@@ -404,7 +406,7 @@ def extractPhotometry(lamb, spec, flist, absFlux=True):
 
 
 def extractSEDs(g0, flist, absFlux=True):
-    """ Extract seds from a grid
+    """Extract seds from a grid
 
     Parameters
     ----------
@@ -438,7 +440,7 @@ def extractSEDs(g0, flist, absFlux=True):
         # apply absolute flux conversion if requested
         if absFlux:
             s0 /= distc
-        a = trapz(tmp[None, :] * s0, lamb[xl], axis=1)
+        a = numpy.trapz(tmp[None, :] * s0, lamb[xl], axis=1)
         seds[:, e] = a / k.lT
         cls[e] = k.cl
 
@@ -492,7 +494,7 @@ def STmag_from_flux(v):
 
 
 def fluxToMag(flux):
-    """ Return the magnitudes from flux values
+    """Return the magnitudes from flux values
 
     Parameters
     ----------
@@ -508,7 +510,7 @@ def fluxToMag(flux):
 
 
 def fluxErrTomag(flux, fluxerr):
-    """ Return the magnitudes and associated errors from fluxes and flux error
+    """Return the magnitudes and associated errors from fluxes and flux error
     values
 
     Parameters
@@ -532,7 +534,7 @@ def fluxErrTomag(flux, fluxerr):
 
 
 def magToFlux(mag):
-    """ Return the flux from magnitude values
+    """Return the flux from magnitude values
 
     Parameters
     ----------
@@ -548,7 +550,7 @@ def magToFlux(mag):
 
 
 def magErrToFlux(mag, err):
-    """ Return the flux and associated errors from magnitude and mag error values
+    """Return the flux and associated errors from magnitude and mag error values
 
     Parameters
     ----------
@@ -571,7 +573,7 @@ def magErrToFlux(mag, err):
 
 
 class __newFilterTable__(tables.IsDescription):
-    """ define table to store filter dataset """
+    """define table to store filter dataset"""
 
     WAVELENGTH = tables.FloatCol(pos=0)
     THROUGHPUT = tables.FloatCol(pos=1)
