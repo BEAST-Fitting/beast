@@ -18,7 +18,6 @@ import sys
 import numpy
 
 import tables
-from scipy.integrate import trapz
 
 from beast.config import __ROOT__
 
@@ -133,9 +132,9 @@ Filter object information:
         self.name = name
         self.wavelength = wavelength
         self.transmit = transmit
-        self.norm = trapz(transmit, wavelength)
-        self.lT = trapz(wavelength * transmit, wavelength)
-        self.lpivot = numpy.sqrt(self.lT / trapz(transmit / wavelength, wavelength))
+        self.norm = numpy.trapz(transmit, wavelength)
+        self.lT = numpy.trapz(wavelength * transmit, wavelength)
+        self.lpivot = numpy.sqrt(self.lT / numpy.trapz(transmit / wavelength, wavelength))
         self.cl = self.lT / self.norm
 
 
@@ -230,9 +229,9 @@ class IntegrationFilter(object):
         self.name = name
         self.wavelength = wavelength
         self.transmit = transmit
-        self.norm = trapz(transmit, wavelength)
-        self.lT = trapz(transmit * wavelength, wavelength)
-        self.lpivot = numpy.sqrt(self.lT / trapz(1.0 / wavelength, wavelength))
+        self.norm = numpy.trapz(transmit, wavelength)
+        self.lT = numpy.trapz(transmit * wavelength, wavelength)
+        self.lpivot = numpy.sqrt(self.lT / numpy.trapz(1.0 / wavelength, wavelength))
         self.cl = self.lT / self.norm
 
 
@@ -396,7 +395,7 @@ def extractPhotometry(lamb, spec, flist, absFlux=True):
         # apply absolute flux conversion if requested
         if absFlux:
             s0 /= distc
-        a = trapz(tmp[None, :] * s0, lamb[xl], axis=1)
+        a = numpy.trapz(tmp[None, :] * s0, lamb[xl], axis=1)
         seds[e] = a / k.lT  # divide by integral (lambda T dlambda)
         cls[e] = k.cl
 
@@ -438,7 +437,7 @@ def extractSEDs(g0, flist, absFlux=True):
         # apply absolute flux conversion if requested
         if absFlux:
             s0 /= distc
-        a = trapz(tmp[None, :] * s0, lamb[xl], axis=1)
+        a = numpy.trapz(tmp[None, :] * s0, lamb[xl], axis=1)
         seds[:, e] = a / k.lT
         cls[e] = k.cl
 
