@@ -70,7 +70,7 @@ Leo Girardi, David W. Hogg, Jason S. Kalirai, Maria Kapala,
 Alexia R. Lewis, Hans-Walter Rix, Karin Sandstrom, and Evan D. Skillman
 
 Direct code contributors (including new contributors since 2016):
-<https://github.com/BEAST-fitting/beast/graphs/contributors>
+`<https://github.com/BEAST-fitting/beast/graphs/contributors>`_
 
 Attribution
 -----------
