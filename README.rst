@@ -49,7 +49,7 @@ Documentation
 -------------
 
 Details of installing, running, and contributing to the BEAST are at
-<http://beast.readthedocs.io>.
+<http://beast.readthedocs.io>_.
 
 .. image:: https://img.shields.io/badge/ApJ-Gordon%20et%20al.%202016,%20ApJ,%20826,%20104-brightgreen
     :target: https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G/abstract
