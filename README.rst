@@ -19,7 +19,7 @@ Build Status/Checks
    :target: http://beast.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://github.com/BEAST-Fitting/beast/workflows/Python%20Tests/badge.svg
+.. image:: https://github.com/BEAST-Fitting/beast/actions/workflows/tox-tests.yml/badge.svg
    :target: https://github.com/BEAST-Fitting/beast/actions/
    :alt: Test Status
 
