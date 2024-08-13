@@ -435,14 +435,14 @@ def make_filters_libfile():
                 "nint": 1,
                 "readout_pattern": "nis",
                 "subarray": "full",
-             },
-             "instrument": {
+            },
+            "instrument": {
                 "aperture": "imager",
                 "disperser": "null",
                 "filter": filt,
                 "instrument": "niriss",
                 "mode": "imaging",
-             },
+            },
         }
 
         # create a configured instrument
@@ -518,8 +518,8 @@ def make_filters_libfile():
 
         # build array of wavelength and throughput
         arr = np.array(
-             list(zip(wave.value.astype(np.float64), eff.astype(np.float64))),
-             dtype=[("WAVELENGTH", "float64"), ("THROUGHPUT", "float64")],
+            list(zip(wave.value.astype(np.float64), eff.astype(np.float64))),
+            dtype=[("WAVELENGTH", "float64"), ("THROUGHPUT", "float64")],
         )
 
         # append dataset to the hdf5 filters group
