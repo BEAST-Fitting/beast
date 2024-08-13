@@ -13,7 +13,6 @@ flat priors on all the fit parameters.  Non-flat priors will be implemented
 with prior weights.
 """
 
-from inspect import signature
 import numpy as np
 
 from beast.physicsmodel.grid_weights_stars import compute_distance_grid_weights
@@ -32,7 +31,7 @@ from beast.physicsmodel.priormodel import (
 __all__ = [
     "compute_age_mass_metallicity_weights",
     "compute_distance_age_mass_metallicity_weights",
-    "compute_av_rv_fA_weights",
+    "compute_av_rv_fA_prior_weights",
 ]
 
 
@@ -294,6 +293,6 @@ def compute_av_rv_fA_prior_weights(
     dust_prior = av_weights * rv_weights * f_A_weights
 
     # normalize to control for numerical issues
-    dust_prior /= np.max(dust_prior)
+    # dust_prior /= np.max(dust_prior)
 
     return dust_prior
