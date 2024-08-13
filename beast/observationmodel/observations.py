@@ -4,7 +4,7 @@ from astropy.table import Table
 
 from beast.observationmodel.vega import Vega
 
-__all__ = ["Observations", "gen_SimObs_from_sedgrid"]
+__all__ = ["Observations"]
 
 
 class Observations(object):
