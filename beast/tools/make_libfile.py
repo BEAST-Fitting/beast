@@ -51,6 +51,8 @@ def make_filters_libfile():
 
     jwst_miri = ["f560w", "f770w", "f1000w", "f1130w", "f1280w", "f1500w", "f1800w", "f2100w", "f2550w",
                  "f1065c", "f1140c", "f1550c", "f2300c"]
+
+    roman_wfi = ["f062", "f087", "f106", "f129", "f158", "f184", "f213"]
     # fmt: on
 
     # galex
@@ -320,14 +322,14 @@ def make_filters_libfile():
                 "ngroup": 10,
                 "nint": 1,
                 "readout_pattern": "deep2",
-                "subarray": "full",
+                "subarray": "full"
             },
             "instrument": {
                 "aperture": "sw",
                 "disperser": "null",
                 "filter": filt,
                 "instrument": "nircam",
-                "mode": "sw_imaging",
+                "mode": "sw_imaging"
             },
         }
 
@@ -530,6 +532,43 @@ def make_filters_libfile():
         tablenames.append(filter_name)
         observatories.append("JWST")
         instruments.append("MIRI")
+        names.append(newfilt.name)
+        norms.append(newfilt.norm.value)
+        cwaves.append(newfilt.cl.value)
+        pwaves.append(newfilt.lpivot.value)
+        comments.append("")
+
+    # Loop through Roman WFI filters
+    for filt in roman_wfi:
+
+        # define ir mode
+        mode = "roman, wfi, " + filt
+
+        # pull bandpasses from stsynphot for the two uvis modes
+        bp = stsyn.band(mode)
+
+        # extract the wavelength array
+        wave = bp.waveset
+
+        # define the filter name
+        filter_name = "ROMAN_WFI_" + filt.upper()
+
+        # build array of wavelength and throughput
+        arr = np.array(
+            list(zip(wave.value.astype(np.float64), bp(wave).astype(np.float64))),
+            dtype=[("WAVELENGTH", "float64"), ("THROUGHPUT", "float64")],
+        )
+
+        # append dataset to the hdf5 filters group
+        f.create_dataset(filter_name, data=arr)
+
+        # generate filter instance to compute relevant info
+        newfilt = phot.Filter(wave, bp(wave), name=filt.upper())
+
+        # populate contents lists with relevant information
+        tablenames.append(filter_name)
+        observatories.append("HST")
+        instruments.append("ACS")
         names.append(newfilt.name)
         norms.append(newfilt.norm.value)
         cwaves.append(newfilt.cl.value)
