@@ -12,6 +12,8 @@ Basically, we want the maginalization using these grid weights to provide
 flat priors on all the fit parameters.  Non-flat priors will be implemented
 with prior weights.
 """
+
+from inspect import signature
 import numpy as np
 
 from beast.physicsmodel.grid_weights_stars import compute_distance_grid_weights
@@ -24,11 +26,13 @@ from beast.physicsmodel.priormodel import (
     PriorMassModel,
     PriorMetallicityModel,
     PriorDistanceModel,
+    PriorDustModel,
 )
 
 __all__ = [
     "compute_age_mass_metallicity_weights",
     "compute_distance_age_mass_metallicity_weights",
+    "compute_av_rv_fA_weights",
 ]
 
 
@@ -155,7 +159,10 @@ def compute_age_mass_metallicity_weights(
 
         # compute the age weights
         age_grid_weights = compute_age_grid_weights(uniq_ages)
-        age_prior = PriorAgeModel(age_prior_model)
+        if isinstance(age_prior_model, dict):
+            age_prior = PriorAgeModel(age_prior_model)
+        else:
+            age_prior = age_prior_model
         age_prior_weights = age_prior(uniq_ages)
 
         for ak, age_val in enumerate(uniq_ages):
@@ -168,10 +175,26 @@ def compute_age_mass_metallicity_weights(
 
             # compute the mass weights
             if len(aindxs) > 1:
-                cur_masses = _tgrid_single_age["M_ini"]
-                mass_grid_weights = compute_mass_grid_weights(cur_masses)
-                mass_prior = PriorMassModel(mass_prior_model)
-                mass_prior_weights = mass_prior(cur_masses)
+                # cur_masses = _tgrid_single_age["M_ini"]
+                # deal with repeat masses - happens for MegaBEAST
+                cur_masses = np.unique(_tgrid_single_age["M_ini"])
+                umass_grid_weights = compute_mass_grid_weights(cur_masses)
+                if isinstance(mass_prior_model, dict):
+                    mass_prior = PriorMassModel(mass_prior_model)
+                else:
+                    mass_prior = mass_prior_model
+                umass_prior_weights = mass_prior(cur_masses)
+                n_masses = len(_tgrid_single_age["M_ini"])
+                if len(cur_masses) < n_masses:
+                    mass_grid_weights = np.zeros(n_masses, dtype=float)
+                    mass_prior_weights = np.zeros(n_masses, dtype=float)
+                    for k, cmass in enumerate(cur_masses):
+                        gvals = _tgrid_single_age["M_ini"] == cmass
+                        mass_grid_weights[gvals] = umass_grid_weights[k]
+                        mass_prior_weights[gvals] = umass_prior_weights[k]
+                else:
+                    mass_grid_weights = umass_grid_weights
+                    mass_prior_weights = umass_prior_weights
             else:
                 # must be a single mass for this age,z combination
                 # set mass weight to zero to remove this point from the grid
@@ -218,3 +241,59 @@ def compute_age_mass_metallicity_weights(
                 met_prior_weights[i] * total_z_prior_weight[i]
             )
             _tgrid[zindxs]["weight"] *= met_weights[i] * total_z_weight[i]
+
+
+def compute_av_rv_fA_prior_weights(
+    Av,
+    Rv,
+    f_A,
+    dists,
+    av_prior_model={"name": "flat"},
+    rv_prior_model={"name": "flat"},
+    fA_prior_model={"name": "flat"},
+):
+    """
+    Computes the av, rv, f_A grid and prior weights
+    on the BEAST model spectra grid
+    Grid and prior weight columns updated by multiplying by the
+    existing weights
+
+    Parameters
+    ----------
+    Av : vector
+        A(V) values
+    Rv : vector
+        R(V) values
+    f_A : vector
+        f_A values
+    dists : vector
+        distance values
+    av_prior_model : dict
+        dict including prior model name and parameters
+    rv_prior_model : dict
+        dict including prior model name and parameters
+    fA_prior_model :dict
+        dict including prior model name and parameters
+    """
+    av_prior = PriorDustModel(av_prior_model)
+    rv_prior = PriorDustModel(rv_prior_model)
+    fA_prior = PriorDustModel(fA_prior_model)
+    if av_prior_model["name"] == "step":
+        av_weights = av_prior(np.full((len(dists)), Av), y=dists)
+    else:
+        av_weights = av_prior(Av)
+    if rv_prior_model["name"] == "step":
+        rv_weights = rv_prior(np.full((len(dists)), Rv), y=dists)
+    else:
+        rv_weights = rv_prior(Rv)
+    if fA_prior_model["name"] == "step":
+        f_A_weights = fA_prior(np.full((len(dists)), f_A), y=dists)
+    else:
+        f_A_weights = fA_prior(f_A)
+
+    dust_prior = av_weights * rv_weights * f_A_weights
+
+    # normalize to control for numerical issues
+    dust_prior /= np.max(dust_prior)
+
+    return dust_prior
