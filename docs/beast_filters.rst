@@ -248,6 +248,20 @@ Coronagraphy
    filters = [f"JWST_MIRI_{cfilt.upper()}" for cfilt in jwst_miri]
    plot_filters(filters)
 
+ROMAN
+=====
+
+Imaging
+
+.. plot::
+
+   from beast.plotting.plot_filters import plot_filters
+
+   roman_wfi = ["f062", "f087", "f106", "f129", "f158", "f184", "f213"]
+   filters = [f"ROMAN_WFI_{cfilt.upper()}" for cfilt in roman_wfi]
+   plot_filters(filters) 
+
+
 GALEX
 =====
 
