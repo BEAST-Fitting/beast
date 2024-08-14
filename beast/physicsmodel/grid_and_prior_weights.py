@@ -195,6 +195,7 @@ def compute_age_mass_metallicity_weights(
                     cur_masses = _tgrid_single_age["M_ini"]
                     mass_grid_weights = compute_mass_grid_weights(cur_masses)
                     mass_prior_weights = mass_prior(cur_masses)
+
             else:
                 # must be a single mass for this age,z combination
                 # set mass weight to zero to remove this point from the grid
