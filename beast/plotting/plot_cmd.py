@@ -71,7 +71,7 @@ def plot_cmd(
     fig = plt.figure(figsize=(9, 9))
 
     # sets up plots to have larger fonts, wider lines, etc.
-    #set_params()
+    set_params()
 
     plt.plot(col, mag, "ko", ms=0.5)
 
