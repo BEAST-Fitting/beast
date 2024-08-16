@@ -94,7 +94,7 @@ def compute_distance_age_mass_metallicity_weights(
         dist_prior_weights /= np.sum(dist_prior_weights)
         dist_weights = dist_grid_weights * dist_prior_weights
 
-        # correct for any non-unformity in the number size of the
+        # correct for any non-uniformity in the number size of the
         # age-mass grids between metallicity points
         total_dist_grid_weight /= np.sum(total_dist_grid_weight)
         total_dist_prior_weight /= np.sum(total_dist_prior_weight)
@@ -180,6 +180,10 @@ def compute_age_mass_metallicity_weights(
                     mass_prior = mass_prior_model
 
                 # deal with repeat masses - happens for MegaBEAST
+                # and have discovred this can happen even for a standard BEAST run
+                # as sometimes two masses in an isochrone are exactly the same
+                #   new code for MegaBEAST is more correct as then the grid weight
+                #   will be correctly set for any repeated masses
                 cur_masses = np.unique(_tgrid_single_age["M_ini"])
                 n_masses = len(_tgrid_single_age["M_ini"])
                 if len(cur_masses) < n_masses:
