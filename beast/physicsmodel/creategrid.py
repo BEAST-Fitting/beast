@@ -14,6 +14,7 @@ possibility to generate grids that cannot fit in memory.
     * likelihood computations need to be updated to allow computations even if
       the full grid does not fit in memory
 """
+
 import numpy as np
 import copy
 
@@ -22,9 +23,8 @@ from tqdm import tqdm
 
 from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
-from beast.physicsmodel.priormodel import PriorDustModel
+from beast.physicsmodel.grid_and_prior_weights import compute_av_rv_fA_prior_weights
 
-# from beast.external.eztables import Table
 from astropy.table import Table
 from beast.tools.helpers import generator
 from beast.tools import helpers
@@ -321,13 +321,9 @@ def make_extinguished_grid(
     # Create the sampling mesh
     # ========================
     # basically the dot product from all input 1d vectors
-    # setup interation over the full dust parameter grid
+    # setup integration over the full dust parameter grid
 
-    # setup the dust prior models
-    av_prior = PriorDustModel(av_prior_model)
-    rv_prior = PriorDustModel(rv_prior_model)
     if with_fA:
-        fA_prior = PriorDustModel(fA_prior_model)
 
         it = np.nditer(np.ix_(avs, rvs, fAs))
         niter = np.size(avs) * np.size(rvs) * np.size(fAs)
@@ -387,7 +383,7 @@ def make_extinguished_grid(
         n_filters = len(filter_names)
         _seds = np.zeros((N, n_filters), dtype=float)
         if absflux_cov:
-            n_offdiag = ((n_filters ** 2) - n_filters) / 2
+            n_offdiag = ((n_filters**2) - n_filters) / 2
             _cov_diag = np.zeros((N, n_filters), dtype=float)
             _cov_offdiag = np.zeros((N, n_offdiag), dtype=float)
 
@@ -429,34 +425,24 @@ def make_extinguished_grid(
                 cols["Rv"][N0 * count : N0 * (count + 1)] = Rv
 
             # compute the dust weights
-            #   moved here in 2023 to support distance based dust priors
-            dists = g0.grid["distance"].data
-            if av_prior_model["name"] == "step":
-                av_weights = av_prior(np.full((len(dists)), Av), y=dists)
-            else:
-                av_weights = av_prior(Av)
-            if rv_prior_model["name"] == "step":
-                rv_weights = rv_prior(np.full((len(dists)), Rv), y=dists)
-            else:
-                rv_weights = rv_prior(Rv)
-            if fA_prior_model["name"] == "step":
-                f_A_weights = fA_prior(np.full((len(dists)), f_A), y=dists)
-            else:
-                if with_fA:
-                    f_A_weights = fA_prior(f_A)
-                else:
-                    f_A_weights = 1.0
-
-            dust_prior_weight = av_weights * rv_weights * f_A_weights
+            dust_prior_weight = compute_av_rv_fA_prior_weights(
+                Av,
+                Rv,
+                f_A,
+                g0.grid["distance"].data,
+                av_prior_model=av_prior_model,
+                rv_prior_model=rv_prior_model,
+                fA_prior_model=fA_prior_model,
+            )
 
             # get new attributes if exist
             for key in list(temp_results.grid.keys()):
                 if key not in keys:
                     k1 = N0 * count
                     k2 = N0 * (count + 1)
-                    cols.setdefault(key, np.zeros(N, dtype=float))[
-                        k1:k2
-                    ] = temp_results.grid[key]
+                    cols.setdefault(key, np.zeros(N, dtype=float))[k1:k2] = (
+                        temp_results.grid[key]
+                    )
 
             # compute the fractional absflux covariance matrices
             if absflux_cov:
@@ -585,7 +571,7 @@ def add_spectral_properties(
 
 
 def calc_absflux_cov_matrices(specgrid, sedgrid, filter_names):
-    """ Calculate the absflux covariance matrices for each model
+    """Calculate the absflux covariance matrices for each model
     Must be done on the full spectrum of each model to account for
     the changing combined spectral response due to the model SED and
     the filter response curve.
@@ -611,7 +597,7 @@ def calc_absflux_cov_matrices(specgrid, sedgrid, filter_names):
     # setup the output quantities
     n_models = specgrid.seds.shape[0]
     n_filters = len(filter_names)
-    n_offdiag = ((n_filters ** 2) - n_filters) / 2
+    n_offdiag = ((n_filters**2) - n_filters) / 2
     cov_diag = np.zeros((n_models, n_filters), dtype=np.float64)
     cov_offdiag = np.zeros((n_models, n_offdiag), dtype=np.float64)
 
