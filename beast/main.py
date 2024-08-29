@@ -1,7 +1,7 @@
 import inspect
 import argparse
 
-from beast.tools import get_libfiles, simulate_obs
+from beast.tools import get_libfiles
 from beast.plotting import (
     plot_indiv_fit,
     plot_ast_histogram,
@@ -36,7 +36,6 @@ def main():
     all_funcs = []
     scripts = [
         get_libfiles,
-        simulate_obs,
         plot_indiv_fit,
         plot_ast_histogram,
         plot_chi2_hist,

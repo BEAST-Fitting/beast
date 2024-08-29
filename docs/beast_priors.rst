@@ -168,7 +168,7 @@ With an explicit value for the slope.
 3. Flat
 
 There is also a flat mass prior.  This is useful for creating grids for BEAST
-verification (see :doc:`Simulations <simulations>`), and should not be
+verification, and should not be
 used for a standard fitting run.
 
 .. code-block:: python

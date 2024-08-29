@@ -42,7 +42,6 @@ Detals:
    Graphical Models <beast_graphical_model.rst>
    Stellar/Extinction Priors <beast_priors.rst>
    Generating AST inputs <generating_asts.rst>
-   Simulating observations <simulations.rst>
    Example production run workflow <workflow.rst>
    Running in parallel by using subgrids <subgrid_parallelism.rst>
    Plotting Tools <plotting_tools.rst>

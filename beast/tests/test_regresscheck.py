@@ -24,7 +24,7 @@ from beast.physicsmodel.model_grid import (
 
 from beast.observationmodel.noisemodel import generic_noisemodel as noisemodel
 from beast.observationmodel.ast import make_ast_input_list
-from beast.observationmodel.observations import Observations, gen_SimObs_from_sedgrid
+from beast.observationmodel.observations import Observations
 
 from beast.fitting.trim_grid import trim_models
 from beast.fitting import fit
@@ -389,39 +389,6 @@ class TestRegressionSuite(unittest.TestCase):
         # download cached version of the file and compare it to new file
         table_cache = Table.read(cached_table_filename, format="csv", delimiter=" ")
         compare_tables(table_new, table_cache)
-
-    # ###################################################################
-    # simulation tests
-    @pytest.mark.skip(reason="updated cached file needed")
-    def test_simobs(self):
-        """
-        Simulate observations using cached versions of the sed grid and noise model
-        and compare the result to a cached version.
-        """
-        # download files specific to this test
-        simobs_fname_cache = download_rename("beast_example_phat_simobs.fits")
-
-        # get the physics model grid - includes priors
-        modelsedgrid = SEDGrid(self.seds_fname_cache)
-
-        # read in the noise model - includes bias, unc, and completeness
-        noisegrid = noisemodel.get_noisemodelcat(self.noise_fname_cache)
-
-        table_new = gen_SimObs_from_sedgrid(
-            modelsedgrid, noisegrid, nsim=100, compl_filter="max", ranseed=1234,
-        )
-
-        # check that the simobs files are exactly the same
-        table_cache = Table.read(simobs_fname_cache)
-
-        # to avoid issues with uppercase vs lowercase column names, make them all
-        # the same before comparing
-        for col in table_new.colnames:
-            table_new[col].name = col.upper()
-        for col in table_cache.colnames:
-            table_cache[col].name = col.upper()
-
-        compare_tables(table_cache, table_new)
 
     # ###################################################################
     # tools tests
