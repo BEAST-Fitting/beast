@@ -23,7 +23,9 @@ from tqdm import tqdm
 
 from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
-from beast.physicsmodel.grid_and_prior_weights import compute_av_rv_fA_prior_weights
+from beast.physicsmodel.priormodel import PriorDustModel
+
+from beast.physicsmodel.grid_weights import compute_grid_weights
 
 from astropy.table import Table
 from beast.tools.helpers import generator
@@ -321,7 +323,7 @@ def make_extinguished_grid(
     # Create the sampling mesh
     # ========================
     # basically the dot product from all input 1d vectors
-    # setup integration over the full dust parameter grid
+    # setup interation over the full dust parameter grid
 
     if with_fA:
 
@@ -425,15 +427,25 @@ def make_extinguished_grid(
                 cols["Rv"][N0 * count : N0 * (count + 1)] = Rv
 
             # compute the dust weights
-            dust_prior_weight = compute_av_rv_fA_prior_weights(
-                Av,
-                Rv,
-                f_A,
-                g0.grid["distance"].data,
-                av_prior_model=av_prior_model,
-                rv_prior_model=rv_prior_model,
-                fA_prior_model=fA_prior_model,
-            )
+            #   moved here in 2023 to support distance based dust priors
+            dists = g0.grid["distance"].data
+            if av_prior_model["name"] == "step":
+                av_prior_weights = av_prior(np.full((len(dists)), Av), y=dists)
+            else:
+                av_prior_weights = av_prior(Av)
+            if rv_prior_model["name"] == "step":
+                rv_prior_weights = rv_prior(np.full((len(dists)), Rv), y=dists)
+            else:
+                rv_prior_weights = rv_prior(Rv)
+            if fA_prior_model["name"] == "step":
+                f_A_prior_weights = fA_prior(np.full((len(dists)), f_A), y=dists)
+            else:
+                if with_fA:
+                    f_A_prior_weights = fA_prior(f_A)
+                else:
+                    f_A_prior_weights = 1.0
+
+            dust_prior_weight = av_prior_weights * rv_prior_weights * f_A_prior_weights
 
             # get new attributes if exist
             for key in list(temp_results.grid.keys()):
@@ -467,6 +479,25 @@ def make_extinguished_grid(
                 cols["lamb"] = temp_results.lamb[:]
 
         _lamb = cols.pop("lamb")
+
+        # now add the grid weights
+        av_grid_weights = compute_grid_weights(avs)
+        for cav, cav_gweight in zip(avs, av_grid_weights):
+            gvals = cols["Av"] == cav
+            cols["weight"][gvals] *= cav_gweight
+            cols["grid_weight"][gvals] *= cav_gweight
+
+        rv_grid_weights = compute_grid_weights(rvs)
+        for rav, rav_gweight in zip(rvs, rv_grid_weights):
+            gvals = cols["Rv"] == rav
+            cols["weight"][gvals] *= rav_gweight
+            cols["grid_weight"][gvals] *= rav_gweight
+
+        fA_grid_weights = compute_grid_weights(fAs)
+        for cfA, cfA_gweight in zip(fAs, fA_grid_weights):
+            gvals = cols["f_A"] == cfA
+            cols["weight"][gvals] *= cfA_gweight
+            cols["grid_weight"][gvals] *= cfA_gweight
 
         # free the memory of temp_results
         # del temp_results

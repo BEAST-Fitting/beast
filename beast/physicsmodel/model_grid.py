@@ -435,7 +435,17 @@ def make_extinguished_sed_grid(
     """
 
     # create the dust grid arrays
-    avs = np.arange(av[0], av[1] + 0.5 * av[2], av[2])
+    if len(av) > 3:
+        # check if a log grid is requested
+        if av[3] == "log":
+            print("generating a log av grid")
+            avs = 10 ** np.arange(np.log10(av[0]), np.log10(av[1]), av[2])
+        else:
+            print("generating a linear av grid")
+            avs = np.arange(av[0], av[1] + 0.5 * av[2], av[2])
+    else:
+        print("generating a linear av grid")
+        avs = np.arange(av[0], av[1] + 0.5 * av[2], av[2])
     rvs = np.arange(rv[0], rv[1] + 0.5 * rv[2], rv[2])
     if fA is not None:
         fAs = np.arange(fA[0], fA[1] + 0.5 * fA[2], fA[2])

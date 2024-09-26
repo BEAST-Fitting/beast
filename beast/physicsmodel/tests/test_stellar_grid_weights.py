@@ -1,10 +1,7 @@
 import numpy as np
 
-from beast.physicsmodel.grid_weights_stars import (
-    compute_distance_grid_weights,
-    compute_age_grid_weights,
-    compute_mass_grid_weights,
-    compute_metallicity_grid_weights,
+from beast.physicsmodel.grid_weights import (
+    compute_grid_weights,
     compute_bin_boundaries,
 )
 
@@ -26,7 +23,7 @@ def test_age_grid_weights():
     Test age grid weights
     """
     ages = np.array([6, 7, 8, 9, 10])
-    weights = compute_age_grid_weights(ages)
+    weights = compute_grid_weights(ages, log=True)
     expected_weights = [
         4.500045e-04,
         4.500045e-03,
@@ -44,7 +41,7 @@ def test_mass_grid_weights():
     Test mass grid weights
     """
     masses = np.array([1, 2, 5, 7, 10, 30])
-    weights = compute_mass_grid_weights(masses)
+    weights = compute_grid_weights(masses)
     expected_weights = [
         0.15189873,
         0.30379747,
@@ -63,7 +60,7 @@ def test_metallicity_grid_weights():
     Test metallicities grid weights
     """
     metallicities = np.array([0.03, 0.019, 0.008, 0.004])
-    weights = compute_metallicity_grid_weights(metallicities)
+    weights = compute_grid_weights(metallicities)
     expected_weights = [1.31343284, 1.31343284, 0.89552239, 0.47761194]
     np.testing.assert_allclose(
         weights, expected_weights, err_msg=("Stellar grid metallicity weights error")
@@ -77,7 +74,7 @@ def test_flat_distance_grid_weight():
     dists = [10.0, 100.0, 1000.0]
     expected_weights = [0.18181818, 1.0, 1.81818182]
 
-    weight = compute_distance_grid_weights(dists)
+    weight = compute_grid_weights(dists)
 
     np.testing.assert_allclose(
         weight, expected_weights, err_msg=("Stellar grid flat distance weights error")

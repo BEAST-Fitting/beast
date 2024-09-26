@@ -22,7 +22,7 @@ def verify_range(param, param_name, param_lim):
 def check_grid(param, param_name, param_lim):
     # check if input param limits and grid initialisation make sense
 
-    param_min, param_max, param_step = param
+    param_min, param_max, param_step = param[0:3]
 
     if param_min < param_lim[0]:
         raise ValueError(param_name + " min value not physical.")
@@ -68,7 +68,13 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
             else:
                 raise TypeError(param_name + " is not in the right format - a list.")
         elif "float" in param_format:
-            is_list_of_floats = all(isinstance(item, float) for item in param)
+            if len(param) > 3:
+                tparam = param[0:3]
+                if param[3] not in ["log", "lin"]:
+                    raise ValueError(f"4th element in {param_name} is not log or lin")
+            else:
+                tparam = param
+            is_list_of_floats = all(isinstance(item, float) for item in tparam)
             if not is_list_of_floats:
                 raise TypeError(
                     param_name + " is not in the right format - list of floats."
