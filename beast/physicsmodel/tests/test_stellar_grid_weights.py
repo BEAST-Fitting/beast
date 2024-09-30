@@ -71,7 +71,7 @@ def test_flat_distance_grid_weight():
     """
     Test the flat distance grid weights
     """
-    dists = [10.0, 100.0, 1000.0]
+    dists = np.array([10.0, 100.0, 1000.0])
     expected_weights = [0.18181818, 1.0, 1.81818182]
 
     weight = compute_grid_weights(dists)
