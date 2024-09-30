@@ -70,8 +70,9 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
         elif "float" in param_format:
             if len(param) > 3:
                 tparam = param[0:3]
-                if param[3] not in ["log", "lin"]:
-                    raise ValueError(f"4th element in {param_name} is not log or lin")
+                if isinstance(param[3], str):
+                    if param[3] not in ["log", "lin"]:
+                        raise ValueError(f"4th element in {param_name} is not log or lin")
             else:
                 tparam = param
             is_list_of_floats = all(isinstance(item, float) for item in tparam)
