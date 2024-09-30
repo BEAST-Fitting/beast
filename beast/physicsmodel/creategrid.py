@@ -23,7 +23,7 @@ from tqdm import tqdm
 
 from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
-from beast.physicsmodel.priormodel import PriorDustModel
+from beast.physicsmodel.grid_and_prior_weights import compute_av_rv_fA_prior_weights
 
 from beast.physicsmodel.grid_weights import compute_grid_weights
 
@@ -427,25 +427,15 @@ def make_extinguished_grid(
                 cols["Rv"][N0 * count : N0 * (count + 1)] = Rv
 
             # compute the dust weights
-            #   moved here in 2023 to support distance based dust priors
-            dists = g0.grid["distance"].data
-            if av_prior_model["name"] == "step":
-                av_prior_weights = av_prior(np.full((len(dists)), Av), y=dists)
-            else:
-                av_prior_weights = av_prior(Av)
-            if rv_prior_model["name"] == "step":
-                rv_prior_weights = rv_prior(np.full((len(dists)), Rv), y=dists)
-            else:
-                rv_prior_weights = rv_prior(Rv)
-            if fA_prior_model["name"] == "step":
-                f_A_prior_weights = fA_prior(np.full((len(dists)), f_A), y=dists)
-            else:
-                if with_fA:
-                    f_A_prior_weights = fA_prior(f_A)
-                else:
-                    f_A_prior_weights = 1.0
-
-            dust_prior_weight = av_prior_weights * rv_prior_weights * f_A_prior_weights
+            dust_prior_weight = compute_av_rv_fA_prior_weights(
+                Av,
+                Rv,
+                f_A,
+                g0.grid["distance"].data,
+                av_prior_model=av_prior_model,
+                rv_prior_model=rv_prior_model,
+                fA_prior_model=fA_prior_model,
+            )
 
             # get new attributes if exist
             for key in list(temp_results.grid.keys()):
