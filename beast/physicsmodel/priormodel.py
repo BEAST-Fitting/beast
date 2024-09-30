@@ -3,7 +3,7 @@ from scipy.interpolate import interp1d
 from scipy.integrate import quad
 import astropy.units as u
 
-from beast.physicsmodel.grid_weights_stars import compute_bin_boundaries
+from beast.physicsmodel.grid_weights import compute_bin_boundaries
 import beast.physicsmodel.priormodel_functions as pmfuncs
 
 

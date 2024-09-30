@@ -8,7 +8,7 @@ from astropy.table import Table, Column
 
 from beast.observationmodel.vega import Vega
 from beast.physicsmodel.priormodel import PriorAgeModel, PriorMassModel
-from beast.physicsmodel.grid_weights_stars import compute_bin_boundaries
+from beast.physicsmodel.grid_weights import compute_bin_boundaries
 
 __all__ = ["Observations", "gen_SimObs_from_sedgrid"]
 
