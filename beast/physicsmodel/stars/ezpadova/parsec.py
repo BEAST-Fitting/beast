@@ -243,7 +243,7 @@ class __CMD_Error_Parser(parser.HTMLParser):
 
 def __query_website(d):
     """ Communicate with the CMD website """
-    webserver = "http://stev.oapd.inaf.it"
+    webserver = "https://stev.oapd.inaf.it"
     print("Interrogating {0}...".format(webserver))
 
     # OPTION: Use fixed version for stability (CURRENT CHOICE)
