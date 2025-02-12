@@ -25,6 +25,8 @@ from beast.physicsmodel.stars import stellib
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel.grid_and_prior_weights import compute_av_rv_fA_prior_weights
 
+from beast.physicsmodel.grid_weights import compute_grid_weights
+
 from astropy.table import Table
 from beast.tools.helpers import generator
 from beast.tools import helpers
@@ -467,6 +469,25 @@ def make_extinguished_grid(
                 cols["lamb"] = temp_results.lamb[:]
 
         _lamb = cols.pop("lamb")
+
+        # now add the grid weights
+        av_grid_weights = compute_grid_weights(avs)
+        for cav, cav_gweight in zip(avs, av_grid_weights):
+            gvals = cols["Av"] == cav
+            cols["weight"][gvals] *= cav_gweight
+            cols["grid_weight"][gvals] *= cav_gweight
+
+        rv_grid_weights = compute_grid_weights(rvs)
+        for rav, rav_gweight in zip(rvs, rv_grid_weights):
+            gvals = cols["Rv"] == rav
+            cols["weight"][gvals] *= rav_gweight
+            cols["grid_weight"][gvals] *= rav_gweight
+
+        fA_grid_weights = compute_grid_weights(fAs)
+        for cfA, cfA_gweight in zip(fAs, fA_grid_weights):
+            gvals = cols["f_A"] == cfA
+            cols["weight"][gvals] *= cfA_gweight
+            cols["grid_weight"][gvals] *= cfA_gweight
 
         # free the memory of temp_results
         # del temp_results

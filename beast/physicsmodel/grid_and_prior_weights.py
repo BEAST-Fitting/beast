@@ -15,10 +15,7 @@ with prior weights.
 
 import numpy as np
 
-from beast.physicsmodel.grid_weights_stars import compute_distance_grid_weights
-from beast.physicsmodel.grid_weights_stars import compute_age_grid_weights
-from beast.physicsmodel.grid_weights_stars import compute_mass_grid_weights
-from beast.physicsmodel.grid_weights_stars import compute_metallicity_grid_weights
+from beast.physicsmodel.grid_weights import compute_grid_weights
 
 from beast.physicsmodel.priormodel import (
     PriorAgeModel,
@@ -87,7 +84,7 @@ def compute_distance_age_mass_metallicity_weights(
 
     if n_dist > 1:
         # get the distance weights
-        dist_grid_weights = compute_distance_grid_weights(uniq_dists)
+        dist_grid_weights = compute_grid_weights(uniq_dists)
         dist_grid_weights /= np.sum(dist_grid_weights)
         dist_prior = PriorDistanceModel(distance_prior_model)
         dist_prior_weights = dist_prior(uniq_dists)
@@ -157,7 +154,7 @@ def compute_age_mass_metallicity_weights(
         uniq_ages = np.unique(_tgrid[zindxs]["logA"])
 
         # compute the age weights
-        age_grid_weights = compute_age_grid_weights(uniq_ages)
+        age_grid_weights = compute_grid_weights(uniq_ages, log=True)
         if isinstance(age_prior_model, dict):
             age_prior = PriorAgeModel(age_prior_model)
         else:
@@ -187,7 +184,7 @@ def compute_age_mass_metallicity_weights(
                 cur_masses = np.unique(_tgrid_single_age["M_ini"])
                 n_masses = len(_tgrid_single_age["M_ini"])
                 if len(cur_masses) < n_masses:
-                    umass_grid_weights = compute_mass_grid_weights(cur_masses)
+                    umass_grid_weights = compute_grid_weights(cur_masses)
                     umass_prior_weights = mass_prior(cur_masses)
                     mass_grid_weights = np.zeros(n_masses, dtype=float)
                     mass_prior_weights = np.zeros(n_masses, dtype=float)
@@ -197,7 +194,7 @@ def compute_age_mass_metallicity_weights(
                         mass_prior_weights[gvals] = umass_prior_weights[k]
                 else:
                     cur_masses = _tgrid_single_age["M_ini"]
-                    mass_grid_weights = compute_mass_grid_weights(cur_masses)
+                    mass_grid_weights = compute_grid_weights(cur_masses)
                     mass_prior_weights = mass_prior(cur_masses)
 
             else:
@@ -222,7 +219,7 @@ def compute_age_mass_metallicity_weights(
     # ensure that the metallicity prior is uniform
     if len(uniq_Zs) > 1:
         # get the metallicity weights
-        met_grid_weights = compute_metallicity_grid_weights(uniq_Zs)
+        met_grid_weights = compute_grid_weights(uniq_Zs)
         met_grid_weights /= np.sum(met_grid_weights)
         met_prior = PriorMetallicityModel(met_prior_model)
         met_prior_weights = met_prior(uniq_Zs)
