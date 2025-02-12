@@ -323,7 +323,7 @@ def make_extinguished_grid(
     # Create the sampling mesh
     # ========================
     # basically the dot product from all input 1d vectors
-    # setup interation over the full dust parameter grid
+    # setup integration over the full dust parameter grid
 
     if with_fA:
 
