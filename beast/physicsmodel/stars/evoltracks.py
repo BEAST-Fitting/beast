@@ -340,12 +340,16 @@ class ETMist(EvolTracks):
         # FeH = np.log10(np.array(metals) / solar_metalicity)
         # 0.5 is make sure the orig FeH includes one metallicity beyond the values
         # gvals = (self.orig_FeH >= min(FeH) - 0.5) & (self.orig_FeH <= max(FeH) + 0.5)
+        # print(self.orig_FeH)
+        # print(self.orig_FeH[gvals])
+        # exit()
 
         # get the as computed evolutionary tracks
         orig_data = self.load_orig_tables()
         print(orig_data[0])
 
         # interpolate for requested mass spacing
+        print(mass_info)
         for k, ctrack in enumerate(orig_data):
             orig_data[k] = self.regrid_one_met(
                 ctrack,
