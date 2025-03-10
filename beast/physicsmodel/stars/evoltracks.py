@@ -4,7 +4,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 
-from astropy.table import Table, vstack
+from astropy.table import Table, QTable
 
 from beast.config import __ROOT__, solar_metalicity
 
@@ -58,7 +58,7 @@ class EvolTracks(object):
         """
         print("not implemented")
 
-    def plot_tracks(self, ax, xval="logT", yval="logL", linestyle="-", color="k"):
+    def plot_tracks(self, ax, xval="logT", yval="logL", trackval=0, linestyle="-", color="k"):
         """
         Plot the tracks with the input x, y choices
 
@@ -73,27 +73,30 @@ class EvolTracks(object):
         xval : str, optional
             what data for y
 
+        trackval : int, optional
+            which set of tracks to plot
+
         linestyle : string
             matplotlib linestyle
 
         color : string
             matplotlib color
         """
-        if xval not in self.data.keys():
+        if xval not in self.data[trackval].keys():
             raise ValueError("xval choice not in data table")
-        if yval not in self.data.keys():
+        if yval not in self.data[trackval].keys():
             raise ValueError("yval choice not in data table")
 
         # get uniq M_ini values
-        uvals, indices = np.unique(self.data["M_ini"], return_inverse=True)
+        uvals, indices = np.unique(self.data[trackval]["M_ini"], return_inverse=True)
         for k, cval in enumerate(uvals):
             cindxs = np.where(k == indices)
             # ax.plot(
             #     self.data[xval][cindxs], self.data[yval][cindxs], linestyle=linestyle, color=color,
             # )
             ax.plot(
-                self.data[xval][cindxs],
-                self.data[yval][cindxs],
+                self.data[trackval][xval][cindxs],
+                self.data[trackval][yval][cindxs],
                 "o",
                 color=color,
                 markersize=2,
@@ -115,37 +118,39 @@ class EvolTracks(object):
         Parameters
         ----------
         check_keys : string array
-            keys in grid to generage metrics for
+            keys in grid to generate metrics for
 
         Returns
         -------
-        metrics : dictonary
+        metrics : dictionary
             each entry has an array with [min, max, median, mean] deltas
-            for that grid paramters
+            for that grid parameters
         """
         # loop over eep values accumulating deltas
         dvals = {}
         for cname in check_keys:
             dvals[cname] = []
 
-        for gparam in ["M_ini"]:
-            uvals, indices = np.unique(self.data[gparam], return_inverse=True)
+        metrics = []
+        for cdata in self.data:
+            uvals, indices = np.unique(cdata["M_ini"], return_inverse=True)
             for k, cval in enumerate(uvals):
                 (cindxs,) = np.where(k == indices)
                 for cname in check_keys:
                     dvals[cname] = np.concatenate(
-                        (dvals[cname], np.absolute(np.diff(self.data[cname][cindxs])))
+                        (dvals[cname], np.absolute(np.diff(cdata[cname][cindxs])))
                     )
 
-        # compute the metrics
-        metrics = {}
-        for cname in check_keys:
-            metrics[cname] = [
-                np.min(dvals[cname]),
-                np.max(dvals[cname]),
-                np.median(dvals[cname]),
-                np.mean(dvals[cname]),
-            ]
+            # compute the metrics
+            tmetrics = {}
+            for cname in check_keys:
+                tmetrics[cname] = np.array([
+                    np.min(dvals[cname]),
+                    np.max(dvals[cname]),
+                    np.median(dvals[cname]),
+                    np.mean(dvals[cname]),
+                ])
+            metrics.append(tmetrics)
 
         return metrics
 
@@ -305,7 +310,7 @@ class ETMist(EvolTracks):
         else:
             files = filename
 
-        itables = [Table.read(cfile) for cfile in files]
+        itables = [QTable.read(cfile) for cfile in files]
 
         return itables
 
