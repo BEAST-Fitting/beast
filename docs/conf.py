@@ -166,6 +166,7 @@ if setup_cfg.get('edit_on_github').lower() == 'true':
 
 # -- Resolving issue number to links in changelog -----------------------------
 github_issues_url = 'https://github.com/{0}/issues/'.format(setup_cfg['github_project'])
+extensions += ['nbsphinx']
 
 # -- Turn on nitpicky mode for sphinx (to warn about references not found) ----
 #

@@ -20,7 +20,7 @@ Getting started
 
    Installation instructions <install.rst>
    Running an example <example.rst>
-   BEAST Tutorial <tutorial.rst>
+   BEAST Tutorial <tutorial.ipynb>
 
 User Documentation
 ==================
