@@ -146,12 +146,10 @@ class TestRegressionSuite(unittest.TestCase):
         # download the file live from the website
         savename = tempfile.NamedTemporaryFile(suffix=".csv").name
         infoname = tempfile.NamedTemporaryFile(suffix=".asdf").name
-        (iso_fname, g) = make_iso_table(
+        (iso_fname, g) = make_evoltrack_table(
             "test",
             iso_fname=savename,
-            logtmin=self.settings.logt[0],
-            logtmax=self.settings.logt[1],
-            dlogt=self.settings.logt[2],
+            logtmin=[self.settings.logt[0], self.settings.logt[1], self.settings.logt[2]],
             z=self.settings.z,
             info_fname=infoname,
         )
