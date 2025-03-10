@@ -68,7 +68,7 @@ def create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1, subset=[None, No
     # make sure the project directory exists
     create_project_dir(settings.project)
 
-    # download and load the isochrones
+    # load the evolutionary tracks
     (iso_fname, oiso) = make_evoltrack_table(
         settings.project,
         oet=settings.oiso,
