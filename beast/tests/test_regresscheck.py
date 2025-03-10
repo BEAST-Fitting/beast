@@ -148,7 +148,7 @@ class TestRegressionSuite(unittest.TestCase):
         infoname = tempfile.NamedTemporaryFile(suffix=".asdf").name
         (iso_fname, g) = make_evoltrack_table(
             "test",
-            iso_fname=savename,
+            et_fname=savename,
             logtmin=[self.settings.logt[0], self.settings.logt[1], self.settings.logt[2]],
             z=self.settings.z,
             info_fname=infoname,
