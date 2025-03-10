@@ -33,7 +33,7 @@ if __name__ == "__main__":
     # read in the tracks
     et.data = et.load_orig_tables(filename=args.filename)
 
-    orig_metrics = et.grid_metrics()
+    orig_metrics = et.grid_metrics()[0]
 
     # plot, plot, plot
     nls = ":"
@@ -44,22 +44,24 @@ if __name__ == "__main__":
     et.plot_tracks(ax[1, 0], xval="logT", yval="logg", linestyle=nls, color=color)
 
     # regrid the evolutionary tracks to uniform log(mass) and variable age
-    print("size orig = ", len(et.data["M_ini"]))
+    print("size orig = ", len(et.data[0]["M_ini"]))
 
     logmass_range = [-1.0, 2.47]
     condense = args.condense
     logmass_delta = 0.05
     logT_delta = 0.05
     logL_delta = 0.05
-    et.regrid_one_met(
+    et_regrid = et.regrid_one_met(
+        et.data[0],
         logmass_range=logmass_range,
         condense=condense,
         logmass_delta=logmass_delta,
         logT_delta=logT_delta,
         logL_delta=logL_delta,
     )
+    et.data[0] = et_regrid
 
-    print("size regrid = ", len(et.data["M_ini"]))
+    print("size regrid = ", len(et.data[0]["M_ini"]))
 
     print("logM range:", logmass_range)
     print("logM:", logmass_delta)
@@ -70,7 +72,7 @@ if __name__ == "__main__":
         print("logT:", logT_delta)
         print("logL:", logL_delta)
 
-    regrid_metrics = et.grid_metrics()
+    regrid_metrics = et.grid_metrics()[0]
     print("grid metrics: diffs [min,  max, median, mean]")
     for ckey in regrid_metrics.keys():
         print(ckey)
