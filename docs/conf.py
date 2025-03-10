@@ -168,7 +168,7 @@ if setup_cfg.get('edit_on_github').lower() == 'true':
 github_issues_url = 'https://github.com/{0}/issues/'.format(setup_cfg['github_project'])
 
 # to make ipynbs run in documentation
-extensions += ['nbsphinx', 'IPython.sphinxext.ipython_console_highlighting']
+extensions += ['nbsphinx']
 exclude_patterns = ['_build', '**.ipynb_checkpoints']
 # -- Turn on nitpicky mode for sphinx (to warn about references not found) ----
 #
