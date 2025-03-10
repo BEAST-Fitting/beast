@@ -72,7 +72,9 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
                 tparam = param[0:3]
                 if isinstance(param[3], str):
                     if param[3] not in ["log", "lin"]:
-                        raise ValueError(f"4th element in {param_name} is not log or lin")
+                        raise ValueError(
+                            f"4th element in {param_name} is not log or lin"
+                        )
             else:
                 tparam = param
             is_list_of_floats = all(isinstance(item, float) for item in tparam)
@@ -107,7 +109,6 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
 
 
 def verify_input_format(settings):
-
     """
     Define relevant parameters, their correct names, format and limits.
     Call verify_one_input_format to test for correctness of format and
@@ -150,9 +151,9 @@ def verify_input_format(settings):
 
     print(settings.oiso.name)
     if settings.oiso.name == "MESA/MIST isochrones":
-        print('Working on the MIST isochrone')
+        print("Working on the MIST isochrone")
         parameters_limits = [
-            [0.0142E-4, 0.0142 * 10**(0.5)],
+            [0.0142e-4, 0.0142 * 10 ** (0.5)],
             None,
             None,
             [5, 10.3],
@@ -160,10 +161,10 @@ def verify_input_format(settings):
             [1.0, 7.0],
             [0.0, 1.0],
         ]
-    if settings.oiso.name == "Padova CMD isochrones":
-        print('Working on the PARSEC isochrone')
+    elif settings.oiso.name == "Padova CMD isochrones":
+        print("Working on the PARSEC isochrone")
         parameters_limits = [
-            [1E-4, 0.06],
+            [1e-4, 0.06],
             None,
             None,
             [-inf, 10.15],
@@ -171,8 +172,8 @@ def verify_input_format(settings):
             [1.0, 7.0],
             [0.0, 1.0],
         ]
-    if settings.oiso.name == "MIST EvolTracks":
-        print('Working on the MIST Evolutionary Tracks')
+    elif settings.oiso.name == "MIST EvolTracks":
+        print("Working on the MIST Evolutionary Tracks")
         parameters[3] = settings.logmass
         parameters_names[3] = "logmass"
 
@@ -191,7 +192,10 @@ def verify_input_format(settings):
 
     for i, param_ in enumerate(parameters):
         verify_one_input_format(
-            param_, parameters_names[i], param_format[i], parameters_limits[i],
+            param_,
+            parameters_names[i],
+            param_format[i],
+            parameters_limits[i],
         )
 
 

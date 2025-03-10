@@ -5,8 +5,7 @@ from astropy import units
 
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel import creategrid
-from beast.physicsmodel.stars import isochrone, stellib
-from beast.physicsmodel.stars import evoltracks
+from beast.physicsmodel.stars import evoltracks, isochrone, stellib
 from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.physicsmodel.dust import extinction
 from beast.physicsmodel.grid_and_prior_weights import (

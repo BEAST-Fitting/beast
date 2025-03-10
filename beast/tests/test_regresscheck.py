@@ -16,7 +16,7 @@ from astropy.io import fits
 from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel.model_grid import (
-    make_iso_table,
+    make_evoltrack_table,
     make_spectral_grid,
     add_stellar_priors,
     make_extinguished_sed_grid,
