@@ -1,5 +1,5 @@
 #########################
-Installation instructions
+Installation Instructions
 #########################
 
 Requirements
@@ -8,8 +8,11 @@ Requirements
 Running the BEAST requires:
 
 - Python >= 3.8
+- BEAST Code
+- BEAST Library Files
 
-One easy way to obtain the above is through the AstroConda Python stack:
+One easy way to ensure your Python version is satisfying the requirements is
+to use the AstroConda Python stack:
 
 - First install `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ which
   contains the conda package manager. Once Miniconda is installed,
@@ -30,11 +33,11 @@ One easy way to obtain the above is through the AstroConda Python stack:
 
     $ conda activate <env_name>
 
-Installation for Users
-======================
-
 In addition to installing the code, library files also need to be installed.
 See :ref:`library-files`.
+
+Installation for Users
+======================
 
 Using pip
 ---------

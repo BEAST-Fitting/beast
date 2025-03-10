@@ -20,6 +20,7 @@ Getting started
 
    Installation instructions <install.rst>
    Running an example <example.rst>
+   BEAST Tutorial <tutorial.ipynb>
 
 User Documentation
 ==================
@@ -34,7 +35,7 @@ Basics:
    Photometry files <photometry_files.rst>
    Output files <outputs.rst>
 
-Detals:
+Details:
 
 .. toctree::
    :maxdepth: 1
