@@ -94,15 +94,15 @@ def make_evoltrack_table(
         else:
             print(f"Type {type(oet)} of evolutionary track not supported")
 
+        # save info to the beast info file
+        if info_fname is None:
+            info_fname = f"{project}/{project}_beast_info.asdf"
+        add_to_beast_info_file(info_fname, info)
+
     else:
         # read in the isochrone data from the file
         #   not sure why this is needed, but reproduces previous ezpipe method
         oet = ezIsoch(et_fname)
-
-    # save info to the beast info file
-    if info_fname is None:
-        info_fname = f"{project}/{project}_beast_info.asdf"
-    add_to_beast_info_file(info_fname, info)
 
     return (et_fname, oet)
 

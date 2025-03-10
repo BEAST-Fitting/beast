@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # download the file live from the website
     savename = "/tmp/padova_iso.csv"
     iso_fname, oiso = make_evoltrack_table(
-        "test", oet=savename, age_info=[6.0, 10.13, 0.15], z=[0.019]
+        "test", age_info=[6.0, 10.13, 0.15], z=[0.019]
     )
 
     # plot, plot, plot
@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     fig.tight_layout()
 
-    save_name = "evoltracks"
+    save_name = "isochrones"
     if args.tex:
         plt.rc({"usetex": True})
     if args.savefig:
