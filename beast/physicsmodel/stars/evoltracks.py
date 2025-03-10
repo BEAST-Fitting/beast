@@ -1,10 +1,11 @@
 # use evolutionary tracks instead of isochrones as the basis of
 # the stellar physicsgrid
 
+import copy
 import numpy as np
 from scipy.interpolate import interp1d
 
-from astropy.table import Table, QTable
+from astropy.table import QTable, vstack
 
 from beast.config import __ROOT__, solar_metalicity
 
@@ -159,9 +160,6 @@ class EvolTracks(object):
         one_track,
         logmass_range=[-1.0, 2.0],
         logmass_delta=0.05,
-        condense=False,
-        logL_delta=0.05,
-        logT_delta=0.05,
     ):
         """
         Interpolate a set of evolutionary tracks for a single metallicity
@@ -174,18 +172,9 @@ class EvolTracks(object):
         logmass_range : (float, float)
             range of new mass grid
             default is -1 to 2 (0.1 to 100 M_sun)
-
-        condense : boolean
-            set to condense grid using delta values
-            default = False
-
-        logmass_delta, logL_delta, logT_delta : float
-            deltas for the condensed grid
-            default is 0.05 for all 3
         """
         # get the unique mass values
         uvals, indices = np.unique(one_track["M_ini"], return_inverse=True)
-        # print(10**uvals)
 
         # ensure there are evolutionary tracks spanning
         #   the min/max of the new grid --> no extrapolation
@@ -194,15 +183,13 @@ class EvolTracks(object):
 
         n_new_masses = int((new_max_mass - new_min_mass) / logmass_delta) + 1
         new_mass_vals = np.linspace(new_min_mass, new_max_mass, num=n_new_masses)
-        # print(n_new_masses, len(uvals))
-        # print(10**new_mass_vals)
 
         # setup the new grid
         new_grid = {}
         for cname in one_track.keys():
             new_grid[cname] = np.array([])
 
-        # loop over eep values and interopolate to new mass grid
+        # loop over eep values and interpolate to new mass grid
         # along constant eep tracks
         uvals, indices = np.unique(one_track["eep"], return_inverse=True)
         for k, cval in enumerate(uvals):
@@ -227,8 +214,78 @@ class EvolTracks(object):
 
                 new_grid[cname] = np.concatenate((new_grid[cname], vals))
 
-        # update the grid
-        one_track = new_grid
+        # convert the dictionary to an astropy QTable
+        one_track = QTable()
+        for ckey in new_grid.keys():
+            one_track[ckey] = new_grid[ckey]
+
+        return one_track
+        
+    def regrid_metallicities(
+        self,
+        metallicities,
+        condense=False,
+        logL_delta=0.05,
+        logT_delta=0.05,
+    ):
+        """
+        Interpolate a set of evolutionary tracks for a single mass
+        to a grid in log(metallicity) and variable grid in stellar age.
+        Use Equivalent Evolutionary Points (EEPs) values to do the metallicity
+        interpolation.  EEPs are provide as part of the evolutionary tracks.
+
+        Parameters
+        ----------
+        logmet_range : (float, float)
+            range of new metallicity grid
+            default is -1.0 to 1.0 (1/10 to solar metallicity)
+
+        condense : boolean
+            set to condense grid using delta values
+            default = False
+
+        logmass_delta, logL_delta, logT_delta : float
+            deltas for the condensed grid
+            default is 0.05 for all 3            
+        """
+        # setup the new grid
+        new_grid = {}
+        for cname in self.data.colnames:
+            new_grid[cname] = np.array([])
+
+        # get metallicities relative to solar
+        new_met_vals = np.log10(np.array(metallicities) / solar_metalicity)
+
+        umasses = np.unique(self.data["M_ini"])
+        for cmass in umasses:
+            mvals = cmass == self.data["M_ini"]
+
+            # loop over eep values and interpolate to new metallicity grid
+            # along constant eep tracks
+            uvals, indices = np.unique(self.data["eep"][mvals], return_inverse=True)
+            for k, cval in enumerate(uvals):
+                (cindxs,) = np.where(k == indices)
+                cur_mets = (self.data["met"][mvals])[cindxs]
+
+                for cname in self.data.colnames:
+                    if cname == "eep":
+                        vals = np.full((len(cur_mets)), cval)
+                    elif cname == "met":
+                        vals = new_met_vals
+                    else:
+                        f = interp1d(cur_mets, self.data[cname][cindxs])
+                        vals = f(new_met_vals)
+
+                    new_grid[cname] = np.concatenate((new_grid[cname], vals))
+
+        # convert the dictionary to an astropy QTable
+        table_grid = QTable()
+        for ckey in new_grid.keys():
+            table_grid[ckey] = new_grid[ckey]
+
+        self.data = table_grid
+
+    def condense_grid():
 
         # setup the condensed grid
         if condense:
@@ -264,7 +321,60 @@ class EvolTracks(object):
             # update the grid
             one_track = new_grid
 
-        return one_track
+    def get_evoltracks(
+        self, mass_info, metal_info, condense=False, logT_delta=0.05, logL_delta=0.05
+    ):
+        """
+        Get the evolutionary tracks for the specified ages, initial masses,
+        and metallicities.
+
+        Parameters
+        ----------
+        mass_info : list
+            info for mass range [logminmass, logmaxmass, deltalogmass]
+        metal_info : list
+            list of absolute metallcities (not relative to solar)
+        condense : boolean
+            set to condense the grid based on the logL and logT deltas
+        logL_delta, logT_delta : float
+            deltas for the condensed grid
+            default is 0.05 for both
+
+        Returns
+        -------
+        type
+            Description of returned object.
+        """
+        # determine the min/max metallilcities needed from original grid
+        # FeH = np.log10(np.array(metals) / solar_metalicity)
+        # 0.5 is make sure the orig FeH includes one metallicity beyond the values
+        # gvals = (self.orig_FeH >= min(FeH) - 0.5) & (self.orig_FeH <= max(FeH) + 0.5)
+        # print(self.orig_FeH)
+        # print(self.orig_FeH[gvals])
+        # exit()
+
+        # get the as computed evolutionary tracks
+        orig_data = self.load_orig_tables()
+
+        # interpolate for requested mass spacing
+        print(len(orig_data), "metallicities")
+        for k, ctrack in enumerate(orig_data):
+            orig_data[k] = self.regrid_one_met(
+                ctrack,
+                logmass_range=mass_info[0:2],
+                logmass_delta=mass_info[2],
+            )
+
+        # stack different metallicities into a single table
+        self.data = vstack(orig_data)
+
+        # interpolate for metallicity spacing at full resolution for best accuracy
+        umasses = np.unique(orig_data[0]["M_ini"])
+        print(len(umasses), "masses")
+        self.regrid_metallicities(
+                metallicities=metal_info,
+            )
+        exit()
 
 
 class ETMist(EvolTracks):
@@ -281,6 +391,8 @@ class ETMist(EvolTracks):
         self.orig_FeH = np.array([-4.00, -3.50, -3.00, -2.50, -2.00, -1.75,
                                   -1.50, -1.25, -1.00, -0.75, -0.25, 0.0,
                                   0.25, 0.5])
+        self.orig_FeH = np.array([-4.0, -1.25, -1.00, -0.75, -0.25, 0.0,
+                                  0.5])
         # fmt: on
         self.orig_files = [
             f"{__ROOT__}MIST/MIST_FeH{cstr:.2f}_vvcrit0.4.fits"
@@ -313,59 +425,7 @@ class ETMist(EvolTracks):
         itables = [QTable.read(cfile) for cfile in files]
 
         return itables
-
-    def get_evoltracks(
-        self, mass_info, metals, condense=False, logT_delta=0.05, logL_delta=0.05
-    ):
-        """
-        Get the evolutionary tracks for the specified ages, initial masses,
-        and metallicities.
-
-        Parameters
-        ----------
-        mass_info : list
-            info for mass range [logminmass, logmaxmass, deltalogmass]
-        metals : list
-            metallicities
-        logL_delta, logT_delta : float
-            deltas for the condensed grid
-            default is 0.05 for both
-
-        Returns
-        -------
-        type
-            Description of returned object.
-        """
-        # determine the min/max metallilcities needed from original grid
-        # FeH = np.log10(np.array(metals) / solar_metalicity)
-        # 0.5 is make sure the orig FeH includes one metallicity beyond the values
-        # gvals = (self.orig_FeH >= min(FeH) - 0.5) & (self.orig_FeH <= max(FeH) + 0.5)
-        # print(self.orig_FeH)
-        # print(self.orig_FeH[gvals])
-        # exit()
-
-        # get the as computed evolutionary tracks
-        orig_data = self.load_orig_tables()
-        print(orig_data[0])
-
-        # interpolate for requested mass spacing
-        print(mass_info)
-        for k, ctrack in enumerate(orig_data):
-            orig_data[k] = self.regrid_one_met(
-                ctrack,
-                logmass_range=mass_info[0:2],
-                logmass_delta=mass_info[2],
-                condense=condense,
-                logT_delta=logT_delta,
-                logL_delta=logL_delta,
-            )
-        print(len(orig_data[0]["M_act"]))
-        exit()
-
-        # then interpolate for metallicity spacing
-
-        # condense grid if requested
-
+    
 
 class ETParsec(EvolTracks):
     """
@@ -389,7 +449,7 @@ class ETParsec(EvolTracks):
         logL = np.array([])
         logT = np.array([])
         for cfile in files:
-            a = Table.read(cfile, format="ascii")
+            a = QTable.read(cfile, format="ascii")
             mass_act = np.concatenate((mass_act, a["MASS"].data))
             logL = np.concatenate((logL, a["LOG_L"].data))
             logT = np.concatenate((logT, a["LOG_TE"].data))
