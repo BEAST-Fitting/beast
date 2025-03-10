@@ -1,6 +1,7 @@
 import copy
 import warnings
 import numpy as np
+import astropy.units as u
 
 from dust_extinction.helpers import _test_valid_x_range
 from dust_extinction.parameter_averages import F19

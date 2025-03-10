@@ -213,12 +213,12 @@ class Isochrone(object):
         # compute the metrics
         metrics = {}
         for cname in check_keys:
-            metrics[cname] = [
+            metrics[cname] = np.array([
                 np.min(dvals[cname]),
                 np.max(dvals[cname]),
                 np.median(dvals[cname]),
                 np.mean(dvals[cname]),
-            ]
+            ])
 
         return metrics
 
