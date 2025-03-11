@@ -99,7 +99,7 @@ class Cardelli89(ExtinctionLaw):
         # ensure the units are in angstrom
         _lamb = units.Quantity(lamb, units.angstrom).value
 
-        if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
+        if isinstance(_lamb, float) or isinstance(_lamb, np.float64):
             _lamb = np.asarray([lamb])
         else:
             _lamb = lamb[:]
@@ -219,7 +219,7 @@ class Fitzpatrick99(ExtinctionLaw):
         # ensure the units are in angstrom
         _lamb = units.Quantity(lamb, units.angstrom).value
 
-        if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
+        if isinstance(_lamb, float) or isinstance(_lamb, np.float64):
             _lamb = np.asarray([lamb])
         else:
             _lamb = lamb[:]
@@ -358,7 +358,7 @@ class Gordon03_SMCBar(ExtinctionLaw):
         # ensure the units are in angstrom
         _lamb = units.Quantity(lamb, units.angstrom).value
 
-        if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
+        if isinstance(_lamb, float) or isinstance(_lamb, np.float64):
             _lamb = np.asarray([lamb])
         else:
             _lamb = lamb[:]
@@ -655,7 +655,7 @@ class Generalized_DustExt(ExtinctionLaw):
         # ensure the units are in angstrom
         _lamb = units.Quantity(lamb, units.angstrom).value
 
-        if isinstance(_lamb, float) or isinstance(_lamb, np.float_):
+        if isinstance(_lamb, float) or isinstance(_lamb, np.float64):
             _lamb = np.asarray([lamb])
         else:
             _lamb = lamb[:]

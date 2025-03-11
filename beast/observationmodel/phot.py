@@ -97,8 +97,8 @@ Filter object information:
         ifT = numpy.interp(slamb, self.wavelength, self.transmit, left=0.0, right=0.0)
         if True in (ifT > 0.0):
             ind = numpy.where(ifT > 0.0)
-            a = numpy.trapz(slamb[ind] * ifT[ind] * sflux[ind], slamb[ind])
-            b = numpy.trapz(slamb[ind] * ifT[ind], slamb[ind])
+            a = numpy.trapezoid(slamb[ind] * ifT[ind] * sflux[ind], slamb[ind])
+            b = numpy.trapezoid(slamb[ind] * ifT[ind], slamb[ind])
             if numpy.isinf(a) | numpy.isinf(b):
                 print(self.name, "Warn for inf value")
             return a / b
@@ -133,10 +133,10 @@ Filter object information:
         self.name = name
         self.wavelength = wavelength
         self.transmit = transmit
-        self.norm = numpy.trapz(transmit, wavelength)
-        self.lT = numpy.trapz(wavelength * transmit, wavelength)
+        self.norm = numpy.trapezoid(transmit, wavelength)
+        self.lT = numpy.trapezoid(wavelength * transmit, wavelength)
         self.lpivot = numpy.sqrt(
-            self.lT / numpy.trapz(transmit / wavelength, wavelength)
+            self.lT / numpy.trapezoid(transmit / wavelength, wavelength)
         )
         self.cl = self.lT / self.norm
 
@@ -194,8 +194,8 @@ class IntegrationFilter(object):
 
         if True in ind:
             _slamb = slamb[ind]
-            a = numpy.trapz(_slamb * sflux[ind], _slamb)
-            b = numpy.trapz(numpy.ones(_slamb.shape, dtype=float) * _slamb, _slamb)
+            a = numpy.trapezoid(_slamb * sflux[ind], _slamb)
+            b = numpy.trapezoid(numpy.ones(_slamb.shape, dtype=float) * _slamb, _slamb)
 
             if numpy.isinf(a) | numpy.isinf(b):
                 print(self.name, "Warn for inf value")
@@ -232,9 +232,9 @@ class IntegrationFilter(object):
         self.name = name
         self.wavelength = wavelength
         self.transmit = transmit
-        self.norm = numpy.trapz(transmit, wavelength)
-        self.lT = numpy.trapz(transmit * wavelength, wavelength)
-        self.lpivot = numpy.sqrt(self.lT / numpy.trapz(1.0 / wavelength, wavelength))
+        self.norm = numpy.trapezoid(transmit, wavelength)
+        self.lT = numpy.trapezoid(transmit * wavelength, wavelength)
+        self.lpivot = numpy.sqrt(self.lT / numpy.trapezoid(1.0 / wavelength, wavelength))
         self.cl = self.lT / self.norm
 
 
@@ -398,7 +398,7 @@ def extractPhotometry(lamb, spec, flist, absFlux=True):
         # apply absolute flux conversion if requested
         if absFlux:
             s0 /= distc
-        a = numpy.trapz(tmp[None, :] * s0, lamb[xl], axis=1)
+        a = numpy.trapezoid(tmp[None, :] * s0, lamb[xl], axis=1)
         seds[e] = a / k.lT  # divide by integral (lambda T dlambda)
         cls[e] = k.cl
 
@@ -440,7 +440,7 @@ def extractSEDs(g0, flist, absFlux=True):
         # apply absolute flux conversion if requested
         if absFlux:
             s0 /= distc
-        a = numpy.trapz(tmp[None, :] * s0, lamb[xl], axis=1)
+        a = numpy.trapezoid(tmp[None, :] * s0, lamb[xl], axis=1)
         seds[:, e] = a / k.lT
         cls[e] = k.cl
 
