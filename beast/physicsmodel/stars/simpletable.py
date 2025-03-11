@@ -1492,7 +1492,7 @@ class SimpleTable(object):
                 )
                 kwargs.setdefault("names", names)
                 kwargs.setdefault("skip_header", n)
-                self.data = np.recfromtxt(fname, *args, **kwargs)
+                self.data = np.genfromtxt(fname, *args, **kwargs)
                 self.header = header
                 self._units.update(**units)
                 self._desc.update(**comments)

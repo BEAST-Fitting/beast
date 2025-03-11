@@ -87,7 +87,7 @@ def _two_lognorm(xs, max_pos1, max_pos2, sigma1=0.5, sigma2=0.5, N1=1.0, N2=1.0)
     pointwise = _lognorm(xs, max_pos1, sigma=sigma1, N=N1) + _lognorm(
         xs, max_pos2, sigma=sigma2, N=N2
     )
-    normalization = np.trapz(pointwise, x=xs)
+    normalization = np.trapezoid(pointwise, x=xs)
     return pointwise / normalization
 
 
