@@ -1,0 +1,360 @@
+# """ Data Model interface v3.0
+# BEAST datamodel for M31 Example
+# """
+
+import numpy as np
+
+from astropy import units
+
+# BEAST imports
+from beast.physicsmodel.stars import isochrone
+from beast.physicsmodel.stars import stellib
+from beast.physicsmodel.dust import extinction
+from beast.observationmodel.noisemodel import absflux_covmat
+
+# -----------------------------------------------------------------
+# User inputs
+# -----------------------------------------------------------------
+# Parameters that are required to make models and to fit the data
+# -----------------------------------------------------------------
+# AC == automatically created
+# indicates where user's input change is NOT necessary/recommended
+# -----------------------------------------------------------------
+
+# project : string
+#   the name of the output results directory
+project = "M31-B09-EAST_chunk"
+
+# name of the survey
+#  used for the creation of the unique name for each source
+surveyname = "PHAT-M31"
+
+# filters : list of strings
+#   full filter names in BEAST filter database
+filters = ['HST_WFC3_F275W','HST_WFC3_F336W',
+           'HST_ACS_WFC_F475W','HST_ACS_WFC_F814W',
+           'HST_WFC3_F110W','HST_WFC3_F160W']
+
+# basefilters : list of strings
+#   short names for filters
+basefilters = ["F275W", "F336W", "F475W", "F814W", "F110W", "F160W"]
+
+
+# Integrating from 228A to 912A, where 227.8A corresponds to 4 Ryd (=54.42eV)
+from beast.observationmodel.extra_filters import make_integration_filter
+qion_filter228 = make_integration_filter(228., 916., 1, 'F_QION228')
+qion_filter228.name = 'F_QION228' # getting rid of instrument etc
+
+# Add GALEX FUV filter
+additional_filters = ['GALEX_FUV']
+add_spectral_properties_kwargs = dict(filternames=filters + additional_filters,filters=[qion_filter228])
+
+# obs_colnames : list of strings
+#   names of columns for filters in the observed catalog
+#   need to match column names in the observed catalog,
+#   input data MUST be in fluxes, NOT in magnitudes
+#   fluxes MUST be in normalized Vega units
+obs_colnames = [f.upper() + "_RATE" for f in basefilters]
+
+# obsfile : string
+#   pathname of the observed catalog
+obsfile = "./M31-B09-EAST_chunk.st_with_sourceden.fits"
+
+# -------------------------------------------
+# Physics Grid Parameters
+# -------------------------------------------
+# n_subgrid : integer
+#     Number of sub-grids to use (1 means no subgrids).  These are
+#     useful when the physics model grid is too large to read into
+#     memory.
+n_subgrid = 2
+
+#####################
+# Distances, Velocity
+#####################
+
+# Distances: distance to the galaxy [min, max, step] or [fixed number]
+# Distance unit (any length or units.mag)
+distance_unit = units.mag
+
+# Distances: distance to the galaxy [min, max, step] or [fixed number]
+distances = [760]
+distance_unit = units.kpc
+distance_prior_model = {'name': 'flat'}
+#used 2013AJ....146...86T as a reference
+
+
+# velocity of galaxy
+velocity = -179 * units.km / units.s
+
+#####################
+# Stellar Parameters
+#####################
+
+# Age (logt) -- [min,max,step] to generate the isochrones in years
+#   example [6.0, 10.13, 1.0]
+logt = [6.0, 10.14, 1.0]
+age_prior_model = {'name': 'flat'}#, "sfr": 4e-5}
+
+# note: Mass is not sampled, instead the isochrone supplied
+#       mass spacing is used instead
+mass_prior_model = {"name": "kroupa"}
+
+# Metallicity : list of floats
+#   Given as relative to solar which has 0.0152 (Z_solar)
+#   Here: Z == Z_initial, NOT Z(t) surface abundance
+#   PARSECv1.2S accepts values 1.e-4 < Z < 0.06
+#   example z = [0.03, 0.019, 0.008, 0.004]
+z = (10 ** np.arange(-2.1, 0.3, 0.3) * 0.0152).tolist() # 0.0152 = solar metallicity
+met_prior_model = {"name": "flat"}
+
+# Isochrones: current choices are: Padova or MIST
+#   PadovaWeb() -- `modeltype` param for iso sets from ezpadova
+#      (choices: parsec12s_r14, parsec12s, 2010, 2008, 2002)
+#   MISTWeb() -- `rotation` param (choices: vvcrit0.0=default, vvcrit0.4)
+#
+#   Default: PARSEC+COLIBRI
+oiso = isochrone.PadovaWeb()
+
+# Stellar Atmospheres library definition
+osl = stellib.Tlusty() + stellib.Kurucz()
+
+#####################
+# Dust Parameters
+#####################
+
+# Dust extinction grid definition
+# recommended extinction mixture model
+extLaw = extinction.Generalized_RvFALaw(ALaw=extinction.Generalized_DustExt(curve='F19'), BLaw=extinction.Generalized_DustExt(curve='G03_SMCBar'))
+
+# original mixture model
+# extLaw = extinction.Gordon16_RvFALaw()
+
+# A(V): dust column in magnitudes
+#   acceptable avs > 0.0
+#   example [min, max, step] = [0.0, 10.055, 1.0]
+avs = [0.01, 5.0, 0.1]
+
+# av_prior_model = {'name': 'lognormal',
+#                  'max_pos': 2.0,
+#                  'sigma': 1.0,
+#                  'N': 10.}
+av_prior_model = {"name": "flat"}
+
+# R(V): dust average grain size
+#   example [min, max, step] = [2.0,6.0,1.0]
+rvs = [2.0, 6.0, 1.0]
+
+# rv_prior_model = {'name': 'lognormal',
+#                  'max_pos': 2.0,
+#                  'sigma': 1.0,
+#                  'N': 10.}
+rv_prior_model = {"name": "flat"}
+
+# fA: mixture factor between "MW" and "SMCBar" extinction curves
+#   example [min, max, step] = [0.0,1.0, 0.1]
+fAs = [0.0, 1.0, 0.2]
+
+# fA_prior_model = {'name': 'lognormal',
+#                  'max_pos': 0.5,
+#                  'sigma': 0.2,
+#                  'N': 10.}
+fA_prior_model = {"name": "flat"}
+
+#####################
+# Misc
+#####################
+
+# add in the standard filters to enable output of stats and pdf1d values
+# for the observed filters (AC)
+add_spectral_properties_kwargs = dict(filternames=filters)
+
+#----------------------------------
+# Source Density Binning Parameters
+#----------------------------------
+#   The following parameters determine how source density bins are determined
+#   from the source density image. The two mode options for binning are "linear"
+#   and "log". If the mode is "log", the number of bins parameter (sd_Nbins)
+#   will determine the binning. If "linear", either the number of bins (sd_Nbins)
+#   or the bin width (sd_binwidth) can be used to determine the binning.
+#   If "linear" and neither sd_Nbins or sd_binwidth is set, the bins
+#   will be estimated using the minimum and maximum source density values
+#   and bins of 1 source per square arcsecond. If both sd_Nbins and sd_binwidth
+#   are set, the bin width parameter will be used to estimate the binning
+#   (via beast/tools/density_map).
+#   Alternatively, the user can input custom bin edges (sd_custom), which
+#   overrides all of the above parameters.
+#   These parameters are used for generating AST input positions, and for
+#   splitting the observed and AST catalogs for fitting speed. Parameters are
+#   gathered here to make sure they are consistent across the full workflow.
+
+# sd_binmode : string
+#   Convention for source density binning, either "linear" or "log"
+#   Must be set to 'None' if not used.
+sd_binmode= "log"
+
+# sd_Nbins : integer
+#   Number of source density bins.
+#   Must be set to 'None' if not used.
+sd_Nbins = 10
+
+# sd_binwidth : integer
+#   Source density bin width. Used only if the bin mode is linear.
+#   Must be set to 'None' if not used.
+sd_binwidth = None
+
+# sd_custom : list
+#   List of custom bin edges to use for source density binning. Will
+#   override all other source density binning parameters if set.
+#   Overrides sd_binmode, sd_Nbins, and sd_binwidth.
+#   Must be set to 'None' if not used.
+sd_custom = None
+
+# ------------------------------------------------------
+# Artificial Star Test Input File Generation Parameters
+# ------------------------------------------------------
+# Please see https://beast.readthedocs.io/en/latest/generating_asts.html for a
+# full description of AST input file generation.
+#
+# There are three methods for AST selection:
+#     (1) Flux bin method (recommended): The range of fluxes in the model grid
+#          is split into bins (ast_n_flux_bins), and models are randomly selected.
+#          The model is retained if there are fewer than the set number of models
+#          (ast_n_per_flux_bin) in each of the relevant flux bins.
+#     (2) Random SEDs method (not recommended!): Generate fake stars by uniformly
+#          sampling log(age) space and randomly drawing from the metallicities
+#          in the model grid. This results in uneven constraints on the noise model,
+#          since there will be very few stars that probe the brightest or
+#          faintest parts of the model grid.
+#     (3) Supplement: select ASTs in particular areas of the color-magnitude diagrams
+#          set by bright and faint magnitudes in each filter.
+
+# ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+# Flux bin method parameters
+# ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+# ast_n_flux_bins : integer
+#   Number of flux bins into which the dynamic range of the model grid in
+#   each filter is divided (if pick_models_toothpick_style is used)
+ast_n_flux_bins = 100
+
+# ast_n_per_flux_bin : integer
+#   Minimum number of model SEDs that need to fall into each bin
+#   (if pick_models_toothpick_style is used)
+ast_n_per_flux_bin = 50
+
+# ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+# Random method parameters (not recommended!)
+# ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+# ast_bands_above_maglimit : integer
+# Number of filters that must be above the magnitude limit
+# for an AST to be included in the list (Default = 3)
+ast_bands_above_maglimit = 3
+
+# ast_maglimit : float (single value or array with one value per filter)
+# (1) option 1: [number] to change the number of mags fainter than the 90th
+#                  percentile faintest star in the photometry catalog to be
+#                  used for the mag cut. (Default = 1)
+# (2) option 2: [space-separated list of numbers] to set custom faint end limits
+#               (one value for each band).
+ast_maglimit = [1.0]
+
+# ast_models_selected_per_age : integer
+#   Number of models to pick per age (Default = 70).
+ast_models_selected_per_age = 100
+
+# ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+# Supplement method parameters
+# ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+# ast_supplement : bool
+#   If True, supplement the existing input ASTs
+ast_supplement = None
+
+# ast_N_supplement : integer
+#   Number of unique model SEDs to select. These selected unique SEDs will be
+#   repeated over N number of source density bins. In total, the user will
+#   supplement ast_N_supplement x ast_N_bins
+ast_N_supplement = None
+
+# ast_existing_file : string (optional)
+#   If the name of the existing input AST parameter file is supplied, additional
+#   ASTs will be selected by excluding the SED models listed in that file.
+ast_existing_file = None
+
+# ast_suppl_maglimit : dictionary (optional)
+#   If supplied, these magnitude limits will be applied to the SED model grids
+#   when selecting additional ASTs. This is a dictionary that includes
+#   information for the magnitude cuts as a function of the filters included.
+ast_suppl_maglimit = None
+
+# ast_suppl_colorlimit : dictionary (optional)
+#   If supplied, these color limits will be applied to the SED model grids
+#   when selecting additional ASTs. This is a dictionary that includes
+#   information for the color cuts as a function of the filters included.
+ast_suppl_colorlimit = None
+
+# ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+# AST position selection parameters
+# ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+# ast_with_positions :  (bool,optional)
+#   If True, the ast list is produced with X,Y positions.
+#   If False, the ast list is produced with only magnitudes.
+ast_with_positions = True
+
+# ast_realization_per_model : integer
+#   Number of Realizations of each included AST model
+#   to be put into the list. The default (20) is necessary for truncheon noise
+#   model, but one realization is sufficient for the toothpick noise model.
+ast_realization_per_model = 1
+
+# ast_density_table :  (string,optional)
+#   Name of density table created by tools/create_background_density_map.py,
+#   containing either the source density map or the background density map.
+#   If supplied, the ASTs will be repeated for each density bin in the table
+ast_density_table = 'M31-B09-EAST_chunk.st_sourceden_map.hd5'
+
+# ast_pixel_distribution : float (optional)
+#   (Used if ast_with_positions is True), minimum pixel separation between AST
+#   position and catalog star used to determine the AST spatial distribution
+ast_pixel_distribution = 10.0
+
+# ast_reference_image : string (optional, but required if ast_with_positions
+#   is True and no X and Y information  is present in the photometry catalog)
+#   Name of the reference image used by DOLPHOT when running the measured
+#   photometry.
+ast_reference_image = "M31-B09-BEAST_chunk_F475W_drz.chip1.fits"
+
+# ast_coord_boundary : None, or list of two arrays (optional)
+#   If supplied, these RA/Dec coordinates will be used to limit the region
+#   over which ASTs are generated.  Input should be list of two arrays, the
+#   first RA and the second Dec, ordered sequentially around the region
+#   (either CW or CCW).
+#    e.g. ast_coord_boundary = [np.array([155.4490686, 155.4129247, 155.4218716, 155.4582495]),
+#                      np.array([18.1102919, 18.0998650, 18.0707937, 18.0809796])]
+ast_coord_boundary = None
+
+# ast_erode_selection_region : None, or float
+#   You may wish to avoid placing ASTs near the edge of the image.  Set this to
+#   the number of arcseconds (default=0.5, which is ~10 pixels for WFC3/UVIS) to
+#   shrink the allowed AST placement region.  This is applied by doing an erosion
+#   to both ast_coord_boundary (if set) and the convex hull around the photometry
+#   catalog.
+ast_erode_selection_region = 0.0
+
+
+# -------------------------------------------
+# Observation (Noise) Model Parameters
+# -------------------------------------------
+# astfile : string
+#   pathname of the AST files (single camera ASTs)
+astfile = "M31-B09-EAST_chunk.gst.fake.fits"
+
+# ast_colnames : list of strings
+#   names of columns for filters in the AST catalog (AC)
+ast_colnames = np.array(basefilters)
+
+# noisefile : string
+#   create a name for the noise model
+noisefile = project + "/" + project + "_noisemodel.grid.hd5"
+
+# absflux calibration covariance matrix for HST specific filters (AC)
+absflux_a_matrix = absflux_covmat.hst_frac_matrix(filters)
