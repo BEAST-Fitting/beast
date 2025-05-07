@@ -8,7 +8,7 @@ from astropy.table import Table, Column
 
 from beast.observationmodel.vega import Vega
 from beast.physicsmodel.priormodel import PriorAgeModel, PriorMassModel
-from beast.physicsmodel.grid_weights_stars import compute_bin_boundaries
+from beast.physicsmodel.grid_weights import compute_bin_boundaries
 
 __all__ = ["Observations", "gen_SimObs_from_sedgrid"]
 
@@ -345,8 +345,8 @@ def gen_SimObs_from_sedgrid(
         masspts = np.logspace(np.log10(mass_range[0]), np.log10(mass_range[1]), nmass)
         mass_prior = PriorMassModel(mass_prior_model)
         massprior = mass_prior(masspts)
-        totmass = np.trapz(massprior, masspts)
-        avemass = np.trapz(masspts * massprior, masspts) / totmass
+        totmass = np.trapezoid(massprior, masspts)
+        avemass = np.trapezoid(masspts * massprior, masspts) / totmass
 
         # compute the mass of the remaining stars at each age and
         # simulate the stars assuming everything is complete
@@ -368,7 +368,7 @@ def gen_SimObs_from_sedgrid(
             gmass = (masspts >= cur_mass_range[0]) & (masspts <= cur_mass_range[1])
             curmasspts = masspts[gmass]
             curmassprior = massprior[gmass]
-            totcurmass = np.trapz(curmassprior, curmasspts)
+            totcurmass = np.trapezoid(curmassprior, curmasspts)
 
             # compute the mass remaining at each age -> this is the mass to simulate
             simmass = cprior * cwidth * totcurmass / totmass

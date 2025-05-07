@@ -25,7 +25,7 @@ to be independent of the grid spacing.
 
 .. automodapi:: beast.physicsmodel.priormodel
 
-.. automodapi:: beast.physicsmodel.grid_weights_stars
+.. automodapi:: beast.physicsmodel.grid_weights
 
 .. automodapi:: beast.physicsmodel.grid_and_prior_weights
 

@@ -414,8 +414,8 @@ def Q_all_memory(
         g0_weights = numexpr.evaluate("g0_weights - g0_weights_sum")
 
     if len(g0["weight"]) != len(g0_indxs):
+        print("orig/g0_indxs", len(g0["weight"]), len(g0_indxs))
         warnings.warn("some zero weight models exist")
-        warnings.warn("orig/g0_indxs", len(g0["weight"]), len(g0_indxs))
 
     # get the model SEDs
     if hasattr(g0.seds, "read"):

@@ -19,7 +19,7 @@ Build Status/Checks
    :target: http://beast.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://github.com/BEAST-Fitting/beast/workflows/Python%20Tests/badge.svg
+.. image:: https://github.com/BEAST-Fitting/beast/actions/workflows/tox-tests.yml/badge.svg
    :target: https://github.com/BEAST-Fitting/beast/actions/
    :alt: Test Status
 
@@ -49,7 +49,7 @@ Documentation
 -------------
 
 Details of installing, running, and contributing to the BEAST are at
-<http://beast.readthedocs.io>.
+`<http://beast.readthedocs.io>`_.
 
 .. image:: https://img.shields.io/badge/ApJ-Gordon%20et%20al.%202016,%20ApJ,%20826,%20104-brightgreen
     :target: https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G/abstract
@@ -70,7 +70,7 @@ Leo Girardi, David W. Hogg, Jason S. Kalirai, Maria Kapala,
 Alexia R. Lewis, Hans-Walter Rix, Karin Sandstrom, and Evan D. Skillman
 
 Direct code contributors (including new contributors since 2016):
-<https://github.com/BEAST-fitting/beast/graphs/contributors>
+`<https://github.com/BEAST-fitting/beast/graphs/contributors>`_
 
 Attribution
 -----------

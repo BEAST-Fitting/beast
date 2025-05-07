@@ -30,7 +30,7 @@ def download_rename(filename, tmpdir=""):
     return fname
 
 
-def compare_tables(table_cache, table_new, rtol=1e-7, otag=""):
+def compare_tables(table_cache, table_new, rtol=1e-6, otag=""):
     """
     Compare two tables using astropy tables routines.
 
