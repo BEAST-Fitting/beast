@@ -1,5 +1,7 @@
 import copy
+import warnings
 import numpy as np
+import astropy.units as u
 
 from dust_extinction.helpers import _test_valid_x_range
 from dust_extinction.parameter_averages import F19
@@ -7,6 +9,10 @@ from dust_extinction.averages import G03_SMCBar
 from dust_extinction.grain_models import D03, WD01
 
 __all__ = ["F19_D03_extension", "G03_SMCBar_WD01_extension"]
+
+
+class SpectralUnitsWarning(UserWarning):
+    pass
 
 
 def _get_x_in_wavenumbers(in_x):
