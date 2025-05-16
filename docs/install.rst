@@ -7,7 +7,7 @@ Requirements
 
 Running the BEAST requires:
 
-- Python >= 3.8
+- Python >= 3.9
 
 One easy way to obtain the above is through the AstroConda Python stack:
 
@@ -22,7 +22,7 @@ One easy way to obtain the above is through the AstroConda Python stack:
 
 .. code-block:: console
 
-    $ conda create -n <env_name> python=3.11
+    $ conda create -n <env_name> python=3.12
 
 - Switch to this newly create conda environment
 
@@ -111,53 +111,6 @@ In order to run a development installation, navigate to the directory in your
 .. code-block:: console
 
    $ pip install -e .
-
-
-Installation for Production Runs
-================================
-
-Using a dedicated conda environment for production BEAST runs may be
-desirable. Such an environment provides a way to ensure that
-production runs are reproducible by fixing the versions of all the
-software used.
-
-Create a conda environment, and name it differently from your default and other environments:
-
-  .. code-block:: console
-
-    $ conda create -n beast_production python=3.11
-
-Activate the environment after all the packages are finished installing:
-
-  .. code-block:: console
-
-    $ conda activate beast_production
-
-Install dependencies using conda (better for speed):
-
-  .. code-block:: console
-
-    $ conda install astropy scipy h5py matplotlib cython
-
-Next, install the BEAST. You have three options:
-
-Option 1: Use pip to install a stable version of the BEAST (e.g. v2.0):
-
-  .. code-block:: console
-
-    $ pip install beast==2.0
-
-Option 2: Get the latest production branch, which can be ahead of the pypi version:
-
-  .. code-block:: console
-
-    $ pip install git+https://github.com/BEAST-Fitting/beast.git@v2.x
-
-Option 3: If you'll be doing development, follow the instructions above (:ref:`Dev_install`). Note that you can make separate environments for development and production modes.
-
-The BEAST production version is now ready for use. Note, you need to
-activate this conda environment every time you want to use this installed
-version.
 
 .. _library-files:
 
