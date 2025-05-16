@@ -1,7 +1,17 @@
+2.2 (unreleased)
+================
+- no changes yet
+
 2.1 (unreleased)
 ================
+- updates to support megabeast (refactoring dust priors)
+- added ACS SBC, WFC3/ACS narrow, and JWST bands
+- improvements source density maps (diffspike option)
+- added log A(V) spacing option
 - added 2D dust prior step model that also depends on distance
 - added absexponential distance prior
+- various updates for upstream package changes
+- documentation improvements
 
 2.0 (2022-11-11)
 ================
