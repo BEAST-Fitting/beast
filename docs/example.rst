@@ -12,6 +12,9 @@ maintained and will work with the latest BEAST code is `metal_small`.
 metal_small Example
 -------------------
 
+Reminder: This example is in the beast-examples repository in the metal-small
+subdirectory, see above.
+
 This example is based on a small amount of METAL program data.
 METAL is an HST program (PI: J. Roman-Duval) that included parallel imaging
 of regions in the Large Magellanic Cloud.
