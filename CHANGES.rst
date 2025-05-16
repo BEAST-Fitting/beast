@@ -2,8 +2,9 @@
 ================
 - no changes yet
 
-2.1 (unreleased)
+2.1 (2025-05-16)
 ================
+
 - updates to support megabeast (refactoring dust priors)
 - added ACS SBC, WFC3/ACS narrow, and JWST bands
 - improvements source density maps (diffspike option)
