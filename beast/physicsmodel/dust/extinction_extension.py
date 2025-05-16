@@ -1,12 +1,50 @@
 import copy
+import warnings
 import numpy as np
+import astropy.units as u
 
-from dust_extinction.helpers import _get_x_in_wavenumbers, _test_valid_x_range
+from dust_extinction.helpers import _test_valid_x_range
 from dust_extinction.parameter_averages import F19
 from dust_extinction.averages import G03_SMCBar
 from dust_extinction.grain_models import D03, WD01
 
 __all__ = ["F19_D03_extension", "G03_SMCBar_WD01_extension"]
+
+
+class SpectralUnitsWarning(UserWarning):
+    pass
+
+
+def _get_x_in_wavenumbers(in_x):
+    """
+    Convert input x to wavenumber given x has units.
+    Otherwise, assume x is in waveneumbers and issue a warning to this effect.
+    Parameters
+    ----------
+    in_x : astropy.quantity or simple floats
+        x values
+    Returns
+    -------
+    x : floats
+        input x values in wavenumbers w/o units
+    """
+    # handles the case where x is a scaler
+    in_x = np.atleast_1d(in_x)
+
+    # check if in_x is an astropy quantity, if not issue a warning
+    if not isinstance(in_x, u.Quantity):
+        warnings.warn(
+            "x has no units, assuming x units are inverse microns", SpectralUnitsWarning
+        )
+
+    # convert to wavenumbers (1/micron) if x input in units
+    # otherwise, assume x in appropriate wavenumber units
+    with u.add_enabled_equivalencies(u.spectral()):
+        x_quant = u.Quantity(in_x, 1.0 / u.micron, dtype=np.float64)
+
+    # strip the quantity to avoid needing to add units to all the
+    #    polynomical coefficients
+    return x_quant.value
 
 
 class F19_D03_extension(F19):
