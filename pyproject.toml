@@ -1,9 +1,136 @@
 [build-system]
+requires = [
+  "setuptools>=62.1",
+  "setuptools_scm[toml]>=8.0.0",
+  "wheel",]
+build-backend = "setuptools.build_meta"
 
-requires = ["setuptools",
-            "setuptools_scm",
-            "wheel",
-            "cython",
-            "extension-helpers"]
+[project]
+name = "beast"
+description = "Interstellar Dust Extinction Models"
+requires-python = ">=3.10"
+readme = { file = "README.rst", content-type = "text/x-rst" }
+license = { file = "LICENSE" }
+authors = [
+  { name = "Karl D. Gordon", email = "kgordon@stsci.edu" },
+]
+dependencies = [
+    "numpy",
+    "astropy",
+    "scipy",
+    "matplotlib",
+    "h5py",
+    "tables",
+    "dust_extinction",
+    "tqdm",
+    "photutils",
+    "shapely",
+    "graphviz", 
+    "asdf",
+    "stsynphot",
+    "pandeia.engine",
+    "importlib_resources"
+]
 
-build-backend = 'setuptools.build_meta'
+dynamic = ["version"]
+
+[project.scripts]
+beast = "beast.main:main"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-doctestplus",
+    "pytest-astropy",
+    "pytest-cov",
+    "matplotlib"
+]
+docs = [
+    "sphinx",
+    "sphinx-automodapi",
+    "matplotlib",
+    "graphviz"
+]
+[project.urls]
+repository = "https://github.com/karllark/beast"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["beast*"]
+
+[tool.setuptools.package-data]
+beast = [
+    "physicsmodel/stars/*/*.json",
+    "plotting/tests/baseline/*.png",
+    "tools/data/*.txt",
+    "tests/*.txt",
+]
+
+[tool.setuptools_scm]
+version_file = "beast/version.py"
+
+[tool.pytest.ini_options]
+testpaths = [
+  "beast",
+  "docs",
+]
+doctest_plus = "enabled"
+text_file_format = "rst"
+addopts = "--doctest-rst"
+norecursedirs = [
+  "beast[\\/]_dev",
+  "beast/docs/_build/*",
+  "beast/docs/api/*"
+]
+
+[tool.coverage.run]
+omit = [
+ "beast/__init*",
+ "beast/conftest.py",
+ "beast/*setup_package*",
+ "beast/tests/*",
+ "beast/*/tests/*",
+ "beast/extern/*",
+ "beast/version*",
+ "*/beast/__init*",
+ "*/beast/conftest.py",
+ "*/beast/*setup_package*",
+ "*/beast/tests/*",
+ "*/beast/*/tests/*",
+ "*/beast/extern/*",
+ "*/beast/version*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  # Have to re-enable the standard pragma
+  "pragma: no cover",
+  # Don't complain about packages we have installed
+  "except ImportError",
+  # Don't complain if tests don't hit assertions
+  "raise AssertionError",
+  "raise NotImplementedError",
+  # Don't complain about script hooks
+  "def main(.*):",
+  # Ignore branches that don't pertain to this version of Python
+  "pragma: py{ignore_python_version}",
+  # Don't complain about IPython completion helper
+  "def _ipython_key_completions_",
+  # typing.TYPE_CHECKING is False at runtime
+  "if TYPE_CHECKING:",
+  # Ignore typing overloads
+  "@overload",
+]
+
+[tool.flake8]
+    exclude = ["sphinx","*parsetab.py","conftest.py","docs/conf.py","setup.py"]
+    max-complexity = 10
+    max-line-length = 100
+    extend-ignore = """
+        W503,
+        E203,
+        E501,
+    """

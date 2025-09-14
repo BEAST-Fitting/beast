@@ -74,7 +74,7 @@ trace if it is necessary.
 Contributing
 ============
 
-Like the `Astropy`_ project, the ``beast`` is made both by and for its
+Like the `Astropy <https://docs.astropy.org/>`_ project, the ``beast`` is made both by and for its
 users.  We accept contributions at all levels, spanning the gamut from fixing a
 typo in the documentation to developing a major new feature. We welcome
 contributors who will abide by the `Python Software Foundation Code of Conduct

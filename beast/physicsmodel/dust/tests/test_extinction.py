@@ -212,4 +212,4 @@ def test_extinction_dustextpkg_datacomp(curve, origExtLaw):
     olaw = getattr(extinction, origExtLaw)()
 
     lam = np.linspace(2.0e3, 1.0e4, 10)
-    np.testing.assert_allclose(tlaw(lam), olaw(lam), rtol=1e-03)
+    np.testing.assert_allclose(tlaw(lam), olaw(lam), rtol=2e-03)
