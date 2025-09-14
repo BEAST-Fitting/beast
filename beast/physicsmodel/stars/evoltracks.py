@@ -59,7 +59,9 @@ class EvolTracks(object):
         """
         print("not implemented")
 
-    def plot_tracks(self, ax, xval="logT", yval="logL", trackval=0, linestyle="-", color="k"):
+    def plot_tracks(
+        self, ax, xval="logT", yval="logL", trackval=0, linestyle="-", color="k"
+    ):
         """
         Plot the tracks with the input x, y choices
 
@@ -145,12 +147,14 @@ class EvolTracks(object):
             # compute the metrics
             tmetrics = {}
             for cname in check_keys:
-                tmetrics[cname] = np.array([
-                    np.min(dvals[cname]),
-                    np.max(dvals[cname]),
-                    np.median(dvals[cname]),
-                    np.mean(dvals[cname]),
-                ])
+                tmetrics[cname] = np.array(
+                    [
+                        np.min(dvals[cname]),
+                        np.max(dvals[cname]),
+                        np.median(dvals[cname]),
+                        np.mean(dvals[cname]),
+                    ]
+                )
             metrics.append(tmetrics)
 
         return metrics
@@ -220,7 +224,7 @@ class EvolTracks(object):
             one_track[ckey] = new_grid[ckey]
 
         return one_track
-        
+
     def regrid_metallicities(
         self,
         metallicities,
@@ -246,7 +250,7 @@ class EvolTracks(object):
 
         logmass_delta, logL_delta, logT_delta : float
             deltas for the condensed grid
-            default is 0.05 for all 3            
+            default is 0.05 for all 3
         """
         # setup the new grid
         new_grid = {}
@@ -372,8 +376,8 @@ class EvolTracks(object):
         umasses = np.unique(orig_data[0]["M_ini"])
         print(len(umasses), "masses")
         self.regrid_metallicities(
-                metallicities=metal_info,
-            )
+            metallicities=metal_info,
+        )
         exit()
 
 
@@ -425,7 +429,7 @@ class ETMist(EvolTracks):
         itables = [QTable.read(cfile) for cfile in files]
 
         return itables
-    
+
 
 class ETParsec(EvolTracks):
     """
