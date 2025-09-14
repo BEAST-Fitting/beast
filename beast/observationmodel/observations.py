@@ -30,9 +30,10 @@ class Observations(object):
     badvalue : float
         value that tags a bad measurement that should not be used in the
         fitting
-    nObs : int
-        number of observations in the catalog
     """
+    # nObs : int
+    #     number of observations in the catalog
+    # """
 
     def __init__(
         self, inputFile, filters, obs_colnames=None, vega_fname=None, desc=None

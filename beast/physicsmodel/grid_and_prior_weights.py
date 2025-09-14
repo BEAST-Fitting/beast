@@ -47,10 +47,7 @@ def compute_distance_age_mass_metallicity_weights(
     ----------
     _tgrid : BEAST model spectra grid.
 
-    distance_prior_model,
-    age_prior_model,
-    mass_prior_model,
-    met_prior_model: dict
+    distance_prior_model, age_prior_model, mass_prior_model, met_prior_model: dict
         dict including prior model name and parameters
 
     Returns

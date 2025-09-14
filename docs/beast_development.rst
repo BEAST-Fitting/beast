@@ -40,7 +40,7 @@ project is:
 
 
 ``beast`` follows the same workflow and coding guidelines as
-`Astropy`_. The following pages will help you get started with contributing
+`Astropy <https://docs.astropy.org/>`_. The following pages will help you get started with contributing
 fixes, code, or documentation (no git or GitHub experience necessary):
 
 * `How to make a code contribution <https://docs.astropy.org/en/stable/index_dev.html>`_
