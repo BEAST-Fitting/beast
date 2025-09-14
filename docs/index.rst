@@ -10,7 +10,7 @@ The dust extinction parameters are dust column (Av), average grain size (Rv),
 and mixing between type A and B extinction curves (fA).
 
 The full details of the BEAST are provided by
-Gordon et al. (2016, ApJ, 826, 104): http://adsabs.harvard.edu/abs/2016ApJ...826..104G
+`Gordon et al. (2016, ApJ, 826, 104) http://adsabs.harvard.edu/abs/2016ApJ...826..104G`_.
 
 Getting started
 ===============
