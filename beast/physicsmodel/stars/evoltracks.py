@@ -237,17 +237,16 @@ class EvolTracks(object):
 
         Parameters
         ----------
-        logmet_range : (float, float)
-            range of new metallicity grid
-            default is -1.0 to 1.0 (1/10 to solar metallicity)
+        metallicities:
+            new metallicities for grid
         """
         # setup the new grid
         new_grid = {}
         for cname in self.data.colnames:
             new_grid[cname] = np.array([])
 
-        # get metallicities relative to solar
-        new_met_vals = np.log10(np.array(metallicities) / solar_metalicity)
+        # get metallicities
+        new_met_vals = np.array(metallicities)
 
         umasses = np.unique(self.data["log(M_ini)"])
         for cmass in umasses:
@@ -447,7 +446,7 @@ class ETMist(EvolTracks):
         itables = []
         for cfile in files:
             ttab = QTable.read(cfile)
-            ttab.rename_column("met", "Z")
+            ttab["Z"] = (10 ** ttab["met"]) * solar_metalicity
             itables.append(ttab)
 
         return itables
