@@ -106,13 +106,124 @@ def compute_distance_age_mass_metallicity_weights(
             _tgrid[dindxs]["weight"] *= dist_weights[i] * total_dist_weight[i]
 
 
+def compute_age_mass_weights(
+    _tgrid,        
+    z_val,
+    indxs,
+    age_prior_model={"name": "flat"},
+    mass_prior_model={"name": "kroupa"},
+):
+    """
+    Compute the age and meteallicity prior.  Handles two cases.  
+    The age on a grid and mass non-uniform and the mass on a grid and the age non-uniform.
+    
+    _tgrid : SpectralGrid
+        BEAST models spectral grid
+    z_val : float
+        value of metallicity to compute priors
+    age_prior_model : dict
+        dict including prior model name and parameters
+    mass_prior_model : dict
+        dict including prior model name and parameters
+    """
+
+    print(z_val)
+    # get the grid for a single metallicity
+    (zindxs,) = np.where(_tgrid[indxs]["Z"] == z_val)
+
+    # determine which of the two cases based on the variable on a uniform grid will
+    # have many fewer unique elements
+    ages = np.unique(_tgrid[indxs]["logA"])
+    masses = np.unique(_tgrid[indxs]["M_ini"])
+    if (len(ages) > len(masses)):
+        pname1 = "M_ini"
+        pname1_logval = False
+        prior1 = mass_prior_model
+        prior1mod = PriorMassModel        
+        pname2 = "logA"
+        pname2_logval = True
+        prior2 = age_prior_model
+        prior2mod = PriorAgeModel
+    else:
+        pname1 = "logA"
+        pname1_logval = True
+        prior1 = age_prior_model
+        prior1mod = PriorAgeModel
+        pname2 = "M_ini"
+        pname2_logval = False
+        prior2 = mass_prior_model
+        prior2mod = PriorMassModel
+
+    # get the unique values of pname1 for this metallicity
+    zindxs = indxs[zindxs]
+    uniq_pname1 = np.unique(_tgrid[zindxs][pname1])
+
+    pname1_grid_weights = compute_grid_weights(uniq_pname1, log=pname1_logval)
+    if isinstance(prior1, dict):
+        pname1_prior = prior1mod(prior1)
+    else:
+        pname1_prior = prior1
+    pname1_prior_weights = pname1_prior(uniq_pname1)
+
+    for ak, pname1_val in enumerate(uniq_pname1):
+        # get the grid for a single age
+        (aindxs,) = np.where(
+            (_tgrid[indxs][pname1] == pname1_val) & (_tgrid[indxs]["Z"] == z_val)
+        )
+        aindxs = indxs[aindxs]
+        _tgrid_single_pname1 = _tgrid[aindxs]
+
+        # compute the mass weights
+        if len(aindxs) > 1:
+            if isinstance(prior2, dict):
+                pname2_prior = PriorMassModel(prior2)
+            else:
+                pname2_prior = prior2
+
+            # deal with repeat masses or ages - happens for MegaBEAST
+            # and have discovered this can happen even for a standard BEAST run
+            # as sometimes two masses in an isochrone are exactly the same
+            #   new code for MegaBEAST is more correct as then the grid weight
+            #   will be correctly set for any repeated masses
+            cur_pname2 = np.unique(_tgrid_single_pname1[pname2])
+            n_pname2 = len(_tgrid_single_pname1[pname2])
+            if  len(cur_pname2) < n_pname2:
+                print(cur_pname2, n_pname2)
+                upname2_grid_weights = compute_grid_weights(cur_pname2, log=pname2_logval)
+                upname2_prior_weights = pname2_prior(cur_pname2)
+                pname2_grid_weights = np.zeros(n_pname2, dtype=float)
+                pname2_prior_weights = np.zeros(n_pname2, dtype=float)
+                for k, cpname2 in enumerate(cur_pname2):
+                    gvals = _tgrid_single_pname1[pname2] == cpname2
+                    pname2_grid_weights[gvals] = upname2_grid_weights[k]
+                    pname2_prior_weights[gvals] = upname2_prior_weights[k]
+            else:
+                cur_pname2 = _tgrid_single_pname1[pname2]
+                pname2_grid_weights = compute_grid_weights(cur_pname2, log=pname2_logval)
+                pname2_prior_weights = pname2_prior(cur_pname2)
+
+        else:
+            # must be a single mass for this age,z combination
+            # set mass weight to zero to remove this point from the grid
+            pname2_grid_weights = np.zeros(1)
+            pname2_prior_weights = np.zeros(1)
+
+        # apply both the mass and age weights
+        for i, k in enumerate(aindxs):
+            comb_grid_weights = pname2_grid_weights[i] * pname1_grid_weights[ak]
+            comb_prior_weights = pname2_prior_weights[i] * pname1_prior_weights[ak]
+            _tgrid[k]["grid_weight"] *= comb_grid_weights
+            _tgrid[k]["prior_weight"] *= comb_prior_weights
+            _tgrid[k]["weight"] *= comb_grid_weights * comb_prior_weights
+
+
 def compute_age_mass_metallicity_weights(
     _tgrid,
     indxs,
     age_prior_model={"name": "flat"},
     mass_prior_model={"name": "kroupa"},
     met_prior_model={"name": "flat"},
-    **kwargs
+    **kwargs,
 ):
     """
     Computes the age-mass-metallicity grid and prior weights
@@ -143,70 +254,8 @@ def compute_age_mass_metallicity_weights(
     for az, z_val in enumerate(uniq_Zs):
         print("computing the age-mass-metallicity grid weight for Z = ", z_val)
 
-        # get the grid for a single metallicity
-        (zindxs,) = np.where(_tgrid[indxs]["Z"] == z_val)
-
-        # get the unique ages for this metallicity
-        zindxs = indxs[zindxs]
-        uniq_ages = np.unique(_tgrid[zindxs]["logA"])
-
-        # compute the age weights
-        age_grid_weights = compute_grid_weights(uniq_ages, log=True)
-        if isinstance(age_prior_model, dict):
-            age_prior = PriorAgeModel(age_prior_model)
-        else:
-            age_prior = age_prior_model
-        age_prior_weights = age_prior(uniq_ages)
-
-        for ak, age_val in enumerate(uniq_ages):
-            # get the grid for a single age
-            (aindxs,) = np.where(
-                (_tgrid[indxs]["logA"] == age_val) & (_tgrid[indxs]["Z"] == z_val)
-            )
-            aindxs = indxs[aindxs]
-            _tgrid_single_age = _tgrid[aindxs]
-
-            # compute the mass weights
-            if len(aindxs) > 1:
-                if isinstance(mass_prior_model, dict):
-                    mass_prior = PriorMassModel(mass_prior_model)
-                else:
-                    mass_prior = mass_prior_model
-
-                # deal with repeat masses - happens for MegaBEAST
-                # and have discovred this can happen even for a standard BEAST run
-                # as sometimes two masses in an isochrone are exactly the same
-                #   new code for MegaBEAST is more correct as then the grid weight
-                #   will be correctly set for any repeated masses
-                cur_masses = np.unique(_tgrid_single_age["M_ini"])
-                n_masses = len(_tgrid_single_age["M_ini"])
-                if len(cur_masses) < n_masses:
-                    umass_grid_weights = compute_grid_weights(cur_masses)
-                    umass_prior_weights = mass_prior(cur_masses)
-                    mass_grid_weights = np.zeros(n_masses, dtype=float)
-                    mass_prior_weights = np.zeros(n_masses, dtype=float)
-                    for k, cmass in enumerate(cur_masses):
-                        gvals = _tgrid_single_age["M_ini"] == cmass
-                        mass_grid_weights[gvals] = umass_grid_weights[k]
-                        mass_prior_weights[gvals] = umass_prior_weights[k]
-                else:
-                    cur_masses = _tgrid_single_age["M_ini"]
-                    mass_grid_weights = compute_grid_weights(cur_masses)
-                    mass_prior_weights = mass_prior(cur_masses)
-
-            else:
-                # must be a single mass for this age,z combination
-                # set mass weight to zero to remove this point from the grid
-                mass_grid_weights = np.zeros(1)
-                mass_prior_weights = np.zeros(1)
-
-            # apply both the mass and age weights
-            for i, k in enumerate(aindxs):
-                comb_grid_weights = mass_grid_weights[i] * age_grid_weights[ak]
-                comb_prior_weights = mass_prior_weights[i] * age_prior_weights[ak]
-                _tgrid[k]["grid_weight"] *= comb_grid_weights
-                _tgrid[k]["prior_weight"] *= comb_prior_weights
-                _tgrid[k]["weight"] *= comb_grid_weights * comb_prior_weights
+        # compute the age and mass weights
+        compute_age_mass_weights(_tgrid, z_val, indxs, age_prior_model, mass_prior_model)
 
         # compute the current total weight at each metallicity
         total_z_grid_weight[az] = np.sum(_tgrid[zindxs]["grid_weight"])

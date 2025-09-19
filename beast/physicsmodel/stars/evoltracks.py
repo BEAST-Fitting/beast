@@ -228,9 +228,6 @@ class EvolTracks(object):
     def regrid_metallicities(
         self,
         metallicities,
-        condense=False,
-        logL_delta=0.05,
-        logT_delta=0.05,
     ):
         """
         Interpolate a set of evolutionary tracks for a single mass
@@ -243,14 +240,6 @@ class EvolTracks(object):
         logmet_range : (float, float)
             range of new metallicity grid
             default is -1.0 to 1.0 (1/10 to solar metallicity)
-
-        condense : boolean
-            set to condense grid using delta values
-            default = False
-
-        logmass_delta, logL_delta, logT_delta : float
-            deltas for the condensed grid
-            default is 0.05 for all 3
         """
         # setup the new grid
         new_grid = {}
@@ -269,12 +258,14 @@ class EvolTracks(object):
             uvals, indices = np.unique(self.data["eep"][mvals], return_inverse=True)
             for k, cval in enumerate(uvals):
                 (cindxs,) = np.where(k == indices)
-                cur_mets = (self.data["met"][mvals])[cindxs]
+                cur_mets = (self.data["Z"][mvals])[cindxs]
 
                 for cname in self.data.colnames:
                     if cname == "eep":
-                        vals = np.full((len(cur_mets)), cval)
-                    elif cname == "met":
+                        vals = np.full((len(new_met_vals)), cval)
+                    elif cname == "M_ini":
+                        vals = np.full((len(new_met_vals)), cmass)
+                    elif cname == "Z":
                         vals = new_met_vals
                     else:
                         f = interp1d(cur_mets, self.data[cname][cindxs])
@@ -289,41 +280,54 @@ class EvolTracks(object):
 
         self.data = table_grid
 
-    def condense_grid():
+    def condense_grid(
+        logL_delta=0.05,
+        logT_delta=0.05,
+    ):
+        """
+        Condense the grid based on the input deltas
+
+        Parameters
+        ----------
+        logmass_delta, logL_delta, logT_delta : float
+            deltas for the condensed grid
+            default is 0.05 for all 3
+        """
+        print("condense_grid not ready yet.")
+        exit()
 
         # setup the condensed grid
-        if condense:
-            new_grid = {}
+        new_grid = {}
+        for cname in one_track.keys():
+            new_grid[cname] = np.array([])
+
+        # loop over each mass track and condense
+        uvals, indices = np.unique(one_track["M_ini"], return_inverse=True)
+        for k, cval in enumerate(uvals):
+            (cindxs,) = np.where(k == indices)
+            delta_logL = np.absolute(np.diff(one_track["logL"][cindxs]))
+            delta_logT = np.absolute(np.diff(one_track["logT"][cindxs]))
+            nindxs = [0]
+            cdelt_logL = 0.0
+            cdelt_logT = 0.0
+            for i in range(len(delta_logL)):
+                cdelt_logL += delta_logL[i]
+                cdelt_logT += delta_logT[i]
+                if (cdelt_logL > logL_delta) or (cdelt_logT > logT_delta):
+                    nindxs.append(i)
+                    cdelt_logL = delta_logL[i]
+                    cdelt_logT = delta_logT[i]
+
+            if not max(nindxs) == len(delta_logL) - 1:
+                nindxs.append(len(delta_logL) - 1)
+
             for cname in one_track.keys():
-                new_grid[cname] = np.array([])
+                new_grid[cname] = np.concatenate(
+                    (new_grid[cname], one_track[cname][cindxs][nindxs])
+                )
 
-            # loop over each mass track and condense
-            uvals, indices = np.unique(one_track["M_ini"], return_inverse=True)
-            for k, cval in enumerate(uvals):
-                (cindxs,) = np.where(k == indices)
-                delta_logL = np.absolute(np.diff(one_track["logL"][cindxs]))
-                delta_logT = np.absolute(np.diff(one_track["logT"][cindxs]))
-                nindxs = [0]
-                cdelt_logL = 0.0
-                cdelt_logT = 0.0
-                for i in range(len(delta_logL)):
-                    cdelt_logL += delta_logL[i]
-                    cdelt_logT += delta_logT[i]
-                    if (cdelt_logL > logL_delta) or (cdelt_logT > logT_delta):
-                        nindxs.append(i)
-                        cdelt_logL = delta_logL[i]
-                        cdelt_logT = delta_logT[i]
-
-                if not max(nindxs) == len(delta_logL) - 1:
-                    nindxs.append(len(delta_logL) - 1)
-
-                for cname in one_track.keys():
-                    new_grid[cname] = np.concatenate(
-                        (new_grid[cname], one_track[cname][cindxs][nindxs])
-                    )
-
-            # update the grid
-            one_track = new_grid
+        # update the grid
+        one_track = new_grid
 
     def get_evoltracks(
         self, mass_info, metal_info, condense=False, logT_delta=0.05, logL_delta=0.05
@@ -358,27 +362,36 @@ class EvolTracks(object):
         # exit()
 
         # get the as computed evolutionary tracks
-        orig_data = self.load_orig_tables()
+        edata = self.load_orig_tables()
 
         # interpolate for requested mass spacing
-        print(len(orig_data), "metallicities")
-        for k, ctrack in enumerate(orig_data):
-            orig_data[k] = self.regrid_one_met(
+        #  replace original tracks with regrided version
+        print(len(edata), "orig metallicities")
+        for k, ctrack in enumerate(edata):
+            edata[k] = self.regrid_one_met(
                 ctrack,
                 logmass_range=mass_info[0:2],
                 logmass_delta=mass_info[2],
             )
 
         # stack different metallicities into a single table
-        self.data = vstack(orig_data)
+        self.data = vstack(edata)
 
         # interpolate for metallicity spacing at full resolution for best accuracy
-        umasses = np.unique(orig_data[0]["M_ini"])
-        print(len(umasses), "masses")
         self.regrid_metallicities(
             metallicities=metal_info,
         )
-        exit()
+
+        umasses = np.unique(self.data["M_ini"])
+        print(len(umasses), "requested masses")
+        umets = np.unique(self.data["Z"])
+        print(len(umets), "requested metallicities")
+        print(len(self.data), "total grid points")
+
+        self.data.header = {}
+        self.data.header["NAME"] = self.name
+
+        return self.data
 
 
 class ETMist(EvolTracks):
@@ -426,7 +439,11 @@ class ETMist(EvolTracks):
         else:
             files = filename
 
-        itables = [QTable.read(cfile) for cfile in files]
+        itables = []
+        for cfile in files:
+            ttab = QTable.read(cfile)
+            ttab.rename_column("met", "Z")
+            itables.append(ttab)
 
         return itables
 

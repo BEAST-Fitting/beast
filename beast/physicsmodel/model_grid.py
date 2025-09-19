@@ -87,8 +87,8 @@ def make_evoltrack_table(
             oet = ezIsoch(et_fname)
         elif isinstance(oet, evoltracks.EvolTracks):
             tab = oet.get_evoltracks(mass_info, z)
-            tab.header["NAME"] = "{0} EvolTracks".format("_".join(et_fname.split("_")[:-1]))
-            print("{0} EvolTracks".format("_".join(et_fname.split("_")[:-1])))
+            print(tab.header["NAME"])
+            tab.write(et_fname)
             info = {"project": project, "logm_input": mass_info, "z_input": z}
         else:
             print(f"Type {type(oet)} of evolutionary track not supported")
@@ -108,7 +108,7 @@ def make_evoltrack_table(
 
 def make_spectral_grid(
     project,
-    oiso,
+    oet,
     osl=None,
     bounds={},
     verbose=True,
@@ -131,8 +131,8 @@ def make_spectral_grid(
     project: str
         project name
 
-    oiso: isochrone.Isochrone object
-        set of isochrones to use
+    oet : evoltracks.EvolTracks or isochrone.Isochrone object
+        contains the full evolutionary track information        
 
     osl: stellib.Stellib object
         Spectral library to use (default stellib.Kurucz)
@@ -178,7 +178,8 @@ def make_spectral_grid(
         spec_fname = "%s/%s_spec_grid.hd5" % (project, project)
 
     # remove the isochrone points with logL=-9.999
-    oiso.data = oiso[oiso["logL"] > -9]
+    if isinstance(oet, isochrone.Isochrone):
+        oet.data = oet[oet["logL"] > -9]
 
     if not os.path.isfile(spec_fname):
         osl = osl or stellib.Kurucz()
@@ -194,7 +195,7 @@ def make_spectral_grid(
         if verbose:
             print("Make spectra")
         g = creategrid.gen_spectral_grid_from_stellib_given_points(
-            osl, oiso.data, bounds=bounds
+            osl, oet.data, bounds=bounds
         )
 
         # Construct the distances array. Turn single value into
