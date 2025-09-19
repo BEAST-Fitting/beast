@@ -78,10 +78,10 @@ def make_iso_table(
             oiso = isochrone.PadovaWeb()
 
         t = oiso._get_t_isochrones(max(5.0, logtmin), min(10.13, logtmax), dlogt, z)
+        t.header = {} # Spoofing for astropy table
         t.header["NAME"] = "{0} Isochrones".format("_".join(iso_fname.split("_")[:-1]))
         print("{0} Isochrones".format("_".join(iso_fname.split("_")[:-1])))
-
-        t.write(iso_fname)
+        t.write(iso_fname, overwrite=True)
 
     # save info to the beast info file
     info = {"project": project, "logt_input": [logtmin, logtmax, dlogt], "z_input": z}
