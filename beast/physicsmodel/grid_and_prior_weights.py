@@ -107,16 +107,16 @@ def compute_distance_age_mass_metallicity_weights(
 
 
 def compute_age_mass_weights(
-    _tgrid,        
+    _tgrid,
     z_val,
     indxs,
     age_prior_model={"name": "flat"},
     mass_prior_model={"name": "kroupa"},
 ):
     """
-    Compute the age and meteallicity prior.  Handles two cases.  
+    Compute the age and meteallicity prior.  Handles two cases.
     The age on a grid and mass non-uniform and the mass on a grid and the age non-uniform.
-    
+
     _tgrid : SpectralGrid
         BEAST models spectral grid
     z_val : float
@@ -127,7 +127,6 @@ def compute_age_mass_weights(
         dict including prior model name and parameters
     """
 
-    print(z_val)
     # get the grid for a single metallicity
     (zindxs,) = np.where(_tgrid[indxs]["Z"] == z_val)
 
@@ -135,11 +134,11 @@ def compute_age_mass_weights(
     # have many fewer unique elements
     ages = np.unique(_tgrid[indxs]["logA"])
     masses = np.unique(_tgrid[indxs]["M_ini"])
-    if (len(ages) > len(masses)):
+    if len(ages) > len(masses):
         pname1 = "M_ini"
         pname1_logval = False
         prior1 = mass_prior_model
-        prior1mod = PriorMassModel        
+        prior1mod = PriorMassModel
         pname2 = "logA"
         pname2_logval = True
         prior2 = age_prior_model
@@ -187,9 +186,11 @@ def compute_age_mass_weights(
             #   will be correctly set for any repeated masses
             cur_pname2 = np.unique(_tgrid_single_pname1[pname2])
             n_pname2 = len(_tgrid_single_pname1[pname2])
-            if  len(cur_pname2) < n_pname2:
+            if len(cur_pname2) < n_pname2:
                 print(cur_pname2, n_pname2)
-                upname2_grid_weights = compute_grid_weights(cur_pname2, log=pname2_logval)
+                upname2_grid_weights = compute_grid_weights(
+                    cur_pname2, log=pname2_logval
+                )
                 upname2_prior_weights = pname2_prior(cur_pname2)
                 pname2_grid_weights = np.zeros(n_pname2, dtype=float)
                 pname2_prior_weights = np.zeros(n_pname2, dtype=float)
@@ -199,7 +200,9 @@ def compute_age_mass_weights(
                     pname2_prior_weights[gvals] = upname2_prior_weights[k]
             else:
                 cur_pname2 = _tgrid_single_pname1[pname2]
-                pname2_grid_weights = compute_grid_weights(cur_pname2, log=pname2_logval)
+                pname2_grid_weights = compute_grid_weights(
+                    cur_pname2, log=pname2_logval
+                )
                 pname2_prior_weights = pname2_prior(cur_pname2)
 
         else:
@@ -255,9 +258,12 @@ def compute_age_mass_metallicity_weights(
         print("computing the age-mass-metallicity grid weight for Z = ", z_val)
 
         # compute the age and mass weights
-        compute_age_mass_weights(_tgrid, z_val, indxs, age_prior_model, mass_prior_model)
+        compute_age_mass_weights(
+            _tgrid, z_val, indxs, age_prior_model, mass_prior_model
+        )
 
         # compute the current total weight at each metallicity
+        (zindxs,) = np.where(_tgrid[indxs]["Z"] == z_val)
         total_z_grid_weight[az] = np.sum(_tgrid[zindxs]["grid_weight"])
         total_z_prior_weight[az] = np.sum(_tgrid[zindxs]["prior_weight"])
         total_z_weight[az] = np.sum(_tgrid[zindxs]["weight"])

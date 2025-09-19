@@ -49,8 +49,8 @@ def convert_ascii_to_fits_one_met(infiles, FeH, outfilename):
         eep = np.concatenate((eep, range(len(a))))
 
     data = Table()
-    data["M_act"] = Column(np.log10(mass_act))
-    data["M_ini"] = Column(np.log10(mass_ini))
+    data["log(M_act)"] = Column(np.log10(mass_act))
+    data["log(M_ini)"] = Column(np.log10(mass_ini))
     data["logA"] = Column(logA)
     data["logL"] = Column(logL)
     data["logT"] = Column(logT)

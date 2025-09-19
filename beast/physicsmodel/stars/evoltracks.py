@@ -28,8 +28,8 @@ class EvolTracks(object):
 
     data: table
         columns include:
-        M_ini - initial mass [Msun]
-        M_act - actual mass [Msun]
+        log(M_ini) - initial mass [Msun]
+        log(M_act) - actual mass [Msun]
         Z - metallicity [??]
         logL - log luminosity [Lsun]
         logg - log surface gravity [cm/s^2]
@@ -48,8 +48,8 @@ class EvolTracks(object):
             "logL": "log(L)",
             "logA": "log(age)",
             "phase": "evol phase",
-            "M_act": "log(current mass)",
-            "M_ini": "log(initial mass)",
+            "log(M_act)": "log(current mass)",
+            "log(M_ini)": "log(initial mass)",
             "eep": "EEP",
         }
 
@@ -90,8 +90,8 @@ class EvolTracks(object):
         if yval not in self.data[trackval].keys():
             raise ValueError("yval choice not in data table")
 
-        # get uniq M_ini values
-        uvals, indices = np.unique(self.data[trackval]["M_ini"], return_inverse=True)
+        # get uniq log(M_ini) values
+        uvals, indices = np.unique(self.data[trackval]["log(M_ini)"], return_inverse=True)
         for k, cval in enumerate(uvals):
             cindxs = np.where(k == indices)
             # ax.plot(
@@ -136,7 +136,7 @@ class EvolTracks(object):
 
         metrics = []
         for cdata in self.data:
-            uvals, indices = np.unique(cdata["M_ini"], return_inverse=True)
+            uvals, indices = np.unique(cdata["log(M_ini)"], return_inverse=True)
             for k, cval in enumerate(uvals):
                 (cindxs,) = np.where(k == indices)
                 for cname in check_keys:
@@ -178,7 +178,7 @@ class EvolTracks(object):
             default is -1 to 2 (0.1 to 100 M_sun)
         """
         # get the unique mass values
-        uvals, indices = np.unique(one_track["M_ini"], return_inverse=True)
+        uvals, indices = np.unique(one_track["log(M_ini)"], return_inverse=True)
 
         # ensure there are evolutionary tracks spanning
         #   the min/max of the new grid --> no extrapolation
@@ -198,7 +198,7 @@ class EvolTracks(object):
         uvals, indices = np.unique(one_track["eep"], return_inverse=True)
         for k, cval in enumerate(uvals):
             (cindxs,) = np.where(k == indices)
-            cur_masses = one_track["M_ini"][cindxs]
+            cur_masses = one_track["log(M_ini)"][cindxs]
 
             # only interpolate for masses defined for the current eep
             (new_gindxs,) = np.where(
@@ -210,7 +210,7 @@ class EvolTracks(object):
             for cname in one_track.keys():
                 if cname == "eep":
                     vals = np.full((len(new_gindxs)), cval)
-                elif cname == "M_ini":
+                elif cname == "log(M_ini)":
                     vals = new_mass_vals[new_gindxs]
                 else:
                     f = interp1d(cur_masses, one_track[cname][cindxs])
@@ -249,9 +249,9 @@ class EvolTracks(object):
         # get metallicities relative to solar
         new_met_vals = np.log10(np.array(metallicities) / solar_metalicity)
 
-        umasses = np.unique(self.data["M_ini"])
+        umasses = np.unique(self.data["log(M_ini)"])
         for cmass in umasses:
-            mvals = cmass == self.data["M_ini"]
+            mvals = cmass == self.data["log(M_ini)"]
 
             # loop over eep values and interpolate to new metallicity grid
             # along constant eep tracks
@@ -263,7 +263,7 @@ class EvolTracks(object):
                 for cname in self.data.colnames:
                     if cname == "eep":
                         vals = np.full((len(new_met_vals)), cval)
-                    elif cname == "M_ini":
+                    elif cname == "log(M_ini)":
                         vals = np.full((len(new_met_vals)), cmass)
                     elif cname == "Z":
                         vals = new_met_vals
@@ -302,7 +302,7 @@ class EvolTracks(object):
             new_grid[cname] = np.array([])
 
         # loop over each mass track and condense
-        uvals, indices = np.unique(one_track["M_ini"], return_inverse=True)
+        uvals, indices = np.unique(one_track["log(M_ini)"], return_inverse=True)
         for k, cval in enumerate(uvals):
             (cindxs,) = np.where(k == indices)
             delta_logL = np.absolute(np.diff(one_track["logL"][cindxs]))
@@ -382,11 +382,16 @@ class EvolTracks(object):
             metallicities=metal_info,
         )
 
-        umasses = np.unique(self.data["M_ini"])
+        umasses = np.unique(self.data["log(M_ini)"])
         print(len(umasses), "requested masses")
         umets = np.unique(self.data["Z"])
         print(len(umets), "requested metallicities")
         print(len(self.data), "total grid points")
+
+        # create a M_ini column from the log(M_ini) info (and for M_act)
+        # later in the beast linear units are expected.
+        self.data["M_ini"] = 10 ** self.data["log(M_ini)"]
+        self.data["M_act"] = 10 ** self.data["log(M_act)"]
 
         self.data.header = {}
         self.data.header["NAME"] = self.name
