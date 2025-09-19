@@ -37,6 +37,9 @@ class pdf1d:
         if uniqvals is None:
             uniqvals = np.unique(gridvals)
 
+        if len(uniqvals) < 10:
+            print(uniqvals)
+
         if len(tgridvals) <= 0:
             # this is a hack to just get the code to work when
             # all the possible values are negative and the requested
@@ -54,6 +57,7 @@ class pdf1d:
                 self.min_val = math.log10(self.min_val)
                 self.max_val = math.log10(self.max_val)
                 tgridvals = np.log10(tgridvals)
+                uniqvals = np.log10(uniqvals)
 
             # set bin widths
             if self.nbins > 1:

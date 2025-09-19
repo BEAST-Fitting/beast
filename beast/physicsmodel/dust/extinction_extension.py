@@ -34,7 +34,8 @@ def _get_x_in_wavenumbers(in_x):
     # check if in_x is an astropy quantity, if not issue a warning
     if not isinstance(in_x, u.Quantity):
         warnings.warn(
-            "x has no units, assuming x units are inverse microns", SpectralUnitsWarning
+            "x has no units, assuming x units are inverse microns",
+            SpectralUnitsWarning
         )
 
     # convert to wavenumbers (1/micron) if x input in units

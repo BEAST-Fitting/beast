@@ -314,6 +314,7 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
         )
         best_val = stats[keys[i] + "_Best"][k]
         if keys[i] in ["M_ini", "Z"]:
+            print(best_val)
             best_val = np.log10(best_val)
         if keys[i] == "distance":
             best_val /= 1000.0
