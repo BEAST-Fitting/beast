@@ -23,7 +23,7 @@ from beast.physicsmodel.stars.simpletable import SimpleTable as Table
 
 py3k = True
 
-localpath = str(files('beast.physicsmodel.stars.ezpadova').joinpath('parsec.json'))
+localpath = str(files("beast.physicsmodel.stars.ezpadova").joinpath("parsec.json"))
 
 with open(localpath) as f:
     _cfg = json.load(f)
@@ -39,13 +39,13 @@ with open(localpath) as f:
 
 
 def get_photometry_list():
-    """ Try to extact photometric options directly from the website
+    """Try to extact photometric options directly from the website
 
     Directly update the configuration
     """
 
     class Parser(parser.HTMLParser):
-        """ Only cares about select and option values """
+        """Only cares about select and option values"""
 
         def __init__(self, *args, **kwargs):
             parser.HTMLParser.__init__(self, *args, **kwargs)
@@ -122,7 +122,7 @@ def help_circumdust():
 
 
 def file_type(filename, stream=False):
-    """ Detect potential compressed file
+    """Detect potential compressed file
     Returns the gz, bz2 or zip if a compression is detected, else None.
     """
     magic_dict = {
@@ -146,7 +146,6 @@ def file_type(filename, stream=False):
     return None
 
 
-
 def get_ezpadova_args(
     model=None,
     carbon=None,
@@ -156,7 +155,7 @@ def get_ezpadova_args(
     dust=None,
     phot=None,
     **kwargs
-    ):
+):
     """
     Function to ingest standard set of arguments for
     queries to padova CMD service, for passing to the
@@ -226,8 +225,6 @@ def get_ezpadova_args(
     return d
 
 
-
-
 # Build up URL request
 # --------------------
 
@@ -242,7 +239,7 @@ def __get_url_args(
     phot=None,
     **kwargs
 ):
-    """ Update options in the URL query using internal shortcuts
+    """Update options in the URL query using internal shortcuts
 
     Parameters
     ----------
@@ -307,11 +304,8 @@ def __get_url_args(
     return d
 
 
-
-
-
 class __CMD_Error_Parser(parser.HTMLParser):
-    """ find error box in the recent version of CMD website """
+    """find error box in the recent version of CMD website"""
 
     def handle_starttag(self, tag, attrs):
         if (tag == "p") & (dict(attrs).get("class", None) == "errorwarning"):
@@ -328,7 +322,7 @@ class __CMD_Error_Parser(parser.HTMLParser):
 
 
 def __query_website(d):
-    """ Communicate with the CMD website """
+    """Communicate with the CMD website"""
     webserver = "https://stev.oapd.inaf.it"
     print("Interrogating {0}...".format(webserver))
 
@@ -366,7 +360,7 @@ def __query_website(d):
 
 
 def __convert_to_Table(resp, dic=None):
-    """ Make a table from the string response content of the website """
+    """Make a table from the string response content of the website"""
 
     def find_data(txt, comment="#"):
         for num, line in enumerate(txt.split("\n")):
@@ -399,7 +393,7 @@ def __convert_to_Table(resp, dic=None):
 
 
 def get_one_isochrone(age, metal, ret_table=True, **kwargs):
-    """ get one isochrone at a given time and Z
+    """get one isochrone at a given time and Z
 
     Parameters
     ----------
@@ -453,7 +447,7 @@ def get_one_isochrone(age, metal, ret_table=True, **kwargs):
 
 
 def get_Z_isochrones(z0, z1, dz, age, ret_table=True, **kwargs):
-    """ get a sequence of isochrones at constant time but variable Z
+    """get a sequence of isochrones at constant time but variable Z
 
     Parameters
     ----------
@@ -514,7 +508,7 @@ def get_Z_isochrones(z0, z1, dz, age, ret_table=True, **kwargs):
 
 
 def get_t_isochrones(logt0, logt1, dlogt, metal, ret_table=True, **kwargs):
-    """ get a sequence of isochrones at constant Z, via ezpadova
+    """get a sequence of isochrones at constant Z, via ezpadova
 
     Parameters
     ----------
@@ -565,16 +559,16 @@ def get_t_isochrones(logt0, logt1, dlogt, metal, ret_table=True, **kwargs):
     d = get_ezpadova_args(**kwargs)
 
     # Use ezpadava to... query padova! Eee-zed!
-    r = ezpadova.get_isochrones(logage=(logt0, logt1, dlogt),
-                                Z=(metal, metal, metal),
-                                kwargs=d)
+    r = ezpadova.get_isochrones(
+        logage=(logt0, logt1, dlogt), Z=(metal, metal, metal), kwargs=d
+    )
 
     # Convert pandas frame to astropy table, and return
     if ret_table is True:
         r = astropy.table.Table.from_pandas(r)
         return r
     else:
-        raise Exception('Currently only supports astropy table output')
+        raise Exception("Currently only supports astropy table output")
 
 
 # Auto-update photometry list
