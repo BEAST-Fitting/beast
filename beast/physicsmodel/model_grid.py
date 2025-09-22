@@ -88,7 +88,7 @@ def make_evoltrack_table(
         elif isinstance(oet, evoltracks.EvolTracks):
             tab = oet.get_evoltracks(mass_info, z)
             print(tab.header["NAME"])
-            tab.write(et_fname)
+            tab.write(et_fname, overwrite=True)
             info = {"project": project, "logm_input": mass_info, "z_input": z}
         else:
             print(f"Type {type(oet)} of evolutionary track not supported")
