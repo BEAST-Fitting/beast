@@ -9,7 +9,6 @@ from numpy import interp
 from numpy import log10
 from scipy import interpolate
 from astropy import units
-import copy
 import tables
 import astropy.table
 from astropy.table import Table
