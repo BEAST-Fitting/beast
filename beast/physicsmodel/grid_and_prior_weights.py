@@ -187,7 +187,6 @@ def compute_age_mass_weights(
             cur_pname2 = np.unique(_tgrid_single_pname1[pname2])
             n_pname2 = len(_tgrid_single_pname1[pname2])
             if len(cur_pname2) < n_pname2:
-                print(cur_pname2, n_pname2)
                 upname2_grid_weights = compute_grid_weights(
                     cur_pname2, log=pname2_logval
                 )

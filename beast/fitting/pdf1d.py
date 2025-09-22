@@ -37,9 +37,6 @@ class pdf1d:
         if uniqvals is None:
             uniqvals = np.unique(gridvals)
 
-        if len(uniqvals) < 10:
-            print(uniqvals)
-
         if len(tgridvals) <= 0:
             # this is a hack to just get the code to work when
             # all the possible values are negative and the requested

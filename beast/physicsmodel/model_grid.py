@@ -27,6 +27,9 @@ def make_evoltrack_table(
     age_info=[6.0, 10.13, 0.05],
     mass_info=[-1.0, 3.0, 0.05],
     z=[0.0152],
+    condense=False,
+    condense_logT_delta=0.05,
+    condense_logL_delta=0.05,
     et_fname=None,
     info_fname=None,
 ):
@@ -53,6 +56,13 @@ def make_evoltrack_table(
         list of metalicity values, where default (Z=0.152) is adopted Z_sun
         for PARSEC/COLIBRI models
 
+    condense : boolean
+        set to condense the grid based on the condense logL and logT deltas, default = False
+
+    condense_logL_delta, condense_logT_delta : float
+        deltas for the condensed grid
+        default is 0.05 for both
+
     et_fname : str
         Set to specify the filename to save the gridded evolutionary tracks
         to, otherwise saved to project/project_et.csv
@@ -78,7 +88,9 @@ def make_evoltrack_table(
         if isinstance(oet, isochrone.Isochrone):
             logtmin, logtmax, dlogt = age_info
             t = oet._get_t_isochrones(max(5.0, logtmin), min(10.13, logtmax), dlogt, z)
-            t.header["NAME"] = "{0} Isochrones".format("_".join(et_fname.split("_")[:-1]))
+            t.header["NAME"] = "{0} Isochrones".format(
+                "_".join(et_fname.split("_")[:-1])
+            )
             print("{0} Isochrones".format("_".join(et_fname.split("_")[:-1])))
             info = {"project": project, "logt_input": age_info, "z_input": z}
             t.write(et_fname)
@@ -86,7 +98,13 @@ def make_evoltrack_table(
             # maybe we can just use a table????
             oet = ezIsoch(et_fname)
         elif isinstance(oet, evoltracks.EvolTracks):
-            tab = oet.get_evoltracks(mass_info, z)
+            tab = oet.get_evoltracks(
+                mass_info,
+                z,
+                condense=condense,
+                logT_delta=condense_logT_delta,
+                logL_delta=condense_logL_delta,
+            )
             print(tab.header["NAME"])
             tab.write(et_fname, overwrite=True)
             info = {"project": project, "logm_input": mass_info, "z_input": z}
@@ -132,7 +150,7 @@ def make_spectral_grid(
         project name
 
     oet : evoltracks.EvolTracks or isochrone.Isochrone object
-        contains the full evolutionary track information        
+        contains the full evolutionary track information
 
     osl: stellib.Stellib object
         Spectral library to use (default stellib.Kurucz)

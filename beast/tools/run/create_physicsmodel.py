@@ -75,6 +75,9 @@ def create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1, subset=[None, No
         age_info=settings.logt,
         mass_info=settings.logmass,
         z=settings.z,
+        condense=settings.condense,
+        condense_logT_delta=settings.condense_logT_delta,
+        condense_logL_delta=settings.condense_logL_delta,
     )
 
     if hasattr(settings, "add_spectral_properties_kwargs"):
