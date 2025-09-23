@@ -63,14 +63,13 @@ if __name__ == "__main__":
 
         et.condense_grid(logL_delta, logT_delta)
 
-        print("logM range:", logmass_range)
-        print("logM delta:", logmass_delta)
-        print("logL delta:", logL_delta)
-        print("logT delta:", logT_delta)
+        # print("logM range:", logmass_range)
+        # print("logM delta:", logmass_delta)
+        # print("logL delta:", logL_delta)
+        # print("logT delta:", logT_delta)
 
     print("size regrid = ", len(et.data["log(M_ini)"]))
 
-    print("condense:", args.condense)
     if args.condense:
         print("condense deltas")
         print("logT:", logT_delta)

@@ -53,7 +53,7 @@ class EvolTracks(object):
             "eep": "EEP",
         }
 
-    def load_orig_tables(self, source):
+    def load_orig_tables(self, filename=None, met_info=None):
         """
         Read the tracks from  the original files (stub)
         """
@@ -546,7 +546,7 @@ class ETParsec(EvolTracks):
             file or files with the evolutionary track calculations
             often each file is for a single initial mass
         """
-        if not type(files) is list:
+        if not isinstance(files, list):
             files = [files]
 
         mass_act = np.array([])
