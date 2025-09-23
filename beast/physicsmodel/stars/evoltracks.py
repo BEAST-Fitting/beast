@@ -1,11 +1,11 @@
 # use evolutionary tracks instead of isochrones as the basis of
 # the stellar physicsgrid
 
+import copy
 from tqdm import tqdm
 import numpy as np
-from scipy.interpolate import interp1d
 
-from astropy.table import QTable, vstack
+from astropy.table import QTable
 
 from beast.config import __ROOT__, solar_metalicity
 
@@ -216,22 +216,21 @@ class EvolTracks(object):
                 mvals = cval == one_track["eep"]
                 cur_masses = one_track["log(M_ini)"][mvals]
 
-                # only interpolate for masses defined for the current eep
-                (new_gindxs,) = np.where(
-                    np.logical_and(
-                        min(cur_masses) <= new_mass_vals,
-                        new_mass_vals <= max(cur_masses),
-                    )
+                # allow for the case where not all mases at this metallicity have the eep
+                gvals = (new_mass_vals >= cur_masses[0]) & (
+                    new_mass_vals <= cur_masses[-1]
                 )
+                n_gvals = np.sum(gvals)
 
                 for cname in one_track.keys():
                     if cname == "eep":
-                        vals = np.full((len(new_gindxs)), cval)
+                        vals = np.full((n_gvals), cval)
                     elif cname == "log(M_ini)":
-                        vals = new_mass_vals[new_gindxs]
+                        vals = new_mass_vals[gvals]
                     else:
-                        f = interp1d(cur_masses, one_track[cname][mvals])
-                        vals = f(new_mass_vals[new_gindxs])
+                        vals = np.interp(
+                            new_mass_vals[gvals], cur_masses, one_track[cname][mvals]
+                        )
 
                     # more efficient than numpy routines
                     new_grid[cname].extend(vals)
@@ -285,18 +284,21 @@ class EvolTracks(object):
 
                 # allow for the case where not all metallicities at this mass have the eep
                 gvals = (new_met_vals >= cur_mets[0]) & (new_met_vals <= cur_mets[-1])
+                n_gvals = np.sum(gvals)
 
                 for cname in self.data.colnames:
-
                     if cname == "eep":
-                        vals = np.full((len(new_met_vals[gvals])), cval)
+                        vals = np.full((n_gvals), cval)
                     elif cname == "log(M_ini)":
-                        vals = np.full((len(new_met_vals[gvals])), cmass)
+                        vals = np.full((n_gvals), cmass)
                     elif cname == "Z":
                         vals = new_met_vals[gvals]
                     else:
-                        f = interp1d(cur_mets, ((self.data[cname])[mvals])[cindxs])
-                        vals = f(new_met_vals[gvals])
+                        vals = np.interp(
+                            new_met_vals[gvals],
+                            cur_mets,
+                            ((self.data[cname])[mvals])[cindxs],
+                        )
 
                     # more efficient than numpy routines
                     new_grid[cname].extend(vals)
@@ -412,7 +414,7 @@ class EvolTracks(object):
         # exit()
 
         # get the as computed evolutionary tracks
-        edata = self.load_orig_tables()
+        edata = self.load_orig_tables(metal_info)
         print(len(edata), "orig metallicities")
 
         # interpolate for requested mass spacing
@@ -457,8 +459,6 @@ class ETMist(EvolTracks):
         self.orig_FeH = np.array([-4.00, -3.50, -3.00, -2.50, -2.00, -1.75,
                                   -1.50, -1.25, -1.00, -0.75, -0.25, 0.0,
                                   0.25, 0.5])
-        self.orig_FeH = np.array([-4.0, -1.25, -1.00, -0.75, -0.25, 0.0,
-                                  0.5])
         # fmt: on
         self.orig_files = [
             f"{__ROOT__}MIST/MIST_FeH{cstr:.2f}_vvcrit0.4.fits"
@@ -471,7 +471,7 @@ class ETMist(EvolTracks):
             * solar_metalicity
         )
 
-    def load_orig_tables(self, FeH=None, filename=None):
+    def load_orig_tables(self, met_info):
         """
         Read the tracks from the original files
 
@@ -480,16 +480,32 @@ class ETMist(EvolTracks):
         orig_tracks : astropy Table
             Table with evolutionary track info as columns for all metallicities
         """
-        if filename is None:
-            if isinstance(self.orig_files, list):
-                files = self.orig_files
-            else:
-                files = [self.orig_files]
-        else:
-            files = filename
+        files = np.array(self.orig_files)
+
+        # get in log10 units ratioed to solar
+        min_met = np.log10(min(met_info) / solar_metalicity)
+        max_met = np.log10(max(met_info) / solar_metalicity)
+
+        # determine which files to read
+        #  needs to be all the files that include the requested metallicities
+        #  and the files that bracket the metallicities
+        readfile = [False] * len(files)
+        for k, cfile in enumerate(files):
+            cmet = self.orig_FeH[k]
+            if (cmet >= min_met) & (cmet <= max_met):
+                readfile[k] = True
+
+        orig_readfile = copy.copy(readfile)
+        for k, cread in enumerate(orig_readfile):
+            if k > 0:
+                if cread & (not orig_readfile[k - 1]):
+                    readfile[k - 1] = True
+            if k < len(readfile) - 1:
+                if cread & (not orig_readfile[k + 1]):
+                    readfile[k + 1] = True
 
         itables = []
-        for cfile in files:
+        for cfile in files[readfile]:
             ttab = QTable.read(cfile)
             ttab["Z"] = (10 ** ttab["met"]) * solar_metalicity
             itables.append(ttab)
