@@ -255,7 +255,7 @@ class PriorMassModel(PriorModel):
         sindxs = np.argsort(x)
 
         # Compute the mass bin boundaries
-        mass_bounds = compute_bin_boundaries(x[sindxs])
+        mass_bounds = compute_bin_boundaries(x[sindxs], noneg=True)
 
         # integrate the IMF over each bin
         args = None
