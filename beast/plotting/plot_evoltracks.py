@@ -21,6 +21,12 @@ if __name__ == "__main__":
         help="condense grid based on logT, logL deltas",
         action="store_true",
     )
+    parser.add_argument(
+        "--logL_delta", type=float, default=0.05, help="delta logL for condense option"
+    )
+    parser.add_argument(
+        "--logT_delta", type=float, default=0.05, help="delta logT for condense option"
+    )
     args = parser.parse_args()
 
     fig, ax = plt.subplots(2, 2, figsize=(10, 10))
@@ -51,8 +57,8 @@ if __name__ == "__main__":
     if args.condense:
         logmass_range = [-1.0, 2.47]
         logmass_delta = 0.1
-        logT_delta = 0.05
-        logL_delta = 0.05
+        logT_delta = args.logT_delta
+        logL_delta = args.logL_delta
         et.regrid_masses([et.data], logmass_range, logmass_delta)
 
         et.condense_grid(logL_delta, logT_delta)
@@ -81,10 +87,11 @@ if __name__ == "__main__":
     # plot, plot, plot
     nls = "-"
     color = "b"
-    et.plot_tracks(ax[0, 0], xval="logT", yval="logL", linestyle=nls, color=color)
-    et.plot_tracks(ax[1, 1], xval="logA", yval="log(M_ini)", linestyle=nls, color=color)
-    et.plot_tracks(ax[0, 1], xval="eep", yval="log(M_ini)", linestyle=nls, color=color)
-    et.plot_tracks(ax[1, 0], xval="logT", yval="logg", linestyle=nls, color=color)
+    alpha = 0.2
+    et.plot_tracks(ax[0, 0], xval="logT", yval="logL", linestyle=nls, color=color, alpha=alpha)
+    et.plot_tracks(ax[1, 1], xval="logA", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
+    et.plot_tracks(ax[0, 1], xval="eep", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
+    et.plot_tracks(ax[1, 0], xval="logT", yval="logg", linestyle=nls, color=color, alpha=alpha)
 
     fig.tight_layout()
 

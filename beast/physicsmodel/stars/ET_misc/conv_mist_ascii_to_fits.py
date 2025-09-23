@@ -23,10 +23,10 @@ def convert_ascii_to_fits_one_met(infiles, FeH, outfilename):
     outfilename : str
         output filename
     """
-    if type(infiles) is not list:
-        files = [infiles]
-    else:
+    if isinstance(infiles, list):
         files = infiles
+    else:
+        files = [infiles]
 
     mass_act = np.array([])
     mass_ini = np.array([])

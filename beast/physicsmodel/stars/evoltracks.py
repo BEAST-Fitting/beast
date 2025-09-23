@@ -62,7 +62,13 @@ class EvolTracks(object):
         return None
 
     def plot_tracks(
-        self, ax, xval="logT", yval="logL", linestyle="-", color="k", alpha=0.5,
+        self,
+        ax,
+        xval="logT",
+        yval="logL",
+        linestyle="-",
+        color="k",
+        alpha=0.5,
     ):
         """
         Plot the tracks with the input x, y choices
@@ -96,14 +102,16 @@ class EvolTracks(object):
             raise ValueError("yval choice not in data table")
 
         # get uniq log(M_ini) values
-        uvals, indices = np.unique(
-            self.data["log(M_ini)"], return_inverse=True
-        )
-        for k, cval in enumerate(uvals):
-            cindxs = np.where(k == indices)
-            # ax.plot(
-            #     self.data[xval][cindxs], self.data[yval][cindxs], linestyle=linestyle, color=color,
-            # )
+        uvals = np.unique(self.data["log(M_ini)"])
+        for cval in uvals:
+            cindxs = np.where(cval == self.data["log(M_ini)"])
+            if linestyle is not None:
+                ax.plot(
+                    self.data[xval][cindxs],
+                    self.data[yval][cindxs],
+                    linestyle=linestyle,
+                    color=color,
+                )
             ax.plot(
                 self.data[xval][cindxs],
                 self.data[yval][cindxs],
