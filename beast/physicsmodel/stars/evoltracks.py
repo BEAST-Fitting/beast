@@ -59,8 +59,10 @@ class EvolTracks(object):
         """
         print("not implemented")
 
+        return None
+
     def plot_tracks(
-        self, ax, xval="logT", yval="logL", trackval=0, linestyle="-", color="k"
+        self, ax, xval="logT", yval="logL", linestyle="-", color="k", alpha=0.5,
     ):
         """
         Plot the tracks with the input x, y choices
@@ -84,15 +86,18 @@ class EvolTracks(object):
 
         color : string
             matplotlib color
+
+        alpha : float
+            transparency for plotting
         """
-        if xval not in self.data[trackval].keys():
+        if xval not in self.data.keys():
             raise ValueError("xval choice not in data table")
-        if yval not in self.data[trackval].keys():
+        if yval not in self.data.keys():
             raise ValueError("yval choice not in data table")
 
         # get uniq log(M_ini) values
         uvals, indices = np.unique(
-            self.data[trackval]["log(M_ini)"], return_inverse=True
+            self.data["log(M_ini)"], return_inverse=True
         )
         for k, cval in enumerate(uvals):
             cindxs = np.where(k == indices)
@@ -100,11 +105,12 @@ class EvolTracks(object):
             #     self.data[xval][cindxs], self.data[yval][cindxs], linestyle=linestyle, color=color,
             # )
             ax.plot(
-                self.data[trackval][xval][cindxs],
-                self.data[trackval][yval][cindxs],
+                self.data[xval][cindxs],
+                self.data[yval][cindxs],
                 "o",
                 color=color,
                 markersize=2,
+                alpha=alpha,
             )
 
         ax.set_xlabel(self.alabels[xval])
@@ -136,30 +142,28 @@ class EvolTracks(object):
         for cname in check_keys:
             dvals[cname] = []
 
-        metrics = []
-        for cdata in self.data:
-            uvals, indices = np.unique(cdata["log(M_ini)"], return_inverse=True)
-            for k, cval in enumerate(uvals):
-                (cindxs,) = np.where(k == indices)
-                for cname in check_keys:
-                    dvals[cname] = np.concatenate(
-                        (dvals[cname], np.absolute(np.diff(cdata[cname][cindxs])))
-                    )
-
-            # compute the metrics
-            tmetrics = {}
+        cdata = self.data
+        uvals, indices = np.unique(cdata["log(M_ini)"], return_inverse=True)
+        for k, cval in enumerate(uvals):
+            (cindxs,) = np.where(k == indices)
             for cname in check_keys:
-                tmetrics[cname] = np.array(
-                    [
-                        np.min(dvals[cname]),
-                        np.max(dvals[cname]),
-                        np.median(dvals[cname]),
-                        np.mean(dvals[cname]),
-                    ]
+                dvals[cname] = np.concatenate(
+                    (dvals[cname], np.absolute(np.diff(cdata[cname][cindxs])))
                 )
-            metrics.append(tmetrics)
 
-        return metrics
+        # compute the metrics
+        tmetrics = {}
+        for cname in check_keys:
+            tmetrics[cname] = np.array(
+                [
+                    np.min(dvals[cname]),
+                    np.max(dvals[cname]),
+                    np.median(dvals[cname]),
+                    np.mean(dvals[cname]),
+                ]
+            )
+
+        return tmetrics
 
     def regrid_masses(
         self,
@@ -414,7 +418,7 @@ class EvolTracks(object):
         # exit()
 
         # get the as computed evolutionary tracks
-        edata = self.load_orig_tables(metal_info)
+        edata = self.load_orig_tables(met_info=metal_info)
         print(len(edata), "orig metallicities")
 
         # interpolate for requested mass spacing
@@ -471,7 +475,7 @@ class ETMist(EvolTracks):
             * solar_metalicity
         )
 
-    def load_orig_tables(self, met_info):
+    def load_orig_tables(self, met_info=None, filename=None):
         """
         Read the tracks from the original files
 
@@ -480,32 +484,38 @@ class ETMist(EvolTracks):
         orig_tracks : astropy Table
             Table with evolutionary track info as columns for all metallicities
         """
-        files = np.array(self.orig_files)
+        if filename is None:
+            files = np.array(self.orig_files)
+        else:
+            files = np.atleast_1d(filename)
 
-        # get in log10 units ratioed to solar
-        min_met = np.log10(min(met_info) / solar_metalicity)
-        max_met = np.log10(max(met_info) / solar_metalicity)
+        if met_info is not None:
+            # get in log10 units ratioed to solar
+            min_met = np.log10(min(met_info) / solar_metalicity)
+            max_met = np.log10(max(met_info) / solar_metalicity)
 
-        # determine which files to read
-        #  needs to be all the files that include the requested metallicities
-        #  and the files that bracket the metallicities
-        readfile = [False] * len(files)
-        for k, cfile in enumerate(files):
-            cmet = self.orig_FeH[k]
-            if (cmet >= min_met) & (cmet <= max_met):
-                readfile[k] = True
+            # determine which files to read
+            #  needs to be all the files that include the requested metallicities
+            #  and the files that bracket the metallicities
+            readfile = [False] * len(files)
+            for k, cfile in enumerate(files):
+                cmet = self.orig_FeH[k]
+                if (cmet >= min_met) & (cmet <= max_met):
+                    readfile[k] = True
 
-        orig_readfile = copy.copy(readfile)
-        for k, cread in enumerate(orig_readfile):
-            if k > 0:
-                if cread & (not orig_readfile[k - 1]):
-                    readfile[k - 1] = True
-            if k < len(readfile) - 1:
-                if cread & (not orig_readfile[k + 1]):
-                    readfile[k + 1] = True
+            orig_readfile = copy.copy(readfile)
+            for k, cread in enumerate(orig_readfile):
+                if k > 0:
+                    if cread & (not orig_readfile[k - 1]):
+                        readfile[k - 1] = True
+                if k < len(readfile) - 1:
+                    if cread & (not orig_readfile[k + 1]):
+                        readfile[k + 1] = True
+
+            files = files[readfile]
 
         itables = []
-        for cfile in files[readfile]:
+        for cfile in files:
             ttab = QTable.read(cfile)
             ttab["Z"] = (10 ** ttab["met"]) * solar_metalicity
             itables.append(ttab)
