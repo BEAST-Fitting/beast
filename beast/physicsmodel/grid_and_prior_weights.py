@@ -165,17 +165,17 @@ def compute_age_mass_weights(
     pname1_prior_weights = pname1_prior(uniq_pname1)
 
     for ak, pname1_val in enumerate(uniq_pname1):
-        # get the grid for a single age
+        # get the grid for a single pname1
         (aindxs,) = np.where(
             (_tgrid[indxs][pname1] == pname1_val) & (_tgrid[indxs]["Z"] == z_val)
         )
         aindxs = indxs[aindxs]
         _tgrid_single_pname1 = _tgrid[aindxs]
 
-        # compute the mass weights
+        # compute the pname2 weights
         if len(aindxs) > 1:
             if isinstance(prior2, dict):
-                pname2_prior = PriorMassModel(prior2)
+                pname2_prior = prior2mod(prior2)
             else:
                 pname2_prior = prior2
 

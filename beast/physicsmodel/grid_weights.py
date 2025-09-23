@@ -73,7 +73,7 @@ def compute_bin_boundaries(tab, noneg=False):
     tab2 = np.zeros(len(tab) + 1)
     tab2[0] = tab[0] - np.diff(tab)[0] / 2.0
     if noneg & (tab2[0] < 0.0):
-        tab2[0] = 0.5 * tab[0] 
+        tab2[0] = 0.5 * tab[0]
     tab2[-1] = tab[-1] + np.diff(tab)[-1] / 2.0
     tab2[1:-1] = temp
     return tab2

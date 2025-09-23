@@ -161,29 +161,41 @@ class EvolTracks(object):
 
         return metrics
 
-    @staticmethod
-    def regrid_one_met(
-        one_track,
+    def regrid_masses(
+        self,
+        edata,
         logmass_range=[-1.0, 2.0],
         logmass_delta=0.05,
     ):
         """
-        Interpolate a set of evolutionary tracks for a single metallicity
+        Interpolate a set of evolutionary tracks for all metallicities
         to a uniform grid in log(initial mass) and variable grid in stellar age.
         Use Equivalent Evolutionary Points (EEPs) values to do the mass
         interpolation.  EEPs are provide as part of the evolutionary tracks.
 
         Parameters
         ----------
+        edata : list of tables
+            evolutionary tracks as computed
+
         logmass_range : (float, float)
             range of new mass grid, in log10 units
             default is -1 to 2 (0.1 to 100 M_sun)
 
         logmass_delta : float
             step size of new mass grid, in log10 units
+
+        Returns
+        -------
+        Updates self.data
         """
+        # setup the new grid
+        new_grid = {}
+        for cname in edata[0].keys():
+            new_grid[cname] = []
+
         # get the unique mass values
-        uvals, indices = np.unique(one_track["log(M_ini)"], return_inverse=True)
+        uvals = np.unique(edata[0]["log(M_ini)"])
 
         # ensure there are evolutionary tracks spanning
         #   the min/max of the new grid --> no extrapolation
@@ -193,42 +205,43 @@ class EvolTracks(object):
         n_new_masses = int((new_max_mass - new_min_mass) / logmass_delta) + 1
         new_mass_vals = np.linspace(new_min_mass, new_max_mass, num=n_new_masses)
 
-        # setup the new grid
-        new_grid = {}
-        for cname in one_track.keys():
-            new_grid[cname] = np.array([])
+        for one_track in tqdm(
+            edata, desc="regridding each metallicity for the requested masses"
+        ):
 
-        # loop over eep values and interpolate to new mass grid
-        # along constant eep tracks
-        uvals, indices = np.unique(one_track["eep"], return_inverse=True)
-        for k, cval in enumerate(uvals):
-            (cindxs,) = np.where(k == indices)
-            cur_masses = one_track["log(M_ini)"][cindxs]
+            # loop over eep values and interpolate to new mass grid
+            # along constant eep tracks
+            uvals = np.unique(one_track["eep"])
+            for cval in uvals:
+                mvals = cval == one_track["eep"]
+                cur_masses = one_track["log(M_ini)"][mvals]
 
-            # only interpolate for masses defined for the current eep
-            (new_gindxs,) = np.where(
-                np.logical_and(
-                    min(cur_masses) <= new_mass_vals, new_mass_vals <= max(cur_masses)
+                # only interpolate for masses defined for the current eep
+                (new_gindxs,) = np.where(
+                    np.logical_and(
+                        min(cur_masses) <= new_mass_vals,
+                        new_mass_vals <= max(cur_masses),
+                    )
                 )
-            )
 
-            for cname in one_track.keys():
-                if cname == "eep":
-                    vals = np.full((len(new_gindxs)), cval)
-                elif cname == "log(M_ini)":
-                    vals = new_mass_vals[new_gindxs]
-                else:
-                    f = interp1d(cur_masses, one_track[cname][cindxs])
-                    vals = f(new_mass_vals[new_gindxs])
+                for cname in one_track.keys():
+                    if cname == "eep":
+                        vals = np.full((len(new_gindxs)), cval)
+                    elif cname == "log(M_ini)":
+                        vals = new_mass_vals[new_gindxs]
+                    else:
+                        f = interp1d(cur_masses, one_track[cname][mvals])
+                        vals = f(new_mass_vals[new_gindxs])
 
-                new_grid[cname] = np.concatenate((new_grid[cname], vals))
+                    # more efficient than numpy routines
+                    new_grid[cname].extend(vals)
 
         # convert the dictionary to an astropy QTable
-        one_track = QTable()
+        table_grid = QTable()
         for ckey in new_grid.keys():
-            one_track[ckey] = new_grid[ckey]
+            table_grid[ckey] = np.array(new_grid[ckey])
 
-        return one_track
+        self.data = table_grid
 
     def regrid_metallicities(
         self,
@@ -244,6 +257,10 @@ class EvolTracks(object):
         ----------
         metallicities:
             new metallicities for grid
+
+        Returns
+        -------
+        Updates self.data
         """
         # setup the new grid
         new_grid = {}
@@ -254,7 +271,9 @@ class EvolTracks(object):
         new_met_vals = np.array(metallicities)
 
         umasses = np.unique(self.data["log(M_ini)"])
-        for cmass in tqdm(umasses, desc="regridding each mass for the requested metallicities"):
+        for cmass in tqdm(
+            umasses, desc="regridding each mass for the requested metallicities"
+        ):
             mvals = cmass == self.data["log(M_ini)"]
 
             # loop over eep values and interpolate to new metallicity grid
@@ -302,6 +321,10 @@ class EvolTracks(object):
         logL_delta, logT_delta : float
             deltas for the condensed grid
             default is 0.05 for all 3
+
+        Returns
+        -------
+        Updates self.data
         """
         # setup the condensed grid
         new_grid = {}
@@ -311,7 +334,9 @@ class EvolTracks(object):
         # get the unique metallicities
         uniq_Zs = np.unique(self.data["Z"])
 
-        for z_val in tqdm(uniq_Zs, desc=f"condensing grid using dL={logL_delta}, dteff={logT_delta}"):
+        for z_val in tqdm(
+            uniq_Zs, desc=f"condensing grid using dL={logL_delta}, dteff={logT_delta}"
+        ):
             (zindxs,) = np.where(self.data["Z"] == z_val)
             one_track = self.data[zindxs]
 
@@ -332,8 +357,7 @@ class EvolTracks(object):
                 for i in range(len(delta_logL)):
                     cdelt_logL += delta_logL[i]
                     cdelt_logT += delta_logT[i]
-                    #if (cdelt_logL > logL_delta) or (cdelt_logT > logT_delta):
-                    if (cdelt_logL > logL_delta):
+                    if (cdelt_logL > logL_delta) or (cdelt_logT > logT_delta):
                         nindxs.append(i)
                         cdelt_logL = delta_logL[i]
                         cdelt_logT = delta_logT[i]
@@ -389,24 +413,13 @@ class EvolTracks(object):
 
         # get the as computed evolutionary tracks
         edata = self.load_orig_tables()
+        print(len(edata), "orig metallicities")
 
         # interpolate for requested mass spacing
-        #  replace original tracks with regrided version
-        print(len(edata), "orig metallicities")
-        for k, ctrack in enumerate(edata):
-            edata[k] = self.regrid_one_met(
-                ctrack,
-                logmass_range=mass_info[0:2],
-                logmass_delta=mass_info[2],
-            )
-
-        # stack different metallicities into a single table
-        self.data = vstack(edata)
+        self.regrid_masses(edata, mass_info[0:2], mass_info[2])
 
         # interpolate for metallicity spacing at full resolution for best accuracy
-        self.regrid_metallicities(
-            metallicities=metal_info,
-        )
+        self.regrid_metallicities(metal_info)
 
         # condense along each mass track if requested
         if condense:
