@@ -29,7 +29,8 @@ dependencies = [
     "asdf",
     "stsynphot",
     "pandeia.engine",
-    "importlib_resources"
+    "importlib_resources",
+    "ezpadova @ git+https://github.com/mfouesneau/ezpadova"
 ]
 
 dynamic = ["version"]

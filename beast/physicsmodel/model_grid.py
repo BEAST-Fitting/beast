@@ -78,10 +78,10 @@ def make_iso_table(
             oiso = isochrone.PadovaWeb()
 
         t = oiso._get_t_isochrones(max(5.0, logtmin), min(10.13, logtmax), dlogt, z)
+        t.header = {}  # Spoofing for astropy table
         t.header["NAME"] = "{0} Isochrones".format("_".join(iso_fname.split("_")[:-1]))
         print("{0} Isochrones".format("_".join(iso_fname.split("_")[:-1])))
-
-        t.write(iso_fname)
+        t.write(iso_fname, overwrite=True)
 
     # save info to the beast info file
     info = {"project": project, "logt_input": [logtmin, logtmax, dlogt], "z_input": z}
@@ -235,7 +235,6 @@ def make_spectral_grid(
 
             # extinction
             if extLaw is not None:
-
                 ext_law_range_A = 1e4 / np.array(extLaw.x_range)
                 valid_lambda = np.where(
                     (g.lamb > np.min(ext_law_range_A))
@@ -314,7 +313,6 @@ def add_stellar_priors(
     if priors_fname is None:
         priors_fname = "%s/%s_spec_w_priors.grid.hd5" % (project, project)
     if not os.path.isfile(priors_fname):
-
         if verbose:
             print("Make Prior Weights")
 
@@ -370,7 +368,6 @@ def make_extinguished_sed_grid(
     info_fname=None,
     **kwargs,
 ):
-
     """
     Create SED model grid integrated with filters and dust extinguished
 
@@ -458,7 +455,6 @@ def make_extinguished_sed_grid(
 
     # generate extinguished grids if SED file doesn't exist
     if not os.path.isfile(seds_fname):
-
         extLaw = extLaw or extinction.Cardelli()
 
         if verbose:

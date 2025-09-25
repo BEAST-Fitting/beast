@@ -10,6 +10,7 @@ from numpy import log10
 from scipy import interpolate
 from astropy import units
 import tables
+import astropy.table
 from astropy.table import Table
 from numpy.lib import recfunctions
 
@@ -43,17 +44,17 @@ class Isochrone(object):
         """
         Convert Z to [Fe/H] values
         """
-        return 10 ** feh * 0.02
+        return 10**feh * 0.02
 
     def _get_isochrone(self, *args, **kwargs):
-        """ Retrieve isochrone from the original source
-            internal use to adapt any library
+        """Retrieve isochrone from the original source
+        internal use to adapt any library
         """
         pass
 
     def _get_continuous_isochrone(self, *args, **kwargs):
-        """ Return a resampled isochrone accounting for variations
-            useful for continuous sampling
+        """Return a resampled isochrone accounting for variations
+        useful for continuous sampling
         """
         # define the maximum allowable difference between points
         dm = kwargs.pop("dm", 0.01)
@@ -157,8 +158,8 @@ class padova2010(Isochrone):
         self.data = Table(data, name="Isochrone from %s" % self.name)
 
     def _get_isochrone(self, age, metal=None, FeH=None, masses=None, *args, **kwargs):
-        """ Retrieve isochrone from the original source
-            internal use to adapt any library
+        """Retrieve isochrone from the original source
+        internal use to adapt any library
         """
         # make sure unit is in years and then only give the value (no units)
         _age = int(units.Quantity(age, units.year).value)
@@ -251,8 +252,8 @@ class pegase(Isochrone):
             self.data.close()
 
     def _get_isochrone(self, age, metal=None, FeH=None, masses=None, *args, **kwargs):
-        """ Retrieve isochrone from the original source
-            internal use to adapt any library
+        """Retrieve isochrone from the original source
+        internal use to adapt any library
         """
         # make sure unit is in years and then only give the value (no units)
         _age = int(units.Quantity(age, units.year).value)
@@ -315,7 +316,7 @@ class pegase(Isochrone):
 
 
 class ezIsoch(Isochrone):
-    """ Trying to make something that is easy to manipulate
+    """Trying to make something that is easy to manipulate
     This class is basically a proxy to a table (whatever format works best)
     and tries to keep things coherent.
     """
@@ -327,12 +328,12 @@ class ezIsoch(Isochrone):
         self._load_table_(self.source)
         # round because of precision noise
         self.logages = np.unique(np.round(self.data["logA"], 6))
-        self.ages = np.round(10 ** self.logages)
+        self.ages = np.round(10**self.logages)
         self.Z = np.unique(np.round(self.data["Z"], 6))
         self.interpolation(interp)
 
-#    def selectWhere(self, *args, **kwargs):
-#        return self.data.selectWhere(*args, **kwargs)
+    #    def selectWhere(self, *args, **kwargs):
+    #        return self.data.selectWhere(*args, **kwargs)
 
     def interpolation(self, b=None):
         if b is not None:
@@ -350,8 +351,8 @@ class ezIsoch(Isochrone):
         return self.data[key]
 
     def _get_t_isochrone(self, age, metal=None, FeH=None, masses=None, *args, **kwargs):
-        """ Retrieve isochrone from the original source
-            internal use to adapt any library
+        """Retrieve isochrone from the original source
+        internal use to adapt any library
         """
         # make sure unit is in years and then only give the value (no units)
         _age = int(units.Quantity(age, units.year).value)
@@ -477,8 +478,8 @@ class PadovaWeb(Isochrone):
         self.filterBad = filterBad
 
     def _get_isochrone(self, age, metal=None, FeH=None, *args, **kwargs):
-        """ Retrieve isochrone from the original source
-            internal use to adapt any library
+        """Retrieve isochrone from the original source
+        internal use to adapt any library
         """
         # make sure unit is in years and then only give the value (no units)
         _age = int(units.Quantity(age, units.year).value)
@@ -508,29 +509,45 @@ class PadovaWeb(Isochrone):
 
     def _clean_cols(self, iso_table):
         """clean column names, remove unnecessary columns"""
-        # Rename Columns
+
+        # If this is an astropy table, clean it using a different function
+        if not isinstance(iso_table, Table):
+            raise Exception("This now expects astropy tables, not simpletables")
+
+        # Rename Columns appropriately for parsec
         if self.modeltype == "parsec12s_r14":
+
             # PARSEC+COLIBRI Column Names
-            iso_table.add_column("logA", np.log10(iso_table["Age"][:]))
-            iso_table.add_column("logT", iso_table["logTe"][:])
-            iso_table.add_column("M_ini", iso_table["Mini"][:])
-            iso_table.add_column("M_act", iso_table["Mass"][:])
-            iso_table.add_column("stage", iso_table["label"][:])
-            iso_table.remove_columns(["Age", "logTe", "Mini", "Mass", "label"])
+            old_colnanes = ["logAge", "logTe", "Mini", "Mass", "label"]
+            new_colnames = ["logA", "logT", "M_ini", "M_act", "stage"]
+            iso_table.rename_columns(old_colnanes, new_colnames)
+
             # Remove age-specific Z, rename Zini as Z
             iso_table.remove_columns(["Z"])
-            iso_table.add_column("Z", iso_table["Zini"][:])
-            iso_table.remove_columns(["Zini"])
+            iso_table.rename_columns(["Zini"], ["Z"])
 
+            # Remove all other columns that do not have expected column names
+            colnames_good = [
+                "logL",
+                "logg",
+                "mbolmag",
+                "logA",
+                "logT",
+                "M_ini",
+                "M_act",
+                "stage",
+                "Z",
+            ]
+            for colname in iso_table.colnames:
+                if colname not in colnames_good:
+                    iso_table.remove_columns([colname])
+
+        # Padova (Girardi10, Marigo08, etc), Old PARSEC Column Names
         else:
-            # Padova (Girardi10, Marigo08, etc), Old PARSEC Column Names
-            iso_table.add_column("logA", iso_table["logageyr"][:])
-            iso_table.add_column("logL", iso_table["logLLo"][:])
-            iso_table.add_column("logT", iso_table["logTe"][:])
-            iso_table.add_column("logg", iso_table["logG"][:])
-            iso_table.remove_columns(["logageyr", "logLLo", "logTe", "logG"])
+            old_colnanes = ["logageyr", "logLLo", "logTe", "logG"]
+            new_colnames = ["logA", "logL", "logT", "logg"]
 
-        # Remove phot columns and unnecessary properties
+        # List unwanted phot columns ,and unnecessary properties
         filternames = "U UX B BX V R I J H K L M".split()
         theorycols = [
             "C/O",
@@ -545,37 +562,23 @@ class PadovaWeb(Isochrone):
             "McoreTP",
             "tau1m",
         ]
-        # removing mass loss outputs
         theorycols += ["logMdot", "Mloss"]
         abundcols = "X Y Xc Xn Xo Cexcess".split()
-        drop = theorycols + abundcols + filternames + [s + "mag" for s in filternames]
-        # make sure columns exist
-        iso_table.remove_columns([x for x in drop if x in iso_table])
+        dropcols = (
+            theorycols + abundcols + filternames + [s + "mag" for s in filternames]
+        )
 
-        # polish the header
-        iso_table.setUnit("logA", "yr")
-        iso_table.setComment("logA", "Age")
-        iso_table.setUnit("logT", "K")
-        iso_table.setComment("logT", "Effective temperature")
-        iso_table.setUnit("logL", "Lsun")
-        iso_table.setComment("logL", "Luminosity")
-        iso_table.setUnit("M_ini", "Msun")
-        iso_table.setComment("M_ini", "Initial Mass")
-        iso_table.setUnit("M_act", "Msun")
-        iso_table.setComment("M_act", "Current Mass, M(t)")
-        iso_table.setUnit("logg", "cm/s**2")
-        iso_table.setComment("logg", "Surface gravity")
-        iso_table.setComment("stage", "Evolutionary Stage")
-        iso_table.setComment("Z", "Metallicity")
-        # iso_table.setUnit('logMdot', 'Msun/yr')
-        # iso_table.setComment('logMdot', 'Mass loss')
+        # make sure columns exist; if so, delete
+        iso_table.remove_columns(
+            [dropcol for dropcol in dropcols if dropcol in iso_table.colnames]
+        )
 
         return iso_table
 
     def _filter_iso_points(self, iso_table, filterPMS=False, filterBad=False):
-        """ Filter bad points and PMS points
-            Bad points known to affect pre-PARSEC isochronesself.
-            Selection is an empirical definition.
+        """Filter bad points and PMS points
+        Bad points known to affect pre-PARSEC isochronesself.
+        Selection is an empirical definition.
         """
         # Filter pre-ms stars
         if filterPMS:
@@ -593,7 +596,7 @@ class PadovaWeb(Isochrone):
         return iso_table
 
     def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.0152):
-        """ Generate a proper table directly from the PADOVA website
+        """Generate a proper table directly from the PADOVA website
 
         Parameters
         ----------
@@ -614,12 +617,14 @@ class PadovaWeb(Isochrone):
         tab: eztable.Table
             the table of isochrones
         """
+        # Handle Z if it's a single number
         if not hasattr(Z, "__iter__"):
             iso_table = parsec.get_t_isochrones(
                 max(6.0, logtmin), min(10.13, logtmax), dlogt, Z, model=self.modeltype
             )
+            iso_table.header = {}
             iso_table.header["NAME"] = "PadovaCMD Isochrones: " + self.modeltype
-            if "Z" not in iso_table:
+            if "Z" not in iso_table.colnames:
                 iso_table.add_column("Z", np.ones(iso_table.nrows) * Z)
 
             # rename cols, remove phot and other unnecessary cols
@@ -630,19 +635,17 @@ class PadovaWeb(Isochrone):
                 iso_table, filterPMS=self.filterPMS, filterBad=self.filterBad
             )
 
+        # Handle Z if it's a list of numbers, getting isochrones for each
+        # With ~~~#~~~ RECURSIVE RECURSION ~~~#~~~
         else:
             iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
+            iso_table.header = {}
             iso_table.header["NAME"] = "PadovaCMD Isochrones: " + self.modeltype
-
             if len(Z) > 1:
-                more = [
-                    self._get_t_isochrones(logtmin, logtmax, dlogt, Zk).data
-                    for Zk in Z[1:]
-                ]
-                iso_table.data = recfunctions.stack_arrays(
-                    [iso_table.data] + more, usemask=False, asrecarray=True
-                )
-
+                for Zk in Z[1:]:
+                    iso_table = astropy.table.vstack(
+                        [iso_table, self._get_t_isochrones(logtmin, logtmax, dlogt, Zk)]
+                    )
         return iso_table
 
 
@@ -654,8 +657,8 @@ class MISTWeb(Isochrone):
         self.rotation = rotation
 
     def _get_isochrone(self, age, metal=None, FeH=None, *args, **kwargs):
-        """ Retrieve isochrone from the original source
-            internal use to adapt any library
+        """Retrieve isochrone from the original source
+        internal use to adapt any library
         """
         # make sure unit is in years and then only give the value (no units)
         _age = int(units.Quantity(age, units.year).value)
@@ -731,7 +734,7 @@ class MISTWeb(Isochrone):
         return iso_table
 
     def _get_t_isochrones(self, logtmin, logtmax, dlogt, Z=0.0142):
-        """ Generate a proper table directly from the PADOVA website
+        """Generate a proper table directly from the PADOVA website
 
         Parameters
         ----------
