@@ -511,11 +511,12 @@ class PadovaWeb(Isochrone):
         """clean column names, remove unnecessary columns"""
 
         # If this is an astropy table, clean it using a different function
-        if not isinstance(iso_table, astropy.table.table.Table):
+        if not isinstance(iso_table, Table):
             raise Exception("This now expects astropy tables, not simpletables")
 
         # Rename Columns appropriately for parsec
         if self.modeltype == "parsec12s_r14":
+
             # PARSEC+COLIBRI Column Names
             old_colnanes = ["logAge", "logTe", "Mini", "Mass", "label"]
             new_colnames = ["logA", "logT", "M_ini", "M_act", "stage"]

@@ -109,7 +109,6 @@ class pdf1d:
             self.pdf_bin_indxs = pdf_bin_indxs
 
             if used_nindxs != self.n_indxs:
-                breakpoint()
                 print(used_nindxs, self.n_indxs)
                 raise ValueError(
                     "Not all the physics grid model points mapped to 1d ppdf bins - should not happen"
