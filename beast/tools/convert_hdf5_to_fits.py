@@ -83,24 +83,17 @@ def st_file(file_name, autotrim=False):
     for tag in set2:
         new_table[tag.upper()] = np.array(data_dict[tag])
 
-    # trim too-long column names, if requested, to stop the write function crashing
+    # Identify and replace too-long column names, if requested
     if autotrim:
         set0_trim, set1_trim, set2_trim = replace_largest_common_substring(
             set0, set1, set2
         )
-        for t, tag in enumerate(set0):
-            print("Renaming 0 " + tag.upper() + " to " + set0_trim[t].upper())
-            new_table.rename_column(tag.upper(), set0_trim[t].upper())
-        for t, tag in enumerate(set1):
-            print("Renaming 1 " + tag.upper() + " to " + set1_trim[t].upper())
-            new_table.rename_column(tag.upper(), set1_trim[t].upper())
-        for t, tag in enumerate(set2):
-            print("Renaming 2 " + tag.upper() + " to " + set2_trim[t].upper())
-            new_table.rename_column(tag.upper(), set2_trim[t].upper())
 
     # write to file
     print("saving to fits file")
-    new_table.write(file_name.replace(".hdf5", ".fits"), format="fits", overwrite=True)
+    new_table.write(
+        file_name.replace(".phot.hdf5", ".st.fits"), format="fits", overwrite=True
+    )
     f.close()
 
 
