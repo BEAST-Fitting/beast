@@ -155,7 +155,7 @@ def replace_largest_common_substring(set0, set1, set2):
             break
 
     # Raise exception if no fix possible
-    if longest == False:
+    if not longest:
         raise Exception(
             "Some column names are too long to write to FITS table, "
             + "but no shared string found to trim"
