@@ -173,106 +173,91 @@ def pick_models_toothpick_style(
         raise AssertionError()
 
     bin_count = np.zeros((N_fluxes, Nf))
+    include_mask = np.full(idxs.shape, True, dtype=bool)
     chosen_idxs = []
     counter = 0
-    
-    include_mask = np.full(idxs.shape, True, dtype=bool)
-    chunksize = 100000
     successes = 0
+    chunksize = 100000
     
-    with h5py.File("all_sampled_seds.h5", "w") as f:
-        dset = f.create_dataset("seds", shape=(0, sedsMags.shape[1]),
-                                maxshape=(None, sedsMags.shape[1]),
-                                dtype=sedsMags.dtype, chunks=True)
-        while True:
-            counter += 1
-            rand_idx = np.random.choice(idxs[include_mask], size=chunksize)
-            randomseds = sedsMags[rand_idx, :]
-            
-            # append to dataset
-            old_size = dset.shape[0]
-            dset.resize(old_size + randomseds.shape[0], axis=0)
-            dset[old_size:] = randomseds
+    while True:
+        counter += 1
+        # pick some random models
+        rand_idx = np.random.choice(idxs[include_mask], size=chunksize)
+        randomseds = sedsMags[rand_idx, :]
+
+        # Find in which bin each model belongs, for each filter
+        fluxbins = np.zeros(randomseds.shape, dtype=int)
+        for fltr in range(Nf):
+            fluxbins[:, fltr] = np.digitize(randomseds[:, fltr], bin_maxs[:, fltr])
+
+        # Clip in place (models of which the flux is equal to the max
+        # are assigned bin nr N_fluxes. Move these down to bin nr
+        # N_fluxes - 1)
+        np.clip(fluxbins, a_min=0, a_max=N_fluxes - 1, out=fluxbins)
         
-        # while True:
-        #     counter += 1
-        #     # pick some random models
-        #     rand_idx = np.random.choice(idxs[include_mask], size=chunksize)
-        #     randomseds = sedsMags[rand_idx, :]
-    
-            # Find in which bin each model belongs, for each filter
-            fluxbins = np.zeros(randomseds.shape, dtype=int)
-            for fltr in range(Nf):
-                fluxbins[:, fltr] = np.digitize(randomseds[:, fltr], bin_maxs[:, fltr])
-    
-            # Clip in place (models of which the flux is equal to the max
-            # are assigned bin nr N_fluxes. Move these down to bin nr
-            # N_fluxes - 1)
-            np.clip(fluxbins, a_min=0, a_max=N_fluxes - 1, out=fluxbins)
-            
 
-            need = np.maximum(min_N_per_flux - bin_count, 0)   # how many still needed per (bin,filter)
-            add_these = np.zeros(len(rand_idx), dtype=bool)   # which SEDs from this chunk to accept
-            
-            for f in range(Nf):
-                bins_needed = np.nonzero(need[:, f] > 0)[0]   # integer bin indices that still need filling
-                if bins_needed.size == 0:
+        need = np.maximum(min_N_per_flux - bin_count, 0)   # how many still needed per (bin,filter)
+        add_these = np.zeros(len(rand_idx), dtype=bool)   # which SEDs from this chunk to accept
+        
+        for f in range(Nf):
+            bins_needed = np.nonzero(need[:, f] > 0)[0]   # integer bin indices that still need filling
+            if bins_needed.size == 0:
+                continue
+        
+            # For each bin that needs samples, choose up to `need` SEDs from this chunk that fall there
+            for b in bins_needed:
+                n_to_fill = int(need[b, f])
+                if n_to_fill <= 0:
                     continue
-            
-                # For each bin that needs samples, choose up to `need` SEDs from this chunk that fall there
-                for b in bins_needed:
-                    n_to_fill = int(need[b, f])
-                    if n_to_fill <= 0:
-                        continue
-            
-                    # robustly get integer indices of SEDs in this chunk that land in bin b for filter f
-                    sed_hits = np.flatnonzero(fluxbins[:, f] == b)  # always ndarray of ints (possibly empty)
-                    if sed_hits.size == 0:
-                        continue
-            
-                    # choose up to n_to_fill distinct SEDs (no replace if enough hits)
-                    n_select = min(n_to_fill, sed_hits.size)
-                    if sed_hits.size <= n_select:
-                        chosen_local = sed_hits  # take them all
-                    else:
-                        chosen_local = np.random.choice(sed_hits, size=n_select, replace=False)
-            
-                    # mark them for addition, update counts, and mark as used in include_mask
-                    add_these[chosen_local] = True
-                    bin_count[b, f] += chosen_local.size
+        
+                # robustly get integer indices of SEDs in this chunk that land in bin b for filter f
+                sed_hits = np.flatnonzero(fluxbins[:, f] == b)  # always ndarray of ints (possibly empty)
+                if sed_hits.size == 0:
+                    continue
+        
+                # choose up to n_to_fill distinct SEDs (no replace if enough hits)
+                n_select = min(n_to_fill, sed_hits.size)
+                if sed_hits.size <= n_select:
+                    chosen_local = sed_hits  # take them all
+                else:
+                    chosen_local = np.random.choice(sed_hits, size=n_select, replace=False)
+        
+                # mark them for addition, update counts, and mark as used in include_mask
+                add_these[chosen_local] = True
+                bin_count[b, f] += chosen_local.size
 
 
-            # exclude the indices of the added models from being selected again
-            include_mask[rand_idx[~add_these]] = False
+        # exclude the indices of the added models from being selected again
+        include_mask[rand_idx[~add_these]] = False
 
-            # update the number of successful model selections
-            successes += add_these.sum()
-            
-            # Increment bin counts only for those models
-            # We can vectorize updates using np.add.at (handles repeated indices correctly)
-            np.add.at(bin_count, (fluxbins[add_these, :].ravel(), 
-                                  np.tile(np.arange(Nf), np.sum(add_these))), 1)    
-            
-            # Add the approved models
-            chosen_idxs.extend(rand_idx[add_these])
+        # update the number of successful model selections
+        successes += add_these.sum()
+        
+        # Increment bin counts only for those models
+        # We can vectorize updates using np.add.at (handles repeated indices correctly)
+        np.add.at(bin_count, (fluxbins[add_these, :].ravel(), 
+                              np.tile(np.arange(Nf), np.sum(add_these))), 1)    
+        
+        # Add the approved models
+        chosen_idxs.extend(rand_idx[add_these])
 
-    
-            # If some of the randomly picked models were not added
-            if not add_these.any():
-                # ... check if we have enough samples everywhere, or if all
-                # the models have been exhausted (and hence the bins are
-                # impossible to fill).
-                enough_samples = (bin_count.flatten() >= min_N_per_flux).all()
-                still_models_left = include_mask.any()
-                if enough_samples or not still_models_left:
-                    break
-    
-            if not counter % 10:
-                print(
-                    "Sampled {} models. {} successfull seds. Ratio = {}".format(
-                        counter * chunksize, successes, successes / counter / chunksize
-                    )
+
+        # If some of the randomly picked models were not added
+        if not add_these.any():
+            # ... check if we have enough samples everywhere, or if all
+            # the models have been exhausted (and hence the bins are
+            # impossible to fill).
+            enough_samples = (bin_count.flatten() >= min_N_per_flux).all()
+            still_models_left = include_mask.any()
+            if enough_samples or not still_models_left:
+                break
+
+        if not counter % 10:
+            print(
+                "Sampled {} models. {} successfull seds. Ratio = {}".format(
+                    counter * chunksize, successes, successes / counter / chunksize
                 )
+            )
 
     # Gather the selected model seds in a table
     sedsMags = Table(sedsMags[chosen_idxs, :], names=filters)
