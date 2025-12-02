@@ -318,7 +318,7 @@ def make_extinguished_grid(
     # get the min/max R(V) values necessary for the grid point definition
     min_Rv = min(rvs)
     max_Rv = max(rvs)
-    Rv_B = extLaw.BLaw.Rv # R(V) for the SMC-like extinction curve
+    Rv_B = extLaw.BLaw.Rv  # R(V) for the SMC-like extinction curve
 
     # Create the sampling mesh
     # ========================
@@ -402,7 +402,7 @@ def make_extinguished_grid(
                         r,
                         nameformat=nameformat,
                         filterLib=filterLib,
-                        **add_spectral_properties_kwargs
+                        **add_spectral_properties_kwargs,
                     )
                 temp_results = r.getSEDs(filter_names, filterLib=filterLib)
                 # adding the dust parameters to the models
@@ -420,7 +420,7 @@ def make_extinguished_grid(
                         r,
                         nameformat=nameformat,
                         filterLib=filterLib,
-                        **add_spectral_properties_kwargs
+                        **add_spectral_properties_kwargs,
                     )
                 temp_results = r.getSEDs(filter_names, filterLib=filterLib)
                 # adding the dust parameters to the models
