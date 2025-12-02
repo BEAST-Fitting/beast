@@ -171,7 +171,7 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
             if hasattr(settings, "region_from_filters"):
                 region_from_filters = settings.region_from_filters
             else:
-                region_from_filters = 'all'
+                region_from_filters = "all"
 
             make_ast_xy_list.pick_positions_from_map(
                 obsdata,
