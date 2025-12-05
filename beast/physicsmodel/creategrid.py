@@ -93,15 +93,11 @@ def gen_spectral_grid_from_stellib_given_points(
                 yield osl.gen_spectral_grid_from_given_points(chunk_pts, bounds=bounds)
 
 
-def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
+def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv, Rv_B):
     """
     compute the allowed points based on the R(V) versus f_A plane
     duplicates effort for all A(V) values, but it is quick compared to
     other steps
-
-    .. note::
-
-        on 2.74: SMC extinction implies f_A = 0. and Rv = 2.74
 
     Parameters
     ----------
@@ -113,6 +109,9 @@ def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
 
     max_Rv: float
         upper Rv limit
+
+    Rv_B: float
+        value of R(V) from the user-defined SMC-like extinction law
 
     Returns
     -------
@@ -127,9 +126,9 @@ def _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv):
 
     def is_valid(ak, rk, fk):
         return (
-            fk / max_Rv + (1.0 - fk) / 2.74
+            fk / max_Rv + (1.0 - fk) / Rv_B
             <= 1.0 / rk
-            <= fk * 1.0 / min_Rv + (1.0 - fk) / 2.74
+            <= fk * 1.0 / min_Rv + (1.0 - fk) / Rv_B
         )
 
     # explore the full list once
@@ -319,6 +318,7 @@ def make_extinguished_grid(
     # get the min/max R(V) values necessary for the grid point definition
     min_Rv = min(rvs)
     max_Rv = max(rvs)
+    Rv_B = extLaw.BLaw.Rv  # R(V) for the SMC-like extinction curve
 
     # Create the sampling mesh
     # ========================
@@ -329,7 +329,7 @@ def make_extinguished_grid(
 
         it = np.nditer(np.ix_(avs, rvs, fAs))
         niter = np.size(avs) * np.size(rvs) * np.size(fAs)
-        npts, pts = _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv)
+        npts, pts = _make_dust_fA_valid_points_generator(it, min_Rv, max_Rv, Rv_B)
 
         # Pet the user
         print(
@@ -394,6 +394,7 @@ def make_extinguished_grid(
             if with_fA:
                 Av, Rv, f_A = pt
                 Rv_MW = extLaw.get_Rv_A(Rv, f_A)
+
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, f_A=f_A, inplace=False)
                 # add extra "spectral bands" if requested
                 if add_spectral_properties_kwargs is not None:
@@ -401,7 +402,7 @@ def make_extinguished_grid(
                         r,
                         nameformat=nameformat,
                         filterLib=filterLib,
-                        **add_spectral_properties_kwargs
+                        **add_spectral_properties_kwargs,
                     )
                 temp_results = r.getSEDs(filter_names, filterLib=filterLib)
                 # adding the dust parameters to the models
@@ -419,7 +420,7 @@ def make_extinguished_grid(
                         r,
                         nameformat=nameformat,
                         filterLib=filterLib,
-                        **add_spectral_properties_kwargs
+                        **add_spectral_properties_kwargs,
                     )
                 temp_results = r.getSEDs(filter_names, filterLib=filterLib)
                 # adding the dust parameters to the models
