@@ -136,7 +136,7 @@ def pick_models_toothpick_style(
 
     sedsMags = -2.5 * np.log10(modelsedgrid.seds[:] / vega_flux)
 
-    # Check if logL=-9.999 model points saliently sneak through
+    # Check if logL=-9.999 model points silently sneak through
     if min(modelsedgrid.grid["logL"]) < -9:
         warnings.warn("There are logL=-9.999 model points in the SED grid!")
         print("Excluding those SED models from selecting input ASTs")
