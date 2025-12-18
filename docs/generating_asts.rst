@@ -97,7 +97,7 @@ Parameters used by the flux bin method of selecting SEDs
   Format: {"<filter_name>": [<bright_mag>, <faint_mag>], "<filter_name>": [<bright_mag>, <faint_mag>]}
   Example: {"HST_ACS_F555W": [14, 30], "JWST_NIRCAM_F200W": [13, 28]}
 
-- `ast_filters_inside_maglimits : integer (optional, default = 3)
+- `ast_filters_inside_maglimits` : integer (optional, default = 3)
   Number of filters that must be within ast_fluxbin_maglimits for an SED
   to be eligible for selection as an AST.
 
