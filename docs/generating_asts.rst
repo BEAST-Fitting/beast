@@ -91,6 +91,15 @@ Parameters used by the flux bin method of selecting SEDs
   Minimum number of model SEDs that need to fall into each bin (if
   `pick_models_toothpick_style` is used)
 
+- `ast_fluxbin_maglimits` : dictionary (optional)
+  These magnitude limits will be applied to the SED model grids
+  when selecting ASTs, excluding SEDs with magnitudes outside these bounds.
+  Format: {"<filter_name>": [<bright_mag>, <faint_mag>], "<filter_name>": [<bright_mag>, <faint_mag>]}
+  Example: {"HST_ACS_F555W": [14, 30], "JWST_NIRCAM_F200W": [13, 28]}
+
+- `ast_filters_inside_maglimits : integer (optional, default = 3)
+  Number of filters that must be within ast_fluxbin_maglimits for an SED
+  to be eligible for selection as an AST.
 
 Parameters used by the random SED selection method
 --------------------------------------------------
