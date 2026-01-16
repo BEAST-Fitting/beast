@@ -44,6 +44,7 @@ test = [
     "pytest-doctestplus",
     "pytest-astropy",
     "pytest-cov",
+    "pytest-mpl",
     "matplotlib"
 ]
 docs = [

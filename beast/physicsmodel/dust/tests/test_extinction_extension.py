@@ -1,11 +1,12 @@
 import warnings
+from dust_extinction.helpers import SpectralUnitsWarning
+
 import numpy as np
 import astropy.units as u
 
 from dust_extinction.parameter_averages import F19
 from dust_extinction.averages import G03_SMCBar
 from dust_extinction.grain_models import WD01, D03
-from dust_extinction.helpers import SpectralUnitsWarning
 
 from beast.physicsmodel.dust.extinction_extension import (
     F19_D03_extension,

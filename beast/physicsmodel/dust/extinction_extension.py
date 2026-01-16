@@ -1,50 +1,12 @@
 import copy
-import warnings
 import numpy as np
 import astropy.units as u
 
-from dust_extinction.helpers import _test_valid_x_range
 from dust_extinction.parameter_averages import F19
 from dust_extinction.averages import G03_SMCBar
 from dust_extinction.grain_models import D03, WD01
 
 __all__ = ["F19_D03_extension", "G03_SMCBar_WD01_extension"]
-
-
-class SpectralUnitsWarning(UserWarning):
-    pass
-
-
-def _get_x_in_wavenumbers(in_x):
-    """
-    Convert input x to wavenumber given x has units.
-    Otherwise, assume x is in waveneumbers and issue a warning to this effect.
-    Parameters
-    ----------
-    in_x : astropy.quantity or simple floats
-        x values
-    Returns
-    -------
-    x : floats
-        input x values in wavenumbers w/o units
-    """
-    # handles the case where x is a scaler
-    in_x = np.atleast_1d(in_x)
-
-    # check if in_x is an astropy quantity, if not issue a warning
-    if not isinstance(in_x, u.Quantity):
-        warnings.warn(
-            "x has no units, assuming x units are inverse microns", SpectralUnitsWarning
-        )
-
-    # convert to wavenumbers (1/micron) if x input in units
-    # otherwise, assume x in appropriate wavenumber units
-    with u.add_enabled_equivalencies(u.spectral()):
-        x_quant = u.Quantity(in_x, 1.0 / u.micron, dtype=np.float64)
-
-    # strip the quantity to avoid needing to add units to all the
-    #    polynomical coefficients
-    return x_quant.value
 
 
 class F19_D03_extension(F19):
@@ -101,13 +63,13 @@ class F19_D03_extension(F19):
     # update the wavelength range (in micron^-1)
     x_range = [0.3, 1.0 / 0.01]
 
-    def evaluate(self, in_x, Rv):
+    def evaluate(self, x, Rv):
         """
         F19_D03_extension function
 
         Parameters
         ----------
-        in_x: float
+        x: float
            expects either x in units of wavelengths or frequency
            or assumes wavelengths in wavenumbers [1/micron]
 
@@ -123,13 +85,6 @@ class F19_D03_extension(F19):
         ValueError
            Input x values outside of defined range
         """
-        # convert to wavenumbers (1/micron) if x input in units
-        # otherwise, assume x in appropriate wavenumber units
-        x = _get_x_in_wavenumbers(in_x)
-
-        # check that the wavenumbers are within the defined range
-        _test_valid_x_range(x, self.x_range, self.__class__.__name__)
-
         # just in case someone calls evaluate explicitly
         Rv = np.atleast_1d(Rv)
 
@@ -149,12 +104,12 @@ class F19_D03_extension(F19):
             d2mod = D03(modelname="MWRV55")
 
         # interpolate to get the model extinction for the input Rv value
-        dslope = (d2mod(in_x) - d1mod(in_x)) / (d2rv - d1rv)
-        dmod = d1mod(in_x) + dslope * (Rv - d1rv)
+        dslope = (d2mod(x) - d1mod(x)) / (d2rv - d1rv)
+        dmod = d1mod(x) + dslope * (Rv - d1rv)
 
         # compute the F19 curve for the input Rv over the F19 defined wavelength range
         gvals_f19 = (x > super().x_range[0]) & (x < super().x_range[1])
-        fmod = super().evaluate(in_x[gvals_f19], Rv)
+        fmod = super().evaluate(x[gvals_f19], Rv)
 
         # now merge the two smoothly
         outmod = copy.copy(dmod)
@@ -223,13 +178,13 @@ class G03_SMCBar_WD01_extension(G03_SMCBar):
     # update the wavelength range (in micron^-1)
     x_range = [0.3, 1.0 / 0.01]
 
-    def evaluate(self, in_x):
+    def evaluate(self, x):
         """
         G03_SMCBar_WD01_extension function
 
         Parameters
         ----------
-        in_x: float
+        x: float
            expects either x in units of wavelengths or frequency
            or assumes wavelengths in wavenumbers [1/micron]
 
@@ -245,20 +200,13 @@ class G03_SMCBar_WD01_extension(G03_SMCBar):
         ValueError
            Input x values outside of defined range
         """
-        # convert to wavenumbers (1/micron) if x input in units
-        # otherwise, assume x in appropriate wavenumber units
-        x = _get_x_in_wavenumbers(in_x)
-
-        # check that the wavenumbers are within the defined range
-        _test_valid_x_range(x, self.x_range, self.__class__.__name__)
-
         # compute the dust grain model
         dmodel = WD01(modelname="SMCBar")
-        dmod = dmodel(in_x)
+        dmod = dmodel(x)
 
         # compute the F19 curve for the input Rv over the F19 defined wavelength range
         gvals_g03 = (x > super().x_range[0]) & (x < super().x_range[1])
-        fmod = super().evaluate(in_x[gvals_g03])
+        fmod = super().evaluate(x[gvals_g03])
 
         # now merge the two smoothly
         outmod = copy.copy(dmod)
