@@ -76,7 +76,9 @@ class PriorModel:
             else:
                 # interpolate model to grid ages
                 return np.interp(
-                    x, np.array(self.model["x"]), np.array(self.model["values"]),
+                    x,
+                    np.array(self.model["x"]),
+                    np.array(self.model["values"]),
                 )
         elif self.model["name"] == "lognormal":
             for ckey in ["mean", "sigma"]:
@@ -187,7 +189,7 @@ class PriorAgeModel(PriorModel):
             weights = 1.0 / np.diff(10 ** compute_bin_boundaries(x))
             return weights / np.sum(weights)
         elif self.model["name"] == "exponential":
-            return pmfuncs._exponential(10.0 ** x, tau=self.model["tau"] * 1e9)
+            return pmfuncs._exponential(10.0**x, tau=self.model["tau"] * 1e9)
         else:
             return super().__call__(x)
 
