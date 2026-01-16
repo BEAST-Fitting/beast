@@ -1,6 +1,5 @@
 import copy
 import numpy as np
-import astropy.units as u
 
 from dust_extinction.parameter_averages import F19
 from dust_extinction.averages import G03_SMCBar
