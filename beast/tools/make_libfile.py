@@ -2,7 +2,13 @@
 import os
 import numpy as np
 
+# suppress Vega file not found warning
+import warnings
+from astropy.utils.exceptions import AstropyUserWarning
+warnings.simplefilter("ignore", category=AstropyUserWarning)
+
 import stsynphot as stsyn
+
 from pandeia.engine.instrument_factory import InstrumentFactory
 import astropy.units as u
 from astropy.table import QTable
@@ -82,7 +88,9 @@ def make_filters_libfile():
         mode_2 = "wfc3, uvis2, " + filt
 
         # pull bandpasses from stsynphot for the two uvis modes
-        bp_1 = stsyn.band(mode_1)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=AstropyUserWarning)
+            bp_1 = stsyn.band(mode_1)
         bp_2 = stsyn.band(mode_2)
 
         # extract the wavelength array
