@@ -35,7 +35,7 @@ Choices:
 * MIST
    * The MIST models (Choi+16) are computed using MESA (Paxton+11,13,15).
    * MIST Isochrone Interpolator accessed via
-     `webform <http://waps.cfa.harvard.edu/MIST/interp_isos.html>`_ by
+     `webform <https://waps.cfa.harvard.edu/MIST/interp_isos.html>`_ by
      ``ezmist`` module.
    * Options = ``rotation`` (default='vvcrit0.0'): select rotating or
      non-rotating models - alternate choice=['vvcrit0.4' for initial rotation
