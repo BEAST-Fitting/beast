@@ -44,6 +44,7 @@ test = [
     "pytest-doctestplus",
     "pytest-astropy",
     "pytest-cov",
+    "pytest-mpl",
     "matplotlib"
 ]
 docs = [
@@ -133,5 +134,6 @@ exclude_lines = [
     extend-ignore = """
         W503,
         E203,
+        E402,
         E501,
     """

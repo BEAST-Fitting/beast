@@ -1,3 +1,6 @@
+import warnings
+from dust_extinction.helpers import SpectralUnitsWarning
+
 import numpy as np
 import astropy.units as u
 
@@ -18,11 +21,16 @@ def test_F19_D03_ext():
 
     x = np.arange(cmod.x_range[0], cmod.x_range[1], 0.1) / u.micron
 
-    cmod_vals = cmod(x)
-    dmod_vals = dmod(x)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=SpectralUnitsWarning)
+        cmod_vals = cmod(x)
+        dmod_vals = dmod(x)
 
     gvals_f19 = (x > emod.x_range[0] / u.micron) & (x < emod.x_range[1] / u.micron)
-    emod_vals = emod(x[gvals_f19])
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=SpectralUnitsWarning)
+        emod_vals = emod(x[gvals_f19])
 
     # test that the combined model as the grain model values below 912 A
     # below the merge wavelengths
@@ -43,11 +51,16 @@ def test_G03_SMCBar_WD01_ext():
 
     x = np.arange(cmod.x_range[0], cmod.x_range[1], 0.1) / u.micron
 
-    cmod_vals = cmod(x)
-    dmod_vals = dmod(x)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=SpectralUnitsWarning)
+        cmod_vals = cmod(x)
+        dmod_vals = dmod(x)
 
     gvals_g03 = (x > emod.x_range[0] / u.micron) & (x < emod.x_range[1] / u.micron)
-    emod_vals = emod(x[gvals_g03])
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=SpectralUnitsWarning)
+        emod_vals = emod(x[gvals_g03])
 
     # test that the combined model as the grain model values below 912 A
     # below the merge wavelengths

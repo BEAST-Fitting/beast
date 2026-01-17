@@ -35,7 +35,7 @@ def _lognorm(in_x, max_pos, sigma=0.5, N=1.0):
     lognormal computed on the x grid
     """
     sqrt_2pi = 1.0 / np.sqrt(2 * np.pi)
-    mu = np.log(max_pos) + sigma ** 2
+    mu = np.log(max_pos) + sigma**2
 
     # make it work for a single value or an array
     x = np.atleast_1d(in_x)
@@ -114,7 +114,7 @@ def _exponential(x, tau=2.0, amp=1.0):
 def _absexponential(x, dist0, tau=2.0, amp=1.0):
     """
     Absolute value of exponential distribution
-    Used for stellar density distriction versus distance
+    Used for stellar density distribution versus distance
 
     Parameters
     ----------
@@ -176,12 +176,12 @@ def _imf_flat(x):
     Parameters
     ----------
     x : numpy vector
-      masses
+       masses
 
     Returns
     -------
     imf : numpy vector
-      unformalized IMF
+       unnormalized IMF
     """
     return 1.0
 
@@ -193,15 +193,15 @@ def _imf_salpeter(x, slope=2.35):
     Parameters
     ----------
     x : numpy vector
-      masses
+    masses
 
     slope : float
-        powerlaw slope [default=2.35]
+       powerlaw slope [default=2.35]
 
     Returns
     -------
     imf : numpy vector
-      unformalized IMF
+       unnormalized IMF
     """
     return x ** (-1.0 * slope)
 
@@ -215,16 +215,16 @@ def _imf_kroupa(in_x, alpha0=0.3, alpha1=1.3, alpha2=2.3, alpha3=2.3):
     Parameters
     ----------
     in_x : numpy vector
-      masses
+       masses
 
     alpha0,1,2,3 : float
-        slopes between <0.08, 0.08-0.5, 0.5-1.0, >1.0 solar masses
-        default = 0.3, 1.3, 2.3, 2.3
+       slopes between <0.08, 0.08-0.5, 0.5-1.0, >1.0 solar masses
+       default = 0.3, 1.3, 2.3, 2.3
 
     Returns
     -------
     imf : numpy vector
-      unformalized IMF
+      unnormalized IMF
     """
     # allows for single float or an array
     x = np.atleast_1d(in_x)
@@ -246,18 +246,18 @@ def _imf_kroupa(in_x, alpha0=0.3, alpha1=1.3, alpha2=2.3, alpha3=2.3):
         imf[indxs] = x[indxs] ** ialpha3
 
     (indxs,) = np.where((x >= m2) & (x < m3))
-    fac1 = (m3 ** ialpha3) / (m3 ** ialpha2)
+    fac1 = (m3**ialpha3) / (m3**ialpha2)
     if len(indxs) > 0:
         imf[indxs] = (x[indxs] ** ialpha2) * fac1
 
     (indxs,) = np.where((x >= m1) & (x < m2))
-    fac2 = fac1 * (m2 ** ialpha2) / (m2 ** ialpha1)
+    fac2 = fac1 * (m2**ialpha2) / (m2**ialpha1)
     if len(indxs) > 0:
         imf[indxs] = (x[indxs] ** ialpha1) * fac2
 
     (indxs,) = np.where(x < m1)
-    fac2 = fac2 * ((m1 ** ialpha1) / (m1 ** ialpha0))
+    fac2 = fac2 * ((m1**ialpha1) / (m1**ialpha0))
     if len(indxs) > 0:
         imf[indxs] = (x[indxs] ** ialpha0) * fac2
 
-    return imf
+    return imf.squeeze()

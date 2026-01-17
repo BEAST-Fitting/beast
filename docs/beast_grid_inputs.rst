@@ -22,7 +22,7 @@ Choices:
      including the most recent set of PARSEC and COLIBRI models (Bressan+12,
      Marigo+17).
    * PARSEC models accessed via
-     `CMD webform <http://stev.oapd.inaf.it/cgi-bin/cmd>`_ by ``ezpadova``
+     `CMD webform <https://stev.oapd.inaf.it/cgi-bin/cmd>`_ by ``ezpadova``
      module.
    * Options = ``modeltype`` (default='parsec12s_r14' for PARSEC+COLIBRI):
      isochrone model set - alternate choices=['parsec12s' for PARSEC 1.2S,
@@ -35,7 +35,7 @@ Choices:
 * MIST
    * The MIST models (Choi+16) are computed using MESA (Paxton+11,13,15).
    * MIST Isochrone Interpolator accessed via
-     `webform <http://waps.cfa.harvard.edu/MIST/interp_isos.html>`_ by
+     `webform <https://waps.cfa.harvard.edu/MIST/interp_isos.html>`_ by
      ``ezmist`` module.
    * Options = ``rotation`` (default='vvcrit0.0'): select rotating or
      non-rotating models - alternate choice=['vvcrit0.4' for initial rotation

@@ -74,7 +74,7 @@ def test_sedgrid(cformat, cback, copygrid):
 
     # read in the file using different backends
     if (cback == "disk") and (cformat == ".fits"):  # not supported
-        return True
+        return None
 
     print(f"    testing {cback} backend")
     dgrid_in = SEDGrid(tfile.name, backend=cback)
