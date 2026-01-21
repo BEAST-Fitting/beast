@@ -258,7 +258,6 @@ class MultiFilterASTs(NoiseModel):
         bin_max_vals = 10**bin_max_vals
         bin_ave_vals = 10**bin_ave_vals
 
-
         for i in range(nbins):
             (bindxs,) = np.where(
                 (flux_in >= bin_min_vals[i]) & (flux_in < bin_max_vals[i])
