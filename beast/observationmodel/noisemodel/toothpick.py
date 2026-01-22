@@ -4,6 +4,8 @@ import numpy as np
 
 from tqdm import tqdm
 
+import warnings
+
 from beast.observationmodel.noisemodel.noisemodel import NoiseModel
 from beast.observationmodel.vega import Vega
 
