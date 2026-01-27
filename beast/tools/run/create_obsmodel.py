@@ -169,8 +169,6 @@ def gen_obsmodel(settings, modelsedgridfile, source_density=None):
         astfile = settings.astfile.replace(
             ".fits", "_bin" + source_density.replace("_", "-") + ".fits"
         )
-        print(noisefile)
-        print(astfile)
 
     # only create noise file if it doesn't already exist
     if not os.path.isfile(noisefile):

@@ -86,6 +86,8 @@ class MultiFilterASTs(NoiseModel):
         colnames : list
             list of column names in the photometry file indicating the flux/vegamag for each filter
             same thing as settings.obs_colnames, should end in _RATE if coming from DOLPHOT
+            Example: ["F475W_RATE", "F814W_RATE"] or ["WFC3_F475W_RATE, "ACS_F814W_RATE"], depending on the user's
+            combination of instrument and filter for their observed photometry file.
         """
         # 1. Enforce uppercase colnames
         if any(c != c.upper() for c in colnames):
