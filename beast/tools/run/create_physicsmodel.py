@@ -10,7 +10,7 @@ from astropy import constants as const
 # BEAST imports
 from beast.physicsmodel.create_project_dir import create_project_dir
 from beast.physicsmodel.model_grid import (
-    make_iso_table,
+    make_evoltrack_table,
     make_spectral_grid,
     add_stellar_priors,
     make_extinguished_sed_grid,
@@ -68,14 +68,31 @@ def create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1, subset=[None, No
     # make sure the project directory exists
     create_project_dir(settings.project)
 
-    # download and load the isochrones
-    (iso_fname, oiso) = make_iso_table(
+    # default needed for some settings when isochrones used
+    # these settings are not used, but are passed
+    if not hasattr(settings, "logmass"):
+        settings.logmass = False
+    if not hasattr(settings, "condense"):
+        settings.condense = False
+    if not hasattr(settings, "condense_logT_delta"):
+        settings.condense_logT_delta = False
+    if not hasattr(settings, "condense_logL_delta"):
+        settings.condense_logL_delta = False
+    # default needed for some settings when evolutionary tracks used
+    # these settings are not used, but are passed
+    if not hasattr(settings, "logt"):
+        settings.logt = False
+
+    # load the evolutionary tracks or isochrones depending what was input
+    (iso_fname, oiso) = make_evoltrack_table(
         settings.project,
-        oiso=settings.oiso,
-        logtmin=settings.logt[0],
-        logtmax=settings.logt[1],
-        dlogt=settings.logt[2],
+        oet=settings.oiso,
+        age_info=settings.logt,
+        mass_info=settings.logmass,
         z=settings.z,
+        condense=settings.condense,
+        condense_logT_delta=settings.condense_logT_delta,
+        condense_logL_delta=settings.condense_logL_delta,
     )
 
     if hasattr(settings, "add_spectral_properties_kwargs"):
@@ -266,7 +283,9 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "beast_settings_file", type=str, help="file name with beast settings",
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
     )
     parser.add_argument(
         "--nsubs",

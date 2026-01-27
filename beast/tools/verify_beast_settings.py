@@ -25,10 +25,14 @@ def check_grid(param, param_name, param_lim):
     param_min, param_max, param_step = param[0:3]
 
     if param_min < param_lim[0]:
-        raise ValueError(param_name + " min value not physical.")
+        raise ValueError(
+            f"{param_name}: min value of {param_min} smaller than {param_lim[0]}."
+        )
 
     if param_max > param_lim[1]:
-        raise ValueError(param_name + " max value not physical.")
+        raise ValueError(
+            f"{param_name}: max value of {param_max} larger than {param_lim[1]}."
+        )
 
     if param_min > param_max:
         raise ValueError(param_name + " min value greater than max")
@@ -72,7 +76,9 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
                 tparam = param[0:3]
                 if isinstance(param[3], str):
                     if param[3] not in ["log", "lin"]:
-                        raise ValueError(f"4th element in {param_name} is not log or lin")
+                        raise ValueError(
+                            f"4th element in {param_name} is not log or lin"
+                        )
             else:
                 tparam = param
             is_list_of_floats = all(isinstance(item, float) for item in tparam)
@@ -107,7 +113,6 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
 
 
 def verify_input_format(settings):
-
     """
     Define relevant parameters, their correct names, format and limits.
     Call verify_one_input_format to test for correctness of format and
@@ -128,16 +133,15 @@ def verify_input_format(settings):
     except AttributeError:
         warnings.simplefilter("error", UserWarning)
 
-    parameters = [
+    parameters_base = [
         settings.z,
         settings.obsfile,
         settings.astfile,
-        settings.logt,
         settings.avs,
         settings.rvs,
         settings.fAs,
     ]
-    parameters_names = ["z", "obsfile", "astfile", "logt", "avs", "rvs", "fAs"]
+    parameters_names = ["z", "obsfile", "astfile", "avs", "rvs", "fAs"]
     param_format = [
         "list_float",
         "str_file",
@@ -145,36 +149,68 @@ def verify_input_format(settings):
         "list_float_grid",
         "list_float_grid",
         "list_float_grid",
-        "list_float_grid",
     ]
 
     print(settings.oiso.name)
     if settings.oiso.name == "MESA/MIST isochrones":
-        print('Working on the MIST isochrone')
-        parameters_limits = [
-            [0.0142E-4, 0.0142 * 10**(0.5)],
+        print("Working on the MIST isochrone")
+        parameters_base_limits = [
+            [0.0142e-4, 0.0142 * 10 ** (0.5)],
             None,
             None,
-            [5, 10.3],
-            [0.0, inf],
-            [1.0, 7.0],
-            [0.0, 1.0],
-        ]
-    if settings.oiso.name == "Padova CMD isochrones":
-        print('Working on the PARSEC isochrone')
-        parameters_limits = [
-            [1E-4, 0.06],
-            None,
-            None,
-            [-inf, 10.15],
             [0.0, inf],
             [1.0, 7.0],
             [0.0, 1.0],
         ]
 
+        params_extra = [settings.logt]
+        params_extra_names = ["logt"]
+        params_extra_limits = [[5, 10.3]]
+        params_extra_format = ["list_float_grid"]
+    elif settings.oiso.name == "Padova CMD isochrones":
+        print("Working on the PARSEC isochrone")
+        parameters_base_limits = [
+            [1e-4, 0.06],
+            None,
+            None,
+            [0.0, inf],
+            [1.0, 7.0],
+            [0.0, 1.0],
+        ]
+        params_extra = [settings.logt]
+        params_extra_names = ["logt"]
+        params_extra_limits = [[-inf, 10.15]]
+        params_extra_format = ["list_float_grid"]
+    elif settings.oiso.name == "MIST EvolTracks":
+        print("Working on the MIST Evolutionary Tracks")
+        parameters_base_limits = [
+            settings.oiso.z_range,
+            None,
+            None,
+            [0.0, inf],
+            [1.0, 7.0],
+            [0.0, 1.0],
+        ]
+
+        params_extra = [settings.logmass]
+        params_extra_names = ["logmass"]
+        params_extra_limits = [settings.oiso.logmass_range]
+        params_extra_format = ["list_float_grid"]
+    else:
+        print("setup needed for ", settings.oiso.name)
+        exit()
+
+    parameters = parameters_base + params_extra
+    parameters_names = parameters_names + params_extra_names
+    param_format = param_format + params_extra_format
+    parameters_limits = parameters_base_limits + params_extra_limits
+
     for i, param_ in enumerate(parameters):
         verify_one_input_format(
-            param_, parameters_names[i], param_format[i], parameters_limits[i],
+            param_,
+            parameters_names[i],
+            param_format[i],
+            parameters_limits[i],
         )
 
 

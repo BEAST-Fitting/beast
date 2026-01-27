@@ -4,6 +4,7 @@ Isochrone class
 Intent to implement a generic module to manage isochrone mining from various
 sources.
 """
+import copy
 import numpy as np
 from numpy import interp
 from numpy import log10
@@ -26,6 +27,17 @@ __all__ = ["Isochrone", "padova2010", "pegase", "ezIsoch", "PadovaWeb", "MISTWeb
 class Isochrone(object):
     def __init__(self, name="", *args, **kwargs):
         self.name = name
+
+        # define axis labels for plotting
+        self.alabels = {
+            "logT": "log(Teff)",
+            "logg": "log(g)",
+            "logL": "log(L)",
+            "logA": "log(age)",
+            "stage": "evol phase",
+            "M_act": "log(current mass)",
+            "M_ini": "log(initial mass)",
+        }
 
     def metalToFeH(self, metal):
         """
@@ -126,6 +138,91 @@ class Isochrone(object):
         table.header["dlogg"] = dl
 
         return table
+
+    def plot(self, ax, xval="logT", yval="logL", linestyle="-"):
+        """
+        Plot the isochrones with the input x, y choices
+
+        Parameters
+        ----------
+        ax : matplotlib axis
+            where to plot
+
+        xval : str, optional
+            what data for x
+
+        xval : str, optional
+            what data for y
+
+        linestyle : string
+            matplotlib linestyle
+        """
+        if xval not in self.data.keys():
+            raise ValueError("xval choice not in data table")
+        if yval not in self.data.keys():
+            raise ValueError("yval choice not in data table")
+
+        # get uniq logA values
+        uvals, indices = np.unique(self.data["logA"], return_inverse=True)
+        for k, cval in enumerate(uvals):
+            cindxs = np.where(k == indices)
+            ax.plot(
+                self.data[xval][cindxs], self.data[yval][cindxs], linestyle=linestyle
+            )
+
+        if xval in ["M_ini", "M_act"]:
+            ax.set_xscale("log")
+        if yval in ["M_ini", "M_act"]:
+            ax.set_yscale("log")
+
+        ax.set_xlabel(self.alabels[xval])
+        ax.set_ylabel(self.alabels[yval])
+
+        if xval == "logT":
+            xmin, xmax = ax.get_xlim()
+            ax.set_xlim(xmax, xmin)
+
+    def grid_metrics(self, check_keys=["logL", "logT", "logg"]):
+        """
+        Compute metrics of the grid
+        Primarily to determine how well parameter space is covered
+
+        Parameters
+        ----------
+        check_keys : string array
+            keys in grid to generage metrics for
+
+        Returns
+        -------
+        metrics : dictonary
+            each entry has an array with [min, max, median, mean] deltas
+            for that grid paramters
+        """
+        # loop over eep values accumulating deltas
+        dvals = {}
+        for cname in check_keys:
+            dvals[cname] = []
+
+        for gparam in ["logA"]:
+            uvals, indices = np.unique(self.data[gparam], return_inverse=True)
+            for k, cval in enumerate(uvals):
+                cindxs, = np.where(k == indices)
+                for cname in check_keys:
+                    dvals[cname] = np.concatenate(
+                        (dvals[cname], np.absolute(np.diff(self.data[cname][cindxs])))
+                    )
+
+        # compute the metrics
+        metrics = {}
+        for cname in check_keys:
+            metrics[cname] = np.array([
+                np.min(dvals[cname]),
+                np.max(dvals[cname]),
+                np.median(dvals[cname]),
+                np.mean(dvals[cname]),
+            ])
+
+        return metrics
 
 
 class padova2010(Isochrone):
@@ -639,13 +736,13 @@ class PadovaWeb(Isochrone):
         # With ~~~#~~~ RECURSIVE RECURSION ~~~#~~~
         else:
             iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
-            iso_table.header = {}
-            iso_table.header["NAME"] = "PadovaCMD Isochrones: " + self.modeltype
+            header = copy.copy(iso_table.header)
             if len(Z) > 1:
                 for Zk in Z[1:]:
                     iso_table = astropy.table.vstack(
                         [iso_table, self._get_t_isochrones(logtmin, logtmax, dlogt, Zk)]
                     )
+            iso_table.header = header
         return iso_table
 
 

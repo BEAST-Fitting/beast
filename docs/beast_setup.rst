@@ -33,11 +33,98 @@ Project Details
 * ``obs_colnames``: column names in ``obsfile`` for observed fluxes. The input data MUST be in fluxes, NOT in magnitudes and the fluxes MUST be in normalized Vega units.
 * ``obsfile``: filename for input flux data.
 
+Physics Model Grid Definition
+-----------------------------
+
+The BEAST generates a grid of dust extinguished stellar models based on input parameters
+from `beast_settings.txt`.
+See :ref:`BEAST grid inputs <beast_grid_inputs>` for details on model libraries. 
+For more on setting up priors, see :ref:`BEAST priors <beast_priors>`.
+
+General Parameters
+^^^^^^^^^^^^^^^^^^
+
+* ``n_subgrid``: number of sub-grids to use (1 means no subgrids), useful for when
+  the physics model grid is too large to read into memory.
+* ``velocity`` : heliocentric velocity of a galaxy (e.g., -300 km/s for M31).
+* ``distances``: distance grid range parameters. ``[min, max, step]``, or ``[fixed number]``.
+* ``distance_unit``: specify magnitude (``units.mag``) or a length unit.
+* ``distance_prior_model``: specify a prior for distance parameter.
+
+Stellar parameters
+^^^^^^^^^^^^^^^^^^
+
+There are a set of parameters parameters always required and then other parameters that 
+are needed depending on if isochrones or evolutionary tracks are used.  Evolutionary tracks
+have a user specified mass range with each mass having an age spacing specific that resolved
+the evolution for that mass.  Isochrones have a user specified age range with each age having 
+a mass spacing set by the website used.
+
+* Always
+
+  - ``age_prior_model``: specify a prior for age parameter.
+  - ``mass_prior_model``: specify a stellar IMF.
+  - ``z``: metallicity grid points.
+  - ``met_prior_model``: specify a prior for metallicity parameter.
+  - ``oiso``: isochrone or evolutionary model grid. See :ref:`BEAST grid inputs <beast_grid_inputs>`
+  - ``osl``: stellar library definition. See :ref:`BEAST grid inputs <beast_grid_inputs>` for choices.
+
+* Evolutionary Tracks
+
+  - ``logmass``: log mass grid range parameters (min, max, step).
+  - ``condense``: boolean if the age spacing should be condensed for each initial mass based on the following parameters.
+  - ``condense_logT_delta``: requested spacing in logT along individual evolutionary track
+  - ``condense_logL_delta``: requested spacing in logL along individual evolutionary track
+
+Setting ``condense == True`` means the spacing for each mass is checked and points removed that have a delta
+in logT and logL that are less than the specified values.
+
+* Isochrones
+
+  - ``logt``: log age grid range parameters (min, max, step).
+
+The mass spacing at each age is not user controllable.  It is set by the website from which the 
+isochrone is downloaded.
+
+Dust parameters
+^^^^^^^^^^^^^^^
+
+The dust extinction model can be set to a single model or a combination of two models.
+[TBA], picking between a linear and log A(V) spacing.
+
+Example of a single model: 
+
+.. code-block:: python
+  
+     extLaw = extinction.Generalized_DustExt(curve='G23')
+
+Example of a mixture model: 
+
+.. code-block:: python
+
+     extA = extinction.Generalized_DustExt(curve='G23')
+     extB = extinction.Generalized_DustExt(curve='G03_SMCBar')
+     extLaw = extinction.Generalized_RvFALaw(ALaw=extA, BLaw=extB)
+
+* Always
+
+  - ``extLaw``: extinction law definition.
+  - ``avs``: dust column in magnitudes (A_V) grid range parameters (min, max, step).
+  - ``av_prior_model``: prior for A_V parameter.
+  - ``rvs``: average dust grain size grid (R_V) range parameters (min, max, step).
+  - ``rv_prior_model``: prior for R_V parameter.
+
+* Mixture
+
+  - ``fAs``: mixture factor between "MW" and "SMCBar" extinction curves (f_A) grid range parameters (min, max, step).
+  - ``fA_prior_model``: prior for f_A parameter.
+
 Artificial Star Test (AST) File Parameters
 ------------------------------------------
 
 The BEAST generates artificial star test (AST) input files based on additional
-input parameters from beast_settings.txt.
+input parameters from beast_settings.txt.  The ASTs are generated from the physics model
+grid
 
 * ``ast_models_selected_per_age``: number of models to pick per age (default = 70).
 * ``ast_bands_above_maglimit``: number of filters that must be above the magnitude limit for an AST to be included in the list (default = 3).
@@ -55,45 +142,6 @@ input parameters from beast_settings.txt.
 * ``ast_colnames``:  names of columns for filters in the AST catalog (default is the basefilter list).
 * ``noisefile`` : pathname to the output noise model file.
 * ``absflux_a_matrix`` : absolute flux calibration covariance matrix for HST specfic filters.
-
-Grid Definition Parameters
---------------------------
-
-The BEAST generates a grid of stellar models based on aditional input parameters
-from `beast_settings.txt`. See <beast_grid_inputs.rst> for details on model libraries.
-For more on setting up priors, see :ref:`BEAST priors <beast_priors>`.
-
-* ``n_subgrid``: number of sub-grids to use (1 means no subgrids), useful for when
-  the physics model grid is too large to read into memory.
-* ``velocity`` : heliocentric velocity of a galaxy (e.g., -300 km/s for M31).
-* ``distances``: distance grid range parameters. ``[min, max, step]``, or ``[fixed number]``.
-* ``distance_unit``: specify magnitude (``units.mag``) or a length unit.
-* ``distance_prior_model``: specify a prior for distance parameter.
-* Stellar parameters
-
-  - ``logt``: age grid range parameters (min, max, step).
-  - ``age_prior_model``: specify a prior for age parameter.
-  - ``mass_prior_model``: specify a stellar IMF.
-  - ``z``: metallicity grid points. For PARSEC, 1e-4<=z<=0.02; For MIST, -4.0<=[Z/H]<=0.5
-  - ``met_prior_model``: specify a prior for metallicity parameter.
-  - ``oiso``: isochrone model grid. Current choices: Padova or MIST. Default: PARSEC+CALIBRI: ``oiso = isochrone.PadovaWeb()``
-  - ``osl``: stellar library definition. Options include Kurucz, Tlusty, BTSettl, Munari, Elodie and BaSel. You can also generate an object from the union of multiple individual libraries: ``osl = stellib.Tlusty() + stellib.Kurucz()``
-
-* Dust parameters
-
-  - ``extLaw``: extinction law definition.
-  - ``avs``: dust column in magnitudes (A_V) grid range parameters (min, max, step).
-  - ``av_prior_model``: specify a prior for A_V parameter.
-  - ``rvs``: average dust grain size grid (R_V) range parameters (min, max, step).
-  - ``rv_prior_model``: specify a prior for R_V parameter.
-  - ``fAs``: mixture factor between "MW" and "SMCBar" extinction curves (f_A) grid range parameters (min, max, step).
-  - ``avs``: dust column in magnitudes (A_V) grid range parameters (min, max, step).
-  - ``av_prior_model``: specify a prior for A_V parameter.
-  - ``rvs``: average dust grain size grid (R_V) range parameters (min, max, step).
-  - ``rv_prior_model``: specify a prior for R_V parameter.
-  - ``fAs``: mixture factor between "MW" and "SMCBar" extinction curves (f_A) grid range parameters (min, max, step).
-  - ``fA_prior_model``: specify a prior for f_A parameter.
-
 
 Optional Features
 -----------------

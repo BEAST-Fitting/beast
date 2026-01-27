@@ -1,6 +1,7 @@
 """
 BEAST Fitting functions
 """
+
 import numpy as np
 import tables
 import string
@@ -1001,7 +1002,7 @@ def summary_table_memory(
         keys = list(g0.keys())
 
     # make sure keys are real keys
-    skip_keys = "osl keep weight grid_weight prior_weight fullgrid_idx stage specgrid_indx".split()
+    skip_keys = "osl keep weight grid_weight prior_weight fullgrid_idx stage specgrid_indx phase eep".split()
     keys = [k for k in keys if k not in skip_keys]
 
     for key in keys:
