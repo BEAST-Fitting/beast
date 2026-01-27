@@ -68,7 +68,18 @@ def create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1, subset=[None, No
     # make sure the project directory exists
     create_project_dir(settings.project)
 
-    # load the evolutionary tracks
+    # default needed for some settings when isochrones used
+    # these settings are not used, but are passed
+    if not hasattr(settings, "logmass"):
+        settings.logmass = False
+    if not hasattr(settings, "condense"):
+        settings.condense = False
+    if not hasattr(settings, "condense_logT_delta"):
+        settings.condense_logT_delta = False
+    if not hasattr(settings, "condense_logL_delta"):
+        settings.condense_logL_delta = False
+
+    # load the evolutionary tracks or isochrones depending what was input
     (iso_fname, oiso) = make_evoltrack_table(
         settings.project,
         oet=settings.oiso,
