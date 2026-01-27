@@ -4,6 +4,8 @@ import numpy as np
 
 from tqdm import tqdm
 
+import warnings
+
 from beast.observationmodel.noisemodel.noisemodel import NoiseModel
 from beast.observationmodel.vega import Vega
 
@@ -71,32 +73,56 @@ class MultiFilterASTs(NoiseModel):
 
         self.vega_flux = vega_flux
 
-    def set_data_mappings(
-        self, in_pair=("in", "in"), out_pair=("out", "rate"), upcase=False
-    ):
+    def set_data_mappings(self, colnames):
         """
-        Specify the mapping directly with the interface to PHAT-like ASTs
+        Map the user-defined AST column names with the BEAST-required name formats
+        User-defined names are set in settings.obs_colnames
+        AST file has input vega magnitudes listed as F###W_IN and output flux/vegamag listed as F###W_RATE.
+        The BEAST calls these things <TELESCOPE>_<DETECTOR>_F###W_in and <TELESCOPE>_<DETECTOR>_F###W_out, respectively.
+        Example: F###W_IN -> HST_WFC3_F###W_in & F###W_RATE -> HST_WFC3_F###W_out
 
         Parameters
         ----------
-        in_pair, out_pair : tuple, optional
-            (in, out) strings giving the ending string mappings
-            defaults: (in, in) aliases internal HST_WFC3_F275W_in to exernal f275w_in
-            and (out, vega) aliases internal HST_WFC3_F275W_out to external f275w_vega
-        upcase : bool, optional
-            set to make the external name all uppercase
+        colnames : list
+            list of column names in the photometry file indicating the flux/vegamag for each filter
+            same thing as settings.obs_colnames, should end in _RATE if coming from DOLPHOT
+            Example: ["F475W_RATE", "F814W_RATE"] or ["WFC3_F475W_RATE, "ACS_F814W_RATE"], depending on the user's
+            combination of instrument and filter for their observed photometry file.
         """
-        for k in self.filters:
-            external_in = k.split("_")[-1] + "_" + in_pair[1]
-            external_out = k.split("_")[-1] + "_" + out_pair[1]
-            if upcase:
-                external_in = external_in.upper()
-                external_out = external_out.upper()
-            else:
-                external_in = external_in.lower()
-                external_out = external_out.lower()
-            self.filter_aliases[k + "_in"] = external_in
-            self.filter_aliases[k + "_out"] = external_out
+        # 1. Enforce uppercase colnames
+        if any(c != c.upper() for c in colnames):
+            raise ValueError("All colnames must be uppercase (e.g., 'F555W_RATE').")
+
+        # 1b. Enforce _RATE suffix on colnames
+        if any(not c.endswith("_RATE") for c in colnames):
+            raise ValueError("All colnames must end in '_RATE' (e.g., 'F555W_RATE', 'ACS_F814W_RATE').")
+
+        # 2. Check proper filter ↔ colname matching (token-wise)
+        mismatches = []
+        for ii, filt in enumerate(self.filters):
+            col_tokens = colnames[ii].split("_")[:-1]  # ignore '_RATE'
+            missing_tokens = [t for t in col_tokens if t not in filt]
+            if missing_tokens:
+                mismatches.append(ii)
+
+        # Print all mismatches at once
+        if mismatches:
+            warnings.warn(
+                f"Filter order check: filter indices {mismatches} do not match obs_colnames",
+                UserWarning,
+            )
+
+        # these strings set the user-to-BEAST mappings
+        in_pair = ["IN", "IN"]
+        out_pair = ["OUT", "RATE"]
+
+        for ii, filt in enumerate(self.filters):
+            col_base = colnames[ii].split("_RATE")[0]
+            external_in = f"{col_base}_{in_pair[1]}"
+            external_out = f"{col_base}_{out_pair[1]}"
+
+            self.filter_aliases[f"{filt}_{in_pair[0].lower()}"] = external_in
+            self.filter_aliases[f"{filt}_{out_pair[0].lower()}"] = external_out
 
     def _compute_sigma_bins(
         self,
@@ -236,9 +262,9 @@ class MultiFilterASTs(NoiseModel):
         bin_ave_vals = 0.5 * (bin_min_vals + bin_max_vals)
 
         # convert the bin min/max value to linear space for computational ease
-        bin_min_vals = 10 ** bin_min_vals
-        bin_max_vals = 10 ** bin_max_vals
-        bin_ave_vals = 10 ** bin_ave_vals
+        bin_min_vals = 10**bin_min_vals
+        bin_max_vals = 10**bin_max_vals
+        bin_ave_vals = 10**bin_ave_vals
 
         for i in range(nbins):
             (bindxs,) = np.where(
@@ -290,9 +316,7 @@ class MultiFilterASTs(NoiseModel):
         """
         Alias of fit_bins
         """
-        return self.fit_bins(
-            nbins=nbins, progress=progress
-        )
+        return self.fit_bins(nbins=nbins, progress=progress)
 
     def fit_bins(
         self,
