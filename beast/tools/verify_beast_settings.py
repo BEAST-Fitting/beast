@@ -25,10 +25,14 @@ def check_grid(param, param_name, param_lim):
     param_min, param_max, param_step = param[0:3]
 
     if param_min < param_lim[0]:
-        raise ValueError(f"{param_name}: min value of {param_min} smaller than {param_lim[0]}.")
+        raise ValueError(
+            f"{param_name}: min value of {param_min} smaller than {param_lim[0]}."
+        )
 
     if param_max > param_lim[1]:
-        raise ValueError(f"{param_name}: max value of {param_max} larger than {param_lim[1]}.")
+        raise ValueError(
+            f"{param_name}: max value of {param_max} larger than {param_lim[1]}."
+        )
 
     if param_min > param_max:
         raise ValueError(param_name + " min value greater than max")

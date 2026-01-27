@@ -83,7 +83,6 @@ def create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1, subset=[None, No
     if not hasattr(settings, "logt"):
         settings.logt = False
 
-
     # load the evolutionary tracks or isochrones depending what was input
     (iso_fname, oiso) = make_evoltrack_table(
         settings.project,
@@ -284,7 +283,9 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "beast_settings_file", type=str, help="file name with beast settings",
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
     )
     parser.add_argument(
         "--nsubs",
