@@ -1,3 +1,5 @@
+.. _beast_grid_inputs:
+
 #################
 BEAST Grid Inputs
 #################
@@ -9,9 +11,20 @@ Stellar Evolution Models
 ========================
 
 Stellar evolution models provide the BEAST model grid with stellar parameters
-(L, T\ :sub:`eff`, log g) as a function of age, metallicity, and stellar mass.  The
-BEAST is currently implemented to obtain this information from stellar
-isochrone sets.  These isochrones are obtained at run-time via webforms that
+(L, T\ :sub:`eff`, log g) as a function of age, metallicity, and stellar mass.
+The BEAST supports using evolutionary tracks directly or via isochrones.
+
+Evolutionary Tracks
+-------------------
+
+* MIST
+   * The MIST models (Choi+16) are computed using MESA (Paxton+11,13,15). [TBR]
+   * Stored as static FITS files obtained via :ref:`BEAST library files <library-files>`.
+
+Isochrones
+----------
+
+These isochrones are obtained at run-time via web queries to the CMD site that
 yield interpolated data products and stored as CSV files.
 
 Choices:
@@ -51,8 +64,12 @@ Spectral Models
 Stellar atmosphere models provide the BEAST model grid with stellar spectra
 (surface flux as function of wavelength) as a function of T\ :sub:`eff`, log g, and
 metallicity.  The BEAST currently uses theoretical spectral libraries stored
-as static libraries.  Model files store spectra in flux format with units of
-erg/s/cm2/AA.
+as static libraries obtained via :ref:`BEAST library files <library-files>`.
+Model files store spectra in flux format with units of erg/s/cm2/AA.
+
+Multiple libraries can be combined and the order defines the preference at the 
+same T\ :sub:`eff`, log g, and metallicity.  For example: ``osl = stellib.Tlusty() + stellib.Kurucz()``
+means that Tlusty models are preferred over Kurucz models for the same stellar parameters.
 
 Choices:
 

@@ -129,21 +129,19 @@ def verify_input_format(settings):
     except AttributeError:
         warnings.simplefilter("error", UserWarning)
 
-    parameters = [
+    parameters_base = [
         settings.z,
         settings.obsfile,
         settings.astfile,
-        settings.logt,
         settings.avs,
         settings.rvs,
         settings.fAs,
     ]
-    parameters_names = ["z", "obsfile", "astfile", "logt", "avs", "rvs", "fAs"]
+    parameters_names = ["z", "obsfile", "astfile", "avs", "rvs", "fAs"]
     param_format = [
         "list_float",
         "str_file",
         "str_file",
-        "list_float_grid",
         "list_float_grid",
         "list_float_grid",
         "list_float_grid",
@@ -152,43 +150,56 @@ def verify_input_format(settings):
     print(settings.oiso.name)
     if settings.oiso.name == "MESA/MIST isochrones":
         print("Working on the MIST isochrone")
-        parameters_limits = [
+        parameters_base_limits = [
             [0.0142e-4, 0.0142 * 10 ** (0.5)],
             None,
             None,
-            [5, 10.3],
             [0.0, inf],
             [1.0, 7.0],
             [0.0, 1.0],
         ]
+
+        params_extra = [settings.logt]
+        params_extra_names = ["logt"]
+        params_extra_limits = [[5, 10.3]]
+        params_extra_format = ["list_float_grid"]
     elif settings.oiso.name == "Padova CMD isochrones":
         print("Working on the PARSEC isochrone")
-        parameters_limits = [
+        parameters_base_limits = [
             [1e-4, 0.06],
             None,
             None,
-            [-inf, 10.15],
             [0.0, inf],
             [1.0, 7.0],
             [0.0, 1.0],
         ]
+        params_extra = [settings.logt]
+        params_extra_names = ["logt"]
+        params_extra_limits = [[-inf, 10.15]]
+        params_extra_format = ["list_float_grid"]
     elif settings.oiso.name == "MIST EvolTracks":
         print("Working on the MIST Evolutionary Tracks")
-        parameters[3] = settings.logmass
-        parameters_names[3] = "logmass"
-
-        parameters_limits = [
+        parameters_base_limits = [
             settings.oiso.z_range,
             None,
             None,
-            settings.oiso.logmass_range,
             [0.0, inf],
             [1.0, 7.0],
             [0.0, 1.0],
         ]
+
+        params_extra = [settings.logmass]
+        params_extra_names = ["logmass"]
+        params_extra_limits = [settings.oiso.logmass_range]
+        params_extra_format = ["list_float_grid"]
     else:
         print("setup needed for ", settings.oiso.name)
         exit()
+
+    parameters = parameters_base + params_extra
+    parameters_names = parameters_names + params_extra_names
+    param_format = param_format + params_extra_format
+    parameters_limits = parameters_base_limits + params_extra_limits
 
     for i, param_ in enumerate(parameters):
         verify_one_input_format(

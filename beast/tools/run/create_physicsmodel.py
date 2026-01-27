@@ -78,6 +78,11 @@ def create_physicsmodel(beast_settings_info, nsubs=1, nprocs=1, subset=[None, No
         settings.condense_logT_delta = False
     if not hasattr(settings, "condense_logL_delta"):
         settings.condense_logL_delta = False
+    # default needed for some settings when evolutionary tracks used
+    # these settings are not used, but are passed
+    if not hasattr(settings, "logt"):
+        settings.logt = False
+
 
     # load the evolutionary tracks or isochrones depending what was input
     (iso_fname, oiso) = make_evoltrack_table(
