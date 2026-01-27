@@ -4,6 +4,7 @@ Isochrone class
 Intent to implement a generic module to manage isochrone mining from various
 sources.
 """
+import copy
 import numpy as np
 from numpy import interp
 from numpy import log10
@@ -735,13 +736,13 @@ class PadovaWeb(Isochrone):
         # With ~~~#~~~ RECURSIVE RECURSION ~~~#~~~
         else:
             iso_table = self._get_t_isochrones(logtmin, logtmax, dlogt, Z[0])
-            iso_table.header = {}
-            iso_table.header["NAME"] = "PadovaCMD Isochrones: " + self.modeltype
+            header = copy.copy(iso_table.header)
             if len(Z) > 1:
                 for Zk in Z[1:]:
                     iso_table = astropy.table.vstack(
                         [iso_table, self._get_t_isochrones(logtmin, logtmax, dlogt, Zk)]
                     )
+            iso_table.header = header
         return iso_table
 
 
