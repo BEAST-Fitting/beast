@@ -93,6 +93,10 @@ class MultiFilterASTs(NoiseModel):
         if any(c != c.upper() for c in colnames):
             raise ValueError("All colnames must be uppercase (e.g., 'F555W_RATE').")
 
+        # 1b. Enforce _RATE suffix on colnames
+        if any(not c.endswith("_RATE") for c in colnames):
+            raise ValueError("All colnames must end in '_RATE' (e.g., 'F555W_RATE', 'ACS_F814W_RATE').")
+
         # 2. Check proper filter ↔ colname matching (token-wise)
         mismatches = []
         for ii, filt in enumerate(self.filters):
