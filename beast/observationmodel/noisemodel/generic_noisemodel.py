@@ -10,6 +10,7 @@ more accurate results with smaller uncertainties on fit parameters
 can be achieved using the trunchen method.  The trunchen method
 requires significantly more complicated ASTs and many more of them.
 """
+
 import numpy as np
 import h5py
 import tables
@@ -26,12 +27,13 @@ def make_toothpick_noise_model(
     outname,
     astfile,
     sedgrid,
+    colnames,
     vega_fname=None,
     absflux_a_matrix=None,
     nfluxbins=50,
     **kwargs,
 ):
-    """ toothpick noise model assumes that every filter is independent with
+    """toothpick noise model assumes that every filter is independent with
     any other.
 
     Parameters
@@ -44,6 +46,10 @@ def make_toothpick_noise_model(
 
     sedgrid : SEDGrid instance
         sed model grid for everyone of which we will evaluate the model
+
+    colnames : list
+        list of column names in the photometry file indicating the flux/vegamag for each filter
+        same thing as settings.obs_colnames, should end in _RATE if coming from DOLPHOT
 
     absflux_a_matrix : ndarray
         absolute calibration a matrix giving the fractional uncertainties
@@ -62,7 +68,7 @@ def make_toothpick_noise_model(
     model = toothpick.MultiFilterASTs(astfile, sedgrid.filters, vega_fname=vega_fname)
 
     # set the column mappings as the external file is BAND_VEGA or BAND_IN
-    model.set_data_mappings(in_pair=("in", "in"), out_pair=("out", "rate"), upcase=True)
+    model.set_data_mappings(colnames)
 
     # compute binned biases and uncertainties as a function of flux
     model.fit_bins(nbins=nfluxbins)
@@ -71,14 +77,14 @@ def make_toothpick_noise_model(
     bias, sigma, compl = model(sedgrid)
 
     # absolute flux calibration uncertainties
-    #  currently we are ignoring the off-diagnonal terms
+    # currently we are ignoring the off-diagnonal terms
     if absflux_a_matrix is not None:
         if absflux_a_matrix.ndim == 1:
             abs_calib_2 = absflux_a_matrix[:] ** 2
         else:  # assumes a cov matrix
             abs_calib_2 = np.diag(absflux_a_matrix)
 
-        noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma ** 2)
+        noise = np.sqrt(abs_calib_2 * sedgrid.seds[:] ** 2 + sigma**2)
 
         # check if the noise model has been extrapolated at the faint or bright flux levels
         # if so, then set the noise to a negative value (later may be used to

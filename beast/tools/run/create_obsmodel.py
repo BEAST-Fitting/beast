@@ -125,9 +125,7 @@ def create_obsmodel(
         # if we're not splitting by source density
         else:
 
-            input_list = [
-                (settings, sedfile, None) for sedfile in modelsedgridfiles
-            ]
+            input_list = [(settings, sedfile, None) for sedfile in modelsedgridfiles]
 
             parallel_wrapper(gen_obsmodel, input_list, nprocs=nprocs)
 
@@ -160,6 +158,9 @@ def gen_obsmodel(settings, modelsedgridfile, source_density=None):
     noisefile = modelsedgridfile.replace("seds", "noisemodel")
     astfile = settings.astfile
 
+    # column names used in photometry file
+    colnames = settings.obs_colnames
+
     # If we are treating regions with different
     # backgrounds/source densities separately, pick one of the
     # split ast files, and name noise file accordingly
@@ -180,6 +181,7 @@ def gen_obsmodel(settings, modelsedgridfile, source_density=None):
             noisefile,
             astfile,
             modelsedgrid,
+            colnames,
             absflux_a_matrix=settings.absflux_a_matrix,
         )
 
@@ -193,7 +195,9 @@ if __name__ == "__main__":  # pragma: no cover
     # commandline parser
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "beast_settings_file", type=str, help="file name with beast settings",
+        "beast_settings_file",
+        type=str,
+        help="file name with beast settings",
     )
     parser.add_argument(
         "--use_sd",
