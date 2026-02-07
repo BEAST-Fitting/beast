@@ -12,6 +12,10 @@ Basics
 2) Execute BEAST Run using ``python run_beast.py`` with appropriate task flags
 
    * Default Full Stack Run: ``python run_beast.py -p -o -t -f``
+   * -p = create the physics model
+   * -o = create the observation model based on the ASTs
+   * -t = trim the physics and observation models based on the observed flux ranges
+   * -f = fit the observed data with the trimmed models
 
 .. _beast_setup_settings:
 
@@ -103,7 +107,7 @@ Example of a mixture model:
 .. code-block:: python
 
      extA = extinction.Generalized_DustExt(curve='G23')
-     extB = extinction.Generalized_DustExt(curve='G03_SMCBar')
+     extB = extinction.Generalized_DustExt(curve='G24_SMCAvg')
      extLaw = extinction.Generalized_RvFALaw(ALaw=extA, BLaw=extB)
 
 * Always

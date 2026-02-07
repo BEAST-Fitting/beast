@@ -133,6 +133,7 @@ class EvolTracks(object):
         """
         Compute metrics of the grid
         Primarily to determine how well parameter space is covered
+        Incomplete as it only computes along constant mass, larger jumps between masses
 
         Parameters
         ----------
@@ -427,7 +428,10 @@ class EvolTracks(object):
 
         # get the as computed evolutionary tracks
         edata = self.load_orig_tables(met_info=metal_info)
-        print(len(edata), "orig metallicities")
+        print(
+            len(edata),
+            "orig metallicities fully bracketting the requested metallicities",
+        )
 
         # interpolate for requested mass spacing
         self.regrid_masses(edata, mass_info[0:2], mass_info[2])
@@ -469,12 +473,11 @@ class ETMist(EvolTracks):
 
         # fmt: off
         self.orig_FeH = np.array([-4.00, -3.50, -3.00, -2.50, -2.00, -1.75,
-                                  -1.50, -1.25, -1.00, -0.75, -0.25, 0.0,
+                                  -1.50, -1.25, -1.00, -0.75, -0.5, -0.25, 0.0,
                                   0.25, 0.5])
         # fmt: on
         self.orig_files = [
-            f"{__ROOT__}MIST/MIST_FeH{cstr:.2f}_vvcrit0.4.fits"
-            for cstr in self.orig_FeH
+            f"{__ROOT__}/MIST_FeH{cstr:.2f}_vvcrit0.4.fits" for cstr in self.orig_FeH
         ]
 
         self.logmass_range = np.log10(np.array([0.1, 300.0]))

@@ -4,6 +4,7 @@ Isochrone class
 Intent to implement a generic module to manage isochrone mining from various
 sources.
 """
+
 import copy
 import numpy as np
 from numpy import interp
@@ -186,6 +187,7 @@ class Isochrone(object):
         """
         Compute metrics of the grid
         Primarily to determine how well parameter space is covered
+        Incomplete as it only computes along constant age, larger jumps between ages
 
         Parameters
         ----------
@@ -206,7 +208,7 @@ class Isochrone(object):
         for gparam in ["logA"]:
             uvals, indices = np.unique(self.data[gparam], return_inverse=True)
             for k, cval in enumerate(uvals):
-                cindxs, = np.where(k == indices)
+                (cindxs,) = np.where(k == indices)
                 for cname in check_keys:
                     dvals[cname] = np.concatenate(
                         (dvals[cname], np.absolute(np.diff(self.data[cname][cindxs])))
@@ -215,12 +217,14 @@ class Isochrone(object):
         # compute the metrics
         metrics = {}
         for cname in check_keys:
-            metrics[cname] = np.array([
-                np.min(dvals[cname]),
-                np.max(dvals[cname]),
-                np.median(dvals[cname]),
-                np.mean(dvals[cname]),
-            ])
+            metrics[cname] = np.array(
+                [
+                    np.min(dvals[cname]),
+                    np.max(dvals[cname]),
+                    np.median(dvals[cname]),
+                    np.mean(dvals[cname]),
+                ]
+            )
 
         return metrics
 
@@ -560,7 +564,7 @@ class PadovaWeb(Isochrone):
         filterPMS=False,
         filterBad=False,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.name = "Padova CMD isochrones"
@@ -743,6 +747,7 @@ class PadovaWeb(Isochrone):
                         [iso_table, self._get_t_isochrones(logtmin, logtmax, dlogt, Zk)]
                     )
             iso_table.header = header
+
         return iso_table
 
 

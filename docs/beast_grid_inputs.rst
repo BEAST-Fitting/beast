@@ -122,16 +122,19 @@ Choices:
 * Generalized_RvFaLaw (recommended)
    * allows for any choice of the extinction curve model for the A and B components
    * recommended
-      * A: F19 - based on spectroscopy in UV and optical and does a bit better than F99 in the optical
-      * B: G03_SMCBar - best average for the SMC "bumpless" extinction curve
+      * A: G23 - based on spectroscopy from the far-UV to the mid-IR
+      * B: G24_SMCAvg - best average for the SMC "bumpless" extinction curve
       * In beast_settings file:
-        extLaw = extinction.Generalized_RvFALaw(ALaw=extinction.Generalized_DustExt(curve='F19'), BLaw=extinction.Generalized_DustExt(curve='G03_SMCBar'))
+    
+        * ALaw = extinction.Generalized_DustExt(curve='G23')
+        * BLaw = extinction.Generalized_DustExt(curve='G24_SMCAvg')
+        * extLaw = extinction.Generalized_RvFALaw(ALaw=ALaw, BLaw=Blaw)
 
 * `dust_extinction`_ Package Extinction Curves (recommended)
    * ``extinction.Generalized_DustExt()``: Wrapper for any extinction curve
      class available via dust_extinction python package.
    * Select curve class via string parameter: `curve`
-   * Example call, for Fitzpatrick+19: ``extinction.Generalized_DustExt('F19')``
+   * Example call, for Fitzpatrick+19: ``extinction.Generalized_DustExt('G23')``
    * For the most possible models, see `dust_extinction docs <https://dust-extinction.readthedocs.io/en/stable/>`_
 
 * `beast.physicsmodel.dust.extinction_extension` (recommended of sub 912 A extinction needed)

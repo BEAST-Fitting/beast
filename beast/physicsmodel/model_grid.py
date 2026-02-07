@@ -121,6 +121,11 @@ def make_evoltrack_table(
         #   not sure why this is needed, but reproduces previous ezpipe method
         oet = ezIsoch(et_fname)
 
+    # gmetrics = oet.grid_metrics()
+    # for ckey in gmetrics.keys():
+    #     print(f"{ckey} delta: {(gmetrics[ckey])[2]} (median), {(gmetrics[ckey])[1]} (max)")
+    # exit()
+
     return (et_fname, oet)
 
 
