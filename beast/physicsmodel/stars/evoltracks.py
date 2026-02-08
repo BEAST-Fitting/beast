@@ -61,7 +61,7 @@ class EvolTracks(object):
 
         return None
 
-    def plot_tracks(
+    def plot(
         self,
         ax,
         xval="logT",
@@ -536,12 +536,14 @@ class ETMist(EvolTracks):
 
 class ETParsec(EvolTracks):
     """
-    EvolTracks specific to PARSEC calculations
+    PARSEC evolutionary tracks
+
+    Implementation is a stub
     """
 
     source = "PARSEC"
 
-    def load_orig_tables(self, files):
+    def load_orig_tables(self, filename=None, met_info=None):
         """
         Read the tracks from  the original files
 
@@ -549,8 +551,10 @@ class ETParsec(EvolTracks):
             file or files with the evolutionary track calculations
             often each file is for a single initial mass
         """
-        if not isinstance(files, list):
-            files = [files]
+        if filename is None:
+            files = np.array(self.orig_files)
+        else:
+            files = np.atleast_1d(filename)
 
         mass_act = np.array([])
         logL = np.array([])

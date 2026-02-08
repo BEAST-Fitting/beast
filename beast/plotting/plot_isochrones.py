@@ -16,7 +16,6 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(2, 2, figsize=(10, 10))
 
     # download the file live from the website
-    savename = "/tmp/padova_iso.csv"
     iso_fname, oiso = make_evoltrack_table(
         "test", age_info=[6.0, 10.13, 0.15], z=[0.019]
     )

@@ -93,6 +93,9 @@ def make_evoltrack_table(
             )
             print("{0} Isochrones".format("_".join(et_fname.split("_")[:-1])))
             info = {"project": project, "logt_input": age_info, "z_input": z}
+
+            if not os.path.isdir(project):
+                os.makedirs(project)
             t.write(et_fname)
             # maybe needed as ezIsoch is a proxy for a Table
             # maybe we can just use a table????

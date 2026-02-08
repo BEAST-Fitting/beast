@@ -46,10 +46,10 @@ if __name__ == "__main__":
     nls = ":"
     color = "k"
     alpha = 0.01
-    et.plot_tracks(ax[0, 0], xval="logT", yval="logL", linestyle=nls, color=color, alpha=alpha)
-    et.plot_tracks(ax[1, 1], xval="logA", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
-    et.plot_tracks(ax[0, 1], xval="eep", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
-    et.plot_tracks(ax[1, 0], xval="logT", yval="logg", linestyle=nls, color=color, alpha=alpha)
+    et.plot(ax[0, 0], xval="logT", yval="logL", linestyle=nls, color=color, alpha=alpha)
+    et.plot(ax[1, 1], xval="logA", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
+    et.plot(ax[0, 1], xval="eep", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
+    et.plot(ax[1, 0], xval="logT", yval="logg", linestyle=nls, color=color, alpha=alpha)
 
     # regrid the evolutionary tracks to uniform log(mass) and variable age
     print("size orig = ", len(et.data["log(M_ini)"]))
@@ -87,10 +87,10 @@ if __name__ == "__main__":
     nls = "-"
     color = "b"
     alpha = 0.2
-    et.plot_tracks(ax[0, 0], xval="logT", yval="logL", linestyle=nls, color=color, alpha=alpha)
-    et.plot_tracks(ax[1, 1], xval="logA", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
-    et.plot_tracks(ax[0, 1], xval="eep", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
-    et.plot_tracks(ax[1, 0], xval="logT", yval="logg", linestyle=nls, color=color, alpha=alpha)
+    et.plot(ax[0, 0], xval="logT", yval="logL", linestyle=nls, color=color, alpha=alpha)
+    et.plot(ax[1, 1], xval="logA", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
+    et.plot(ax[0, 1], xval="eep", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
+    et.plot(ax[1, 0], xval="logT", yval="logg", linestyle=nls, color=color, alpha=alpha)
 
     fig.tight_layout()
 
