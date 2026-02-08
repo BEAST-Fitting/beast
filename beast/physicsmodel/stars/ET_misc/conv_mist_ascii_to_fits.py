@@ -1,6 +1,7 @@
 """
 Convert the MIST ascii files to FITS tables
 """
+
 from glob import glob
 
 import numpy as np
@@ -73,7 +74,7 @@ if __name__ == "__main__":
     FeH_str = ["m4.00", "m3.50", "m3.00", "m2.50", "m2.00", "m1.75",
                "m1.50", "m1.25", "m1.00", "m0.75", "m0.50", "m0.25", "p0.00",
                "p0.25", "p0.50"]
-    
+
     FeH = [-0.50]
     FeH_str = ["m0.50"]
     # fmt: on
