@@ -84,9 +84,6 @@ class EvolTracks(object):
         xval : str, optional
             what data for y
 
-        trackval : int, optional
-            which set of tracks to plot
-
         linestyle : string
             matplotlib linestyle
 

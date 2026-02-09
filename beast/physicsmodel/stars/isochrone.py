@@ -140,9 +140,17 @@ class Isochrone(object):
 
         return table
 
-    def plot(self, ax, xval="logT", yval="logL", linestyle="-"):
+    def plot(
+        self,
+        ax,
+        xval="logT",
+        yval="logL",
+        linestyle="-",
+        color="k",
+        alpha=0.5,
+    ):
         """
-        Plot the isochrones with the input x, y choices
+        Plot the isochronses with the input x, y choices
 
         Parameters
         ----------
@@ -157,7 +165,14 @@ class Isochrone(object):
 
         linestyle : string
             matplotlib linestyle
+
+        color : string
+            matplotlib color
+
+        alpha : float
+            transparency for plotting
         """
+
         if xval not in self.data.keys():
             raise ValueError("xval choice not in data table")
         if yval not in self.data.keys():
@@ -167,8 +182,20 @@ class Isochrone(object):
         uvals, indices = np.unique(self.data["logA"], return_inverse=True)
         for k, cval in enumerate(uvals):
             cindxs = np.where(k == indices)
+            if linestyle is not None:
+                ax.plot(
+                    self.data[xval][cindxs],
+                    self.data[yval][cindxs],
+                    linestyle=linestyle,
+                    color=color,
+                )
             ax.plot(
-                self.data[xval][cindxs], self.data[yval][cindxs], linestyle=linestyle
+                self.data[xval][cindxs],
+                self.data[yval][cindxs],
+                "o",
+                color=color,
+                markersize=2,
+                alpha=alpha,
             )
 
         if xval in ["M_ini", "M_act"]:

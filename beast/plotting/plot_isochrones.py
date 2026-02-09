@@ -20,12 +20,26 @@ if __name__ == "__main__":
         "test", age_info=[6.0, 10.13, 0.15], z=[0.019]
     )
 
+    # remove any point with log(L) < -9.5
+    gvals = oiso.data["logL"] > -9.5
+    oiso.data = oiso.data[gvals]
+
     # plot, plot, plot
     nls = ":"
-    oiso.plot(ax[0, 0], xval="logT", yval="logL", linestyle=nls)
-    oiso.plot(ax[1, 1], xval="logA", yval="M_ini", linestyle=nls)
-    oiso.plot(ax[0, 1], xval="stage", yval="M_ini", linestyle=nls)
-    oiso.plot(ax[1, 0], xval="logT", yval="logg", linestyle=nls)
+    color = "k"
+    alpha = 0.01
+    oiso.plot(
+        ax[0, 0], xval="logT", yval="logL", linestyle=nls, color=color, alpha=alpha
+    )
+    oiso.plot(
+        ax[1, 1], xval="logA", yval="M_ini", linestyle=nls, color=color, alpha=alpha
+    )
+    oiso.plot(
+        ax[0, 1], xval="stage", yval="M_ini", linestyle=nls, color=color, alpha=alpha
+    )
+    oiso.plot(
+        ax[1, 0], xval="logT", yval="logg", linestyle=nls, color=color, alpha=alpha
+    )
 
     print("size grid = ", len(oiso.data["M_ini"]))
 

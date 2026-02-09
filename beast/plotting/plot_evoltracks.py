@@ -47,20 +47,29 @@ if __name__ == "__main__":
     color = "k"
     alpha = 0.01
     et.plot(ax[0, 0], xval="logT", yval="logL", linestyle=nls, color=color, alpha=alpha)
-    et.plot(ax[1, 1], xval="logA", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
-    et.plot(ax[0, 1], xval="eep", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
+    et.plot(
+        ax[1, 1],
+        xval="logA",
+        yval="log(M_ini)",
+        linestyle=nls,
+        color=color,
+        alpha=alpha,
+    )
+    et.plot(
+        ax[0, 1], xval="eep", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha
+    )
     et.plot(ax[1, 0], xval="logT", yval="logg", linestyle=nls, color=color, alpha=alpha)
 
     # regrid the evolutionary tracks to uniform log(mass) and variable age
     print("size orig = ", len(et.data["log(M_ini)"]))
 
+    logmass_range = [-1.0, 2.47]
+    logmass_delta = 0.1
+    et.regrid_masses([et.data], logmass_range, logmass_delta)
+
     if args.condense:
-        logmass_range = [-1.0, 2.47]
-        logmass_delta = 0.1
         logT_delta = args.logT_delta
         logL_delta = args.logL_delta
-        et.regrid_masses([et.data], logmass_range, logmass_delta)
-
         et.condense_grid(logL_delta, logT_delta)
 
         # print("logM range:", logmass_range)
@@ -88,13 +97,24 @@ if __name__ == "__main__":
     color = "b"
     alpha = 0.2
     et.plot(ax[0, 0], xval="logT", yval="logL", linestyle=nls, color=color, alpha=alpha)
-    et.plot(ax[1, 1], xval="logA", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
-    et.plot(ax[0, 1], xval="eep", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha)
+    et.plot(
+        ax[1, 1],
+        xval="logA",
+        yval="log(M_ini)",
+        linestyle=nls,
+        color=color,
+        alpha=alpha,
+    )
+    et.plot(
+        ax[0, 1], xval="eep", yval="log(M_ini)", linestyle=nls, color=color, alpha=alpha
+    )
     et.plot(ax[1, 0], xval="logT", yval="logg", linestyle=nls, color=color, alpha=alpha)
 
     fig.tight_layout()
 
     save_name = "evoltracks"
+    if args.condense:
+        save_name = f"{save_name}_condense"
     if args.tex:
         plt.rc({"usetex": True})
     if args.savefig:
