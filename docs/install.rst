@@ -121,6 +121,15 @@ For the BEAST to work properly, you need to place a set of files in a
 directory. These files contain information related to filters,
 stellar atmospheres, and in the future stellar evolution models.
 
+Script download
+---------------
+
+Alternatively, after installing the BEAST, run the following script and the library files will be downloaded into the location specified in :ref:`library_loc`:
+
+.. code-block:: console
+
+     $ beast get_libfiles
+
 Manual download
 ---------------
 
@@ -130,15 +139,6 @@ https://stsci.box.com/v/beastlibs
 
 Note that the archive at this link contains a folder called `files`. The
 *contents* of this folder are the library files required by the BEAST. These files need to be placed within (any of) the possible locations specified in :ref:`library_loc`.
-
-Script download
----------------
-
-Alternatively, after installing the BEAST, run the following script and the library files will be downloaded into the location specified in :ref:`library_loc`:
-
-.. code-block:: console
-
-     $ beast get_libfiles
 
 .. _library_loc:
 

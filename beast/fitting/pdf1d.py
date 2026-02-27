@@ -54,6 +54,7 @@ class pdf1d:
                 self.min_val = math.log10(self.min_val)
                 self.max_val = math.log10(self.max_val)
                 tgridvals = np.log10(tgridvals)
+                uniqvals = np.log10(uniqvals)
 
             # set bin widths
             if self.nbins > 1:

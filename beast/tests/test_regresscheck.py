@@ -16,7 +16,7 @@ from astropy.io import fits
 from beast.physicsmodel.stars.isochrone import ezIsoch
 from beast.physicsmodel.grid import SpectralGrid, SEDGrid
 from beast.physicsmodel.model_grid import (
-    make_iso_table,
+    make_evoltrack_table,
     make_spectral_grid,
     add_stellar_priors,
     make_extinguished_sed_grid,
@@ -146,12 +146,10 @@ class TestRegressionSuite(unittest.TestCase):
         # download the file live from the website
         savename = tempfile.NamedTemporaryFile(suffix=".csv").name
         infoname = tempfile.NamedTemporaryFile(suffix=".asdf").name
-        (iso_fname, g) = make_iso_table(
+        (iso_fname, g) = make_evoltrack_table(
             "test",
-            iso_fname=savename,
-            logtmin=self.settings.logt[0],
-            logtmax=self.settings.logt[1],
-            dlogt=self.settings.logt[2],
+            et_fname=savename,
+            age_info=[self.settings.logt[0], self.settings.logt[1], self.settings.logt[2]],
             z=self.settings.z,
             info_fname=infoname,
         )

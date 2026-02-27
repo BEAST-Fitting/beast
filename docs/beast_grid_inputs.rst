@@ -1,3 +1,5 @@
+.. _beast_grid_inputs:
+
 #################
 BEAST Grid Inputs
 #################
@@ -9,9 +11,20 @@ Stellar Evolution Models
 ========================
 
 Stellar evolution models provide the BEAST model grid with stellar parameters
-(L, T\ :sub:`eff`, log g) as a function of age, metallicity, and stellar mass.  The
-BEAST is currently implemented to obtain this information from stellar
-isochrone sets.  These isochrones are obtained at run-time via webforms that
+(L, T\ :sub:`eff`, log g) as a function of age, metallicity, and stellar mass.
+The BEAST supports using evolutionary tracks directly or via isochrones.
+
+Evolutionary Tracks
+-------------------
+
+* MIST
+   * The MIST models (Choi+16) are computed using MESA (Paxton+11,13,15). [TBR]
+   * Stored as static FITS files obtained via :ref:`BEAST library files <library-files>`.
+
+Isochrones
+----------
+
+These isochrones are obtained at run-time via web queries to the CMD site that
 yield interpolated data products and stored as CSV files.
 
 Choices:
@@ -51,8 +64,12 @@ Spectral Models
 Stellar atmosphere models provide the BEAST model grid with stellar spectra
 (surface flux as function of wavelength) as a function of T\ :sub:`eff`, log g, and
 metallicity.  The BEAST currently uses theoretical spectral libraries stored
-as static libraries.  Model files store spectra in flux format with units of
-erg/s/cm2/AA.
+as static libraries obtained via :ref:`BEAST library files <library-files>`.
+Model files store spectra in flux format with units of erg/s/cm2/AA.
+
+Multiple libraries can be combined and the order defines the preference at the 
+same T\ :sub:`eff`, log g, and metallicity.  For example: ``osl = stellib.Tlusty() + stellib.Kurucz()``
+means that Tlusty models are preferred over Kurucz models for the same stellar parameters.
 
 Choices:
 
@@ -105,16 +122,19 @@ Choices:
 * Generalized_RvFaLaw (recommended)
    * allows for any choice of the extinction curve model for the A and B components
    * recommended
-      * A: F19 - based on spectroscopy in UV and optical and does a bit better than F99 in the optical
-      * B: G03_SMCBar - best average for the SMC "bumpless" extinction curve
+      * A: G23 - based on spectroscopy from the far-UV to the mid-IR
+      * B: G24_SMCAvg - best average for the SMC "bumpless" extinction curve
       * In beast_settings file:
-        extLaw = extinction.Generalized_RvFALaw(ALaw=extinction.Generalized_DustExt(curve='F19'), BLaw=extinction.Generalized_DustExt(curve='G03_SMCBar'))
+    
+        * ALaw = extinction.Generalized_DustExt(curve='G23')
+        * BLaw = extinction.Generalized_DustExt(curve='G24_SMCAvg')
+        * extLaw = extinction.Generalized_RvFALaw(ALaw=ALaw, BLaw=Blaw)
 
 * `dust_extinction`_ Package Extinction Curves (recommended)
    * ``extinction.Generalized_DustExt()``: Wrapper for any extinction curve
      class available via dust_extinction python package.
    * Select curve class via string parameter: `curve`
-   * Example call, for Fitzpatrick+19: ``extinction.Generalized_DustExt('F19')``
+   * Example call, for Fitzpatrick+19: ``extinction.Generalized_DustExt('G23')``
    * For the most possible models, see `dust_extinction docs <https://dust-extinction.readthedocs.io/en/stable/>`_
 
 * `beast.physicsmodel.dust.extinction_extension` (recommended of sub 912 A extinction needed)
