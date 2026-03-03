@@ -59,19 +59,20 @@ class beast_settings:
                 del input_data[i]
 
         # parse it into a dictionary
+        temp_dict = {}
         beast_params = {}
 
         for i in range(len(input_data)):
-            # execute imports
-            if "import " in input_data[i]:
-                exec(input_data[i])
+            line = input_data[i]
 
-            # extract parameter and value (as strings)
+            # execute imports
+            if "import " in line:
+                exec(line, temp_dict)
+
             else:
-                param = input_data[i].split("=")[0].strip()
-                # exec the string to get parameter values accessible
-                exec(input_data[i])
-                beast_params[param] = eval(param)
+                param = line.split("=")[0].strip()
+                exec(line, temp_dict)
+                beast_params[param] = temp_dict[param]
 
         # turn dictionary into attributes
         for key in beast_params:
