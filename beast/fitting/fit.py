@@ -636,7 +636,7 @@ def Q_all_memory(
     )
     for e, obj in it:
         # calculate the full nD posterior
-        (sed) = obj
+        sed = obj
 
         cur_mask = sed == 0
         # need an alternate way to generate the mask as zeros can be
@@ -645,7 +645,7 @@ def Q_all_memory(
         cur_mask[:] = False
 
         if full_cov_mat:
-            (lnp, chi2) = N_covar_logLikelihood(
+            lnp, chi2 = N_covar_logLikelihood(
                 sed,
                 model_seds_with_bias,
                 ast_q_norm,
@@ -654,7 +654,7 @@ def Q_all_memory(
                 lnp_threshold=abs(threshold),
             )
         else:
-            (lnp, chi2) = N_logLikelihood_NM(
+            lnp, chi2 = N_logLikelihood_NM(
                 sed,
                 model_seds_with_bias,
                 ast_ivar,
@@ -868,29 +868,29 @@ def IAU_names_and_extra_info(obsdata, surveyname="PHAT", extraInfo=False):
     if go_name:
         # generate the IAU names
 
-	coords = ap_SkyCoord(
-	    obsdata.data[ra_str], 
-	    obsdata.data[dec_str], 
-	    unit=ap_units.degree, 
-	    frame="icrs",
-	    )
+        coords = ap_SkyCoord(
+            obsdata.data[ra_str],
+            obsdata.data[dec_str],
+            unit=ap_units.degree,
+            frame="icrs",
+        )
 
-	ra_string = coords.ra.to_string(
-	    unit=ap_units.hourangle, 
-	    sep="", 
-	    precision=4, 
-	    alwayssign=False, 
-	    pad=True,
-	    )
+        ra_string = coords.ra.to_string(
+            unit=ap_units.hourangle,
+            sep="",
+            precision=4,
+            alwayssign=False,
+            pad=True,
+        )
 
-	dec_string = coords.dec.to_string(
-	    sep="", 
-	    precision=3, 
-	    alwayssign=True, 
-	    pad=True,
-	    )
+        dec_string = coords.dec.to_string(
+            sep="",
+            precision=3,
+            alwayssign=True,
+            pad=True,
+        )
 
-	r["Name"] = surveyname + " J" + ra_string + dec_string
+        r["Name"] = surveyname + " J" + ra_string + dec_string
 
         # other useful information
         r["RA"] = obsdata.data[ra_str]
@@ -899,7 +899,7 @@ def IAU_names_and_extra_info(obsdata, surveyname="PHAT", extraInfo=False):
             r["field"] = obsdata.data["field"]
             r["inside_brick"] = obsdata.data["inside_brick"]
             r["inside_chipgap"] = obsdata.data["inside_chipgap"]
-    
+
     else:
         r["Name"] = ["noname" for x in range(len(obsdata))]
 
