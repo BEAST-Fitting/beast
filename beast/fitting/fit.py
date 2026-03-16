@@ -867,34 +867,39 @@ def IAU_names_and_extra_info(obsdata, surveyname="PHAT", extraInfo=False):
 
     if go_name:
         # generate the IAU names
-        _tnames = []
-        for i in range(len(obsdata)):
-            c = ap_SkyCoord(
-                ra=obsdata.data[ra_str][i] * ap_units.degree,
-                dec=obsdata.data[dec_str][i] * ap_units.degree,
-                frame="icrs",
-            )
-            _tnames.append(
-                surveyname
-                + " J"
-                + c.ra.to_string(
-                    unit=ap_units.hourangle,
-                    sep="",
-                    precision=4,
-                    alwayssign=False,
-                    pad=True,
-                )
-                + c.dec.to_string(sep="", precision=3, alwayssign=True, pad=True)
-            )
-            r["Name"] = _tnames
 
-            # other useful information
-            r["RA"] = obsdata.data[ra_str]
-            r["DEC"] = obsdata.data[dec_str]
-            if extraInfo:
-                r["field"] = obsdata.data["field"]
-                r["inside_brick"] = obsdata.data["inside_brick"]
-                r["inside_chipgap"] = obsdata.data["inside_chipgap"]
+	coords = ap_SkyCoord(
+	    obsdata.data[ra_str], 
+	    obsdata.data[dec_str], 
+	    unit=ap_units.degree, 
+	    frame="icrs",
+	    )
+
+	ra_string = coords.ra.to_string(
+	    unit=ap_units.hourangle, 
+	    sep="", 
+	    precision=4, 
+	    alwayssign=False, 
+	    pad=True,
+	    )
+
+	dec_string = coords.dec.to_string(
+	    sep="", 
+	    precision=3, 
+	    alwayssign=True, 
+	    pad=True,
+	    )
+
+	r["Name"] = surveyname + " J" + ra_string + dec_string
+
+        # other useful information
+        r["RA"] = obsdata.data[ra_str]
+        r["DEC"] = obsdata.data[dec_str]
+        if extraInfo:
+            r["field"] = obsdata.data["field"]
+            r["inside_brick"] = obsdata.data["inside_brick"]
+            r["inside_chipgap"] = obsdata.data["inside_chipgap"]
+    
     else:
         r["Name"] = ["noname" for x in range(len(obsdata))]
 
