@@ -5,7 +5,7 @@ import numpy as np
 def rebin_spectrum(wave, flux, resolution, wave_range):
     """
     Rebin spectrum to input resolution over input wavelength range
-    High to lower resolution only
+    High to lower resolution only.
 
     Parameters
     ----------
