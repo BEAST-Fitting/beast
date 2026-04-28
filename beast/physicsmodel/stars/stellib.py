@@ -2013,10 +2013,6 @@ class Tlusty2025(Stellib):
         return np.array(bbox)
 
     @property
-    def logT(self):
-        return self.grid["logT"]
-
-    @property
     def logg(self):
         return self.grid["logg"]
 

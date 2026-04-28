@@ -4,7 +4,6 @@ import numpy as np
 
 from astropy.table import QTable
 from astropy.io import fits
-import astropy.units as u
 from astropy.io import ascii
 
 from helpers import rebin_spectrum
@@ -17,7 +16,7 @@ def decode_params(filename):
     model_params = {}
 
     slashpos = filename.rfind("/")
-    periodpos = filename.rfind(f".spec")
+    periodpos = filename.rfind(".spec")
 
     zpos = filename.find("z", slashpos)
     tpos = filename.find("t", slashpos)
@@ -80,7 +79,7 @@ if __name__ == "__main__":  # pragma: no cover
         if k == 0:
             outspec = np.zeros((len(wave_rebin), len(files) + 1))
             outspec[:, -1] = wave_rebin
-        outspec[:, k] = flux_rebin
+        outspec[:, k] = flux_rebin * 4.0 * np.pi
 
         model_params = decode_params(cfile)
         Z = model_params["Z"] * solar_z

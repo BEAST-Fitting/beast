@@ -35,12 +35,14 @@ def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
     return np.array(b)
 
 
-slib = stellib.Tlusty2025()
-bound = get_stellib_boundaries(slib, dlogT=0.01, dlogg=0.01)
-bbox = np.array(slib.bbox())
-print(bbox[:, 0])
+if __name__ == "__main__":  # pragma: no cover
 
-plt.plot(slib.logT, slib.logg, "ko")
-plt.plot(bound[:, 1], bound[:, 0])
-plt.plot(bbox[:, 0], bbox[:, 1])
-plt.show()
+    slib = stellib.Tlusty2025()
+    bound = get_stellib_boundaries(slib, dlogT=0.01, dlogg=0.01)
+    bbox = np.array(slib.bbox())
+    print(bbox[:, 0])
+
+    plt.plot(slib.logT, slib.logg, "ko")
+    plt.plot(bound[:, 1], bound[:, 0])
+    plt.plot(bbox[:, 0], bbox[:, 1])
+    plt.show()
