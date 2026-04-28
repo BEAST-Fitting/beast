@@ -11,7 +11,12 @@ from helpers import rebin_spectrum
 
 def decode_params(filename):
     """
-    Decode the tlusty filenames for the model parameters
+    Decode the tlusty filenames for the model parameters.
+
+    Parameters
+    ----------
+    filename : str
+        name of file to decode
     """
     model_params = {}
 

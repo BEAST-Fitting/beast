@@ -5,19 +5,25 @@ from beast.physicsmodel.stars import stellib
 
 
 def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
-    """Returns the closed boundary polygon around the stellar library with
-    given margins
+    """
+    Returns the closed boundary polygon around the stellar library with
+    given margins.
 
-    INPUTS:
-        s   Stellib     Stellar library object
+    Parameters
+    ----------
+    s :  Stellib
+        Stellar library object
+    dlogT :  float
+        margin in logT
+    dlogg  : float
+        margin in logg
+    closed : bool
+        if set, close the polygon
 
-    KEYWORDS:
-        dlogT   float       margin in logT
-        dlogg   float       margin in logg
-        closed  bool        if set, close the polygon
-
-    OUTPUTS:
-        b   ndarray[float, ndim=2]  (closed) boundary points: [logg, Teff]
+    Returns
+    ------
+    b : ndarray[float, ndim=2]
+        (closed) boundary points: [logg, Teff]
     """
     #        use "points_inside_poly" to test wether a point is inside the limits
     #        >>> data = np.array([iso.data['logg'], iso.data['logT']]).T
