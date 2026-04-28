@@ -44,9 +44,8 @@ if __name__ == "__main__":  # pragma: no cover
     solar_z = 0.02
 
     # get all vtrub=2 models
-    path = "/home/kgordon/Python/extstar_data/Models/Tlusty_2023/"
+    path = "/home/kgordon/Python/extstar_data/Models/Tlusty_2025/"
     files = glob.glob(f"{path}/*v2.spec.gz")
-    files = files[0:2]
     n_files = len(files)
 
     # fmt: off
@@ -57,6 +56,7 @@ if __name__ == "__main__":  # pragma: no cover
     # fmt: on
 
     for k, cfile in enumerate(files):
+        print(cfile)
 
         # read in the model spectrum
         # wave units are angstrom
