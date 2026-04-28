@@ -1943,3 +1943,89 @@ class Aringer(Stellib):
     @property
     def logZ(self):
         return self.grid["logz"]
+
+
+class Tlusty2025(Stellib):
+    """
+    Tlusty 2025 O and B stellar atmospheres.  Updated in 2025 with better line lists
+    and extended IR wavelength coverage
+
+    * NLTE
+    * Plane Parallel
+    * line blanketing
+
+    References
+    ----------
+    Hubeny 1988 for initial reference
+    Lanz, T., & Hubeny, I. (2003) for NLTE developments
+    Hubeny, Bohlin, Gordon, & Fitzpatrick (2025) for updated models
+
+    files are available at: https://stsci.box.com/v/tlustyOB2025
+    """
+
+    def __init__(self, filename=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = "Tlusty2025"
+        if filename is None:
+            self.source = config["tlusty2025"]
+        else:
+            self.source = filename
+        self._load_()
+
+    def _load_(self):
+        g = SpectralGrid(self.source, backend="memory")
+        self.wavelength = g.lamb
+        self.grid = g.grid
+        self.header["NAME"] = "tlusty2025"
+        self.spectra = g.seds
+
+    def bbox(self, dlogT=0.05, dlogg=0.25):
+        """ Boundary of Tlusty library
+
+        Parameters
+        ----------
+        dlogT: float
+            log-temperature tolerance before extrapolation limit
+
+        dlogg: float
+            log-g tolerance before extrapolation limit
+
+        Returns
+        -------
+        bbox: ndarray
+            (logT, logg) edges of the bounding polygon
+        """
+        bbox = [
+            (4.176 - dlogT, 4.749 + dlogg),
+            (4.176 - dlogT, 1.750 - dlogg),
+            (4.176 + dlogT, 1.750 - dlogg),
+            (4.255 + dlogT, 2.000 - dlogg),
+            (4.447 + dlogT, 2.750 - dlogg),
+            (4.478 + dlogT, 3.000 - dlogg),
+            (4.544 + dlogT, 3.250 - dlogg),
+            (4.740 + dlogT, 4.000 - dlogg),
+            (4.740 + dlogT, 4.749 + dlogg),
+            (4.176 - dlogT, 4.749 + dlogg),
+        ]
+
+        return np.array(bbox)
+
+    @property
+    def logT(self):
+        return self.grid["logT"]
+
+    @property
+    def logg(self):
+        return self.grid["logg"]
+
+    @property
+    def Teff(self):
+        return self.grid["Teff"]
+
+    @property
+    def Z(self):
+        return self.grid["Z"]
+
+    @property
+    def logZ(self):
+        return np.log10(self.grid["Z"])
