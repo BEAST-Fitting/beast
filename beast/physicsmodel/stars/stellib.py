@@ -34,6 +34,7 @@ config = {
     "btsettl_medres": __ROOT__ + "bt-settl.medres.grid.fits",
     "munari": __ROOT__ + "atlas9-munari.hires.grid.fits",
     "aringer": __ROOT__ + "Aringer.AGB.grid.fits",
+    "tlusty2025": __ROOT__ + "tlusty2025.grid.fits",
 }
 
 __all__ = [
@@ -46,6 +47,7 @@ __all__ = [
     "Elodie",
     "BaSeL",
     "Aringer",
+    "Tlusty2025"
 ]
 
 
@@ -2021,6 +2023,10 @@ class Tlusty2025(Stellib):
     @property
     def Teff(self):
         return self.grid["Teff"]
+
+    @property
+    def logT(self):
+        return np.log10(self.grid["Teff"])
 
     @property
     def Z(self):
