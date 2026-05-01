@@ -70,3 +70,40 @@ def rebin_spectrum(wave, flux, resolution, wave_range):
             full_npts[nanindxs] = 0
 
     return (full_wave, full_flux, full_npts)
+
+
+def get_stellib_boundaries(s, dlogT=0.1, dlogg=0.3, closed=True):
+    """
+    Returns the closed boundary polygon around the stellar library with
+    given margins.
+
+    Parameters
+    ----------
+    s :  Stellib
+        Stellar library object
+    dlogT :  float
+        margin in logT
+    dlogg  : float
+        margin in logg
+    closed : bool
+        if set, close the polygon
+
+    Returns
+    -------
+    b : ndarray[float, ndim=2]
+        (closed) boundary points: [logg, Teff]
+
+    """
+    leftb = [(k, np.max(s.logT[s.logg == k]) + dlogT) for k in np.unique(s.logg)]
+    leftb += [(leftb[-1][0] + dlogg, leftb[-1][1])]
+    leftb = [(leftb[0][0] - dlogg, leftb[0][1])] + leftb
+    rightb = [(k, np.min(s.logT[s.logg == k]) - dlogT) for k in np.unique(s.logg)[::-1]]
+    rightb += [(rightb[-1][0] - dlogg, rightb[-1][1])]
+    rightb = [(rightb[0][0] + dlogg, rightb[0][1])] + rightb
+    b = leftb + rightb
+    if closed:
+        b += [b[0]]
+    b = np.array(b)
+    outb = [b[:, 1], b[:, 0]]
+
+    return np.transpose(np.array(outb))

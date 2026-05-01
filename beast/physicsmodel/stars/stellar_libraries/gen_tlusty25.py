@@ -72,7 +72,7 @@ if __name__ == "__main__":  # pragma: no cover
         # convert the type to float
         mspec["SFlux"] = mspec["SFlux"].astype(float)
 
-        # now extract the wave and flux colums
+        # now extract the wave and flux columns
         mwave = mspec["Wave"]
         mflux = mspec["SFlux"]
 
