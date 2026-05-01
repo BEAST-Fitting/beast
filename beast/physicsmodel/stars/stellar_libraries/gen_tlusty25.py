@@ -42,7 +42,7 @@ def decode_params(filename):
 
 if __name__ == "__main__":  # pragma: no cover
 
-    solar_z = 0.02
+    solar_z = 0.017  # from Grevasse & Sauval (1998) - TBC
 
     # get all vtrub=2 models
     path = "/home/kgordon/Python/extstar_data/Models/Tlusty_2025/"

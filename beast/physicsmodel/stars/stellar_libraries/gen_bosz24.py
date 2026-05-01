@@ -44,7 +44,8 @@ def decode_params(filename):
 
 if __name__ == "__main__":  # pragma: no cover
 
-    solar_z = 0.02
+    # from Asplund et al. (2005)/Grevasse et al. (2007) as referenced in BOSZ2024 paper
+    solar_z = 0.012
 
     # get all vtrub=2 models
     path = "/home/kgordon/Python/extstar_data/Models/BOSZ2024/r5000/r5000/"
@@ -73,8 +74,14 @@ if __name__ == "__main__":  # pragma: no cover
 
         if usemod:
             Z = (10 ** model_params["Z"]) * solar_z
-            row = (Z, model_params["Teff"], model_params["logg"], model_params["vturb"], np.log10(model_params["Teff"]),
-                np.log10(Z))
+            row = (
+                Z,
+                model_params["Teff"],
+                model_params["logg"],
+                model_params["vturb"],
+                np.log10(model_params["Teff"]),
+                np.log10(Z),
+            )
             outtab.add_row(row)
             print(row)
 
