@@ -7,6 +7,7 @@ sources.
 The interpolation is implemented from the pegase.2 fortran converted algorithm.
 (this may not be pythonic though)
 """
+
 import numpy as np
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
@@ -53,21 +54,21 @@ __all__ = [
 
 
 def isNestedInstance(obj, cl):
-    """ Test for sub-classes types
-        I could not find a universal test
+    """Test for sub-classes types
+    I could not find a universal test
 
-        keywords
-        --------
-        obj: object instance
-            object to test
+    keywords
+    --------
+    obj: object instance
+        object to test
 
-        cl: Class
-            top level class to test
+    cl: Class
+        top level class to test
 
-        returns
-        -------
-        r: bool
-            True if obj is indeed an instance or subclass instance of cl
+    returns
+    -------
+    r: bool
+        True if obj is indeed an instance or subclass instance of cl
     """
     tree = []
     for k in cl.__subclasses__():
@@ -105,7 +106,7 @@ def __interpMany__(
     pool=None,
     nthreads=__NTHREADS__,
 ):
-    """ run interp on a list of inputs and returns reduced results
+    """run interp on a list of inputs and returns reduced results
 
     Interpolation of the T,g grid at Z0 metallicity
 
@@ -198,7 +199,7 @@ def __interpMany__(
 
 
 def interp(T0, g0, Z0, L0, T, g, Z, dT_max=0.1, eps=1e-6, weight=1.0):
-    """ Interpolation of the T,g grid
+    """Interpolation of the T,g grid
 
     Interpolate on the grid and returns star indices and
     associated weights, and Z.
@@ -285,14 +286,14 @@ def interp(T0, g0, Z0, L0, T, g, Z, dT_max=0.1, eps=1e-6, weight=1.0):
                 weights[:8] *= 0.5
 
     ind = np.where(weights > 0)
-    return index[ind].astype(int), 10 ** L0 * weight * weights[ind]
+    return index[ind].astype(int), 10**L0 * weight * weights[ind]
 
 
 class Stellib(object):
-    """ Basic stellar library class """
+    """Basic stellar library class"""
 
     def __init__(self, *args, **kargs):
-        """ Contructor """
+        """Contructor"""
         self.header = {}
 
     def _load_(self):
@@ -300,11 +301,11 @@ class Stellib(object):
 
     @property
     def nbytes(self):
-        """ return the number of bytes of the object """
+        """return the number of bytes of the object"""
         return nbytes(self)
 
     def interp(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6):
-        """ Interpolation of the T,g grid
+        """Interpolation of the T,g grid
 
         Interpolate on the grid and returns star indices and
         associated weights, and Z.
@@ -360,7 +361,7 @@ class Stellib(object):
         pool=None,
         nthreads=__NTHREADS__,
     ):
-        """ run interp on a list of inputs and returns reduced results
+        """run interp on a list of inputs and returns reduced results
 
         Interpolation of the T,g grid at Z0 metallicity
 
@@ -457,7 +458,7 @@ class Stellib(object):
         return p.contains_points(xypoints)
 
     def get_radius(self, logl, logt):
-        r""" Returns the radius of a star given its luminosity and temperature
+        r"""Returns the radius of a star given its luminosity and temperature
 
         Assuming a black body, it comes:
                 R ^ 2 = L / ( 4 \pi \sigma T ^ 4 ),
@@ -488,7 +489,7 @@ class Stellib(object):
         )
 
     def get_boundaries(self, dlogT=0.1, dlogg=0.3, **kwargs):
-        """ Returns the closed boundary polygon around the stellar library with
+        """Returns the closed boundary polygon around the stellar library with
         given margins
 
         Parameters
@@ -543,7 +544,7 @@ class Stellib(object):
         return self._bound[0]
 
     def genQ(self, qname, r, **kwargs):
-        """ Generate a composite value from a previously calculated
+        """Generate a composite value from a previously calculated
             interpolation
             Works on 1 desired star or a population of stars
 
@@ -563,7 +564,7 @@ class Stellib(object):
         return (self.grid[qname][r[:, 0].astype(int)] * r[:, 1]).sum()
 
     def genSpectrum(self, T0, g0=None, Z0=None, weights=None, **kwargs):
-        """ Generate a composite sprectrum
+        """Generate a composite sprectrum
         Does the interpolation or uses a previously calculated
         interpolation
         Works on 1 desired star or a population of stars
@@ -797,7 +798,7 @@ class Stellib(object):
 
 
 class CompositeStellib(Stellib):
-    """ Generates an object from the union of multiple individual libraries """
+    """Generates an object from the union of multiple individual libraries"""
 
     def __init__(self, osllist, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -819,8 +820,8 @@ class CompositeStellib(Stellib):
 
     @property
     def wavelength(self):
-        """ return a common wavelength sampling to all libraries. This can be
-        used to reinterpolate any spectrum onto a common definition """
+        """return a common wavelength sampling to all libraries. This can be
+        used to reinterpolate any spectrum onto a common definition"""
 
         lambs = np.unique(np.concatenate([osl.wavelength[:] for osl in self._olist]))
         return lambs
@@ -919,7 +920,7 @@ class CompositeStellib(Stellib):
         )
 
     def get_boundaries(self, dlogT=0.1, dlogg=0.3, **kwargs):
-        """ Returns the closed boundary polygon around the stellar library with
+        """Returns the closed boundary polygon around the stellar library with
         given margins
 
         Parameters
@@ -957,7 +958,7 @@ class CompositeStellib(Stellib):
         return self._bound[0]
 
     def interp(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6, bounds={}):
-        """ Interpolation of the T,g grid
+        """Interpolation of the T,g grid
 
         Interpolate on the grid and returns star indices and
         associated weights, and Z.
@@ -1026,7 +1027,7 @@ class CompositeStellib(Stellib):
         pool=None,
         nthreads=__NTHREADS__,
     ):
-        """ run interp on a list of inputs and returns reduced results
+        """run interp on a list of inputs and returns reduced results
 
         Interpolation of the T,g grid at Z0 metallicity
 
@@ -1108,7 +1109,7 @@ class CompositeStellib(Stellib):
         return g
 
     def genQ(self, qname, r, **kwargs):
-        """ Generate a composite value from a previously calculated
+        """Generate a composite value from a previously calculated
             interpolation
             Works on 1 desired star or a population of stars
 
@@ -1133,7 +1134,7 @@ class CompositeStellib(Stellib):
         return vals
 
     def genSpectrum(self, T0, g0=None, Z0=None, weights=None, **kwargs):
-        """ Generate a composite sprectrum
+        """Generate a composite sprectrum
             Does the interpolation or uses a previously calculated
             interpolation
             Works on 1 desired star or a population of stars
@@ -1280,7 +1281,7 @@ class CompositeStellib(Stellib):
 
 
 class Elodie(Stellib):
-    """ Elodie 3.1 stellar library derived class
+    """Elodie 3.1 stellar library derived class
 
     This library matches BaSeL 2.2 grid definition
 
@@ -1303,7 +1304,7 @@ class Elodie(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Elodie library
+        """Boundary of Elodie library
 
         Parameters
         ----------
@@ -1385,7 +1386,7 @@ class Elodie(Stellib):
 
 
 class BaSeL(Stellib):
-    """ BaSeL 2.2 (This library is used in Pegase.2)
+    """BaSeL 2.2 (This library is used in Pegase.2)
         This library is used in Pegase.2
 
     The BaSeL stellar spectral energy distribution (SED) libraries are
@@ -1414,7 +1415,7 @@ class BaSeL(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Basel 2.2 library
+        """Boundary of Basel 2.2 library
 
         Parameters
         ----------
@@ -1517,7 +1518,9 @@ class Kurucz(Stellib):
             self.source = filename
         self._load_()
 
-    def _load_(self,):
+    def _load_(
+        self,
+    ):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
@@ -1525,7 +1528,7 @@ class Kurucz(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Kurucz 2004 library
+        """Boundary of Kurucz 2004 library
 
         Parameters
         ----------
@@ -1623,7 +1626,7 @@ class Tlusty(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Tlusty library
+        """Boundary of Tlusty library
 
         Parameters
         ----------
@@ -1711,7 +1714,7 @@ class BTSettl(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of BT-Settl library
+        """Boundary of BT-Settl library
 
         Parameters
         ----------
@@ -1800,7 +1803,7 @@ class Munari(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Munari library
+        """Boundary of Munari library
 
         Parameters
         ----------
@@ -1886,7 +1889,7 @@ class Aringer(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Aringer library for C+M+K giants
+        """Boundary of Aringer library for C+M+K giants
 
         Parameters
         ----------
@@ -1948,7 +1951,6 @@ class Aringer(Stellib):
         return self.grid["logz"]
 
 
-
 class BOSZ2024(Stellib):
     """
     BOSZ 2024 LTE stellar atmospheres for A stars and cooler.
@@ -1982,7 +1984,7 @@ class BOSZ2024(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Tlusty library
+        """Boundary of Tlusty library
 
         Parameters
         ----------
@@ -2074,7 +2076,7 @@ class Tlusty2025(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Tlusty library
+        """Boundary of Tlusty library
 
         Parameters
         ----------
