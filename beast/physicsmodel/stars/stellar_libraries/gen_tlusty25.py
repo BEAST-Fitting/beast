@@ -17,6 +17,7 @@ def decode_params(filename):
     ----------
     filename : str
         name of file to decode
+
     """
     model_params = {}
 
