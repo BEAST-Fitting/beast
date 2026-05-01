@@ -49,7 +49,6 @@ if __name__ == "__main__":  # pragma: no cover
     # get all vtrub=2 models
     path = "/home/kgordon/Python/extstar_data/Models/BOSZ2024/r5000/r5000/"
     files = glob.glob(f"{path}/*/*a+0.00_c+0.00_v2_r5000_resam.txt.gz")
-    files = files[0:3]
     n_files = len(files)
 
     # fmt: off
