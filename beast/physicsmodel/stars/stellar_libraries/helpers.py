@@ -25,6 +25,7 @@ def rebin_spectrum(wave, flux, resolution, wave_range):
     ------
     wave, flux, npts : tuple of vectors
         the model wavelength, flux, and npts at the requested wavelength
+
     """
     npts = int(
         np.log10(wave_range[1] / wave_range[0])
