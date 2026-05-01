@@ -70,9 +70,7 @@ if __name__ == "__main__":  # pragma: no cover
         if ("ap" in cfile) and (model_params["Teff"] <= 8000.0):
             usemod = False
             print("skipped")
-            exit()
 
-        usemod = False
         if usemod:
             Z = (10 ** model_params["Z"]) * solar_z
             row = (Z, model_params["Teff"], model_params["logg"], model_params["vturb"], np.log10(model_params["Teff"]),
