@@ -22,20 +22,22 @@ def decode_params(filename):
     model_params = {}
 
     slashpos = filename.rfind("/")
-    periodpos = filename.rfind(".spec")
 
-    zpos = filename.find("z", slashpos)
-    tpos = filename.find("t", slashpos)
-    gpos = filename.find("g", slashpos)
-    vpos = filename.find("v", slashpos)
+    zpos = filename.find("_m", slashpos)
+    tpos = filename.find("_t", slashpos)
+    gpos = filename.find("_g", slashpos)
+    vpos = filename.find("_v", slashpos)
 
-    if tpos - zpos > 4:
-        model_params["Z"] = float(filename[zpos + 1 : tpos]) * 0.001
-    else:
-        model_params["Z"] = float(filename[zpos + 1 : tpos]) * 0.01
-    model_params["Teff"] = float(filename[tpos + 1 : gpos])
-    model_params["logg"] = float(filename[gpos + 1 : vpos]) * 0.01
-    model_params["vturb"] = float(filename[vpos + 1 : periodpos])
+    # print(filename[zpos + 2 : zpos + 7])
+    # print(filename[tpos + 2 : gpos])
+    # print(filename[gpos + 2 : gpos + 6])
+    # print(filename[vpos + 2 : vpos + 3])
+    # exit()
+
+    model_params["Z"] = float(filename[zpos + 2 : zpos + 7])
+    model_params["Teff"] = float(filename[tpos + 2 : gpos])
+    model_params["logg"] = float(filename[gpos + 2 : gpos + 6])
+    model_params["vturb"] = float(filename[vpos + 2 : vpos + 3])
 
     return model_params
 
@@ -45,8 +47,9 @@ if __name__ == "__main__":  # pragma: no cover
     solar_z = 0.02
 
     # get all vtrub=2 models
-    path = "/home/kgordon/Python/extstar_data/Models/Tlusty_2025/"
-    files = glob.glob(f"{path}/*v2.spec.gz")
+    path = "/home/kgordon/Python/extstar_data/Models/BOSZ2024/r5000/r5000/"
+    files = glob.glob(f"{path}/*/*a+0.00_c+0.00_v2_r5000_resam.txt.gz")
+    files = files[0:3]
     n_files = len(files)
 
     # fmt: off
@@ -59,15 +62,30 @@ if __name__ == "__main__":  # pragma: no cover
     for k, cfile in enumerate(files):
         print(cfile)
 
+        # get model parameters
+        model_params = decode_params(cfile)
+        Z = (10 ** model_params["Z"]) * solar_z
+        row = (Z, model_params["Teff"], model_params["logg"], model_params["vturb"], np.log10(model_params["Teff"]),
+               np.log10(Z))
+        outtab.add_row(row)
+
         # read in the model spectrum
         # wave units are angstrom
         # flux units are H, F = 4*pi*H in ergs/(cm^2 s A)
+        # wavelength first
+        wave_filename = f"{path}/bosz2024_wave_r5000.txt"
+        mspec_lte_wave = ascii.read(
+            wave_filename,
+            format="no_header",
+            names=["Wave"],
+        )
+
         mspec = ascii.read(
             cfile,
             format="no_header",
-            fast_reader={"exponent_style": "D"},
-            names=["Wave", "SFlux"],
+            names=["SFlux", "SCont"],
         )
+        mspec["Wave"] = mspec_lte_wave["Wave"]
 
         # convert the type to float
         mspec["SFlux"] = mspec["SFlux"].astype(float)
@@ -87,15 +105,9 @@ if __name__ == "__main__":  # pragma: no cover
             outspec[-1, :] = wave_rebin
         outspec[k, :] = flux_rebin * 4.0 * np.pi
 
-        model_params = decode_params(cfile)
-        Z = model_params["Z"] * solar_z
-        row = (Z, model_params["Teff"], model_params["logg"], model_params["vturb"], np.log10(model_params["Teff"]),
-               np.log10(Z))
-        outtab.add_row(row)
-
     # output the stellar library in the beast format
     spec_hdu = fits.PrimaryHDU(data=outspec)
     table_hdu = fits.BinTableHDU(data=outtab)
-    table_hdu.name = "TLUSTY"
+    table_hdu.name = "BOSZ"
     hdul = fits.HDUList([spec_hdu, table_hdu])
-    hdul.writeto("tlusty2025.grid.fits", overwrite=True)
+    hdul.writeto("bosz2024.grid.fits", overwrite=True)

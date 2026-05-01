@@ -16,7 +16,6 @@ from matplotlib.path import Path
 from astropy.table import Table
 
 from beast.physicsmodel.grid import SpectralGrid
-# from beast.external.eztables import Table
 from beast.config import __ROOT__, __NTHREADS__
 from beast.physicsmodel.stars.include import __interp__
 from beast.tools.helpers import nbytes
@@ -34,6 +33,7 @@ config = {
     "btsettl_medres": __ROOT__ + "bt-settl.medres.grid.fits",
     "munari": __ROOT__ + "atlas9-munari.hires.grid.fits",
     "aringer": __ROOT__ + "Aringer.AGB.grid.fits",
+    "bosz2024": __ROOT__ + "BOSZ2024.grid.fits",
     "tlusty2025": __ROOT__ + "tlusty2025.grid.fits",
 }
 
@@ -47,7 +47,8 @@ __all__ = [
     "Elodie",
     "BaSeL",
     "Aringer",
-    "Tlusty2025"
+    "BOSZ2024",
+    "Tlusty2025",
 ]
 
 
@@ -1945,6 +1946,97 @@ class Aringer(Stellib):
     @property
     def logZ(self):
         return self.grid["logz"]
+
+
+
+class BOSZ2024(Stellib):
+    """
+    BOSZ 2024 LTE stellar atmospheres for A stars and cooler.
+    Updated in 2024 with better line lists and extended IR wavelength coverage
+
+    * LTE
+    * Plane Parallel
+
+    References
+    ----------
+    Bohlin, Meszaros, et al. 2017, AJ, 153, 234
+    Meszaros, Bohlin et al. 2024, A&A, 688, 197
+
+    files are available at: https://archive.stsci.edu/hlsp/bosz
+    """
+
+    def __init__(self, filename=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = "Tlusty2025"
+        if filename is None:
+            self.source = config["tlusty2025"]
+        else:
+            self.source = filename
+        self._load_()
+
+    def _load_(self):
+        g = SpectralGrid(self.source, backend="memory")
+        self.wavelength = g.lamb
+        self.grid = g.grid
+        self.header["NAME"] = "tlusty2025"
+        self.spectra = g.seds
+
+    def bbox(self, dlogT=0.05, dlogg=0.25):
+        """ Boundary of Tlusty library
+
+        Parameters
+        ----------
+        dlogT: float
+            log-temperature tolerance before extrapolation limit
+
+        dlogg: float
+            log-g tolerance before extrapolation limit
+
+        Returns
+        -------
+        bbox: ndarray
+            (logT, logg) edges of the bounding polygon
+        """
+        bbox = [
+            (3.54406 - dlogT, 5.000 + dlogg),
+            (3.55403 - dlogT, 0.000 - dlogg),
+            (3.778, 0.000 - dlogg),
+            (3.778 + dlogT, 0.000),
+            (3.875 + dlogT, 0.500),
+            (3.929 + dlogT, 1.000),
+            (3.954 + dlogT, 1.500),
+            (4.146, 2.000 - dlogg),
+            (4.146 + dlogT, 2.000),
+            (4.279 + dlogT, 2.500),
+            (4.415 + dlogT, 3.000),
+            (4.491 + dlogT, 3.500),
+            (4.591 + dlogT, 4.000),
+            (4.689 + dlogT, 4.500),
+            (4.699 + dlogT, 5.000 + dlogg),
+            (3.544 - dlogT, 5.000 + dlogg),
+        ]
+
+        return np.array(bbox)
+
+    @property
+    def logg(self):
+        return self.grid["logg"]
+
+    @property
+    def Teff(self):
+        return self.grid["Teff"]
+
+    @property
+    def logT(self):
+        return np.log10(self.grid["Teff"])
+
+    @property
+    def Z(self):
+        return self.grid["Z"]
+
+    @property
+    def logZ(self):
+        return np.log10(self.grid["Z"])
 
 
 class Tlusty2025(Stellib):
