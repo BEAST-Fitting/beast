@@ -50,8 +50,8 @@ if __name__ == "__main__":  # pragma: no cover
 
     # fmt: off
     outtab = QTable(
-        names=["Z", "Teff", "logg", "vturb"],
-        dtype=["f", "f", "f", "f"]
+        names=["Z", "Teff", "logg", "vturb", "logT", "logz"],
+        dtype=["f", "f", "f", "f", "f", "f"]
     )
     # fmt: on
 
@@ -82,13 +82,14 @@ if __name__ == "__main__":  # pragma: no cover
         )
 
         if k == 0:
-            outspec = np.zeros((len(wave_rebin), len(files) + 1))
-            outspec[:, -1] = wave_rebin
-        outspec[:, k] = flux_rebin * 4.0 * np.pi
+            outspec = np.zeros((len(files) + 1, len(wave_rebin)))
+            outspec[-1, :] = wave_rebin
+        outspec[k, :] = flux_rebin * 4.0 * np.pi
 
         model_params = decode_params(cfile)
         Z = model_params["Z"] * solar_z
-        row = (Z, model_params["Teff"], model_params["logg"], model_params["vturb"])
+        row = (Z, model_params["Teff"], model_params["logg"], model_params["vturb"], np.log10(model_params["Teff"]),
+               np.log10(Z))
         outtab.add_row(row)
 
     # output the stellar library in the beast format

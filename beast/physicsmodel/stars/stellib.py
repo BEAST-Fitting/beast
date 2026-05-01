@@ -821,7 +821,7 @@ class CompositeStellib(Stellib):
         """ return a common wavelength sampling to all libraries. This can be
         used to reinterpolate any spectrum onto a common definition """
 
-        lambs = np.unique(np.asarray([osl.wavelength[:] for osl in self._olist]))
+        lambs = np.unique(np.concatenate([osl.wavelength[:] for osl in self._olist]))
         return lambs
 
     @property
