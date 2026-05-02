@@ -122,8 +122,8 @@ if __name__ == "__main__":  # pragma: no cover
             outspec[k, :] = flux_rebin * 4.0 * np.pi
 
     # output the stellar library in the beast format
-    # spec_hdu = fits.PrimaryHDU(data=outspec)
-    # table_hdu = fits.BinTableHDU(data=outtab)
-    # table_hdu.name = "BOSZ"
-    # hdul = fits.HDUList([spec_hdu, table_hdu])
-    # hdul.writeto("bosz2024.grid.fits", overwrite=True)
+    spec_hdu = fits.PrimaryHDU(data=outspec)
+    table_hdu = fits.BinTableHDU(data=outtab)
+    table_hdu.name = "BOSZ"
+    hdul = fits.HDUList([spec_hdu, table_hdu])
+    hdul.writeto("bosz2024.grid.fits", overwrite=True)
