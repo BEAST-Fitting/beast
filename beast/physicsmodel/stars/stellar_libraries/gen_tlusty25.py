@@ -59,38 +59,40 @@ if __name__ == "__main__":  # pragma: no cover
     for k, cfile in enumerate(files):
         print(cfile)
 
-        # read in the model spectrum
-        # wave units are angstrom
-        # flux units are H, F = 4*pi*H in ergs/(cm^2 s A)
-        mspec = ascii.read(
-            cfile,
-            format="no_header",
-            fast_reader={"exponent_style": "D"},
-            names=["Wave", "SFlux"],
-        )
+        # # read in the model spectrum
+        # # wave units are angstrom
+        # # flux units are H, F = 4*pi*H in ergs/(cm^2 s A)
+        # mspec = ascii.read(
+        #     cfile,
+        #     format="no_header",
+        #     fast_reader={"exponent_style": "D"},
+        #     names=["Wave", "SFlux"],
+        # )
 
-        # convert the type to float
-        mspec["SFlux"] = mspec["SFlux"].astype(float)
+        # # convert the type to float
+        # mspec["SFlux"] = mspec["SFlux"].astype(float)
 
-        # now extract the wave and flux columns
-        mwave = mspec["Wave"]
-        mflux = mspec["SFlux"]
+        # # now extract the wave and flux columns
+        # mwave = mspec["Wave"]
+        # mflux = mspec["SFlux"]
 
-        # rebin to R=4000 for speed, common res and wave range with BOSZ LTE models
-        rbres = 4000.0
-        wave_rebin, flux_rebin, npts_rebin = rebin_spectrum(
-            mwave.value, mflux.value, rbres, [500.0, 320000.0]
-        )
+        # # rebin to R=4000 for speed, common res and wave range with BOSZ LTE models
+        # rbres = 2000.0
+        # wave_rebin, flux_rebin, npts_rebin = rebin_spectrum(
+        #     mwave.value, mflux.value, rbres, [500.0, 320000.0]
+        # )
 
-        if k == 0:
-            outspec = np.zeros((len(files) + 1, len(wave_rebin)))
-            outspec[-1, :] = wave_rebin
-        outspec[k, :] = flux_rebin * 4.0 * np.pi
+        # if k == 0:
+        #     outspec = np.zeros((len(files) + 1, len(wave_rebin)))
+        #     outspec[-1, :] = wave_rebin
+        # outspec[k, :] = flux_rebin * 4.0 * np.pi
 
         model_params = decode_params(cfile)
         Z = model_params["Z"] * solar_z
-        row = (Z, model_params["Teff"], model_params["logg"], model_params["vturb"], np.log10(model_params["Teff"]),
-               np.log10(Z))
+        row = (Z, model_params["Teff"], model_params["logg"], model_params["vturb"],
+               np.log10(model_params["Teff"]),
+               model_params["Z"])
+        print(row)
         outtab.add_row(row)
 
     # output the stellar library in the beast format
