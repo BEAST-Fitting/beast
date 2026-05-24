@@ -80,7 +80,7 @@ if __name__ == "__main__":  # pragma: no cover
                 model_params["logg"],
                 model_params["vturb"],
                 np.log10(model_params["Teff"]),
-                np.log10(Z),
+                model_params["Z"],
             )
             outtab.add_row(row)
             print(row)
@@ -111,7 +111,7 @@ if __name__ == "__main__":  # pragma: no cover
             mflux = mspec["SFlux"]
 
             # rebin to R=4000 for speed, common res and wave range with BOSZ LTE models
-            rbres = 4000.0
+            rbres = 2000.0
             wave_rebin, flux_rebin, npts_rebin = rebin_spectrum(
                 mwave.value, mflux.value, rbres, [500.0, 320000.0]
             )

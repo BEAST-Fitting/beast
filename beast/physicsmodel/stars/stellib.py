@@ -34,7 +34,7 @@ config = {
     "btsettl_medres": __ROOT__ + "bt-settl.medres.grid.fits",
     "munari": __ROOT__ + "atlas9-munari.hires.grid.fits",
     "aringer": __ROOT__ + "Aringer.AGB.grid.fits",
-    "bosz2024": __ROOT__ + "BOSZ2024.grid.fits",
+    "bosz2024": __ROOT__ + "bosz2024.grid.fits",
     "tlusty2025": __ROOT__ + "tlusty2025.grid.fits",
 }
 
@@ -702,7 +702,15 @@ class Stellib(object):
         ):
             if bound_cond[mk]:
                 s = np.array(self.interp(rT, rg, rZ, 0.0)).T
+                # print("logT, logg, Z")
+                # print(rT, rg, rZ)
+                # print(s)
+                # print("logT", self.grid["logT"][s[:, 0].astype(int)].data)
+                # print("logg", self.grid["logg"][s[:, 0].astype(int)].data)
+                # print("Z", self.grid["Z"][s[:, 0].astype(int)].data)
                 specs[mk, :] = self.genSpectrum(s) * weights[mk]
+                # print(specs[mk, :])
+                # exit()
 
         # Step 4: filter points without spectrum
         # ======================================
@@ -1969,9 +1977,9 @@ class BOSZ2024(Stellib):
 
     def __init__(self, filename=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "Tlusty2025"
+        self.name = "BOSZ2024"
         if filename is None:
-            self.source = config["tlusty2025"]
+            self.source = config["bosz2024"]
         else:
             self.source = filename
         self._load_()
@@ -1999,23 +2007,21 @@ class BOSZ2024(Stellib):
         bbox: ndarray
             (logT, logg) edges of the bounding polygon
         """
+
         bbox = [
-            (3.54406 - dlogT, 5.000 + dlogg),
-            (3.55403 - dlogT, 0.000 - dlogg),
-            (3.778, 0.000 - dlogg),
-            (3.778 + dlogT, 0.000),
-            (3.875 + dlogT, 0.500),
-            (3.929 + dlogT, 1.000),
-            (3.954 + dlogT, 1.500),
-            (4.146, 2.000 - dlogg),
-            (4.146 + dlogT, 2.000),
-            (4.279 + dlogT, 2.500),
-            (4.415 + dlogT, 3.000),
-            (4.491 + dlogT, 3.500),
-            (4.591 + dlogT, 4.000),
-            (4.689 + dlogT, 4.500),
-            (4.699 + dlogT, 5.000 + dlogg),
-            (3.544 - dlogT, 5.000 + dlogg),
+            (3.447 - dlogT, 5.500 + dlogg),
+            (3.447 - dlogT, -0.51 - dlogg),
+            (3.677 + dlogT, -0.51 - dlogg),
+            (3.740 + dlogT, 0.000 - dlogg),
+            (3.760 + dlogT, 0.500 - dlogg),
+            (3.845 + dlogT, 1.000 - dlogg),
+            (3.845 + dlogT, 1.500 - dlogg),
+            (4.079 + dlogT, 2.000 - dlogg),
+            (4.079 + dlogT, 2.500 - dlogg),
+            (4.204 + dlogT, 3.000 - dlogg),
+            (4.204 + dlogT, 5.000 + dlogg),
+            (3.602 + dlogT, 5.500 + dlogg),
+            (3.447 - dlogT, 5.500 + dlogg),
         ]
 
         return np.array(bbox)
@@ -2035,10 +2041,6 @@ class BOSZ2024(Stellib):
     @property
     def Z(self):
         return self.grid["Z"]
-
-    @property
-    def logZ(self):
-        return np.log10(self.grid["Z"])
 
 
 class Tlusty2025(Stellib):
@@ -2092,16 +2094,18 @@ class Tlusty2025(Stellib):
             (logT, logg) edges of the bounding polygon
         """
         bbox = [
-            (4.176 - dlogT, 4.749 + dlogg),
+            (4.176 - dlogT, 4.760 + dlogg),
             (4.176 - dlogT, 1.750 - dlogg),
-            (4.176 + dlogT, 1.750 - dlogg),
-            (4.255 + dlogT, 2.000 - dlogg),
-            (4.447 + dlogT, 2.750 - dlogg),
-            (4.478 + dlogT, 3.000 - dlogg),
-            (4.544 + dlogT, 3.250 - dlogg),
+            (4.278 + dlogT, 2.000 - dlogg),
+            (4.342 + dlogT, 2.250 - dlogg),
+            (4.380 + dlogT, 2.500 - dlogg),
+            (4.544 + dlogT, 3.000 - dlogg),
+            (4.574 + dlogT, 3.250 - dlogg),
+            (4.677 + dlogT, 3.500 - dlogg),
+            (4.699 + dlogT, 3.750 - dlogg),
             (4.740 + dlogT, 4.000 - dlogg),
-            (4.740 + dlogT, 4.749 + dlogg),
-            (4.176 - dlogT, 4.749 + dlogg),
+            (4.740 + dlogT, 4.760 + dlogg),
+            (4.176 - dlogT, 4.760 + dlogg),
         ]
 
         return np.array(bbox)
@@ -2121,7 +2125,3 @@ class Tlusty2025(Stellib):
     @property
     def Z(self):
         return self.grid["Z"]
-
-    @property
-    def logZ(self):
-        return np.log10(self.grid["Z"])
