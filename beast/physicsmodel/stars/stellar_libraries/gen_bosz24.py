@@ -60,7 +60,6 @@ if __name__ == "__main__":  # pragma: no cover
     # fmt: on
 
     kk = 0
-    files = files[0:2]
     for k, cfile in enumerate(files):
         print(cfile)
 
