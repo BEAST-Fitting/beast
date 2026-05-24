@@ -59,6 +59,8 @@ if __name__ == "__main__":  # pragma: no cover
     )
     # fmt: on
 
+    kk = 0
+    files = files[0:2]
     for k, cfile in enumerate(files):
         print(cfile)
 
@@ -118,8 +120,14 @@ if __name__ == "__main__":  # pragma: no cover
 
             if k == 0:
                 outspec = np.zeros((len(files) + 1, len(wave_rebin)))
-                outspec[-1, :] = wave_rebin
-            outspec[k, :] = flux_rebin * 4.0 * np.pi
+            outspec[kk, :] = flux_rebin * 4.0 * np.pi
+            kk += 1
+
+    # trim the grid to remove all the models not included
+    outspec = outspec[0:kk+2, :]
+    outspec[-1, :] = wave_rebin
+    print(outspec[kk+1, :])
+    exit()
 
     # output the stellar library in the beast format
     spec_hdu = fits.PrimaryHDU(data=outspec)
