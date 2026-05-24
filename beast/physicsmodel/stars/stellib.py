@@ -8,6 +8,8 @@ The interpolation is implemented from the pegase.2 fortran converted algorithm.
 (this may not be pythonic though)
 """
 
+import matplotlib.pyplot as plt
+
 import numpy as np
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
@@ -331,7 +333,7 @@ class Stellib(object):
             i2 (resp. i1) is not used.
             (see below for namings)
 
-        eps: foat
+        eps: float
             temperature sensitivity under which points are considered to
             have the same temperature
 
@@ -702,15 +704,23 @@ class Stellib(object):
         ):
             if bound_cond[mk]:
                 s = np.array(self.interp(rT, rg, rZ, 0.0)).T
-                # print("logT, logg, Z")
-                # print(rT, rg, rZ)
-                # print(s)
-                # print("logT", self.grid["logT"][s[:, 0].astype(int)].data)
-                # print("logg", self.grid["logg"][s[:, 0].astype(int)].data)
-                # print("Z", self.grid["Z"][s[:, 0].astype(int)].data)
+                print("logT, logg, Z")
+                print(rT, rg, rZ)
+                print(s)
+                print("logT", self.grid["logT"][s[:, 0].astype(int)].data)
+                print("logg", self.grid["logg"][s[:, 0].astype(int)].data)
+                print("Z", self.grid["Z"][s[:, 0].astype(int)].data)
+
+                indxs = s[:, 0].astype(int)
+                for kkk in indxs:
+                    plt.plot(self.wavelength, self.spectra[kkk, :])
+                plt.xscale("log")
+                plt.yscale("log")
+                plt.show()
+
                 specs[mk, :] = self.genSpectrum(s) * weights[mk]
-                # print(specs[mk, :])
-                # exit()
+                print(specs[mk, :])
+                exit()
 
         # Step 4: filter points without spectrum
         # ======================================
