@@ -11,7 +11,7 @@ from helpers import rebin_spectrum
 
 def decode_params(filename):
     """
-    Decode the tlusty filenames for the model parameters.
+    Decode the bosz filenames for the model parameters.
 
     Parameters
     ----------
@@ -27,12 +27,6 @@ def decode_params(filename):
     zpos = filename.find("_m", gpos)
     tpos = filename.find("_t", slashpos)
     vpos = filename.find("_v", slashpos)
-
-    # print(filename[zpos + 2 : zpos + 7])
-    # print(filename[tpos + 2 : gpos])
-    # print(filename[gpos + 2 : gpos + 6])
-    # print(filename[vpos + 2 : vpos + 3])
-    # exit()
 
     model_params["Z"] = float(filename[zpos + 2 : zpos + 7])
     model_params["Teff"] = float(filename[tpos + 2 : gpos])
