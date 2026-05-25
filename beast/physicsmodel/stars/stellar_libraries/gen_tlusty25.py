@@ -76,7 +76,7 @@ if __name__ == "__main__":  # pragma: no cover
         mwave = mspec["Wave"]
         mflux = mspec["SFlux"]
 
-        # rebin to R=4000 for speed, common res and wave range with BOSZ LTE models
+        # rebin to R=2000 for speed, common res and wave range with BOSZ LTE models
         rbres = 2000.0
         wave_rebin, flux_rebin, npts_rebin = rebin_spectrum(
             mwave.value, mflux.value, rbres, [500.0, 320000.0]

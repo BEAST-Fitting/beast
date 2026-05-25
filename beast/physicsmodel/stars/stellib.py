@@ -33,7 +33,7 @@ config = {
     "btsettl": __ROOT__ + "bt-settl.lowres.grid.fits",
     "btsettl_medres": __ROOT__ + "bt-settl.medres.grid.fits",
     "munari": __ROOT__ + "atlas9-munari.hires.grid.fits",
-    "aringer": __ROOT__ + "Aringer.AGB.grid.fits",
+    "aringer": __ROOT__ + "aringer2016.grid.fits",
     "bosz2024": __ROOT__ + "bosz2024.grid.fits",
     "tlusty2025": __ROOT__ + "tlusty2025.grid.fits",
 }
@@ -47,7 +47,7 @@ __all__ = [
     "Munari",
     "Elodie",
     "BaSeL",
-    "Aringer",
+    "Aringer2016",
     "BOSZ2024",
     "Tlusty2025",
 ]
@@ -1850,7 +1850,7 @@ class Munari(Stellib):
         return self.grid["logZ"]
 
 
-class Aringer(Stellib):
+class Aringer2016(Stellib):
     """Aringer C+M+K giants Library
 
     References
