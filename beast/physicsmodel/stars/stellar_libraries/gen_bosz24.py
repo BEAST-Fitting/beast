@@ -123,7 +123,7 @@ if __name__ == "__main__":  # pragma: no cover
             kk += 1
 
     # trim the grid to remove all the models not included
-    outspec = outspec[0:kk+1, :]
+    outspec = outspec[0 : kk + 1, :]
 
     # add the wavelengths to the end
     outspec[-1, :] = wave_rebin

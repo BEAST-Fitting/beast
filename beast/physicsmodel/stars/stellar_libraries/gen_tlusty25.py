@@ -89,9 +89,14 @@ if __name__ == "__main__":  # pragma: no cover
 
         model_params = decode_params(cfile)
         Z = model_params["Z"] * solar_z
-        row = (Z, model_params["Teff"], model_params["logg"], model_params["vturb"],
-               np.log10(model_params["Teff"]),
-               model_params["Z"])
+        row = (
+            Z,
+            model_params["Teff"],
+            model_params["logg"],
+            model_params["vturb"],
+            np.log10(model_params["Teff"]),
+            model_params["Z"],
+        )
         print(row)
         outtab.add_row(row)
 

@@ -5,7 +5,6 @@ from astropy.io import ascii
 
 from helpers import rebin_spectrum
 
-
 if __name__ == "__main__":  # pragma: no cover
 
     solar_z = 0.02
