@@ -8,6 +8,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     slib = stellib.Tlusty2025()
     # slib = stellib.Tlusty()
+    slib = stellib.Aringer2016()
 
     print(np.unique(slib.Z))
 
