@@ -704,23 +704,23 @@ class Stellib(object):
         ):
             if bound_cond[mk]:
                 s = np.array(self.interp(rT, rg, rZ, 0.0)).T
-                print("logT, logg, Z")
-                print(rT, rg, rZ)
-                print(s)
-                print("logT", self.grid["logT"][s[:, 0].astype(int)].data)
-                print("logg", self.grid["logg"][s[:, 0].astype(int)].data)
-                print("Z", self.grid["Z"][s[:, 0].astype(int)].data)
+                # print("logT, logg, Z")
+                # print(rT, rg, rZ)
+                # print(s)
+                # print("logT", self.grid["logT"][s[:, 0].astype(int)].data)
+                # print("logg", self.grid["logg"][s[:, 0].astype(int)].data)
+                # print("Z", self.grid["Z"][s[:, 0].astype(int)].data)
 
-                indxs = s[:, 0].astype(int)
-                for kkk in indxs:
-                    plt.plot(self.wavelength, self.spectra[kkk, :])
-                plt.xscale("log")
-                plt.yscale("log")
-                plt.show()
+                # indxs = s[:, 0].astype(int)
+                # for kkk in indxs:
+                #     plt.plot(self.wavelength, self.spectra[kkk, :])
+                # plt.xscale("log")
+                # plt.yscale("log")
+                # plt.show()
 
                 specs[mk, :] = self.genSpectrum(s) * weights[mk]
-                print(specs[mk, :])
-                exit()
+                # print(specs[mk, :])
+                # exit()
 
         # Step 4: filter points without spectrum
         # ======================================
@@ -930,6 +930,7 @@ class CompositeStellib(Stellib):
                     ind = np.atleast_1d(np.squeeze(np.where(res == 0)))
                     r = ok.points_inside(xy[ind], dlogT=dlogT, dlogg=dlogg)
                     res[ind[r]] = ek + 1
+
         return res
 
     def __repr__(self):
@@ -2086,6 +2087,16 @@ class Tlusty2025(Stellib):
         self.grid = g.grid
         self.header["NAME"] = "tlusty2025"
         self.spectra = g.seds
+
+        # the logT covearge at Z=0.000544 stops at logT = 4.8
+        # the logT coverage at Z=0.000561 starts at logT = 4.44
+        # all the other Z values have the expected logT,logg coverage
+        # To avoid issues in the interpolation routine, the metallicities
+        # for both these values are set to the average of Z=0.000553.
+        gvals = self.grid["Z"] == 0.000544
+        self.grid["Z"][gvals] = 0.000553
+        gvals = self.grid["Z"] == 0.000561
+        self.grid["Z"][gvals] = 0.000553
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
         """Boundary of Tlusty library
