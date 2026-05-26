@@ -7,9 +7,9 @@ from helpers import get_stellib_boundaries
 if __name__ == "__main__":  # pragma: no cover
 
     # slib = stellib.Tlusty2025()
-    slib = stellib.BOSZ2024()
-    slib = stellib.Kurucz()
-    # slib = stellib.Aringer2016()
+    # slib = stellib.BOSZ2024()
+    # slib = stellib.Kurucz()
+    slib = stellib.Aringer2016()
 
     print(np.unique(slib.Z))
 

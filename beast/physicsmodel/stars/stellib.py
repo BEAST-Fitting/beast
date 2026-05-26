@@ -1874,7 +1874,7 @@ class Aringer2016(Stellib):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "Aringer"
+        self.name = "Aringer2016"
         self.source = config["aringer"]
         self._load_()
 
@@ -1906,8 +1906,6 @@ class Aringer2016(Stellib):
             (3.41497 - dlogT, 5.00 + dlogg),
             (3.69897 + dlogT, 5.00 + dlogg),
             (3.69897 + dlogT, 3.50 + dlogg),
-            (3.71600 + dlogT, 3.50 + dlogg),
-            (3.71600 + dlogT, 2.50 - dlogg),
             (3.69897 + dlogT, 2.50 - dlogg),
             (3.69897 + dlogT, 0.00 - dlogg),
             (3.57978 + dlogT, 0.00 - dlogg),

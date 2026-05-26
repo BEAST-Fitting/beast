@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-
 import numpy as np
 
 from astropy.table import QTable
@@ -81,9 +79,7 @@ if __name__ == "__main__":  # pragma: no cover
     # path = "/home/kgordon/Python/extstar_data/Models/Aringer16/"
     path = "/astro/mboyer/Science/WINGS/Aringer16/"
     mspec = ascii.read(f"{path}/mstar_spec_list.dat", data_start=0, format="no_header")
-    files = [f"{path}{cfile}" for cfile in mspec["col1"].data]
-
-    n_files = len(files)
+    files = np.array([f"{path}{cfile}" for cfile in mspec["col1"].data])
 
     # fmt: off
     outtab = QTable(
@@ -92,6 +88,7 @@ if __name__ == "__main__":  # pragma: no cover
     )
     # fmt: on
 
+    # first go though and get the parameters for all the models
     for k, cfile in enumerate(files):
         print(cfile)
 
@@ -123,6 +120,32 @@ if __name__ == "__main__":  # pragma: no cover
         print(row)
         outtab.add_row(row)
 
+    # now remove the models that were for a special case for the paper
+    # this means the logg is not on a regular grid point
+    uvals, ucounts = np.unique(outtab["logg"], return_counts=True)
+
+    gvals_files = np.full(len(files), True)
+    gvals = ucounts < 5
+    for cval in uvals[gvals]:
+        bvals = cval == outtab["logg"]
+        gvals_files[bvals] = False
+
+    # now a cut on logT to remove two errant points
+    # and the slight extension for some loggs for only one metallicity
+    bvals = outtab["logT"] > 3.70
+    gvals_files[bvals] = False
+
+    # now cut the 7.981e-5 metallicity models
+    # only half the logT, logg region covered
+    bvals = np.absolute(np.log10(outtab["Z"]) - np.log10(7.981e-5)) < 0.1
+    gvals_files[bvals] = False
+
+    # update the output table and the file list
+    outtab = outtab[gvals_files]
+    files = files[gvals_files]
+
+    # now get the spectra
+    for k, cfile in enumerate(files):
         # read in the model spectrum
         # wave units are angstrom
         # flux is in nu*L_nu [erg/s]
@@ -171,11 +194,6 @@ if __name__ == "__main__":  # pragma: no cover
             outspec = np.zeros((len(files) + 1, len(wave_rebin)))
             outspec[-1, :] = wave_rebin
         outspec[k, :] = flux_rebin
-
-    #     plt.plot(wave_rebin, flux_rebin)
-    # plt.xscale("log")
-    # plt.yscale("log")
-    # plt.show()
 
     # output the stellar library in the beast format
     spec_hdu = fits.PrimaryHDU(data=outspec)
