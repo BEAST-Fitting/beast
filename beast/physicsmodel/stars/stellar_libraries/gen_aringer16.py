@@ -78,7 +78,8 @@ if __name__ == "__main__":  # pragma: no cover
     solar_z = 0.02  # see comments in decode_params
 
     # get all vtrub=2 models
-    path = "/home/kgordon/Python/extstar_data/Models/Aringer16/"
+    # path = "/home/kgordon/Python/extstar_data/Models/Aringer16/"
+    path = "/astro/mboyer/Science/WINGS/Aringer16/"
     mspec = ascii.read(f"{path}/mstar_spec_list.dat", data_start=0, format="no_header")
     files = [f"{path}{cfile}" for cfile in mspec["col1"].data]
 
