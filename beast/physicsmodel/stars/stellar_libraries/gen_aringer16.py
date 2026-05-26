@@ -68,8 +68,7 @@ def decode_params(filename):
     Fesun = 10.0 ** (7.56 - 12)
     Fe = 10.0 ** (Fenum - 12)
     FeH = np.round(np.log10(Fe) - np.log10(Fesun), 1)
-    Z = (10.0**FeH) * 0.02  # see comments below
-    model_params["Z"] = (10.0**FeH) * 0.02  # see comments below
+    model_params["Z"] = (10.0**FeH) * 0.02  # see comments above
 
     return model_params
 
@@ -149,9 +148,10 @@ if __name__ == "__main__":  # pragma: no cover
         )
 
         # add a scaled blackbody for the shorter and longer wavelengths that were not calculated
-        bb = models.BlackBody(temperature = model_params["Teff"]*u.K,
-                              scale=1.0 * u.erg / (u.cm * u.cm * u.s * u.AA * u.sr)
-                              )
+        bb = models.BlackBody(
+            temperature=model_params["Teff"] * u.K,
+            scale=1.0 * u.erg / (u.cm * u.cm * u.s * u.AA * u.sr),
+        )
         modbb = bb(wave_rebin)
 
         # shorter wavelengths
@@ -171,10 +171,10 @@ if __name__ == "__main__":  # pragma: no cover
             outspec[-1, :] = wave_rebin
         outspec[k, :] = flux_rebin
 
-        plt.plot(wave_rebin, flux_rebin)
-    plt.xscale("log")
-    plt.yscale("log")
-    plt.show()
+    #     plt.plot(wave_rebin, flux_rebin)
+    # plt.xscale("log")
+    # plt.yscale("log")
+    # plt.show()
 
     # output the stellar library in the beast format
     spec_hdu = fits.PrimaryHDU(data=outspec)
