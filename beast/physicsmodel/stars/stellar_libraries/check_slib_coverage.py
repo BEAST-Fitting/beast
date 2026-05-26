@@ -6,9 +6,10 @@ from helpers import get_stellib_boundaries
 
 if __name__ == "__main__":  # pragma: no cover
 
-    slib = stellib.Tlusty2025()
-    # slib = stellib.Tlusty()
-    slib = stellib.Aringer2016()
+    # slib = stellib.Tlusty2025()
+    slib = stellib.BOSZ2024()
+    slib = stellib.Kurucz()
+    # slib = stellib.Aringer2016()
 
     print(np.unique(slib.Z))
 
@@ -24,5 +25,7 @@ if __name__ == "__main__":  # pragma: no cover
         slib.plot_boundary(dlogT=0.0, dlogg=0.0)
         # plt.plot(bbox[:, 0], bbox[:, 1], "g-", label="in lib")
         plt.title(cz)
-        plt.legend()
+        plt.xlabel("log(Teff)")
+        plt.ylabel("log(g)")
+        # plt.legend()
         plt.show()
