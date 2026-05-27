@@ -42,6 +42,7 @@ if __name__ == "__main__":  # pragma: no cover
     solar_z = 0.012
 
     # get all vtrub=2 models
+    # change to the specific location the models have been downloaded to
     path = "/home/kgordon/Python/extstar_data/Models/BOSZ2024/r5000/r5000/"
     files = glob.glob(f"{path}/*/*a+0.00_c+0.00_v2_r5000_resam.txt.gz")
     n_files = len(files)
