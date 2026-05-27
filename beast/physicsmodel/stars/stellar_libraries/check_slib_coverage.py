@@ -47,7 +47,9 @@ if __name__ == "__main__":  # pragma: no cover
         gvals = slib.Z.data == cz
         plt.plot(slib.logT[gvals], slib.logg[gvals], "ko")
         plt.plot(bound[:, 0], bound[:, 1], "g-", label="algorithmly generated")
-        slib.plot_boundary(dlogT=0.0, dlogg=0.0, label="defined in class def", alpha=0.5, color="b")
+        slib.plot_boundary(
+            dlogT=0.0, dlogg=0.0, label="defined in class def", alpha=0.5, color="b"
+        )
         plt.title(f"{args.grid}; z = {cz:.2e}")
         plt.xlabel("log(Teff)")
         plt.ylabel("log(g)")

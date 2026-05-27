@@ -45,6 +45,7 @@ if __name__ == "__main__":  # pragma: no cover
     solar_z = 0.017  # from Grevasse & Sauval (1998) - TBC
 
     # get all vtrub=2 models
+    # change to the specific location the models have been downloaded to
     path = "/home/kgordon/Python/extstar_data/Models/Tlusty_2025/"
     files = glob.glob(f"{path}/*v2.spec.gz")
     n_files = len(files)
