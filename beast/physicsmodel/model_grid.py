@@ -226,14 +226,24 @@ def make_spectral_grid(
 
         # Construct the distances array. Turn single value into
         # 1-element list if single distance is given.
+        # A list of >3 values is used as an explicit (possibly non-uniform)
+        # distance grid, e.g. for variable-resolution distance sampling.
+        # NOTE: an explicit grid of exactly 3 values cannot be expressed
+        # (3 values are always interpreted as min, max, step) -- pad with a
+        # duplicate-free 4th value in that case.
         _distance = np.atleast_1d(distance)
         if len(_distance) == 3:
             mindist, maxdist, stepdist = _distance
             distances = np.arange(mindist, maxdist + stepdist, stepdist)
         elif len(_distance) == 1:
             distances = np.array(_distance)
+        elif len(_distance) > 3:
+            distances = np.sort(np.array(_distance, dtype=float))
         else:
-            raise ValueError("distance needs to be (min, max, step) or single number")
+            raise ValueError(
+                "distance needs to be (min, max, step), a single number, "
+                "or an explicit list of >3 values"
+            )
 
         # calculate the distances in pc
         if distance_unit == units.mag:
