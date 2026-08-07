@@ -492,7 +492,7 @@ def make_extinguished_sed_grid(
 
     # generate extinguished grids if SED file doesn't exist
     if not os.path.isfile(seds_fname):
-        extLaw = extLaw or extinction.Cardelli()
+        extLaw = extLaw or extinction.Generalized_DustExt("G23")
 
         if verbose:
             print("Make SEDS")

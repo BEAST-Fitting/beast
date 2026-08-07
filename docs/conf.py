@@ -87,3 +87,9 @@ html_theme = "classic"
 autoclass_content = "both"
 
 # -- Other options ----------------------------------------------------------
+
+# this site has a rate limiter that is often tripped during testing, ignore to 
+# avoid automated testing failure
+linkcheck_ignore = [
+    r'https://stev.oapd.inaf.it/cgi-bin/cmd',
+]

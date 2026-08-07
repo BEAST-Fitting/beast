@@ -68,7 +68,7 @@ class TestRegressionSuite(unittest.TestCase):
 
         cls.dset = "metal"
         if cls.dset == "metal":
-            cls.basesubdir = "metal_small_16Jan26/"
+            cls.basesubdir = "metal_small_7Aug26/"
             cls.basename = f"{cls.basesubdir}beast_metal_small"
             cls.obsname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst_samp.fits"
             cls.astname = f"{cls.basesubdir}14675_LMC-13361nw-11112.gst.fake.fits"
@@ -78,8 +78,7 @@ class TestRegressionSuite(unittest.TestCase):
         cls.obs_fname_cache = download_rename(cls.obsname)
         cls.asts_fname_cache = download_rename(cls.astname)
         # - isochrones
-        cls.iso_fname_cache = download_rename(f"{cls.basename}_iso.csv")
-        # - spectra
+        cls.iso_fname_cache = download_rename(f"{cls.basename}_et.csv")
 
         # - spectra
         cls.spec_fname_cache = download_rename(f"{cls.basename}_spec_grid.hd5")
