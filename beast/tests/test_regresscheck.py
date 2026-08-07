@@ -78,7 +78,7 @@ class TestRegressionSuite(unittest.TestCase):
         cls.obs_fname_cache = download_rename(cls.obsname)
         cls.asts_fname_cache = download_rename(cls.astname)
         # - isochrones
-        cls.iso_fname_cache = download_rename(f"{cls.basename}_iso.csv")
+        cls.iso_fname_cache = download_rename(f"{cls.basename}_et.csv")
 
         # - spectra
         cls.spec_fname_cache = download_rename(f"{cls.basename}_spec_grid.hd5")
