@@ -206,7 +206,7 @@ class Generalized_DustExt(ExtinctionLaw):
     Rv-dependent `parameter_averages` extinction curve classes.
     """
 
-    def __init__(self, curve="F04"):
+    def __init__(self, curve="G23"):
         super().__init__()
         self.name = "dustextpkg_" + curve
         if curve in dustext_par.__all__:
