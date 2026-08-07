@@ -75,8 +75,14 @@ def make_ast_inputs(beast_settings_info, pick_method="flux_bin_method"):
             N_fluxes = settings.ast_n_flux_bins
             min_N_per_flux = settings.ast_n_per_flux_bin
             bins_outfile = "./{0}/{0}_ASTfluxbins.txt".format(settings.project)
-            mag_cuts = settings.ast_fluxbin_maglimits
-            Nfilters = settings.ast_filters_inside_maglimits
+            if hasattr(settings, "ast_fluxbin_maglimits"):
+                mag_cuts = settings.ast_fluxbin_maglimits
+            else:
+                mag_cuts = None
+            if hasattr(settings, "ast_filters_inside_maglimits"):
+                Nfilters = settings.ast_filters_inside_maglimits
+            else:
+                Nfilters = None
 
             chosen_seds = pick_models_toothpick_style(
                 modelsedgrid_filename,
