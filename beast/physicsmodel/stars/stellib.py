@@ -7,6 +7,7 @@ sources.
 The interpolation is implemented from the pegase.2 fortran converted algorithm.
 (this may not be pythonic though)
 """
+
 import numpy as np
 from scipy.interpolate import interp1d
 from numpy.lib import recfunctions
@@ -16,7 +17,6 @@ from matplotlib.path import Path
 from astropy.table import Table
 
 from beast.physicsmodel.grid import SpectralGrid
-# from beast.external.eztables import Table
 from beast.config import __ROOT__, __NTHREADS__
 from beast.physicsmodel.stars.include import __interp__
 from beast.tools.helpers import nbytes
@@ -33,7 +33,9 @@ config = {
     "btsettl": __ROOT__ + "bt-settl.lowres.grid.fits",
     "btsettl_medres": __ROOT__ + "bt-settl.medres.grid.fits",
     "munari": __ROOT__ + "atlas9-munari.hires.grid.fits",
-    "aringer": __ROOT__ + "Aringer.AGB.grid.fits",
+    "aringer": __ROOT__ + "aringer2016.grid.fits",
+    "bosz2024": __ROOT__ + "bosz2024.grid.fits",
+    "tlusty2025": __ROOT__ + "tlusty2025.grid.fits",
 }
 
 __all__ = [
@@ -45,26 +47,28 @@ __all__ = [
     "Munari",
     "Elodie",
     "BaSeL",
-    "Aringer",
+    "Aringer2016",
+    "BOSZ2024",
+    "Tlusty2025",
 ]
 
 
 def isNestedInstance(obj, cl):
-    """ Test for sub-classes types
-        I could not find a universal test
+    """Test for sub-classes types
+    I could not find a universal test
 
-        keywords
-        --------
-        obj: object instance
-            object to test
+    keywords
+    --------
+    obj: object instance
+        object to test
 
-        cl: Class
-            top level class to test
+    cl: Class
+        top level class to test
 
-        returns
-        -------
-        r: bool
-            True if obj is indeed an instance or subclass instance of cl
+    returns
+    -------
+    r: bool
+        True if obj is indeed an instance or subclass instance of cl
     """
     tree = []
     for k in cl.__subclasses__():
@@ -102,7 +106,7 @@ def __interpMany__(
     pool=None,
     nthreads=__NTHREADS__,
 ):
-    """ run interp on a list of inputs and returns reduced results
+    """run interp on a list of inputs and returns reduced results
 
     Interpolation of the T,g grid at Z0 metallicity
 
@@ -195,7 +199,7 @@ def __interpMany__(
 
 
 def interp(T0, g0, Z0, L0, T, g, Z, dT_max=0.1, eps=1e-6, weight=1.0):
-    """ Interpolation of the T,g grid
+    """Interpolation of the T,g grid
 
     Interpolate on the grid and returns star indices and
     associated weights, and Z.
@@ -282,14 +286,14 @@ def interp(T0, g0, Z0, L0, T, g, Z, dT_max=0.1, eps=1e-6, weight=1.0):
                 weights[:8] *= 0.5
 
     ind = np.where(weights > 0)
-    return index[ind].astype(int), 10 ** L0 * weight * weights[ind]
+    return index[ind].astype(int), 10**L0 * weight * weights[ind]
 
 
 class Stellib(object):
-    """ Basic stellar library class """
+    """Basic stellar library class"""
 
     def __init__(self, *args, **kargs):
-        """ Contructor """
+        """Contructor"""
         self.header = {}
 
     def _load_(self):
@@ -297,11 +301,11 @@ class Stellib(object):
 
     @property
     def nbytes(self):
-        """ return the number of bytes of the object """
+        """return the number of bytes of the object"""
         return nbytes(self)
 
     def interp(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6):
-        """ Interpolation of the T,g grid
+        """Interpolation of the T,g grid
 
         Interpolate on the grid and returns star indices and
         associated weights, and Z.
@@ -327,7 +331,7 @@ class Stellib(object):
             i2 (resp. i1) is not used.
             (see below for namings)
 
-        eps: foat
+        eps: float
             temperature sensitivity under which points are considered to
             have the same temperature
 
@@ -357,7 +361,7 @@ class Stellib(object):
         pool=None,
         nthreads=__NTHREADS__,
     ):
-        """ run interp on a list of inputs and returns reduced results
+        """run interp on a list of inputs and returns reduced results
 
         Interpolation of the T,g grid at Z0 metallicity
 
@@ -454,7 +458,7 @@ class Stellib(object):
         return p.contains_points(xypoints)
 
     def get_radius(self, logl, logt):
-        r""" Returns the radius of a star given its luminosity and temperature
+        r"""Returns the radius of a star given its luminosity and temperature
 
         Assuming a black body, it comes:
                 R ^ 2 = L / ( 4 \pi \sigma T ^ 4 ),
@@ -485,7 +489,7 @@ class Stellib(object):
         )
 
     def get_boundaries(self, dlogT=0.1, dlogg=0.3, **kwargs):
-        """ Returns the closed boundary polygon around the stellar library with
+        """Returns the closed boundary polygon around the stellar library with
         given margins
 
         Parameters
@@ -540,7 +544,7 @@ class Stellib(object):
         return self._bound[0]
 
     def genQ(self, qname, r, **kwargs):
-        """ Generate a composite value from a previously calculated
+        """Generate a composite value from a previously calculated
             interpolation
             Works on 1 desired star or a population of stars
 
@@ -560,7 +564,7 @@ class Stellib(object):
         return (self.grid[qname][r[:, 0].astype(int)] * r[:, 1]).sum()
 
     def genSpectrum(self, T0, g0=None, Z0=None, weights=None, **kwargs):
-        """ Generate a composite sprectrum
+        """Generate a composite sprectrum
         Does the interpolation or uses a previously calculated
         interpolation
         Works on 1 desired star or a population of stars
@@ -664,10 +668,8 @@ class Stellib(object):
                 for key in pts.dtype.names:
                     _grid[key] = pts[key]
             else:
-                raise AttributeError(
-                    "pts is expected to have named items \
-                                     (keys or dtype.names)"
-                )
+                raise AttributeError("pts is expected to have named items \
+                                     (keys or dtype.names)")
 
         # Step 1: Avoid Extrapolation
         # ===========================
@@ -794,7 +796,7 @@ class Stellib(object):
 
 
 class CompositeStellib(Stellib):
-    """ Generates an object from the union of multiple individual libraries """
+    """Generates an object from the union of multiple individual libraries"""
 
     def __init__(self, osllist, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -816,10 +818,10 @@ class CompositeStellib(Stellib):
 
     @property
     def wavelength(self):
-        """ return a common wavelength sampling to all libraries. This can be
-        used to reinterpolate any spectrum onto a common definition """
+        """return a common wavelength sampling to all libraries. This can be
+        used to reinterpolate any spectrum onto a common definition"""
 
-        lambs = np.unique(np.asarray([osl.wavelength[:] for osl in self._olist]))
+        lambs = np.unique(np.concatenate([osl.wavelength[:] for osl in self._olist]))
         return lambs
 
     @property
@@ -908,6 +910,7 @@ class CompositeStellib(Stellib):
                     ind = np.atleast_1d(np.squeeze(np.where(res == 0)))
                     r = ok.points_inside(xy[ind], dlogT=dlogT, dlogg=dlogg)
                     res[ind[r]] = ek + 1
+
         return res
 
     def __repr__(self):
@@ -916,7 +919,7 @@ class CompositeStellib(Stellib):
         )
 
     def get_boundaries(self, dlogT=0.1, dlogg=0.3, **kwargs):
-        """ Returns the closed boundary polygon around the stellar library with
+        """Returns the closed boundary polygon around the stellar library with
         given margins
 
         Parameters
@@ -954,7 +957,7 @@ class CompositeStellib(Stellib):
         return self._bound[0]
 
     def interp(self, T0, g0, Z0, L0, dT_max=0.1, eps=1e-6, bounds={}):
-        """ Interpolation of the T,g grid
+        """Interpolation of the T,g grid
 
         Interpolate on the grid and returns star indices and
         associated weights, and Z.
@@ -1023,7 +1026,7 @@ class CompositeStellib(Stellib):
         pool=None,
         nthreads=__NTHREADS__,
     ):
-        """ run interp on a list of inputs and returns reduced results
+        """run interp on a list of inputs and returns reduced results
 
         Interpolation of the T,g grid at Z0 metallicity
 
@@ -1105,7 +1108,7 @@ class CompositeStellib(Stellib):
         return g
 
     def genQ(self, qname, r, **kwargs):
-        """ Generate a composite value from a previously calculated
+        """Generate a composite value from a previously calculated
             interpolation
             Works on 1 desired star or a population of stars
 
@@ -1130,7 +1133,7 @@ class CompositeStellib(Stellib):
         return vals
 
     def genSpectrum(self, T0, g0=None, Z0=None, weights=None, **kwargs):
-        """ Generate a composite sprectrum
+        """Generate a composite sprectrum
             Does the interpolation or uses a previously calculated
             interpolation
             Works on 1 desired star or a population of stars
@@ -1228,10 +1231,8 @@ class CompositeStellib(Stellib):
                 elif hasattr(pts, "dtype"):
                     keys = pts.dtypes.names
                 else:
-                    raise AttributeError(
-                        "Input pts is expected to have \
-                                         named fields"
-                    )
+                    raise AttributeError("Input pts is expected to have \
+                                         named fields")
                 for k in keys:
                     _pts[k] = pts[k][ind]
                 # keep track of the spectra library that is selected
@@ -1277,7 +1278,7 @@ class CompositeStellib(Stellib):
 
 
 class Elodie(Stellib):
-    """ Elodie 3.1 stellar library derived class
+    """Elodie 3.1 stellar library derived class
 
     This library matches BaSeL 2.2 grid definition
 
@@ -1300,7 +1301,7 @@ class Elodie(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Elodie library
+        """Boundary of Elodie library
 
         Parameters
         ----------
@@ -1382,7 +1383,7 @@ class Elodie(Stellib):
 
 
 class BaSeL(Stellib):
-    """ BaSeL 2.2 (This library is used in Pegase.2)
+    """BaSeL 2.2 (This library is used in Pegase.2)
         This library is used in Pegase.2
 
     The BaSeL stellar spectral energy distribution (SED) libraries are
@@ -1411,7 +1412,7 @@ class BaSeL(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Basel 2.2 library
+        """Boundary of Basel 2.2 library
 
         Parameters
         ----------
@@ -1514,7 +1515,9 @@ class Kurucz(Stellib):
             self.source = filename
         self._load_()
 
-    def _load_(self,):
+    def _load_(
+        self,
+    ):
         g = SpectralGrid(self.source, backend="memory")
         self.wavelength = g.lamb
         self.grid = g.grid
@@ -1522,7 +1525,7 @@ class Kurucz(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Kurucz 2004 library
+        """Boundary of Kurucz 2004 library
 
         Parameters
         ----------
@@ -1620,7 +1623,7 @@ class Tlusty(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Tlusty library
+        """Boundary of Tlusty library
 
         Parameters
         ----------
@@ -1708,7 +1711,7 @@ class BTSettl(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of BT-Settl library
+        """Boundary of BT-Settl library
 
         Parameters
         ----------
@@ -1797,7 +1800,7 @@ class Munari(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Munari library
+        """Boundary of Munari library
 
         Parameters
         ----------
@@ -1847,7 +1850,7 @@ class Munari(Stellib):
         return self.grid["logZ"]
 
 
-class Aringer(Stellib):
+class Aringer2016(Stellib):
     """Aringer C+M+K giants Library
 
     References
@@ -1871,7 +1874,7 @@ class Aringer(Stellib):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "Aringer"
+        self.name = "Aringer2016"
         self.source = config["aringer"]
         self._load_()
 
@@ -1883,7 +1886,7 @@ class Aringer(Stellib):
         self.spectra = g.seds
 
     def bbox(self, dlogT=0.05, dlogg=0.25):
-        """ Boundary of Aringer library for C+M+K giants
+        """Boundary of Aringer library for C+M+K giants
 
         Parameters
         ----------
@@ -1903,8 +1906,6 @@ class Aringer(Stellib):
             (3.41497 - dlogT, 5.00 + dlogg),
             (3.69897 + dlogT, 5.00 + dlogg),
             (3.69897 + dlogT, 3.50 + dlogg),
-            (3.71600 + dlogT, 3.50 + dlogg),
-            (3.71600 + dlogT, 2.50 - dlogg),
             (3.69897 + dlogT, 2.50 - dlogg),
             (3.69897 + dlogT, 0.00 - dlogg),
             (3.57978 + dlogT, 0.00 - dlogg),
@@ -1943,3 +1944,181 @@ class Aringer(Stellib):
     @property
     def logZ(self):
         return self.grid["logz"]
+
+
+class BOSZ2024(Stellib):
+    """
+    BOSZ 2024 LTE stellar atmospheres for A stars and cooler.
+    Updated in 2024 with better line lists and extended IR wavelength coverage
+
+    * LTE
+    * Plane Parallel
+
+    References
+    ----------
+    Bohlin, Meszaros, et al. 2017, AJ, 153, 234
+    Meszaros, Bohlin et al. 2024, A&A, 688, 197
+
+    files are available at: https://archive.stsci.edu/hlsp/bosz
+    """
+
+    def __init__(self, filename=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = "BOSZ2024"
+        if filename is None:
+            self.source = config["bosz2024"]
+        else:
+            self.source = filename
+        self._load_()
+
+    def _load_(self):
+        g = SpectralGrid(self.source, backend="memory")
+        self.wavelength = g.lamb
+        self.grid = g.grid
+        self.header["NAME"] = "tlusty2025"
+        self.spectra = g.seds
+
+    def bbox(self, dlogT=0.05, dlogg=0.25):
+        """Boundary of Tlusty library
+
+        Parameters
+        ----------
+        dlogT: float
+            log-temperature tolerance before extrapolation limit
+
+        dlogg: float
+            log-g tolerance before extrapolation limit
+
+        Returns
+        -------
+        bbox: ndarray
+            (logT, logg) edges of the bounding polygon
+        """
+
+        bbox = [
+            (3.447 - dlogT, 5.500 + dlogg),
+            (3.447 - dlogT, -0.51 - dlogg),
+            (3.677 + dlogT, -0.51 - dlogg),
+            (3.740 + dlogT, 0.000 - dlogg),
+            (3.760 + dlogT, 0.500 - dlogg),
+            (3.845 + dlogT, 1.000 - dlogg),
+            (3.845 + dlogT, 1.500 - dlogg),
+            (4.079 + dlogT, 2.000 - dlogg),
+            (4.079 + dlogT, 2.500 - dlogg),
+            (4.204 + dlogT, 3.000 - dlogg),
+            (4.204 + dlogT, 5.000 + dlogg),
+            (3.602 + dlogT, 5.500 + dlogg),
+            (3.447 - dlogT, 5.500 + dlogg),
+        ]
+
+        return np.array(bbox)
+
+    @property
+    def logg(self):
+        return self.grid["logg"]
+
+    @property
+    def Teff(self):
+        return self.grid["Teff"]
+
+    @property
+    def logT(self):
+        return np.log10(self.grid["Teff"])
+
+    @property
+    def Z(self):
+        return self.grid["Z"]
+
+
+class Tlusty2025(Stellib):
+    """
+    Tlusty 2025 O and B stellar atmospheres.  Updated in 2025 with better line lists
+    and extended IR wavelength coverage
+
+    * NLTE
+    * Plane Parallel
+    * line blanketing
+
+    References
+    ----------
+    Hubeny 1988 for initial reference
+    Lanz, T., & Hubeny, I. (2003) for NLTE developments
+    Hubeny, Bohlin, Gordon, & Fitzpatrick (2025) for updated models
+
+    files are available at: https://stsci.box.com/v/tlustyOB2025
+    """
+
+    def __init__(self, filename=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = "Tlusty2025"
+        if filename is None:
+            self.source = config["tlusty2025"]
+        else:
+            self.source = filename
+        self._load_()
+
+    def _load_(self):
+        g = SpectralGrid(self.source, backend="memory")
+        self.wavelength = g.lamb
+        self.grid = g.grid
+        self.header["NAME"] = "tlusty2025"
+        self.spectra = g.seds
+
+        # the logT covearge at Z=0.000544 stops at logT = 4.8
+        # the logT coverage at Z=0.000561 starts at logT = 4.44
+        # all the other Z values have the expected logT,logg coverage
+        # To avoid issues in the interpolation routine, the metallicities
+        # for both these values are set to the average of Z=0.000553.
+        gvals = self.grid["Z"] == 0.000544
+        self.grid["Z"][gvals] = 0.000553
+        gvals = self.grid["Z"] == 0.000561
+        self.grid["Z"][gvals] = 0.000553
+
+    def bbox(self, dlogT=0.05, dlogg=0.25):
+        """Boundary of Tlusty library
+
+        Parameters
+        ----------
+        dlogT: float
+            log-temperature tolerance before extrapolation limit
+
+        dlogg: float
+            log-g tolerance before extrapolation limit
+
+        Returns
+        -------
+        bbox: ndarray
+            (logT, logg) edges of the bounding polygon
+        """
+        bbox = [
+            (4.176 - dlogT, 4.760 + dlogg),
+            (4.176 - dlogT, 1.750 - dlogg),
+            (4.278 + dlogT, 2.000 - dlogg),
+            (4.342 + dlogT, 2.250 - dlogg),
+            (4.380 + dlogT, 2.500 - dlogg),
+            (4.544 + dlogT, 3.000 - dlogg),
+            (4.574 + dlogT, 3.250 - dlogg),
+            (4.677 + dlogT, 3.500 - dlogg),
+            (4.699 + dlogT, 3.750 - dlogg),
+            (4.740 + dlogT, 4.000 - dlogg),
+            (4.740 + dlogT, 4.760 + dlogg),
+            (4.176 - dlogT, 4.760 + dlogg),
+        ]
+
+        return np.array(bbox)
+
+    @property
+    def logg(self):
+        return self.grid["logg"]
+
+    @property
+    def Teff(self):
+        return self.grid["Teff"]
+
+    @property
+    def logT(self):
+        return np.log10(self.grid["Teff"])
+
+    @property
+    def Z(self):
+        return self.grid["Z"]
