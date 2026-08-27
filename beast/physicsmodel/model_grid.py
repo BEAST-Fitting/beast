@@ -165,7 +165,10 @@ def make_spectral_grid(
 
     distance: float or list of float
         distances at which models should be shifted, specified as a
-        single number or as [min, max, step]
+        single number, as [min, max, step], or as an explicit list of
+        more than three values giving a (possibly non-uniform) grid.
+        An explicit grid of exactly three values cannot be expressed,
+        since three values are always read as [min, max, step].
 
         0 means absolute magnitude.
 
