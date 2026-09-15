@@ -159,9 +159,9 @@ def ext_O_star(pdf2d_data, pdf2d_bins, min_M_ini=10, min_Av=0.5, max_Av=99):
     There's a max A_V option to avoid possible high-Av artifacts.
 
     Some useful references for O/B stars
-    https://ui.adsabs.harvard.edu/abs/2019A%26A...625A.104R/abstract
-    https://ui.adsabs.harvard.edu/abs/2018A%26A...615A..40R/abstract
-    https://ui.adsabs.harvard.edu/abs/2018A%26A...609A...7R/abstract
+    https://scixplorer.org/abs/2019A%26A...625A.104R
+    https://scixplorer.org/abs/2018A%26A...615A..40R
+    https://scixplorer.org/abs/2018A%26A...609A...7R
 
     Parameters
     ----------

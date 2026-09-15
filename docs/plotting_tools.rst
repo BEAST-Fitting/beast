@@ -18,7 +18,7 @@ Observation Models
 
 - `beast plot_noisemodel.py`:
   Plot the bias and uncertainty as a function of flux (similar to Figure 12 in
-  `Gordon+16 <https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).
+  `Gordon+16 <https://scixplorer.org/abs/2016ApJ...826..104G>`_).
   Multiple noise models can be overplotted, as long as they correspond to the
   same SED model grid.
   For more details see :mod:`~beast.plotting.plot_noisemodel`.
@@ -39,7 +39,7 @@ Fitting
 - `beast plot_indiv_fit`:
   For a given star, makes a multi-panel plot that shows the PDFs and best fits
   of each parameter, as well as an SED (similar to Figure 14 in
-  `Gordon+16 <https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).
+  `Gordon+16 <https://scixplorer.org/abs/2016ApJ...826..104G>`_).
   For more details see :mod:`~beast.plotting.plot_indiv_fit`.
 
 - `beast plot_chi2_hist`:
@@ -64,7 +64,7 @@ Fitting
 
 - `beast plot_param_recovery`:
   Make a 2D histogram to compare simulated and recovered model parameters
-  (similar to Figure 13 in `Gordon+16 <https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G>`_).
+  (similar to Figure 13 in `Gordon+16 <https://scixplorer.org/abs/2016ApJ...826..104G>`_).
   If given multiple sets of files, can do additional panels to compare across
   noise models.
   For more details see :mod:`~beast.plotting.plot_param_recovery`.

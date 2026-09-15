@@ -74,31 +74,31 @@ means that Tlusty models are preferred over Kurucz models for the same stellar p
 Choices:
 
 * `Kurucz`_
-    ATLAS9 model atmospheres by `Castelli & Kurucz (2004; CK04) <https://ui.adsabs.harvard.edu/abs/2004A%26A...419..725C/abstract>`_, the industry
+    ATLAS9 model atmospheres by `Castelli & Kurucz (2004; CK04) <https://scixplorer.org/abs/2004A%26A...419..725C>`_, the industry
     standard for LTE stellar atmospheres that spans a wide range of L and
     T\ :sub:`eff` parameter space and a broad range of wavelengths (0.10-10.0 micron) at low
     spectral resolution (20 Ang/pix; 2x sampling of R~100 at 4000 Ang).
     Z grid spans -2.5 to +0.5 at 0.5 dex sampling. Models are computed using
-    solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://ui.adsabs.harvard.edu/abs/1998SSRv...85..161G/abstract>`_.
+    solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://scixplorer.org/abs/1998SSRv...85..161G>`_.
 
 * `Tlusty`_
     Non-LTE hot star (T\ :sub:`eff` > 15,000 K) atmosphere models (OSTAR and BSTAR) by
-    `Lanz & Hubeny (2003 <https://ui.adsabs.harvard.edu/abs/2003ApJS..146..417L/abstract>`_, `2007 <https://ui.adsabs.harvard.edu/abs/2007ApJS..169...83L/abstract>`_), using spectra computed for
+    `Lanz & Hubeny (2003 <https://scixplorer.org/abs/2003ApJS..146..417L>`_, `2007 <https://scixplorer.org/abs/2007ApJS..169...83L>`_), using spectra computed for
     Cloudy
     by Peter van Hoof at R~900 (sampled at R~1800). Z grid spans 5 pts from
     1/10-2x Solar, plus additional 4 pts from 1/1000-1/30x Solar for OSTAR
-    grid.  Models are computed using solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://ui.adsabs.harvard.edu/abs/1998SSRv...85..161G/abstract>`_.
+    grid.  Models are computed using solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://scixplorer.org/abs/1998SSRv...85..161G>`_.
 
 * BTSettl
-   * PHOENIX model atmospheres by `Allard et al. 2016 <https://ui.adsabs.harvard.edu/abs/2016sf2a.conf..223A/abstract>`_, specializing in cool star
+   * PHOENIX model atmospheres by `Allard et al. 2016 <https://scixplorer.org/abs/2016sf2a.conf..223A>`_, specializing in cool star
      atmospheres (T\ :sub:`eff` < 6000 K). Intrinsically high-res, resampled to
      2 Ang/pix grid (medres) and to match CK04 grid (lores). Models are
-     computed using solar abundances from `Asplund et al. 2009 <https://ui.adsabs.harvard.edu/abs/2009ARA%26A..47..481A/abstract>`_ (Z=0.0134).
+     computed using solar abundances from `Asplund et al. 2009 <https://scixplorer.org/abs/2009ARA%26A..47..481A>`_ (Z=0.0134).
    * Adjustable Parameter = ``medres`` (default=True): 2 Ang/pix resolution,
      or False for CK04 matched wavelength grid.
 
 * `BOSZ`_
-    Future Addition -- ATLAS9 model atmospheres computed by `Bohlin et al. 2017 <https://ui.adsabs.harvard.edu/abs/2017AJ....153..234B/abstract>`_
+    Future Addition -- ATLAS9 model atmospheres computed by `Bohlin et al. 2017 <https://scixplorer.org/abs/2017AJ....153..234B>`_
     providing enhancement to CK04 in terms of spectral resolution, wavelength
     coverage, grid density.
 

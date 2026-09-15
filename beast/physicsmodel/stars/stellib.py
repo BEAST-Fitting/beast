@@ -1679,11 +1679,11 @@ class BTSettl(Stellib):
     ----------
 
     Paper: Few refereed publications
-      Older Ref = http://adsabs.harvard.edu/abs/2000ApJ...539..366A
+      Older Ref = https://scixplorer.org/abs/2000ApJ...539..366A
 
     Conference Proceedings:
-      http://adsabs.harvard.edu/abs/2016sf2a.conf..223A
-      http://adsabs.harvard.edu/abs/2012RSPTA.370.2765A
+      https://scixplorer.org/abs/2016sf2a.conf..223A
+      https://scixplorer.org/abs/2012RSPTA.370.2765A
 
     Files used to be available at: (https)phoenix.ens-lyon.fr/Grids/BT-Settl/
 
@@ -1778,7 +1778,7 @@ class Munari(Stellib):
     ----------
 
     Paper: Munari et al. 2005 A&A 442 1127
-    http://adsabs.harvard.edu/abs/2005A%26A...442.1127M
+    https://scixplorer.org/abs/2005A%26A...442.1127M
 
     Files available at: https://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=J/A%2bA/442/1127
     """
@@ -1853,16 +1853,16 @@ class Aringer(Stellib):
     References
     ----------
 
-    Paper 2016: https://ui.adsabs.harvard.edu/abs/2016MNRAS.457.3611A/abstract
+    Paper 2016: https://scixplorer.org/abs/2016MNRAS.457.3611A
 
     Note that the 2016 paper/models *includes* an update of the C stars
     described in the following 2009 paper.
-    Paper 2009: https://ui.adsabs.harvard.edu/abs/2009A%26A...503..913A/abstract
+    Paper 2009: https://scixplorer.org/abs/2009A%26A...503..913A
 
     Note that these files will be continuously updated. A 2019 paper
     details an increase in oxygen and nitrogen abundance. The 2019
     version is currently NOT implemented here.
-    Paper 2019: https://ui.adsabs.harvard.edu/abs/2019MNRAS.487.2133A/abstract
+    Paper 2019: https://scixplorer.org/abs/2019MNRAS.487.2133A
 
     Files available at:
     http://starkey.astro.unipd.it/Cstar_atmos_models.html

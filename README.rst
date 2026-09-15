@@ -10,7 +10,7 @@ and mixing between type A and B extinction curves (fA).
 
 The full details of the BEAST are provided by
 `Gordon et al. (2016, ApJ, 826, 104)
-<https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G/abstract>`_.
+<https://scixplorer.org/abs/2016ApJ...826..104G>`_.
 
 Build Status/Checks
 -------------------
@@ -52,7 +52,7 @@ Details of installing, running, and contributing to the BEAST are at
 `<http://beast.readthedocs.io>`_.
 
 .. image:: https://img.shields.io/badge/ApJ-Gordon%20et%20al.%202016,%20ApJ,%20826,%20104-brightgreen
-    :target: https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G/abstract
+    :target: https://scixplorer.org/abs/2016ApJ...826..104G
     :alt: ApJ paper
 
 .. image:: http://img.shields.io/badge/arXiv-1606.06182-orange.svg?style=flat
@@ -76,7 +76,7 @@ Attribution
 -----------
 
 Please cite `Gordon et al. (2016, ApJ, 826, 104)
-<https://ui.adsabs.harvard.edu/abs/2016ApJ...826..104G/abstract>`_
+<https://scixplorer.org/abs/2016ApJ...826..104G>`_
 if you find this code useful in your research.
 The BibTeX entry for the paper is::
 
@@ -98,7 +98,7 @@ The BibTeX entry for the paper is::
       eid = {104},
       pages = {104},
       doi = {10.3847/0004-637X/826/2/104},
-      adsurl = {http://adsabs.harvard.edu/abs/2016ApJ...826..104G},
+      adsurl = {https://scixplorer.org/abs/2016ApJ...826..104G},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
     }
 
