@@ -51,7 +51,10 @@ General Parameters
 * ``n_subgrid``: number of sub-grids to use (1 means no subgrids), useful for when
   the physics model grid is too large to read into memory.
 * ``velocity`` : heliocentric velocity of a galaxy (e.g., -300 km/s for M31).
-* ``distances``: distance grid range parameters. ``[min, max, step]``, or ``[fixed number]``.
+* ``distances``: distance grid range parameters. ``[min, max, step]``, ``[fixed number]``,
+  or an explicit list of more than three values for a non-uniform grid (e.g. sampling
+  concentrated near the target distance). A list of exactly three values is always
+  interpreted as ``[min, max, step]``.
 * ``distance_unit``: specify magnitude (``units.mag``) or a length unit.
 * ``distance_prior_model``: specify a prior for distance parameter.
 
