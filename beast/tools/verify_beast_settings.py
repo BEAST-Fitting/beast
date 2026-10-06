@@ -206,12 +206,18 @@ def verify_input_format(settings):
     parameters_limits = parameters_base_limits + params_extra_limits
 
     for i, param_ in enumerate(parameters):
-        verify_one_input_format(
-            param_,
-            parameters_names[i],
-            param_format[i],
-            parameters_limits[i],
-        )
+        if parameters_names[i] == "fAs":
+            ext_law = getattr(settings, "extLaw", "") or ""
+            law_name = getattr(ext_law, "name", ext_law)
+            if isinstance(law_name, str) and "G23" in law_name:
+                continue
+        else:
+            verify_one_input_format(
+                param_,
+                parameters_names[i],
+                param_format[i],
+                parameters_limits[i],
+            )
 
 
 if __name__ == "__main__":  # pragma: no cover
