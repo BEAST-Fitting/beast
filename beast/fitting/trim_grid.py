@@ -6,6 +6,7 @@ from astropy.table import Table
 
 __all__ = ["trim_models"]
 
+
 def trim_models(
     sedgrid,
     sedgrid_noisemodel,
@@ -46,19 +47,19 @@ def trim_models(
     """
 
     n_models, n_filters = sedgrid.seds.shape
-    
+
     # ------------------------------------------------------------
     # Calculate flux or magnitude limits - 0.1th and 99.9th percentiles
     # This ensures that models are not being kept solely to try to fit the largest outliers.
     # ------------------------------------------------------------
-    
+
     min_data = np.empty(n_filters)
     max_data = np.empty(n_filters)
-    
+
     for k, filtername in enumerate(obsdata.filters):
         sfiltname = obsdata.filter_aliases[filtername]
         data = obsdata.data[sfiltname]
-    
+
         if inFlux:
             data_flux = data * obsdata.vega_flux[k]
         else:
@@ -99,7 +100,7 @@ def trim_models(
     #
     # Start by calculating sigma_fac for the upper and lower bounds
     # This ensures that no relevant models will be trimmed accidentally.
-    
+
     # Faint-side test uses the lower sigma factor:
     #   model + lower_sigma * uncertainty >= observed minimum (0.1th percentile)
     #
@@ -108,25 +109,32 @@ def trim_models(
     #
     # Evaluate one filter at a time to avoid full-grid temporary flux-bound arrays.
     # ------------------------------------------------------------
-    
+
     n_complete = n_compl_trim_models
     sigma_pass = np.zeros(n_complete)
 
     for k in range(n_filters):
-        flux_k = (sedgrid.seds[:, k][completeness_mask] + model_bias[:, k][completeness_mask])
+        flux_k = (
+            sedgrid.seds[:, k][completeness_mask] + model_bias[:, k][completeness_mask]
+        )
         unc_k = model_unc[:, k][completeness_mask]
 
         sigma_lower = (min_data[k] - flux_k) / unc_k
         sigma_upper = (flux_k - max_data[k]) / unc_k
 
         # Minimum sigma factor for each model to overlap this filter.
-        sigma_pass = np.maximum(sigma_pass,np.maximum(0.0, np.maximum(sigma_lower, sigma_upper)),)
+        sigma_pass = np.maximum(
+            sigma_pass,
+            np.maximum(0.0, np.maximum(sigma_lower, sigma_upper)),
+        )
 
     lower_sigma_per_filter = np.empty(n_filters)
     upper_sigma_per_filter = np.empty(n_filters)
 
     for k in range(n_filters):
-        flux_k = (sedgrid.seds[:, k][completeness_mask] + model_bias[:, k][completeness_mask])
+        flux_k = (
+            sedgrid.seds[:, k][completeness_mask] + model_bias[:, k][completeness_mask]
+        )
         unc_k = model_unc[:, k][completeness_mask]
 
         sigma_lower = np.maximum(0.0, (flux_k - min_data[k]) / unc_k)
@@ -167,7 +175,7 @@ def trim_models(
         bright_mask &= bound <= max_data[k]
 
     flux_mask = faint_mask & bright_mask
-    
+
     del faint_mask, bright_mask, bound, flux_k, unc_k
 
     n_flux_trim_models = np.count_nonzero(flux_mask)
@@ -221,4 +229,3 @@ def trim_models(
             outfile.create_array(
                 outfile.root, "icov_offdiag", model_icov_offdiag[indxs]
             )
-
