@@ -6,7 +6,7 @@ from astropy.table import Table
 
 __all__ = ["trim_models"]
 
-def trim_models_(
+def trim_models(
     sedgrid,
     sedgrid_noisemodel,
     obsdata,
