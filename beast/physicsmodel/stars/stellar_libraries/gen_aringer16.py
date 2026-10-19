@@ -102,8 +102,6 @@ if __name__ == "__main__":  # pragma: no cover
         R_Rs = 10.0 ** (
             (model_params["logg"] - 4.437 - np.log10(model_params["Mass"])) / (-2.0)
         )
-        # radius in cm
-        Reff = R_Rs * 6.957e10  # that's sun's radius in cm
 
         row = (
             Z,
@@ -161,6 +159,9 @@ if __name__ == "__main__":  # pragma: no cover
         # now extract the wave and flux columns
         mwave = mspec["Wave"]
         mflux = mspec["SFlux"]
+
+        # radius in cm
+        Reff = outtab["R_Rs"][k] * 6.957e10  # that's sun's radius in cm
 
         # spectra was in nu*L_nu [erg/s].  This conversion puts in erg/s/cm^2/AA
         mflux /= (4 * np.pi * (Reff**2.0)) / mwave
