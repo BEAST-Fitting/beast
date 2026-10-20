@@ -260,8 +260,19 @@ Observation model
 The observation model is generally based on artificial star tests (ASTs).
 ASTs are artificial sources inserted into the observations and extracted with
 the same software that was used for the observed photometry catalog.
-This ensures that the observation model has the same selection
-function as the data.
+
+The observation model uses ASTs to quantify the bias, error, and completeness of
+the photometry catalog. The bias and error are added to the SED models during
+fitting, and the completeness is used in part to trim SED models that have 
+~0 likelihood of representing any of the data. 
+
+Generating the observation model requires the addition of a "CUT_FLAG" column 
+to the AST file. The CUT_FLAG is a binary integer, defined such that:
+0 means the AST was recovered, and 
+1 means the AST was not recovered. 
+"Recovery" here should be defined using the exact same selection function as the 
+observed photometry catalog. That is, if a star would not have made it into the 
+data set you are analyzing, it should have CUT_FLAG = 1.
 
 There are 3 different flavors of observation models.
 
@@ -306,6 +317,14 @@ The physics+observation model can be trimmed of sources that are so bright or
 so faint (compared to min/max flux in the observation file) that they will
 by definition produce effectively zero likelihood fits.  Such trimming will
 speed up the fitting.
+
+The trimming uses two criteria to determine if a model has effectively zero likelihood:
+    1. Completeness: if the observation model for that SED has zero completeness,
+        it is removed.
+    2. Flux: If a model (plus bias and error) is more than some factor of the error
+        (sigma_fac) away from the actual data, it is removed. The user defines
+        a minimum sigma_fac (default=3.0), but this quantity is also calculated to
+        ensure that all relevant models are retained.
 
 The source density split sub files are organized such that the range of
 fluxes is minimized in each sub file.  This allows for trimming and faster

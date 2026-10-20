@@ -14,7 +14,6 @@ def trim_models(
     sed_outname,
     noisemodel_outname,
     sigma_fac=3.0,
-    n_detected=4,
     inFlux=True,
     trunchen=False,
 ):
@@ -38,41 +37,40 @@ def trim_models(
     noisemodel_outname : str
         name for output noisemodel file
     sigma_fac : float, optional
-        factor for trimming the upper and lower range of grid so that
+        minimum factor for trimming the upper and lower range of grid so that
         the model range cuts off sigma_fac above and below the brightest
-        and faintest models, respectively (default: 3.)
-    n_detected : int, optional
-        minimum number of bands where ASTs yielded a detection for
-        a given model, if fewer detections than n_detected this model
-        gets eliminated (default: 4)
+        and faintest models, respectively (default: 3.0)
     inFlux : bool, optional
         if true data are in fluxes (default: True)
     trunchen : bool, optional
         if true use the trunchen noise model (default: False)
     """
-    # Store the brigtest and faintest fluxes in each band (for data and asts)
-    n_filters = len(obsdata.filters)
-    min_data = np.zeros(n_filters)
-    max_data = np.zeros(n_filters)
-    min_models = np.zeros(n_filters)
-    max_models = np.zeros(n_filters)
+
+    n_models, n_filters = sedgrid.seds.shape
+
+    # ------------------------------------------------------------
+    # Calculate flux or magnitude limits - 0.1th and 99.9th percentiles
+    # This ensures that models are not being kept solely to try to fit the largest outliers.
+    # ------------------------------------------------------------
+
+    min_data = np.empty(n_filters)
+    max_data = np.empty(n_filters)
+
     for k, filtername in enumerate(obsdata.filters):
         sfiltname = obsdata.filter_aliases[filtername]
+        data = obsdata.data[sfiltname]
+
         if inFlux:
-            min_data[k] = np.amin(obsdata.data[sfiltname] * obsdata.vega_flux[k])
-            max_data[k] = np.amax(obsdata.data[sfiltname] * obsdata.vega_flux[k])
+            data_flux = data * obsdata.vega_flux[k]
         else:
-            min_data[k] = np.amin(
-                10 ** (-0.4 * obsdata.data[sfiltname]) * obsdata.vega_flux[k]
-            )
-            max_data[k] = np.amax(
-                10 ** (-0.4 * obsdata.data[sfiltname]) * obsdata.vega_flux[k]
-            )
+            data_flux = 10.0 ** (-0.4 * data) * obsdata.vega_flux[k]
 
-        min_models[k] = np.amin(sedgrid.seds[:, k])
-        max_models[k] = np.amax(sedgrid.seds[:, k])
+        min_data[k] = np.amin(data_flux)
+        max_data[k] = np.amax(data_flux)
 
-    # link to the noisemodel values
+    # ------------------------------------------------------------
+    # Import noisemodel arrays
+    # ------------------------------------------------------------
     model_bias = sedgrid_noisemodel["bias"]
     model_unc = sedgrid_noisemodel["error"]
     model_compl = sedgrid_noisemodel["completeness"]
@@ -81,43 +79,145 @@ def trim_models(
         model_icov_diag = sedgrid_noisemodel["icov_diag"]
         model_icov_offdiag = sedgrid_noisemodel["icov_offdiag"]
 
-    # has to be complete in all filters - otherwise observation model not defined
-    # toothpick model means that if compl = 0, then bias = 0, and sigma = 0 from ASTs
-    above_ast = model_compl > 0
-    sum_above_ast = np.sum(above_ast, axis=1)
-    (indxs,) = np.where(sum_above_ast >= n_filters)
-    n_ast_indxs = len(indxs)
+    # ------------------------------------------------------------
+    # Model-Trimming Criterion 1: require nonzero completeness in every filter.
+    # ------------------------------------------------------------
+    completeness_count = np.zeros(n_models, dtype=np.int8)
 
-    print("number of original models = ", len(sedgrid.seds[:, 0]))
-    print("number of ast trimmed models = ", n_ast_indxs)
-
-    if n_ast_indxs <= 0:
-        raise ValueError("no models are brighter than the minimum ASTs run")
-
-    # Find models with fluxes (with margin) between faintest and brightest data
     for k in range(n_filters):
-        print("working on filter # = ", k)
+        completeness_count += model_compl[:, k] > 0
 
-        # Get upper and lower values for the models given the noise model
-        #  sigma_fac defaults to 3.
-        model_val = sedgrid.seds[indxs, k] + model_bias[indxs, k]
-        model_down = model_val - sigma_fac * model_unc[indxs, k]
-        model_up = model_val + sigma_fac * model_unc[indxs, k]
+    completeness_mask = completeness_count >= n_filters
+    del completeness_count
 
-        # print(k, min(model_val), max(model_val), min(model_bias[indxs, k]))
+    n_compl_trim_models = np.count_nonzero(completeness_mask)
 
-        (nindxs,) = np.where((model_up >= min_data[k]) & (model_down <= max_data[k]))
-        if len(nindxs) > 0:
-            indxs = indxs[nindxs]
+    if n_compl_trim_models == 0:
+        raise ValueError("no models are complete")
 
-    if len(indxs) == 0:
+    # ------------------------------------------------------------
+    # Model-Trimming Criterion 2: trim models with fluxes outside the
+    # observed range.
+    #
+    # Automatically determine lower- and upper-side sigma factors
+    # large enough to preserve models needed to cover the observed
+    # flux range in every filter. The user-supplied sigma_fac is a
+    # minimum; the calculated factors may be larger.
+    #
+    # For each complete model, calculate how many uncertainty units
+    # separate its predicted flux (SED flux + noise-model bias) from
+    # the observed boundaries:
+    #
+    #   sigma_lower = (min_data - model_flux) / uncertainty
+    #   sigma_upper = (model_flux - max_data) / uncertainty
+    #
+    # Positive values indicate how far a model lies beyond a boundary;
+    # negative values mean it is already within that boundary. Taking
+    # the maximum across both boundaries and all filters gives the
+    # minimum sigma factor needed for each model to overlap the observed
+    # range in every filter.
+    #
+    # Then calculate the minimum lower- and upper-side sigma factors
+    # consistent with those overlap requirements. Process one filter
+    # at a time to avoid large temporary arrays and reduce memory use.
+    # ------------------------------------------------------------
+
+    n_complete = n_compl_trim_models
+    sigma_pass = np.zeros(n_complete)
+
+    for k in range(n_filters):
+        flux_k = (
+            sedgrid.seds[:, k][completeness_mask] + model_bias[:, k][completeness_mask]
+        )
+        unc_k = model_unc[:, k][completeness_mask]
+
+        # Sigma distance to each observed boundary.
+        sigma_lower = (min_data[k] - flux_k) / unc_k
+        sigma_upper = (flux_k - max_data[k]) / unc_k
+
+        # Track the largest extension needed across all filters.
+        sigma_pass = np.maximum(
+            sigma_pass,
+            np.maximum(0.0, np.maximum(sigma_lower, sigma_upper)),
+        )
+
+    lower_sigma_per_filter = np.empty(n_filters)
+    upper_sigma_per_filter = np.empty(n_filters)
+
+    for k in range(n_filters):
+        flux_k = (
+            sedgrid.seds[:, k][completeness_mask] + model_bias[:, k][completeness_mask]
+        )
+        unc_k = model_unc[:, k][completeness_mask]
+
+        # Distance to each boundary when the model is already inside
+        # the opposite side of the range; zero means no extension needed.
+        sigma_lower = np.maximum(0.0, (flux_k - min_data[k]) / unc_k)
+        sigma_upper = np.maximum(0.0, (max_data[k] - flux_k) / unc_k)
+
+        # Combine each boundary's distance with the all-filter
+        # requirement, then find the minimum valid factor per filter.
+        lower_sigma_per_filter[k] = np.min(np.maximum(sigma_pass, sigma_lower))
+        upper_sigma_per_filter[k] = np.min(np.maximum(sigma_pass, sigma_upper))
+
+    del flux_k, unc_k, sigma_lower, sigma_upper, sigma_pass
+
+    # Adopt the largest per-filter requirement on each side, with
+    # sigma_fac setting the minimum allowed value.
+    real_lower_sigma_fac = max(sigma_fac, np.max(lower_sigma_per_filter))
+    real_upper_sigma_fac = max(sigma_fac, np.max(upper_sigma_per_filter))
+
+    print(f"Lower-limit sigma_fac: {real_lower_sigma_fac:.3f}")
+    print(f"Upper-limit sigma_fac: {real_upper_sigma_fac:.3f}")
+
+    # ------------------------------------------------------------
+    # Now do the flux trimming
+    # ------------------------------------------------------------
+    faint_mask = np.ones(n_models, dtype=bool)
+    bright_mask = np.ones(n_models, dtype=bool)
+
+    for k in range(n_filters):
+        flux_k = sedgrid.seds[:, k] + model_bias[:, k]
+        unc_k = model_unc[:, k]
+
+        # Faint-side criterion
+        bound = unc_k * real_lower_sigma_fac
+        bound += flux_k
+        faint_mask &= bound >= min_data[k]
+
+        # Bright-side criterion
+        bound = unc_k * real_upper_sigma_fac
+        bound *= -1.0
+        bound += flux_k
+        bright_mask &= bound <= max_data[k]
+
+    flux_mask = faint_mask & bright_mask
+
+    del faint_mask, bright_mask, bound, flux_k, unc_k
+
+    n_flux_trim_models = np.count_nonzero(flux_mask)
+
+    # ------------------------------------------------------------
+    # Combine the two criteria
+    # ------------------------------------------------------------
+    combined_mask = completeness_mask & flux_mask
+    n_trim_models = np.count_nonzero(combined_mask)
+
+    if n_trim_models == 0:
         raise ValueError("no models that are within the data range")
 
-    print("number of original models = ", len(sedgrid.seds[:, 0]))
-    print("number of ast trimmed models = ", n_ast_indxs)
-    print("number of trimmed models = ", len(indxs))
+    # Convert the final Boolean mask to indices for saving.
+    indxs = np.flatnonzero(combined_mask)
 
+    print("number of original models =", n_models)
+    print("number of models trimmed for completeness =", n_models - n_compl_trim_models)
+    print("number of models trimmed for flux =", n_models - n_flux_trim_models)
+    print("number of remaining models =", n_trim_models)
+
+    # ------------------------------------------------------------
     # Save the grid
+    # ------------------------------------------------------------
+
     print("Writing trimmed sedgrid to disk into {0:s}".format(sed_outname))
     cols = {}
     for key in list(sedgrid.grid.keys()):
