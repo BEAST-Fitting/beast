@@ -39,7 +39,7 @@ def trim_models(
     sigma_fac : float, optional
         minimum factor for trimming the upper and lower range of grid so that
         the model range cuts off sigma_fac above and below the brightest
-        and faintest models, respectively (default: 2.0)
+        and faintest models, respectively (default: 3.0)
     inFlux : bool, optional
         if true data are in fluxes (default: True)
     trunchen : bool, optional
@@ -65,8 +65,8 @@ def trim_models(
         else:
             data_flux = 10.0 ** (-0.4 * data) * obsdata.vega_flux[k]
 
-        min_data[k] = np.percentile(data_flux, 0.1)
-        max_data[k] = np.percentile(data_flux, 99.9)
+        min_data[k] = np.amin(data_flux)
+        max_data[k] = np.amax(data_flux)
 
     # ------------------------------------------------------------
     # Import noisemodel arrays
@@ -96,18 +96,30 @@ def trim_models(
         raise ValueError("no models are complete")
 
     # ------------------------------------------------------------
-    # Model-Trimming Criterion 2: trim models that have fluxes unlike anything in the source catalog
+    # Model-Trimming Criterion 2: trim models with fluxes outside the
+    # observed range.
     #
-    # Start by calculating sigma_fac for the upper and lower bounds
-    # This ensures that no relevant models will be trimmed accidentally.
-
-    # Faint-side test uses the lower sigma factor:
-    #   model + lower_sigma * uncertainty >= observed minimum (0.1th percentile)
+    # Automatically determine lower- and upper-side sigma factors
+    # large enough to preserve models needed to cover the observed
+    # flux range in every filter. The user-supplied sigma_fac is a
+    # minimum; the calculated factors may be larger.
     #
-    # Bright-side test uses the upper sigma factor:
-    #   model - upper_sigma * uncertainty <= observed maximum (99.9th percentile)
+    # For each complete model, calculate how many uncertainty units
+    # separate its predicted flux (SED flux + noise-model bias) from
+    # the observed boundaries:
     #
-    # Evaluate one filter at a time to avoid full-grid temporary flux-bound arrays.
+    #   sigma_lower = (min_data - model_flux) / uncertainty
+    #   sigma_upper = (model_flux - max_data) / uncertainty
+    #
+    # Positive values indicate how far a model lies beyond a boundary;
+    # negative values mean it is already within that boundary. Taking
+    # the maximum across both boundaries and all filters gives the
+    # minimum sigma factor needed for each model to overlap the observed
+    # range in every filter.
+    #
+    # Then calculate the minimum lower- and upper-side sigma factors
+    # consistent with those overlap requirements. Process one filter
+    # at a time to avoid large temporary arrays and reduce memory use.
     # ------------------------------------------------------------
 
     n_complete = n_compl_trim_models
@@ -119,10 +131,11 @@ def trim_models(
         )
         unc_k = model_unc[:, k][completeness_mask]
 
+        # Sigma distance to each observed boundary.
         sigma_lower = (min_data[k] - flux_k) / unc_k
         sigma_upper = (flux_k - max_data[k]) / unc_k
 
-        # Minimum sigma factor for each model to overlap this filter.
+        # Track the largest extension needed across all filters.
         sigma_pass = np.maximum(
             sigma_pass,
             np.maximum(0.0, np.maximum(sigma_lower, sigma_upper)),
@@ -137,16 +150,20 @@ def trim_models(
         )
         unc_k = model_unc[:, k][completeness_mask]
 
+        # Distance to each boundary when the model is already inside
+        # the opposite side of the range; zero means no extension needed.
         sigma_lower = np.maximum(0.0, (flux_k - min_data[k]) / unc_k)
         sigma_upper = np.maximum(0.0, (max_data[k] - flux_k) / unc_k)
 
-        # Each candidate model must satisfy the overlap requirement
-        # in every filter, represented by sigma_pass.
+        # Combine each boundary's distance with the all-filter
+        # requirement, then find the minimum valid factor per filter.
         lower_sigma_per_filter[k] = np.min(np.maximum(sigma_pass, sigma_lower))
         upper_sigma_per_filter[k] = np.min(np.maximum(sigma_pass, sigma_upper))
 
     del flux_k, unc_k, sigma_lower, sigma_upper, sigma_pass
 
+    # Adopt the largest per-filter requirement on each side, with
+    # sigma_fac setting the minimum allowed value.
     real_lower_sigma_fac = max(sigma_fac, np.max(lower_sigma_per_filter))
     real_upper_sigma_fac = max(sigma_fac, np.max(upper_sigma_per_filter))
 
