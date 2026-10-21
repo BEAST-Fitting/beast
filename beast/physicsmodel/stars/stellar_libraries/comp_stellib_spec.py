@@ -37,7 +37,7 @@ if __name__ == "__main__":  # pragma: no cover
     pts = {"logT" : [args.logT],
            "logg" : [args.logg],
            "Z" : [args.met],
-           "logL" : [0.01]}  # dummy value
+           "logL" : [1.0]}  # dummy value
 
     spec1 = lib1.gen_spectral_grid_from_given_points(pts)
     spec2 = lib2.gen_spectral_grid_from_given_points(pts)
