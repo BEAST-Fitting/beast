@@ -26,7 +26,7 @@ The best grids are composed of the Tlusty2025, BOSZ2024, and Aringer2016 grids. 
 grids have SEDs that better sample the near- and mid-infrared than previous grids.  The
 SED extend from 500 A to 32 micron and have a spectral resolution of 2000.
 
-* `Tlusty2025 <https://stsci.box.com/v/tlustyOB2025>`_
+* `Tlusty2025 <https://stsci.app.box.com/v/tlustyOB2025>`_
     Used the tlusty non-LTE model to compute stellar atmospheres for stars
     with temperatures from 15,000 to 55,000 K for a range of gravities and metallcities
     (`Hubeny et al. 2025 <https://scixplorer.org/abs/2025AJ....169..178H/abstract>`_).
@@ -62,20 +62,20 @@ created these grids has not been captured in the BEAST repository.  These SEDs d
 cover the near- and mid-IR well and were lower resolution than the current grids.
 
 * `Kurucz <http://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs/castelli-and-kurucz-atlas>`_
-    ATLAS9 model atmospheres by `Castelli & Kurucz (2004; CK04) <https://ui.adsabs.harvard.edu/abs/2004A%26A...419..725C/abstract>`_, the industry
+    ATLAS9 model atmospheres by `Castelli & Kurucz (2004; CK04) <https://scixplorer.org/abs/2004A%26A...419..725C/abstract>`_, the industry
     standard for LTE stellar atmospheres that spans a wide range of L and
     T\ :sub:`eff` parameter space and a broad range of wavelengths (0.10-10.0 micron) at low
     spectral resolution (20 Ang/pix; 2x sampling of R~100 at 4000 Ang).
     Z grid spans -2.5 to +0.5 at 0.5 dex sampling. Models are computed using
-    solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://ui.adsabs.harvard.edu/abs/1998SSRv...85..161G/abstract>`_.
+    solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://scixplorer.org/abs/1998SSRv...85..161G/abstract>`_.
 
 * `Tlusty <http://tlusty.oca.eu/>`_
     Non-LTE hot star (T\ :sub:`eff` > 15,000 K) atmosphere models (OSTAR and BSTAR) by
-    `Lanz & Hubeny (2003 <https://ui.adsabs.harvard.edu/abs/2003ApJS..146..417L/abstract>`_, `2007 <https://ui.adsabs.harvard.edu/abs/2007ApJS..169...83L/abstract>`_), using spectra computed for
+    `Lanz & Hubeny (2003 <https://scixplorer.org/abs/2003ApJS..146..417L/abstract>`_, `2007 <https://scixplorer.org/abs/2007ApJS..169...83L/abstract>`_), using spectra computed for
     Cloudy
     by Peter van Hoof at R~900 (sampled at R~1800). Z grid spans 5 pts from
     1/10-2x Solar, plus additional 4 pts from 1/1000-1/30x Solar for OSTAR
-    grid.  Models are computed using solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://ui.adsabs.harvard.edu/abs/1998SSRv...85..161G/abstract>`_.
+    grid.  Models are computed using solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://scixplorer.org/abs/1998SSRv...85..161G/abstract>`_.
 
 
 The coverage and overlap in log(Teff) and log(g) space is shown.  Created using
