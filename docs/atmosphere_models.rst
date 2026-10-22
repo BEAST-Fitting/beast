@@ -22,7 +22,9 @@ For how to use the grids in the BEAST see :doc:`BEAST grid inputs <beast_grid_in
 Current Grids
 =============
 
-The best grids are composed of the Tlusty2025, BOSZ2024, and Aringer2016 grids.
+The best grids are composed of the Tlusty2025, BOSZ2024, and Aringer2016 grids.   These
+grids have SEDs that better sample the near- and mid-infrared than previous grids.  The
+SED extend from 500 A to 32 micron and have a spectral resolution of 2000.
 
 * `Tlusty2025 <https://stsci.box.com/v/tlustyOB2025>`_
     Used the tlusty non-LTE model to compute stellar atmospheres for stars
@@ -40,7 +42,9 @@ The best grids are composed of the Tlusty2025, BOSZ2024, and Aringer2016 grids.
     Used the hydrostatic spherical COMARCS model to compute stellar atmosphere_models
     for stars with temperatures from 2,500 to 5000 K for a range of gravities and metallicities
     (`Aringer et al. 2024 <https://scixplorer.org/abs/2016MNRAS.457.3611A/abstract>`_).
-    BEAST grid file created with `physicsmodel/stars/stellar_libraries/gen_aringer16.py`.
+    BEAST grid file created with `physicsmodel/stars/stellar_libraries/gen_aringer16.py`. 
+    For the shortest and longest wavelengths, a blackbody with the stellar temperature has
+    been used as the model has not computed the SED over the full wavelength range.
 
 The coverage and overlap in log(Teff) and log(g) space is shown.  Created using
 `physicsmodel/stars/stellar_libraries/plot_multiple_slib_coverage.py`.
@@ -53,7 +57,9 @@ Past Grids
 ==========
 
 The original main grids used in BEAST work were the original tlusty and kurucz grids.  These
-have been superceded by the newer, updated current grids descirbed above.
+have been superceded by the newer, updated current grids descirbed above.  The code that
+created these grids has not been captured in the BEAST repository.  These SEDs did not 
+cover the near- and mid-IR well and were lower resolution than the current grids.
 
 * `Kurucz <http://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs/castelli-and-kurucz-atlas>`_
     ATLAS9 model atmospheres by `Castelli & Kurucz (2004; CK04) <https://ui.adsabs.harvard.edu/abs/2004A%26A...419..725C/abstract>`_, the industry
