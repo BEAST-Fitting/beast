@@ -42,18 +42,13 @@ if __name__ == "__main__":  # pragma: no cover
     spec1 = lib1.gen_spectral_grid_from_given_points(pts)
     spec2 = lib2.gen_spectral_grid_from_given_points(pts)
 
-    if args.grid2 == "Aringer2016":
-        div2 = 1e8
-    else:
-        div2 = 1.0
-
     # plot
     plt.plot(spec1.lamb, spec1.seds[0], label=args.grid1)
-    plt.plot(spec2.lamb, spec2.seds[0] / div2, label=args.grid2)
+    plt.plot(spec2.lamb, spec2.seds[0], label=args.grid2)
     plt.yscale("log")
     plt.xscale("log")
     plt.xlabel(r"$\lambda$ [$\AA$]")
     plt.ylabel(r"$F(\lambda)$")
     plt.legend()
-    plt.title(f"log(T) = {args.logT:.2f}; log(g) = {args.logg:.2f}")
+    plt.title(f"log(T) = {args.logT:.2f}; log(g) = {args.logg:.2f}; Z = {args.met:.2f}")
     plt.show()

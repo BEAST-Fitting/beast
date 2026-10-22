@@ -40,7 +40,8 @@ Detals:
    :maxdepth: 1
 
    Graphical Models <beast_graphical_model.rst>
-   Evolutionary Models <evolutionary_models.rst>
+   Stellar Evolutionary Models <evolutionary_models.rst>
+   Stellar Atmosphere Models <atmosphere_models.rst>
    Stellar/Extinction Priors <beast_priors.rst>
    Generating AST inputs <generating_asts.rst>
    Simulating observations <simulations.rst>

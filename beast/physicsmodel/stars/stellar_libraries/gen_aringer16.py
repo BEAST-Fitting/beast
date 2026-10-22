@@ -66,7 +66,7 @@ def decode_params(filename):
     Fesun = 10.0 ** (7.56 - 12)
     Fe = 10.0 ** (Fenum - 12)
     FeH = np.round(np.log10(Fe) - np.log10(Fesun), 1)
-    model_params["Z"] = (10.0**FeH) * 0.02  # see comments above
+    model_params["Z"] = 10.0**FeH
 
     return model_params
 
@@ -163,8 +163,8 @@ if __name__ == "__main__":  # pragma: no cover
         # radius in cm
         Reff = outtab["R_Rs"][k] * 6.957e10  # that's sun's radius in cm
 
-        # spectra was in nu*L_nu [erg/s].  This conversion puts in erg/s/cm^2/AA
-        mflux /= (4 * np.pi * (Reff**2.0)) / mwave
+        # Convert nu*L_nu to flux per Angstrom at the stellar surface.
+        mflux /= (4 * np.pi * (Reff**2.0)) * mwave
 
         # rebin to R=2000 for speed, common res and wave range with BOSZ LTE models
         rbres = 2000.0
@@ -174,7 +174,7 @@ if __name__ == "__main__":  # pragma: no cover
 
         # add a scaled blackbody for the shorter and longer wavelengths that were not calculated
         bb = models.BlackBody(
-            temperature=model_params["Teff"] * u.K,
+            temperature=outtab["Teff"][k] * u.K,
             scale=1.0 * u.erg / (u.cm * u.cm * u.s * u.AA * u.sr),
         )
         modbb = bb(wave_rebin)
