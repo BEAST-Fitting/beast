@@ -1,3 +1,4 @@
+# pragma: no cover file
 from scipy.interpolate import interp1d
 import numpy as np
 

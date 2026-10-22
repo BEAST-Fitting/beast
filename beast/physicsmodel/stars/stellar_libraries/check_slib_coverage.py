@@ -1,3 +1,4 @@
+# pragma: no cover file
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt

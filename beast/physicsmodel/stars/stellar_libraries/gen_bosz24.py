@@ -1,3 +1,4 @@
+# pragma: no cover file
 import glob
 
 import numpy as np

@@ -1,3 +1,4 @@
+# pragma: no cover file
 import numpy as np
 
 from astropy.table import QTable
