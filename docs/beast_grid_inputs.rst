@@ -48,7 +48,7 @@ Choices:
 * MIST
    * The MIST models (Choi+16) are computed using MESA (Paxton+11,13,15).
    * MIST Isochrone Interpolator accessed via
-     `webform <https://waps.cfa.harvard.edu/MIST/interp_isos.html>`_ by
+     `webform <https://mist.science/interp_isos.html>`_ by
      ``ezmist`` module.
    * Options = ``rotation`` (default='vvcrit0.0'): select rotating or
      non-rotating models - alternate choice=['vvcrit0.4' for initial rotation
@@ -68,48 +68,14 @@ as static libraries obtained via :ref:`BEAST library files <library-files>`.
 Model files store spectra in flux format with units of erg/s/cm2/AA.
 
 Multiple libraries can be combined and the order defines the preference at the 
-same T\ :sub:`eff`, log g, and metallicity.  For example: ``osl = stellib.Tlusty() + stellib.Kurucz()``
-means that Tlusty models are preferred over Kurucz models for the same stellar parameters.
+same T\ :sub:`eff`, log g, and metallicity.  For example: 
+``osl = stellib.Tlusty2025() + stellib.BOSZ2024()``
+means that Tlusty2025 models are preferred over BOSZ2024 models for the same stellar parameters.
 
-Choices:
+For choices see :doc:`Stellar Atmosphere Models <atmosphere_models>`.
 
-* `Kurucz`_
-    ATLAS9 model atmospheres by `Castelli & Kurucz (2004; CK04) <https://scixplorer.org/abs/2004A%26A...419..725C>`_, the industry
-    standard for LTE stellar atmospheres that spans a wide range of L and
-    T\ :sub:`eff` parameter space and a broad range of wavelengths (0.10-10.0 micron) at low
-    spectral resolution (20 Ang/pix; 2x sampling of R~100 at 4000 Ang).
-    Z grid spans -2.5 to +0.5 at 0.5 dex sampling. Models are computed using
-    solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://scixplorer.org/abs/1998SSRv...85..161G>`_.
-
-* `Tlusty`_
-    Non-LTE hot star (T\ :sub:`eff` > 15,000 K) atmosphere models (OSTAR and BSTAR) by
-    `Lanz & Hubeny (2003 <https://scixplorer.org/abs/2003ApJS..146..417L>`_, `2007 <https://scixplorer.org/abs/2007ApJS..169...83L>`_), using spectra computed for
-    Cloudy
-    by Peter van Hoof at R~900 (sampled at R~1800). Z grid spans 5 pts from
-    1/10-2x Solar, plus additional 4 pts from 1/1000-1/30x Solar for OSTAR
-    grid.  Models are computed using solar abundances from `Grevesse & Sauval (1998; Z=0.0169) <https://scixplorer.org/abs/1998SSRv...85..161G>`_.
-
-* BTSettl
-   * PHOENIX model atmospheres by `Allard et al. 2016 <https://scixplorer.org/abs/2016sf2a.conf..223A>`_, specializing in cool star
-     atmospheres (T\ :sub:`eff` < 6000 K). Intrinsically high-res, resampled to
-     2 Ang/pix grid (medres) and to match CK04 grid (lores). Models are
-     computed using solar abundances from `Asplund et al. 2009 <https://scixplorer.org/abs/2009ARA%26A..47..481A>`_ (Z=0.0134).
-   * Adjustable Parameter = ``medres`` (default=True): 2 Ang/pix resolution,
-     or False for CK04 matched wavelength grid.
-
-* `BOSZ`_
-    Future Addition -- ATLAS9 model atmospheres computed by `Bohlin et al. 2017 <https://scixplorer.org/abs/2017AJ....153..234B>`_
-    providing enhancement to CK04 in terms of spectral resolution, wavelength
-    coverage, grid density.
-
-* `Munari`_
-    ATLAS9 model atmospheres available at higher spectral resolution than
-    CK04, but over limited wavelength range.
-
-Recommendations: Tlusty+Kurucz as default, providing non-LTE models at high
-temperatures and standard ATLAS9 models elsewhere.  BTSettl library provides
-improvement at low temperatures, while BOSZ (coming soon) or Munari provide
-higher spectral resolution if required.
+Recommendations: Tlusty2025+BOSZ2024+Aringer2016 as default.  This provides the widest
+coverage with the best models used in different temperature ranges.
 
 Dust Extinction
 =================
@@ -166,8 +132,4 @@ Choices:
      but advise use of ``dust_extinction F19`` model instead.
    * Adjustable parameters: R_V
 
- .. _TLusty: http://tlusty.oca.eu/
- .. _Munari: https://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=J/A%2bA/442/1127
- .. _Kurucz: http://www.stsci.edu/hst/instrumentation/reference-data-for-calibration-and-tools/astronomical-catalogs/castelli-and-kurucz-atlas
- .. _BOSZ: https://archive.stsci.edu/prepds/bosz/
  .. _dust_extinction: https://dust-extinction.readthedocs.io/

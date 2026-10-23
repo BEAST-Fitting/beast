@@ -40,7 +40,8 @@ Detals:
    :maxdepth: 1
 
    Graphical Models <beast_graphical_model.rst>
-   Evolutionary Models <evolutionary_models.rst>
+   Stellar Evolutionary Models <evolutionary_models.rst>
+   Stellar Atmosphere Models <atmosphere_models.rst>
    Stellar/Extinction Priors <beast_priors.rst>
    Generating AST inputs <generating_asts.rst>
    Simulating observations <simulations.rst>
@@ -79,7 +80,7 @@ Like the `Astropy <https://docs.astropy.org/>`_ project, the ``beast`` is made b
 users.  We accept contributions at all levels, spanning the gamut from fixing a
 typo in the documentation to developing a major new feature. We welcome
 contributors who will abide by the `Python Software Foundation Code of Conduct
-<https://www.python.org/psf/conduct/>`_.
+<https://policies.python.org/python.org/code-of-conduct/>`_.
 
 More details on how to contribute to the ``beast`` can be found in the Developer Documentation:
 
