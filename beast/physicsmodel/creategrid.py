@@ -318,7 +318,8 @@ def make_extinguished_grid(
     # get the min/max R(V) values necessary for the grid point definition
     min_Rv = min(rvs)
     max_Rv = max(rvs)
-    Rv_B = extLaw.BLaw.Rv  # R(V) for the SMC-like extinction curve
+    if hasattr(extLaw, "BLaw"):
+        Rv_B = extLaw.BLaw.Rv  # R(V) for the SMC-like extinction curve
 
     # Create the sampling mesh
     # ========================
@@ -410,8 +411,8 @@ def make_extinguished_grid(
                 cols["Rv"][N0 * count : N0 * (count + 1)] = Rv
                 cols["f_A"][N0 * count : N0 * (count + 1)] = f_A
                 cols["Rv_A"][N0 * count : N0 * (count + 1)] = Rv_MW
-
             else:
+                f_A = fAs
                 Av, Rv = pt
                 r = g0.applyExtinctionLaw(extLaw, Av=Av, Rv=Rv, inplace=False)
 
@@ -484,11 +485,12 @@ def make_extinguished_grid(
             cols["weight"][gvals] *= rav_gweight
             cols["grid_weight"][gvals] *= rav_gweight
 
-        fA_grid_weights = compute_grid_weights(fAs)
-        for cfA, cfA_gweight in zip(fAs, fA_grid_weights):
-            gvals = cols["f_A"] == cfA
-            cols["weight"][gvals] *= cfA_gweight
-            cols["grid_weight"][gvals] *= cfA_gweight
+        if with_fA:
+            fA_grid_weights = compute_grid_weights(fAs)
+            for cfA, cfA_gweight in zip(fAs, fA_grid_weights):
+                gvals = cols["f_A"] == cfA
+                cols["weight"][gvals] *= cfA_gweight
+                cols["grid_weight"][gvals] *= cfA_gweight
 
         # free the memory of temp_results
         # del temp_results
