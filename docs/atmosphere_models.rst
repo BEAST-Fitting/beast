@@ -38,7 +38,7 @@ SED extend from 500 A to 32 micron and have a spectral resolution of 2000.
     (`Szabolcs et al. 2024 <https://scixplorer.org/abs/2024A%26A...688A.197M/abstract>`_).
     BEAST grid file created with `physicsmodel/stars/stellar_libraries/gen_bosz24.py`.
 
-* Aringer2016
+* `Aringer2016 <https://stev.oapd.inaf.it/atm/>`_
     Used the hydrostatic spherical COMARCS model to compute stellar atmosphere_models
     for stars with temperatures from 2,500 to 5000 K for a range of gravities and metallicities
     (`Aringer et al. 2024 <https://scixplorer.org/abs/2016MNRAS.457.3611A/abstract>`_).
