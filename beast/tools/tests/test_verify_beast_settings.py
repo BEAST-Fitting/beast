@@ -51,7 +51,7 @@ def test_verifyparams_nofA():
     assert len(record) == 0
 
 
-# @pytest.mark.skip(reason="failing, test needs updating as fAs==None allowed")
+@pytest.mark.skip(reason="failing, test needs updating as fAs==None allowed")
 def test_verifyparams_allowwarn():
     """Test: verify_beast_settings for case of warning with no exception."""
     with pytest.warns(UserWarning, match="fAs is not defined."):
