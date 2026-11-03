@@ -172,7 +172,7 @@ be viewed in a web browser by pointing to files in the `htmlconv` subdirectory
 
   .. code-block:: console
 
-     $ tox -e test -- --remote-data --coverage
+     $ tox -e test -- --remote-data --cov
 
 Make sure the documentation can be created.
 
