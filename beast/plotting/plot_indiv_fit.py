@@ -45,17 +45,21 @@ def disp_str(stats, k, keyname):
 
 def plot_1dpdf(ax, pdf1d_hdu, tagname, xlabel, starnum, stats=None, logx=False):
 
-    pdf_data = pdf1d_hdu[tagname].data
+    if ("f_A" == tagname) & ("f_A_p50" not in stats.colnames):
+        pdf_data = None
+        n_bins = 0
+    else:
+        pdf_data = pdf1d_hdu[tagname].data
 
-    if pdf_data.ndim == 2:
-        pdf = pdf_data[starnum, :]
-        xvals = pdf_data[-1, :]
-        n_objects, n_bins = pdf_data.shape
-        n_objects -= 1
-    elif pdf_data.ndim == 3:
-        pdf = pdf_data[starnum, :, 0]
-        xvals = pdf_data[starnum, :, 1]
-        n_bins = np.sum(~np.isnan(xvals))
+        if pdf_data.ndim == 2:
+            pdf = pdf_data[starnum, :]
+            xvals = pdf_data[-1, :]
+            n_objects, n_bins = pdf_data.shape
+            n_objects -= 1
+        elif pdf_data.ndim == 3:
+            pdf = pdf_data[starnum, :, 0]
+            xvals = pdf_data[starnum, :, 1]
+            n_bins = np.sum(~np.isnan(xvals))
 
     ax.text(0.95, 0.95, xlabel, transform=ax.transAxes, va="top", ha="right")
 
@@ -294,6 +298,7 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
         "log(g)",
         "log(L)",
     ]
+
     startprim, stopprim = 0, nprim - 1  # 0 1 2 3
     startsec, stopsec = stopprim + 1, stopprim + nsec  # 4 5 6
     startderiv, stopderiv = stopsec + 1, stopsec + nderiv  # 7 8 9
@@ -304,28 +309,36 @@ def plot_indiv_fit(filebase, starnum=0, savefig=False, plotfig=True):
     tx = [1.14, 1.3, 1.47]
     for i in range(len(keys)):
         sed_ax.text(tx[0], ty[i], dispnames[i], ha="center", transform=sed_ax.transAxes)
-        sed_ax.text(
-            tx[1],
-            ty[i],
-            disp_str(stats, starnum, keys[i]),
-            ha="center",
-            color="m",
-            transform=sed_ax.transAxes,
-        )
-        best_val = stats[keys[i] + "_Best"][k]
-        if keys[i] in ["M_ini", "Z"]:
-            best_val = np.log10(best_val)
-        if keys[i] == "distance":
-            best_val /= 1000.0
-            dispnames[i] = dispnames[i].replace("pc", "kpc")
-        sed_ax.text(
-            tx[2],
-            ty[i],
-            "$" + "{0:.2f}".format(best_val) + "$",
-            ha="center",
-            color="c",
-            transform=sed_ax.transAxes,
-        )
+        if ("f_A" == keys[i]) & ("f_A_p50" not in stats.colnames):
+            sed_ax.text(tx[1], ty[i],
+                        "not used",
+                        ha="center",
+                        color="k",
+                        transform=sed_ax.transAxes,
+                        alpha=0.5)
+        else:
+            sed_ax.text(
+                tx[1],
+                ty[i],
+                disp_str(stats, starnum, keys[i]),
+                ha="center",
+                color="m",
+                transform=sed_ax.transAxes,
+            )
+            best_val = stats[keys[i] + "_Best"][k]
+            if keys[i] in ["M_ini", "Z"]:
+                best_val = np.log10(best_val)
+            if keys[i] == "distance":
+                best_val /= 1000.0
+                dispnames[i] = dispnames[i].replace("pc", "kpc")
+            sed_ax.text(
+                tx[2],
+                ty[i],
+                "$" + "{0:.2f}".format(best_val) + "$",
+                ha="center",
+                color="c",
+                transform=sed_ax.transAxes,
+            )
     sed_ax.text(
         tx[0], laby, "Param", ha="center", transform=sed_ax.transAxes, fontsize=10
     )
