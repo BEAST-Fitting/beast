@@ -44,13 +44,14 @@ def test_verifyparams_nowarning():
     assert len(record) == 0
 
 
-def test_verifyparams_error():
-    """Test: verify_beast_settings for case of warning raising exception."""
-    with pytest.raises(UserWarning) as exc:
+def test_verifyparams_nofA():
+    """Test: verify_beast_settings for case with fA=None (allowed)."""
+    with warnings.catch_warnings(record=True) as record:
         verify_beast_settings.verify_input_format(settings_mock_nofA())
-    assert exc.value.args[0] == "fAs is not defined."
+    assert len(record) == 0
 
 
+# @pytest.mark.skip(reason="failing, test needs updating as fAs==None allowed")
 def test_verifyparams_allowwarn():
     """Test: verify_beast_settings for case of warning with no exception."""
     with pytest.warns(UserWarning, match="fAs is not defined."):
