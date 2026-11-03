@@ -117,7 +117,7 @@ class Gordon16_RvFALaw(ExtinctionLaw):
 
                 Rv_A = 1. / (1. / (Rv * f_A) - (1. - f_A) / (f_A * Rv_B))
 
-                where Rv_B = 2.74 by definition (see G03_SMCBar)
+                where Rv_B = 2.74 for G03_SMCBar, different for other models
 
         Parameters
         ----------
@@ -133,7 +133,7 @@ class Gordon16_RvFALaw(ExtinctionLaw):
             R(V) of the A componet
         """
 
-        Rv_B = 2.74
+        Rv_B = self.BLaw.Rv
         if f_A > 0:
             return 1.0 / (1.0 / (Rv * f_A) - (1.0 - f_A) / (f_A * Rv_B))
         else:
@@ -147,7 +147,7 @@ class Gordon16_RvFALaw(ExtinctionLaw):
 
                 1 / Rv = f_A / Rv_A + (1 - f_A) / Rv_B
 
-                where Rv_B = 2.74 by definition (see G03_SMCBar)
+                where Rv_B = 2.74 for G03_SMCBar, different for other models
 
         Parameters
         ----------
@@ -163,7 +163,7 @@ class Gordon16_RvFALaw(ExtinctionLaw):
             R(V) of the mixture
         """
 
-        Rv_B = 2.74
+        Rv_B = self.BLaw.Rv
         return 1.0 / (f_A / Rv_A + (1 - f_A) / Rv_B)
 
 
