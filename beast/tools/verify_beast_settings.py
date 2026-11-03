@@ -206,12 +206,20 @@ def verify_input_format(settings):
     parameters_limits = parameters_base_limits + params_extra_limits
 
     for i, param_ in enumerate(parameters):
-        verify_one_input_format(
-            param_,
-            parameters_names[i],
-            param_format[i],
-            parameters_limits[i],
-        )
+        if (param_ is not None):
+            verify_one_input_format(
+                param_,
+                parameters_names[i],
+                param_format[i],
+                parameters_limits[i],
+            )
+        else:
+            if parameters_names[i] == "fAs":
+                print("fAs is None: extinction mixture model not requested.")
+            else:
+                raise ValueError(
+                    parameters_names[i] + " is None: please provide a value."
+                )
 
 
 if __name__ == "__main__":  # pragma: no cover

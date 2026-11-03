@@ -303,7 +303,7 @@ def compute_av_rv_fA_prior_weights(
     dists,
     av_prior_model={"name": "flat"},
     rv_prior_model={"name": "flat"},
-    fA_prior_model={"name": "flat"},
+    fA_prior_model=None,
 ):
     """
     Computes the av, rv, f_A grid and prior weights
@@ -317,20 +317,19 @@ def compute_av_rv_fA_prior_weights(
         A(V) values
     Rv : vector
         R(V) values
-    f_A : vector
-        f_A values
+    f_A : vector or None
+        f_A values (None for monolithic models like G23)
     dists : vector
         distance values
     av_prior_model : dict
         dict including prior model name and parameters
     rv_prior_model : dict
         dict including prior model name and parameters
-    fA_prior_model :dict
+    fA_prior_model : dict or None, optional
         dict including prior model name and parameters
     """
     av_prior = PriorDustModel(av_prior_model)
     rv_prior = PriorDustModel(rv_prior_model)
-    fA_prior = PriorDustModel(fA_prior_model)
     if av_prior_model["name"] == "step":
         av_weights = av_prior(np.full((len(dists)), Av), y=dists)
     else:
@@ -339,10 +338,14 @@ def compute_av_rv_fA_prior_weights(
         rv_weights = rv_prior(np.full((len(dists)), Rv), y=dists)
     else:
         rv_weights = rv_prior(Rv)
-    if fA_prior_model["name"] == "step":
-        f_A_weights = fA_prior(np.full((len(dists)), f_A), y=dists)
+    if f_A is None or fA_prior_model is None:
+        f_A_weights = 1.0
     else:
-        f_A_weights = fA_prior(f_A)
+        fA_prior = PriorDustModel(fA_prior_model)
+        if fA_prior_model["name"] == "step":
+            f_A_weights = fA_prior(np.full((len(dists)), f_A), y=dists)
+        else:
+            f_A_weights = fA_prior(f_A)
 
     dust_prior = av_weights * rv_weights * f_A_weights
 

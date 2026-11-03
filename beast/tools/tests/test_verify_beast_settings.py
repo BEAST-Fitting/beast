@@ -27,6 +27,7 @@ class settings_mock_nofA(settings_mock):
     """Mock beast_settings w/ fAs=None"""
 
     fAs = None
+    fA_prior_model = None
 
 
 class settings_mock_allowwarn(settings_mock_nofA):
