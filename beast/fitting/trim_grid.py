@@ -49,8 +49,8 @@ def trim_models(
     n_models, n_filters = sedgrid.seds.shape
 
     # ------------------------------------------------------------
-    # Calculate flux or magnitude limits - 0.1th and 99.9th percentiles
-    # This ensures that models are not being kept solely to try to fit the largest outliers.
+    # Calculate flux or magnitude limits.
+    # This ensures that all data will have models that can fit them.
     # ------------------------------------------------------------
 
     min_data = np.empty(n_filters)
