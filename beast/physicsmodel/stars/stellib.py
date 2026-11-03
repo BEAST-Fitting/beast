@@ -1601,7 +1601,7 @@ class Tlusty(Stellib):
     * **BSTAR2006 Grid**: Early B-type stars, 15000 K <= Teff <= 30000 K
             * Reference: Lanz & Hubeny (2007)
 
-    files are available at: http://tlusty.oca.eu/
+    files are available at: xxxhttp://tlusty.oca.eu/xxx (URL failing)
 
     O and B stars rebinned to nearly 20,000 frequency points (for CLOUDY usage)
     """
@@ -1783,7 +1783,8 @@ class Munari(Stellib):
     Paper: Munari et al. 2005 A&A 442 1127
     https://scixplorer.org/abs/2005A%26A...442.1127M
 
-    Files available at: https://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=J/A%2bA/442/1127
+    Files available at: xxxhttps://vizier.u-strasbg.fr/viz-bin/VizieR-3?-source=J/A%2bA/442/1127xxx
+    URL failing
     """
 
     def __init__(self, *args, **kwargs):
