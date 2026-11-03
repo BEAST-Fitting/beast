@@ -44,6 +44,38 @@ def check_grid(param, param_name, param_lim):
             raise ValueError(param_name + " step value greater than (max-min)")
 
 
+def check_distance(param, param_name, param_lim):
+    # check the distance grid, which make_spectral_grid accepts in three forms:
+    #   [fixed number]                a single distance
+    #   [min, max, step]              a uniform grid, built with np.arange
+    #   [d0, d1, ..., dn], n + 1 > 3  an explicit, possibly non-uniform grid
+    # Three values are always read as [min, max, step], so an explicit grid
+    # must carry more than three values.  Keep this in step with the parsing
+    # in beast.physicsmodel.model_grid.make_spectral_grid.
+
+    # ints are accepted alongside floats here: a distance written as [60] or
+    # [50, 70, 5] is unambiguous and works downstream, so rejecting it would
+    # break settings files that run correctly today.
+    if not all(
+        isinstance(item, (int, float)) and not isinstance(item, bool) for item in param
+    ):
+        raise TypeError(param_name + " is not in the right format - list of floats.")
+
+    if len(param) == 1:
+        verify_range(param, param_name, param_lim)
+    elif len(param) == 3:
+        check_grid(param, param_name, param_lim)
+    elif len(param) > 3:
+        verify_range(param, param_name, param_lim)
+        if len(set(param)) != len(param):
+            raise ValueError(param_name + " explicit grid has duplicate values.")
+    else:
+        raise ValueError(
+            param_name + " needs to be a single number, [min, max, step], or an"
+            " explicit list of more than three values."
+        )
+
+
 def verify_one_input_format(param, param_name, param_format, param_lim):
     """
     Test for an input parameter correctness of format and limits.
@@ -64,6 +96,18 @@ def verify_one_input_format(param, param_name, param_format, param_lim):
        None when concerns a str parameter
 
     """
+
+    if "distance" in param_format:
+        # a single distance may be given as a bare number rather than a list
+        if param is None:
+            warnings.warn(param_name + " is not defined.")
+        elif isinstance(param, (int, float)) and not isinstance(param, bool):
+            check_distance([param], param_name, param_lim)
+        elif isinstance(param, (list, tuple)):
+            check_distance(list(param), param_name, param_lim)
+        else:
+            raise TypeError(param_name + " is not in the right format - a list.")
+        return
 
     if "list" in param_format:
         if not isinstance(param, list):
@@ -140,8 +184,9 @@ def verify_input_format(settings):
         settings.avs,
         settings.rvs,
         settings.fAs,
+        getattr(settings, "distances", None),
     ]
-    parameters_names = ["z", "obsfile", "astfile", "avs", "rvs", "fAs"]
+    parameters_names = ["z", "obsfile", "astfile", "avs", "rvs", "fAs", "distances"]
     param_format = [
         "list_float",
         "str_file",
@@ -149,6 +194,7 @@ def verify_input_format(settings):
         "list_float_grid",
         "list_float_grid",
         "list_float_grid",
+        "list_float_distance",
     ]
 
     print(settings.oiso.name)
@@ -161,6 +207,7 @@ def verify_input_format(settings):
             [0.0, inf],
             [1.0, 7.0],
             [0.0, 1.0],
+            [0.0, inf],
         ]
 
         params_extra = [settings.logt]
@@ -176,6 +223,7 @@ def verify_input_format(settings):
             [0.0, inf],
             [1.0, 7.0],
             [0.0, 1.0],
+            [0.0, inf],
         ]
         params_extra = [settings.logt]
         params_extra_names = ["logt"]
@@ -190,6 +238,7 @@ def verify_input_format(settings):
             [0.0, inf],
             [1.0, 7.0],
             [0.0, 1.0],
+            [0.0, inf],
         ]
 
         params_extra = [settings.logmass]
